@@ -1,0 +1,282 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  GRACE Requirements Document
+  Product: KrotVPN - Commercial VPN Service with AmneziaWG
+  Version: 1.0.0
+-->
+<requirements>
+  <meta>
+    <project-name>KrotVPN</project-name>
+    <version>1.0.0</version>
+    <created>2026-03-20</created>
+    <status>draft</status>
+  </meta>
+
+  <product-vision>
+    <title>KrotVPN - Commercial VPN Service</title>
+    <description>
+      Коммерческий VPN-сервис на базе AmneziaWG протокола для обхода 
+      блокировок Роскомнадзора. Предоставляет пользователям из России 
+      доступ к заблокированным ресурсам через обфусцированные туннели.
+    </description>
+    <target-audience>
+      Пользователи из России, нуждающиеся в надежном доступе к 
+      заблокированным ресурсам: YouTube, Instagram, Twitter/X, 
+      независимые СМИ, корпоративные сервисы.
+    </target-audience>
+    <unique-value>
+      AmneziaWG протокол с обфускацией, не детектируемый системами DPI.
+      Split-tunneling для российского трафика напрямую.
+    </unique-value>
+  </product-vision>
+
+  <use-cases>
+    <!-- User Use Cases -->
+    <use-case id="UC-001" actor="user" priority="critical">
+      <title>Регистрация нового пользователя</title>
+      <description>
+        Пользователь создает аккаунт через email или Telegram.
+        Получает пробный период 3 дня.
+      </description>
+      <acceptance-criteria>
+        Регистрация по email с подтверждением
+        Регистрация через Telegram OAuth
+        Автоматическое создание VPN конфига
+        Пробный период активируется сразу
+      </acceptance-criteria>
+    </use-case>
+
+    <use-case id="UC-002" actor="user" priority="critical">
+      <title>Покупка подписки</title>
+      <description>
+        Пользователь выбирает тариф и оплачивает через ЮKassa/Tinkoff.
+        Поддержка разовых платежей и рекуррентных подписок.
+      </description>
+      <acceptance-criteria>
+        Отображение доступных тарифов
+        Интеграция с платежными системами
+        Автоматическое продление доступа
+        История платежей в личном кабинете
+      </acceptance-criteria>
+    </use-case>
+
+    <use-case id="UC-003" actor="user" priority="critical">
+      <title>Скачивание VPN конфигурации</title>
+      <description>
+        Пользователь скачивает .conf файл или сканирует QR-код 
+        для настройки VPN клиента.
+      </description>
+      <acceptance-criteria>
+        Генерация QR-кода для мобильных
+        Скачивание .conf файла для desktop
+        Инструкции по настройке для разных платформ
+        Автоматическая генерация при первой покупке
+      </acceptance-criteria>
+    </use-case>
+
+    <use-case id="UC-004" actor="user" priority="high">
+      <title>Просмотр статистики использования</title>
+      <description>
+        Пользователь видит свой трафик, время использования, 
+        статус подписки.
+      </description>
+      <acceptance-criteria>
+        Отображение upload/download трафика
+        Визуализация использования по дням
+        Статус и остаток подписки
+        История подключений
+      </acceptance-criteria>
+    </use-case>
+
+    <use-case id="UC-005" actor="user" priority="medium">
+      <title>Участие в реферальной программе</title>
+      <description>
+        Пользователь приглашает друзей и получает бонусы.
+      </description>
+      <acceptance-criteria>
+        Генерация реферальной ссылки
+        Начисление бонусов за приглашенных
+        Отслеживание приглашенных пользователей
+        Использование бонусов для оплаты
+      </acceptance-criteria>
+    </use-case>
+
+    <!-- Admin Use Cases -->
+    <use-case id="UC-006" actor="admin" priority="critical">
+      <title>Управление пользователями</title>
+      <description>
+        Администратор просматривает, блокирует, управляет 
+        пользователями и их подписками.
+      </description>
+      <acceptance-criteria>
+        Список всех пользователей с фильтрами
+        Блокировка/разблокировка пользователей
+        Ручное продление подписки
+        Просмотр детальной информации
+      </acceptance-criteria>
+    </use-case>
+
+    <use-case id="UC-007" actor="admin" priority="critical">
+      <title>Управление тарифами</title>
+      <description>
+        Создание и редактирование тарифных планов.
+      </description>
+      <acceptance-criteria>
+        CRUD операции с тарифами
+        Настройка цен и сроков
+        Активация/деактивация тарифов
+        Привязка к платежным системам
+      </acceptance-criteria>
+    </use-case>
+
+    <use-case id="UC-008" actor="admin" priority="high">
+      <title>Просмотр аналитики</title>
+      <description>
+        Дашборд с метриками бизнеса: выручка, пользователи, 
+        конверсия.
+      </description>
+      <acceptance-criteria>
+        Общая выручка по периодам
+        Количество новых пользователей
+        MRR/ARR метрики
+        Конверсия из триала в платного
+      </acceptance-criteria>
+    </use-case>
+
+    <use-case id="UC-009" actor="admin" priority="high">
+      <title>Управление серверами</title>
+      <description>
+        Добавление и мониторинг VPN серверов.
+      </description>
+      <acceptance-criteria>
+        Добавление новых серверов
+        Мониторинг нагрузки
+        Статус серверов (online/offline)
+        Балансировка пользователей
+      </acceptance-criteria>
+    </use-case>
+
+    <use-case id="UC-010" actor="system" priority="critical">
+      <title>Автоматическое управление подписками</title>
+      <description>
+        Система автоматически продлевает/отключает доступ 
+        по подпискам.
+      </description>
+      <acceptance-criteria>
+        Проверка истечения подписок каждый час
+        Отключение доступа при истечении
+        Уведомления об окончании срока
+        Обработка рекуррентных платежей
+      </acceptance-criteria>
+    </use-case>
+  </use-cases>
+
+  <functional-requirements>
+    <requirement id="FR-001" priority="critical">
+      <title>AmneziaWG Integration</title>
+      <description>
+        Интеграция с AmneziaWG для создания и управления 
+        VPN туннелями. Параметры обфускации: Jc, Jmin, Jmax, S1, S2, H1-H4.
+      </description>
+      <source>legacy-project</source>
+    </requirement>
+
+    <requirement id="FR-002" priority="critical">
+      <title>Split Tunneling</title>
+      <description>
+        Российский трафик идет напрямую, остальной через VPN туннель.
+        Использование ipset для списка IP России.
+      </description>
+      <source>legacy-project</source>
+    </requirement>
+
+    <requirement id="FR-003" priority="critical">
+      <title>Payment Integration</title>
+      <description>
+        Интеграция с ЮKassa и Tinkoff для приема платежей.
+        Поддержка рекуррентных платежей.
+      </description>
+    </requirement>
+
+    <requirement id="FR-004" priority="high">
+      <title>Telegram Bot</title>
+      <description>
+        Бот для уведомлений, регистрации и базового управления.
+      </description>
+    </requirement>
+
+    <requirement id="FR-005" priority="high">
+      <title>Multi-language Support</title>
+      <description>
+        Интерфейс на русском и английском языках.
+      </description>
+    </requirement>
+
+    <requirement id="FR-006" priority="high">
+      <title>PWA Support</title>
+      <description>
+        Progressive Web App для установки на мобильные устройства.
+      </description>
+    </requirement>
+
+    <requirement id="FR-007" priority="medium">
+      <title>Referral System</title>
+      <description>
+        Реферальная программа с бонусами за приглашения.
+      </description>
+    </requirement>
+
+    <requirement id="FR-008" priority="medium">
+      <title>Email Notifications</title>
+      <description>
+        Уведомления о регистрации, оплате, окончании подписки.
+      </description>
+    </requirement>
+  </functional-requirements>
+
+  <non-functional-requirements>
+    <requirement id="NFR-001" category="performance">
+      <title>Response Time</title>
+      <description>API должен отвечать за &lt;200ms для 95% запросов</description>
+      <metric>p95 latency &lt; 200ms</metric>
+    </requirement>
+
+    <requirement id="NFR-002" category="scalability">
+      <title>Concurrent Users</title>
+      <description>Поддержка до 10,000 одновременных VPN подключений</description>
+      <metric>10k concurrent connections</metric>
+    </requirement>
+
+    <requirement id="NFR-003" category="security">
+      <title>Data Encryption</title>
+      <description>Все чувствительные данные зашифрованы в БД</description>
+      <metric>AES-256 encryption</metric>
+    </requirement>
+
+    <requirement id="NFR-004" category="availability">
+      <title>Uptime</title>
+      <description>Доступность сервиса 99.9%</description>
+      <metric>99.9% uptime SLA</metric>
+    </requirement>
+
+    <requirement id="NFR-005" category="security">
+      <title>Authentication</title>
+      <description>JWT токены с refresh, 2FA опционально</description>
+    </requirement>
+  </non-functional-requirements>
+
+  <constraints>
+    <constraint id="C-001">
+      Протокол AmneziaWG должен остаться без изменений (legacy requirement)
+    </constraint>
+    <constraint id="C-002">
+      Двухуровневая архитектура: RU-сервер (точка входа) + DE-сервер (exit node)
+    </constraint>
+    <constraint id="C-003">
+      Платежные системы должны работать с российскими картами
+    </constraint>
+    <constraint id="C-004">
+      Серверы должны быть на Ubuntu 20.04/22.04
+    </constraint>
+  </constraints>
+</requirements>

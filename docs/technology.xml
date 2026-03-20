@@ -1,0 +1,251 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  GRACE Technology Document
+  Product: KrotVPN
+  Version: 1.0.0
+-->
+<technology>
+  <meta>
+    <project-name>KrotVPN</project-name>
+    <version>1.0.0</version>
+    <created>2026-03-20</created>
+  </meta>
+
+  <runtime>
+    <backend>
+      <language>Python 3.11+</language>
+      <framework>FastAPI 0.109+</framework>
+      <async-runtime>uvicorn with uvloop</async-runtime>
+      <description>
+        Асинхронный REST API с автоматической документацией OpenAPI.
+        Высокая производительность и удобная разработка.
+      </description>
+    </backend>
+
+    <frontend>
+      <framework>React 18</framework>
+      <build-tool>Vite 5</build-tool>
+      <styling>TailwindCSS 3</styling>
+      <state>Zustand</state>
+      <routing>React Router 6</routing>
+      <description>
+        Современный SPA с PWA поддержкой. Быстрая сборка через Vite.
+        TailwindCSS для стилизации, Zustand для state management.
+      </description>
+    </frontend>
+
+    <telegram-bot>
+      <library>python-telegram-bot 21+</library>
+      <description>
+        Асинхронный Telegram бот для уведомлений и управления.
+      </description>
+    </telegram-bot>
+  </runtime>
+
+  <data-storage>
+    <primary-database>
+      <engine>PostgreSQL 15</engine>
+      <orm>SQLModel / SQLAlchemy 2.0</orm>
+      <migrations>Alembic</migrations>
+      <description>
+        Основная БД для пользователей, подписок, платежей.
+        SQLModel объединяет Pydantic и SQLAlchemy.
+      </description>
+    </primary-database>
+
+    <cache>
+      <engine>Redis 7</engine>
+      <use-cases>
+        Сессии пользователей
+        Кэширование API ответов
+        Rate limiting
+        Очереди задач
+      </use-cases>
+    </cache>
+
+    <vpn-configs>
+      <storage>Filesystem + Database</storage>
+      <path>/etc/amnezia/amneziawg/</path>
+      <description>
+        Конфиги AmneziaWG хранятся в файловой системе,
+        метаданные в БД.
+      </description>
+    </vpn-configs>
+  </data-storage>
+
+  <infrastructure>
+    <containerization>
+      <tool>Docker + Docker Compose</tool>
+      <description>
+        Контейнеризация всех сервисов для простого деплоя.
+      </description>
+    </containerization>
+
+    <web-server>
+      <tool>Nginx</tool>
+      <use-cases>
+        Reverse proxy
+        SSL termination
+        Static files serving
+        Rate limiting
+      </use-cases>
+    </web-server>
+
+    <process-manager>
+      <tool>Systemd</tool>
+      <description>
+        Управление сервисами на сервере.
+      </description>
+    </process-manager>
+
+    <vpn-layer>
+      <protocol>AmneziaWG</protocol>
+      <package>amneziawg amneziawg-tools</package>
+      <repository>ppa:amnezia/ppa</repository>
+      <description>
+        Модифицированный WireGuard с обфускацией.
+        Параметры: Jc, Jmin, Jmax, S1, S2, H1-H4.
+      </description>
+    </vpn-layer>
+
+    <networking>
+      <split-tunneling>iptables + ipset</split-tunneling>
+      <ru-ipset-source>ipverse/rir-ip</ru-ipset-source>
+      <description>
+        Split-tunneling через iptables маркировку пакетов.
+        Российские IP направляются напрямую.
+      </description>
+    </networking>
+  </infrastructure>
+
+  <integrations>
+    <payment-yookassa>
+      <api-version>3.0</api-version>
+      <library>yookassa (Python SDK)</library>
+      <features>
+        Разовые платежи
+        Рекуррентные платежи
+        Возвраты
+        Webhooks
+      </features>
+    </payment-yookassa>
+
+    <payment-tinkoff>
+      <api-version>v2</api-version>
+      <library>tinkoff-business (custom)</library>
+      <features>
+        Разовые платежи
+        Рекуррентные платежи
+      </features>
+    </payment-tinkoff>
+
+    <email>
+      <service>SMTP / SendGrid / Postmark</service>
+      <library>fastapi-mail</library>
+      <templates>Jinja2</templates>
+    </email>
+
+    <telegram>
+      <auth>Telegram Login Widget</auth>
+      <bot-api>Bot API 7.0+</bot-api>
+    </telegram>
+  </integrations>
+
+  <security>
+    <authentication>
+      <method>JWT + Refresh Tokens</method>
+      <library>python-jose</library>
+      <token-lifetime>Access: 15min, Refresh: 7d</token-lifetime>
+      <hashing>bcrypt via passlib</hashing>
+    </authentication>
+
+    <authorization>
+      <method>Role-based (RBAC)</method>
+      <roles>user, admin, superadmin</roles>
+    </authorization>
+
+    <api-security>
+      <rate-limiting>slowapi</rate-limiting>
+      <cors>FastAPI CORS middleware</cors>
+      <validation>Pydantic v2</validation>
+    </api-security>
+
+    <data-protection>
+      <encryption-at-rest>Fernet (AES-128)</encryption-at-rest>
+      <sensitive-fields>private_keys, payment_tokens</sensitive-fields>
+      <secrets-management>Environment variables</secrets-management>
+    </data-protection>
+  </security>
+
+  <observability>
+    <logging>
+      <library>loguru</library>
+      <format>JSON structured logs</format>
+      <output>stdout + file rotation</output>
+    </logging>
+
+    <monitoring>
+      <metrics>Prometheus + Grafana (optional)</metrics>
+      <health-checks>/health endpoint</health-checks>
+      <uptime-monitoring>UptimeRobot / Better Stack</uptime-monitoring>
+    </monitoring>
+
+    <error-tracking>
+      <tool>Sentry (optional)</tool>
+    </error-tracking>
+  </observability>
+
+  <testing>
+    <backend-testing>
+      <framework>pytest + pytest-asyncio</framework>
+      <coverage>pytest-cov</coverage>
+      <mocking>pytest-mock + respx (HTTP)</mocking>
+      <target-coverage>80%</target-coverage>
+    </backend-testing>
+
+    <frontend-testing>
+      <unit>Vitest</unit>
+      <e2e>Playwright</e2e>
+      <component>React Testing Library</component>
+    </frontend-testing>
+
+    <integration-testing>
+      <tool>Testcontainers (PostgreSQL, Redis)</tool>
+      <description>
+        Интеграционные тесты с реальными зависимостями в Docker.
+      </description>
+    </integration-testing>
+  </testing>
+
+  <development-tools>
+    <package-manager>
+      <backend>pip + requirements.txt / Poetry</backend>
+      <frontend>npm / pnpm</frontend>
+    </package-manager>
+
+    <code-quality>
+      <python>ruff, mypy, black</python>
+      <typescript>ESLint, Prettier</typescript>
+    </code-quality>
+
+    <version-control>
+      <tool>Git</tool>
+      <workflow>GitHub Flow</workflow>
+    </version-control>
+  </development-tools>
+
+  <constraints>
+    <constraint>
+      Python 3.11+ для backend (match statements, performance)
+    </constraint>
+    <constraint>
+      PostgreSQL для production (SQLite только для development)
+    </constraint>
+    <constraint>
+      Все API должны быть асинхронными (async/await)
+    </constraint>
+    <constraint>
+      PWA должен работать offline для просмотра конфигов
+    </constraint>
+  </constraints>
+</technology>

@@ -1,0 +1,40 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+body {
+  font-family: 'Inter', sans-serif;
+  background: #0f111a;
+  color: white;
+}
+
+.glass {
+  background: rgba(30, 41, 59, 0.5);
+  backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 16px;
+}
+
+.btn-primary {
+  @apply bg-primary-500 hover:bg-primary-600 text-white px-4 py-2 rounded-lg transition;
+}
+
+.btn-secondary {
+  @apply bg-dark-700 hover:bg-dark-600 text-white px-4 py-2 rounded-lg border border-dark-600 transition;
+}
+
+.input {
+  @apply w-full bg-dark-800 border border-dark-600 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-primary-500;
+}
+
+.stat-card {
+  @apply glass p-6;
+}
+
+.stat-value {
+  @apply text-3xl font-bold;
+}
+
+.stat-label {
+  @apply text-sm text-gray-400 mt-1;
+}

@@ -1,0 +1,353 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  GRACE Verification Plan
+  Product: KrotVPN
+  Version: 1.0.0
+-->
+<verification-plan>
+  <meta>
+    <project-name>KrotVPN</project-name>
+    <version>1.0.0</version>
+    <created>2026-03-20</created>
+  </meta>
+
+  <testing-strategy>
+    <approach>Test Pyramid</approach>
+    <description>
+      Большое количество unit тестов, меньше интеграционных,
+      еще меньше E2E тестов. Фокус на критических бизнес-процессах.
+    </description>
+    <target-coverage>
+      Unit: 80%+ coverage
+      Integration: Critical paths
+      E2E: Happy paths for main flows
+    </target-coverage>
+  </testing-strategy>
+
+  <test-suites>
+    <!-- Backend Unit Tests -->
+    <suite id="TS-001" module="M-001" type="unit">
+      <name>backend-core-tests</name>
+      <path>backend/tests/test_core</path>
+      <tests>
+        <test id="T-001">
+          <name>test_password_hashing</name>
+          <description>Verify bcrypt password hashing works correctly</description>
+          <marker>CORE_SECURITY</marker>
+        </test>
+        <test id="T-002">
+          <name>test_jwt_token_generation</name>
+          <description>Verify JWT tokens are generated with correct claims</description>
+          <marker>CORE_SECURITY</marker>
+        </test>
+        <test id="T-003">
+          <name>test_jwt_token_validation</name>
+          <description>Verify JWT tokens are validated correctly</description>
+          <marker>CORE_SECURITY</marker>
+        </test>
+        <test id="T-004">
+          <name>test_jwt_token_expiry</name>
+          <description>Verify expired tokens are rejected</description>
+          <marker>CORE_SECURITY</marker>
+        </test>
+        <test id="T-005">
+          <name>test_config_loading</name>
+          <description>Verify configuration is loaded from environment</description>
+          <marker>CORE_CONFIG</marker>
+        </test>
+      </tests>
+    </suite>
+
+    <!-- User Module Tests -->
+    <suite id="TS-002" module="M-002" type="unit">
+      <name>users-tests</name>
+      <path>backend/tests/test_users</path>
+      <tests>
+        <test id="T-010">
+          <name>test_user_creation</name>
+          <description>Create user with valid data</description>
+          <marker>USER_CRUD</marker>
+        </test>
+        <test id="T-011">
+          <name>test_user_email_unique</name>
+          <description>Reject duplicate email addresses</description>
+          <marker>USER_CRUD</marker>
+        </test>
+        <test id="T-012">
+          <name>test_user_authentication_valid</name>
+          <description>Authenticate with correct credentials</description>
+          <marker>USER_AUTH</marker>
+        </test>
+        <test id="T-013">
+          <name>test_user_authentication_invalid</name>
+          <description>Reject invalid credentials</description>
+          <marker>USER_AUTH</marker>
+        </test>
+        <test id="T-014">
+          <name>test_telegram_oauth</name>
+          <description>Verify Telegram OAuth flow</description>
+          <marker>USER_AUTH</marker>
+        </test>
+      </tests>
+    </suite>
+
+    <!-- VPN Module Tests -->
+    <suite id="TS-003" module="M-003" type="unit">
+      <name>vpn-tests</name>
+      <path>backend/tests/test_vpn</path>
+      <tests>
+        <test id="T-020">
+          <name>test_keypair_generation</name>
+          <description>Generate valid AmneziaWG keypair</description>
+          <marker>VPN_KEYS</marker>
+        </test>
+        <test id="T-021">
+          <name>test_config_generation</name>
+          <description>Generate valid client config with obfuscation params</description>
+          <marker>VPN_CONFIG</marker>
+        </test>
+        <test id="T-022">
+          <name>test_config_obfuscation_params</name>
+          <description>Verify all obfuscation params are included</description>
+          <marker>VPN_CONFIG</marker>
+          <critical>true</critical>
+        </test>
+        <test id="T-023">
+          <name>test_peer_add</name>
+          <description>Add peer to AmneziaWG interface</description>
+          <marker>VPN_PEER</marker>
+        </test>
+        <test id="T-024">
+          <name>test_peer_remove</name>
+          <description>Remove peer from AmneziaWG interface</description>
+          <marker>VPN_PEER</marker>
+        </test>
+        <test id="T-025">
+          <name>test_qr_generation</name>
+          <description>Generate QR code from config</description>
+          <marker>VPN_CONFIG</marker>
+        </test>
+      </tests>
+    </suite>
+
+    <!-- Billing Module Tests -->
+    <suite id="TS-004" module="M-004" type="unit">
+      <name>billing-tests</name>
+      <path>backend/tests/test_billing</path>
+      <tests>
+        <test id="T-030">
+          <name>test_plan_creation</name>
+          <description>Create subscription plan</description>
+          <marker>BILLING_PLAN</marker>
+        </test>
+        <test id="T-031">
+          <name>test_subscription_creation</name>
+          <description>Create subscription for user</description>
+          <marker>BILLING_SUB</marker>
+        </test>
+        <test id="T-032">
+          <name>test_subscription_expiry</name>
+          <description>Check subscription expiry logic</description>
+          <marker>BILLING_SUB</marker>
+        </test>
+        <test id="T-033">
+          <name>test_yookassa_payment_creation</name>
+          <description>Create payment in YooKassa sandbox</description>
+          <marker>BILLING_PAYMENT</marker>
+        </test>
+        <test id="T-034">
+          <name>test_yookassa_webhook</name>
+          <description>Process YooKassa webhook</description>
+          <marker>BILLING_PAYMENT</marker>
+        </test>
+        <test id="T-035">
+          <name>test_trial_subscription</name>
+          <description>Create trial subscription for new user</description>
+          <marker>BILLING_SUB</marker>
+        </test>
+      </tests>
+    </suite>
+
+    <!-- Integration Tests -->
+    <suite id="TS-010" type="integration">
+      <name>integration-tests</name>
+      <path>backend/tests/integration</path>
+      <tests>
+        <test id="T-100">
+          <name>test_registration_flow</name>
+          <description>Complete user registration flow</description>
+          <flow-ref>F-001</flow-ref>
+          <marker>INTEGRATION</marker>
+        </test>
+        <test id="T-101">
+          <name>test_payment_flow</name>
+          <description>Complete payment flow with mock</description>
+          <flow-ref>F-002</flow-ref>
+          <marker>INTEGRATION</marker>
+        </test>
+        <test id="T-102">
+          <name>test_vpn_provisioning</name>
+          <description>VPN config created on subscription</description>
+          <marker>INTEGRATION</marker>
+        </test>
+        <test id="T-103">
+          <name>test_subscription_expiry_disables_vpn</name>
+          <description>VPN access disabled when subscription expires</description>
+          <marker>INTEGRATION</marker>
+          <critical>true</critical>
+        </test>
+      </tests>
+    </suite>
+
+    <!-- API Tests -->
+    <suite id="TS-011" type="api">
+      <name>api-tests</name>
+      <path>backend/tests/api</path>
+      <tests>
+        <test id="T-200">
+          <name>test_api_health</name>
+          <endpoint>GET /health</endpoint>
+          <expected>200 OK</expected>
+        </test>
+        <test id="T-201">
+          <name>test_api_register</name>
+          <endpoint>POST /api/auth/register</endpoint>
+          <expected>201 Created</expected>
+        </test>
+        <test id="T-202">
+          <name>test_api_login</name>
+          <endpoint>POST /api/auth/login</endpoint>
+          <expected>200 OK with token</expected>
+        </test>
+        <test id="T-203">
+          <name>test_api_protected_without_token</name>
+          <endpoint>GET /api/users/me</endpoint>
+          <headers>none</headers>
+          <expected>401 Unauthorized</expected>
+        </test>
+        <test id="T-204">
+          <name>test_api_protected_with_token</name>
+          <endpoint>GET /api/users/me</endpoint>
+          <headers>Authorization: Bearer {token}</headers>
+          <expected>200 OK</expected>
+        </test>
+        <test id="T-205">
+          <name>test_api_rate_limiting</name>
+          <endpoint>POST /api/auth/login</endpoint>
+          <description>Request same endpoint 10 times rapidly</description>
+          <expected>429 Too Many Requests after limit</expected>
+        </test>
+      </tests>
+    </suite>
+
+    <!-- Frontend Tests -->
+    <suite id="TS-020" type="e2e">
+      <name>e2e-tests</name>
+      <path>frontend/e2e</path>
+      <tests>
+        <test id="T-300">
+          <name>test_user_can_register</name>
+          <description>User registers and sees dashboard</description>
+          <flow-ref>F-001</flow-ref>
+        </test>
+        <test id="T-301">
+          <name>test_user_can_login</name>
+          <description>User logs in and sees dashboard</description>
+        </test>
+        <test id="T-302">
+          <name>test_user_can_download_config</name>
+          <description>User downloads VPN config file</description>
+        </test>
+        <test id="T-303">
+          <name>test_user_can_scan_qr</name>
+          <description>QR code is displayed and valid</description>
+        </test>
+        <test id="T-304">
+          <name>test_user_can_view_plans</name>
+          <description>Plans page shows available options</description>
+        </test>
+        <test id="T-305">
+          <name>test_i18n_switching</name>
+          <description>Language can be switched RU/EN</description>
+        </test>
+      </tests>
+    </suite>
+  </test-suites>
+
+  <log-markers>
+    <marker id="LM-001">
+      <pattern>\[AUTH\]</pattern>
+      <description>Authentication events</description>
+      <level>INFO</level>
+    </marker>
+    <marker id="LM-002">
+      <pattern>\[PAYMENT\]</pattern>
+      <description>Payment processing events</description>
+      <level>INFO</level>
+    </marker>
+    <marker id="LM-003">
+      <pattern>\[VPN\]</pattern>
+      <description>VPN configuration events</description>
+      <level>INFO</level>
+    </marker>
+    <marker id="LM-004">
+      <pattern>\[SUBSCRIPTION\]</pattern>
+      <description>Subscription lifecycle events</description>
+      <level>INFO</level>
+    </marker>
+    <marker id="LM-005">
+      <pattern>\[ERROR\]</pattern>
+      <description>Error events</description>
+      <level>ERROR</level>
+    </marker>
+  </log-markers>
+
+  <verification-gates>
+    <gate id="VG-001" phase="P-1">
+      <name>Foundation Gate</name>
+      <criteria>
+        All core unit tests pass
+        Database migrations work
+        JWT authentication functional
+      </criteria>
+      <blocking>true</blocking>
+    </gate>
+    <gate id="VG-002" phase="P-2">
+      <name>VPN Core Gate</name>
+      <criteria>
+        AmneziaWG integration tests pass
+        Config generation verified
+        Split-tunneling functional
+      </criteria>
+      <blocking>true</blocking>
+    </gate>
+    <gate id="VG-003" phase="P-3">
+      <name>Billing Gate</name>
+      <criteria>
+        YooKassa sandbox payments work
+        Webhooks processed correctly
+        Subscription lifecycle verified
+      </criteria>
+      <blocking>true</blocking>
+    </gate>
+    <gate id="VG-004" phase="P-4">
+      <name>Frontend Gate</name>
+      <criteria>
+        Build succeeds
+        PWA installs correctly
+        Critical E2E tests pass
+      </criteria>
+      <blocking>true</blocking>
+    </gate>
+    <gate id="VG-005" phase="release">
+      <name>Release Gate</name>
+      <criteria>
+        All test suites pass
+        Coverage >= 80%
+        No critical bugs
+        Documentation complete
+      </criteria>
+      <blocking>true</blocking>
+    </gate>
+  </verification-gates>
+</verification-plan>
