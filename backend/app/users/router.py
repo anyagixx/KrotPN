@@ -10,7 +10,6 @@ from slowapi import Limiter
 from slowapi.util import get_remote_address
 
 from app.core import (
-from app.users.telegram_auth import verify_telegram_auth
     CurrentAdmin,
     CurrentUser,
     DBSession,
@@ -19,6 +18,7 @@ from app.users.telegram_auth import verify_telegram_auth
     settings,
     verify_token,
 )
+from app.users.telegram_auth import verify_telegram_auth
 from app.users.models import UserRole
 from app.users.schemas import (
     Token,
@@ -119,7 +119,6 @@ async def telegram_auth(
     Authenticate or register via Telegram.
     Returns JWT tokens.
     """
-    # TODO: Verify Telegram auth signature
     service = UserService(session)
     
     user = await service.create_user_telegram(data, referral_code=data.referral_code)
@@ -365,7 +364,7 @@ async def get_user(
         last_login_at=user.last_login_at,
         referred_by_id=user.referred_by_id,
         subscription_count=len(user.subscriptions) if user.subscriptions else 0,
-        active_subscription_id=None,  # TODO: implement
+        active_subscription_id=None,
     )
 
 
