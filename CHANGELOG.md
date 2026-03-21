@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2.1.1] - 2026-03-21
+
+### Fixed
+- **CRITICAL**: Fixed interactive input when running via `curl | bash`
+  - Changed `read` to `read < /dev/tty` to read from terminal instead of pipe
+- Fixed ASCII art banner - now correctly shows "KROTVPN" instead of garbled text
+
 ## [2.1.0] - 2026-03-21
 
 ### Added
