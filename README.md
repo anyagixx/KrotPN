@@ -2,7 +2,7 @@
 
 **Коммерческий VPN-сервис с обфускацией AmneziaWG и split-tunneling**
 
-![Version](https://img.shields.io/badge/version-1.0.0-blue)
+![Version](https://img.shields.io/badge/version-2.1.0-blue)
 ![Python](https://img.shields.io/badge/python-3.11-green)
 ![React](https://img.shields.io/badge/react-18-blue)
 ![License](https://img.shields.io/badge/license-MIT-green)
@@ -11,22 +11,25 @@
 
 - **AmneziaWG** - обфусцированный WireGuard протокол для обхода DPI
 - **Split-Tunneling** - российские сайты открываются напрямую
+- **HTTPS** - самоподписанные SSL сертификаты для безопасности
 - **Двухуровневая архитектура** - RU Entry Node + DE Exit Node
 - **Коммерческая модель** - подписки, триалы, реферальная программа
 - **Telegram Bot** - управление через Telegram
 - **PWA** - установка как приложение на телефон
+- **Интерактивная установка** - одна команда для полного деплоя
 
 ## 🏗️ Архитектура
 
 ```
 ┌─────────────┐         ┌─────────────┐         ┌─────────────┐
-│   Клиенты   │ ──AWG─▶ │  RU Сервер  │ ──AWG─▶ │  DE Сервер  │ ──▶ │ Интернет
+│   Клиенты   │ ──AWG─▶ │  RU Сервер  │ ──AWG─▶ │  DE Сервер  │ ──▶ Интернет
 │  (Россия)   │         │ (Entry Node)│         │ (Exit Node) │
 └─────────────┘         └─────────────┘         └─────────────┘
                               │
                               ▼
                         ┌─────────────┐
                         │   Docker    │
+                        │  - Nginx    │
                         │  - Backend  │
                         │  - Frontend │
                         │  - Admin    │
@@ -37,6 +40,20 @@
 
 ## ⚡ Быстрый старт
 
+### Одна команда установки
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/anyagixx/KrotVPN/main/install.sh | bash
+```
+
+Или с wget:
+
+```bash
+wget -qO- https://raw.githubusercontent.com/anyagixx/KrotVPN/main/install.sh | bash
+```
+
+Установщик проведёт вас через все шаги интерактивно.
+
 ### Требования
 
 | Компонент | RU Сервер | DE Сервер |
@@ -44,28 +61,17 @@
 | OS | Ubuntu 20.04/22.04 | Ubuntu 20.04/22.04 |
 | CPU | 2+ ядер | 1+ ядро |
 | RAM | 2+ GB | 1+ GB |
-| Порты | 22, 80, 443, 51821/udp | 22, 51821/udp |
+| Порты | 22, 80, 443, 8443, 8000, 51821/udp | 22, 51821/udp |
 
-### Установка
+### После установки
 
-1. **Клонируй репозиторий:**
-```bash
-git clone https://github.com/anyagixx/KrotVPN.git
-cd KrotVPN
-```
+| Сервис | URL |
+|--------|-----|
+| **Frontend** | `https://YOUR_RU_IP` |
+| **Admin Panel** | `https://YOUR_RU_IP:8443` |
+| **Backend API** | `https://YOUR_RU_IP:8000` |
 
-2. **Настрой SSH доступ:**
-```bash
-ssh-copy-id root@DE_SERVER_IP
-ssh-copy-id root@RU_SERVER_IP
-```
-
-3. **Запусти быстрый деплой:**
-```bash
-./deploy/quick-start.sh
-```
-
-Или следуй [пошаговой инструкции](QUICKSTART.md).
+> ⚠️ Браузер предупредит о самоподписанном сертификате. Нажмите "Дополнительно" → "Перейти".
 
 ## 📱 Клиентские приложения
 
@@ -81,73 +87,66 @@ ssh-copy-id root@RU_SERVER_IP
 ### Создание VPN клиента
 
 ```bash
-ssh root@RU_SERVER_IP
+ssh root@YOUR_RU_IP
 /opt/KrotVPN/deploy/create-client.sh username
 ```
 
 ### Проверка состояния
 
 ```bash
-/opt/KrotVPN/deploy/health-check.sh
+ssh root@YOUR_RU_IP "docker compose -f /opt/KrotVPN/docker-compose.yml ps"
 ```
 
 ### Логи
 
 ```bash
-cd /opt/KrotVPN
-docker compose logs -f backend
+ssh root@YOUR_RU_IP "docker compose -f /opt/KrotVPN/docker-compose.yml logs -f backend"
+```
+
+### Перезапуск
+
+```bash
+ssh root@YOUR_RU_IP "cd /opt/KrotVPN && docker compose restart"
 ```
 
 ## 📁 Структура проекта
 
 ```
 KrotVPN/
+├── install.sh              # Интерактивный установщик
 ├── backend/                # FastAPI Backend
-│   ├── app/
-│   │   ├── core/          # Config, Security, Database
-│   │   ├── users/         # Auth & Users
-│   │   ├── vpn/           # AmneziaWG Integration
-│   │   ├── billing/       # YooKassa Payments
-│   │   ├── referrals/     # Referral System
-│   │   └── main.py        # Entry Point
-│   └── Dockerfile
+│   └── app/
+│       ├── core/          # Config, Security, Database
+│       ├── users/         # Auth & Users
+│       ├── vpn/           # AmneziaWG Integration
+│       ├── billing/       # YooKassa Payments
+│       └── referrals/     # Referral System
 │
 ├── frontend/              # React User Dashboard
-│   ├── src/
-│   │   ├── pages/        # Dashboard, Config, Subscription
-│   │   ├── stores/       # Zustand State
-│   │   └── i18n/         # RU/EN Translations
-│   ├── Dockerfile
-│   └── nginx.conf
-│
 ├── frontend-admin/        # React Admin Panel
-│   ├── src/
-│   │   └── pages/        # Users, Servers, Plans, Analytics
-│   └── Dockerfile
-│
 ├── telegram-bot/          # Telegram Bot
-│   └── bot.py
+├── nginx/                 # SSL Proxy
+│   ├── Dockerfile
+│   ├── nginx.conf
+│   └── generate-certs.sh
 │
 ├── deploy/                # Deployment Scripts
-│   ├── deploy-de-server.sh
-│   ├── deploy-ru-server.sh
+│   ├── deploy-all.sh     # Автоматический деплой
+│   ├── quick-start.sh    # Wrapper для deploy-all.sh
 │   ├── create-client.sh
-│   ├── remove-client.sh
-│   ├── health-check.sh
-│   └── quick-start.sh
+│   └── remove-client.sh
 │
-├── docker-compose.yml
-├── .env.example
-└── QUICKSTART.md
+└── docker-compose.yml     # 6 сервисов + nginx
 ```
 
 ## 🔐 Безопасность
 
-- JWT токены с коротким сроком жизни
-- Fernet шифрование чувствительных данных
-- Rate limiting на API endpoints
-- CORS whitelist
-- UFW firewall на обоих серверах
+- **HTTPS** - самоподписанные SSL сертификаты
+- **JWT токены** - короткий срок жизни (15 мин)
+- **Fernet шифрование** - чувствительные данные
+- **Rate limiting** - защита от брутфорса
+- **CORS whitelist** - контроль доступа
+- **UFW firewall** - на обоих серверах
 
 ## 💰 Монетизация
 
@@ -168,12 +167,12 @@ KrotVPN/
 | `GET /api/subscription/status` | Статус подписки |
 | `POST /api/billing/create-payment` | Создать платёж |
 
-Полная документация: `http://RU_SERVER_IP:8000/docs`
+Полная документация: `https://YOUR_RU_IP:8000/docs`
 
 ## 📞 Поддержка
 
-- **GitHub Issues**: https://github.com/anyagixx/KrotVPN/issues
-- **Telegram**: @krotvpn_support
+- **GitHub**: https://github.com/anyagixx/KrotVPN
+- **Issues**: https://github.com/anyagixx/KrotVPN/issues
 
 ## 📄 Лицензия
 

@@ -19,6 +19,7 @@ services:
       retries: 5
     networks:
       - krotvpn-network
+    # Not exposed externally - only accessible via internal network
 
   # Redis Cache
   redis:
@@ -35,6 +36,7 @@ services:
       retries: 5
     networks:
       - krotvpn-network
+    # Not exposed externally - only accessible via internal network
 
   # Backend API
   backend:
@@ -56,17 +58,14 @@ services:
     volumes:
       - ./logs:/app/logs
       - /etc/amnezia/amneziawg:/etc/amnezia/amneziawg
-    ports:
-      - "8000:8000"
-    extra_hosts:
-      - "host.docker.internal:host-gateway"
+    networks:
+      - krotvpn-network
+    # Not exposed externally - proxied via nginx
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
       interval: 30s
       timeout: 10s
       retries: 3
-    networks:
-      - krotvpn-network
 
   # Frontend User Dashboard
   frontend:
@@ -77,10 +76,9 @@ services:
     restart: unless-stopped
     depends_on:
       - backend
-    ports:
-      - "80:80"
     networks:
       - krotvpn-network
+    # Not exposed externally - proxied via nginx
 
   # Admin Panel
   frontend-admin:
@@ -91,8 +89,29 @@ services:
     restart: unless-stopped
     depends_on:
       - backend
+    networks:
+      - krotvpn-network
+    # Not exposed externally - proxied via nginx
+
+  # Nginx SSL Proxy
+  nginx:
+    build:
+      context: ./nginx
+      dockerfile: Dockerfile
+    container_name: krotvpn-nginx
+    restart: unless-stopped
+    depends_on:
+      - frontend
+      - frontend-admin
+      - backend
+    volumes:
+      - ./ssl:/opt/krotvpn/ssl
     ports:
-      - "8080:80"
+      - "80:80"
+      - "443:443"
+      - "8080:8080"
+      - "8443:8443"
+      - "8000:8000"
     networks:
       - krotvpn-network
 

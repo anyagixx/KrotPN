@@ -27,7 +27,7 @@ TUNNEL_SUBNET="10.200.0.0/24"
 # Print banner
 echo -e "${CYAN}"
 echo "╔══════════════════════════════════════════════════════════════╗"
-echo "║           KrotVPN Automated Deployment v2.0.1               ║"
+echo "║           KrotVPN Automated Deployment v2.1.0               ║"
 echo "╠══════════════════════════════════════════════════════════════╣"
 echo "║  RU Server (Entry): ${RU_IP}                            ║"
 echo "║  DE Server (Exit):  ${DE_IP}                            ║"
@@ -75,7 +75,7 @@ apt update -qq && apt upgrade -y -qq
 echo -e "${BLUE}[RU] Installing dependencies...${NC}"
 apt install -y -qq software-properties-common python3-launchpadlib gnupg2 \
     linux-headers-$(uname -r) curl wget git ipset iptables ufw qrencode \
-    python3-pip python3-cryptography ca-certificates gnupg
+    python3-pip python3-cryptography ca-certificates gnupg openssl
 
 echo -e "${BLUE}[RU] Installing Docker...${NC}"
 if ! command -v docker &> /dev/null; then
@@ -387,12 +387,14 @@ chmod +x /usr/local/bin/setup_routing.sh
 # Run initial IP update
 /usr/local/bin/update_ru_ips.sh
 
-echo -e "${BLUE}[RU] Configuring firewall...${NC}"
+echo -e "${BLUE}[RU] Configuring firewall (including HTTPS ports)...${NC}"
 ufw --force reset > /dev/null
 ufw allow 22/tcp > /dev/null
 ufw allow 80/tcp > /dev/null
 ufw allow 443/tcp > /dev/null
 ufw allow 8080/tcp > /dev/null
+ufw allow 8443/tcp > /dev/null
+ufw allow 8000/tcp > /dev/null
 ufw allow ${VPN_PORT}/udp > /dev/null
 sed -i 's/DEFAULT_FORWARD_POLICY="DROP"/DEFAULT_FORWARD_POLICY="ACCEPT"/' /etc/default/ufw
 ufw --force enable > /dev/null
@@ -424,7 +426,23 @@ else
     cd KrotVPN
 fi
 
+echo -e "${BLUE}[RU] Generating SSL certificate...${NC}"
+mkdir -p /opt/KrotVPN/ssl
+cd /opt/KrotVPN/ssl
+
+# Generate self-signed certificate
+openssl req -x509 -nodes -days 3650 -newkey rsa:2048 \
+    -keyout server.key \
+    -out server.crt \
+    -subj "/C=RU/ST=Moscow/L=Moscow/O=KrotVPN/OU=IT/CN=krotvpn.local" 2>/dev/null
+
+chmod 600 server.key
+chmod 644 server.crt
+
+echo -e "${GREEN}[RU] SSL certificate generated${NC}"
+
 echo -e "${BLUE}[RU] Generating secrets...${NC}"
+cd /opt/KrotVPN
 SECRET_KEY=$(python3 -c "import secrets; print(secrets.token_urlsafe(32))")
 DATA_KEY=$(python3 -c "from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())")
 DB_PASSWORD=$(python3 -c "import secrets; print(secrets.token_urlsafe(16))")
@@ -433,7 +451,7 @@ echo -e "${BLUE}[RU] Creating .env file...${NC}"
 cat > .env << EOF
 # === APPLICATION ===
 APP_NAME=KrotVPN
-APP_VERSION=2.0.1
+APP_VERSION=2.1.0
 DEBUG=false
 ENVIRONMENT=production
 HOST=0.0.0.0
@@ -455,7 +473,7 @@ DATABASE_URL=postgresql+asyncpg://krotvpn:${DB_PASSWORD}@db:5432/krotvpn
 REDIS_URL=redis://redis:6379/0
 
 # === CORS ===
-CORS_ORIGINS=["http://${RU_IP}","https://${RU_IP}","http://localhost"]
+CORS_ORIGINS=["https://${RU_IP}","http://${RU_IP}","http://localhost"]
 
 # === ADMIN ===
 ADMIN_EMAIL=admin@krotvpn.com
@@ -579,7 +597,7 @@ fi
 
 echo -e "${BLUE}[CHECK] Backend health...${NC}"
 sleep 5
-if curl -s "http://${RU_IP}:8000/health" | grep -q "healthy\|ok"; then
+if curl -sk "https://${RU_IP}:8000/health" | grep -q "healthy\|ok"; then
     echo -e "${GREEN}✓ Backend is healthy${NC}"
 else
     echo -e "${YELLOW}⚠ Backend may still be starting...${NC}"
@@ -593,10 +611,12 @@ echo -e "${GREEN}╔════════════════════
 echo -e "${GREEN}║              DEPLOYMENT COMPLETE!                           ║${NC}"
 echo -e "${GREEN}╠══════════════════════════════════════════════════════════════╣${NC}"
 echo -e "${GREEN}║                                                              ║${NC}"
-echo -e "${GREEN}║  🌐 Frontend:    http://${RU_IP}                           ${NC}"
-echo -e "${GREEN}║  🔧 Admin Panel: http://${RU_IP}:8080                     ${NC}"
-echo -e "${GREEN}║  🔌 Backend API: http://${RU_IP}:8000                     ${NC}"
-echo -e "${GREEN}║  ❤️  Health:      http://${RU_IP}:8000/health              ${NC}"
+echo -e "${GREEN}║  🌐 Frontend:    https://${RU_IP}                           ${NC}"
+echo -e "${GREEN}║  🔧 Admin Panel: https://${RU_IP}:8443                     ${NC}"
+echo -e "${GREEN}║  🔌 Backend API: https://${RU_IP}:8000                     ${NC}"
+echo -e "${GREEN}║                                                              ║${NC}"
+echo -e "${YELLOW}║  ⚠️  Your browser will warn about self-signed certificate.  ${NC}"
+echo -e "${YELLOW}║     Click 'Advanced' → 'Proceed' to continue.               ${NC}"
 echo -e "${GREEN}║                                                              ║${NC}"
 echo -e "${GREEN}╠══════════════════════════════════════════════════════════════╣${NC}"
 echo -e "${GREEN}║  📱 Create VPN client:                                      ${NC}"

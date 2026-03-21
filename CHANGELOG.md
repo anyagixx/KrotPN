@@ -2,6 +2,34 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2.1.0] - 2026-03-21
+
+### Added
+- **Interactive Installer** - one-line installation via curl/wget
+  ```bash
+  curl -fsSL https://raw.githubusercontent.com/anyagixx/KrotVPN/main/install.sh | bash
+  ```
+- **HTTPS Support** - self-signed SSL certificates for all services
+  - Frontend: https://RU_IP (port 443)
+  - Admin Panel: https://RU_IP:8443
+  - Backend API: https://RU_IP:8000
+- **Nginx SSL Proxy** - new Docker container for SSL termination
+- **HTTP to HTTPS redirect** - automatic redirect from HTTP to HTTPS
+- **Security headers** - X-Frame-Options, X-Content-Type-Options, X-XSS-Protection
+- **Certificate generation** - automatic self-signed certificate generation (10 years validity)
+- **New ports**: 443 (frontend HTTPS), 8443 (admin HTTPS)
+
+### Changed
+- Updated docker-compose.yml to use nginx as SSL proxy
+- All services now behind nginx proxy (not exposed directly)
+- Updated deploy-all.sh to generate SSL certificates
+- Updated firewall rules to include HTTPS ports
+
+### Security
+- All traffic now encrypted via HTTPS
+- Self-signed certificates generated automatically
+- Certificates persisted in /opt/KrotVPN/ssl/
+
 ## [2.0.1] - 2026-03-21
 
 ### Fixed
@@ -50,12 +78,6 @@ All notable changes to this project will be documented in this file.
 - Two-server architecture (RU Entry + DE Exit)
 - Health checks for all containers
 - Systemd services for VPN routing
-
-### Documentation
-- README.md with project overview
-- QUICKSTART.md for fast deployment
-- DEPLOYMENT_GUIDE.md for production setup
-- ANALYSIS_REPORT.md with security audit
 
 ## [1.0.0] - 2026-03-20
 
