@@ -1,10 +1,7 @@
 #!/bin/bash
 #
-# KrotVPN Server Deployment Script v2.1.6
+# KrotVPN Server Deployment Script v2.1.7
 # Run this script ON the RU server
-#
-# Usage: ./deploy-on-server.sh
-# Reads configuration from /tmp/krotvpn_deploy.conf
 #
 
 set -e
@@ -69,12 +66,18 @@ echo -e "${GREEN}[OK] RU IPv4: ${RU_IP}${NC}"
 # Print banner
 echo ""
 echo -e "${CYAN}╔══════════════════════════════════════════════════════════════╗${NC}"
-echo -e "${CYAN}║           KrotVPN Automated Deployment v2.1.6               ║${NC}"
+echo -e "${CYAN}║           KrotVPN Automated Deployment v2.1.7               ║${NC}"
 echo -e "${CYAN}╠══════════════════════════════════════════════════════════════╣${NC}"
 echo -e "${CYAN}║  RU Server (Entry): ${RU_IP}                            ║${NC}"
 echo -e "${CYAN}║  DE Server (Exit):  ${DE_IP}                            ║${NC}"
 echo -e "${CYAN}╚══════════════════════════════════════════════════════════════╝${NC}"
 echo ""
+
+# Install sshpass FIRST (needed for DE connection test)
+echo -e "${BLUE}[PREP] Installing sshpass for DE connection...${NC}"
+apt update -qq 2>/dev/null
+apt install -y -qq sshpass 2>/dev/null
+echo -e "${GREEN}✓ sshpass installed${NC}"
 
 # SSH wrapper for DE server
 ssh_de() {
@@ -107,7 +110,7 @@ apt update -qq && apt upgrade -y -qq
 echo -e "${BLUE}[RU] Installing dependencies...${NC}"
 apt install -y -qq software-properties-common python3-launchpadlib gnupg2 \
     linux-headers-$(uname -r) curl wget git ipset iptables ufw qrencode \
-    python3-pip python3-cryptography ca-certificates gnupg openssl sshpass
+    python3-pip python3-cryptography ca-certificates gnupg openssl
 
 echo -e "${BLUE}[RU] Installing Docker...${NC}"
 if ! command -v docker &> /dev/null; then
@@ -424,7 +427,7 @@ DB_PASSWORD=$(python3 -c "import secrets; print(secrets.token_urlsafe(16))")
 cat > .env << EOF
 # === APPLICATION ===
 APP_NAME=KrotVPN
-APP_VERSION=2.1.6
+APP_VERSION=2.1.7
 DEBUG=false
 ENVIRONMENT=production
 HOST=0.0.0.0
