@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# KrotVPN Interactive Installer
+# KrotVPN Interactive Installer v2.1.5
 # Run this command to install:
 #   curl -fsSL https://raw.githubusercontent.com/anyagixx/KrotVPN/main/install.sh | bash
 #
@@ -21,7 +21,7 @@ print_banner() {
     echo "║                                                              ║"
     echo "║                         K R O T V P N                        ║"
     echo "║                                                              ║"
-    echo "║              Interactive Installer v2.1.4                    ║"
+    echo "║              Interactive Installer v2.1.5                    ║"
     echo "║                                                              ║"
     echo "╚══════════════════════════════════════════════════════════════╝"
     echo -e "${NC}"
@@ -39,7 +39,6 @@ print_success() { echo -e "${GREEN}✓ $1${NC}"; }
 print_error() { echo -e "${RED}✗ $1${NC}"; }
 print_info() { echo -e "${BLUE}ℹ $1${NC}"; }
 
-# Read from terminal
 ask() {
     local prompt="$1"
     local default="$2"
@@ -60,7 +59,6 @@ ask() {
     eval "$var='$value'"
 }
 
-# Read password with asterisks
 ask_password() {
     local prompt="$1"
     local var="$2"
@@ -113,7 +111,6 @@ ask_yesno() {
     fi
 }
 
-# Check prerequisites
 check_prerequisites() {
     print_step "Step 1: Checking prerequisites"
     
@@ -134,7 +131,6 @@ check_prerequisites() {
     print_success "SSH client available"
 }
 
-# Get server info
 get_server_info() {
     print_step "Step 2: Server configuration"
     
@@ -168,7 +164,6 @@ get_server_info() {
     fi
 }
 
-# Get credentials
 get_credentials() {
     print_step "Step 3: SSH credentials"
     
@@ -193,7 +188,6 @@ get_credentials() {
     fi
     echo ""
     
-    # Test connections
     print_info "Testing connection to RU server..."
     if sshpass -p "$RU_PASS" ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null \
         -o ConnectTimeout=10 -o LogLevel=ERROR "$RU_USER@$RU_IP" "echo ok" 2>/dev/null | grep -q "ok"; then
@@ -213,7 +207,6 @@ get_credentials() {
     fi
 }
 
-# Deploy
 deploy() {
     print_step "Step 4: Starting deployment"
     
@@ -233,22 +226,48 @@ deploy() {
     print_info "Deploying... This will take 10-15 minutes."
     echo ""
     
-    # Clone and run deploy script on RU server
+    # Create config file on RU server with all credentials
+    print_info "Creating configuration on RU server..."
+    sshpass -p "$RU_PASS" ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null \
+        -o LogLevel=ERROR "$RU_USER@$RU_IP" "cat > /tmp/krotvpn_deploy.conf" << EOF
+DE_IP='${DE_IP}'
+DE_USER='${DE_USER}'
+DE_PASS='${DE_PASS}'
+RU_IP='${RU_IP}'
+RU_USER='${RU_USER}'
+RU_PASS='${RU_PASS}'
+EOF
+    
+    if [ $? -ne 0 ]; then
+        print_error "Failed to create config file"
+        exit 1
+    fi
+    print_success "Config created"
+    
+    # Clone repository
+    print_info "Cloning KrotVPN repository..."
     sshpass -p "$RU_PASS" ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null \
         -o LogLevel=ERROR "$RU_USER@$RU_IP" "
         cd /opt
-        if [ -d 'KrotVPN' ]; then
-            cd KrotVPN && git pull
-        else
-            git clone https://github.com/anyagixx/KrotVPN.git
-            cd KrotVPN
-        fi
-        chmod +x deploy/*.sh
-        ./deploy/deploy-on-server.sh '$DE_IP' '$DE_USER' '$DE_PASS' '$RU_PASS'
+        rm -rf KrotVPN 2>/dev/null || true
+        git clone https://github.com/anyagixx/KrotVPN.git
+        chmod +x /opt/KrotVPN/deploy/*.sh
     "
+    
+    if [ $? -ne 0 ]; then
+        print_error "Failed to clone repository"
+        exit 1
+    fi
+    print_success "Repository cloned"
+    
+    # Run deployment script
+    print_info "Running deployment script on RU server..."
+    echo ""
+    
+    sshpass -p "$RU_PASS" ssh -t -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null \
+        -o LogLevel=ERROR "$RU_USER@$RU_IP" "cd /opt/KrotVPN && ./deploy/deploy-on-server.sh"
 }
 
-# Show complete
 show_complete() {
     print_step "Installation Complete!"
     
@@ -282,7 +301,6 @@ show_complete() {
     echo ""
 }
 
-# Main
 main() {
     print_banner
     check_prerequisites

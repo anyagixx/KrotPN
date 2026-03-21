@@ -2,42 +2,46 @@
 
 All notable changes to this project will be documented in this file.
 
-## [2.1.4] - 2026-03-21
+## [2.1.5] - 2026-03-21
 
 ### Fixed
-- **CRITICAL**: Fixed deployment - now works 100%
-- Created `deploy/deploy-on-server.sh` - runs directly on RU server
-- Simplified `install.sh` - passes credentials as script arguments
-- Removed complex heredoc - no more parsing issues
+- **CRITICAL**: Fixed IPv6 detection - now forces IPv4 with multiple fallbacks
+- **CRITICAL**: Fixed password passing - now uses config file instead of arguments
+- Passwords with special characters ($, !, &, etc.) now work correctly
+- Added connection testing before deployment starts
 
 ### Changed
-- All deployment logic moved to `deploy-on-server.sh`
-- `install.sh` now only handles user input and SSH connection
-- Credentials passed as command-line arguments (secure, no escaping issues)
+- Configuration now passed via `/tmp/krotvpn_deploy.conf` file
+- IPv4 detection uses multiple fallback services (api4.ipify.org, ipv4.icanhazip.com, v4.ident.me)
+- Better error messages with helpful hints
 
 ### Architecture
 ```
 install.sh (laptop)
     │
-    └── SSH to RU server
+    ├─► Creates /tmp/krotvpn_deploy.conf on RU server
+    │   (contains all credentials safely)
+    │
+    └─► Runs deploy-on-server.sh
             │
-            └── deploy-on-server.sh (RU server)
-                    │
-                    └── SSH to DE server
+            └─► Reads config, sets up both servers
 ```
+
+## [2.1.4] - 2026-03-21
+
+### Fixed
+- **CRITICAL**: Fixed deployment - created deploy-on-server.sh
+- Simplified install.sh - passes credentials as script arguments
 
 ## [2.1.3] - 2026-03-21
 
 ### Changed
 - **MAJOR**: Complete rewrite - now deploys directly to servers via SSH
-  - Nothing is installed locally on your laptop
-  - All installation happens on RU and DE servers
-  - Single script handles everything remotely
 
 ## [2.1.2] - 2026-03-21
 
 ### Changed
-- **MAJOR**: Simplified installation - now uses SSH password authentication instead of SSH keys
+- **MAJOR**: Simplified installation - now uses SSH password authentication
 
 ## [2.1.1] - 2026-03-21
 

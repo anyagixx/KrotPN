@@ -1,9 +1,10 @@
 #!/bin/bash
 #
-# KrotVPN Server Deployment Script
+# KrotVPN Server Deployment Script v2.1.5
 # Run this script ON the RU server
 #
-# Usage: ./deploy-on-server.sh <DE_IP> <DE_USER> <DE_PASS> <RU_PASS>
+# Usage: ./deploy-on-server.sh
+# Reads configuration from /tmp/krotvpn_deploy.conf
 #
 
 set -e
@@ -16,32 +17,47 @@ BLUE='\033[0;34m'
 CYAN='\033[0;36m'
 NC='\033[0m'
 
-# Arguments
-DE_IP="$1"
-DE_USER="$2"
-DE_PASS="$3"
-RU_PASS="$4"
 VPN_PORT="51821"
 
-# Get RU IP automatically
-RU_IP=$(curl -s --connect-timeout 5 ifconfig.me 2>/dev/null || hostname -I | awk '{print $1}')
-
-# Print banner
-echo -e "${CYAN}"
-echo "╔══════════════════════════════════════════════════════════════╗"
-echo "║           KrotVPN Automated Deployment v2.1.4               ║"
-echo "╠══════════════════════════════════════════════════════════════╣"
-echo "║  RU Server (Entry): ${RU_IP}                            ║"
-echo "║  DE Server (Exit):  ${DE_IP}                            ║"
-echo "╚══════════════════════════════════════════════════════════════╝"
-echo -e "${NC}"
-
-# Validate arguments
-if [ -z "$DE_IP" ] || [ -z "$DE_USER" ] || [ -z "$DE_PASS" ] || [ -z "$RU_PASS" ]; then
-    echo -e "${RED}ERROR: Missing arguments${NC}"
-    echo "Usage: $0 <DE_IP> <DE_USER> <DE_PASS> <RU_PASS>"
+# Read configuration from file
+if [ -f /tmp/krotvpn_deploy.conf ]; then
+    echo -e "${BLUE}[CONFIG] Loading configuration from file...${NC}"
+    source /tmp/krotvpn_deploy.conf
+else
+    echo -e "${RED}[ERROR] Configuration file not found: /tmp/krotvpn_deploy.conf${NC}"
+    echo "Please run install.sh first"
     exit 1
 fi
+
+# Validate required variables
+if [ -z "$DE_IP" ] || [ -z "$DE_USER" ] || [ -z "$DE_PASS" ] || [ -z "$RU_PASS" ]; then
+    echo -e "${RED}[ERROR] Missing required configuration${NC}"
+    echo "Required: DE_IP, DE_USER, DE_PASS, RU_PASS"
+    exit 1
+fi
+
+# Get RU IPv4 address (force IPv4, multiple fallbacks)
+echo -e "${BLUE}[DETECT] Getting RU server IPv4 address...${NC}"
+RU_IP=$(curl -4 -s --connect-timeout 5 https://api4.ipify.org 2>/dev/null || \
+        curl -4 -s --connect-timeout 5 https://ipv4.icanhazip.com 2>/dev/null || \
+        curl -4 -s --connect-timeout 5 https://v4.ident.me 2>/dev/null || \
+        ip -4 addr show | grep -oP '(?<=inet\s)\d+(\.\d+){3}' | grep -v '127.0.0.1' | head -1)
+
+if [ -z "$RU_IP" ] || [[ "$RU_IP" == *":"* ]]; then
+    echo -e "${RED}[ERROR] Could not detect IPv4 address${NC}"
+    exit 1
+fi
+echo -e "${GREEN}[OK] RU IPv4: ${RU_IP}${NC}"
+
+# Print banner
+echo ""
+echo -e "${CYAN}╔══════════════════════════════════════════════════════════════╗${NC}"
+echo -e "${CYAN}║           KrotVPN Automated Deployment v2.1.5               ║${NC}"
+echo -e "${CYAN}╠══════════════════════════════════════════════════════════════╣${NC}"
+echo -e "${CYAN}║  RU Server (Entry): ${RU_IP}                            ║${NC}"
+echo -e "${CYAN}║  DE Server (Exit):  ${DE_IP}                            ║${NC}"
+echo -e "${CYAN}╚══════════════════════════════════════════════════════════════╝${NC}"
+echo ""
 
 # SSH wrapper for DE server
 ssh_de() {
@@ -49,12 +65,13 @@ ssh_de() {
         -o ConnectTimeout=30 -o LogLevel=ERROR "$DE_USER@$DE_IP" "$@"
 }
 
-# Test connections
+# Test connection to DE
 echo -e "${BLUE}[CHECK] Testing connection to DE server...${NC}"
 if ssh_de "echo ok" 2>/dev/null | grep -q "ok"; then
     echo -e "${GREEN}✓ DE server accessible${NC}"
 else
     echo -e "${RED}✗ Cannot connect to DE server${NC}"
+    echo -e "${YELLOW}  Check that DE server is reachable and credentials are correct${NC}"
     exit 1
 fi
 echo ""
@@ -118,8 +135,13 @@ echo -e "${CYAN}PHASE 2: DE Server - Installation${NC}"
 echo -e "${CYAN}══════════════════════════════════════════════════════════════${NC}"
 echo ""
 
-ssh_de "RU_CLIENT_PUBLIC='${RU_CLIENT_PUBLIC}' VPN_PORT='${VPN_PORT}' bash -s" << 'DE_REMOTE'
+# Create script for DE server
+cat > /tmp/de_setup.sh << 'DESCRIPT'
+#!/bin/bash
 set -e
+
+RU_CLIENT_PUBLIC="$1"
+VPN_PORT="$2"
 
 RED='\033[0;31m'
 GREEN='\033[0;32m'
@@ -198,8 +220,17 @@ awg-quick down awg0 2>/dev/null || true
 awg-quick up awg0
 
 echo -e "${GREEN}✓ DE server ready!${NC}"
-echo "DE_PUBLIC=${DE_PUBLIC}"
-DE_REMOTE
+DESCRIPT
+
+chmod +x /tmp/de_setup.sh
+
+# Copy and run on DE server
+echo -e "${BLUE}[RU] Copying setup script to DE server...${NC}"
+sshpass -p "$DE_PASS" scp -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null \
+    -o LogLevel=ERROR /tmp/de_setup.sh "$DE_USER@$DE_IP:/tmp/"
+
+echo -e "${BLUE}[RU] Running setup on DE server...${NC}"
+ssh_de "bash /tmp/de_setup.sh '$RU_CLIENT_PUBLIC' '$VPN_PORT'"
 
 # Get DE public key
 DE_PUBLIC_KEY=$(ssh_de "cat /etc/amnezia/amneziawg/de_public.key")
@@ -350,15 +381,10 @@ else
     echo -e "${RED}✗ Tunnel test failed${NC}"
 fi
 
-# Clone/update KrotVPN
-echo -e "${BLUE}[RU] Setting up KrotVPN application...${NC}"
-cd /opt
-if [ -d "KrotVPN" ]; then
-    cd KrotVPN && git pull
-else
-    git clone https://github.com/anyagixx/KrotVPN.git
-    cd KrotVPN
-fi
+# Update KrotVPN
+echo -e "${BLUE}[RU] Updating KrotVPN application...${NC}"
+cd /opt/KrotVPN
+git pull
 
 # Generate SSL
 echo -e "${BLUE}[RU] Generating SSL certificate...${NC}"
@@ -381,7 +407,7 @@ DB_PASSWORD=$(python3 -c "import secrets; print(secrets.token_urlsafe(16))")
 cat > .env << EOF
 # === APPLICATION ===
 APP_NAME=KrotVPN
-APP_VERSION=2.1.4
+APP_VERSION=2.1.5
 DEBUG=false
 ENVIRONMENT=production
 HOST=0.0.0.0
@@ -508,3 +534,6 @@ echo ""
 echo -e "  Create VPN client:"
 echo -e "  ${YELLOW}/opt/KrotVPN/deploy/create-client.sh my_client${NC}"
 echo ""
+
+# Cleanup
+rm -f /tmp/krotvpn_deploy.conf /tmp/de_setup.sh
