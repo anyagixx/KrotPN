@@ -40,3 +40,6 @@ loguru>=0.7.2
 
 # Payments
 yookassa>=2.4.0
+
+# System monitoring
+psutil>=5.9.0
