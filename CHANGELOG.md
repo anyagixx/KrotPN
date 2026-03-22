@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2.4.9] - 2026-03-22
+
+### Fixed
+- Fixed runtime ORM mapper errors by importing all SQLModel model modules before database initialization
+- Ensured relationship targets like `VPNClient` and referral models are registered before first query
+
 ## [2.4.8] - 2026-03-22
 
 ### Fixed

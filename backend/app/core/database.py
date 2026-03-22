@@ -34,8 +34,18 @@ async_session_maker = async_sessionmaker(
 )
 
 
+def import_all_models() -> None:
+    """Import all SQLModel models so relationship targets are registered."""
+    import app.billing.models  # noqa: F401
+    import app.referrals.models  # noqa: F401
+    import app.routing.models  # noqa: F401
+    import app.users.models  # noqa: F401
+    import app.vpn.models  # noqa: F401
+
+
 async def init_db() -> None:
     """Initialize database tables."""
+    import_all_models()
     async with engine.begin() as conn:
         await conn.run_sync(SQLModel.metadata.create_all)
 
