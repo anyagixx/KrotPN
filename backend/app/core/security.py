@@ -14,7 +14,8 @@ from passlib.context import CryptContext
 from app.core.config import settings
 
 # Password hashing
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+# bcrypt_sha256 avoids bcrypt's 72-byte input limit while still using bcrypt underneath.
+pwd_context = CryptContext(schemes=["bcrypt_sha256"], deprecated="auto")
 
 # Data encryption (for sensitive data like VPN private keys)
 _fernet: Fernet | None = None
@@ -46,7 +47,7 @@ def decrypt_data(encrypted_data: str) -> str:
 
 
 def hash_password(password: str) -> str:
-    """Hash a password using bcrypt."""
+    """Hash a password using bcrypt_sha256."""
     return pwd_context.hash(password)
 
 

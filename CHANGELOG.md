@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2.4.7] - 2026-03-22
+
+### Fixed
+- Fixed backend startup failure during admin bootstrap when password hashing hit bcrypt's 72-byte limit
+- Switched password hashing to `bcrypt_sha256` for safer handling of long passwords
+
 ## [2.4.6] - 2026-03-22
 
 ### Fixed
