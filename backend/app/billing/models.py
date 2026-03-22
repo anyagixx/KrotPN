@@ -76,7 +76,7 @@ class Subscription(SQLModel, table=True):
     
     id: int | None = Field(default=None, primary_key=True)
     user_id: int = Field(foreign_key="users.id", index=True)
-    plan_id: int = Field(foreign_key="plans.id")
+    plan_id: int | None = Field(default=None, foreign_key="plans.id")
     
     # Status
     status: SubscriptionStatus = Field(default=SubscriptionStatus.ACTIVE)
@@ -99,7 +99,7 @@ class Subscription(SQLModel, table=True):
     
     # Relationships
     user: "User" = Relationship(back_populates="subscriptions")
-    plan: Plan = Relationship(back_populates="subscriptions")
+    plan: Plan | None = Relationship(back_populates="subscriptions")
     payments: list["Payment"] = Relationship(back_populates="subscription")
 
 
@@ -110,6 +110,7 @@ class Payment(SQLModel, table=True):
     
     id: int | None = Field(default=None, primary_key=True)
     user_id: int = Field(foreign_key="users.id", index=True)
+    plan_id: int | None = Field(default=None, foreign_key="plans.id")
     subscription_id: int | None = Field(default=None, foreign_key="subscriptions.id")
     
     # Amount

@@ -43,6 +43,26 @@ admin_users_router = APIRouter(prefix="/api/admin/users", tags=["admin"])
 limiter = Limiter(key_func=get_remote_address)
 
 
+async def _initialize_new_user_resources(
+    user_id: int,
+    referred_by_id: int | None,
+    session: DBSession,
+) -> None:
+    """Create trial and referral records for newly registered users."""
+    from app.billing.service import BillingService
+    from app.referrals.service import ReferralService
+
+    billing_service = BillingService(session)
+    referral_service = ReferralService(session)
+
+    history = await billing_service.get_user_subscription_history(user_id, limit=1)
+    if not history:
+        await billing_service.create_trial_subscription(user_id)
+
+    if referred_by_id is not None:
+        await referral_service.create_referral(referred_by_id, user_id)
+
+
 # ==================== Auth Endpoints ====================
 
 @router.post("/register", response_model=Token, status_code=status.HTTP_201_CREATED)
@@ -58,6 +78,7 @@ async def register(
     
     try:
         user = await service.create_user(data, referral_code=data.referral_code)
+        await _initialize_new_user_resources(user.id, user.referred_by_id, session)
     except ValueError as e:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
@@ -122,6 +143,7 @@ async def telegram_auth(
     service = UserService(session)
     
     user = await service.create_user_telegram(data, referral_code=data.referral_code)
+    await _initialize_new_user_resources(user.id, user.referred_by_id, session)
 
     if not user.is_active:
         raise HTTPException(

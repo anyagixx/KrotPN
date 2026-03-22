@@ -2,6 +2,25 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2.4.1] - 2026-03-22
+
+### Fixed
+- Fixed backend startup crash caused by missing `SQLModel` import in user schemas
+- Fixed admin panel login flow to work with token-based `/api/auth/login`
+- Fixed VPN stats endpoint fallback response for users without a VPN client
+- Fixed billing model mismatches around `plan_id` for trial subscriptions and payments
+- Fixed user frontend auth state after login and registration
+- Fixed referral and admin frontend pages to match actual backend API responses
+- Fixed default admin credentials drift between `.env.example` and deploy scripts
+
+### Changed
+- New user registration now initializes trial subscriptions and referral records consistently
+- Successful first payment now triggers referral bonus processing
+
+### Verification
+- Python backend and bot modules compile successfully with `py_compile`
+- User frontend production build passes successfully
+
 ## [2.4.0] - 2026-03-22
 
 ### Added

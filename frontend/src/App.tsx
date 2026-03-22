@@ -1,3 +1,4 @@
+import { useEffect } from 'react'
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { Toaster } from 'react-hot-toast'
 import { useAuthStore } from './stores/auth'
@@ -21,6 +22,14 @@ function PrivateRoute({ children }: { children: React.ReactNode }) {
 }
 
 function App() {
+  const { isAuthenticated, user, fetchUser } = useAuthStore()
+
+  useEffect(() => {
+    if (isAuthenticated && !user) {
+      void fetchUser()
+    }
+  }, [fetchUser, isAuthenticated, user])
+
   return (
     <BrowserRouter>
       <div className="min-h-screen bg-dark-900 bg-mesh">

@@ -144,7 +144,7 @@ async def get_vpn_stats(
     
     client = await service.get_user_client(current_user.id)
     if client is None:
-        raise HTTPStatsResponse(
+        return VPNStatsResponse(
             total_upload_bytes=0,
             total_download_bytes=0,
             total_upload_formatted="0 B",

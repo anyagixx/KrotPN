@@ -14,6 +14,7 @@ export default function Servers() {
     (id: number) => adminApi.deleteServer(id),
     { onSuccess: () => queryClient.invalidateQueries('admin-servers') }
   )
+  const serverItems = servers?.data?.servers || []
   
   const handleDelete = async (id: number) => {
     if (confirm('Удалить сервер?')) {
@@ -38,7 +39,7 @@ export default function Servers() {
       </div>
       
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {servers?.data?.map((server: any) => (
+        {serverItems.map((server: any) => (
           <div key={server.id} className="stat-card">
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-3">
@@ -70,10 +71,6 @@ export default function Servers() {
             </div>
             
             <div className="space-y-2 text-sm">
-              <div className="flex justify-between">
-                <span className="text-gray-400">Endpoint</span>
-                <span className="font-mono">{server.endpoint}:{server.port}</span>
-              </div>
               <div className="flex justify-between">
                 <span className="text-gray-400">Клиентов</span>
                 <span className="flex items-center gap-1">

@@ -19,16 +19,27 @@ export default function Login() {
     
     try {
       const { data } = await adminApi.login(email, password)
-      
-      if (data.user?.role !== 'admin' && data.user?.role !== 'superadmin') {
+
+      setToken(data.access_token)
+
+      const userResponse = await adminApi.getCurrentUser()
+      const user = userResponse.data
+
+      if (user.role !== 'admin' && user.role !== 'superadmin') {
+        setToken(null)
         setError('Доступ запрещён. Требуются права администратора.')
         return
       }
-      
-      setToken(data.access_token)
-      setUser(data.user)
+
+      setUser({
+        id: user.id,
+        email: user.email ?? '',
+        role: user.role,
+        is_superuser: user.role === 'superadmin',
+      })
       navigate('/')
     } catch (err: any) {
+      setToken(null)
       setError(err.response?.data?.detail || 'Ошибка авторизации')
     } finally {
       setLoading(false)

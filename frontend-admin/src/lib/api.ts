@@ -27,6 +27,9 @@ api.interceptors.response.use(
 export const adminApi = {
   login: (email: string, password: string) =>
     api.post('/auth/login', { email, password }),
+
+  getCurrentUser: () =>
+    api.get('/users/me'),
   
   getStats: () =>
     api.get('/admin/stats'),

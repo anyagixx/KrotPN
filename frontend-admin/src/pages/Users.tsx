@@ -1,13 +1,13 @@
 import { useState } from 'react'
 import { useQuery } from 'react-query'
-import { Search, MoreVertical, UserCheck, UserX, Mail } from 'lucide-react'
+import { Search, MoreVertical, UserCheck, UserX } from 'lucide-react'
 import { adminApi } from '../lib/api'
 
 export default function Users() {
   const [page, setPage] = useState(1)
   const [search, setSearch] = useState('')
   
-  const { data, isLoading, refetch } = useQuery(
+  const { data, isLoading } = useQuery(
     ['admin-users', page, search],
     () => adminApi.getUsers(page, search),
     { keepPreviousData: true }
@@ -47,7 +47,7 @@ export default function Users() {
               <th className="text-left p-4 text-gray-400 font-medium">Email</th>
               <th className="text-left p-4 text-gray-400 font-medium">Роль</th>
               <th className="text-left p-4 text-gray-400 font-medium">Статус</th>
-              <th className="text-left p-4 text-gray-400 font-medium">Подписка</th>
+              <th className="text-left p-4 text-gray-400 font-medium">Последний вход</th>
               <th className="text-left p-4 text-gray-400 font-medium">Создан</th>
               <th className="p-4"></th>
             </tr>
@@ -86,12 +86,8 @@ export default function Users() {
                     {user.is_active ? 'Активен' : 'Заблокирован'}
                   </span>
                 </td>
-                <td className="p-4">
-                  {user.subscription ? (
-                    <span className="text-green-400">{user.subscription.days_left} дн.</span>
-                  ) : (
-                    <span className="text-gray-500">Нет</span>
-                  )}
+                <td className="p-4 text-gray-400">
+                  {user.last_login_at ? formatDate(user.last_login_at) : 'Никогда'}
                 </td>
                 <td className="p-4 text-gray-400">{formatDate(user.created_at)}</td>
                 <td className="p-4">

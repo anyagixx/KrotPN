@@ -4,10 +4,12 @@ import { useTranslation } from 'react-i18next'
 import { Mail, Lock, Loader2, Shield } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { authApi } from '../lib/api'
+import { useAuthStore } from '../stores/auth'
 
 export default function Register() {
   const { t } = useTranslation()
   const navigate = useNavigate()
+  const { fetchUser } = useAuthStore()
   const [searchParams] = useSearchParams()
   
   const referralCode = searchParams.get('ref')
@@ -32,6 +34,8 @@ export default function Register() {
       
       localStorage.setItem('access_token', data.access_token)
       localStorage.setItem('refresh_token', data.refresh_token)
+
+      await fetchUser()
       
       toast.success(t('registrationSuccess'))
       navigate('/')

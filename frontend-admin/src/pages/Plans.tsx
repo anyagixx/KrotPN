@@ -13,6 +13,18 @@ export default function Plans() {
     (id: number) => adminApi.deletePlan(id),
     { onSuccess: () => queryClient.invalidateQueries('admin-plans') }
   )
+
+  const getFeatures = (plan: any): string[] => {
+    if (Array.isArray(plan.features)) return plan.features
+    if (typeof plan.features === 'string') {
+      try {
+        return JSON.parse(plan.features)
+      } catch {
+        return []
+      }
+    }
+    return []
+  }
   
   return (
     <div className="space-y-6">
@@ -65,7 +77,7 @@ export default function Plans() {
             
             {plan.features && (
               <ul className="space-y-2 mb-4">
-                {JSON.parse(plan.features || '[]').map((feature: string, i: number) => (
+                {getFeatures(plan).map((feature: string, i: number) => (
                   <li key={i} className="flex items-center gap-2 text-sm text-gray-300">
                     <Check className="w-4 h-4 text-green-400" />
                     {feature}

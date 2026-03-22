@@ -299,6 +299,13 @@ class BillingService:
                 existing_client = await vpn_service.get_user_client(payment.user_id)
                 if not existing_client:
                     await vpn_service.create_client(payment.user_id)
+
+                from app.referrals.service import ReferralService
+                referral_service = ReferralService(self.session)
+                await referral_service.process_first_payment(
+                    payment.user_id,
+                    payment.amount,
+                )
             
             logger.info(f"[BILLING] Payment {payment.id} succeeded")
             

@@ -41,12 +41,12 @@ export default function Referrals() {
       <div className="grid grid-cols-2 gap-4">
         <div className="glass-card text-center">
           <Users className="w-8 h-8 mx-auto mb-2 text-primary-400" />
-          <p className="text-3xl font-bold">{stats?.referrals_count || 0}</p>
+          <p className="text-3xl font-bold">{stats?.total_referrals || 0}</p>
           <p className="text-dark-400">{t('referralsCount')}</p>
         </div>
         <div className="glass-card text-center">
           <Gift className="w-8 h-8 mx-auto mb-2 text-green-400" />
-          <p className="text-3xl font-bold">{stats?.bonus_days || 0}</p>
+          <p className="text-3xl font-bold">{stats?.bonus_days_earned || 0}</p>
           <p className="text-dark-400">{t('bonusDays')}</p>
         </div>
       </div>

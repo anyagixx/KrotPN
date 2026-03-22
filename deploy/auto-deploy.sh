@@ -334,7 +334,7 @@ REDIS_URL=redis://redis:6379/0
 CORS_ORIGINS=["http://212.113.121.164","http://localhost"]
 
 ADMIN_EMAIL=admin@krotvpn.com
-ADMIN_PASSWORD=ChangeMe123!
+ADMIN_PASSWORD=ChangeMeImmediately123!
 
 VPN_SUBNET=10.10.0.0/24
 VPN_PORT=51821

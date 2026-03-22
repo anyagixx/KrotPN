@@ -4,9 +4,9 @@ User schemas for API requests and responses.
 # <!-- GRACE: module="M-002" contract="user-schemas" -->
 
 from datetime import datetime
-from typing import Annotated
 
 from pydantic import EmailStr, Field, field_validator
+from sqlmodel import SQLModel
 
 from app.users.models import UserRole
 
@@ -131,10 +131,6 @@ class UserAdminResponse(UserResponse):
     referred_by_id: int | None
     subscription_count: int = 0
     active_subscription_id: int | None = None
-
-
-# Import SQLModel at the end to avoid circular imports
-from sqlmodel import SQLModel
 
 # Update forward references
 UserWithStats.model_rebuild()
