@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2.4.3] - 2026-03-22
+
+### Fixed
+- Fixed backend startup failure caused by reserved SQLAlchemy attribute name `metadata` in `Payment`
+- Renamed payment metadata storage field to avoid ORM initialization crash
+
 ## [2.4.2] - 2026-03-22
 
 ### Fixed

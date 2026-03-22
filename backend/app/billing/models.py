@@ -127,7 +127,7 @@ class Payment(SQLModel, table=True):
     
     # Metadata
     description: str | None = Field(default=None, max_length=255)
-    metadata: str | None = Field(default=None)  # JSON
+    payment_metadata: str | None = Field(default=None)  # JSON
     
     # Timestamps
     created_at: datetime = Field(default_factory=datetime.utcnow)

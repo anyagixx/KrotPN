@@ -140,7 +140,10 @@ class BillingService:
             existing.plan_id = plan.id
             
             if payment:
-                existing.is_recurring = payment.metadata and json.loads(payment.metadata).get("save_payment_method")
+                existing.is_recurring = bool(
+                    payment.payment_metadata
+                    and json.loads(payment.payment_metadata).get("save_payment_method")
+                )
             
             await self.session.flush()
             await self.session.refresh(existing)
