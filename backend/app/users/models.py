@@ -56,14 +56,20 @@ class User(SQLModel, table=True):
     # Relationships
     vpn_clients: list["VPNClient"] = Relationship(back_populates="user")
     subscriptions: list["Subscription"] = Relationship(back_populates="user")
-    referral_code: "ReferralCode" = Relationship(back_populates="user")
+    referral_code: "ReferralCode" = Relationship(
+        back_populates="user",
+        sa_relationship_kwargs={"uselist": False},
+    )
     referrals_made: list["Referral"] = Relationship(
         back_populates="referrer",
         sa_relationship_kwargs={"foreign_keys": "[Referral.referrer_id]"},
     )
-    referral_received: "Referral | None" = Relationship(
+    referral_received: "Referral" = Relationship(
         back_populates="referred",
-        sa_relationship_kwargs={"foreign_keys": "[Referral.referred_id]"},
+        sa_relationship_kwargs={
+            "foreign_keys": "[Referral.referred_id]",
+            "uselist": False,
+        },
     )
 
     @property

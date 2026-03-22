@@ -23,7 +23,7 @@ class Settings(BaseSettings):
 
     # Application
     app_name: str = "KrotVPN"
-    app_version: str = "2.4.5"
+    app_version: str = "2.4.6"
     debug: bool = False
     environment: Literal["development", "staging", "production"] = "development"
 

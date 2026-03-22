@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2.4.6] - 2026-03-22
+
+### Fixed
+- Fixed backend startup failure caused by unsupported union-style relationship type hints in `User` ORM model
+- Adjusted referral relationships to explicit one-to-one SQLModel configuration
+
 ## [2.4.5] - 2026-03-22
 
 ### Fixed
