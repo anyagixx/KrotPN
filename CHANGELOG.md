@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2.4.17] - 2026-03-23
+
+### Fixed
+- Fixed missing VPN server records in the application database after deployment by bootstrapping the default RU entry node from environment settings
+- Fixed trial users without an existing VPN client by provisioning clients lazily when configuration endpoints are opened
+- Restored admin server visibility and the expected trial -> config issuance path in the application layer
+
 ## [2.4.16] - 2026-03-22
 
 ### Fixed

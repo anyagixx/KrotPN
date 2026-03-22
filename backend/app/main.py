@@ -19,6 +19,7 @@ from slowapi.util import get_remote_address
 from app.core.config import settings
 from app.core.database import init_db, get_db_context
 from app.core.init_admin import ensure_admin_user
+from app.core.init_vpn import ensure_default_vpn_server
 
 # Import routers
 from app.users.router import router as auth_router
@@ -69,6 +70,12 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
             logger.info(f"[APP] Admin user ready: {admin_user.email}")
         else:
             logger.info("[APP] No admin credentials configured in .env")
+
+        vpn_server = await ensure_default_vpn_server(session)
+        if vpn_server:
+            logger.info(f"[APP] VPN server ready: {vpn_server.name} ({vpn_server.endpoint})")
+        else:
+            logger.info("[APP] No default VPN server configured in .env")
     
     # Initialize routing manager
     from app.routing import routing_manager

@@ -23,7 +23,7 @@ class Settings(BaseSettings):
 
     # Application
     app_name: str = "KrotVPN"
-    app_version: str = "2.4.16"
+    app_version: str = "2.4.17"
     debug: bool = False
     environment: Literal["development", "staging", "production"] = "development"
 
@@ -66,6 +66,11 @@ class Settings(BaseSettings):
     vpn_port: int = 51821
     vpn_dns: str = "8.8.8.8, 1.1.1.1"
     vpn_mtu: int = 1360
+    vpn_server_public_key: str | None = None
+    vpn_server_endpoint: str | None = None
+    vpn_server_name: str = "RU Entry Node"
+    vpn_server_location: str = "Russia"
+    vpn_server_max_clients: int = 500
 
     # AmneziaWG Obfuscation Parameters (MUST match legacy)
     awg_jc: int = 120

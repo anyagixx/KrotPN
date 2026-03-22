@@ -42,6 +42,29 @@ def format_bytes(bytes_count: int) -> str:
     return f"{bytes_count:.1f} {units[i]}"
 
 
+async def get_or_provision_user_client(
+    user_id: int,
+    session: DBSession,
+) -> VPNClient | None:
+    """Return existing VPN client or provision one for users with active access."""
+    service = VPNService(session)
+    client = await service.get_user_client(user_id)
+    if client is not None:
+        return client
+
+    from app.billing.service import BillingService
+
+    billing_service = BillingService(session)
+    subscription = await billing_service.get_user_subscription(user_id)
+    if not subscription:
+        return None
+
+    try:
+        return await service.create_client(user_id)
+    except ValueError:
+        return None
+
+
 # ==================== User Endpoints ====================
 
 @router.get("/config", response_model=VPNConfigResponse)
@@ -52,7 +75,7 @@ async def get_vpn_config(
     """Get VPN configuration for current user."""
     service = VPNService(session)
     
-    client = await service.get_user_client(current_user.id)
+    client = await get_or_provision_user_client(current_user.id, session)
     if client is None:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
@@ -84,7 +107,7 @@ async def download_vpn_config(
     """Download VPN configuration as .conf file."""
     service = VPNService(session)
     
-    client = await service.get_user_client(current_user.id)
+    client = await get_or_provision_user_client(current_user.id, session)
     if client is None:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
@@ -110,7 +133,7 @@ async def get_vpn_config_qr(
     """Get VPN configuration as QR code image."""
     service = VPNService(session)
     
-    client = await service.get_user_client(current_user.id)
+    client = await get_or_provision_user_client(current_user.id, session)
     if client is None:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
@@ -142,7 +165,7 @@ async def get_vpn_stats(
     """Get VPN usage statistics for current user."""
     service = VPNService(session)
     
-    client = await service.get_user_client(current_user.id)
+    client = await get_or_provision_user_client(current_user.id, session)
     if client is None:
         return VPNStatsResponse(
             total_upload_bytes=0,
