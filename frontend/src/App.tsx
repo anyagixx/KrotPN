@@ -32,7 +32,7 @@ function App() {
 
   return (
     <BrowserRouter>
-      <div className="min-h-screen bg-dark-900 bg-mesh">
+      <div className="min-h-screen">
         <Routes>
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
@@ -56,9 +56,11 @@ function App() {
           toastOptions={{
             duration: 4000,
             style: {
-              background: '#1e293b',
-              color: '#fff',
-              border: '1px solid #334155',
+              background: '#10242d',
+              color: '#eff8fb',
+              border: '1px solid rgba(157, 203, 216, 0.14)',
+              borderRadius: '18px',
+              boxShadow: '0 22px 60px rgba(2, 10, 14, 0.3)',
             },
           }}
         />

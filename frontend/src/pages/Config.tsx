@@ -1,15 +1,7 @@
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import { useQuery } from 'react-query'
 import { useTranslation } from 'react-i18next'
-import { 
-  Download, 
-  Copy, 
-  QrCode, 
-  Check,
-  FileCode,
-  Smartphone,
-  Monitor
-} from 'lucide-react'
+import { Check, Copy, Download, FileCode2, Monitor, QrCode, Smartphone } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { vpnApi } from '../lib/api'
 import Loading from '../components/Loading'
@@ -18,18 +10,15 @@ export default function Config() {
   const { t } = useTranslation()
   const [copied, setCopied] = useState(false)
   const [showQR, setShowQR] = useState(false)
-  
-  const { data: configData, isLoading } = useQuery(
-    'vpn-config',
-    () => vpnApi.getConfig()
-  )
-  
-  const { data: qrData } = useQuery(
-    'vpn-qr',
-    () => vpnApi.getQRCode(),
-    { enabled: showQR }
-  )
-  
+
+  const { data: configData, isLoading } = useQuery('vpn-config', () => vpnApi.getConfig())
+  const { data: qrData } = useQuery('vpn-qr', () => vpnApi.getQRCode(), { enabled: showQR })
+
+  const qrUrl = useMemo(() => {
+    if (!qrData?.data) return null
+    return URL.createObjectURL(qrData.data)
+  }, [qrData?.data])
+
   const handleDownload = async () => {
     try {
       const response = await vpnApi.downloadConfig()
@@ -41,165 +30,152 @@ export default function Config() {
       link.click()
       link.remove()
       window.URL.revokeObjectURL(url)
-      toast.success(t('success'))
+      toast.success('Конфиг скачан')
     } catch {
       toast.error(t('error'))
     }
   }
-  
+
   const handleCopy = async () => {
-    if (configData?.data?.config) {
-      await navigator.clipboard.writeText(configData.data.config)
-      setCopied(true)
-      toast.success(t('copied'))
-      setTimeout(() => setCopied(false), 2000)
-    }
+    if (!configData?.data?.config) return
+    await navigator.clipboard.writeText(configData.data.config)
+    setCopied(true)
+    toast.success(t('copied'))
+    setTimeout(() => setCopied(false), 2000)
   }
-  
+
   if (isLoading) {
     return <Loading text={t('loading')} />
   }
-  
+
   const config = configData?.data
-  
+
   return (
-    <div className="space-y-8 animate-in max-w-4xl">
-      <div>
-        <h1 className="text-3xl font-bold">{t('vpnConfig')}</h1>
-        <p className="text-dark-400 mt-2">
-          {t('configInstructions')}
-        </p>
+    <div className="content-section animate-in">
+      <div className="section-header">
+        <div>
+          <h1 className="section-title">{t('vpnConfig')}</h1>
+          <p className="section-subtitle">Получите `.conf`, QR-код и короткие инструкции по установке на любое устройство.</p>
+        </div>
       </div>
-      
-      {/* Platform Instructions */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div className="glass-card">
-          <div className="flex items-center gap-3 mb-4">
-            <div className="p-3 rounded-xl bg-primary-500/10">
-              <Smartphone className="w-6 h-6 text-primary-400" />
+
+      <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
+        <div className="panel p-6">
+          <div className="mb-5 flex items-center gap-3">
+            <div className="rounded-2xl bg-emerald-300/12 p-3 text-emerald-200">
+              <Smartphone className="h-6 w-6" />
             </div>
             <div>
-              <h3 className="font-semibold">Мобильные устройства</h3>
-              <p className="text-sm text-dark-400">Android, iOS</p>
+              <h2 className="text-lg font-bold">Телефон и планшет</h2>
+              <p className="text-sm muted">Android и iPhone через QR или импорт файла</p>
             </div>
           </div>
-          <ol className="space-y-2 text-sm text-dark-300">
-            <li>1. Скачайте AmneziaWG из магазина приложений</li>
-            <li>2. Отсканируйте QR-код или импортируйте файл</li>
-            <li>3. Нажмите "Подключить"</li>
+          <ol className="space-y-3 text-sm text-slate-200">
+            <li>1. Установите клиент AmneziaWG.</li>
+            <li>2. Откройте QR-код или импортируйте конфигурационный файл.</li>
+            <li>3. Активируйте профиль и включите туннель.</li>
           </ol>
-          <button
-            onClick={() => setShowQR(true)}
-            className="btn-secondary w-full mt-4"
-          >
-            <QrCode className="w-5 h-5" />
+          <button onClick={() => setShowQR(true)} className="btn-secondary mt-5 w-full">
+            <QrCode className="h-5 w-5" />
             Показать QR-код
           </button>
         </div>
-        
-        <div className="glass-card">
-          <div className="flex items-center gap-3 mb-4">
-            <div className="p-3 rounded-xl bg-purple-500/10">
-              <Monitor className="w-6 h-6 text-purple-400" />
+
+        <div className="panel p-6">
+          <div className="mb-5 flex items-center gap-3">
+            <div className="rounded-2xl bg-cyan-300/12 p-3 text-cyan-100">
+              <Monitor className="h-6 w-6" />
             </div>
             <div>
-              <h3 className="font-semibold">Компьютер</h3>
-              <p className="text-sm text-dark-400">Windows, macOS, Linux</p>
+              <h2 className="text-lg font-bold">Компьютер</h2>
+              <p className="text-sm muted">Windows, macOS и Linux через `.conf`</p>
             </div>
           </div>
-          <ol className="space-y-2 text-sm text-dark-300">
-            <li>1. Скачайте AmneziaVPN с amnezia.org</li>
-            <li>2. Импортируйте файл конфигурации</li>
-            <li>3. Нажмите "Подключить"</li>
+          <ol className="space-y-3 text-sm text-slate-200">
+            <li>1. Скачайте AmneziaVPN или совместимый клиент.</li>
+            <li>2. Импортируйте выданный конфиг.</li>
+            <li>3. Сохраните профиль и нажмите подключение.</li>
           </ol>
-          <button
-            onClick={handleDownload}
-            className="btn-primary w-full mt-4"
-          >
-            <Download className="w-5 h-5" />
+          <button onClick={handleDownload} className="btn-primary mt-5 w-full">
+            <Download className="h-5 w-5" />
             {t('downloadConfig')}
           </button>
         </div>
       </div>
-      
-      {/* QR Code Modal */}
-      {showQR && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50">
-          <div className="glass-card max-w-md w-full mx-4">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="font-semibold">{t('scanQR')}</h3>
-              <button
-                onClick={() => setShowQR(false)}
-                className="text-dark-400 hover:text-white"
-              >
-                ✕
+
+      {showQR ? (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/70 p-4 backdrop-blur-sm">
+          <div className="glass w-full max-w-md p-6">
+            <div className="flex items-center justify-between gap-4">
+              <div>
+                <h3 className="text-xl font-bold">{t('scanQR')}</h3>
+                <p className="mt-1 text-sm muted">{t('qrInstructions')}</p>
+              </div>
+              <button onClick={() => setShowQR(false)} className="btn-secondary px-3 py-2">
+                {t('close')}
               </button>
             </div>
-            {qrData?.data && (
-              <div className="bg-white rounded-xl p-4">
-                <img
-                  src={URL.createObjectURL(qrData.data)}
-                  alt="QR Code"
-                  className="w-full"
-                />
+
+            {qrUrl ? (
+              <div className="mt-6 rounded-[24px] bg-white p-5">
+                <img src={qrUrl} alt="QR Code" className="w-full rounded-2xl" />
               </div>
+            ) : (
+              <Loading text="Генерируем QR-код..." />
             )}
-            <p className="text-center text-dark-400 text-sm mt-4">
-              {t('qrInstructions')}
-            </p>
           </div>
         </div>
-      )}
-      
-      {/* Config File */}
-      <div className="glass-card">
-        <div className="flex items-center justify-between mb-4">
+      ) : null}
+
+      <div className="panel p-6">
+        <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
           <div className="flex items-center gap-3">
-            <FileCode className="w-5 h-5 text-dark-400" />
-            <h3 className="font-semibold">krotvpn.conf</h3>
+            <div className="rounded-2xl bg-white/8 p-3 text-cyan-100">
+              <FileCode2 className="h-5 w-5" />
+            </div>
+            <div>
+              <h2 className="text-lg font-bold">Конфигурационный файл</h2>
+              <p className="text-sm muted">Готовый конфиг для ручного импорта и резервного копирования.</p>
+            </div>
           </div>
-          <div className="flex gap-2">
+
+          <div className="flex flex-col gap-3 sm:flex-row">
             <button onClick={handleCopy} className="btn-secondary">
-              {copied ? <Check className="w-5 h-5 text-green-400" /> : <Copy className="w-5 h-5" />}
+              {copied ? <Check className="h-5 w-5 text-emerald-200" /> : <Copy className="h-5 w-5" />}
               {copied ? t('copied') : t('copyConfig')}
             </button>
             <button onClick={handleDownload} className="btn-primary">
-              <Download className="w-5 h-5" />
+              <Download className="h-5 w-5" />
               {t('downloadConfig')}
             </button>
           </div>
         </div>
-        <pre className="bg-dark-800 rounded-xl p-4 overflow-x-auto text-sm font-mono text-primary-300">
-          {config?.config || 'Loading...'}
+
+        <pre className="mt-6 overflow-x-auto rounded-[24px] bg-slate-950/55 p-5 text-sm text-cyan-100">
+          {config?.config || 'Конфигурация недоступна'}
         </pre>
       </div>
-      
-      {/* Server Info */}
-      {config && (
-        <div className="glass-card">
-          <h3 className="font-semibold mb-4">Информация о сервере</h3>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <div>
-              <p className="text-sm text-dark-400">Сервер</p>
-              <p className="font-medium">{config.server_name}</p>
-            </div>
-            <div>
-              <p className="text-sm text-dark-400">Локация</p>
-              <p className="font-medium">{config.server_location}</p>
-            </div>
-            <div>
-              <p className="text-sm text-dark-400">IP адрес</p>
-              <p className="font-mono">{config.address}</p>
-            </div>
-            <div>
-              <p className="text-sm text-dark-400">Создан</p>
-              <p className="font-medium">
-                {new Date(config.created_at).toLocaleDateString()}
-              </p>
-            </div>
+
+      {config ? (
+        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+          <div className="metric-card">
+            <p className="metric-label">Сервер</p>
+            <p className="metric-value text-2xl">{config.server_name}</p>
+          </div>
+          <div className="metric-card">
+            <p className="metric-label">Локация</p>
+            <p className="metric-value text-2xl">{config.server_location}</p>
+          </div>
+          <div className="metric-card">
+            <p className="metric-label">VPN IP</p>
+            <p className="metric-value text-2xl">{config.address}</p>
+          </div>
+          <div className="metric-card">
+            <p className="metric-label">Создан</p>
+            <p className="metric-value text-2xl">{new Date(config.created_at).toLocaleDateString('ru-RU')}</p>
           </div>
         </div>
-      )}
+      ) : null}
     </div>
   )
 }

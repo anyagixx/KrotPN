@@ -1,172 +1,161 @@
 import { useQuery } from 'react-query'
 import { useTranslation } from 'react-i18next'
-import { 
-  ArrowUp, 
-  ArrowDown, 
-  Clock, 
-  Server, 
-  MapPin,
-  Shield,
-  Zap,
-  Calendar
-} from 'lucide-react'
+import { ArrowDown, ArrowUp, Calendar, Clock, MapPin, Server, Shield, Zap } from 'lucide-react'
+import { Link } from 'react-router-dom'
 import { useAuthStore } from '../stores/auth'
-import { vpnApi, userApi } from '../lib/api'
+import { userApi, vpnApi } from '../lib/api'
 import Loading from '../components/Loading'
 
 export default function Dashboard() {
   const { t } = useTranslation()
   const { user } = useAuthStore()
-  
-  const { data: vpnStats, isLoading: statsLoading } = useQuery(
-    'vpn-stats',
-    () => vpnApi.getStats(),
-    { refetchInterval: 10000 }
-  )
-  
-  const { data: userStats, isLoading: userStatsLoading } = useQuery(
-    'user-stats',
-    () => userApi.getStats()
-  )
-  
+
+  const { data: vpnStats, isLoading: statsLoading } = useQuery('vpn-stats', () => vpnApi.getStats(), {
+    refetchInterval: 10000,
+  })
+
+  const { data: userStats, isLoading: userStatsLoading } = useQuery('user-stats', () => userApi.getStats())
+
   if (statsLoading || userStatsLoading) {
     return <Loading text={t('loading')} />
   }
-  
+
   const stats = vpnStats?.data
   const uStats = userStats?.data
-  
+
   return (
-    <div className="space-y-8 animate-in">
-      {/* Welcome */}
-      <div>
-        <h1 className="text-3xl font-bold">
-          {t('welcome')}, <span className="gradient-text">{user?.display_name || 'User'}</span>!
-        </h1>
-        <p className="text-dark-400 mt-2">
-          Управляйте своим VPN подключением
-        </p>
-      </div>
-      
-      {/* Status Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        {/* Connection Status */}
-        <div className="glass-card">
-          <div className="flex items-center justify-between mb-4">
-            <span className="text-dark-400">{t('status')}</span>
-            <div className={`w-3 h-3 rounded-full ${stats?.is_connected ? 'bg-green-500 animate-pulse' : 'bg-dark-500'}`} />
+    <div className="content-section animate-in">
+      <section className="glass p-6 md:p-8">
+        <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
+          <div>
+            <p className="text-xs font-bold uppercase tracking-[0.2em] text-cyan-100/70">Private dashboard</p>
+            <h1 className="mt-3 text-4xl font-extrabold tracking-tight">
+              {t('welcome')}, <span className="gradient-text">{user?.display_name || 'User'}</span>
+            </h1>
+            <p className="mt-3 max-w-2xl text-sm muted">
+              Контролируйте статус туннеля, оставшиеся дни подписки и доступ к конфигурации с одного экрана.
+            </p>
           </div>
-          <div className="flex items-center gap-3">
-            <div className={`p-3 rounded-xl ${stats?.is_connected ? 'bg-green-500/10' : 'bg-dark-700'}`}>
-              <Shield className={`w-6 h-6 ${stats?.is_connected ? 'text-green-400' : 'text-dark-400'}`} />
-            </div>
-            <div>
-              <p className="font-semibold">
-                {stats?.is_connected ? t('connected') : t('disconnected')}
-              </p>
-              <p className="text-sm text-dark-400">
-                {stats?.server_location || '—'}
+
+          <div className="grid gap-3 sm:grid-cols-2">
+            <div className="panel-soft px-4 py-4">
+              <p className="text-xs uppercase tracking-[0.18em] muted">Подписка</p>
+              <p className="mt-2 text-lg font-bold">
+                {uStats?.has_active_subscription ? `${uStats.subscription_days_left} ${t('daysLeft')}` : 'Нужна активация'}
               </p>
             </div>
+            <div className="panel-soft px-4 py-4">
+              <p className="text-xs uppercase tracking-[0.18em] muted">VPN статус</p>
+              <p className="mt-2 text-lg font-bold">{stats?.is_connected ? t('connected') : t('disconnected')}</p>
+            </div>
           </div>
         </div>
-        
-        {/* Subscription */}
-        <div className="glass-card">
-          <div className="flex items-center justify-between mb-4">
-            <span className="text-dark-400">{t('subscription')}</span>
-            <Calendar className="w-5 h-5 text-dark-400" />
+      </section>
+
+      <section className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
+        <div className="metric-card">
+          <div className="flex items-center justify-between">
+            <span className="metric-label">{t('status')}</span>
+            <span className={stats?.is_connected ? 'status-badge-success' : 'status-badge-error'}>
+              {stats?.is_connected ? 'online' : 'offline'}
+            </span>
           </div>
-          <div className="flex items-center gap-3">
-            <div className={`p-3 rounded-xl ${uStats?.has_active_subscription ? 'bg-primary-500/10' : 'bg-red-500/10'}`}>
-              <Zap className={`w-6 h-6 ${uStats?.has_active_subscription ? 'text-primary-400' : 'text-red-400'}`} />
+          <div className="mt-5 flex items-center gap-3">
+            <div className="rounded-2xl bg-emerald-300/12 p-3 text-emerald-200">
+              <Shield className="h-6 w-6" />
             </div>
             <div>
-              <p className="font-semibold">
-                {uStats?.has_active_subscription 
-                  ? `${uStats.subscription_days_left} ${t('daysLeft')}`
-                  : t('subscriptionExpired')
-                }
-              </p>
-              <p className="text-sm text-dark-400">
-                {uStats?.has_active_subscription ? t('subscriptionActive') : 'Продлите подписку'}
-              </p>
+              <p className="font-bold">{stats?.is_connected ? t('connected') : t('disconnected')}</p>
+              <p className="text-sm muted">{stats?.server_location || 'Сервер ещё не назначен'}</p>
             </div>
           </div>
         </div>
-        
-        {/* Upload */}
-        <div className="glass-card">
-          <div className="flex items-center justify-between mb-4">
-            <span className="text-dark-400">{t('upload')}</span>
-            <ArrowUp className="w-5 h-5 text-green-400" />
+
+        <div className="metric-card">
+          <div className="flex items-center justify-between">
+            <span className="metric-label">{t('subscription')}</span>
+            <Calendar className="h-5 w-5 text-cyan-100" />
           </div>
-          <p className="text-2xl font-bold">{stats?.total_upload_formatted || '0 B'}</p>
-          <p className="text-sm text-dark-400 mt-1">{t('traffic')}</p>
+          <p className="metric-value">{uStats?.has_active_subscription ? uStats.subscription_days_left : 0}</p>
+          <p className="mt-2 text-sm muted">
+            {uStats?.has_active_subscription ? t('subscriptionActive') : 'Продлите доступ, чтобы получить конфиг'}
+          </p>
         </div>
-        
-        {/* Download */}
-        <div className="glass-card">
-          <div className="flex items-center justify-between mb-4">
-            <span className="text-dark-400">{t('download')}</span>
-            <ArrowDown className="w-5 h-5 text-blue-400" />
+
+        <div className="metric-card">
+          <div className="flex items-center justify-between">
+            <span className="metric-label">{t('upload')}</span>
+            <ArrowUp className="h-5 w-5 text-emerald-200" />
           </div>
-          <p className="text-2xl font-bold">{stats?.total_download_formatted || '0 B'}</p>
-          <p className="text-sm text-dark-400 mt-1">{t('traffic')}</p>
+          <p className="metric-value">{stats?.total_upload_formatted || '0 B'}</p>
+          <p className="mt-2 text-sm muted">{t('traffic')}</p>
         </div>
-      </div>
-      
-      {/* Server Info */}
-      <div className="glass-card">
-        <h2 className="text-lg font-semibold mb-4">{t('server')}</h2>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <div className="flex items-center gap-3">
-            <Server className="w-5 h-5 text-dark-400" />
-            <div>
-              <p className="text-sm text-dark-400">{t('server')}</p>
-              <p className="font-medium">{stats?.server_name || '—'}</p>
+
+        <div className="metric-card">
+          <div className="flex items-center justify-between">
+            <span className="metric-label">{t('download')}</span>
+            <ArrowDown className="h-5 w-5 text-cyan-100" />
+          </div>
+          <p className="metric-value">{stats?.total_download_formatted || '0 B'}</p>
+          <p className="mt-2 text-sm muted">{t('traffic')}</p>
+        </div>
+      </section>
+
+      <section className="grid gap-4 xl:grid-cols-[minmax(0,1.2fr)_minmax(320px,0.8fr)]">
+        <div className="panel p-6">
+          <h2 className="text-xl font-bold">Сервер и соединение</h2>
+          <div className="mt-5 grid gap-4 md:grid-cols-3">
+            <div className="panel-soft px-4 py-4">
+              <div className="flex items-center gap-3">
+                <Server className="h-5 w-5 text-cyan-100" />
+                <div>
+                  <p className="text-sm muted">{t('server')}</p>
+                  <p className="mt-1 font-semibold">{stats?.server_name || 'Ожидает активации'}</p>
+                </div>
+              </div>
+            </div>
+            <div className="panel-soft px-4 py-4">
+              <div className="flex items-center gap-3">
+                <MapPin className="h-5 w-5 text-cyan-100" />
+                <div>
+                  <p className="text-sm muted">{t('location')}</p>
+                  <p className="mt-1 font-semibold">{stats?.server_location || 'Не выбрано'}</p>
+                </div>
+              </div>
+            </div>
+            <div className="panel-soft px-4 py-4">
+              <div className="flex items-center gap-3">
+                <Clock className="h-5 w-5 text-cyan-100" />
+                <div>
+                  <p className="text-sm muted">{t('lastConnection')}</p>
+                  <p className="mt-1 font-semibold">
+                    {stats?.last_handshake_at ? new Date(stats.last_handshake_at).toLocaleString('ru-RU') : 'Нет данных'}
+                  </p>
+                </div>
+              </div>
             </div>
           </div>
-          <div className="flex items-center gap-3">
-            <MapPin className="w-5 h-5 text-dark-400" />
-            <div>
-              <p className="text-sm text-dark-400">{t('location')}</p>
-              <p className="font-medium">{stats?.server_location || '—'}</p>
-            </div>
-          </div>
-          <div className="flex items-center gap-3">
-            <Clock className="w-5 h-5 text-dark-400" />
-            <div>
-              <p className="text-sm text-dark-400">{t('lastConnection')}</p>
-              <p className="font-medium">
-                {stats?.last_handshake_at 
-                  ? new Date(stats.last_handshake_at).toLocaleString()
-                  : '—'
-                }
-              </p>
-            </div>
+        </div>
+
+        <div className="glass p-6">
+          <p className="text-xs font-bold uppercase tracking-[0.2em] text-cyan-100/70">Quick actions</p>
+          <h2 className="mt-3 text-2xl font-extrabold">Основные действия</h2>
+          <div className="mt-6 grid gap-3">
+            <Link to="/config" className="btn-secondary justify-start">
+              <Shield className="h-5 w-5" />
+              Открыть конфигурацию
+            </Link>
+            <Link to="/subscription" className="btn-primary justify-start">
+              <Zap className="h-5 w-5" />
+              Продлить или сменить тариф
+            </Link>
+            <Link to="/referrals" className="btn-secondary justify-start">
+              <span className="text-lg">🎁</span>
+              Открыть реферальную программу
+            </Link>
           </div>
         </div>
-      </div>
-      
-      {/* Quick Actions */}
-      <div className="glass-card">
-        <h2 className="text-lg font-semibold mb-4">Быстрые действия</h2>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <a href="/config" className="btn-secondary py-4">
-            <Shield className="w-5 h-5" />
-            Скачать конфиг
-          </a>
-          <a href="/subscription" className="btn-primary py-4">
-            <Zap className="w-5 h-5" />
-            Продлить подписку
-          </a>
-          <a href="/referrals" className="btn-secondary py-4">
-            <span className="text-lg">🎁</span>
-            Пригласить друга
-          </a>
-        </div>
-      </div>
+      </section>
     </div>
   )
 }

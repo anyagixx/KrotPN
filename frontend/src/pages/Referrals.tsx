@@ -1,7 +1,7 @@
+import { useState } from 'react'
 import { useQuery } from 'react-query'
 import { useTranslation } from 'react-i18next'
-import { Gift, Users, Copy, Check } from 'lucide-react'
-import { useState } from 'react'
+import { Check, Copy, Gift, Link2, Users } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { referralApi } from '../lib/api'
 import Loading from '../components/Loading'
@@ -9,96 +9,89 @@ import Loading from '../components/Loading'
 export default function Referrals() {
   const { t } = useTranslation()
   const [copied, setCopied] = useState(false)
-  
+
   const { data, isLoading } = useQuery('referrals', () => referralApi.getCode())
   const { data: statsData } = useQuery('referral-stats', () => referralApi.getStats())
-  
+
   if (isLoading) {
     return <Loading text={t('loading')} />
   }
-  
-  const referralCode = data?.data?.code
+
+  const referralCode = data?.data?.code || ''
   const referralLink = `${window.location.origin}/register?ref=${referralCode}`
   const stats = statsData?.data
-  
+
   const handleCopy = async (text: string) => {
     await navigator.clipboard.writeText(text)
     setCopied(true)
     toast.success(t('copied'))
     setTimeout(() => setCopied(false), 2000)
   }
-  
+
   return (
-    <div className="space-y-8 animate-in max-w-2xl">
-      <div>
-        <h1 className="text-3xl font-bold">{t('referralProgram')}</h1>
-        <p className="text-dark-400 mt-2">
-          {t('referralInstructions')}
-        </p>
-      </div>
-      
-      {/* Stats */}
-      <div className="grid grid-cols-2 gap-4">
-        <div className="glass-card text-center">
-          <Users className="w-8 h-8 mx-auto mb-2 text-primary-400" />
-          <p className="text-3xl font-bold">{stats?.total_referrals || 0}</p>
-          <p className="text-dark-400">{t('referralsCount')}</p>
-        </div>
-        <div className="glass-card text-center">
-          <Gift className="w-8 h-8 mx-auto mb-2 text-green-400" />
-          <p className="text-3xl font-bold">{stats?.bonus_days_earned || 0}</p>
-          <p className="text-dark-400">{t('bonusDays')}</p>
+    <div className="content-section animate-in">
+      <div className="section-header">
+        <div>
+          <h1 className="section-title">{t('referralProgram')}</h1>
+          <p className="section-subtitle">Делитесь ссылкой, приглашайте друзей и получайте продление доступа бонусными днями.</p>
         </div>
       </div>
-      
-      {/* Referral Code */}
-      <div className="glass-card">
-        <h3 className="font-semibold mb-4">{t('referralCode')}</h3>
-        <div className="flex gap-2">
-          <input
-            type="text"
-            value={referralCode || ''}
-            readOnly
-            className="input font-mono"
-          />
-          <button
-            onClick={() => handleCopy(referralCode || '')}
-            className="btn-secondary"
-          >
-            {copied ? <Check className="w-5 h-5 text-green-400" /> : <Copy className="w-5 h-5" />}
+
+      <div className="grid gap-4 md:grid-cols-2">
+        <div className="metric-card text-center">
+          <Users className="mx-auto h-8 w-8 text-cyan-100" />
+          <p className="metric-value">{stats?.total_referrals || 0}</p>
+          <p className="mt-2 text-sm muted">{t('referralsCount')}</p>
+        </div>
+        <div className="metric-card text-center">
+          <Gift className="mx-auto h-8 w-8 text-emerald-200" />
+          <p className="metric-value">{stats?.bonus_days_earned || 0}</p>
+          <p className="mt-2 text-sm muted">{t('bonusDays')}</p>
+        </div>
+      </div>
+
+      <div className="panel p-6">
+        <div className="flex items-center gap-3">
+          <div className="rounded-2xl bg-white/8 p-3 text-cyan-100">
+            <Gift className="h-5 w-5" />
+          </div>
+          <div>
+            <h2 className="text-lg font-bold">{t('referralCode')}</h2>
+            <p className="text-sm muted">Используйте код в ручных приглашениях или чатах.</p>
+          </div>
+        </div>
+        <div className="mt-5 flex flex-col gap-3 sm:flex-row">
+          <input type="text" value={referralCode} readOnly className="input font-mono" />
+          <button onClick={() => handleCopy(referralCode)} className="btn-secondary sm:min-w-[150px]">
+            {copied ? <Check className="h-5 w-5 text-emerald-200" /> : <Copy className="h-5 w-5" />}
+            Копировать
           </button>
         </div>
       </div>
-      
-      {/* Referral Link */}
-      <div className="glass-card">
-        <h3 className="font-semibold mb-4">{t('referralLink')}</h3>
-        <div className="flex gap-2">
-          <input
-            type="text"
-            value={referralLink}
-            readOnly
-            className="input font-mono text-sm"
-          />
-          <button
-            onClick={() => handleCopy(referralLink)}
-            className="btn-primary"
-          >
-            <Copy className="w-5 h-5" />
-            {t('copyConfig')}
+
+      <div className="panel p-6">
+        <div className="flex items-center gap-3">
+          <div className="rounded-2xl bg-emerald-300/12 p-3 text-emerald-200">
+            <Link2 className="h-5 w-5" />
+          </div>
+          <div>
+            <h2 className="text-lg font-bold">{t('referralLink')}</h2>
+            <p className="text-sm muted">Полная ссылка на регистрацию с уже подставленным кодом.</p>
+          </div>
+        </div>
+        <div className="mt-5 flex flex-col gap-3 sm:flex-row">
+          <input type="text" value={referralLink} readOnly className="input font-mono text-sm" />
+          <button onClick={() => handleCopy(referralLink)} className="btn-primary sm:min-w-[170px]">
+            <Copy className="h-5 w-5" />
+            Копировать ссылку
           </button>
         </div>
       </div>
-      
-      {/* Bonus Info */}
-      <div className="glass-card gradient-bg text-center">
-        <Gift className="w-12 h-12 mx-auto mb-4" />
-        <h3 className="text-xl font-bold mb-2">
-          {t('referralBonus', { days: 7 })}
-        </h3>
-        <p className="text-white/80">
-          За каждого приглашенного друга вы получите +7 дней подписки!
-        </p>
+
+      <div className="glass p-6 text-center">
+        <Gift className="mx-auto h-12 w-12 text-emerald-100" />
+        <h3 className="mt-4 text-2xl font-extrabold">{t('referralBonus', { days: 7 })}</h3>
+        <p className="mt-2 text-sm text-slate-100">Каждый оплаченный реферал приносит тебе дополнительные 7 дней доступа.</p>
       </div>
     </div>
   )

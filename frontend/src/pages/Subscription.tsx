@@ -1,6 +1,6 @@
 import { useQuery } from 'react-query'
 import { useTranslation } from 'react-i18next'
-import { Check, Zap, Crown, Rocket } from 'lucide-react'
+import { Check, Crown, Rocket, ShieldCheck, Zap } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { billingApi } from '../lib/api'
 import Loading from '../components/Loading'
@@ -13,24 +13,17 @@ const planIcons = {
 
 export default function Subscription() {
   const { t } = useTranslation()
-  
-  const { data: plansData, isLoading: plansLoading } = useQuery(
-    'plans',
-    () => billingApi.getPlans()
-  )
-  
-  const { data: subData, isLoading: subLoading } = useQuery(
-    'subscription',
-    () => billingApi.getSubscription()
-  )
-  
+
+  const { data: plansData, isLoading: plansLoading } = useQuery('plans', () => billingApi.getPlans())
+  const { data: subData, isLoading: subLoading } = useQuery('subscription', () => billingApi.getSubscription())
+
   if (plansLoading || subLoading) {
     return <Loading text={t('loading')} />
   }
-  
+
   const plans = plansData?.data || []
   const subscription = subData?.data
-  
+
   const handleSubscribe = async (planId: number) => {
     try {
       const { data } = await billingApi.createPayment(planId)
@@ -41,93 +34,93 @@ export default function Subscription() {
       toast.error(t('error'))
     }
   }
-  
+
   return (
-    <div className="space-y-8 animate-in">
-      <div>
-        <h1 className="text-3xl font-bold">{t('plans')}</h1>
-        <p className="text-dark-400 mt-2">
-          Выберите подходящий тарифный план
-        </p>
+    <div className="content-section animate-in">
+      <div className="section-header">
+        <div>
+          <h1 className="section-title">{t('plans')}</h1>
+          <p className="section-subtitle">Выберите план, который подходит по длительности и уровню использования.</p>
+        </div>
       </div>
-      
-      {/* Current Subscription */}
-      {subscription && (
-        <div className="glass-card border-primary-500/50">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm text-dark-400">{t('currentPlan')}</p>
-              <p className="text-xl font-bold">{subscription.plan_name}</p>
+
+      <section className="grid gap-4 xl:grid-cols-[minmax(0,1.15fr)_minmax(320px,0.85fr)]">
+        <div className="glass p-6">
+          <p className="text-xs font-bold uppercase tracking-[0.2em] text-cyan-100/70">Текущий статус</p>
+          <h2 className="mt-3 text-2xl font-extrabold">
+            {subscription?.has_subscription ? subscription.plan_name || 'Активная подписка' : 'Подписка ещё не активирована'}
+          </h2>
+          <p className="mt-2 text-sm muted">
+            {subscription?.has_subscription
+              ? `До окончания осталось ${subscription.days_left} дней.`
+              : 'После покупки вы сразу попадёте на оплату и получите доступ к конфигурации.'}
+          </p>
+        </div>
+
+        <div className="panel p-6">
+          <div className="flex items-center gap-3">
+            <div className="rounded-2xl bg-emerald-300/12 p-3 text-emerald-200">
+              <ShieldCheck className="h-6 w-6" />
             </div>
-            <div className="text-right">
-              <p className="text-sm text-dark-400">{t('daysLeft')}</p>
-              <p className="text-2xl font-bold gradient-text">
-                {subscription.days_left}
-              </p>
+            <div>
+              <h3 className="text-lg font-bold">Что включено</h3>
+              <p className="text-sm muted">Все планы дают доступ к защищённому туннелю и личному кабинету.</p>
             </div>
           </div>
         </div>
-      )}
-      
-      {/* Plans Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      </section>
+
+      <section className="grid grid-cols-1 gap-4 xl:grid-cols-3">
         {plans.map((plan, index) => {
           const Icon = planIcons[plan.name.toLowerCase() as keyof typeof planIcons] || Zap
           const isPopular = index === 1
-          
+
           return (
-            <div
-              key={plan.id}
-              className={`glass-card relative ${isPopular ? 'border-primary-500/50' : ''}`}
-            >
-              {isPopular && (
-                <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-1 rounded-full bg-primary-500 text-sm font-medium">
+            <div key={plan.id} className={`panel relative p-6 ${isPopular ? 'ring-1 ring-emerald-200/16' : ''}`}>
+              {isPopular ? (
+                <div className="absolute right-5 top-5 status-badge-success">
                   Популярный
                 </div>
-              )}
-              
-              <div className="text-center mb-6">
-                <div className={`w-16 h-16 mx-auto rounded-2xl flex items-center justify-center mb-4 ${
-                  isPopular ? 'gradient-bg' : 'bg-dark-700'
-                }`}>
-                  <Icon className="w-8 h-8" />
+              ) : null}
+
+              <div className="rounded-3xl bg-white/5 p-4">
+                <div className={`inline-flex rounded-2xl p-3 ${isPopular ? 'gradient-bg text-slate-950' : 'bg-white/8 text-cyan-100'}`}>
+                  <Icon className="h-7 w-7" />
                 </div>
-                <h3 className="text-xl font-bold">{plan.name}</h3>
-                <div className="mt-2">
-                  <span className="text-3xl font-bold">{plan.price}₽</span>
-                  <span className="text-dark-400">/{plan.duration_days} {t('days')}</span>
+                <h3 className="mt-5 text-2xl font-extrabold">{plan.name}</h3>
+                <div className="mt-3 flex items-end gap-2">
+                  <span className="text-4xl font-extrabold">{plan.price}₽</span>
+                  <span className="pb-1 text-sm muted">
+                    / {plan.duration_days} {t('days')}
+                  </span>
                 </div>
               </div>
-              
-              <ul className="space-y-3 mb-6">
+
+              <ul className="mt-6 space-y-3">
                 {plan.features?.map((feature: string, i: number) => (
-                  <li key={i} className="flex items-center gap-2 text-dark-300">
-                    <Check className="w-5 h-5 text-green-400 flex-shrink-0" />
-                    {feature}
+                  <li key={i} className="flex items-start gap-3 text-sm text-slate-100">
+                    <div className="mt-0.5 rounded-full bg-emerald-300/12 p-1 text-emerald-200">
+                      <Check className="h-3.5 w-3.5" />
+                    </div>
+                    <span>{feature}</span>
                   </li>
                 ))}
               </ul>
-              
-              <button
-                onClick={() => handleSubscribe(plan.id)}
-                className={isPopular ? 'btn-primary w-full' : 'btn-secondary w-full'}
-              >
-                {subscription ? t('extend') : t('buy')}
+
+              <button onClick={() => handleSubscribe(plan.id)} className={`mt-6 w-full ${isPopular ? 'btn-primary' : 'btn-secondary'}`}>
+                {subscription?.has_subscription ? t('extend') : t('buy')}
               </button>
             </div>
           )
         })}
-      </div>
-      
-      {/* Trial Banner */}
-      {!subscription && (
-        <div className="glass-card gradient-bg text-center">
-          <h3 className="text-xl font-bold mb-2">{t('trial')}</h3>
-          <p className="text-white/80">
-            {t('trialDays', { days: 3 })} — без привязки карты!
-          </p>
-        </div>
-      )}
+      </section>
+
+      {!subscription?.has_subscription ? (
+        <section className="glass p-6 text-center">
+          <h3 className="text-2xl font-extrabold">{t('trial')}</h3>
+          <p className="mt-2 text-sm text-slate-100">{t('trialDays', { days: 3 })} и быстрый вход в личный кабинет.</p>
+        </section>
+      ) : null}
     </div>
   )
 }

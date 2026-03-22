@@ -1,4 +1,4 @@
-import { Loader2 } from 'lucide-react'
+import { Loader2, Shield } from 'lucide-react'
 
 interface LoadingProps {
   text?: string
@@ -6,9 +6,15 @@ interface LoadingProps {
 
 export default function Loading({ text = 'Loading...' }: LoadingProps) {
   return (
-    <div className="flex flex-col items-center justify-center py-12">
-      <Loader2 className="w-8 h-8 text-primary-500 animate-spin" />
-      <p className="mt-4 text-dark-400">{text}</p>
+    <div className="empty-state">
+      <div className="rounded-[28px] bg-emerald-300/12 p-4 text-emerald-200">
+        <Shield className="h-8 w-8" />
+      </div>
+      <Loader2 className="h-8 w-8 animate-spin text-cyan-100" />
+      <div>
+        <p className="text-lg font-semibold">Подготавливаем данные</p>
+        <p className="mt-1 text-sm muted">{text}</p>
+      </div>
     </div>
   )
 }

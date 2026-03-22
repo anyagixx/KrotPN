@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2.4.12] - 2026-03-22
+
+### Improved
+- Fully redesigned the user frontend with a premium visual direction, cleaner hierarchy, and unified layout system
+- Reworked login, registration, dashboard, VPN config, subscription, referrals, and settings screens
+- Added stronger loading, action, and content states across the user cabinet while keeping API behavior intact
+
 ## [2.4.11] - 2026-03-22
 
 ### Improved
