@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2.4.11] - 2026-03-22
+
+### Improved
+- Reworked the admin panel frontend with a stronger visual layout, clearer navigation, and more readable dashboard hierarchy
+- Redesigned admin login, users, servers, plans, analytics, and settings screens for real operational use
+- Replaced misleading placeholder admin forms with honest UI states that match current backend capabilities
+
 ## [2.4.10] - 2026-03-22
 
 ### Fixed

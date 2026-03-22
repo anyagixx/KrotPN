@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# KrotVPN Interactive Installer v2.4.10
+# KrotVPN Interactive Installer v2.4.11
 # Run this command to install:
 #   curl -fsSL https://raw.githubusercontent.com/anyagixx/KrotVPN/main/install.sh | bash
 #
@@ -21,7 +21,7 @@ print_banner() {
     echo "║                                                              ║"
     echo "║                         K R O T V P N                        ║"
     echo "║                                                              ║"
-    echo "║              Interactive Installer v2.4.10                   ║"
+    echo "║              Interactive Installer v2.4.11                   ║"
     echo "║                                                              ║"
     echo "╚══════════════════════════════════════════════════════════════╝"
     echo -e "${NC}"

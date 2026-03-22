@@ -1,40 +1,183 @@
+@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
+:root {
+  color-scheme: dark;
+  --bg: #06131a;
+  --bg-elevated: rgba(10, 27, 34, 0.88);
+  --panel: rgba(14, 35, 44, 0.82);
+  --panel-strong: rgba(17, 44, 55, 0.94);
+  --border: rgba(154, 199, 214, 0.14);
+  --text: #eff8fb;
+  --muted: #8ea8b2;
+  --accent: #53d2b2;
+  --accent-2: #7de0cf;
+  --danger: #ff7d7d;
+  --shadow: 0 28px 80px rgba(2, 10, 14, 0.45);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  background:
+    radial-gradient(circle at top left, rgba(83, 210, 178, 0.12), transparent 28%),
+    radial-gradient(circle at top right, rgba(70, 148, 255, 0.18), transparent 26%),
+    linear-gradient(180deg, #07131a 0%, #091a23 44%, #061117 100%);
+  min-height: 100%;
+}
+
 body {
-  font-family: 'Inter', sans-serif;
-  background: #0f111a;
-  color: white;
+  margin: 0;
+  min-height: 100vh;
+  font-family: 'Manrope', sans-serif;
+  color: var(--text);
+  background: transparent;
+}
+
+#root {
+  min-height: 100vh;
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
 }
 
 .glass {
-  background: rgba(30, 41, 59, 0.5);
-  backdrop-filter: blur(16px);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 16px;
+  background: linear-gradient(180deg, rgba(15, 38, 47, 0.92) 0%, rgba(10, 25, 32, 0.92) 100%);
+  border: 1px solid var(--border);
+  border-radius: 24px;
+  box-shadow: var(--shadow);
+}
+
+.panel {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 24px;
+  box-shadow: var(--shadow);
+}
+
+.panel-soft {
+  background: rgba(12, 31, 39, 0.68);
+  border: 1px solid rgba(154, 199, 214, 0.1);
+  border-radius: 20px;
 }
 
 .btn-primary {
-  @apply bg-primary-500 hover:bg-primary-600 text-white px-4 py-2 rounded-lg transition;
+  @apply inline-flex items-center justify-center gap-2 rounded-2xl px-4 py-3 font-semibold text-slate-950 transition;
+  background: linear-gradient(135deg, var(--accent) 0%, var(--accent-2) 100%);
+  box-shadow: 0 14px 30px rgba(83, 210, 178, 0.26);
+}
+
+.btn-primary:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 18px 36px rgba(83, 210, 178, 0.32);
 }
 
 .btn-secondary {
-  @apply bg-dark-700 hover:bg-dark-600 text-white px-4 py-2 rounded-lg border border-dark-600 transition;
+  @apply inline-flex items-center justify-center gap-2 rounded-2xl px-4 py-3 font-semibold text-slate-100 transition;
+  background: rgba(15, 35, 44, 0.8);
+  border: 1px solid rgba(154, 199, 214, 0.14);
+}
+
+.btn-secondary:hover {
+  background: rgba(19, 43, 54, 0.95);
+}
+
+.btn-danger {
+  @apply inline-flex items-center justify-center gap-2 rounded-2xl px-4 py-3 font-semibold text-white transition;
+  background: rgba(255, 125, 125, 0.14);
+  border: 1px solid rgba(255, 125, 125, 0.18);
+}
+
+.btn-danger:hover {
+  background: rgba(255, 125, 125, 0.2);
 }
 
 .input {
-  @apply w-full bg-dark-800 border border-dark-600 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-primary-500;
+  @apply w-full rounded-2xl px-4 py-3 text-sm text-slate-50 outline-none transition;
+  background: rgba(7, 20, 26, 0.86);
+  border: 1px solid rgba(154, 199, 214, 0.16);
 }
 
-.stat-card {
-  @apply glass p-6;
+.input::placeholder {
+  color: #6e8790;
 }
 
-.stat-value {
-  @apply text-3xl font-bold;
+.input:focus {
+  border-color: rgba(125, 224, 207, 0.64);
+  box-shadow: 0 0 0 4px rgba(83, 210, 178, 0.11);
 }
 
-.stat-label {
-  @apply text-sm text-gray-400 mt-1;
+.page-shell {
+  @apply space-y-6;
+}
+
+.page-header {
+  @apply flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between;
+}
+
+.page-title {
+  @apply text-3xl font-extrabold tracking-tight text-slate-50 md:text-4xl;
+}
+
+.page-subtitle {
+  color: var(--muted);
+}
+
+.data-table {
+  @apply min-w-full border-separate border-spacing-0;
+}
+
+.data-table thead th {
+  @apply px-5 py-4 text-left text-xs font-semibold uppercase tracking-[0.14em];
+  color: #82a0aa;
+}
+
+.data-table tbody td {
+  @apply px-5 py-4 text-sm text-slate-100;
+  border-top: 1px solid rgba(154, 199, 214, 0.08);
+}
+
+.data-table tbody tr:hover {
+  background: rgba(20, 46, 56, 0.4);
+}
+
+.metric-pill {
+  @apply inline-flex items-center gap-2 rounded-full px-3 py-1 text-xs font-semibold;
+  background: rgba(83, 210, 178, 0.12);
+  color: #9ff0dc;
+}
+
+.danger-pill {
+  @apply inline-flex items-center gap-2 rounded-full px-3 py-1 text-xs font-semibold;
+  background: rgba(255, 125, 125, 0.12);
+  color: #ffb2b2;
+}
+
+.muted {
+  color: var(--muted);
+}
+
+.progress-track {
+  @apply h-2 overflow-hidden rounded-full;
+  background: rgba(154, 199, 214, 0.12);
+}
+
+.progress-fill {
+  @apply h-full rounded-full transition-all;
+  background: linear-gradient(90deg, #53d2b2 0%, #6fc6ff 100%);
+}
+
+.empty-state {
+  @apply flex min-h-[220px] flex-col items-center justify-center gap-3 rounded-[24px] border border-dashed p-8 text-center;
+  border-color: rgba(154, 199, 214, 0.14);
+  background: rgba(7, 21, 28, 0.45);
 }

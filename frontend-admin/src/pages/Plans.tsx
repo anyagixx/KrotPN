@@ -1,119 +1,143 @@
 import { useState } from 'react'
-import { useQuery, useMutation, useQueryClient } from 'react-query'
-import { Plus, Edit, Trash2, Check, Star } from 'lucide-react'
+import { useMutation, useQuery, useQueryClient } from 'react-query'
+import { Check, CreditCard, Edit, Plus, Star, Trash2 } from 'lucide-react'
 import { adminApi } from '../lib/api'
+
+function getFeatures(plan: any): string[] {
+  if (Array.isArray(plan.features)) return plan.features
+  if (typeof plan.features === 'string') {
+    try {
+      return JSON.parse(plan.features)
+    } catch {
+      return []
+    }
+  }
+  return []
+}
 
 export default function Plans() {
   const [showModal, setShowModal] = useState(false)
   const queryClient = useQueryClient()
-  
-  const { data: plans, isLoading } = useQuery('admin-plans', () => adminApi.getPlans())
-  
-  const deleteMutation = useMutation(
-    (id: number) => adminApi.deletePlan(id),
-    { onSuccess: () => queryClient.invalidateQueries('admin-plans') }
-  )
 
-  const getFeatures = (plan: any): string[] => {
-    if (Array.isArray(plan.features)) return plan.features
-    if (typeof plan.features === 'string') {
-      try {
-        return JSON.parse(plan.features)
-      } catch {
-        return []
-      }
-    }
-    return []
-  }
-  
+  const { data: plans, isLoading } = useQuery('admin-plans', () => adminApi.getPlans())
+
+  const deleteMutation = useMutation((id: number) => adminApi.deletePlan(id), {
+    onSuccess: () => queryClient.invalidateQueries('admin-plans'),
+  })
+
+  const items = plans?.data || []
+
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
+    <div className="page-shell">
+      <div className="page-header">
         <div>
-          <h1 className="text-3xl font-bold">Тарифные планы</h1>
-          <p className="text-gray-400 mt-1">Управление подписками</p>
+          <h1 className="page-title">Тарифные планы</h1>
+          <p className="page-subtitle">Текущая продуктовая матрица и статус публикации тарифов.</p>
         </div>
-        <button 
-          onClick={() => setShowModal(true)}
-          className="btn-primary flex items-center gap-2"
-        >
-          <Plus className="w-5 h-5" />
-          Создать план
-        </button>
-      </div>
-      
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {plans?.data?.map((plan: any) => (
-          <div 
-            key={plan.id} 
-            className={`stat-card relative ${!plan.is_active ? 'opacity-50' : ''}`}
-          >
-            {plan.is_popular && (
-              <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-1 bg-yellow-500 text-black text-xs font-bold rounded-full">
-                Популярный
-              </div>
-            )}
-            
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-xl font-bold">{plan.name}</h3>
-              <div className="flex gap-2">
-                <button className="p-2 hover:bg-dark-700 rounded-lg">
-                  <Edit className="w-4 h-4 text-gray-400" />
-                </button>
-                <button 
-                  onClick={() => deleteMutation.mutate(plan.id)}
-                  className="p-2 hover:bg-red-500/10 rounded-lg"
-                >
-                  <Trash2 className="w-4 h-4 text-red-400" />
-                </button>
-              </div>
-            </div>
-            
-            <div className="mb-4">
-              <span className="text-3xl font-bold">{plan.price}</span>
-              <span className="text-gray-400 ml-1">₽</span>
-              <span className="text-gray-400 ml-2">/ {plan.duration_days} дней</span>
-            </div>
-            
-            {plan.features && (
-              <ul className="space-y-2 mb-4">
-                {getFeatures(plan).map((feature: string, i: number) => (
-                  <li key={i} className="flex items-center gap-2 text-sm text-gray-300">
-                    <Check className="w-4 h-4 text-green-400" />
-                    {feature}
-                  </li>
-                ))}
-              </ul>
-            )}
-            
-            <div className="flex items-center justify-between pt-4 border-t border-dark-700">
-              <span className={`text-sm ${plan.is_active ? 'text-green-400' : 'text-red-400'}`}>
-                {plan.is_active ? 'Активен' : 'Неактивен'}
-              </span>
-              <span className="text-sm text-gray-400">
-                {plan.currency}
-              </span>
-            </div>
+
+        <div className="flex items-center gap-3">
+          <div className="panel-soft px-4 py-3 text-sm">
+            <p className="muted">Активных планов</p>
+            <p className="mt-1 font-bold">{items.filter((plan: any) => plan.is_active).length}</p>
           </div>
-        ))}
+          <button onClick={() => setShowModal(true)} className="btn-primary">
+            <Plus className="h-5 w-5" />
+            Создать план
+          </button>
+        </div>
       </div>
-      
-      {showModal && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <div className="glass p-6 w-full max-w-md">
-            <h2 className="text-xl font-bold mb-4">Новый тарифный план</h2>
-            <p className="text-gray-400">Форма создания...</p>
-            <div className="flex gap-3 mt-6">
-              <button onClick={() => setShowModal(false)} className="btn-secondary flex-1">
-                Отмена
-              </button>
-              <button onClick={() => setShowModal(false)} className="btn-primary flex-1">
-                Создать
-              </button>
-            </div>
+
+      {isLoading ? (
+        <div className="empty-state">
+          <CreditCard className="h-10 w-10 text-cyan-200" />
+          <div>
+            <p className="text-lg font-semibold">Загружаем тарифы</p>
+            <p className="mt-1 text-sm muted">Получаем список планов из billing admin API.</p>
           </div>
+        </div>
+      ) : items.length === 0 ? (
+        <div className="empty-state">
+          <CreditCard className="h-10 w-10 text-cyan-200" />
+          <div>
+            <p className="text-lg font-semibold">Планы не найдены</p>
+            <p className="mt-1 text-sm muted">После создания тарифов они появятся в этой сетке.</p>
+          </div>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 gap-4 xl:grid-cols-3">
+          {items.map((plan: any) => (
+            <div key={plan.id} className={`panel relative p-6 ${!plan.is_active ? 'opacity-65' : ''}`}>
+              {plan.is_popular ? (
+                <div className="absolute right-5 top-5 metric-pill">
+                  <Star className="h-3.5 w-3.5" />
+                  Популярный
+                </div>
+              ) : null}
+
+              <div className="pr-24">
+                <p className="text-xs uppercase tracking-[0.2em] muted">{plan.currency}</p>
+                <h3 className="mt-3 text-2xl font-extrabold">{plan.name}</h3>
+                <p className="mt-2 text-sm muted">{plan.description || 'Описание тарифа пока не заполнено.'}</p>
+              </div>
+
+              <div className="mt-6 flex items-end gap-2">
+                <span className="text-4xl font-extrabold">{plan.price}</span>
+                <span className="pb-1 text-sm muted">₽ / {plan.duration_days} дней</span>
+              </div>
+
+              <div className="mt-6 rounded-2xl bg-white/5 p-4">
+                <p className="text-xs uppercase tracking-[0.18em] muted">Что входит</p>
+                <ul className="mt-4 space-y-3">
+                  {getFeatures(plan).length > 0 ? (
+                    getFeatures(plan).map((feature: string, index: number) => (
+                      <li key={index} className="flex items-start gap-3 text-sm text-slate-100">
+                        <div className="mt-0.5 rounded-full bg-emerald-300/12 p-1 text-emerald-200">
+                          <Check className="h-3.5 w-3.5" />
+                        </div>
+                        <span>{feature}</span>
+                      </li>
+                    ))
+                  ) : (
+                    <li className="text-sm muted">Список преимуществ для этого тарифа пока не задан.</li>
+                  )}
+                </ul>
+              </div>
+
+              <div className="mt-6 flex items-center justify-between border-t border-white/5 pt-5">
+                <span className={plan.is_active ? 'metric-pill' : 'danger-pill'}>
+                  {plan.is_active ? 'Активен' : 'Неактивен'}
+                </span>
+                <div className="flex gap-2">
+                  <button className="btn-secondary px-3 py-2">
+                    <Edit className="h-4 w-4" />
+                  </button>
+                  <button onClick={() => deleteMutation.mutate(plan.id)} className="btn-danger px-3 py-2">
+                    <Trash2 className="h-4 w-4" />
+                  </button>
+                </div>
+              </div>
+            </div>
+          ))}
         </div>
       )}
+
+      {showModal ? (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/70 p-4 backdrop-blur-sm">
+          <div className="glass w-full max-w-lg p-6">
+            <div className="flex items-start justify-between gap-4">
+              <div>
+                <h2 className="text-2xl font-bold">Создание тарифа</h2>
+                <p className="mt-2 text-sm muted">
+                  CRUD-форма backend поддерживает, но UI-редактор ещё не реализован. Сейчас экран честно показывает это.
+                </p>
+              </div>
+              <button onClick={() => setShowModal(false)} className="btn-secondary px-3 py-2">
+                Закрыть
+              </button>
+            </div>
+          </div>
+        </div>
+      ) : null}
     </div>
   )
 }
