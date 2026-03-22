@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2.4.15] - 2026-03-22
+
+### Fixed
+- Fixed broken admin panel rendering caused by missing PostCSS/Tailwind processing in `frontend-admin`
+- Restored proper utility class generation for admin layout, spacing, grid, and typography styles
+
 ## [2.4.14] - 2026-03-22
 
 ### Improved
