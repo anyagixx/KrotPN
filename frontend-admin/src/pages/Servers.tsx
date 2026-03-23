@@ -34,12 +34,14 @@ function getNodeRoleLabel(role?: string) {
 
 function getTunnelTone(status?: string) {
   if (status === 'up') return 'metric-pill'
+  if (status === 'host_managed') return 'warning-pill'
   if (status === 'not_configured') return 'warning-pill'
   return 'danger-pill'
 }
 
 function getTunnelLabel(status?: string) {
   if (status === 'up') return 'tunnel up'
+  if (status === 'host_managed') return 'host managed'
   if (status === 'down') return 'tunnel down'
   if (status === 'no_connectivity') return 'no connectivity'
   if (status === 'not_configured') return 'exit missing'

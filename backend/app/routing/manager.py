@@ -169,6 +169,9 @@ echo "RU IPset updated: $(ipset list ru_ips | grep 'Number of entries' | cut -d:
             stdout, _ = await proc.communicate()
             
             if proc.returncode != 0:
+                config_path = Path(f"/etc/amnezia/amneziawg/{tunnel_interface}.conf")
+                if config_path.exists():
+                    return {"interface": tunnel_interface, "status": "host_managed"}
                 return {"interface": tunnel_interface, "status": "down"}
             
             if "UP" not in stdout.decode():

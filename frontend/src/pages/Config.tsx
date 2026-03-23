@@ -72,6 +72,16 @@ export default function Config() {
   const entryLocation = config?.entry_server_location || config?.server_location
   const exitName = config?.exit_server_name
   const exitLocation = config?.exit_server_location
+  const getTunnelBadgeClass = (status?: string) => {
+    if (status === 'up') return 'status-badge-success'
+    if (status === 'host_managed') return 'status-badge-warning'
+    return 'status-badge-error'
+  }
+  const getTunnelLabel = (status?: string) => {
+    if (status === 'up') return 'tunnel up'
+    if (status === 'host_managed') return 'host managed'
+    return status || 'unknown'
+  }
 
   if (hasNoConfig || isForbidden) {
     return (
@@ -106,8 +116,8 @@ export default function Config() {
             <div key={route.id} className="metric-card">
               <div className="flex items-center justify-between">
                 <span className="metric-label">Маршрут</span>
-                <span className={route.tunnel_status === 'up' ? 'status-badge-success' : 'status-badge-error'}>
-                  {route.tunnel_status === 'up' ? 'tunnel up' : route.tunnel_status}
+                <span className={getTunnelBadgeClass(route.tunnel_status)}>
+                  {getTunnelLabel(route.tunnel_status)}
                 </span>
               </div>
               <div className="mt-5 flex items-center gap-3">
