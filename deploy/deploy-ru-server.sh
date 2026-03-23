@@ -106,6 +106,7 @@ cat > /etc/amnezia/amneziawg/awg-client.conf << EOF
 [Interface]
 PrivateKey = ${RU_CLIENT_PRIVATE_KEY}
 Address = 10.200.0.2/24
+Table = off
 DNS = 8.8.8.8
 Jc = 120
 Jmin = 50
@@ -334,6 +335,7 @@ chmod 600 .env
 echo -e "${YELLOW}Starting AmneziaWG...${NC}"
 awg-quick up awg0 2>/dev/null || true
 awg-quick up awg-client 2>/dev/null || true
+ip route add 10.200.0.0/24 dev awg-client 2>/dev/null || true
 
 # Setup routing
 /usr/local/bin/setup_routing.sh
