@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2.4.19] - 2026-03-23
+
+### Fixed
+- Skipped container-side routing initialization in production and kept split-tunneling under host-managed systemd services
+- Fixed RU deploy flow for detached tag checkouts by avoiding `git pull` when no branch is checked out
+- Ensured backend log directory ownership is prepared before `docker compose up`
+- Added the missing `krotvpn-ru-ips.service` unit and started the daily RU IP update timer correctly
+
 ## [2.4.18] - 2026-03-23
 
 ### Fixed
