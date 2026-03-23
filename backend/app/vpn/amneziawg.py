@@ -32,7 +32,7 @@ class AmneziaWGManager:
     def __init__(
         self,
         config_dir: str = "/etc/amnezia/amneziawg",
-        interface: str = "awg-client",
+        interface: str = "awg0",
     ):
         self.config_dir = Path(config_dir)
         self.interface = interface
@@ -52,34 +52,30 @@ class AmneziaWGManager:
             Tuple of (private_key, public_key)
         """
         try:
-            # Run sync commands in executor
-            loop = asyncio.get_event_loop()
-            
             # Generate private key
-            private_result = await loop.run_in_executor(
-                None,
-                lambda: asyncio.create_subprocess_exec(
-                    "awg", "genkey",
-                    stdout=asyncio.subprocess.PIPE,
-                    stderr=asyncio.subprocess.PIPE,
-                )
+            private_proc = await asyncio.create_subprocess_exec(
+                "awg", "genkey",
+                stdout=asyncio.subprocess.PIPE,
+                stderr=asyncio.subprocess.PIPE,
             )
-            private_key = (await private_result.stdout.read()).decode().strip()
+            private_stdout, private_stderr = await private_proc.communicate()
+            if private_proc.returncode != 0:
+                raise RuntimeError(private_stderr.decode().strip() or "awg genkey failed")
+
+            private_key = private_stdout.decode().strip()
             
             # Derive public key
-            public_result = await loop.run_in_executor(
-                None,
-                lambda: asyncio.create_subprocess_exec(
-                    "awg", "pubkey",
-                    stdin=asyncio.subprocess.PIPE,
-                    stdout=asyncio.subprocess.PIPE,
-                    stderr=asyncio.subprocess.PIPE,
-                )
+            public_proc = await asyncio.create_subprocess_exec(
+                "awg", "pubkey",
+                stdin=asyncio.subprocess.PIPE,
+                stdout=asyncio.subprocess.PIPE,
+                stderr=asyncio.subprocess.PIPE,
             )
-            public_result.stdin.write(private_key.encode())
-            await public_result.stdin.drain()
-            public_result.stdin.close()
-            public_key = (await public_result.stdout.read()).decode().strip()
+            public_stdout, public_stderr = await public_proc.communicate(private_key.encode())
+            if public_proc.returncode != 0:
+                raise RuntimeError(public_stderr.decode().strip() or "awg pubkey failed")
+
+            public_key = public_stdout.decode().strip()
             
             logger.debug(f"[VPN] Generated keypair: public={public_key[:20]}...")
             return private_key, public_key

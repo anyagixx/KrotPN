@@ -58,6 +58,7 @@ services:
     volumes:
       - ./logs:/app/logs
       - /etc/amnezia/amneziawg:/etc/amnezia/amneziawg
+      - /usr/bin/awg:/usr/local/bin/awg:ro
     networks:
       - krotvpn-network
     # Not exposed externally - proxied via nginx
