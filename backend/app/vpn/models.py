@@ -57,7 +57,9 @@ class VPNClient(SQLModel, table=True):
     __tablename__ = "vpn_clients"
     
     id: int | None = Field(default=None, primary_key=True)
-    user_id: int = Field(foreign_key="users.id", index=True)
+    # Enforce a single VPN client record per user. Reprovisioning should update
+    # the existing record instead of creating duplicates.
+    user_id: int = Field(foreign_key="users.id", index=True, unique=True)
     server_id: int = Field(foreign_key="vpn_servers.id", index=True)
     
     # Client keys (private key encrypted)

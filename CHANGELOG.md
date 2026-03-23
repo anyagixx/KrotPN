@@ -2,6 +2,19 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2.4.18] - 2026-03-23
+
+### Fixed
+- Locked down Telegram authentication so unsigned requests can no longer mint user tokens
+- Enforced YooKassa webhook signature validation and ignored duplicate payment status callbacks
+- Enabled real auth endpoint rate limits for register, login, Telegram auth, and refresh flows
+- Prevented duplicate VPN client records by reusing or reprovisioning the existing user client instead of creating a second one
+- Added startup-time schema repair for legacy databases to deduplicate `vpn_clients`, recalculate server client counts, and create a unique index on `user_id`
+
+### Security
+- Removed documented default admin credentials from public setup materials and production environment templates
+- Declared missing runtime dependency `psutil` in `pyproject.toml` for admin health checks
+
 ## [2.4.17] - 2026-03-23
 
 ### Fixed

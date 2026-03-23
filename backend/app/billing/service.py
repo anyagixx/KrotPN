@@ -288,6 +288,10 @@ class BillingService:
         
         # Update payment status
         if status == "succeeded":
+            if payment.status == PaymentStatus.SUCCEEDED:
+                logger.info(f"[BILLING] Duplicate succeeded webhook ignored for payment {payment.id}")
+                return payment
+
             payment.status = PaymentStatus.SUCCEEDED
             payment.paid_at = datetime.utcnow()
             
@@ -313,6 +317,10 @@ class BillingService:
             logger.info(f"[BILLING] Payment {payment.id} succeeded")
             
         elif status == "canceled":
+            if payment.status == PaymentStatus.CANCELED:
+                logger.info(f"[BILLING] Duplicate canceled webhook ignored for payment {payment.id}")
+                return payment
+
             payment.status = PaymentStatus.CANCELED
             logger.info(f"[BILLING] Payment {payment.id} canceled")
         

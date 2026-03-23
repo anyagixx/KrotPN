@@ -55,67 +55,49 @@ class VPNService:
         Returns:
             Created VPNClient
         """
+        existing_client = await self.get_user_client(user_id, active_only=False)
+
         # Get server
         if server_id:
             server = await self.get_server(server_id)
+        elif existing_client is not None:
+            server = await self._select_server_for_existing_client(existing_client)
         else:
             server = await self.get_active_server()
-        
+
         if not server:
             raise ValueError("No available VPN servers")
 
-        # Generate keypair
-        private_key, public_key = await self.wg.generate_keypair()
-        
-        # Get used IPs
-        result = await self.session.execute(
-            select(VPNClient.address).where(VPNClient.server_id == server.id)
-        )
-        used_ips = {row[0] for row in result.fetchall()}
-        
-        # Get next available IP
-        address = self.wg.get_next_client_ip(used_ips)
-        
-        # Encrypt private key
-        private_key_enc = encrypt_data(private_key)
-        
-        # Create client record
-        client = VPNClient(
-            user_id=user_id,
-            server_id=server.id,
-            public_key=public_key,
-            private_key_enc=private_key_enc,
-            address=address,
-            is_active=True,
-        )
-        
-        self.session.add(client)
-        
-        # Add peer to server
-        await self.wg.add_peer(public_key, address)
-        
-        # Update server client count
-        server.current_clients += 1
-        
-        await self.session.flush()
+        if existing_client is not None:
+            if existing_client.is_active:
+                if server_id and existing_client.server_id != server.id:
+                    raise ValueError("User already has an active VPN client on another server")
+                return existing_client
+
+            if existing_client.server_id == server.id:
+                await self.activate_client(existing_client)
+                await self.session.refresh(existing_client)
+                return existing_client
+
+            reprovisioned = await self._reprovision_client(existing_client, server)
+            await self.session.refresh(reprovisioned)
+            return reprovisioned
+
+        client = await self._provision_new_client(user_id=user_id, server=server)
         await self.session.refresh(client)
-        
         return client
 
     async def get_client(self, client_id: int) -> VPNClient | None:
         """Get VPN client by ID."""
         return await self.session.get(VPNClient, client_id)
 
-    async def get_user_client(self, user_id: int) -> VPNClient | None:
-        """Get active VPN client for user."""
-        result = await self.session.execute(
-            select(VPNClient)
-            .where(
-                VPNClient.user_id == user_id,
-                VPNClient.is_active == True,
-            )
-            .options()
-        )
+    async def get_user_client(self, user_id: int, active_only: bool = True) -> VPNClient | None:
+        """Get VPN client for user."""
+        query = select(VPNClient).where(VPNClient.user_id == user_id)
+        if active_only:
+            query = query.where(VPNClient.is_active == True)
+
+        result = await self.session.execute(query)
         return result.scalar_one_or_none()
 
     async def get_client_config(self, client: VPNClient) -> VPNConfig:
@@ -284,3 +266,72 @@ class VPNService:
             server.is_online = is_online
             server.last_ping_at = datetime.utcnow()
             await self.session.flush()
+
+    async def _select_server_for_existing_client(self, client: VPNClient) -> VPNServer | None:
+        """Reuse the existing server when it is still suitable, otherwise pick a new active one."""
+        current_server = await self.get_server(client.server_id)
+        if (
+            current_server
+            and current_server.is_active
+            and current_server.is_online
+            and current_server.is_entry_node
+            and (
+                client.is_active
+                or current_server.current_clients < current_server.max_clients
+            )
+        ):
+            return current_server
+
+        return await self.get_active_server()
+
+    async def _get_used_ips(self, server_id: int, exclude_user_id: int | None = None) -> set[str]:
+        """Collect already allocated client IPs for a server."""
+        query = select(VPNClient.address).where(VPNClient.server_id == server_id)
+        if exclude_user_id is not None:
+            query = query.where(VPNClient.user_id != exclude_user_id)
+
+        result = await self.session.execute(query)
+        return {row[0] for row in result.fetchall()}
+
+    async def _provision_new_client(self, user_id: int, server: VPNServer) -> VPNClient:
+        """Provision a fresh VPN client record."""
+        private_key, public_key = await self.wg.generate_keypair()
+        used_ips = await self._get_used_ips(server.id)
+        address = self.wg.get_next_client_ip(used_ips)
+        private_key_enc = encrypt_data(private_key)
+
+        client = VPNClient(
+            user_id=user_id,
+            server_id=server.id,
+            public_key=public_key,
+            private_key_enc=private_key_enc,
+            address=address,
+            is_active=True,
+        )
+        self.session.add(client)
+
+        await self.wg.add_peer(public_key, address)
+        server.current_clients += 1
+        await self.session.flush()
+        return client
+
+    async def _reprovision_client(self, client: VPNClient, server: VPNServer) -> VPNClient:
+        """Reassign an inactive client record to a new server with fresh keys."""
+        private_key, public_key = await self.wg.generate_keypair()
+        used_ips = await self._get_used_ips(server.id, exclude_user_id=client.user_id)
+        address = self.wg.get_next_client_ip(used_ips)
+
+        client.server_id = server.id
+        client.public_key = public_key
+        client.private_key_enc = encrypt_data(private_key)
+        client.address = address
+        client.is_active = True
+        client.total_upload_bytes = 0
+        client.total_download_bytes = 0
+        client.last_handshake_at = None
+        client.updated_at = datetime.utcnow()
+
+        await self.wg.add_peer(public_key, address)
+        server.current_clients += 1
+        await self.session.flush()
+        return client

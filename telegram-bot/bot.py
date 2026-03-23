@@ -49,6 +49,7 @@ class BackendClient:
                 "telegram_id": telegram_id,
                 "telegram_username": username,
             },
+            headers={"X-Telegram-Bot-Token": BOT_TOKEN} if BOT_TOKEN else None,
         )
         response.raise_for_status()
         return response.json()

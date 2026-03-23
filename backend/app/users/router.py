@@ -5,7 +5,7 @@ User API router.
 
 from datetime import timedelta
 
-from fastapi import APIRouter, HTTPException, status
+from fastapi import APIRouter, Header, HTTPException, Request, status
 from slowapi import Limiter
 from slowapi.util import get_remote_address
 
@@ -78,7 +78,9 @@ async def _initialize_new_user_resources(
 # ==================== Auth Endpoints ====================
 
 @router.post("/register", response_model=Token, status_code=status.HTTP_201_CREATED)
+@limiter.limit("5/minute")
 async def register(
+    request: Request,
     data: UserCreate,
     session: DBSession,
 ):
@@ -109,7 +111,9 @@ async def register(
 
 
 @router.post("/login", response_model=Token)
+@limiter.limit("10/minute")
 async def login(
+    request: Request,
     data: UserLogin,
     session: DBSession,
 ):
@@ -144,14 +148,38 @@ async def login(
 
 
 @router.post("/telegram", response_model=Token)
+@limiter.limit("10/minute")
 async def telegram_auth(
+    request: Request,
     data: UserCreateTelegram,
     session: DBSession,
+    x_telegram_bot_token: str | None = Header(default=None),
 ):
     """
     Authenticate or register via Telegram.
     Returns JWT tokens.
     """
+    auth_payload = {
+        "id": data.telegram_id,
+        "username": data.telegram_username,
+        "first_name": data.name,
+        "auth_date": data.auth_date,
+        "hash": data.auth_hash,
+    }
+    auth_payload = {key: value for key, value in auth_payload.items() if value is not None}
+
+    is_internal_bot_call = (
+        settings.telegram_bot_token is not None
+        and x_telegram_bot_token == settings.telegram_bot_token
+    )
+    is_signed_telegram_auth = verify_telegram_auth(auth_payload, settings.telegram_bot_token or "")
+
+    if not is_internal_bot_call and not is_signed_telegram_auth:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid Telegram authentication data",
+        )
+
     service = UserService(session)
     
     user = await service.create_user_telegram(data, referral_code=data.referral_code)
@@ -175,7 +203,9 @@ async def telegram_auth(
 
 
 @router.post("/refresh", response_model=Token)
+@limiter.limit("20/minute")
 async def refresh_token(
+    request: Request,
     data: TokenRefresh,
     session: DBSession,
 ):

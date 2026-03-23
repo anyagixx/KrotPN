@@ -37,7 +37,13 @@ class UserCreateTelegram(SQLModel):
     telegram_id: int
     telegram_username: str | None = None
     name: str | None = None
+    auth_date: int | None = None
+    auth_hash: str | None = Field(default=None, alias="hash")
     referral_code: str | None = None
+
+    model_config = {
+        "populate_by_name": True,
+    }
 
 
 class UserUpdate(SQLModel):

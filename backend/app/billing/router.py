@@ -31,6 +31,7 @@ from app.billing.schemas import (
     SubscriptionStatusResponse,
 )
 from app.billing.service import BillingService
+from app.billing.yookassa import yookassa_client
 
 router = APIRouter(prefix="/api/billing", tags=["billing"])
 admin_router = APIRouter(prefix="/api/admin/billing", tags=["admin"])
@@ -222,10 +223,9 @@ async def yookassa_webhook(
     
     service = BillingService(session)
     
-    # Verify signature (optional but recommended)
-    # signature = request.headers.get("X-Content-Signature", "")
-    # if not yookassa_client.verify_webhook_signature(body, signature):
-    #     raise HTTPException(status_code=400, detail="Invalid signature")
+    signature = request.headers.get("X-Content-Signature", "")
+    if not yookassa_client.verify_webhook_signature(body, signature):
+        raise HTTPException(status_code=400, detail="Invalid signature")
     
     payment = await service.process_payment_webhook(
         PaymentProvider.YOOKASSA,
