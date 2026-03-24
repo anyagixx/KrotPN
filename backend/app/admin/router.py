@@ -1,5 +1,11 @@
 """
 Admin API router for analytics and management.
+
+GRACE-lite module contract:
+- Exposes operational and business-facing admin endpoints.
+- This module is partly ahead and partly behind the data model migration:
+  some stats still reflect legacy VPN server concepts.
+- Admin routes should be treated as privileged surfaces, not generic internal CRUD.
 """
 # <!-- GRACE: module="M-006" api-group="Admin API" -->
 
@@ -12,8 +18,10 @@ from sqlmodel import col
 from app.core import CurrentAdmin, CurrentSuperuser, DBSession
 from app.billing.models import Payment, PaymentStatus, Plan, Subscription
 from app.referrals.models import Referral, ReferralCode
+from app.routing.models import CidrRouteRule, DomainRouteRule
+from app.routing.router import policy_dns_observer
 from app.users.models import User, UserRole
-from app.vpn.models import VPNClient, VPNServer
+from app.vpn.models import VPNClient, VPNNode, VPNRoute, VPNServer
 
 router = APIRouter(prefix="/api/admin", tags=["admin"])
 
@@ -26,6 +34,8 @@ async def get_admin_stats(
     session: DBSession,
 ):
     """Get admin dashboard statistics."""
+    # Keep in mind that `online_servers` still counts legacy `VPNServer` rows,
+    # so this endpoint is not yet a perfect reflection of the newer node/route topology.
     now = datetime.utcnow()
     month_start = now.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
     
@@ -76,7 +86,34 @@ async def get_admin_stats(
     online_servers = (await session.execute(
         select(func.count(VPNServer.id)).where(VPNServer.is_online == True)
     )).scalar() or 0
-    
+
+    # Route-aware topology summary
+    active_nodes = (await session.execute(
+        select(func.count(VPNNode.id)).where(VPNNode.is_active == True)
+    )).scalar() or 0
+    online_nodes = (await session.execute(
+        select(func.count(VPNNode.id)).where(
+            VPNNode.is_active == True,
+            VPNNode.is_online == True,
+        )
+    )).scalar() or 0
+    active_routes = (await session.execute(
+        select(func.count(VPNRoute.id)).where(VPNRoute.is_active == True)
+    )).scalar() or 0
+    default_routes = (await session.execute(
+        select(func.count(VPNRoute.id)).where(
+            VPNRoute.is_active == True,
+            VPNRoute.is_default == True,
+        )
+    )).scalar() or 0
+    active_domain_rules = (await session.execute(
+        select(func.count(DomainRouteRule.id)).where(DomainRouteRule.is_active == True)
+    )).scalar() or 0
+    active_cidr_rules = (await session.execute(
+        select(func.count(CidrRouteRule.id)).where(CidrRouteRule.is_active == True)
+    )).scalar() or 0
+    active_dns_bindings = len(policy_dns_observer.get_active_bindings())
+
     return {
         "users": {
             "total": total_users,
@@ -93,6 +130,18 @@ async def get_admin_stats(
         "vpn": {
             "active_clients": active_vpn_clients,
             "online_servers": online_servers,
+            "online_servers_source": "legacy_vpn_server",
+            "topology_note": "Legacy VPNServer mirror count; use routing summary for policy-driven topology.",
+        },
+        "routing": {
+            "online_nodes": online_nodes,
+            "active_nodes": active_nodes,
+            "active_routes": active_routes,
+            "default_routes": default_routes,
+            "domain_rules_active": active_domain_rules,
+            "cidr_rules_active": active_cidr_rules,
+            "dns_bindings_active": active_dns_bindings,
+            "policy_mode": "domain_first_with_ru_fallback",
         },
     }
 

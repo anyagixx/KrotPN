@@ -42,7 +42,7 @@ export default function Dashboard() {
               <p className="text-xs font-bold uppercase tracking-[0.2em] text-cyan-200/70">Оперативный срез</p>
               <h1 className="mt-3 text-4xl font-extrabold tracking-tight">Сервис под контролем</h1>
               <p className="mt-3 max-w-2xl text-sm muted">
-                Здесь собраны живые показатели по пользователям, подпискам и VPN-инфраструктуре.
+                Здесь собраны живые показатели по пользователям, подпискам и policy-driven VPN topology.
               </p>
             </div>
 
@@ -109,12 +109,12 @@ export default function Dashboard() {
         />
         <StatCard
           icon={<Server className="h-6 w-6" />}
-          label="Онлайн серверов"
-          value={s?.vpn?.online_servers || 0}
+          label="Активных domain rules"
+          value={s?.routing?.domain_rules_active || 0}
         />
       </section>
 
-      <section className="grid gap-4 lg:grid-cols-3">
+      <section className="grid gap-4 lg:grid-cols-4">
         <div className="panel p-6">
           <div className="mb-5 flex items-center gap-3">
             <TrendingUp className="h-5 w-5 text-emerald-200" />
@@ -140,6 +140,34 @@ export default function Dashboard() {
           </div>
           <p className="text-4xl font-extrabold">{s?.vpn?.active_clients || 0}</p>
           <p className="mt-2 text-sm muted">Количество активных клиентов с доступом к сети.</p>
+        </div>
+
+        <div className="panel p-6">
+          <div className="mb-5 flex items-center gap-3">
+            <Server className="h-5 w-5 text-amber-200" />
+            <h3 className="text-lg font-semibold">Routing topology</h3>
+          </div>
+          <div className="space-y-4 text-sm">
+            <div className="flex items-center justify-between">
+              <span className="muted">Онлайн узлов</span>
+              <span className="font-bold">{s?.routing?.online_nodes || 0}</span>
+            </div>
+            <div className="flex items-center justify-between">
+              <span className="muted">Активных маршрутов</span>
+              <span className="font-bold">{s?.routing?.active_routes || 0}</span>
+            </div>
+            <div className="flex items-center justify-between">
+              <span className="muted">DNS bindings</span>
+              <span className="font-bold">{s?.routing?.dns_bindings_active || 0}</span>
+            </div>
+            <div className="flex items-center justify-between">
+              <span className="muted">Legacy VPNServer</span>
+              <span className="font-bold">{s?.vpn?.online_servers || 0}</span>
+            </div>
+          </div>
+          <p className="mt-4 text-xs muted">
+            {s?.vpn?.topology_note || 'Legacy server metric kept only for migration visibility.'}
+          </p>
         </div>
       </section>
     </div>
