@@ -16,6 +16,7 @@ GRACE-lite module contract:
 import asyncio
 import ipaddress
 import socket
+from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
@@ -528,6 +529,128 @@ echo "RU IPset updated: $(ipset list ru_ips | grep 'Number of entries' | cut -d:
         except Exception as e:
             logger.error(f"[ROUTING] Error setting up split-tunnel: {e}")
             return False
+
+    @dataclass(frozen=True)
+    class RouteSyncPlan:
+        add_direct: set[str] = field(default_factory=set)
+        remove_direct: set[str] = field(default_factory=set)
+        add_vpn: set[str] = field(default_factory=set)
+        remove_vpn: set[str] = field(default_factory=set)
+
+    def _build_route_sync_plan(
+        self,
+        current_direct: set[str],
+        current_vpn: set[str],
+        desired_direct: set[str],
+        desired_vpn: set[str],
+    ) -> RouteSyncPlan:
+        """Compute the incremental route-set diff between current and desired ipset entries."""
+        return self.RouteSyncPlan(
+            add_direct=desired_direct - current_direct,
+            remove_direct=current_direct - desired_direct,
+            add_vpn=desired_vpn - current_vpn,
+            remove_vpn=current_vpn - desired_vpn,
+        )
+
+    async def _collect_desired_route_sets(
+        self,
+        routes: list[dict[str, Any]],
+    ) -> tuple[set[str], set[str]]:
+        """Resolve routes into desired direct and VPN ipset members."""
+        desired_direct: set[str] = set()
+        desired_vpn: set[str] = set()
+
+        for route in routes:
+            address = route.get("address", "").strip()
+            route_type = route.get("route_type", "vpn")
+            if not address:
+                continue
+
+            target_set = desired_direct if route_type == "direct" else desired_vpn
+            if self._is_ip_or_cidr(address):
+                normalized = self._normalize_legacy_cidr(address)
+                if normalized is not None:
+                    target_set.add(normalized)
+                continue
+
+            resolved_ip = await self._resolve_domain_to_ipv4(address)
+            if resolved_ip is None:
+                logger.warning(f"[ROUTING] Could not resolve {address}")
+                continue
+            normalized = self._normalize_legacy_cidr(resolved_ip)
+            if normalized is not None:
+                target_set.add(normalized)
+
+        return desired_direct, desired_vpn
+
+    async def _get_ipset_entries(self, ipset_name: str) -> set[str]:
+        """Read current ipset members into canonical strings."""
+        proc = await asyncio.create_subprocess_exec(
+            "ipset", "list", ipset_name,
+            stdout=asyncio.subprocess.PIPE,
+            stderr=asyncio.subprocess.PIPE,
+        )
+        stdout, _ = await proc.communicate()
+        if proc.returncode != 0:
+            return set()
+
+        members: set[str] = set()
+        in_members = False
+        for line in stdout.decode().splitlines():
+            stripped = line.strip()
+            if stripped == "Members:":
+                in_members = True
+                continue
+            if not in_members or not stripped:
+                continue
+
+            normalized = self._normalize_legacy_cidr(stripped)
+            if normalized is not None:
+                members.add(normalized)
+        return members
+
+    async def _apply_route_sync_plan(self, plan: RouteSyncPlan) -> None:
+        """Apply an incremental route-set diff to ipset."""
+        operations = [
+            (self.IPSET_CUSTOM_DIRECT, "del", plan.remove_direct),
+            (self.IPSET_CUSTOM_VPN, "del", plan.remove_vpn),
+            (self.IPSET_CUSTOM_DIRECT, "add", plan.add_direct),
+            (self.IPSET_CUSTOM_VPN, "add", plan.add_vpn),
+        ]
+        for ipset_name, action, entries in operations:
+            for entry in sorted(entries):
+                proc = await asyncio.create_subprocess_exec(
+                    "ipset", action, ipset_name, entry,
+                    stdout=asyncio.subprocess.PIPE,
+                    stderr=asyncio.subprocess.PIPE,
+                )
+                await proc.communicate()
+
+    async def _apply_full_route_sync(
+        self,
+        desired_direct: set[str],
+        desired_vpn: set[str],
+    ) -> None:
+        """Rebuild route ipsets from scratch when incremental sync is unavailable."""
+        for ipset_name in [self.IPSET_CUSTOM_DIRECT, self.IPSET_CUSTOM_VPN]:
+            proc = await asyncio.create_subprocess_exec(
+                "ipset", "flush", ipset_name,
+                stdout=asyncio.subprocess.PIPE,
+                stderr=asyncio.subprocess.PIPE,
+            )
+            await proc.wait()
+
+        for ipset_name, entries in [
+            (self.IPSET_CUSTOM_DIRECT, desired_direct),
+            (self.IPSET_CUSTOM_VPN, desired_vpn),
+        ]:
+            for entry in sorted(entries):
+                proc = await asyncio.create_subprocess_exec(
+                    "ipset", "add", ipset_name, entry,
+                    stdout=asyncio.subprocess.PIPE,
+                    stderr=asyncio.subprocess.PIPE,
+                )
+                await proc.wait()
     
     async def sync_custom_routes(self, routes: list[dict[str, Any]]) -> None:
         """
@@ -536,54 +659,31 @@ echo "RU IPset updated: $(ipset list ru_ips | grep 'Number of entries' | cut -d:
         Args:
             routes: List of route dicts with 'address' and 'route_type'
         """
-        # Flush custom ipsets
-        for ipset_name in [self.IPSET_CUSTOM_DIRECT, self.IPSET_CUSTOM_VPN]:
-            proc = await asyncio.create_subprocess_exec(
-                "ipset", "flush", ipset_name,
-                stdout=asyncio.subprocess.PIPE,
-                stderr=asyncio.subprocess.PIPE,
+        desired_direct, desired_vpn = await self._collect_desired_route_sets(routes)
+
+        try:
+            current_direct = await self._get_ipset_entries(self.IPSET_CUSTOM_DIRECT)
+            current_vpn = await self._get_ipset_entries(self.IPSET_CUSTOM_VPN)
+            plan = self._build_route_sync_plan(
+                current_direct=current_direct,
+                current_vpn=current_vpn,
+                desired_direct=desired_direct,
+                desired_vpn=desired_vpn,
             )
-            await proc.wait()
-        
-        # Add routes
-        for route in routes:
-            address = route.get("address", "").strip()
-            route_type = route.get("route_type", "vpn")
-            
-            if not address:
-                continue
-            
-            ipset_name = (
-                self.IPSET_CUSTOM_DIRECT if route_type == "direct"
-                else self.IPSET_CUSTOM_VPN
+            await self._apply_route_sync_plan(plan)
+            logger.info(
+                "[Routing][sync][RUNTIME_ROUTESET_INCREMENTAL] "
+                f"add_direct={len(plan.add_direct)} remove_direct={len(plan.remove_direct)} "
+                f"add_vpn={len(plan.add_vpn)} remove_vpn={len(plan.remove_vpn)}"
             )
-            
-            # Check if address is IP or domain
-            is_ip = not any(c.isalpha() for c in address)
-            
-            ips_to_add = []
-            if is_ip:
-                ips_to_add.append(address)
-            else:
-                # Resolve domain
-                try:
-                    results = await asyncio.get_event_loop().run_in_executor(
-                        None,
-                        lambda: socket.getaddrinfo(address, None, socket.AF_INET)
-                    )
-                    ips_to_add = list(set(r[4][0] for r in results))
-                except Exception as e:
-                    logger.warning(f"[ROUTING] Could not resolve {address}: {e}")
-                    continue
-            
-            for ip in ips_to_add:
-                proc = await asyncio.create_subprocess_exec(
-                    "ipset", "add", ipset_name, ip,
-                    stdout=asyncio.subprocess.PIPE,
-                    stderr=asyncio.subprocess.PIPE,
-                )
-                await proc.wait()
-        
+        except Exception as e:
+            logger.warning(f"[ROUTING] Incremental sync unavailable, falling back to full refresh: {e}")
+            await self._apply_full_route_sync(desired_direct, desired_vpn)
+            logger.info(
+                "[Routing][sync][RUNTIME_ROUTESET_FULL_REFRESH] "
+                f"direct_entries={len(desired_direct)} vpn_entries={len(desired_vpn)}"
+            )
+
         logger.info(f"[ROUTING] Synced {len(routes)} custom routes")
 
 
