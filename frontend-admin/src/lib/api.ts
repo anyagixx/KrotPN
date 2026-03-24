@@ -105,4 +105,34 @@ export const adminApi = {
   
   getSystemHealth: () =>
     api.get('/admin/system/health'),
+
+  getDomainRouteRules: () =>
+    api.get('/routing/policy/domains'),
+
+  createDomainRouteRule: (data: any) =>
+    api.post('/routing/policy/domains', data),
+
+  updateDomainRouteRule: (id: number, data: any) =>
+    api.put(`/routing/policy/domains/${id}`, data),
+
+  deleteDomainRouteRule: (id: number) =>
+    api.delete(`/routing/policy/domains/${id}`),
+
+  getCidrRouteRules: () =>
+    api.get('/routing/policy/cidrs'),
+
+  createCidrRouteRule: (data: any) =>
+    api.post('/routing/policy/cidrs', data),
+
+  updateCidrRouteRule: (id: number, data: any) =>
+    api.put(`/routing/policy/cidrs/${id}`, data),
+
+  deleteCidrRouteRule: (id: number) =>
+    api.delete(`/routing/policy/cidrs/${id}`),
+
+  getPolicyDnsBindings: () =>
+    api.get('/routing/policy/dns-bindings'),
+
+  explainRouteDecision: (address: string) =>
+    api.post('/routing/policy/explain', { address }),
 }
