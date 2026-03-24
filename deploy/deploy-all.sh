@@ -5,6 +5,11 @@
 #
 # Usage: ./deploy/deploy-all.sh
 # Environment variables: RU_IP, RU_USER, RU_PASS, DE_IP, DE_USER, DE_PASS
+# GRACE-lite operational contract:
+# - This is a high-risk script: it provisions servers, writes secrets and mutates host networking.
+# - It relies on `sshpass` and disabled host key verification; do not treat it as a safe baseline.
+# - Default credentials, port exposure and generated `.env` values here directly affect production security.
+# - Any meaningful change must be reviewed as an infrastructure/security change, not just shell refactoring.
 #
 
 set -e
@@ -87,6 +92,22 @@ YELLOW='\033[1;33m'
 BLUE='\033[0;34m'
 NC='\033[0m'
 
+require_command() {
+    local cmd="$1"
+    if ! command -v "$cmd" >/dev/null 2>&1; then
+        echo -e "${RED}[RU] Missing required command: ${cmd}${NC}"
+        exit 1
+    fi
+}
+
+verify_host_routing_tools() {
+    local tools=(ip ipset iptables awg awg-quick curl awk grep)
+    for tool in "${tools[@]}"; do
+        require_command "$tool"
+    done
+    echo -e "${GREEN}[RU] Host routing toolchain verified${NC}"
+}
+
 echo -e "${BLUE}[RU] Updating system...${NC}"
 apt update -qq && apt upgrade -y -qq
 
@@ -108,6 +129,7 @@ if ! command -v awg &> /dev/null; then
     apt update -qq
     apt install -y -qq amneziawg amneziawg-tools
 fi
+verify_host_routing_tools
 
 echo -e "${BLUE}[RU] Enabling IP forwarding...${NC}"
 echo "net.ipv4.ip_forward=1" > /etc/sysctl.d/99-krotvpn.conf
@@ -150,6 +172,22 @@ YELLOW='\033[1;33m'
 BLUE='\033[0;34m'
 NC='\033[0m'
 
+require_command() {
+    local cmd="$1"
+    if ! command -v "$cmd" >/dev/null 2>&1; then
+        echo -e "${RED}[DE] Missing required command: ${cmd}${NC}"
+        exit 1
+    fi
+}
+
+verify_host_routing_tools() {
+    local tools=(ip iptables awg awg-quick curl grep)
+    for tool in "${tools[@]}"; do
+        require_command "$tool"
+    done
+    echo -e "${GREEN}[DE] Host routing toolchain verified${NC}"
+}
+
 echo -e "${BLUE}[DE] Updating system...${NC}"
 apt update -qq && apt upgrade -y -qq
 
@@ -163,6 +201,7 @@ if ! command -v awg &> /dev/null; then
     apt update -qq
     apt install -y -qq amneziawg amneziawg-tools
 fi
+verify_host_routing_tools
 
 echo -e "${BLUE}[DE] Enabling IP forwarding...${NC}"
 echo "net.ipv4.ip_forward=1" > /etc/sysctl.d/99-krotvpn.conf
@@ -428,6 +467,8 @@ cd /opt/KrotVPN
 SECRET_KEY=$(python3 -c "import secrets; print(secrets.token_urlsafe(32))")
 DATA_KEY=$(python3 -c "from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())")
 DB_PASSWORD=$(python3 -c "import secrets; print(secrets.token_urlsafe(16))")
+ADMIN_EMAIL="${ADMIN_EMAIL:-admin@krotvpn.com}"
+ADMIN_PASSWORD="${ADMIN_PASSWORD:-$(python3 -c "import secrets; print(secrets.token_urlsafe(24))")}"
 
 cat > .env << EOF
 # === APPLICATION ===
@@ -457,8 +498,8 @@ REDIS_URL=redis://redis:6379/0
 CORS_ORIGINS=["https://${RU_IP}","http://${RU_IP}","http://localhost"]
 
 # === ADMIN ===
-ADMIN_EMAIL=admin@krotvpn.com
-ADMIN_PASSWORD=ChangeMeImmediately123!
+ADMIN_EMAIL=${ADMIN_EMAIL}
+ADMIN_PASSWORD=${ADMIN_PASSWORD}
 
 # === VPN CONFIGURATION ===
 VPN_SUBNET=10.10.0.0/24
@@ -506,6 +547,12 @@ DOMAIN=${RU_IP}
 EOF
 
 chmod 600 .env
+cat > /root/.krotvpn-admin-credentials << EOF
+ADMIN_EMAIL=${ADMIN_EMAIL}
+ADMIN_PASSWORD=${ADMIN_PASSWORD}
+EOF
+chmod 600 /root/.krotvpn-admin-credentials
+echo -e "${YELLOW}[RU] Admin credentials saved to /root/.krotvpn-admin-credentials${NC}"
 
 # Systemd services
 cat > /etc/systemd/system/krotvpn-routing.service << 'SERVICE'

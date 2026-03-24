@@ -2,6 +2,10 @@
 #
 # KrotVPN Server Deployment Script v2.4.0
 # Run this script ON the RU server
+# GRACE-lite operational contract:
+# - This script is executed on the RU host and consumes temporary config from /tmp/krotvpn_deploy.conf.
+# - It decodes remote credentials, provisions RU host services and reaches the DE host over SSH.
+# - It is security-sensitive and should be reviewed like infrastructure code.
 #
 
 set -e
@@ -15,6 +19,28 @@ CYAN='\033[0;36m'
 NC='\033[0m'
 
 VPN_PORT="51821"
+
+cleanup_sensitive_files() {
+    rm -f /tmp/krotvpn_deploy.conf /tmp/de_setup.sh
+}
+
+trap cleanup_sensitive_files EXIT
+
+require_command() {
+    local cmd="$1"
+    if ! command -v "$cmd" >/dev/null 2>&1; then
+        echo -e "${RED}[ERROR] Required command not found: ${cmd}${NC}"
+        exit 1
+    fi
+}
+
+verify_host_routing_tools() {
+    local tools=(ip ipset iptables awg awg-quick curl awk grep sshpass)
+    for tool in "${tools[@]}"; do
+        require_command "$tool"
+    done
+    echo -e "${GREEN}✓ Host routing toolchain verified${NC}"
+}
 
 # Read configuration from file
 if [ -f /tmp/krotvpn_deploy.conf ]; then
@@ -41,6 +67,20 @@ if [ -n "$RU_PASS_B64" ]; then
 else
     echo -e "${RED}[ERROR] RU_PASS_B64 not found in config${NC}"
     exit 1
+fi
+
+if [ -n "$ADMIN_PASSWORD_B64" ]; then
+    ADMIN_PASSWORD=$(echo "$ADMIN_PASSWORD_B64" | base64 -d)
+else
+    ADMIN_PASSWORD=""
+fi
+
+ADMIN_EMAIL="${ADMIN_EMAIL:-admin@krotvpn.com}"
+if [ -z "$ADMIN_PASSWORD" ]; then
+    ADMIN_PASSWORD=$(python3 -c "import secrets; print(secrets.token_urlsafe(24))")
+    GENERATED_ADMIN_PASSWORD=1
+else
+    GENERATED_ADMIN_PASSWORD=0
 fi
 
 # Validate required variables
@@ -127,6 +167,7 @@ if ! command -v awg &> /dev/null; then
     apt install -y -qq amneziawg amneziawg-tools
 fi
 echo -e "${GREEN}✓ AmneziaWG installed${NC}"
+verify_host_routing_tools
 
 echo -e "${BLUE}[RU] Enabling IP forwarding...${NC}"
 echo "net.ipv4.ip_forward=1" > /etc/sysctl.d/99-krotvpn.conf
@@ -145,6 +186,8 @@ RU_CLIENT_PRIVATE=$(cat ru_client_private.key)
 
 echo -e "${GREEN}✓ Keys generated${NC}"
 echo -e "  Server Public: ${RU_SERVER_PUBLIC}"
+echo -e "  Client Public: ${RU_CLIENT_PUBLIC}"
+echo -e "  Private keys stored on disk with root-only permissions"
 echo ""
 
 # ============================================================
@@ -169,6 +212,22 @@ GREEN='\033[0;32m'
 BLUE='\033[0;34m'
 NC='\033[0m'
 
+require_command() {
+    local cmd="$1"
+    if ! command -v "$cmd" >/dev/null 2>&1; then
+        echo -e "${RED}[ERROR] Required command not found: ${cmd}${NC}"
+        exit 1
+    fi
+}
+
+verify_host_routing_tools() {
+    local tools=(ip iptables awg awg-quick curl grep)
+    for tool in "${tools[@]}"; do
+        require_command "$tool"
+    done
+    echo -e "${GREEN}✓ DE host routing toolchain verified${NC}"
+}
+
 echo -e "${BLUE}[DE] Updating system...${NC}"
 apt update -qq && apt upgrade -y -qq
 
@@ -183,6 +242,7 @@ if ! command -v awg &> /dev/null; then
     apt install -y -qq amneziawg amneziawg-tools
 fi
 echo -e "${GREEN}✓ AmneziaWG installed${NC}"
+verify_host_routing_tools
 
 echo -e "${BLUE}[DE] Enabling IP forwarding...${NC}"
 echo "net.ipv4.ip_forward=1" > /etc/sysctl.d/99-krotvpn.conf
@@ -556,8 +616,8 @@ REDIS_URL=redis://redis:6379/0
 CORS_ORIGINS=["https://${RU_IP}","http://${RU_IP}","http://localhost"]
 
 # === ADMIN ===
-ADMIN_EMAIL=admin@krotvpn.com
-ADMIN_PASSWORD=ChangeMeImmediately123!
+ADMIN_EMAIL=${ADMIN_EMAIL}
+ADMIN_PASSWORD=${ADMIN_PASSWORD}
 
 # === VPN CONFIGURATION ===
 VPN_SUBNET=10.10.0.0/24
@@ -621,6 +681,14 @@ DOMAIN=${RU_IP}
 EOF
 
 chmod 600 .env
+if [ "$GENERATED_ADMIN_PASSWORD" -eq 1 ]; then
+cat > /root/.krotvpn-admin-credentials << EOF
+ADMIN_EMAIL=${ADMIN_EMAIL}
+ADMIN_PASSWORD=${ADMIN_PASSWORD}
+EOF
+chmod 600 /root/.krotvpn-admin-credentials
+echo -e "${YELLOW}[SECURITY] Admin credentials were auto-generated and saved to /root/.krotvpn-admin-credentials${NC}"
+fi
 echo -e "${GREEN}✓ Configuration created${NC}"
 
 # Systemd services
@@ -711,5 +779,4 @@ echo -e "  Create VPN client:"
 echo -e "  ${YELLOW}/opt/KrotVPN/deploy/create-client.sh my_client${NC}"
 echo ""
 
-# Cleanup
-rm -f /tmp/krotvpn_deploy.conf /tmp/de_setup.sh
+# Cleanup happens via trap

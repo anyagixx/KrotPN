@@ -6,6 +6,10 @@
 # Usage:
 #   bash deploy-ru-server.sh                           # Interactive mode
 #   DE_PUBLIC_KEY=xxx bash deploy-ru-server.sh         # Non-interactive mode
+# GRACE-lite operational contract:
+# - This script provisions the RU entry node and local app host.
+# - It generates keys, writes live VPN config and prepares Docker/runtime dependencies.
+# - Output values here become production secrets and should not be logged or reused carelessly.
 #
 
 set -e
@@ -16,6 +20,22 @@ GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
 BLUE='\033[0;34m'
 NC='\033[0m'
+
+require_command() {
+    local cmd="$1"
+    if ! command -v "$cmd" >/dev/null 2>&1; then
+        echo -e "${RED}ERROR: required command not found: ${cmd}${NC}"
+        exit 1
+    fi
+}
+
+verify_host_routing_tools() {
+    local tools=(ip ipset iptables awg awg-quick curl awk grep)
+    for tool in "${tools[@]}"; do
+        require_command "$tool"
+    done
+    echo -e "${GREEN}Routing host tools verified${NC}"
+}
 
 # Configuration
 RU_IP="${RU_IP:-212.113.121.164}"
@@ -81,10 +101,9 @@ RU_CLIENT_PRIVATE_KEY=$(cat ru_client_private.key)
 RU_CLIENT_PUBLIC_KEY=$(cat ru_client_public.key)
 
 echo -e "${GREEN}RU Server Keys Generated:${NC}"
-echo -e "  Server Private: ${RU_SERVER_PRIVATE_KEY}"
 echo -e "  Server Public:  ${RU_SERVER_PUBLIC_KEY}"
-echo -e "  Client Private: ${RU_CLIENT_PRIVATE_KEY}"
 echo -e "  Client Public:  ${RU_CLIENT_PUBLIC_KEY}"
+echo -e "  Private keys stored at /etc/amnezia/amneziawg/*.key with root-only permissions"
 
 # Step 7: Get DE public key
 echo ""
@@ -219,6 +238,7 @@ ROUTING_SCRIPT
 chmod +x /usr/local/bin/setup_routing.sh
 
 # Run initial update
+verify_host_routing_tools
 /usr/local/bin/update_ru_ips.sh
 
 # Step 9: Configure Firewall
@@ -251,6 +271,8 @@ fi
 SECRET_KEY=$(python3 -c "import secrets; print(secrets.token_urlsafe(32))")
 DATA_KEY=$(python3 -c "from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())")
 DB_PASSWORD=$(python3 -c "import secrets; print(secrets.token_urlsafe(16))")
+ADMIN_EMAIL="${ADMIN_EMAIL:-admin@krotvpn.com}"
+ADMIN_PASSWORD="${ADMIN_PASSWORD:-$(python3 -c "import secrets; print(secrets.token_urlsafe(24))")}"
 
 # Create .env file
 cat > .env << EOF
@@ -281,8 +303,8 @@ REDIS_URL=redis://redis:6379/0
 CORS_ORIGINS=["http://${RU_IP}","https://${RU_IP}","http://localhost"]
 
 # === ADMIN ===
-ADMIN_EMAIL=admin@krotvpn.com
-ADMIN_PASSWORD=ChangeMeImmediately123!
+ADMIN_EMAIL=${ADMIN_EMAIL}
+ADMIN_PASSWORD=${ADMIN_PASSWORD}
 
 # === VPN CONFIGURATION ===
 VPN_SUBNET=10.10.0.0/24
@@ -330,6 +352,12 @@ DOMAIN=${RU_IP}
 EOF
 
 chmod 600 .env
+cat > /root/.krotvpn-admin-credentials << EOF
+ADMIN_EMAIL=${ADMIN_EMAIL}
+ADMIN_PASSWORD=${ADMIN_PASSWORD}
+EOF
+chmod 600 /root/.krotvpn-admin-credentials
+echo -e "${YELLOW}Admin credentials saved to /root/.krotvpn-admin-credentials${NC}"
 
 # Start AmneziaWG
 echo -e "${YELLOW}Starting AmneziaWG...${NC}"
