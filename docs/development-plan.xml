@@ -196,7 +196,7 @@
       <step-2>Expose policy and resolution state in the admin frontend without changing the user-facing product flow yet.</step-2>
       <step-3>Add migration-safe analytics so legacy VPNServer-based views do not silently misrepresent routing state.</step-3>
     </Phase-3>
-    <Phase-4 status="planned">
+    <Phase-4 status="done">
       <name>Hardening and rollout gates</name>
       <step-1>Run routing-focused verification on exact-domain, wildcard-domain, TTL expiry and fallback branches.</step-1>
       <step-2>Gate production rollout on host-level safety review for ipset or nftables updates.</step-2>

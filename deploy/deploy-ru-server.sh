@@ -181,7 +181,7 @@ echo -e "${YELLOW}[8/10] Setting up split-tunneling...${NC}"
 # Create RU IP update script
 cat > /usr/local/bin/update_ru_ips.sh << 'UPDATE_SCRIPT'
 #!/bin/bash
-ipset create ru_ips hash:net 2>/dev/null || ipset flush ru_ips
+ipset create ru_ips hash:net 2>/dev/null || true
 ipset add ru_ips 10.0.0.0/8 2>/dev/null || true
 ipset add ru_ips 192.168.0.0/16 2>/dev/null || true
 ipset add ru_ips 172.16.0.0/12 2>/dev/null || true
@@ -363,6 +363,8 @@ echo -e "${YELLOW}Admin credentials saved to /root/.krotvpn-admin-credentials${N
 echo -e "${YELLOW}Starting AmneziaWG...${NC}"
 awg-quick up awg0 2>/dev/null || true
 awg-quick up awg-client 2>/dev/null || true
+systemctl enable awg-quick@awg0 >/dev/null 2>&1 || true
+systemctl enable awg-quick@awg-client >/dev/null 2>&1 || true
 ip route add 10.200.0.0/24 dev awg-client 2>/dev/null || true
 
 # Setup routing

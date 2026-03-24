@@ -6,6 +6,10 @@
 # Usage: 
 #   bash deploy-de-server.sh                           # Interactive mode
 #   RU_CLIENT_PUBLIC_KEY=xxx bash deploy-de-server.sh  # Non-interactive mode
+# GRACE-lite operational contract:
+# - This script provisions the DE exit node and its AWG tunnel endpoint.
+# - It mutates firewall, NAT and host VPN state directly.
+# - Networking changes here affect all downstream client traffic and should be reviewed as infra changes.
 #
 
 set -e
@@ -163,6 +167,7 @@ ufw --force enable > /dev/null
 echo -e "${YELLOW}Starting AmneziaWG...${NC}"
 awg-quick down awg0 2>/dev/null || true
 awg-quick up awg0
+systemctl enable awg-quick@awg0 >/dev/null 2>&1 || true
 
 # Verify
 echo ""

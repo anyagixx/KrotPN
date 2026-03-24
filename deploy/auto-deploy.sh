@@ -4,6 +4,10 @@
 # Запусти на своём компьютере - всё само развернётся
 #
 # Usage: ./auto-deploy.sh
+# GRACE-lite operational contract:
+# - This is an opinionated auto-deploy path with hardcoded server IP defaults.
+# - It assumes SSH key-based access and mutates both RU and DE hosts.
+# - Treat it as convenience automation, not as a hardened universal deployment mechanism.
 #
 
 set -e
@@ -233,7 +237,7 @@ chmod 600 /etc/amnezia/amneziawg/*.conf
 echo "===> Создание скриптов routing..."
 cat > /usr/local/bin/update_ru_ips.sh << 'SCRIPT'
 #!/bin/bash
-ipset create ru_ips hash:net 2>/dev/null || ipset flush ru_ips
+ipset create ru_ips hash:net 2>/dev/null || true
 ipset add ru_ips 10.0.0.0/8 2>/dev/null || true
 ipset add ru_ips 192.168.0.0/16 2>/dev/null || true
 ipset add ru_ips 172.16.0.0/12 2>/dev/null || true
@@ -311,6 +315,8 @@ echo "===> Генерация секретов..."
 SECRET_KEY=$(python3 -c "import secrets; print(secrets.token_urlsafe(32))")
 DATA_KEY=$(python3 -c "from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())")
 DB_PASSWORD=$(python3 -c "import secrets; print(secrets.token_urlsafe(16))")
+ADMIN_EMAIL="${ADMIN_EMAIL:-admin@krotvpn.com}"
+ADMIN_PASSWORD="${ADMIN_PASSWORD:-$(python3 -c "import secrets; print(secrets.token_urlsafe(24))")}"
 
 cat > .env << EOF
 APP_NAME=KrotVPN
@@ -334,8 +340,8 @@ REDIS_URL=redis://redis:6379/0
 
 CORS_ORIGINS=["http://212.113.121.164","http://localhost"]
 
-ADMIN_EMAIL=admin@krotvpn.com
-ADMIN_PASSWORD=ChangeMeImmediately123!
+ADMIN_EMAIL=${ADMIN_EMAIL}
+ADMIN_PASSWORD=${ADMIN_PASSWORD}
 
 VPN_SUBNET=10.10.0.0/24
 VPN_PORT=51821
@@ -362,6 +368,12 @@ DOMAIN=212.113.121.164
 EOF
 
 chmod 600 .env
+cat > /root/.krotvpn-admin-credentials << EOF
+ADMIN_EMAIL=${ADMIN_EMAIL}
+ADMIN_PASSWORD=${ADMIN_PASSWORD}
+EOF
+chmod 600 /root/.krotvpn-admin-credentials
+echo "===> Admin credentials saved to /root/.krotvpn-admin-credentials"
 
 echo "===> RU сервер готов!"
 echo "RU_CLIENT_PUBLIC_KEY=${RU_CLIENT_PUBLIC_KEY}"
@@ -407,6 +419,8 @@ ssh root@${RU_IP} 'bash -s' << 'STARTSERVICES'
 echo "===> Запуск AmneziaWG..."
 awg-quick up awg0 2>/dev/null || true
 awg-quick up awg-client 2>/dev/null || true
+systemctl enable awg-quick@awg0 >/dev/null 2>&1 || true
+systemctl enable awg-quick@awg-client >/dev/null 2>&1 || true
 ip route add 10.200.0.0/24 dev awg-client 2>/dev/null || true
 
 # Настраиваем routing

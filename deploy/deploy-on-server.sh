@@ -411,7 +411,7 @@ echo -e "${BLUE}[RU] Creating helper scripts...${NC}"
 
 cat > /usr/local/bin/update_ru_ips.sh << 'UPDATE_SCRIPT'
 #!/bin/bash
-ipset create ru_ips hash:net 2>/dev/null || ipset flush ru_ips
+ipset create ru_ips hash:net 2>/dev/null || true
 for net in 10.0.0.0/8 192.168.0.0/16 172.16.0.0/12 127.0.0.0/8; do
     ipset add ru_ips $net 2>/dev/null || true
 done
@@ -508,8 +508,11 @@ fi
 echo -e "${BLUE}[RU] Starting AmneziaWG...${NC}"
 awg-quick down awg0 2>/dev/null || true
 awg-quick up awg0
+systemctl enable awg-quick@awg0 >/dev/null 2>&1 || true
 awg-quick down awg-client 2>/dev/null || true
 awg-quick up awg-client
+systemctl enable awg-quick@awg0 >/dev/null 2>&1 || true
+systemctl enable awg-quick@awg-client >/dev/null 2>&1 || true
 
 # FIXED: Add explicit route to tunnel subnet (Table=off doesn't add it)
 echo -e "${BLUE}[RU] Adding route to DE tunnel subnet...${NC}"

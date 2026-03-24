@@ -29,7 +29,7 @@
     <item>Deployment scripts and secrets handling.</item>
     <item>Host-level VPN and routing dependencies.</item>
     <item>Legacy VPNServer compatibility during topology migration.</item>
-    <item>Host-level rollout evidence for domain-aware routing is still incomplete.</item>
+    <item>Remote credentials handled through temporary operator materialization remain a deployment risk.</item>
     <item>Verification reproducibility across environments.</item>
   </what-is-fragile>
 
@@ -37,15 +37,11 @@
     <gate id="routing-phase-4-step-1" status="passed">
       <summary>Local routing-focused backend verification and admin frontend build pass.</summary>
     </gate>
-    <gate id="routing-phase-4-step-2" status="blocked">
-      <summary>
-        Static deploy hardening is in place, but production rollout is still gated on host-level validation:
-        runtime and deploy surfaces remain ipset/iptables-based, and the current environment lacks `ipset`, `awg`
-        and `awg-quick`, so host-bound verification cannot be completed here.
-      </summary>
+    <gate id="routing-phase-4-step-2" status="passed">
+      <summary>Live RU and DE hosts validated with ipset, awg, awg-quick, container startup, HTTPS surfaces and tunnel connectivity after deploy-script hotfixes.</summary>
     </gate>
-    <gate id="routing-phase-4-step-3" status="partial">
-      <summary>Admin UI now treats route policy as the preferred control surface, while legacy custom routes remain runtime fallback only.</summary>
+    <gate id="routing-phase-4-step-3" status="passed">
+      <summary>Admin UI treats route policy as the preferred control surface, and live rollout evidence now exists for the host-managed routing path.</summary>
     </gate>
   </rollout-gates>
 
