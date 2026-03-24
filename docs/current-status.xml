@@ -23,6 +23,8 @@
     <item>VPN service supports route-aware logic with legacy compatibility.</item>
     <item>Admin route-policy controls and migration-safe routing analytics are implemented.</item>
     <item>Billing, referrals and Telegram bot are implemented at code level.</item>
+    <item>Release v2.4.23 is published and RU production health reports version 2.4.23.</item>
+    <item>RU and DE AWG interfaces are now managed through systemd and survive service restarts cleanly.</item>
   </what-is-working>
 
   <what-is-fragile>
@@ -30,6 +32,7 @@
     <item>Host-level VPN and routing dependencies.</item>
     <item>Legacy VPNServer compatibility during topology migration.</item>
     <item>Remote credentials handled through temporary operator materialization remain a deployment risk.</item>
+    <item>DE host has a newer prepared kernel and rebuilt DKMS module, but still needs a planned reboot to activate it.</item>
     <item>Verification reproducibility across environments.</item>
   </what-is-fragile>
 
@@ -48,8 +51,9 @@
   <immediate-priorities>
     <priority rank="1">Make AI handoff docs accurate and mandatory for new agents.</priority>
     <priority rank="2">Remove unsafe deploy defaults and tighten secrets handling.</priority>
-    <priority rank="3">Stabilize VPN topology model and related analytics.</priority>
-    <priority rank="4">Improve repeatable local verification for backend and admin frontend.</priority>
+    <priority rank="3">Plan and execute a controlled DE reboot onto kernel 6.8.0-106-generic, then re-check AWG.</priority>
+    <priority rank="4">Stabilize VPN topology model and related analytics.</priority>
+    <priority rank="5">Improve repeatable local verification for backend and admin frontend.</priority>
   </immediate-priorities>
 
   <known-risks>
