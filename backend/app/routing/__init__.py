@@ -23,6 +23,12 @@ from app.routing.domain_rules import (
     normalize_domain_rule_input,
 )
 from app.routing.manager import RoutingManager, routing_manager
+from app.routing.policy import (
+    DecisionReason,
+    DnsBoundRoute,
+    RouteDecision,
+    RoutePolicyResolver,
+)
 from app.routing.router import router as routing_router
 
 __all__ = [
@@ -47,6 +53,11 @@ __all__ = [
     "RuleValidationError",
     "normalize_cidr_rule_input",
     "normalize_domain_rule_input",
+    # Policy
+    "DecisionReason",
+    "DnsBoundRoute",
+    "RouteDecision",
+    "RoutePolicyResolver",
     # Manager
     "RoutingManager",
     "routing_manager",
