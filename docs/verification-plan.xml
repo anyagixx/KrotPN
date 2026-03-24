@@ -1,353 +1,198 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!--
-  GRACE Verification Plan
-  Product: KrotVPN
-  Version: 1.0.0
--->
+<!-- GRACE-lite Verification Plan -->
 <verification-plan>
   <meta>
     <project-name>KrotVPN</project-name>
-    <version>1.0.0</version>
-    <created>2026-03-20</created>
+    <version>2.5.0</version>
+    <updated>2026-03-24</updated>
   </meta>
 
-  <testing-strategy>
-    <approach>Test Pyramid</approach>
-    <description>
-      Большое количество unit тестов, меньше интеграционных,
-      еще меньше E2E тестов. Фокус на критических бизнес-процессах.
-    </description>
-    <target-coverage>
-      Unit: 80%+ coverage
-      Integration: Critical paths
-      E2E: Happy paths for main flows
-    </target-coverage>
-  </testing-strategy>
+  <verification-philosophy>
+    <principle>Routing decisions must be explainable, deterministic and safe to replay from logs.</principle>
+    <principle>Domain-aware routing is not verified unless domain rules, DNS binding and host-level runtime sync are checked together.</principle>
+    <principle>If host tools or dependencies are unavailable, the report must state the exact blocked command and missing prerequisite.</principle>
+  </verification-philosophy>
 
-  <test-suites>
-    <!-- Backend Unit Tests -->
-    <suite id="TS-001" module="M-001" type="unit">
-      <name>backend-core-tests</name>
-      <path>backend/tests/test_core</path>
-      <tests>
-        <test id="T-001">
-          <name>test_password_hashing</name>
-          <description>Verify bcrypt password hashing works correctly</description>
-          <marker>CORE_SECURITY</marker>
-        </test>
-        <test id="T-002">
-          <name>test_jwt_token_generation</name>
-          <description>Verify JWT tokens are generated with correct claims</description>
-          <marker>CORE_SECURITY</marker>
-        </test>
-        <test id="T-003">
-          <name>test_jwt_token_validation</name>
-          <description>Verify JWT tokens are validated correctly</description>
-          <marker>CORE_SECURITY</marker>
-        </test>
-        <test id="T-004">
-          <name>test_jwt_token_expiry</name>
-          <description>Verify expired tokens are rejected</description>
-          <marker>CORE_SECURITY</marker>
-        </test>
-        <test id="T-005">
-          <name>test_config_loading</name>
-          <description>Verify configuration is loaded from environment</description>
-          <marker>CORE_CONFIG</marker>
-        </test>
-      </tests>
-    </suite>
+  <critical-flows>
+    <CF-001>register -> trial subscription -> vpn config delivery -> domain-aware route resolution</CF-001>
+    <CF-002>login -> protected API access -> known RU domain stays local or RU-routed by policy</CF-002>
+    <CF-003>foreign domain with changing CDN IPs -> DNS rebinding -> DE policy remains effective</CF-003>
+    <CF-004>admin updates routing rule -> runtime sync applies changes without breaking unrelated routes</CF-004>
+    <CF-005>unknown domain -> CIDR fallback -> RU baseline or default path remains backward compatible</CF-005>
+  </critical-flows>
 
-    <!-- User Module Tests -->
-    <suite id="TS-002" module="M-002" type="unit">
-      <name>users-tests</name>
-      <path>backend/tests/test_users</path>
-      <tests>
-        <test id="T-010">
-          <name>test_user_creation</name>
-          <description>Create user with valid data</description>
-          <marker>USER_CRUD</marker>
-        </test>
-        <test id="T-011">
-          <name>test_user_email_unique</name>
-          <description>Reject duplicate email addresses</description>
-          <marker>USER_CRUD</marker>
-        </test>
-        <test id="T-012">
-          <name>test_user_authentication_valid</name>
-          <description>Authenticate with correct credentials</description>
-          <marker>USER_AUTH</marker>
-        </test>
-        <test id="T-013">
-          <name>test_user_authentication_invalid</name>
-          <description>Reject invalid credentials</description>
-          <marker>USER_AUTH</marker>
-        </test>
-        <test id="T-014">
-          <name>test_telegram_oauth</name>
-          <description>Verify Telegram OAuth flow</description>
-          <marker>USER_AUTH</marker>
-        </test>
-      </tests>
-    </suite>
+  <verification-matrix>
+    <scenario id="VM-001" module="V-M-013" evidence="deterministic">
+      <success>Exact-domain rule wins over wildcard, CIDR and baseline.</success>
+      <failure>Resolver returns weaker precedence branch when exact rule exists.</failure>
+      <required-trace>ROUTE_DECISION_DOMAIN_EXACT</required-trace>
+    </scenario>
+    <scenario id="VM-002" module="V-M-013" evidence="deterministic">
+      <success>Wildcard-domain rule wins when exact rule is absent.</success>
+      <failure>Resolver skips wildcard and falls into CIDR or baseline unexpectedly.</failure>
+      <required-trace>ROUTE_DECISION_DOMAIN_WILDCARD</required-trace>
+    </scenario>
+    <scenario id="VM-003" module="V-M-015" evidence="trace-plus-state">
+      <success>DNS binding refresh updates active IP set before stale TTL entries leak indefinitely.</success>
+      <failure>Expired binding remains active or new binding is not propagated.</failure>
+      <required-trace>DNS_BINDING_UPDATED DNS_BINDING_EXPIRED</required-trace>
+    </scenario>
+    <scenario id="VM-004" module="V-M-017" evidence="trace-plus-state">
+      <success>Runtime sync applies only affected route-set changes for a single rule mutation.</success>
+      <failure>Unrelated route sets are flushed or stale entries remain.</failure>
+      <required-trace>RUNTIME_ROUTESET_INCREMENTAL</required-trace>
+    </scenario>
+    <scenario id="VM-005" module="V-M-016" evidence="deterministic-plus-auth">
+      <success>Admin can inspect policy state and decision reasons, non-admin cannot mutate policy.</success>
+      <failure>Missing auth enforcement or missing reason field in response.</failure>
+      <required-trace>ADMIN_ROUTE_POLICY_READ ADMIN_ROUTE_POLICY_MUTATION ROUTE_DECISION_EXPLAINED</required-trace>
+    </scenario>
+    <scenario id="VM-006" module="V-M-003" evidence="integration">
+      <success>VPN provisioning still produces config consistent with selected topology and routing policy expectations.</success>
+      <failure>Route-aware provisioning diverges from effective runtime policy.</failure>
+      <required-trace>VPN_PROVISION_ROUTE_SELECTED VPN_CONFIG_RENDERED</required-trace>
+    </scenario>
+  </verification-matrix>
 
-    <!-- VPN Module Tests -->
-    <suite id="TS-003" module="M-003" type="unit">
-      <name>vpn-tests</name>
-      <path>backend/tests/test_vpn</path>
-      <tests>
-        <test id="T-020">
-          <name>test_keypair_generation</name>
-          <description>Generate valid AmneziaWG keypair</description>
-          <marker>VPN_KEYS</marker>
-        </test>
-        <test id="T-021">
-          <name>test_config_generation</name>
-          <description>Generate valid client config with obfuscation params</description>
-          <marker>VPN_CONFIG</marker>
-        </test>
-        <test id="T-022">
-          <name>test_config_obfuscation_params</name>
-          <description>Verify all obfuscation params are included</description>
-          <marker>VPN_CONFIG</marker>
-          <critical>true</critical>
-        </test>
-        <test id="T-023">
-          <name>test_peer_add</name>
-          <description>Add peer to AmneziaWG interface</description>
-          <marker>VPN_PEER</marker>
-        </test>
-        <test id="T-024">
-          <name>test_peer_remove</name>
-          <description>Remove peer from AmneziaWG interface</description>
-          <marker>VPN_PEER</marker>
-        </test>
-        <test id="T-025">
-          <name>test_qr_generation</name>
-          <description>Generate QR code from config</description>
-          <marker>VPN_CONFIG</marker>
-        </test>
-      </tests>
-    </suite>
+  <module-verification>
+    <V-M-001 module="backend-core">
+      <checks>Backend config and DB initialization remain runnable; auth and crypto helpers still load.</checks>
+      <evidence>backend startup or targeted import/test reasoning</evidence>
+    </V-M-001>
+    <V-M-003 module="vpn">
+      <checks>Provisioning and config generation remain compatible with route-aware topology.</checks>
+      <tests>backend/tests/test_vpn_service.py backend/tests/test_vpn_router_compat.py</tests>
+      <anchors>VPN_PROVISION_ROUTE_SELECTED VPN_CONFIG_RENDERED</anchors>
+    </V-M-003>
+    <V-M-004 module="billing">
+      <checks>Payment and webhook flows remain isolated from routing migration.</checks>
+      <tests>backend/tests/test_billing_security.py</tests>
+      <anchors>BILLING_WEBHOOK_ACCEPTED BILLING_SUBSCRIPTION_UPDATED</anchors>
+    </V-M-004>
+    <V-M-006 module="admin-api">
+      <checks>Admin routing inspection and analytics endpoints enforce admin auth and reflect current policy state.</checks>
+      <tests>targeted admin API tests to be added during execution</tests>
+      <anchors>ADMIN_ROUTE_POLICY_READ ADMIN_ROUTE_POLICY_MUTATION</anchors>
+    </V-M-006>
+    <V-M-007 module="routing">
+      <checks>Current RU ipset update, custom route sync and tunnel inspection remain safe under host-level assumptions.</checks>
+      <tests>backend/tests/test_routing_policy_compat.py plus static review and targeted runtime tests when host tools are available</tests>
+      <anchors>ROUTING_RU_IPSET_UPDATED ROUTING_CUSTOM_SYNC_APPLIED</anchors>
+    </V-M-007>
+    <V-M-009 module="frontend-user">
+      <checks>User frontend still builds and has no contract mismatch with auth, config and subscription APIs.</checks>
+      <commands>cd frontend &amp;&amp; npm run build</commands>
+    </V-M-009>
+    <V-M-010 module="frontend-admin">
+      <checks>Admin frontend builds and reflects new route policy surfaces without auth regression.</checks>
+      <commands>cd frontend-admin &amp;&amp; npm run build</commands>
+    </V-M-010>
+    <V-M-012 module="deploy-surface">
+      <checks>Deploy and nginx changes do not introduce weak defaults or unsafe routing assumptions.</checks>
+      <evidence>static review of secrets, ports, mounts and host tool expectations</evidence>
+    </V-M-012>
+    <V-M-013 module="route-policy-resolver">
+      <checks>
+        Exact-domain rules override wildcard rules, wildcard rules override CIDR, CIDR overrides RU baseline,
+        and fallback remains deterministic when no rule matches.
+      </checks>
+      <tests>backend/tests/test_route_policy_resolver.py</tests>
+      <anchors>ROUTE_DECISION_DOMAIN_EXACT ROUTE_DECISION_DOMAIN_WILDCARD ROUTE_DECISION_CIDR ROUTE_DECISION_FALLBACK</anchors>
+    </V-M-013>
+    <V-M-014 module="domain-rule-store">
+      <checks>Rule persistence preserves priority, activation state, domain normalization and duplicate handling.</checks>
+      <tests>backend/tests/test_domain_rule_store.py</tests>
+      <anchors>DOMAIN_RULE_CREATED DOMAIN_RULE_UPDATED DOMAIN_RULE_REJECTED_DUPLICATE</anchors>
+    </V-M-014>
+    <V-M-015 module="dns-observer">
+      <checks>DNS bindings are refreshed by TTL, expired safely and conflict resolution is explicit.</checks>
+      <tests>backend/tests/test_dns_observer.py</tests>
+      <anchors>DNS_BINDING_UPDATED DNS_BINDING_EXPIRED DNS_BINDING_CONFLICT</anchors>
+    </V-M-015>
+    <V-M-016 module="route-decision-api">
+      <checks>Admin CRUD and inspection endpoints expose policy state safely and return decision reasons.</checks>
+      <tests>backend/tests/test_route_decision_api.py</tests>
+      <anchors>ROUTE_POLICY_API_LIST ROUTE_POLICY_API_MUTATION ROUTE_DECISION_EXPLAINED</anchors>
+    </V-M-016>
+    <V-M-017 module="route-sync-runtime">
+      <checks>Runtime sync applies incremental updates correctly, removes stale bindings and avoids rule leakage between RU and DE sets.</checks>
+      <tests>backend/tests/test_route_sync_runtime.py</tests>
+      <anchors>RUNTIME_ROUTESET_APPLIED RUNTIME_ROUTESET_INCREMENTAL RUNTIME_ROUTESET_FULL_REFRESH</anchors>
+    </V-M-017>
+  </module-verification>
 
-    <!-- Billing Module Tests -->
-    <suite id="TS-004" module="M-004" type="unit">
-      <name>billing-tests</name>
-      <path>backend/tests/test_billing</path>
-      <tests>
-        <test id="T-030">
-          <name>test_plan_creation</name>
-          <description>Create subscription plan</description>
-          <marker>BILLING_PLAN</marker>
-        </test>
-        <test id="T-031">
-          <name>test_subscription_creation</name>
-          <description>Create subscription for user</description>
-          <marker>BILLING_SUB</marker>
-        </test>
-        <test id="T-032">
-          <name>test_subscription_expiry</name>
-          <description>Check subscription expiry logic</description>
-          <marker>BILLING_SUB</marker>
-        </test>
-        <test id="T-033">
-          <name>test_yookassa_payment_creation</name>
-          <description>Create payment in YooKassa sandbox</description>
-          <marker>BILLING_PAYMENT</marker>
-        </test>
-        <test id="T-034">
-          <name>test_yookassa_webhook</name>
-          <description>Process YooKassa webhook</description>
-          <marker>BILLING_PAYMENT</marker>
-        </test>
-        <test id="T-035">
-          <name>test_trial_subscription</name>
-          <description>Create trial subscription for new user</description>
-          <marker>BILLING_SUB</marker>
-        </test>
-      </tests>
-    </suite>
+  <change-matrix>
+    <routing-policy-change>
+      <required>Run or design targeted tests for V-M-013 through V-M-017.</required>
+      <required>Review affected critical flow from CF-003 to CF-005.</required>
+      <required>Confirm stable decision reason logs remain present.</required>
+    </routing-policy-change>
+    <vpn-or-routing-runtime-change>
+      <required>High-scrutiny static review of host-level tools, assumptions and rollback path.</required>
+      <required>Explain exactly which host-bound command could or could not be executed.</required>
+    </vpn-or-routing-runtime-change>
+    <admin-surface-change>
+      <required>Verify admin auth, endpoint behavior and admin frontend compatibility.</required>
+    </admin-surface-change>
+  </change-matrix>
 
-    <!-- Integration Tests -->
-    <suite id="TS-010" type="integration">
-      <name>integration-tests</name>
-      <path>backend/tests/integration</path>
-      <tests>
-        <test id="T-100">
-          <name>test_registration_flow</name>
-          <description>Complete user registration flow</description>
-          <flow-ref>F-001</flow-ref>
-          <marker>INTEGRATION</marker>
-        </test>
-        <test id="T-101">
-          <name>test_payment_flow</name>
-          <description>Complete payment flow with mock</description>
-          <flow-ref>F-002</flow-ref>
-          <marker>INTEGRATION</marker>
-        </test>
-        <test id="T-102">
-          <name>test_vpn_provisioning</name>
-          <description>VPN config created on subscription</description>
-          <marker>INTEGRATION</marker>
-        </test>
-        <test id="T-103">
-          <name>test_subscription_expiry_disables_vpn</name>
-          <description>VPN access disabled when subscription expires</description>
-          <marker>INTEGRATION</marker>
-          <critical>true</critical>
-        </test>
-      </tests>
-    </suite>
+  <telemetry-requirements>
+    <format>
+      Important routing logs should use stable machine-readable markers in the form
+      [Routing][resolver][MARKER] or equivalent structured fields.
+    </format>
+    <redaction>
+      Do not log secrets, private keys, raw tokens, payment credentials or full sensitive payloads.
+    </redaction>
+    <required-fields>
+      decision_reason rule_id domain normalized_domain resolved_ip route_target source ttl_seconds sync_mode
+    </required-fields>
+    <ordering>
+      For trace assertions, event order matters more than prose wording. Prefer stable markers and fields over free text.
+    </ordering>
+  </telemetry-requirements>
 
-    <!-- API Tests -->
-    <suite id="TS-011" type="api">
-      <name>api-tests</name>
-      <path>backend/tests/api</path>
-      <tests>
-        <test id="T-200">
-          <name>test_api_health</name>
-          <endpoint>GET /health</endpoint>
-          <expected>200 OK</expected>
-        </test>
-        <test id="T-201">
-          <name>test_api_register</name>
-          <endpoint>POST /api/auth/register</endpoint>
-          <expected>201 Created</expected>
-        </test>
-        <test id="T-202">
-          <name>test_api_login</name>
-          <endpoint>POST /api/auth/login</endpoint>
-          <expected>200 OK with token</expected>
-        </test>
-        <test id="T-203">
-          <name>test_api_protected_without_token</name>
-          <endpoint>GET /api/users/me</endpoint>
-          <headers>none</headers>
-          <expected>401 Unauthorized</expected>
-        </test>
-        <test id="T-204">
-          <name>test_api_protected_with_token</name>
-          <endpoint>GET /api/users/me</endpoint>
-          <headers>Authorization: Bearer {token}</headers>
-          <expected>200 OK</expected>
-        </test>
-        <test id="T-205">
-          <name>test_api_rate_limiting</name>
-          <endpoint>POST /api/auth/login</endpoint>
-          <description>Request same endpoint 10 times rapidly</description>
-          <expected>429 Too Many Requests after limit</expected>
-        </test>
-      </tests>
-    </suite>
+  <verification-levels>
+    <module-level>
+      Resolver precedence tests, domain normalization tests, admin auth checks and narrow runtime sync tests.
+    </module-level>
+    <wave-level>
+      Merged checks across routing, vpn and admin surfaces for domain policy mutation and decision explainability.
+    </wave-level>
+    <phase-level>
+      Full routing migration confidence gate including rollback reasoning, host-tool assumptions and deploy impact review.
+    </phase-level>
+  </verification-levels>
 
-    <!-- Frontend Tests -->
-    <suite id="TS-020" type="e2e">
-      <name>e2e-tests</name>
-      <path>frontend/e2e</path>
-      <tests>
-        <test id="T-300">
-          <name>test_user_can_register</name>
-          <description>User registers and sees dashboard</description>
-          <flow-ref>F-001</flow-ref>
-        </test>
-        <test id="T-301">
-          <name>test_user_can_login</name>
-          <description>User logs in and sees dashboard</description>
-        </test>
-        <test id="T-302">
-          <name>test_user_can_download_config</name>
-          <description>User downloads VPN config file</description>
-        </test>
-        <test id="T-303">
-          <name>test_user_can_scan_qr</name>
-          <description>QR code is displayed and valid</description>
-        </test>
-        <test id="T-304">
-          <name>test_user_can_view_plans</name>
-          <description>Plans page shows available options</description>
-        </test>
-        <test id="T-305">
-          <name>test_i18n_switching</name>
-          <description>Language can be switched RU/EN</description>
-        </test>
-      </tests>
-    </suite>
-  </test-suites>
+  <phase-gates>
+    <Phase-1-Gate>
+      <required>Resolver precedence tests defined and passing or explicitly blocked with reason.</required>
+      <required>Backward-compatible fallback to current RU baseline preserved.</required>
+    </Phase-1-Gate>
+    <Phase-2-Gate>
+      <required>DNS TTL handling and runtime sync safety scenarios covered.</required>
+      <required>No silent rule leakage between dynamic domain bindings and static CIDR sets.</required>
+    </Phase-2-Gate>
+    <Phase-3-Gate>
+      <required>Admin observability endpoints and UI surfaces reviewed for auth and data correctness.</required>
+    </Phase-3-Gate>
+    <Phase-4-Gate>
+      <required>Production rollout review includes rollback, host-tool compatibility and secrets-safe deploy impact.</required>
+    </Phase-4-Gate>
+  </phase-gates>
 
-  <log-markers>
-    <marker id="LM-001">
-      <pattern>\[AUTH\]</pattern>
-      <description>Authentication events</description>
-      <level>INFO</level>
-    </marker>
-    <marker id="LM-002">
-      <pattern>\[PAYMENT\]</pattern>
-      <description>Payment processing events</description>
-      <level>INFO</level>
-    </marker>
-    <marker id="LM-003">
-      <pattern>\[VPN\]</pattern>
-      <description>VPN configuration events</description>
-      <level>INFO</level>
-    </marker>
-    <marker id="LM-004">
-      <pattern>\[SUBSCRIPTION\]</pattern>
-      <description>Subscription lifecycle events</description>
-      <level>INFO</level>
-    </marker>
-    <marker id="LM-005">
-      <pattern>\[ERROR\]</pattern>
-      <description>Error events</description>
-      <level>ERROR</level>
-    </marker>
-  </log-markers>
+  <agent-reporting>
+    <rule>Always list which commands were actually executed and which were only planned.</rule>
+    <rule>When tests are still planned but not implemented, say that explicitly instead of implying coverage exists.</rule>
+    <rule>Every routing-critical report must name the decision reason branch that was affected.</rule>
+  </agent-reporting>
 
-  <verification-gates>
-    <gate id="VG-001" phase="P-1">
-      <name>Foundation Gate</name>
-      <criteria>
-        All core unit tests pass
-        Database migrations work
-        JWT authentication functional
-      </criteria>
-      <blocking>true</blocking>
-    </gate>
-    <gate id="VG-002" phase="P-2">
-      <name>VPN Core Gate</name>
-      <criteria>
-        AmneziaWG integration tests pass
-        Config generation verified
-        Split-tunneling functional
-      </criteria>
-      <blocking>true</blocking>
-    </gate>
-    <gate id="VG-003" phase="P-3">
-      <name>Billing Gate</name>
-      <criteria>
-        YooKassa sandbox payments work
-        Webhooks processed correctly
-        Subscription lifecycle verified
-      </criteria>
-      <blocking>true</blocking>
-    </gate>
-    <gate id="VG-004" phase="P-4">
-      <name>Frontend Gate</name>
-      <criteria>
-        Build succeeds
-        PWA installs correctly
-        Critical E2E tests pass
-      </criteria>
-      <blocking>true</blocking>
-    </gate>
-    <gate id="VG-005" phase="release">
-      <name>Release Gate</name>
-      <criteria>
-        All test suites pass
-        Coverage >= 80%
-        No critical bugs
-        Documentation complete
-      </criteria>
-      <blocking>true</blocking>
-    </gate>
-  </verification-gates>
+  <failure-triage-packet>
+    <field>contract_or_scenario</field>
+    <field>expected_evidence</field>
+    <field>observed_evidence</field>
+    <field>first_divergent_module</field>
+    <field>first_divergent_marker</field>
+    <field>suggested_next_action</field>
+  </failure-triage-packet>
 </verification-plan>

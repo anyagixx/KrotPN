@@ -1,564 +1,240 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!--
-  GRACE Development Plan
-  Product: KrotVPN
-  Version: 1.0.0
--->
+<!-- GRACE-lite Development Plan -->
 <development-plan>
   <meta>
     <project-name>KrotVPN</project-name>
-    <version>1.0.0</version>
-    <created>2026-03-20</created>
-    <methodology>GRACE - Contract-driven development</methodology>
+    <version>2.5.0</version>
+    <updated>2026-03-24</updated>
+    <current-phase>Flexible domain-aware routing planning approved</current-phase>
   </meta>
 
-  <!-- ==================== MODULES ==================== -->
-  <modules>
-    <!-- Backend Core -->
-    <module id="M-001" name="backend-core" priority="critical">
-      <description>Core backend infrastructure</description>
-      <path>backend/app/core</path>
-      <components>
-        config.py - Application configuration
-        security.py - Authentication & authorization
-        database.py - Database connection & sessions
-        dependencies.py - FastAPI dependencies
-      </components>
-      <contracts>
-        <contract type="provides">
-          Database session management
-          JWT token generation/validation
-          Password hashing
-          Configuration loading
-        </contract>
-        <contract type="requires">
-          Environment variables
-          PostgreSQL connection
-          Redis connection
-        </contract>
-      </contracts>
-    </module>
+  <status-summary>
+    <done>
+      Backend, user frontend, admin frontend, bot and deploy surface already exist as an MVP.
+      VPN topology has moved toward VPNNode/VPNRoute but routing policy is still mostly IP-based.
+    </done>
+    <in-progress>
+      Synchronizing GRACE shared artifacts with the real codebase.
+      Designing a policy-driven routing layer that can classify traffic by domain and IP.
+    </in-progress>
+    <blocked-or-weak>
+      Existing split-tunneling logic is too rigid for domain-level routing.
+      Verification is still weaker than required for autonomous changes in routing-critical code.
+    </blocked-or-weak>
+  </status-summary>
 
-    <!-- User Management -->
-    <module id="M-002" name="users" priority="critical">
-      <description>User registration, authentication, profile</description>
-      <path>backend/app/users</path>
-      <components>
-        models.py - User, UserProfile models
-        schemas.py - Pydantic schemas
-        service.py - Business logic
-        router.py - API endpoints
-      </components>
-      <contracts>
-        <contract type="provides">
-          User CRUD operations
-          Email/Telegram registration
-          JWT authentication
-          Profile management
-        </contract>
-        <contract type="requires">
-          M-001 (backend-core)
-          Email service
-        </contract>
-      </contracts>
-    </module>
+  <active-workstreams>
+    <WS-001 priority="critical" status="active">
+      <name>AI Handoff and Documentation Accuracy</name>
+      <goal>Keep GRACE artifacts aligned with the implemented system and planned migration path.</goal>
+    </WS-001>
+    <WS-002 priority="critical" status="active">
+      <name>Security and Deployment Hardening</name>
+      <goal>Reduce operational risk in secrets handling, admin access and deployment defaults.</goal>
+    </WS-002>
+    <WS-003 priority="critical" status="active">
+      <name>VPN Topology and Provisioning Stability</name>
+      <goal>Finish stabilizing VPNNode/VPNRoute-based provisioning and analytics invariants.</goal>
+    </WS-003>
+    <WS-004 priority="high" status="active">
+      <name>Flexible Routing Policy Migration</name>
+      <goal>
+        Introduce a routing decision engine that supports exact-domain, wildcard-domain, DNS-bound IP
+        and CIDR-based classification without breaking the current RU-vs-non-RU baseline.
+      </goal>
+    </WS-004>
+    <WS-005 priority="high" status="planned">
+      <name>Verification and Testability</name>
+      <goal>Raise routing, VPN and admin verification to a level safe for autonomous execution.</goal>
+    </WS-005>
+  </active-workstreams>
 
-    <!-- VPN Management -->
-    <module id="M-003" name="vpn" priority="critical">
-      <description>AmneziaWG VPN configuration and management</description>
-      <path>backend/app/vpn</path>
-      <components>
-        models.py - VPNServer, VPNClient, VPNConfig models
-        schemas.py - Pydantic schemas
-        amneziawg.py - AmneziaWG integration (from legacy)
-        service.py - VPN business logic
-        router.py - API endpoints
-      </components>
-      <contracts>
-        <contract type="provides">
-          VPN config generation
-          Key pair generation
-          Peer management
-          QR code generation
-          Traffic statistics
-        </contract>
-        <contract type="requires">
-          M-001 (backend-core)
-          M-002 (users)
-          AmneziaWG system package
-        </contract>
-      </contracts>
-      <notes>
-        Legacy code from krot-prod-main/backend/amneziawg.py
-        MUST preserve AmneziaWG protocol parameters
-      </notes>
-    </module>
+  <module-catalog>
+    <M-001 name="backend-core" type="UTILITY" priority="critical" verification-ref="V-M-001">
+      <purpose>Configuration, security, DB lifecycle and bootstrap primitives.</purpose>
+      <target-paths>backend/app/core</target-paths>
+      <depends>none</depends>
+    </M-001>
+    <M-002 name="users" type="CORE_LOGIC" priority="critical" verification-ref="V-M-002">
+      <purpose>User auth, profile and Telegram-linked identity flows.</purpose>
+      <target-paths>backend/app/users</target-paths>
+      <depends>M-001</depends>
+    </M-002>
+    <M-003 name="vpn" type="CORE_LOGIC" priority="critical" verification-ref="V-M-003">
+      <purpose>VPN provisioning, config generation and topology-aware client assignment.</purpose>
+      <target-paths>backend/app/vpn</target-paths>
+      <depends>M-001 M-002 M-007</depends>
+    </M-003>
+    <M-004 name="billing" type="CORE_LOGIC" priority="critical" verification-ref="V-M-004">
+      <purpose>Plans, subscriptions, payments and webhook processing.</purpose>
+      <target-paths>backend/app/billing</target-paths>
+      <depends>M-001</depends>
+    </M-004>
+    <M-005 name="referrals" type="CORE_LOGIC" priority="high" verification-ref="V-M-005">
+      <purpose>Referral codes, links and bonus accounting.</purpose>
+      <target-paths>backend/app/referrals</target-paths>
+      <depends>M-001</depends>
+    </M-005>
+    <M-006 name="admin-api" type="ENTRY_POINT" priority="high" verification-ref="V-M-006">
+      <purpose>Privileged analytics and operational control endpoints.</purpose>
+      <target-paths>backend/app/admin</target-paths>
+      <depends>M-001 M-002 M-003 M-004 M-005 M-007</depends>
+    </M-006>
+    <M-007 name="routing" type="INTEGRATION" priority="critical" verification-ref="V-M-007">
+      <purpose>Host-level split-tunneling, ipset/iptables coordination and routing health inspection.</purpose>
+      <target-paths>backend/app/routing</target-paths>
+      <depends>M-001</depends>
+    </M-007>
+    <M-008 name="tasks" type="UTILITY" priority="medium" verification-ref="V-M-008">
+      <purpose>Background scheduling and recurring maintenance jobs.</purpose>
+      <target-paths>backend/app/tasks</target-paths>
+      <depends>M-001</depends>
+    </M-008>
+    <M-009 name="frontend-user" type="UI_COMPONENT" priority="high" verification-ref="V-M-009">
+      <purpose>Main user UI for auth, config delivery, subscription and referrals.</purpose>
+      <target-paths>frontend</target-paths>
+      <depends>M-002 M-003 M-004 M-005</depends>
+    </M-009>
+    <M-010 name="frontend-admin" type="UI_COMPONENT" priority="high" verification-ref="V-M-010">
+      <purpose>Admin UI for analytics, plans, users, servers and routing surfaces.</purpose>
+      <target-paths>frontend-admin</target-paths>
+      <depends>M-006</depends>
+    </M-010>
+    <M-011 name="telegram-bot" type="ENTRY_POINT" priority="medium" verification-ref="V-M-011">
+      <purpose>Telegram bot orchestration over backend HTTP APIs.</purpose>
+      <target-paths>telegram-bot</target-paths>
+      <depends>M-002 M-003 M-004</depends>
+    </M-011>
+    <M-012 name="deploy-surface" type="ENTRY_POINT" priority="critical" verification-ref="V-M-012">
+      <purpose>Install, deploy, nginx and compose surfaces that shape production behavior.</purpose>
+      <target-paths>deploy install.sh nginx docker-compose.yml</target-paths>
+      <depends>M-003 M-007</depends>
+    </M-012>
+    <M-013 name="route-policy-resolver" type="CORE_LOGIC" priority="critical" verification-ref="V-M-013">
+      <purpose>
+        Decide routing target using explicit domain rules, DNS-bound addresses, explicit CIDR rules and fallback policy.
+      </purpose>
+      <target-paths>backend/app/routing/policy.py</target-paths>
+      <depends>M-001 M-007</depends>
+    </M-013>
+    <M-014 name="domain-rule-store" type="DATA_LAYER" priority="critical" verification-ref="V-M-014">
+      <purpose>Persist exact, wildcard and priority-ordered routing rules for domains and CIDRs.</purpose>
+      <target-paths>backend/app/routing/domain_rules.py backend/app/routing/models.py</target-paths>
+      <depends>M-001</depends>
+    </M-014>
+    <M-015 name="dns-observer" type="INTEGRATION" priority="high" verification-ref="V-M-015">
+      <purpose>Track domain-to-IP bindings from DNS resolution and maintain TTL-aware policy cache updates.</purpose>
+      <target-paths>backend/app/routing/dns_resolver.py</target-paths>
+      <depends>M-001 M-013 M-014</depends>
+    </M-015>
+    <M-016 name="route-decision-api" type="ENTRY_POINT" priority="high" verification-ref="V-M-016">
+      <purpose>Expose admin controls and inspection endpoints for routing policy rules and effective decisions.</purpose>
+      <target-paths>backend/app/routing/router.py backend/app/admin/router.py frontend-admin</target-paths>
+      <depends>M-006 M-007 M-013 M-014 M-015</depends>
+    </M-016>
+    <M-017 name="route-sync-runtime" type="INTEGRATION" priority="critical" verification-ref="V-M-017">
+      <purpose>Translate resolved policy decisions into host-level routing sets and incremental refresh actions.</purpose>
+      <target-paths>backend/app/routing/manager.py</target-paths>
+      <depends>M-007 M-013 M-014 M-015</depends>
+    </M-017>
+  </module-catalog>
 
-    <!-- Subscription & Billing -->
-    <module id="M-004" name="billing" priority="critical">
-      <description>Subscriptions, plans, payments</description>
-      <path>backend/app/billing</path>
-      <components>
-        models.py - Plan, Subscription, Payment models
-        schemas.py - Pydantic schemas
-        yookassa.py - YooKassa integration
-        tinkoff.py - Tinkoff integration
-        service.py - Billing business logic
-        router.py - API endpoints
-        webhooks.py - Payment webhooks handler
-      </components>
-      <contracts>
-        <contract type="provides">
-          Plan management
-          Subscription lifecycle
-          Payment processing
-          Recurring billing
-          Payment history
-        </contract>
-        <contract type="requires">
-          M-001 (backend-core)
-          M-002 (users)
-          M-003 (vpn)
-          YooKassa API credentials
-          Tinkoff API credentials
-        </contract>
-      </contracts>
-    </module>
+  <data-flows>
+    <DF-001>
+      <name>Domain-first routing decision</name>
+      <path>M-016 -> M-013 -> M-014 -> M-017</path>
+      <summary>
+        Admin-defined domain policy is evaluated first. Exact and wildcard domain rules override generic RU IP heuristics.
+      </summary>
+    </DF-001>
+    <DF-002>
+      <name>DNS binding to runtime route set</name>
+      <path>M-015 -> M-013 -> M-017</path>
+      <summary>
+        DNS-derived IPs for a matched domain are cached and synchronized into the runtime route set with TTL awareness.
+      </summary>
+    </DF-002>
+    <DF-003>
+      <name>Fallback CIDR classification</name>
+      <path>M-013 -> M-014 -> M-017</path>
+      <summary>
+        If no domain policy applies, explicit CIDR rules and the RU baseline determine whether traffic stays local or exits via DE.
+      </summary>
+    </DF-003>
+    <DF-004>
+      <name>Provisioning and config consistency</name>
+      <path>M-003 -> M-013 -> M-017</path>
+      <summary>
+        VPN provisioning and routing runtime share the same decision policy so client expectations match traffic behavior.
+      </summary>
+    </DF-004>
+    <DF-005>
+      <name>Admin observability of policy decisions</name>
+      <path>M-006 -> M-016 -> M-013</path>
+      <summary>
+        Operators can inspect why a domain or IP was routed to RU, DE, DIRECT or DEFAULT.
+      </summary>
+    </DF-005>
+  </data-flows>
 
-    <!-- Referral System -->
-    <module id="M-005" name="referrals" priority="medium">
-      <description>Referral program management</description>
-      <path>backend/app/referrals</path>
-      <components>
-        models.py - ReferralCode, Referral models
-        schemas.py - Pydantic schemas
-        service.py - Referral logic
-        router.py - API endpoints
-      </components>
-      <contracts>
-        <contract type="provides">
-          Referral code generation
-          Referral tracking
-          Bonus calculation
-          Reward distribution
-        </contract>
-        <contract type="requires">
-          M-001 (backend-core)
-          M-002 (users)
-          M-004 (billing)
-        </contract>
-      </contracts>
-    </module>
+  <implementation-order>
+    <Phase-1 status="done">
+      <name>Policy model and safe compatibility layer</name>
+      <step-1>Create M-014 rule entities and schemas for exact-domain, wildcard-domain and CIDR rules.</step-1>
+      <step-2>Create M-013 resolver with deterministic precedence: domain exact, domain wildcard, DNS-bound IP, explicit CIDR, RU baseline, default.</step-2>
+      <step-3>Keep current RU-vs-non-RU behavior as fallback so rollout remains backward compatible.</step-3>
+    </Phase-1>
+    <Phase-2 status="planned">
+      <name>Runtime synchronization and DNS binding</name>
+      <step-1>Extend M-017 runtime sync so policy changes become incremental host-level updates instead of full resets where possible.</step-1>
+      <step-2>Add M-015 DNS observer and bounded cache with TTL-driven expiry and refresh.</step-2>
+      <step-3>Introduce decision logging anchors for every policy branch.</step-3>
+    </Phase-2>
+    <Phase-3 status="planned">
+      <name>Admin control plane and operator visibility</name>
+      <step-1>Extend M-016 with CRUD for domain rules and read-only decision inspection endpoints.</step-1>
+      <step-2>Expose policy and resolution state in the admin frontend without changing the user-facing product flow yet.</step-2>
+      <step-3>Add migration-safe analytics so legacy VPNServer-based views do not silently misrepresent routing state.</step-3>
+    </Phase-3>
+    <Phase-4 status="planned">
+      <name>Hardening and rollout gates</name>
+      <step-1>Run routing-focused verification on exact-domain, wildcard-domain, TTL expiry and fallback branches.</step-1>
+      <step-2>Gate production rollout on host-level safety review for ipset or nftables updates.</step-2>
+      <step-3>Only after evidence is stable, make domain-aware policy the preferred routing control surface.</step-3>
+    </Phase-4>
+  </implementation-order>
 
-    <!-- Admin Panel -->
-    <module id="M-006" name="admin" priority="high">
-      <description>Admin dashboard and management</description>
-      <path>backend/app/admin</path>
-      <components>
-        router.py - Admin API endpoints
-        analytics.py - Business metrics
-        server_management.py - VPN server management
-      </components>
-      <contracts>
-        <contract type="provides">
-          User management (admin view)
-          Analytics dashboard data
-          Server management
-          System configuration
-        </contract>
-        <contract type="requires">
-          M-001 (backend-core)
-          M-002 (users)
-          M-003 (vpn)
-          M-004 (billing)
-        </contract>
-      </contracts>
-    </module>
+  <observability-notes>
+    <item>Every route decision must include a stable reason code: domain_exact, domain_wildcard, dns_bound_ip, cidr_rule, ru_baseline, default.</item>
+    <item>DNS binding refresh must emit stable logs for add, refresh, expire and conflict branches.</item>
+    <item>Runtime sync must expose whether a rule was applied incrementally, skipped, or required a full refresh.</item>
+  </observability-notes>
 
-    <!-- Routing & Split Tunneling -->
-    <module id="M-007" name="routing" priority="high">
-      <description>Split-tunneling and routing management</description>
-      <path>backend/app/routing</path>
-      <components>
-        models.py - CustomRoute model
-        routing_manager.py - iptables/ipset management (from legacy)
-        service.py - Routing logic
-        router.py - API endpoints
-      </components>
-      <contracts>
-        <contract type="provides">
-          RU IPset updates
-          Custom route management
-          Split-tunneling configuration
-          Routing statistics
-        </contract>
-        <contract type="requires">
-          M-001 (backend-core)
-          iptables/ipset system tools
-        </contract>
-      </contracts>
-      <notes>
-        Legacy code from krot-prod-main/backend/routing.py
-      </notes>
-    </module>
+  <mental-walkthroughs>
+    <scenario id="MW-001">
+      <name>Known Russian domain</name>
+      <summary>
+        Client requests a domain matched by an exact or wildcard RU rule. Resolver returns RU without depending on the current resolved IP.
+      </summary>
+    </scenario>
+    <scenario id="MW-002">
+      <name>Known foreign domain behind changing CDN IPs</name>
+      <summary>
+        Domain rule sends traffic to DE. DNS observer keeps the changing IP set aligned so CDN drift does not collapse policy correctness.
+      </summary>
+    </scenario>
+    <scenario id="MW-003">
+      <name>Unknown domain with no explicit rule</name>
+      <summary>
+        Resolver falls back to explicit CIDR policy and finally the existing RU baseline, preserving current behavior until policy coverage grows.
+      </summary>
+    </scenario>
+  </mental-walkthroughs>
 
-    <!-- Telegram Bot -->
-    <module id="M-008" name="telegram-bot" priority="medium">
-      <description>Telegram bot for notifications and management</description>
-      <path>telegram-bot</path>
-      <components>
-        bot.py - Main bot application
-        handlers.py - Command handlers
-        keyboards.py - Inline keyboards
-        notifications.py - User notifications
-      </components>
-      <contracts>
-        <contract type="provides">
-          Telegram OAuth login
-          Subscription notifications
-          Basic account management
-          Support chat
-        </contract>
-        <contract type="requires">
-          Backend API (HTTP client)
-          Telegram Bot Token
-        </contract>
-      </contracts>
-    </module>
-
-    <!-- Frontend User Dashboard -->
-    <module id="M-009" name="frontend-user" priority="critical">
-      <description>User dashboard React application</description>
-      <path>frontend</path>
-      <components>
-        src/pages/Dashboard - Main user dashboard
-        src/pages/Auth - Login/Register pages
-        src/pages/Subscription - Subscription management
-        src/pages/Config - VPN config download
-        src/pages/Referrals - Referral program
-        src/components - Reusable UI components
-        src/hooks - Custom React hooks
-        src/stores - Zustand stores
-        src/i18n - Internationalization
-      </components>
-      <contracts>
-        <contract type="provides">
-          User authentication UI
-          Subscription purchase flow
-          VPN config download
-          Usage statistics display
-          PWA installation
-        </contract>
-        <contract type="requires">
-          Backend API
-        </contract>
-      </contracts>
-    </module>
-
-    <!-- Frontend Admin Panel -->
-    <module id="M-010" name="frontend-admin" priority="high">
-      <description>Admin panel React application</description>
-      <path>frontend-admin</path>
-      <components>
-        src/pages/Dashboard - Admin dashboard
-        src/pages/Users - User management
-        src/pages/Servers - Server management
-        src/pages/Plans - Plan management
-        src/pages/Analytics - Business analytics
-        src/pages/Settings - System settings
-      </components>
-      <contracts>
-        <contract type="provides">
-          Admin dashboard UI
-          User management UI
-          Analytics visualization
-          System configuration UI
-        </contract>
-        <contract type="requires">
-          Backend Admin API
-        </contract>
-      </contracts>
-    </module>
-
-    <!-- Email Service -->
-    <module id="M-011" name="email" priority="medium">
-      <description>Email notifications service</description>
-      <path>backend/app/email</path>
-      <components>
-        service.py - Email sending logic
-        templates/ - Jinja2 email templates
-      </components>
-      <contracts>
-        <contract type="provides">
-          Welcome emails
-          Payment confirmations
-          Subscription expiry warnings
-          Password reset
-        </contract>
-        <contract type="requires">
-          SMTP credentials
-        </contract>
-      </contracts>
-    </module>
-
-    <!-- Background Tasks -->
-    <module id="M-012" name="tasks" priority="high">
-      <description>Background tasks and schedulers</description>
-      <path>backend/app/tasks</path>
-      <components>
-        scheduler.py - APScheduler setup
-        subscription_tasks.py - Subscription expiry checks
-        notification_tasks.py - Scheduled notifications
-        cleanup_tasks.py - Database cleanup
-      </components>
-      <contracts>
-        <contract type="provides">
-          Scheduled subscription checks
-          Automated notifications
-          Database maintenance
-        </contract>
-        <contract type="requires">
-          M-001 (backend-core)
-          M-004 (billing)
-          M-011 (email)
-        </contract>
-      </contracts>
-    </module>
-  </modules>
-
-  <!-- ==================== FLOWS ==================== -->
-  <flows>
-    <flow id="F-001" name="user-registration">
-      <description>User registration and trial activation</description>
-      <steps>
-        1. User submits email/password or Telegram auth
-        2. System creates user account
-        3. System generates VPN keypair
-        4. System creates trial subscription (3 days)
-        5. System creates VPN config
-        6. System sends welcome email
-        7. User redirected to dashboard with config
-      </steps>
-      <modules-involved>M-002, M-003, M-004, M-011</modules-involved>
-    </flow>
-
-    <flow id="F-002" name="subscription-purchase">
-      <description>Payment and subscription activation</description>
-      <steps>
-        1. User selects plan
-        2. System creates payment in YooKassa/Tinkoff
-        3. User redirected to payment page
-        4. Payment provider sends webhook
-        5. System validates payment
-        6. System activates/extends subscription
-        7. System sends confirmation email
-        8. System notifies via Telegram (if connected)
-      </steps>
-      <modules-involved>M-004, M-003, M-011, M-008</modules-involved>
-    </flow>
-
-    <flow id="F-003" name="vpn-connection">
-      <description>VPN client connection process</description>
-      <steps>
-        1. User downloads config or scans QR
-        2. User imports config to AmneziaWG client
-        3. Client initiates connection to RU server
-        4. RU server authenticates via public key
-        5. RU server routes non-RU traffic through DE tunnel
-        6. RU traffic goes directly
-        7. System logs traffic statistics
-      </steps>
-      <modules-involved>M-003, M-007</modules-involved>
-    </flow>
-
-    <flow id="F-004" name="referral-reward">
-      <description>Referral bonus distribution</description>
-      <steps>
-        1. User shares referral link
-        2. New user registers via link
-        3. System tracks referral
-        4. When referred user pays, referrer gets bonus
-        5. Bonus added as account balance or extra days
-      </steps>
-      <modules-involved>M-005, M-002, M-004</modules-involved>
-    </flow>
-  </flows>
-
-  <!-- ==================== PHASES ==================== -->
-  <phases>
-    <phase id="P-1" name="foundation" duration="1 week">
-      <description>Core infrastructure and authentication</description>
-      <modules>
-        M-001 (backend-core)
-        M-002 (users)
-      </modules>
-      <deliverables>
-        Project structure
-        Database models
-        Authentication system
-        Basic API skeleton
-      </deliverables>
-      <verification>
-        Unit tests for auth
-        API endpoint tests
-        Database migration tests
-      </verification>
-    </phase>
-
-    <phase id="P-2" name="vpn-core" duration="1 week">
-      <description>VPN management and AmneziaWG integration</description>
-      <modules>
-        M-003 (vpn)
-        M-007 (routing)
-      </modules>
-      <deliverables>
-        AmneziaWG integration (from legacy)
-        VPN config generation
-        Split-tunneling setup
-        QR code generation
-      </deliverables>
-      <verification>
-        Config generation tests
-        Peer management tests
-        Integration tests with AmneziaWG
-      </verification>
-    </phase>
-
-    <phase id="P-3" name="billing" duration="1 week">
-      <description>Payment integration and subscriptions</description>
-      <modules>
-        M-004 (billing)
-        M-012 (tasks) - subscription checks
-      </modules>
-      <deliverables>
-        Plan management
-        YooKassa integration
-        Tinkoff integration
-        Subscription lifecycle
-        Webhook handlers
-      </deliverables>
-      <verification>
-        Payment flow tests (sandbox)
-        Webhook handling tests
-        Subscription expiry tests
-      </verification>
-    </phase>
-
-    <phase id="P-4" name="frontend-user" duration="1.5 weeks">
-      <description>User-facing React application</description>
-      <modules>
-        M-009 (frontend-user)
-      </modules>
-      <deliverables>
-        User authentication pages
-        Dashboard with stats
-        Subscription purchase flow
-        Config download page
-        PWA manifest and service worker
-        i18n (RU/EN)
-      </deliverables>
-      <verification>
-        Component tests
-        E2E tests for critical flows
-        PWA installation tests
-      </verification>
-    </phase>
-
-    <phase id="P-5" name="admin-and-extras" duration="1 week">
-      <description>Admin panel and additional features</description>
-      <modules>
-        M-006 (admin)
-        M-005 (referrals)
-        M-010 (frontend-admin)
-        M-011 (email)
-      </modules>
-      <deliverables>
-        Admin dashboard
-        User management
-        Analytics
-        Referral system
-        Email notifications
-      </deliverables>
-      <verification>
-        Admin API tests
-        Referral flow tests
-        Email delivery tests
-      </verification>
-    </phase>
-
-    <phase id="P-6" name="telegram-and-polish" duration="0.5 weeks">
-      <description>Telegram bot and final polish</description>
-      <modules>
-        M-008 (telegram-bot)
-      </modules>
-      <deliverables>
-        Telegram bot
-        Telegram OAuth
-        Notification integration
-        Documentation
-        Deployment scripts
-      </deliverables>
-      <verification>
-        Bot command tests
-        OAuth flow tests
-        End-to-end integration tests
-      </verification>
-    </phase>
-  </phases>
-
-  <!-- ==================== EXECUTION PLAN ==================== -->
-  <execution>
-    <strategy>sequential-with-parallel-waves</strategy>
-    <description>
-      Execute phases sequentially. Within each phase,
-      independent modules can be developed in parallel.
-    </description>
-
-    <wave id="W-1" phase="P-1">
-      <modules>M-001</modules>
-      <parallel>false</parallel>
-    </wave>
-
-    <wave id="W-2" phase="P-1">
-      <modules>M-002</modules>
-      <depends-on>W-1</depends-on>
-    </wave>
-
-    <wave id="W-3" phase="P-2">
-      <modules>M-003, M-007</modules>
-      <parallel>true</parallel>
-      <depends-on>W-2</depends-on>
-    </wave>
-
-    <wave id="W-4" phase="P-3">
-      <modules>M-004</modules>
-      <depends-on>W-3</depends-on>
-    </wave>
-
-    <wave id="W-5" phase="P-3">
-      <modules>M-012</modules>
-      <depends-on>W-4</depends-on>
-    </wave>
-
-    <wave id="W-6" phase="P-4">
-      <modules>M-009</modules>
-      <depends-on>W-5</depends-on>
-    </wave>
-
-    <wave id="W-7" phase="P-5">
-      <modules>M-005, M-006, M-011</modules>
-      <parallel>true</parallel>
-      <depends-on>W-6</depends-on>
-    </wave>
-
-    <wave id="W-8" phase="P-5">
-      <modules>M-010</modules>
-      <depends-on>W-7</depends-on>
-    </wave>
-
-    <wave id="W-9" phase="P-6">
-      <modules>M-008</modules>
-      <depends-on>W-8</depends-on>
-    </wave>
-  </execution>
+  <risks>
+    <item>Domain-aware routing is incomplete if DNS bindings are not captured before traffic reaches only-IP enforcement points.</item>
+    <item>CDN and shared-IP domains can cause false sharing unless rule priority and conflict handling are explicit.</item>
+    <item>Host-level rule churn can degrade stability if runtime sync is not incremental and bounded.</item>
+    <item>Admin analytics can drift from real routing behavior if legacy VPNServer assumptions remain unadjusted.</item>
+  </risks>
 </development-plan>

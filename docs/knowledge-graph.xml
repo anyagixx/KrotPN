@@ -1,325 +1,175 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!--
-  GRACE Knowledge Graph
-  Product: KrotVPN
-  Version: 1.0.0
--->
+<!-- GRACE-lite Knowledge Graph -->
 <knowledge-graph>
   <meta>
     <project-name>KrotVPN</project-name>
-    <version>1.0.0</version>
-    <created>2026-03-20</created>
+    <version>2.5.0</version>
+    <updated>2026-03-24</updated>
+    <purpose>Fast AI onboarding and navigation for the current system plus the approved routing-policy migration.</purpose>
   </meta>
 
-  <nodes>
-    <!-- Backend Modules -->
-    <node id="N-001" type="module">
-      <name>backend-core</name>
+  <entry-points>
+    <EP-001 path="backend/app/main.py">FastAPI runtime bootstrap and router assembly</EP-001>
+    <EP-002 path="frontend/src/main.tsx">User frontend bootstrap</EP-002>
+    <EP-003 path="frontend-admin/src/main.tsx">Admin frontend bootstrap</EP-003>
+    <EP-004 path="telegram-bot/bot.py">Telegram bot process entry</EP-004>
+    <EP-005 path="docker-compose.yml">Runtime composition of services</EP-005>
+    <EP-006 path="install.sh">Interactive installation flow</EP-006>
+    <EP-007 path="backend/app/cli.py">Operational CLI for admin and config checks</EP-007>
+  </entry-points>
+
+  <modules>
+    <M-001 NAME="backend-core" TYPE="UTILITY" verification-ref="V-M-001">
       <path>backend/app/core</path>
-      <description>Core infrastructure and configuration</description>
-      <tags>infrastructure, authentication, database</tags>
-    </node>
-
-    <node id="N-002" type="module">
-      <name>users</name>
+      <owns>settings, security, DB sessions, dependency injection, admin bootstrap, topology bootstrap</owns>
+      <exports>
+        <fn-settings>Runtime configuration values and environment parsing</fn-settings>
+        <fn-init-db>Database initialization and session lifecycle</fn-init-db>
+      </exports>
+    </M-001>
+    <M-002 NAME="users" TYPE="CORE_LOGIC" verification-ref="V-M-002">
       <path>backend/app/users</path>
-      <description>User management and authentication</description>
-      <tags>users, auth, registration</tags>
-    </node>
-
-    <node id="N-003" type="module">
-      <name>vpn</name>
+      <owns>email auth, Telegram auth, profile and admin user operations</owns>
+    </M-002>
+    <M-003 NAME="vpn" TYPE="CORE_LOGIC" verification-ref="V-M-003">
       <path>backend/app/vpn</path>
-      <description>AmneziaWG VPN management</description>
-      <tags>vpn, amneziawg, config, keys</tags>
-      <legacy-source>krot-prod-main/backend/amneziawg.py</legacy-source>
-    </node>
-
-    <node id="N-004" type="module">
-      <name>billing</name>
+      <owns>vpn clients, config generation, QR, topology-aware provisioning and legacy VPNServer compatibility</owns>
+      <exports>
+        <type-VPNNode>Physical entry or exit VPN node</type-VPNNode>
+        <type-VPNRoute>Logical path between entry and exit nodes</type-VPNRoute>
+        <type-VPNClient>User VPN provisioning record</type-VPNClient>
+      </exports>
+    </M-003>
+    <M-004 NAME="billing" TYPE="CORE_LOGIC" verification-ref="V-M-004">
       <path>backend/app/billing</path>
-      <description>Subscriptions and payments</description>
-      <tags>billing, payments, subscriptions, yookassa</tags>
-    </node>
-
-    <node id="N-005" type="module">
-      <name>referrals</name>
+      <owns>plans, subscriptions, payments and YooKassa integration</owns>
+    </M-004>
+    <M-005 NAME="referrals" TYPE="CORE_LOGIC" verification-ref="V-M-005">
       <path>backend/app/referrals</path>
-      <description>Referral program</description>
-      <tags>referrals, bonuses</tags>
-    </node>
-
-    <node id="N-006" type="module">
-      <name>admin</name>
+      <owns>referral codes, referral links and bonus accounting</owns>
+    </M-005>
+    <M-006 NAME="admin-api" TYPE="ENTRY_POINT" verification-ref="V-M-006">
       <path>backend/app/admin</path>
-      <description>Admin panel API</description>
-      <tags>admin, management, analytics</tags>
-    </node>
-
-    <node id="N-007" type="module">
-      <name>routing</name>
+      <owns>dashboard stats, analytics and privileged system endpoints</owns>
+    </M-006>
+    <M-007 NAME="routing" TYPE="INTEGRATION" verification-ref="V-M-007">
       <path>backend/app/routing</path>
-      <description>Split-tunneling and routing</description>
-      <tags>routing, iptables, ipset, split-tunneling</tags>
-      <legacy-source>krot-prod-main/backend/routing.py</legacy-source>
-    </node>
-
-    <node id="N-008" type="module">
-      <name>email</name>
-      <path>backend/app/email</path>
-      <description>Email notifications</description>
-      <tags>email, notifications</tags>
-    </node>
-
-    <node id="N-009" type="module">
-      <name>tasks</name>
+      <owns>split-tunneling, ipset coordination, tunnel health and custom route runtime</owns>
+      <exports>
+        <fn-routing-manager>Host-level routing orchestration</fn-routing-manager>
+        <type-CustomRoute>Persisted custom routing rule</type-CustomRoute>
+        <fn-resolve-effective-target>Compatibility route decision wrapper that preserves the RU baseline</fn-resolve-effective-target>
+      </exports>
+    </M-007>
+    <M-008 NAME="tasks" TYPE="UTILITY" verification-ref="V-M-008">
       <path>backend/app/tasks</path>
-      <description>Background tasks</description>
-      <tags>scheduler, background, cron</tags>
-    </node>
-
-    <!-- Frontend Modules -->
-    <node id="N-010" type="module">
-      <name>frontend-user</name>
+      <owns>scheduler and recurring maintenance jobs</owns>
+    </M-008>
+    <M-009 NAME="frontend-user" TYPE="UI_COMPONENT" verification-ref="V-M-009">
       <path>frontend</path>
-      <description>User dashboard React app</description>
-      <tags>react, pwa, user-interface</tags>
-    </node>
-
-    <node id="N-011" type="module">
-      <name>frontend-admin</name>
+      <owns>login, register, dashboard, config, subscription, referrals and settings UI</owns>
+    </M-009>
+    <M-010 NAME="frontend-admin" TYPE="UI_COMPONENT" verification-ref="V-M-010">
       <path>frontend-admin</path>
-      <description>Admin panel React app</description>
-      <tags>react, admin-interface</tags>
-    </node>
-
-    <!-- Telegram Bot -->
-    <node id="N-012" type="module">
-      <name>telegram-bot</name>
+      <owns>admin login, dashboard, users, servers, plans, analytics, settings and future route-policy UI</owns>
+    </M-010>
+    <M-011 NAME="telegram-bot" TYPE="ENTRY_POINT" verification-ref="V-M-011">
       <path>telegram-bot</path>
-      <description>Telegram bot</description>
-      <tags>telegram, bot, notifications</tags>
-    </node>
+      <owns>Telegram command handling and backend API orchestration</owns>
+    </M-011>
+    <M-012 NAME="deploy-surface" TYPE="ENTRY_POINT" verification-ref="V-M-012">
+      <path>deploy install.sh nginx docker-compose.yml</path>
+      <owns>installation, deploy scripts, runtime composition, proxying, cert generation</owns>
+    </M-012>
+    <M-013 NAME="route-policy-resolver" TYPE="CORE_LOGIC" verification-ref="V-M-013">
+      <path>backend/app/routing/policy.py</path>
+      <owns>deterministic routing decisions from domain, wildcard, DNS-bound IP, CIDR and fallback policy</owns>
+      <exports>
+        <fn-resolve-route-decision>Returns route target and decision reason for a domain or IP</fn-resolve-route-decision>
+      </exports>
+    </M-013>
+    <M-014 NAME="domain-rule-store" TYPE="DATA_LAYER" verification-ref="V-M-014">
+      <path>backend/app/routing/domain_rules.py backend/app/routing/models.py</path>
+      <owns>policy rule persistence, normalization, priority ordering and activation state</owns>
+      <exports>
+        <type-DomainRouteRule>Exact or wildcard domain rule</type-DomainRouteRule>
+        <type-CidrRouteRule>Explicit IP or CIDR rule</type-CidrRouteRule>
+      </exports>
+    </M-014>
+    <M-015 NAME="dns-observer" TYPE="INTEGRATION" verification-ref="V-M-015">
+      <path>backend/app/routing/dns_resolver.py</path>
+      <owns>DNS resolution binding, TTL-aware caching and policy refresh triggers</owns>
+      <exports>
+        <fn-refresh-domain-bindings>Refreshes domain-to-IP bindings under TTL constraints</fn-refresh-domain-bindings>
+      </exports>
+    </M-015>
+    <M-016 NAME="route-decision-api" TYPE="ENTRY_POINT" verification-ref="V-M-016">
+      <path>backend/app/routing/router.py backend/app/admin/router.py frontend-admin</path>
+      <owns>policy CRUD, decision inspection and operator-facing route observability</owns>
+    </M-016>
+    <M-017 NAME="route-sync-runtime" TYPE="INTEGRATION" verification-ref="V-M-017">
+      <path>backend/app/routing/manager.py</path>
+      <owns>incremental sync of policy decisions into host-level route sets and refresh actions</owns>
+      <exports>
+        <fn-apply-runtime-route-sync>Applies routing-set changes safely on the host</fn-apply-runtime-route-sync>
+      </exports>
+    </M-017>
+  </modules>
 
-    <!-- Database Entities -->
-    <node id="N-100" type="entity">
-      <name>User</name>
-      <path>backend/app/users/models.py</path>
-      <description>User account</description>
-      <fields>id, email, password_hash, telegram_id, role, created_at</fields>
-    </node>
+  <CrossLinks>
+    <link from="M-002" to="M-001">Users depend on config, auth and DB helpers.</link>
+    <link from="M-003" to="M-001">VPN depends on settings, crypto and DB lifecycle.</link>
+    <link from="M-003" to="M-002">VPN clients are keyed by user identity.</link>
+    <link from="M-003" to="M-007">VPN provisioning already depends on routing runtime for policy consistency.</link>
+    <link from="M-004" to="M-001">Billing uses core config and DB facilities.</link>
+    <link from="M-005" to="M-001">Referrals use core config and DB facilities.</link>
+    <link from="M-006" to="M-002">Admin endpoints query user state.</link>
+    <link from="M-006" to="M-003">Admin endpoints read VPN topology and client state.</link>
+    <link from="M-006" to="M-004">Admin endpoints read billing state.</link>
+    <link from="M-006" to="M-005">Admin endpoints read referral state.</link>
+    <link from="M-007" to="M-001">Routing uses core settings and DB/session surfaces.</link>
+    <link from="M-007" to="M-013">Routing manager now delegates effective route decisions to the policy resolver.</link>
+    <link from="M-007" to="M-014">Routing manager translates legacy custom routes into domain and CIDR policy rules.</link>
+    <link from="M-008" to="M-001">Tasks use DB session lifecycle.</link>
+    <link from="M-009" to="M-002">User frontend consumes auth and profile APIs.</link>
+    <link from="M-009" to="M-003">User frontend consumes config and VPN status APIs.</link>
+    <link from="M-009" to="M-004">User frontend consumes subscription and payment APIs.</link>
+    <link from="M-009" to="M-005">User frontend consumes referral APIs.</link>
+    <link from="M-010" to="M-006">Admin frontend consumes privileged APIs.</link>
+    <link from="M-011" to="M-002">Bot mirrors auth-related flows.</link>
+    <link from="M-011" to="M-003">Bot mirrors config retrieval flows.</link>
+    <link from="M-011" to="M-004">Bot reflects subscription state.</link>
+    <link from="M-012" to="M-003">Deploy surface shapes VPN runtime viability.</link>
+    <link from="M-012" to="M-007">Deploy surface shapes host-level routing viability.</link>
+    <link from="M-013" to="M-007">Route policy decisions must be consumable by routing runtime.</link>
+    <link from="M-013" to="M-014">Resolver reads ordered domain and CIDR rules.</link>
+    <link from="M-013" to="M-015">Resolver consumes DNS-bound address state.</link>
+    <link from="M-014" to="M-016">Rule storage is managed through admin-facing APIs.</link>
+    <link from="M-015" to="M-017">DNS bindings trigger runtime sync updates.</link>
+    <link from="M-016" to="M-013">Decision API explains resolver outcomes.</link>
+    <link from="M-016" to="M-010">Admin UI presents rule editing and decision visibility.</link>
+    <link from="M-017" to="M-007">Runtime sync extends existing host-level routing manager behavior.</link>
+  </CrossLinks>
 
-    <node id="N-101" type="entity">
-      <name>VPNServer</name>
-      <path>backend/app/vpn/models.py</path>
-      <description>VPN server configuration</description>
-      <fields>id, name, endpoint, public_key, location, is_active</fields>
-    </node>
+  <hotspots>
+    <H-001 module="M-003">Topology migration still carries legacy VPNServer compatibility constraints.</H-001>
+    <H-002 module="M-007">Routing is host-coupled and changes can mutate live system state.</H-002>
+    <H-003 module="M-013">Resolver precedence must stay deterministic under mixed domain, DNS and CIDR inputs.</H-003>
+    <H-004 module="M-015">DNS TTL expiry and CDN rebinding can silently invalidate policy unless observed explicitly.</H-004>
+    <H-005 module="M-017">Incremental route sync is safer than full refresh but easier to get wrong.</H-005>
+  </hotspots>
 
-    <node id="N-102" type="entity">
-      <name>VPNClient</name>
-      <path>backend/app/vpn/models.py</path>
-      <description>VPN client configuration</description>
-      <fields>id, user_id, public_key, private_key_enc, address, server_id</fields>
-    </node>
-
-    <node id="N-103" type="entity">
-      <name>Plan</name>
-      <path>backend/app/billing/models.py</path>
-      <description>Subscription plan</description>
-      <fields>id, name, price, duration_days, features, is_active</fields>
-    </node>
-
-    <node id="N-104" type="entity">
-      <name>Subscription</name>
-      <path>backend/app/billing/models.py</path>
-      <description>User subscription</description>
-      <fields>id, user_id, plan_id, started_at, expires_at, is_active</fields>
-    </node>
-
-    <node id="N-105" type="entity">
-      <name>Payment</name>
-      <path>backend/app/billing/models.py</path>
-      <description>Payment record</description>
-      <fields>id, user_id, amount, currency, provider, external_id, status</fields>
-    </node>
-
-    <node id="N-106" type="entity">
-      <name>ReferralCode</name>
-      <path>backend/app/referrals/models.py</path>
-      <description>User referral code</description>
-      <fields>id, user_id, code, uses_count</fields>
-    </node>
-
-    <node id="N-107" type="entity">
-      <name>Referral</name>
-      <path>backend/app/referrals/models.py</path>
-      <description>Referral relationship</description>
-      <fields>id, referrer_id, referred_id, bonus_given, created_at</fields>
-    </node>
-
-    <!-- API Endpoints -->
-    <node id="N-200" type="api-group">
-      <name>Auth API</name>
-      <path>backend/app/users/router.py</path>
-      <endpoints>
-        POST /api/auth/register
-        POST /api/auth/login
-        POST /api/auth/refresh
-        POST /api/auth/logout
-        GET /api/auth/telegram
-      </endpoints>
-    </node>
-
-    <node id="N-201" type="api-group">
-      <name>User API</name>
-      <path>backend/app/users/router.py</path>
-      <endpoints>
-        GET /api/users/me
-        PUT /api/users/me
-        GET /api/users/me/stats
-      </endpoints>
-    </node>
-
-    <node id="N-202" type="api-group">
-      <name>VPN API</name>
-      <path>backend/app/vpn/router.py</path>
-      <endpoints>
-        GET /api/vpn/config
-        GET /api/vpn/config/download
-        GET /api/vpn/config/qr
-        GET /api/vpn/stats
-      </endpoints>
-    </node>
-
-    <node id="N-203" type="api-group">
-      <name>Billing API</name>
-      <path>backend/app/billing/router.py</path>
-      <endpoints>
-        GET /api/billing/plans
-        POST /api/billing/subscribe
-        GET /api/billing/subscription
-        GET /api/billing/payments
-        POST /api/billing/webhooks/yookassa
-        POST /api/billing/webhooks/tinkoff
-      </endpoints>
-    </node>
-
-    <node id="N-204" type="api-group">
-      <name>Referral API</name>
-      <path>backend/app/referrals/router.py</path>
-      <endpoints>
-        GET /api/referrals/code
-        GET /api/referrals/stats
-      </endpoints>
-    </node>
-
-    <node id="N-205" type="api-group">
-      <name>Admin API</name>
-      <path>backend/app/admin/router.py</path>
-      <endpoints>
-        GET /api/admin/users
-        GET /api/admin/users/{id}
-        PUT /api/admin/users/{id}
-        GET /api/admin/analytics
-        GET /api/admin/servers
-        POST /api/admin/servers
-        GET /api/admin/plans
-        POST /api/admin/plans
-      </endpoints>
-    </node>
-
-    <!-- External Services -->
-    <node id="N-300" type="external">
-      <name>YooKassa</name>
-      <description>Payment provider</description>
-      <integration>billing/yookassa.py</integration>
-    </node>
-
-    <node id="N-301" type="external">
-      <name>Tinkoff</name>
-      <description>Payment provider</description>
-      <integration>billing/tinkoff.py</integration>
-    </node>
-
-    <node id="N-302" type="external">
-      <name>Telegram Bot API</name>
-      <description>Telegram bot integration</description>
-      <integration>telegram-bot</integration>
-    </node>
-
-    <node id="N-303" type="external">
-      <name>AmneziaWG</name>
-      <description>VPN protocol</description>
-      <integration>vpn/amneziawg.py</integration>
-    </node>
-
-    <node id="N-304" type="external">
-      <name>SMTP Server</name>
-      <description>Email delivery</description>
-      <integration>email/service.py</integration>
-    </node>
-  </nodes>
-
-  <edges>
-    <!-- Module Dependencies -->
-    <edge from="N-002" to="N-001" type="depends" />
-    <edge from="N-003" to="N-001" type="depends" />
-    <edge from="N-003" to="N-002" type="depends" />
-    <edge from="N-004" to="N-001" type="depends" />
-    <edge from="N-004" to="N-002" type="depends" />
-    <edge from="N-004" to="N-003" type="depends" />
-    <edge from="N-005" to="N-001" type="depends" />
-    <edge from="N-005" to="N-002" type="depends" />
-    <edge from="N-005" to="N-004" type="depends" />
-    <edge from="N-006" to="N-001" type="depends" />
-    <edge from="N-006" to="N-002" type="depends" />
-    <edge from="N-006" to="N-003" type="depends" />
-    <edge from="N-006" to="N-004" type="depends" />
-    <edge from="N-007" to="N-001" type="depends" />
-    <edge from="N-008" to="N-001" type="depends" />
-    <edge from="N-009" to="N-001" type="depends" />
-    <edge from="N-009" to="N-004" type="depends" />
-    <edge from="N-009" to="N-008" type="depends" />
-
-    <!-- Frontend Dependencies -->
-    <edge from="N-010" to="N-200" type="calls" />
-    <edge from="N-010" to="N-201" type="calls" />
-    <edge from="N-010" to="N-202" type="calls" />
-    <edge from="N-010" to="N-203" type="calls" />
-    <edge from="N-010" to="N-204" type="calls" />
-    <edge from="N-011" to="N-205" type="calls" />
-
-    <!-- Entity Relationships -->
-    <edge from="N-102" to="N-100" type="belongs-to" />
-    <edge from="N-102" to="N-101" type="assigned-to" />
-    <edge from="N-104" to="N-100" type="belongs-to" />
-    <edge from="N-104" to="N-103" type="references" />
-    <edge from="N-105" to="N-100" type="belongs-to" />
-    <edge from="N-106" to="N-100" type="belongs-to" />
-    <edge from="N-107" to="N-100" type="references" label="referrer" />
-    <edge from="N-107" to="N-100" type="references" label="referred" />
-
-    <!-- External Integrations -->
-    <edge from="N-004" to="N-300" type="integrates" />
-    <edge from="N-004" to="N-301" type="integrates" />
-    <edge from="N-012" to="N-302" type="integrates" />
-    <edge from="N-003" to="N-303" type="integrates" />
-    <edge from="N-008" to="N-304" type="integrates" />
-  </edges>
-
-  <navigation>
-    <entry-points>
-      <entry id="EP-001">backend/app/main.py - Application entry point</entry>
-      <entry id="EP-002">frontend/src/main.tsx - Frontend entry point</entry>
-      <entry id="EP-003">telegram-bot/bot.py - Bot entry point</entry>
-    </entry-points>
-
-    <quick-links>
-      <link name="API Docs">/docs (FastAPI Swagger)</link>
-      <link name="Health Check">/health</link>
-      <link name="Admin Panel">/admin</link>
-      <link name="User Dashboard">/dashboard</link>
-    </quick-links>
-  </navigation>
+  <agent-navigation>
+    <read-order>
+      <step-1>docs/current-status.xml</step-1>
+      <step-2>docs/knowledge-graph.xml</step-2>
+      <step-3>docs/development-plan.xml</step-3>
+      <step-4>docs/verification-plan.xml</step-4>
+      <step-5>README.md</step-5>
+    </read-order>
+    <routing-migration-entry>
+      For domain-aware routing work, open backend/app/routing/router.py, backend/app/routing/models.py,
+      backend/app/routing/manager.py and backend/app/vpn/service.py before changing code.
+    </routing-migration-entry>
+  </agent-navigation>
 </knowledge-graph>
