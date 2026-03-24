@@ -186,25 +186,34 @@ class RoutePolicyResolver:
         if normalized_domain is None:
             return None
 
-        sorted_rules = sorted(
-            rules,
+        exact_rules = sorted(
+            (
+                rule for rule in rules
+                if rule.is_active and rule.match_type == DomainMatchType.EXACT
+            ),
             key=lambda rule: (
                 rule.priority,
-                0 if rule.match_type == DomainMatchType.EXACT else 1,
                 -len(rule.normalized_domain),
                 rule.normalized_domain,
             ),
         )
-
-        for rule in sorted_rules:
-            if not rule.is_active:
-                continue
-            if rule.match_type == DomainMatchType.EXACT and normalized_domain == rule.normalized_domain:
+        for rule in exact_rules:
+            if normalized_domain == rule.normalized_domain:
                 return rule
-            if (
-                rule.match_type == DomainMatchType.WILDCARD
-                and normalized_domain.endswith(f".{rule.normalized_domain}")
-            ):
+
+        wildcard_rules = sorted(
+            (
+                rule for rule in rules
+                if rule.is_active and rule.match_type == DomainMatchType.WILDCARD
+            ),
+            key=lambda rule: (
+                rule.priority,
+                -len(rule.normalized_domain),
+                rule.normalized_domain,
+            ),
+        )
+        for rule in wildcard_rules:
+            if normalized_domain.endswith(f".{rule.normalized_domain}"):
                 return rule
 
         return None

@@ -117,6 +117,16 @@ class DNSObserver:
             )
         return expired
 
+    def clear_domain_bindings(self, normalized_domain: str) -> list[DNSBindingRecord]:
+        """Remove all bindings for one domain and return removed records."""
+        removed = self._bindings.pop(normalized_domain, [])
+        for binding in removed:
+            logger.info(
+                "[Routing][dns][DNS_BINDING_EXPIRED] "
+                f"domain={binding.normalized_domain} resolved_ip={binding.resolved_ip}"
+            )
+        return removed
+
     def get_active_bindings(self) -> list[DnsBoundRoute]:
         """Expose active bindings in the resolver-facing shape."""
         now = self.now_func()

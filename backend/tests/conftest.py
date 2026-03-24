@@ -6,7 +6,9 @@ from slowapi import _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
 from starlette.testclient import TestClient
 
-from app.core.database import get_session
+from app.core.database import get_session, import_all_models
+
+import_all_models()
 
 
 class DummySession:

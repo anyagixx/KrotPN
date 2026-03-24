@@ -206,6 +206,18 @@ class DomainRuleStore:
         )
         return list(result.scalars().all())
 
+    async def list_domain_rules(self) -> list[DomainRouteRule]:
+        """Return all domain rules ordered by activity and priority."""
+        result = await self.session.execute(
+            select(DomainRouteRule).order_by(
+                DomainRouteRule.is_active.desc(),
+                DomainRouteRule.priority.asc(),
+                DomainRouteRule.match_type.asc(),
+                DomainRouteRule.normalized_domain.asc(),
+            )
+        )
+        return list(result.scalars().all())
+
     async def list_active_cidr_rules(self) -> list[CidrRouteRule]:
         """Return active CIDR rules ordered by priority."""
         result = await self.session.execute(
@@ -217,6 +229,27 @@ class DomainRuleStore:
             )
         )
         return list(result.scalars().all())
+
+    async def list_cidr_rules(self) -> list[CidrRouteRule]:
+        """Return all CIDR rules ordered by activity and priority."""
+        result = await self.session.execute(
+            select(CidrRouteRule).order_by(
+                CidrRouteRule.is_active.desc(),
+                CidrRouteRule.priority.asc(),
+                CidrRouteRule.normalized_cidr.asc(),
+            )
+        )
+        return list(result.scalars().all())
+
+    async def delete_domain_rule(self, rule: DomainRouteRule) -> None:
+        """Delete a domain rule permanently."""
+        await self.session.delete(rule)
+        await self.session.flush()
+
+    async def delete_cidr_rule(self, rule: CidrRouteRule) -> None:
+        """Delete a CIDR rule permanently."""
+        await self.session.delete(rule)
+        await self.session.flush()
 
     async def _find_domain_rule(
         self,

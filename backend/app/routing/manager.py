@@ -247,6 +247,7 @@ echo "RU IPset updated: $(ipset list ru_ips | grep 'Number of entries' | cut -d:
         *,
         domain_rules: list[DomainRouteRule] | None = None,
         cidr_rules: list[CidrRouteRule] | None = None,
+        dns_bound_routes: list[Any] | None = None,
         custom_routes: list[dict[str, Any]] | None = None,
     ) -> RouteDecision:
         """Resolve the effective route target while preserving the legacy RU baseline."""
@@ -274,6 +275,7 @@ echo "RU IPset updated: $(ipset list ru_ips | grep 'Number of entries' | cut -d:
             resolved_ip=resolved_ip,
             domain_rules=[*(domain_rules or []), *legacy_domain_rules],
             cidr_rules=[*(cidr_rules or []), *legacy_cidr_rules],
+            dns_bound_routes=dns_bound_routes,
         )
         if decision.reason is not DecisionReason.DEFAULT:
             return decision

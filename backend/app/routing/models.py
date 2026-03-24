@@ -23,6 +23,9 @@ MODULE_MAP
 - CidrRouteRuleCreate: Request schema for CIDR rule creation.
 - CidrRouteRuleUpdate: Partial-update schema for CIDR rules.
 - CidrRouteRuleResponse: Response schema for CIDR rules.
+- RouteDecisionExplainRequest: Request schema for route decision inspection.
+- RouteDecisionExplainResponse: Response schema for effective route decisions.
+- ActiveDNSBindingResponse: Response schema for active DNS-derived bindings.
 
 CHANGE_SUMMARY
 - 2026-03-24: Added domain and CIDR routing rule entities plus policy schemas for domain-aware routing migration.
@@ -219,3 +222,30 @@ class CidrRouteRuleResponse(SQLModel):
     updated_at: datetime
 
     model_config = {"from_attributes": True}
+
+
+class RouteDecisionExplainRequest(SQLModel):
+    """Request schema for route decision inspection."""
+
+    address: str = Field(..., min_length=1, max_length=255)
+
+
+class RouteDecisionExplainResponse(SQLModel):
+    """Response schema for an explainable route decision."""
+
+    address: str
+    route_target: RouteTarget
+    decision_reason: str
+    trace_marker: str
+    rule_id: int | None = None
+    normalized_domain: str | None = None
+    resolved_ip: str | None = None
+
+
+class ActiveDNSBindingResponse(SQLModel):
+    """Response schema for an active DNS-derived route binding."""
+
+    normalized_domain: str
+    resolved_ip: str
+    route_target: RouteTarget
+    rule_id: int | None = None
