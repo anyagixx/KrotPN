@@ -33,6 +33,21 @@
     <item>Verification reproducibility across environments.</item>
   </what-is-fragile>
 
+  <rollout-gates>
+    <gate id="routing-phase-4-step-1" status="passed">
+      <summary>Local routing-focused backend verification and admin frontend build pass.</summary>
+    </gate>
+    <gate id="routing-phase-4-step-2" status="blocked">
+      <summary>
+        Production rollout is still gated on host-level review: runtime and deploy surfaces remain ipset/iptables-based,
+        and deploy scripts still materialize or print live secrets during provisioning.
+      </summary>
+    </gate>
+    <gate id="routing-phase-4-step-3" status="partial">
+      <summary>Admin UI now treats route policy as the preferred control surface, while legacy custom routes remain runtime fallback only.</summary>
+    </gate>
+  </rollout-gates>
+
   <immediate-priorities>
     <priority rank="1">Make AI handoff docs accurate and mandatory for new agents.</priority>
     <priority rank="2">Remove unsafe deploy defaults and tighten secrets handling.</priority>
