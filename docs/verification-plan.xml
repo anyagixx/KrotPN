@@ -79,7 +79,7 @@
     </V-M-002>
     <V-M-003 module="vpn">
       <checks>Provisioning and config generation remain compatible with route-aware topology, including configs exported for operator-managed internal clients.</checks>
-      <tests>backend/tests/test_vpn_service.py backend/tests/test_vpn_router_compat.py plus planned parity checks in backend/tests/test_manual_client_cli.py</tests>
+      <tests>backend/tests/test_vpn_service.py backend/tests/test_vpn_router_compat.py backend/tests/test_manual_client_cli.py</tests>
       <anchors>VPN_PROVISION_ROUTE_SELECTED VPN_CONFIG_RENDERED VPN_PEER_APPLIED</anchors>
     </V-M-003>
     <V-M-004 module="billing">
@@ -163,7 +163,7 @@
     </V-M-018>
     <V-M-019 module="manual-client-cli">
       <checks>Manual CLI issuance resolves the internal identity, provisions through VPNService, exports a working config and stays idempotent unless reprovision is explicitly requested.</checks>
-      <tests>planned backend/tests/test_manual_client_cli.py</tests>
+      <tests>backend/tests/test_manual_client_cli.py</tests>
       <anchors>VPN_MANUAL_CLIENT_REQUESTED VPN_MANUAL_CLIENT_PROVISIONED VPN_CONFIG_RENDERED VPN_MANUAL_CLIENT_OUTPUT_WRITTEN</anchors>
     </V-M-019>
   </module-verification>
