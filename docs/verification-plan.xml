@@ -121,9 +121,9 @@
       <anchors>none-required-for-current-scope</anchors>
     </V-M-011>
     <V-M-012 module="deploy-surface">
-      <checks>Deploy and nginx changes do not introduce weak defaults or unsafe routing assumptions, and deploy/create-client.sh becomes a thin wrapper over backend CLI instead of generating raw host-only configs.</checks>
+      <checks>Deploy and nginx changes do not introduce weak defaults or unsafe routing assumptions, deploy/create-client.sh becomes a thin wrapper over backend CLI instead of generating raw host-only configs, and fresh RU deploys install a host-level awg0 sync watcher so backend-written peers become active on the live interface.</checks>
       <commands>bash -n deploy/deploy-ru-server.sh &amp;&amp; bash -n deploy/deploy-on-server.sh &amp;&amp; bash -n deploy/deploy-all.sh &amp;&amp; bash -n deploy/create-client.sh &amp;&amp; bash -n install.sh</commands>
-      <evidence>static review of secrets, ports, mounts, backend CLI invocation and host tool expectations; if host validation is unavailable, report exact missing commands</evidence>
+      <evidence>static review of secrets, ports, mounts, backend CLI invocation, host tool expectations and awg0 watcher install path; live RU evidence should include HTTPS reachability, backend health, live tunnel handshake and peer appearance in awg show after both manual and web provisioning</evidence>
     </V-M-012>
     <V-M-013 module="route-policy-resolver">
       <checks>
@@ -185,6 +185,7 @@
       <required>Verify CF-006 and CF-007 with backend CLI plus deploy/create-client.sh wrapper coverage.</required>
       <required>Confirm operator-created configs are rendered by VPNService rather than raw shell-generated templates.</required>
       <required>Confirm complimentary access remains distinguishable from paid subscriptions in state and reporting.</required>
+      <required>Confirm host-level awg0 peer activation happens automatically after backend writes peer state, both for manual issuance and for web registration paths.</required>
     </manual-client-provisioning-change>
   </change-matrix>
 
@@ -242,6 +243,7 @@
       <required>Operator-issued configs are generated through backend provisioning and connect with the same topology semantics as web-issued configs.</required>
       <required>Repeated manual issuance does not create silent duplicate active clients.</required>
       <required>Complimentary internal access stays explicit in state and does not invoke payment-provider logic.</required>
+      <required>Backend-driven peer changes become active on live awg0 without manual operator sync steps.</required>
     </Phase-5-Gate>
   </phase-gates>
 

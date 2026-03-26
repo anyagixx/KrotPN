@@ -3,9 +3,9 @@
 <knowledge-graph>
   <meta>
     <project-name>KrotVPN</project-name>
-    <version>2.5.0</version>
-    <updated>2026-03-24</updated>
-    <purpose>Fast AI onboarding and navigation for the current system plus the approved routing-policy migration.</purpose>
+    <version>2.6.0</version>
+    <updated>2026-03-26</updated>
+    <purpose>Fast AI onboarding and navigation for the current system plus the approved routing-policy migration and manual internal client provisioning parity plan.</purpose>
   </meta>
 
   <entry-points>
@@ -79,7 +79,7 @@
     </M-011>
     <M-012 NAME="deploy-surface" TYPE="ENTRY_POINT" verification-ref="V-M-012">
       <path>deploy install.sh nginx docker-compose.yml</path>
-      <owns>installation, deploy scripts, runtime composition, proxying, cert generation, host-tool preflight and deploy-time secret handling</owns>
+      <owns>installation, deploy scripts, runtime composition, proxying, cert generation, host-tool preflight, host-level awg0 peer sync watchers and deploy-time secret handling</owns>
     </M-012>
     <M-013 NAME="route-policy-resolver" TYPE="CORE_LOGIC" verification-ref="V-M-013">
       <path>backend/app/routing/policy.py</path>
@@ -120,6 +120,22 @@
         <fn-build-route-sync-plan>Calculates add/remove diffs before touching host ipsets</fn-build-route-sync-plan>
       </exports>
     </M-017>
+    <M-018 NAME="manual-access-policy" TYPE="CORE_LOGIC" verification-ref="V-M-018">
+      <path>backend/app/users/service.py backend/app/billing/service.py backend/app/billing/models.py</path>
+      <owns>resolution of internal operator-managed identities plus explicit complimentary access state for non-billable family or personal clients</owns>
+      <exports>
+        <fn-resolve-internal-user>Finds or creates the canonical internal user identity for manual client issuance</fn-resolve-internal-user>
+        <fn-ensure-complimentary-access>Creates or reuses explicit non-billable access state without entering payment-provider flows</fn-ensure-complimentary-access>
+      </exports>
+    </M-018>
+    <M-019 NAME="manual-client-cli" TYPE="ENTRY_POINT" verification-ref="V-M-019">
+      <path>backend/app/cli.py deploy/create-client.sh</path>
+      <owns>operator-triggered manual client issuance, config export and QR/output handling over backend provisioning logic</owns>
+      <exports>
+        <fn-create-internal-client>Backend CLI entry that provisions or reuses an internal client and exports a working config</fn-create-internal-client>
+        <fn-export-manual-client-config>Writes config or QR output after backend provisioning succeeds</fn-export-manual-client-config>
+      </exports>
+    </M-019>
   </modules>
 
   <CrossLinks>
@@ -157,6 +173,12 @@
     <link from="M-016" to="M-013">Decision API explains resolver outcomes.</link>
     <link from="M-016" to="M-010">Admin UI presents rule editing and decision visibility.</link>
     <link from="M-017" to="M-007">Runtime sync extends existing host-level routing manager behavior.</link>
+    <link from="M-018" to="M-002">Manual access policy extends user identity handling with operator-managed internal users.</link>
+    <link from="M-018" to="M-004">Complimentary internal access remains part of subscription and billing state rather than a hidden bypass.</link>
+    <link from="M-018" to="M-003">Manual access policy must feed the normal VPN provisioning path.</link>
+    <link from="M-019" to="M-018">CLI issuance must resolve internal identity and complimentary access before provisioning.</link>
+    <link from="M-019" to="M-003">CLI issuance exports configs only after normal VPN provisioning succeeds.</link>
+    <link from="M-019" to="M-012">Deploy wrapper becomes a thin shell around backend CLI instead of generating raw configs directly.</link>
   </CrossLinks>
 
   <hotspots>
@@ -165,6 +187,8 @@
     <H-003 module="M-013">Resolver precedence must stay deterministic under mixed domain, DNS and CIDR inputs.</H-003>
     <H-004 module="M-015">DNS TTL expiry and CDN rebinding can silently invalidate policy unless observed explicitly.</H-004>
     <H-005 module="M-017">Incremental route sync is safer than full refresh but easier to get wrong.</H-005>
+    <H-006 module="M-018">Complimentary internal access must stay explicit or billing and analytics will silently drift.</H-006>
+    <H-007 module="M-019">Manual client issuance is unsafe if shell scripts bypass backend topology and config generation logic.</H-007>
   </hotspots>
 
   <agent-navigation>
@@ -179,5 +203,9 @@
       For domain-aware routing work, open backend/app/routing/router.py, backend/app/routing/models.py,
       backend/app/routing/manager.py and backend/app/vpn/service.py before changing code.
     </routing-migration-entry>
+    <manual-client-entry>
+      For manual client provisioning work, open deploy/create-client.sh, backend/app/cli.py,
+      backend/app/users/service.py, backend/app/billing/service.py and backend/app/vpn/service.py before changing code.
+    </manual-client-entry>
   </agent-navigation>
 </knowledge-graph>

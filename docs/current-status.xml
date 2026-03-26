@@ -3,7 +3,7 @@
 <current-status>
   <meta>
     <project-name>KrotVPN</project-name>
-    <updated>2026-03-24</updated>
+    <updated>2026-03-26</updated>
     <status>active-development</status>
   </meta>
 
@@ -26,6 +26,9 @@
     <item>Release v2.4.23 is published and RU production health reports version 2.4.23.</item>
     <item>RU and DE AWG interfaces are now managed through systemd and survive service restarts cleanly.</item>
     <item>DE host successfully rebooted into kernel 6.8.0-106-generic and AWG recovered automatically after boot.</item>
+    <item>Fresh RU and DE servers were deployed and validated on March 26, 2026 with live AWG tunnel handshake and healthy backend/frontend/admin HTTPS surfaces on RU.</item>
+    <item>Manual internal client issuance through deploy/create-client.sh now produces configs through backend CLI and applies peers to live awg0 state on RU.</item>
+    <item>New RU host-level awg0 config watcher automatically syncs peer changes from backend-driven provisioning, so both manual and web-issued clients become active without manual awg commands.</item>
   </what-is-working>
 
   <what-is-fragile>
@@ -53,6 +56,7 @@
     <priority rank="2">Remove unsafe deploy defaults and tighten secrets handling.</priority>
     <priority rank="3">Stabilize VPN topology model and related analytics.</priority>
     <priority rank="4">Improve repeatable local verification for backend and admin frontend.</priority>
+    <priority rank="5">Reconcile published version/status docs with the actually deployed 2.4.20 runtime on fresh RU rollout.</priority>
   </immediate-priorities>
 
   <known-risks>
