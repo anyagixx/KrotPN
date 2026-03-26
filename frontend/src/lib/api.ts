@@ -89,6 +89,33 @@ export interface VPNConfig {
   created_at: string
 }
 
+export interface UserDevice {
+  id: number
+  device_key: string
+  name: string
+  platform?: string | null
+  status: string
+  config_version: number
+  created_at: string
+  updated_at: string
+  revoked_at?: string | null
+  blocked_at?: string | null
+  last_seen_at?: string | null
+  last_handshake_at?: string | null
+  last_endpoint?: string | null
+  block_reason?: string | null
+}
+
+export interface DeviceList {
+  devices: UserDevice[]
+  consumed_slots: number
+  device_limit: number
+}
+
+export interface DeviceConfigBundle extends VPNConfig {
+  device: UserDevice
+}
+
 export interface VPNStats {
   total_upload_bytes: number
   total_download_bytes: number
@@ -228,6 +255,20 @@ export const vpnApi = {
 
   getRoutes: () =>
     api.get<{ routes: VPNRouteStatus[] }>('/vpn/routes'),
+}
+
+export const deviceApi = {
+  list: () =>
+    api.get<DeviceList>('/devices'),
+
+  create: (data: { name: string; platform?: string }) =>
+    api.post<DeviceConfigBundle>('/devices', data),
+
+  rotate: (deviceId: number) =>
+    api.post<DeviceConfigBundle>(`/devices/${deviceId}/rotate`),
+
+  revoke: (deviceId: number) =>
+    api.delete<UserDevice>(`/devices/${deviceId}`),
 }
 
 // Billing API

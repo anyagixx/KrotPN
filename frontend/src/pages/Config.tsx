@@ -1,20 +1,73 @@
 import { useEffect, useMemo, useState } from 'react'
-import { useQuery } from 'react-query'
+import { useMutation, useQuery, useQueryClient } from 'react-query'
 import { useTranslation } from 'react-i18next'
-import { AlertTriangle, ArrowRightLeft, Check, Copy, Download, FileCode2, Monitor, QrCode, Smartphone } from 'lucide-react'
+import { AlertTriangle, ArrowRightLeft, Check, Copy, Download, FileCode2, Laptop2, Monitor, Plus, QrCode, RotateCw, Smartphone, Trash2 } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import toast from 'react-hot-toast'
-import { vpnApi } from '../lib/api'
+import { deviceApi, type DeviceConfigBundle, vpnApi } from '../lib/api'
 import Loading from '../components/Loading'
 
 export default function Config() {
   const { t } = useTranslation()
+  const queryClient = useQueryClient()
   const [copied, setCopied] = useState(false)
   const [showQR, setShowQR] = useState(false)
+  const [managedBundle, setManagedBundle] = useState<DeviceConfigBundle | null>(null)
+  const [newDeviceName, setNewDeviceName] = useState('')
+  const [newDevicePlatform, setNewDevicePlatform] = useState('')
 
   const { data: configData, isLoading, error } = useQuery('vpn-config', () => vpnApi.getConfig())
   const { data: qrData, isLoading: qrLoading, error: qrError } = useQuery('vpn-qr', () => vpnApi.getQRCode(), { enabled: showQR })
   const { data: routesData } = useQuery('vpn-routes', () => vpnApi.getRoutes())
+  const { data: devicesData } = useQuery('device-list', () => deviceApi.list(), {
+    retry: false,
+  })
+
+  const createDeviceMutation = useMutation(
+    (payload: { name: string; platform?: string }) => deviceApi.create(payload),
+    {
+      onSuccess: ({ data }) => {
+        setManagedBundle(data)
+        setNewDeviceName('')
+        setNewDevicePlatform('')
+        void queryClient.invalidateQueries('device-list')
+        toast.success('Устройство создано и конфиг готов')
+      },
+      onError: (requestError: any) => {
+        toast.error(requestError?.response?.data?.detail || 'Не удалось создать устройство')
+      },
+    },
+  )
+
+  const rotateDeviceMutation = useMutation(
+    (deviceId: number) => deviceApi.rotate(deviceId),
+    {
+      onSuccess: ({ data }) => {
+        setManagedBundle(data)
+        void queryClient.invalidateQueries('device-list')
+        toast.success('Конфиг устройства перевыпущен')
+      },
+      onError: (requestError: any) => {
+        toast.error(requestError?.response?.data?.detail || 'Не удалось перевыпустить конфиг')
+      },
+    },
+  )
+
+  const revokeDeviceMutation = useMutation(
+    (deviceId: number) => deviceApi.revoke(deviceId),
+    {
+      onSuccess: ({ data }) => {
+        if (managedBundle?.device.id === data.id) {
+          setManagedBundle(null)
+        }
+        void queryClient.invalidateQueries('device-list')
+        toast.success('Устройство отозвано')
+      },
+      onError: (requestError: any) => {
+        toast.error(requestError?.response?.data?.detail || 'Не удалось отозвать устройство')
+      },
+    },
+  )
 
   const qrUrl = useMemo(() => {
     if (!qrData?.data) return null
@@ -31,11 +84,15 @@ export default function Config() {
 
   const handleDownload = async () => {
     try {
-      const response = await vpnApi.downloadConfig()
-      const url = window.URL.createObjectURL(new Blob([response.data]))
+      const activeConfig = managedBundle?.config ? managedBundle.config : null
+      const blobSource = activeConfig ? activeConfig : (await vpnApi.downloadConfig()).data
+      const url = window.URL.createObjectURL(new Blob([blobSource]))
       const link = window.document.createElement('a')
       link.href = url
-      link.setAttribute('download', 'krotvpn.conf')
+      const fileName = managedBundle?.device.device_key
+        ? `krotvpn-${managedBundle.device.device_key}.conf`
+        : 'krotvpn.conf'
+      link.setAttribute('download', fileName)
       window.document.body.appendChild(link)
       link.click()
       link.remove()
@@ -47,26 +104,42 @@ export default function Config() {
   }
 
   const handleCopy = async () => {
-    if (!configData?.data?.config) {
+    const activeConfig = managedBundle?.config || configData?.data?.config
+    if (!activeConfig) {
       toast.error('Конфигурация пока недоступна')
       return
     }
-    await navigator.clipboard.writeText(configData.data.config)
+    await navigator.clipboard.writeText(activeConfig)
     setCopied(true)
     toast.success(t('copied'))
     setTimeout(() => setCopied(false), 2000)
+  }
+
+  const handleCreateDevice = async () => {
+    const name = newDeviceName.trim()
+    if (!name) {
+      toast.error('Введите название устройства')
+      return
+    }
+    await createDeviceMutation.mutateAsync({
+      name,
+      platform: newDevicePlatform.trim() || undefined,
+    })
   }
 
   if (isLoading) {
     return <Loading text={t('loading')} />
   }
 
-  const config = configData?.data
+  const config = managedBundle || configData?.data
   const requestError = error as any
   const errorMessage = requestError?.response?.data?.detail as string | undefined
   const hasNoConfig = requestError?.response?.status === 404
   const isForbidden = requestError?.response?.status === 403
   const routes = routesData?.data?.routes || []
+  const deviceList = devicesData?.data?.devices || []
+  const consumedSlots = devicesData?.data?.consumed_slots || 0
+  const deviceLimit = devicesData?.data?.device_limit || 0
   const routeName = config?.route_name
   const entryName = config?.entry_server_name || config?.server_name
   const entryLocation = config?.entry_server_location || config?.server_location
@@ -153,9 +226,133 @@ export default function Config() {
       <div className="section-header">
         <div>
           <h1 className="section-title">{t('vpnConfig')}</h1>
-          <p className="section-subtitle">Получите `.conf`, QR-код и короткие инструкции по установке на любое устройство.</p>
+          <p className="section-subtitle">Управляйте устройствами, перевыпускайте конфиги и держите лимит слотов под контролем.</p>
         </div>
       </div>
+
+      <section className="panel p-6">
+        <div className="flex flex-col gap-5 xl:flex-row xl:items-start xl:justify-between">
+          <div>
+            <p className="text-xs font-bold uppercase tracking-[0.18em] text-cyan-100/70">Device registry</p>
+            <h2 className="mt-3 text-2xl font-extrabold">Устройства и лимит доступа</h2>
+            <p className="mt-2 max-w-2xl text-sm muted">
+              Каждый слот теперь соответствует отдельному peer и отдельному конфигу. Отзывайте старые устройства и перевыпускайте конфиг только для нужного устройства.
+            </p>
+          </div>
+
+          <div className="grid min-w-[240px] gap-3 sm:grid-cols-2">
+            <div className="panel-soft px-4 py-4">
+              <p className="text-xs uppercase tracking-[0.18em] muted">Занято слотов</p>
+              <p className="mt-2 text-2xl font-bold">{consumedSlots}</p>
+            </div>
+            <div className="panel-soft px-4 py-4">
+              <p className="text-xs uppercase tracking-[0.18em] muted">Лимит тарифа</p>
+              <p className="mt-2 text-2xl font-bold">{deviceLimit}</p>
+            </div>
+          </div>
+        </div>
+
+        <div className="mt-6 grid gap-4 xl:grid-cols-[minmax(0,1.2fr)_minmax(320px,0.8fr)]">
+          <div className="grid gap-3">
+            {deviceList.length ? (
+              deviceList.map((device) => {
+                const isBusy =
+                  rotateDeviceMutation.isLoading && rotateDeviceMutation.variables === device.id
+                  || revokeDeviceMutation.isLoading && revokeDeviceMutation.variables === device.id
+
+                return (
+                  <div key={device.id} className="panel-soft px-4 py-4">
+                    <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+                      <div className="flex items-start gap-3">
+                        <div className="rounded-2xl bg-white/8 p-3 text-cyan-100">
+                          <Laptop2 className="h-5 w-5" />
+                        </div>
+                        <div>
+                          <div className="flex flex-wrap items-center gap-2">
+                            <p className="font-bold">{device.name}</p>
+                            <span className={device.status === 'active' ? 'status-badge-success' : 'status-badge-warning'}>
+                              {device.status}
+                            </span>
+                          </div>
+                          <p className="mt-1 text-sm muted">
+                            {device.platform || 'platform not set'} · version {device.config_version}
+                          </p>
+                          <p className="mt-2 text-xs muted">
+                            key: {device.device_key}
+                          </p>
+                          {device.block_reason ? (
+                            <p className="mt-2 text-xs text-amber-200">Причина ограничения: {device.block_reason}</p>
+                          ) : null}
+                        </div>
+                      </div>
+
+                      <div className="flex flex-col gap-3 sm:flex-row">
+                        <button
+                          onClick={() => rotateDeviceMutation.mutate(device.id)}
+                          disabled={device.status !== 'active' || isBusy}
+                          className="btn-secondary"
+                        >
+                          <RotateCw className="h-4 w-4" />
+                          Перевыпустить
+                        </button>
+                        <button
+                          onClick={() => revokeDeviceMutation.mutate(device.id)}
+                          disabled={device.status !== 'active' || isBusy}
+                          className="btn-secondary"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                          Удалить
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                )
+              })
+            ) : (
+              <div className="empty-state min-h-[180px]">
+                <Laptop2 className="h-10 w-10 text-cyan-100" />
+                <div>
+                  <p className="text-lg font-semibold">Устройств пока нет</p>
+                  <p className="mt-1 text-sm muted">Создайте первый device-bound конфиг для телефона, ноутбука или домашнего компьютера.</p>
+                </div>
+              </div>
+            )}
+          </div>
+
+          <div className="glass p-5">
+            <p className="text-xs font-bold uppercase tracking-[0.18em] text-cyan-100/70">Add device</p>
+            <h3 className="mt-3 text-xl font-bold">Новый конфиг под устройство</h3>
+            <div className="mt-5 grid gap-3">
+              <label className="grid gap-2">
+                <span className="text-sm muted">Название</span>
+                <input
+                  value={newDeviceName}
+                  onChange={(event) => setNewDeviceName(event.target.value)}
+                  placeholder="Например: iPhone 16 Pro"
+                  className="rounded-2xl border border-white/10 bg-slate-950/45 px-4 py-3 text-sm text-slate-100 outline-none transition focus:border-cyan-200/40"
+                />
+              </label>
+              <label className="grid gap-2">
+                <span className="text-sm muted">Платформа</span>
+                <input
+                  value={newDevicePlatform}
+                  onChange={(event) => setNewDevicePlatform(event.target.value)}
+                  placeholder="ios, android, macos, windows"
+                  className="rounded-2xl border border-white/10 bg-slate-950/45 px-4 py-3 text-sm text-slate-100 outline-none transition focus:border-cyan-200/40"
+                />
+              </label>
+            </div>
+            <button
+              onClick={handleCreateDevice}
+              disabled={createDeviceMutation.isLoading}
+              className="btn-primary mt-5 w-full"
+            >
+              <Plus className="h-5 w-5" />
+              Создать устройство
+            </button>
+          </div>
+        </div>
+      </section>
 
       <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
         <div className="panel p-6">
@@ -173,10 +370,19 @@ export default function Config() {
             <li>2. Откройте QR-код или импортируйте конфигурационный файл.</li>
             <li>3. Активируйте профиль и включите туннель.</li>
           </ol>
-          <button onClick={() => setShowQR(true)} className="btn-secondary mt-5 w-full">
+          <button
+            onClick={() => setShowQR(true)}
+            disabled={Boolean(managedBundle)}
+            className="btn-secondary mt-5 w-full"
+          >
             <QrCode className="h-5 w-5" />
-            Показать QR-код
+            {managedBundle ? 'QR для legacy-конфига' : 'Показать QR-код'}
           </button>
+          {managedBundle ? (
+            <p className="mt-3 text-xs muted">
+              Сейчас отображается device-bound конфиг. QR у legacy-эндпоинта пока привязан к старому совместимому пути, поэтому для нового устройства используйте файл или copy.
+            </p>
+          ) : null}
         </div>
 
         <div className="panel p-6">
