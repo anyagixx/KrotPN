@@ -6,6 +6,7 @@ import App from './App'
 import Login from './pages/Login'
 import Dashboard from './pages/Dashboard'
 import Users from './pages/Users'
+import Devices from './pages/Devices'
 import Servers from './pages/Servers'
 import Plans from './pages/Plans'
 import Analytics from './pages/Analytics'
@@ -31,6 +32,7 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
           <Route path="/" element={<PrivateRoute><Layout /></PrivateRoute>}>
             <Route index element={<Dashboard />} />
             <Route path="users" element={<Users />} />
+            <Route path="devices" element={<Devices />} />
             <Route path="servers" element={<Servers />} />
             <Route path="plans" element={<Plans />} />
             <Route path="analytics" element={<Analytics />} />

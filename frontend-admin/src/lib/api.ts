@@ -106,6 +106,21 @@ export const adminApi = {
   getSystemHealth: () =>
     api.get('/admin/system/health'),
 
+  getDevices: (search = '') =>
+    api.get(`/admin/devices?search=${encodeURIComponent(search)}`),
+
+  blockDevice: (id: number) =>
+    api.post(`/admin/devices/${id}/block`),
+
+  unblockDevice: (id: number) =>
+    api.post(`/admin/devices/${id}/unblock`),
+
+  rotateDevice: (id: number) =>
+    api.post(`/admin/devices/${id}/rotate`),
+
+  revokeDevice: (id: number) =>
+    api.delete(`/admin/devices/${id}`),
+
   getDomainRouteRules: () =>
     api.get('/routing/policy/domains'),
 
