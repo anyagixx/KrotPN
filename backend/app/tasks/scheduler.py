@@ -1,5 +1,10 @@
 """
 Background tasks scheduler.
+
+GRACE-lite module contract:
+- Owns recurring maintenance jobs started during FastAPI lifespan.
+- Tasks may mutate subscriptions, VPN stats and cleanup state without direct user requests.
+- Scheduler correctness matters because failures here can silently desync paid access and actual VPN availability.
 """
 # <!-- GRACE: module="M-012" contract="scheduler" -->
 
@@ -21,6 +26,9 @@ class TaskScheduler:
     
     def start(self):
         """Start the scheduler."""
+        # Lifespan startup calls this once per process. Jobs must be idempotent enough
+        # to tolerate restarts, but duplicate schedulers across multiple app instances
+        # would still require operational care.
         # Subscription expiry check - every hour
         self.scheduler.add_job(
             check_subscription_expiry,
@@ -34,6 +42,13 @@ class TaskScheduler:
             update_vpn_stats,
             IntervalTrigger(minutes=5),
             id="update_vpn_stats",
+            replace_existing=True,
+        )
+
+        self.scheduler.add_job(
+            detect_handshake_anomalies,
+            IntervalTrigger(minutes=2),
+            id="detect_handshake_anomalies",
             replace_existing=True,
         )
         
@@ -179,6 +194,23 @@ async def daily_cleanup():
         await session.commit()
         
         logger.info(f"[TASKS] Cleaned {result.rowcount} old failed payments")
+
+
+async def detect_handshake_anomalies():
+    """
+    Observe live peer handshakes and record soft anomaly signals.
+    """
+    logger.debug("[TASKS] Detecting handshake anomalies...")
+
+    async with async_session_maker() as session:
+        from app.vpn.handshake_monitor import HandshakeAnomalyMonitor
+
+        monitor = HandshakeAnomalyMonitor(session)
+        processed = await monitor.scan_active_peers()
+        await session.commit()
+
+        if processed > 0:
+            logger.debug(f"[TASKS] Observed handshake metadata for {processed} device-bound peers")
 
 
 async def weekly_report():
