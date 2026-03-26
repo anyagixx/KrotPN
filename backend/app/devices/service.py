@@ -12,6 +12,8 @@ MODULE_MAP
 - DeviceAccessPolicyService: Coordinates per-user device slots and device lifecycle transitions.
 - get_user_device: Resolves one owned device for authenticated API flows.
 - ensure_primary_device: Reuses the first active device or creates a compatibility primary device for legacy web flows.
+- list_device_events: Returns durable audit events for one device ordered from newest to oldest.
+- get_recent_event_types: Returns compact recent event-type markers for admin summaries.
 - get_effective_device_limit: Resolves the current device limit from active billing state.
 - assert_can_create_device: Rejects provisioning before peer creation if the user has no available device slot.
 - create_device_record: Persists a new active device and records an audit event.
@@ -103,6 +105,21 @@ class DeviceAccessPolicyService:
     async def get_effective_device_limit(self, user_id: int) -> int:
         """Resolve the effective device limit from active billing state."""
         return await self.billing.get_effective_device_limit(user_id)
+
+    async def list_device_events(self, device_id: int, *, limit: int = 20) -> list[DeviceSecurityEvent]:
+        """Return device audit events ordered from newest to oldest."""
+        result = await self.session.execute(
+            select(DeviceSecurityEvent)
+            .where(DeviceSecurityEvent.device_id == device_id)
+            .order_by(DeviceSecurityEvent.created_at.desc(), DeviceSecurityEvent.id.desc())
+            .limit(limit)
+        )
+        return list(result.scalars().all())
+
+    async def get_recent_event_types(self, device_id: int, *, limit: int = 3) -> list[str]:
+        """Return recent event-type values for compact admin or telemetry summaries."""
+        events = await self.list_device_events(device_id, limit=limit)
+        return [event.event_type.value for event in events]
 
     async def assert_can_create_device(self, user_id: int) -> None:
         """Reject device creation before any peer provisioning if the limit is exhausted."""
