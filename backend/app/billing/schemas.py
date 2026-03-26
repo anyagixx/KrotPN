@@ -1,8 +1,24 @@
 """
 Billing schemas for API requests and responses.
 
+MODULE_CONTRACT
+- PURPOSE: Define request and response payloads for billing plan, subscription, payment and admin mutation APIs.
+- SCOPE: API-layer validation only; business rules and side effects remain in BillingService and routers.
+- DEPENDS: M-004 billing models enums and shared SQLModel validation layer.
+- LINKS: V-M-004, V-M-021.
+
+MODULE_MAP
+- PlanCreate: Validates admin plan creation payloads, including device_limit.
+- PlanUpdate: Validates partial admin plan updates, including device_limit changes.
+- SubscribeRequest: Validates user plan purchase intent and payment provider choice.
+- SubscriptionStatusResponse: Returns compact subscription-state payload.
+- PaymentCreateRequest: Validates explicit payment creation requests.
+- PaymentWebhookYooKassa: Documents YooKassa webhook payload shape.
+- PaymentHistoryResponse: Returns paged payment-history payload.
+- AdminSubscriptionUpdate: Validates admin-side subscription mutations.
+
 CHANGE_SUMMARY
-- 2026-03-27: Exposed plan-level device_limit in admin create/update schemas so per-plan device enforcement can be managed without direct DB edits.
+- 2026-03-27: Added device_limit to plan create and update schemas so plan slot limits can be managed through the API.
 """
 # <!-- GRACE: module="M-004" contract="billing-schemas" -->
 

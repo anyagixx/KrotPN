@@ -1,6 +1,12 @@
 """
 Application configuration module.
 Loads settings from environment variables.
+
+GRACE-lite module contract:
+- Owns runtime settings shape for backend and host-coupled integrations.
+- Environment variables are the only supported secrets/config source at runtime.
+- If docs and defaults disagree, deployed `.env` values and actual code behavior win.
+- Changes here can silently affect auth, billing, VPN bootstrap and deployment assumptions.
 """
 # <!-- GRACE: module="M-001" contract="config-loading" -->
 
@@ -23,7 +29,7 @@ class Settings(BaseSettings):
 
     # Application
     app_name: str = "KrotVPN"
-    app_version: str = "2.4.27"
+    app_version: str = "2.4.28"
     debug: bool = False
     environment: Literal["development", "staging", "production"] = "development"
 

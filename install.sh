@@ -1,8 +1,13 @@
 #!/bin/bash
 #
-# KrotVPN Interactive Installer v2.4.27
+# KrotVPN Interactive Installer v2.4.28
 # Run this command to install:
 #   curl -fsSL https://raw.githubusercontent.com/anyagixx/KrotVPN/main/install.sh | bash
+# GRACE-lite operational contract:
+# - This script is an interactive bootstrap helper, not a hardened deployment system.
+# - It handles remote credentials and should be treated as security-sensitive.
+# - It assumes password-based SSH access and writes temporary deployment material on the RU host.
+# - Agents changing this file must review secrets handling, host trust assumptions and cleanup behavior.
 #
 
 set -e
@@ -21,7 +26,7 @@ print_banner() {
     echo "║                                                              ║"
     echo "║                         K R O T V P N                        ║"
     echo "║                                                              ║"
-    echo "║              Interactive Installer v2.4.27                   ║"
+    echo "║              Interactive Installer v2.4.28                   ║"
     echo "║                                                              ║"
     echo "╚══════════════════════════════════════════════════════════════╝"
     echo -e "${NC}"
@@ -109,6 +114,40 @@ ask_yesno() {
     else
         eval "$var='n'"
     fi
+}
+
+get_admin_config() {
+    print_step "Step 4: Admin credentials"
+
+    echo -e "${BLUE}Set production admin credentials for KrotVPN:${NC}"
+    echo ""
+
+    ask "Admin email" "admin@krotvpn.com" ADMIN_EMAIL
+    if [ -z "$ADMIN_EMAIL" ]; then
+        print_error "Admin email is required"
+        exit 1
+    fi
+
+    while true; do
+        ask_password "Admin password" ADMIN_PASSWORD
+        if [ -z "$ADMIN_PASSWORD" ]; then
+            print_error "Admin password is required"
+            continue
+        fi
+
+        if [ "${#ADMIN_PASSWORD}" -lt 12 ]; then
+            print_error "Admin password must be at least 12 characters"
+            continue
+        fi
+
+        ask_password "Confirm admin password" ADMIN_PASSWORD_CONFIRM
+        if [ "$ADMIN_PASSWORD" != "$ADMIN_PASSWORD_CONFIRM" ]; then
+            print_error "Passwords do not match"
+            continue
+        fi
+
+        break
+    done
 }
 
 check_prerequisites() {
@@ -208,7 +247,7 @@ get_credentials() {
 }
 
 deploy() {
-    print_step "Step 4: Starting deployment"
+    print_step "Step 5: Starting deployment"
     
     echo -e "${BLUE}This will:${NC}"
     echo -e "  1. Clone KrotVPN on RU server"
@@ -229,17 +268,20 @@ deploy() {
     # Encode passwords in base64 (handles ALL special characters)
     RU_PASS_B64=$(echo -n "$RU_PASS" | base64 -w0)
     DE_PASS_B64=$(echo -n "$DE_PASS" | base64 -w0)
+    ADMIN_PASSWORD_B64=$(echo -n "$ADMIN_PASSWORD" | base64 -w0)
     
     # Create config file on RU server with base64 encoded passwords
     print_info "Creating configuration on RU server..."
     sshpass -p "$RU_PASS" ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null \
-        -o LogLevel=ERROR "$RU_USER@$RU_IP" "cat > /tmp/krotvpn_deploy.conf" << EOF
+        -o LogLevel=ERROR "$RU_USER@$RU_IP" "umask 077 && cat > /tmp/krotvpn_deploy.conf" << EOF
 DE_IP='${DE_IP}'
 DE_USER='${DE_USER}'
 DE_PASS_B64='${DE_PASS_B64}'
 RU_IP='${RU_IP}'
 RU_USER='${RU_USER}'
 RU_PASS_B64='${RU_PASS_B64}'
+ADMIN_EMAIL='${ADMIN_EMAIL}'
+ADMIN_PASSWORD_B64='${ADMIN_PASSWORD_B64}'
 EOF
     
     if [ $? -ne 0 ]; then
@@ -296,12 +338,16 @@ show_complete() {
     echo ""
     echo -e "  ssh root@${RU_IP} \"/opt/KrotVPN/deploy/create-client.sh my_client\""
     echo ""
-    echo -e "${CYAN}Configure in /opt/KrotVPN/.env:${NC}"
+    echo -e "${CYAN}Configured during install:${NC}"
     echo ""
-    echo -e "  • YOOKASSA_SHOP_ID     - for payments"
-    echo -e "  • YOOKASSA_SECRET_KEY  - for payments"
-    echo -e "  • TELEGRAM_BOT_TOKEN   - for Telegram bot"
-    echo -e "  • ADMIN_PASSWORD       - ${RED}change default!${NC}"
+    echo -e "  • ADMIN_EMAIL         - ${GREEN}${ADMIN_EMAIL}${NC}"
+    echo -e "  • ADMIN_PASSWORD      - password entered during installation"
+    echo ""
+    echo -e "${CYAN}Configure later in /opt/KrotVPN/.env:${NC}"
+    echo ""
+    echo -e "  • YOOKASSA_SHOP_ID    - for payments"
+    echo -e "  • YOOKASSA_SECRET_KEY - for payments"
+    echo -e "  • TELEGRAM_BOT_TOKEN  - for Telegram bot"
     echo ""
 }
 
@@ -310,6 +356,7 @@ main() {
     check_prerequisites
     get_server_info
     get_credentials
+    get_admin_config
     deploy
     show_complete
 }

@@ -23,7 +23,7 @@
     <item>VPN service supports route-aware logic with legacy compatibility.</item>
     <item>Admin route-policy controls and migration-safe routing analytics are implemented.</item>
     <item>Billing, referrals and Telegram bot are implemented at code level.</item>
-    <item>Release v2.4.27 is published and includes device-bound access control, per-plan device limits, detect-first handshake anomaly detection, admin peer control, a live Postgres handshake-timestamp hotfix, API exposure of plan device_limit, and the earlier backend-driven manual provisioning plus live awg0 peer activation.</item>
+    <item>Release v2.4.28 is published and carries forward device-bound access control, per-plan device limits, detect-first handshake anomaly detection, admin peer control, the live Postgres handshake-timestamp hotfix, API exposure of plan device_limit, post-release GRACE artifact sync, and checked-in AGENTS handoff guidance.</item>
     <item>RU and DE AWG interfaces are now managed through systemd and survive service restarts cleanly.</item>
     <item>DE host successfully rebooted into kernel 6.8.0-106-generic and AWG recovered automatically after boot.</item>
     <item>Fresh RU and DE servers were deployed and validated on March 26, 2026 with live AWG tunnel handshake and healthy backend/frontend/admin HTTPS surfaces on RU.</item>

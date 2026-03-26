@@ -1,6 +1,26 @@
 """
 Billing API router.
 
+MODULE_CONTRACT
+- PURPOSE: Expose public billing reads, user subscription and payment actions, YooKassa webhook handling, and admin plan or subscription management over BillingService.
+- SCOPE: Plan listing, subscription status/detail, payment creation and history, webhook intake, and admin plan or subscription mutation endpoints.
+- DEPENDS: M-001 auth and DB session injection, M-004 billing models or schemas or service, YooKassa client verification, and admin auth dependencies from backend-core.
+- LINKS: V-M-004, V-M-009, V-M-010, V-M-021.
+
+MODULE_MAP
+- list_plans: Returns active plans for the user-facing storefront, including device_limit.
+- get_subscription_status: Returns compact subscription status for the current user.
+- get_subscription_detail: Returns detailed subscription state for the current user.
+- create_subscription_payment: Starts a payment flow for one selected plan.
+- get_payment_history: Returns payment history for the current user.
+- yookassa_webhook: Validates and processes YooKassa webhook events.
+- admin_list_plans: Returns all plans for admin management, including device_limit.
+- admin_create_plan: Creates one plan through BillingService-backed admin flow.
+- admin_update_plan: Updates one existing plan, including mutable device_limit.
+- admin_delete_plan: Soft-deletes one plan by deactivating it.
+- admin_get_billing_stats: Returns aggregate billing statistics for admins.
+- admin_update_subscription: Applies admin-side subscription status changes.
+
 CHANGE_SUMMARY
 - 2026-03-27: Added device_limit to public and admin plan payloads so plan-level slot limits can be inspected and managed through the API.
 """

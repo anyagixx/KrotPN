@@ -3,9 +3,9 @@
 <development-plan>
   <meta>
     <project-name>KrotVPN</project-name>
-    <version>2.7.1</version>
+    <version>2.7.2</version>
     <updated>2026-03-27</updated>
-    <current-phase>Device-bound access control, per-plan device limits and detect-first anti-sharing enforcement released in v2.4.27 after live-server hotfixes for handshake timestamp persistence, plan device-limit API management and runtime version alignment</current-phase>
+    <current-phase>Device-bound access control, per-plan device limits and detect-first anti-sharing enforcement released in v2.4.28 after post-release GRACE sync, billing-surface contract completion and checked-in handoff guidance</current-phase>
   </meta>
 
   <status-summary>
@@ -16,8 +16,8 @@
     <in-progress>
       Synchronizing GRACE shared artifacts with the real codebase.
       Designing a policy-driven routing layer that can classify traffic by domain and IP.
-      Designing a backend-driven manual provisioning path so operator-created configs match web-generated configs.
-      Rolling device-bound access control into broader runtime and rollout verification on live infrastructure.
+      Hardening security-sensitive deployment defaults, secrets handling and admin bootstrap paths.
+      Tuning device-bound anti-sharing observability before any automatic block thresholds are enabled.
     </in-progress>
     <blocked-or-weak>
       Existing split-tunneling logic is too rigid for domain-level routing.

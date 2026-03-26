@@ -2,7 +2,7 @@
 
 **Коммерческий VPN-сервис с обфускацией AmneziaWG и split-tunneling**
 
-![Version](https://img.shields.io/badge/version-2.4.27-blue)
+![Version](https://img.shields.io/badge/version-2.4.28-blue)
 ![Python](https://img.shields.io/badge/python-3.11-green)
 ![React](https://img.shields.io/badge/react-18-blue)
 ![License](https://img.shields.io/badge/license-MIT-green)
@@ -37,6 +37,21 @@
                         │  - Redis    │
                         └─────────────┘
 ```
+
+## 🤖 AI Development Handoff
+
+Проект ведётся в режиме `GRACE-lite` для работы с несколькими ИИ-агентами.
+
+Перед любыми изменениями новый агент должен прочитать файлы в таком порядке:
+
+1. `docs/current-status.xml`
+2. `docs/knowledge-graph.xml`
+3. `docs/development-plan.xml`
+4. `docs/verification-plan.xml`
+5. `AGENTS.md`
+
+Это обязательный входной слой проекта: он фиксирует текущую стадию разработки,
+приоритеты, карту модулей и правила проверки изменений.
 
 ## ⚡ Быстрый старт
 
