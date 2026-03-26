@@ -74,7 +74,7 @@
     </V-M-001>
     <V-M-002 module="users">
       <checks>Identity creation stays deterministic for both normal and internal users, and manual internal-user resolution cannot create duplicate user rows for the same logical client.</checks>
-      <tests>backend/tests/test_telegram_auth.py backend/tests/test_manual_access_policy.py plus planned CLI coverage in backend/tests/test_manual_client_cli.py</tests>
+      <tests>backend/tests/test_telegram_auth.py backend/tests/test_manual_access_policy.py backend/tests/test_manual_client_cli.py</tests>
       <anchors>VPN_INTERNAL_USER_RESOLVED</anchors>
     </V-M-002>
     <V-M-003 module="vpn">
