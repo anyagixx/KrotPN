@@ -3,14 +3,15 @@
 <verification-plan>
   <meta>
     <project-name>KrotVPN</project-name>
-    <version>2.5.0</version>
-    <updated>2026-03-24</updated>
+    <version>2.6.0</version>
+    <updated>2026-03-26</updated>
   </meta>
 
   <verification-philosophy>
     <principle>Routing decisions must be explainable, deterministic and safe to replay from logs.</principle>
     <principle>Domain-aware routing is not verified unless domain rules, DNS binding and host-level runtime sync are checked together.</principle>
     <principle>If host tools or dependencies are unavailable, the report must state the exact blocked command and missing prerequisite.</principle>
+    <principle>Manual operator-issued VPN configs are not verified unless they are generated through the same backend provisioning and config-rendering path as the working web flow.</principle>
   </verification-philosophy>
 
   <critical-flows>
@@ -19,6 +20,8 @@
     <CF-003>foreign domain with changing CDN IPs -> DNS rebinding -> DE policy remains effective</CF-003>
     <CF-004>admin updates routing rule -> runtime sync applies changes without breaking unrelated routes</CF-004>
     <CF-005>unknown domain -> CIDR fallback -> RU baseline or default path remains backward compatible</CF-005>
+    <CF-006>manual internal client command -> complimentary access grant -> vpn client provisioning -> working config export</CF-006>
+    <CF-007>repeat manual internal client command -> same identity reuse or explicit reprovision -> no silent duplicate active client</CF-007>
   </critical-flows>
 
   <verification-matrix>
@@ -52,6 +55,16 @@
       <failure>Route-aware provisioning diverges from effective runtime policy.</failure>
       <required-trace>VPN_PROVISION_ROUTE_SELECTED VPN_CONFIG_RENDERED</required-trace>
     </scenario>
+    <scenario id="VM-007" module="V-M-018" evidence="state-plus-policy">
+      <success>Manual internal access grant creates or reuses a clearly marked non-billable access record without invoking payment-provider logic.</success>
+      <failure>Internal access is missing, duplicated, or silently mixed with normal paid subscription state.</failure>
+      <required-trace>VPN_INTERNAL_USER_RESOLVED VPN_INTERNAL_ACCESS_GRANTED</required-trace>
+    </scenario>
+    <scenario id="VM-008" module="V-M-019" evidence="integration">
+      <success>Operator CLI issues a working config through backend provisioning and config rendering, and repeated issuance stays idempotent unless reprovision is explicit.</success>
+      <failure>CLI falls back to raw host-only config generation, or duplicate active client state is created for the same internal identity.</failure>
+      <required-trace>VPN_MANUAL_CLIENT_REQUESTED VPN_MANUAL_CLIENT_PROVISIONED VPN_CONFIG_RENDERED</required-trace>
+    </scenario>
   </verification-matrix>
 
   <module-verification>
@@ -59,16 +72,26 @@
       <checks>Backend config and DB initialization remain runnable; auth and crypto helpers still load.</checks>
       <evidence>backend startup or targeted import/test reasoning</evidence>
     </V-M-001>
+    <V-M-002 module="users">
+      <checks>Identity creation stays deterministic for both normal and internal users, and manual internal-user resolution cannot create duplicate user rows for the same logical client.</checks>
+      <tests>backend/tests/test_telegram_auth.py backend/tests/test_manual_access_policy.py plus planned CLI coverage in backend/tests/test_manual_client_cli.py</tests>
+      <anchors>VPN_INTERNAL_USER_RESOLVED</anchors>
+    </V-M-002>
     <V-M-003 module="vpn">
-      <checks>Provisioning and config generation remain compatible with route-aware topology.</checks>
-      <tests>backend/tests/test_vpn_service.py backend/tests/test_vpn_router_compat.py</tests>
-      <anchors>VPN_PROVISION_ROUTE_SELECTED VPN_CONFIG_RENDERED</anchors>
+      <checks>Provisioning and config generation remain compatible with route-aware topology, including configs exported for operator-managed internal clients.</checks>
+      <tests>backend/tests/test_vpn_service.py backend/tests/test_vpn_router_compat.py plus planned parity checks in backend/tests/test_manual_client_cli.py</tests>
+      <anchors>VPN_PROVISION_ROUTE_SELECTED VPN_CONFIG_RENDERED VPN_PEER_APPLIED</anchors>
     </V-M-003>
     <V-M-004 module="billing">
-      <checks>Payment and webhook flows remain isolated from routing migration.</checks>
-      <tests>backend/tests/test_billing_security.py</tests>
-      <anchors>BILLING_WEBHOOK_ACCEPTED BILLING_SUBSCRIPTION_UPDATED</anchors>
+      <checks>Payment and webhook flows remain isolated from routing migration, and complimentary internal access can be granted without entering payment-provider logic.</checks>
+      <tests>backend/tests/test_billing_security.py backend/tests/test_manual_access_policy.py</tests>
+      <anchors>BILLING_WEBHOOK_ACCEPTED BILLING_SUBSCRIPTION_UPDATED VPN_INTERNAL_ACCESS_GRANTED</anchors>
     </V-M-004>
+    <V-M-005 module="referrals">
+      <checks>Referral logic remains excluded from manual internal client issuance unless explicitly requested by future policy.</checks>
+      <tests>static review plus future targeted referral-policy tests if manual issuance ever intersects referral creation</tests>
+      <anchors>none-required-for-current-scope</anchors>
+    </V-M-005>
     <V-M-006 module="admin-api">
       <checks>Admin routing inspection and analytics endpoints enforce admin auth and reflect current policy state.</checks>
       <tests>backend/tests/test_route_decision_api.py backend/tests/test_admin_stats.py</tests>
@@ -79,6 +102,11 @@
       <tests>backend/tests/test_routing_policy_compat.py plus static review and targeted runtime tests when host tools are available</tests>
       <anchors>ROUTING_RU_IPSET_UPDATED ROUTING_CUSTOM_SYNC_APPLIED</anchors>
     </V-M-007>
+    <V-M-008 module="tasks">
+      <checks>Background jobs do not auto-assign complimentary internal access or mutate manually managed clients unexpectedly.</checks>
+      <tests>static review until a task is introduced for internal-access cleanup or reporting</tests>
+      <anchors>none-required-for-current-scope</anchors>
+    </V-M-008>
     <V-M-009 module="frontend-user">
       <checks>User frontend still builds and has no contract mismatch with auth, config and subscription APIs.</checks>
       <commands>cd frontend &amp;&amp; npm run build</commands>
@@ -87,10 +115,15 @@
       <checks>Admin frontend builds and reflects new route policy surfaces without auth regression.</checks>
       <commands>cd frontend-admin &amp;&amp; npm run build</commands>
     </V-M-010>
+    <V-M-011 module="telegram-bot">
+      <checks>Telegram bot remains on the normal user flow and does not silently consume internal-only manual provisioning paths.</checks>
+      <tests>backend/tests/test_telegram_auth.py plus static review of telegram-bot/bot.py call surfaces</tests>
+      <anchors>none-required-for-current-scope</anchors>
+    </V-M-011>
     <V-M-012 module="deploy-surface">
-      <checks>Deploy and nginx changes do not introduce weak defaults or unsafe routing assumptions.</checks>
-      <commands>bash -n deploy/deploy-ru-server.sh &amp;&amp; bash -n deploy/deploy-on-server.sh &amp;&amp; bash -n deploy/deploy-all.sh &amp;&amp; bash -n install.sh</commands>
-      <evidence>static review of secrets, ports, mounts and host tool expectations; if host validation is unavailable, report exact missing commands</evidence>
+      <checks>Deploy and nginx changes do not introduce weak defaults or unsafe routing assumptions, and deploy/create-client.sh becomes a thin wrapper over backend CLI instead of generating raw host-only configs.</checks>
+      <commands>bash -n deploy/deploy-ru-server.sh &amp;&amp; bash -n deploy/deploy-on-server.sh &amp;&amp; bash -n deploy/deploy-all.sh &amp;&amp; bash -n deploy/create-client.sh &amp;&amp; bash -n install.sh</commands>
+      <evidence>static review of secrets, ports, mounts, backend CLI invocation and host tool expectations; if host validation is unavailable, report exact missing commands</evidence>
     </V-M-012>
     <V-M-013 module="route-policy-resolver">
       <checks>
@@ -123,6 +156,16 @@
       <tests>backend/tests/test_route_sync_runtime.py</tests>
       <anchors>RUNTIME_ROUTESET_APPLIED RUNTIME_ROUTESET_INCREMENTAL RUNTIME_ROUTESET_FULL_REFRESH</anchors>
     </V-M-017>
+    <V-M-018 module="manual-access-policy">
+      <checks>Complimentary internal access is created or reused deterministically, remains visible in normal subscription state and does not invoke payment-provider side effects.</checks>
+      <tests>backend/tests/test_manual_access_policy.py</tests>
+      <anchors>VPN_INTERNAL_USER_RESOLVED VPN_INTERNAL_ACCESS_GRANTED</anchors>
+    </V-M-018>
+    <V-M-019 module="manual-client-cli">
+      <checks>Manual CLI issuance resolves the internal identity, provisions through VPNService, exports a working config and stays idempotent unless reprovision is explicitly requested.</checks>
+      <tests>planned backend/tests/test_manual_client_cli.py</tests>
+      <anchors>VPN_MANUAL_CLIENT_REQUESTED VPN_MANUAL_CLIENT_PROVISIONED VPN_CONFIG_RENDERED VPN_MANUAL_CLIENT_OUTPUT_WRITTEN</anchors>
+    </V-M-019>
   </module-verification>
 
   <change-matrix>
@@ -138,6 +181,11 @@
     <admin-surface-change>
       <required>Verify admin auth, endpoint behavior and admin frontend compatibility.</required>
     </admin-surface-change>
+    <manual-client-provisioning-change>
+      <required>Verify CF-006 and CF-007 with backend CLI plus deploy/create-client.sh wrapper coverage.</required>
+      <required>Confirm operator-created configs are rendered by VPNService rather than raw shell-generated templates.</required>
+      <required>Confirm complimentary access remains distinguishable from paid subscriptions in state and reporting.</required>
+    </manual-client-provisioning-change>
   </change-matrix>
 
   <telemetry-requirements>
@@ -145,12 +193,19 @@
       Important routing logs should use stable machine-readable markers in the form
       [Routing][resolver][MARKER] or equivalent structured fields.
     </format>
+    <manual-provisioning-format>
+      Manual provisioning logs should use stable markers in the form
+      [VPN][manual][MARKER] or [Billing][internal][MARKER].
+    </manual-provisioning-format>
     <redaction>
       Do not log secrets, private keys, raw tokens, payment credentials or full sensitive payloads.
     </redaction>
     <required-fields>
       decision_reason rule_id domain normalized_domain resolved_ip route_target source ttl_seconds sync_mode
     </required-fields>
+    <manual-required-fields>
+      internal_identity user_id access_mode complimentary subscription_id client_id route_id entry_node_id output_path reprovision
+    </manual-required-fields>
     <ordering>
       For trace assertions, event order matters more than prose wording. Prefer stable markers and fields over free text.
     </ordering>
@@ -158,13 +213,13 @@
 
   <verification-levels>
     <module-level>
-      Resolver precedence tests, domain normalization tests, admin auth checks and narrow runtime sync tests.
+      Resolver precedence tests, domain normalization tests, admin auth checks, internal-access policy tests, CLI parity tests and narrow runtime sync tests.
     </module-level>
     <wave-level>
       Merged checks across routing, vpn and admin surfaces for domain policy mutation and decision explainability.
     </wave-level>
     <phase-level>
-      Full routing migration confidence gate including rollback reasoning, host-tool assumptions and deploy impact review.
+      Full routing migration confidence gate including rollback reasoning, host-tool assumptions, deploy impact review and manual-client provisioning parity review.
     </phase-level>
   </verification-levels>
 
@@ -183,6 +238,11 @@
     <Phase-4-Gate>
       <required>Production rollout review includes rollback, host-tool compatibility and secrets-safe deploy impact.</required>
     </Phase-4-Gate>
+    <Phase-5-Gate>
+      <required>Operator-issued configs are generated through backend provisioning and connect with the same topology semantics as web-issued configs.</required>
+      <required>Repeated manual issuance does not create silent duplicate active clients.</required>
+      <required>Complimentary internal access stays explicit in state and does not invoke payment-provider logic.</required>
+    </Phase-5-Gate>
   </phase-gates>
 
   <agent-reporting>
