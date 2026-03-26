@@ -11,28 +11,115 @@ MODULE_MAP
 - get_admin_stats: Aggregates dashboard metrics across users, subscriptions, revenue, VPN, and routing visibility.
 - get_revenue_analytics: Returns grouped payment revenue analytics over a bounded date range.
 - get_users_analytics: Returns grouped user registration analytics over a bounded date range.
+- list_admin_devices: Returns device registry rows with live slot/security context for admin review.
+- block_admin_device: Blocks one device peer without freeing the consumed slot.
+- unblock_admin_device: Clears the blocked state for one device.
+- rotate_admin_device: Reprovisions one device config while keeping the logical device identity.
+- revoke_admin_device: Revokes one device and frees the slot.
 - get_system_health: Returns coarse host health metrics for privileged operators.
 
 CHANGE_SUMMARY
 - 2026-03-24: Added route-aware admin statistics so dashboard reporting can surface node, route, rule, and DNS-binding state during routing migration.
+- 2026-03-27: Added admin device-control endpoints for block/unblock/rotate/revoke and device-level fraud visibility.
 """
 # <!-- GRACE: module="M-006" api-group="Admin API" -->
 
 from datetime import datetime, timedelta
 
-from fastapi import APIRouter, Query
+from fastapi import APIRouter, HTTPException, Query, status
 from sqlalchemy import func, select
 from sqlmodel import col
 
 from app.core import CurrentAdmin, CurrentSuperuser, DBSession
 from app.billing.models import Payment, PaymentStatus, Plan, Subscription
+from app.devices.models import DeviceSecurityEvent, UserDevice
+from app.devices.service import DeviceAccessPolicyService
 from app.referrals.models import Referral, ReferralCode
 from app.routing.models import CidrRouteRule, DomainRouteRule
 from app.routing.router import policy_dns_observer
 from app.users.models import User, UserRole
 from app.vpn.models import VPNClient, VPNNode, VPNRoute, VPNServer
+from app.vpn.service import VPNService
 
 router = APIRouter(prefix="/api/admin", tags=["admin"])
+
+
+async def _serialize_admin_device(
+    session: DBSession,
+    *,
+    device: UserDevice,
+    user: User,
+) -> dict:
+    """Project one device plus current peer context into the admin response shape."""
+    active_peer_count = (
+        await session.execute(
+            select(func.count(VPNClient.id)).where(
+                VPNClient.device_id == device.id,
+                VPNClient.is_active == True,
+            )
+        )
+    ).scalar() or 0
+
+    recent_events_result = await session.execute(
+        select(DeviceSecurityEvent.event_type)
+        .where(DeviceSecurityEvent.device_id == device.id)
+        .order_by(DeviceSecurityEvent.created_at.desc())
+        .limit(3)
+    )
+    recent_event_types = [event.value for event in recent_events_result.scalars().all()]
+
+    return {
+        "id": device.id,
+        "user_id": device.user_id,
+        "user_email": user.email,
+        "user_display_name": user.display_name,
+        "name": device.name,
+        "platform": device.platform,
+        "status": device.status.value,
+        "config_version": device.config_version,
+        "block_reason": device.block_reason,
+        "created_at": device.created_at,
+        "updated_at": device.updated_at,
+        "revoked_at": device.revoked_at,
+        "blocked_at": device.blocked_at,
+        "last_seen_at": device.last_seen_at,
+        "last_handshake_at": device.last_handshake_at,
+        "last_endpoint": device.last_endpoint,
+        "active_peer_count": int(active_peer_count),
+        "recent_event_types": recent_event_types,
+    }
+
+
+async def _list_admin_devices(
+    session: DBSession,
+    *,
+    search: str = "",
+) -> list[dict]:
+    """Return device rows plus user context for the admin table."""
+    query = (
+        select(UserDevice, User)
+        .join(User, User.id == UserDevice.user_id)
+        .order_by(UserDevice.created_at.desc(), UserDevice.id.desc())
+    )
+    if search.strip():
+        needle = f"%{search.strip().lower()}%"
+        query = query.where(
+            func.lower(func.coalesce(User.email, "")).like(needle)
+            | func.lower(func.coalesce(User.name, "")).like(needle)
+            | func.lower(UserDevice.name).like(needle)
+            | func.lower(func.coalesce(UserDevice.platform, "")).like(needle)
+        )
+
+    result = await session.execute(query)
+    items: list[dict] = []
+    for device, user in result.all():
+        items.append(await _serialize_admin_device(session, device=device, user=user))
+    return items
+
+
+async def _get_admin_device_or_none(session: DBSession, device_id: int) -> UserDevice | None:
+    """Load one device row for admin mutation endpoints."""
+    return await session.get(UserDevice, device_id)
 
 
 # ==================== Dashboard Stats ====================
@@ -228,6 +315,86 @@ async def get_users_analytics(
         "period_days": days,
         "daily": daily_data,
     }
+
+
+@router.get("/devices")
+async def list_admin_devices(
+    admin: CurrentAdmin,
+    session: DBSession,
+    search: str = Query(default=""),
+):
+    """Return user devices with recent security context for admin review."""
+    items = await _list_admin_devices(session, search=search)
+    return {
+        "items": items,
+        "total": len(items),
+    }
+
+
+@router.post("/devices/{device_id}/block")
+async def block_admin_device(
+    device_id: int,
+    admin: CurrentAdmin,
+    session: DBSession,
+):
+    """Block one device peer while preserving slot consumption."""
+    policy = DeviceAccessPolicyService(session)
+    device = await _get_admin_device_or_none(session, device_id)
+    if device is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Device not found")
+    updated = await policy.block_device(device, reason=f"admin:{admin.id}")
+    user = await session.get(User, updated.user_id)
+    return await _serialize_admin_device(session, device=updated, user=user)
+
+
+@router.post("/devices/{device_id}/unblock")
+async def unblock_admin_device(
+    device_id: int,
+    admin: CurrentAdmin,
+    session: DBSession,
+):
+    """Unblock one device without silently restoring the old peer."""
+    policy = DeviceAccessPolicyService(session)
+    device = await _get_admin_device_or_none(session, device_id)
+    if device is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Device not found")
+    updated = await policy.unblock_device(device, reason=f"admin:{admin.id}")
+    user = await session.get(User, updated.user_id)
+    return await _serialize_admin_device(session, device=updated, user=user)
+
+
+@router.post("/devices/{device_id}/rotate")
+async def rotate_admin_device(
+    device_id: int,
+    admin: CurrentAdmin,
+    session: DBSession,
+):
+    """Rotate one device config and reprovision its peer."""
+    policy = DeviceAccessPolicyService(session)
+    vpn = VPNService(session)
+    device = await _get_admin_device_or_none(session, device_id)
+    if device is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Device not found")
+    updated = await policy.rotate_device_config(device, reason=f"admin:{admin.id}")
+    await vpn.provision_device_client(int(updated.user_id), int(updated.id), reprovision=True)
+    user = await session.get(User, updated.user_id)
+    return await _serialize_admin_device(session, device=updated, user=user)
+
+
+@router.delete("/devices/{device_id}")
+async def revoke_admin_device(
+    device_id: int,
+    admin: CurrentAdmin,
+    session: DBSession,
+):
+    """Revoke one device and free its slot."""
+    policy = DeviceAccessPolicyService(session)
+    device = await _get_admin_device_or_none(session, device_id)
+    if device is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Device not found")
+    updated = await policy.revoke_device(device, reason=f"admin:{admin.id}")
+    user = await session.get(User, updated.user_id)
+    return await _serialize_admin_device(session, device=updated, user=user)
 
 
 # ==================== System ====================
