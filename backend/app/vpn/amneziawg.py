@@ -326,6 +326,7 @@ AllowedIPs = {address}/32
                             datetime.fromtimestamp(handshake, tz=timezone.utc)
                             if handshake > 0 else None
                         ),
+                        "endpoint": parts[2] if len(parts) > 2 and parts[2] and parts[2] != "(none)" else None,
                         "upload": tx_bytes,  # tx = sent by client = upload
                         "download": rx_bytes,  # rx = received by client = download
                     }
