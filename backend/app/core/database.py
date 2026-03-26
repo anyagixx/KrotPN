@@ -46,6 +46,7 @@ async_session_maker = async_sessionmaker(
 def import_all_models() -> None:
     """Import all SQLModel models so relationship targets are registered."""
     import app.billing.models  # noqa: F401
+    import app.devices.models  # noqa: F401
     import app.referrals.models  # noqa: F401
     import app.routing.models  # noqa: F401
     import app.users.models  # noqa: F401
@@ -86,11 +87,13 @@ async def migrate_existing_schema(conn) -> None:
     # so any migration bug here affects every application boot.
     await _ensure_subscription_internal_access_columns(conn)
     await _ensure_vpn_client_topology_columns(conn)
+    await _ensure_vpn_client_device_columns(conn)
     await _migrate_legacy_vpn_servers_to_nodes(conn)
     await _migrate_legacy_vpn_clients_to_topology(conn)
     await _sync_vpn_topology_client_counts(conn)
     await _deduplicate_vpn_clients(conn)
     await _ensure_unique_vpn_client_user_id(conn)
+    await _backfill_primary_user_devices(conn)
 
 
 async def _deduplicate_vpn_clients(conn) -> None:
@@ -219,6 +222,26 @@ async def _ensure_vpn_client_topology_columns(conn) -> None:
             )
         )
         logger.info(f"[DB] Added vpn_clients.{column_name} compatibility column")
+
+
+async def _ensure_vpn_client_device_columns(conn) -> None:
+    """Add nullable device linkage columns to vpn_clients on already deployed databases."""
+    has_vpn_clients = await conn.run_sync(_table_exists, "vpn_clients")
+    if not has_vpn_clients:
+        return
+
+    if not await conn.run_sync(_table_has_column, "vpn_clients", "device_id"):
+        await conn.execute(text("ALTER TABLE vpn_clients ADD COLUMN device_id INTEGER"))
+        logger.info("[DB] Added vpn_clients.device_id compatibility column")
+
+    await conn.execute(
+        text(
+            """
+            CREATE INDEX IF NOT EXISTS ix_vpn_clients_device_id
+            ON vpn_clients (device_id)
+            """
+        )
+    )
 
 
 async def _ensure_subscription_internal_access_columns(conn) -> None:
@@ -539,6 +562,139 @@ async def _sync_vpn_topology_client_counts(conn) -> None:
             )
 
 
+async def _backfill_primary_user_devices(conn) -> None:
+    """Create deterministic primary devices for legacy vpn_clients rows."""
+    has_vpn_clients = await conn.run_sync(_table_exists, "vpn_clients")
+    has_user_devices = await conn.run_sync(_table_exists, "user_devices")
+    has_device_events = await conn.run_sync(_table_exists, "device_security_events")
+    if not has_vpn_clients or not has_user_devices:
+        return
+
+    result = await conn.execute(
+        text(
+            """
+            SELECT id, user_id, device_id, is_active, created_at, updated_at, last_handshake_at
+            FROM vpn_clients
+            ORDER BY user_id ASC, id ASC
+            """
+        )
+    )
+    rows = list(result.mappings())
+    if not rows:
+        return
+
+    created_devices = 0
+    linked_clients = 0
+    recorded_events = 0
+
+    for row in rows:
+        client_id = int(row["id"])
+        user_id = int(row["user_id"])
+        existing_device_id = row["device_id"]
+        if existing_device_id is not None:
+            device_exists = await conn.execute(
+                text("SELECT id FROM user_devices WHERE id = :device_id"),
+                {"device_id": int(existing_device_id)},
+            )
+            if device_exists.scalar_one_or_none() is not None:
+                continue
+
+        device_key = _legacy_primary_device_key(user_id)
+        existing_device = await conn.execute(
+            text(
+                """
+                SELECT id
+                FROM user_devices
+                WHERE device_key = :device_key
+                """
+            ),
+            {"device_key": device_key},
+        )
+        device_id = existing_device.scalar_one_or_none()
+
+        if device_id is None:
+            await conn.execute(
+                text(
+                    """
+                    INSERT INTO user_devices (
+                        user_id,
+                        device_key,
+                        name,
+                        platform,
+                        status,
+                        created_at,
+                        updated_at,
+                        last_seen_at,
+                        last_handshake_at,
+                        config_version
+                    )
+                    VALUES (
+                        :user_id,
+                        :device_key,
+                        :name,
+                        :platform,
+                        :status,
+                        :created_at,
+                        :updated_at,
+                        :last_seen_at,
+                        :last_handshake_at,
+                        1
+                    )
+                    """
+                ),
+                {
+                    "user_id": user_id,
+                    "device_key": device_key,
+                    "name": "Primary device",
+                    "platform": "legacy-migrated",
+                    "status": "active" if bool(row["is_active"]) else "revoked",
+                    "created_at": row["created_at"],
+                    "updated_at": row["updated_at"],
+                    "last_seen_at": row["last_handshake_at"],
+                    "last_handshake_at": row["last_handshake_at"],
+                },
+            )
+            inserted_device = await conn.execute(
+                text("SELECT id FROM user_devices WHERE device_key = :device_key"),
+                {"device_key": device_key},
+            )
+            device_id = inserted_device.scalar_one()
+            created_devices += 1
+            logger.info(
+                "[VPN][device][VPN_DEVICE_CREATED] "
+                f"user_id={user_id} device_id={int(device_id)} device_key={device_key} source=legacy_migration"
+            )
+
+            if has_device_events:
+                await _record_device_security_event(
+                    conn,
+                    user_id=user_id,
+                    device_id=int(device_id),
+                    event_type="migrated_primary_device",
+                    severity="info",
+                    details_json=f'{{"client_id": {client_id}, "source": "legacy_migration"}}',
+                )
+                recorded_events += 1
+
+        await conn.execute(
+            text(
+                """
+                UPDATE vpn_clients
+                SET device_id = :device_id
+                WHERE id = :client_id
+                """
+            ),
+            {"client_id": client_id, "device_id": int(device_id)},
+        )
+        linked_clients += 1
+
+    if created_devices:
+        logger.info(
+            "[VPN][device][VPN_DEVICE_AUDIT_RECORDED] "
+            f"created_devices={created_devices} linked_clients={linked_clients} events={recorded_events} source=legacy_migration"
+        )
+
+
 async def _ensure_legacy_route(
     conn,
     *,
@@ -659,6 +815,52 @@ def _country_code_for_location(location: str) -> str:
         if needle in normalized:
             return country_code
     return "ZZ"
+
+
+def _legacy_primary_device_key(user_id: int) -> str:
+    """Build a deterministic device key for migrated legacy users."""
+    return f"legacy-user-{user_id}-primary"
+
+
+async def _record_device_security_event(
+    conn,
+    *,
+    user_id: int,
+    device_id: int,
+    event_type: str,
+    severity: str,
+    details_json: str,
+) -> None:
+    """Insert a durable device security event during compatibility migration."""
+    await conn.execute(
+        text(
+            """
+            INSERT INTO device_security_events (
+                user_id,
+                device_id,
+                event_type,
+                severity,
+                details_json,
+                created_at
+            )
+            VALUES (
+                :user_id,
+                :device_id,
+                :event_type,
+                :severity,
+                :details_json,
+                CURRENT_TIMESTAMP
+            )
+            """
+        ),
+        {
+            "user_id": user_id,
+            "device_id": device_id,
+            "event_type": event_type,
+            "severity": severity,
+            "details_json": details_json,
+        },
+    )
 
 
 async def get_session() -> AsyncGenerator[AsyncSession, None]:
