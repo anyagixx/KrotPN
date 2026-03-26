@@ -3,9 +3,9 @@
 <development-plan>
   <meta>
     <project-name>KrotVPN</project-name>
-    <version>2.7.0</version>
+    <version>2.7.1</version>
     <updated>2026-03-27</updated>
-    <current-phase>Device-bound access control, per-plan device limits and detect-first anti-sharing enforcement implemented locally and released in v2.4.26</current-phase>
+    <current-phase>Device-bound access control, per-plan device limits and detect-first anti-sharing enforcement released in v2.4.27 after live-server hotfixes for handshake timestamp persistence, plan device-limit API management and runtime version alignment</current-phase>
   </meta>
 
   <status-summary>

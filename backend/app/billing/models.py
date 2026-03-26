@@ -154,6 +154,7 @@ class PlanResponse(SQLModel):
     price: float
     currency: str
     duration_days: int
+    device_limit: int
     features: list[str]
     is_popular: bool
     

@@ -1,5 +1,8 @@
 """
 Billing API router.
+
+CHANGE_SUMMARY
+- 2026-03-27: Added device_limit to public and admin plan payloads so plan-level slot limits can be inspected and managed through the API.
 """
 # <!-- GRACE: module="M-004" api-group="Billing API" -->
 
@@ -55,6 +58,7 @@ async def list_plans(
             price=p.price,
             currency=p.currency,
             duration_days=p.duration_days,
+            device_limit=p.device_limit,
             features=json.loads(p.features) if p.features else [],
             is_popular=p.is_popular,
         )
@@ -257,6 +261,7 @@ async def admin_list_plans(
             price=p.price,
             currency=p.currency,
             duration_days=p.duration_days,
+            device_limit=p.device_limit,
             features=json.loads(p.features) if p.features else [],
             is_popular=p.is_popular,
         )

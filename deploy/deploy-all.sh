@@ -45,7 +45,7 @@ ssh_de() {
 # Print banner
 echo -e "${CYAN}"
 echo "╔══════════════════════════════════════════════════════════════╗"
-echo "║           KrotVPN Automated Deployment v2.4.25              ║"
+echo "║           KrotVPN Automated Deployment v2.4.27              ║"
 echo "╠══════════════════════════════════════════════════════════════╣"
 echo "║  RU Server (Entry): ${RU_IP}                            ║"
 echo "║  DE Server (Exit):  ${DE_IP}                            ║"
@@ -491,7 +491,7 @@ ADMIN_PASSWORD="${ADMIN_PASSWORD:-$(python3 -c "import secrets; print(secrets.to
 cat > .env << EOF
 # === APPLICATION ===
 APP_NAME=KrotVPN
-APP_VERSION=2.4.25
+APP_VERSION=2.4.27
 DEBUG=false
 ENVIRONMENT=production
 HOST=0.0.0.0

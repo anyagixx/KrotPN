@@ -100,6 +100,8 @@ async def test_observe_peer_stats_updates_device_presence_metadata(device_monito
     assert device.last_endpoint == "198.51.100.7:51820"
     assert device.last_seen_at is not None
     assert device.last_handshake_at is not None
+    assert device.last_seen_at.tzinfo is None
+    assert device.last_handshake_at.tzinfo is None
 
 
 @pytest.mark.asyncio

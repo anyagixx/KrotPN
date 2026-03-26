@@ -3,9 +3,9 @@
 <knowledge-graph>
   <meta>
     <project-name>KrotVPN</project-name>
-    <version>2.7.0</version>
+    <version>2.7.1</version>
     <updated>2026-03-27</updated>
-    <purpose>Fast AI onboarding and navigation for the current system plus the approved routing-policy migration, manual internal client provisioning parity plan, and device-bound access plus anti-sharing architecture.</purpose>
+    <purpose>Fast AI onboarding and navigation for the current system plus the approved routing-policy migration, manual internal client provisioning parity plan, device-bound access plus anti-sharing architecture, and the live hotfixes applied after v2.4.26 rollout.</purpose>
   </meta>
 
   <entry-points>
@@ -42,7 +42,7 @@
     </M-003>
     <M-004 NAME="billing" TYPE="CORE_LOGIC" verification-ref="V-M-004">
       <path>backend/app/billing</path>
-      <owns>plans, subscriptions, payments and YooKassa integration</owns>
+      <owns>plans, subscriptions, per-plan device limits, payments and YooKassa integration</owns>
     </M-004>
     <M-005 NAME="referrals" TYPE="CORE_LOGIC" verification-ref="V-M-005">
       <path>backend/app/referrals</path>

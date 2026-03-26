@@ -1,5 +1,8 @@
 """
 Billing schemas for API requests and responses.
+
+CHANGE_SUMMARY
+- 2026-03-27: Exposed plan-level device_limit in admin create/update schemas so per-plan device enforcement can be managed without direct DB edits.
 """
 # <!-- GRACE: module="M-004" contract="billing-schemas" -->
 
@@ -18,6 +21,7 @@ class PlanCreate(SQLModel):
     price: float = Field(..., ge=0)
     currency: str = Field(default="RUB", max_length=3)
     duration_days: int = Field(..., ge=1)
+    device_limit: int = Field(default=1, ge=1)
     features: list[str] = Field(default=[])
     is_popular: bool = False
     sort_order: int = 0
@@ -29,6 +33,7 @@ class PlanUpdate(SQLModel):
     description: str | None = None
     price: float | None = None
     duration_days: int | None = None
+    device_limit: int | None = Field(default=None, ge=1)
     features: list[str] | None = None
     is_active: bool | None = None
     is_popular: bool | None = None

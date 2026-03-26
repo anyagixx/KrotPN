@@ -3,7 +3,7 @@
 <verification-plan>
   <meta>
     <project-name>KrotVPN</project-name>
-    <version>2.7.0</version>
+    <version>2.7.1</version>
     <updated>2026-03-27</updated>
   </meta>
 
@@ -120,8 +120,8 @@
       <anchors>VPN_PROVISION_ROUTE_SELECTED VPN_CONFIG_RENDERED VPN_PEER_APPLIED</anchors>
     </V-M-003>
     <V-M-004 module="billing">
-      <checks>Payment and webhook flows remain isolated from routing migration, and complimentary internal access can be granted without entering payment-provider logic.</checks>
-      <tests>backend/tests/test_billing_security.py backend/tests/test_manual_access_policy.py</tests>
+      <checks>Payment and webhook flows remain isolated from routing migration, complimentary internal access can be granted without entering payment-provider logic, and plan device_limit remains visible and mutable through the admin API.</checks>
+      <tests>backend/tests/test_billing_security.py backend/tests/test_manual_access_policy.py backend/tests/test_billing_plan_api.py</tests>
       <anchors>BILLING_WEBHOOK_ACCEPTED BILLING_SUBSCRIPTION_UPDATED VPN_INTERNAL_ACCESS_GRANTED</anchors>
     </V-M-004>
     <V-M-005 module="referrals">
@@ -219,7 +219,7 @@
       <anchors>VPN_DEVICE_CREATED VPN_DEVICE_REVOKED VPN_DEVICE_CONFIG_ROTATED VPN_CONFIG_RENDERED</anchors>
     </V-M-022>
     <V-M-023 module="handshake-anomaly-detector">
-      <checks>Handshake observation updates device last-seen state, flags suspicious endpoint churn or near-concurrent reuse, and does not leak secrets or raw private peer material into logs.</checks>
+      <checks>Handshake observation updates device last-seen state, flags suspicious endpoint churn or near-concurrent reuse, persists timestamps safely to production Postgres, and does not leak secrets or raw private peer material into logs.</checks>
       <tests>backend/tests/test_handshake_anomaly_detector.py</tests>
       <anchors>VPN_HANDSHAKE_OBSERVED VPN_HANDSHAKE_ENDPOINT_CHANGED VPN_HANDSHAKE_CONCURRENCY_SUSPECTED VPN_DEVICE_SUSPICION_ESCALATED</anchors>
     </V-M-023>
