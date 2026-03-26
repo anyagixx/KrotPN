@@ -11,6 +11,7 @@ from sqlmodel import Field, Relationship, SQLModel
 
 if TYPE_CHECKING:
     from app.billing.models import Subscription
+    from app.devices.models import UserDevice
     from app.referrals.models import Referral, ReferralCode
     from app.vpn.models import VPNClient
 
@@ -55,6 +56,7 @@ class User(SQLModel, table=True):
     
     # Relationships
     vpn_clients: list["VPNClient"] = Relationship(back_populates="user")
+    devices: list["UserDevice"] = Relationship(back_populates="user")
     subscriptions: list["Subscription"] = Relationship(back_populates="user")
     referral_code: "ReferralCode" = Relationship(
         back_populates="user",

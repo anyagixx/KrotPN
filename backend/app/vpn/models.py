@@ -1,5 +1,8 @@
 """
 VPN models for server and client configuration.
+
+CHANGE_SUMMARY
+- 2026-03-27: Added nullable device linkage so legacy one-client-per-user records can migrate toward explicit device-bound peers.
 """
 # <!-- GRACE: module="M-003" entity="VPNServer, VPNNode, VPNRoute, VPNClient" -->
 
@@ -9,6 +12,7 @@ from typing import TYPE_CHECKING
 from sqlmodel import Field, Relationship, SQLModel
 
 if TYPE_CHECKING:
+    from app.devices.models import UserDevice
     from app.users.models import User
 
 
@@ -110,6 +114,9 @@ class VPNClient(SQLModel, table=True):
     # Enforce a single VPN client record per user. Reprovisioning should update
     # the existing record instead of creating duplicates.
     user_id: int = Field(foreign_key="users.id", index=True, unique=True)
+    # Device binding is introduced as nullable first for safe migration from the
+    # historical one-client-per-user model. Later phases can make enforcement stricter.
+    device_id: int | None = Field(default=None, foreign_key="user_devices.id", index=True)
     # Legacy compatibility field. New runtime logic should prefer route/entry/exit
     # topology and treat server_id only as a mirror for rollback paths.
     server_id: int | None = Field(default=None, foreign_key="vpn_servers.id", index=True)
@@ -138,6 +145,7 @@ class VPNClient(SQLModel, table=True):
     
     # Relationships
     user: "User" = Relationship(back_populates="vpn_clients")
+    device: "UserDevice" = Relationship(back_populates="vpn_clients")
     server: VPNServer | None = Relationship(back_populates="clients")
 
 
