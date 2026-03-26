@@ -1,11 +1,22 @@
 """
 User service for business logic.
+
+GRACE-lite module contract:
+- Owns user creation, authentication, Telegram identity linkage and profile mutation.
+- `email` and `telegram_id` are identity keys; duplicate creation must remain impossible.
+- Registration side effects such as trial creation and VPN provisioning are orchestrated by router-level flows.
+- Changes here affect every auth path in user frontend, admin frontend and Telegram bot.
+
+CHANGE_SUMMARY
+- 2026-03-26: Added internal-user resolution helpers for manual non-billable client issuance.
 """
 # <!-- GRACE: module="M-002" contract="user-service" -->
 
 from datetime import datetime
+import re
 from typing import Any
 
+from loguru import logger
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
@@ -33,6 +44,55 @@ class UserService:
         )
         return result.scalar_one_or_none()
 
+    def build_internal_user_email(self, identity: str) -> str:
+        """Build a deterministic local-only email for internal manual users."""
+        normalized = re.sub(r"[^a-z0-9]+", "-", identity.strip().lower()).strip("-")
+        if not normalized:
+            raise ValueError("Internal identity cannot be empty")
+        return f"internal+{normalized}@local.krotvpn"
+
+    async def resolve_internal_user(
+        self,
+        identity: str,
+        *,
+        display_name: str | None = None,
+    ) -> User:
+        """Find or create the canonical user row for a manual internal client."""
+        email = self.build_internal_user_email(identity)
+        existing = await self.get_by_email(email)
+        if existing is not None:
+            if display_name and not existing.name:
+                existing.name = display_name
+                existing.updated_at = datetime.utcnow()
+                await self.session.flush()
+                await self.session.refresh(existing)
+            logger.info(
+                "[VPN][manual][VPN_INTERNAL_USER_RESOLVED] "
+                f"internal_identity={identity} user_id={existing.id} reused=true"
+            )
+            return existing
+
+        now = datetime.utcnow()
+        user = User(
+            email=email,
+            email_verified=True,
+            password_hash=None,
+            name=display_name or identity,
+            language="ru",
+            role=UserRole.USER,
+            is_active=True,
+            created_at=now,
+            updated_at=now,
+        )
+        self.session.add(user)
+        await self.session.flush()
+        await self.session.refresh(user)
+        logger.info(
+            "[VPN][manual][VPN_INTERNAL_USER_RESOLVED] "
+            f"internal_identity={identity} user_id={user.id} reused=false"
+        )
+        return user
+
     async def get_by_telegram_id(self, telegram_id: int) -> User | None:
         """Get user by Telegram ID."""
         result = await self.session.execute(
@@ -55,6 +115,8 @@ class UserService:
         Returns:
             Created user
         """
+        # Identity creation must stay deterministic: uniqueness checks first,
+        # then user row creation, then downstream side effects outside this method.
         # Check if email already exists
         if data.email:
             existing = await self.get_by_email(data.email)

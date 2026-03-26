@@ -1,5 +1,8 @@
 """
 Billing models for subscriptions and payments.
+
+CHANGE_SUMMARY
+- 2026-03-26: Added explicit complimentary-access fields so internal non-billable clients can stay inside normal subscription state.
 """
 # <!-- GRACE: module="M-004" entity="Plan, Subscription, Payment" -->
 
@@ -88,6 +91,8 @@ class Subscription(SQLModel, table=True):
     
     # Trial
     is_trial: bool = Field(default=False)
+    is_complimentary: bool = Field(default=False)
+    access_label: str | None = Field(default=None, max_length=100)
     
     # Recurring
     is_recurring: bool = Field(default=False)
@@ -164,6 +169,7 @@ class SubscriptionResponse(SQLModel):
     expires_at: datetime
     days_left: int
     is_trial: bool
+    is_complimentary: bool = False
     is_recurring: bool
     
     model_config = {"from_attributes": True}

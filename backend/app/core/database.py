@@ -1,5 +1,11 @@
 """
 Database module for connection and session management.
+
+GRACE-lite module contract:
+- Owns engine/session creation and lightweight compatibility migrations on startup.
+- `init_db()` is not a pure bootstrap helper: it can mutate existing schemas/data.
+- `get_session()` auto-commits on successful request completion; service code usually flushes, not commits.
+- The current project does not rely on a disciplined Alembic migration workflow yet.
 """
 # <!-- GRACE: module="M-001" contract="database-connection" -->
 
@@ -76,6 +82,9 @@ def _partition_vpn_client_rows(
 
 async def migrate_existing_schema(conn) -> None:
     """Apply lightweight compatibility migrations for already deployed databases."""
+    # Keep this list additive and defensive. Startup executes it automatically,
+    # so any migration bug here affects every application boot.
+    await _ensure_subscription_internal_access_columns(conn)
     await _ensure_vpn_client_topology_columns(conn)
     await _migrate_legacy_vpn_servers_to_nodes(conn)
     await _migrate_legacy_vpn_clients_to_topology(conn)
@@ -210,6 +219,25 @@ async def _ensure_vpn_client_topology_columns(conn) -> None:
             )
         )
         logger.info(f"[DB] Added vpn_clients.{column_name} compatibility column")
+
+
+async def _ensure_subscription_internal_access_columns(conn) -> None:
+    """Add complimentary-access columns to subscriptions on already deployed databases."""
+    has_subscriptions = await conn.run_sync(_table_exists, "subscriptions")
+    if not has_subscriptions:
+        return
+
+    if not await conn.run_sync(_table_has_column, "subscriptions", "is_complimentary"):
+        await conn.execute(
+            text("ALTER TABLE subscriptions ADD COLUMN is_complimentary BOOLEAN DEFAULT FALSE")
+        )
+        logger.info("[DB] Added subscriptions.is_complimentary compatibility column")
+
+    if not await conn.run_sync(_table_has_column, "subscriptions", "access_label"):
+        await conn.execute(
+            text("ALTER TABLE subscriptions ADD COLUMN access_label VARCHAR(100)")
+        )
+        logger.info("[DB] Added subscriptions.access_label compatibility column")
 
 
 async def _migrate_legacy_vpn_servers_to_nodes(conn) -> None:

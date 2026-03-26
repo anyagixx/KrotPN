@@ -1,5 +1,15 @@
 """
 Billing service for subscription and payment management.
+
+GRACE-lite module contract:
+- Owns plans, subscriptions, payment records and webhook side effects.
+- `payment succeeded` is the critical business event: it may extend subscriptions,
+  provision VPN access and trigger referral bonuses.
+- Webhook handling must remain idempotent.
+- Billing changes are security-sensitive and money-sensitive even when code diffs look small.
+
+CHANGE_SUMMARY
+- 2026-03-26: Added complimentary internal-access helpers so manual non-billable clients can stay inside the subscription model.
 """
 # <!-- GRACE: module="M-004" contract="billing-service" -->
 
@@ -96,7 +106,30 @@ class BillingService:
             .limit(limit)
         )
         return list(result.scalars().all())
-    
+
+    async def get_active_complimentary_access(
+        self,
+        user_id: int,
+        access_label: str | None = None,
+    ) -> Subscription | None:
+        """Return the current complimentary access record for one user."""
+        now = datetime.utcnow()
+        query = (
+            select(Subscription)
+            .where(
+                Subscription.user_id == user_id,
+                Subscription.is_complimentary == True,
+                Subscription.is_active == True,
+                Subscription.expires_at > now,
+            )
+            .order_by(Subscription.expires_at.desc())
+        )
+        if access_label is not None:
+            query = query.where(Subscription.access_label == access_label)
+
+        result = await self.session.execute(query)
+        return result.scalar_one_or_none()
+
     async def create_trial_subscription(self, user_id: int) -> Subscription:
         """Create a trial subscription for new user."""
         now = datetime.utcnow()
@@ -118,7 +151,72 @@ class BillingService:
         
         logger.info(f"[BILLING] Trial subscription created for user {user_id}")
         return subscription
-    
+
+    async def ensure_complimentary_access(
+        self,
+        user_id: int,
+        *,
+        access_label: str = "internal-unlimited",
+        duration_days: int = 36500,
+    ) -> Subscription:
+        """Create or reuse explicit complimentary access for internal users."""
+        existing = await self.get_active_complimentary_access(
+            user_id,
+            access_label=access_label,
+        )
+        if existing is not None:
+            logger.info(
+                "[Billing][internal][VPN_INTERNAL_ACCESS_GRANTED] "
+                f"user_id={user_id} subscription_id={existing.id} "
+                f"complimentary=true access_label={access_label} reused=true"
+            )
+            return existing
+
+        now = datetime.utcnow()
+        expires_at = now + timedelta(days=duration_days)
+
+        result = await self.session.execute(
+            select(Subscription)
+            .where(
+                Subscription.user_id == user_id,
+                Subscription.is_complimentary == True,
+            )
+            .order_by(Subscription.created_at.desc())
+        )
+        subscription = result.scalar_one_or_none()
+
+        if subscription is None:
+            subscription = Subscription(
+                user_id=user_id,
+                plan_id=None,
+                status=SubscriptionStatus.ACTIVE,
+                is_active=True,
+                started_at=now,
+                expires_at=expires_at,
+                is_trial=False,
+                is_complimentary=True,
+                access_label=access_label,
+            )
+            self.session.add(subscription)
+        else:
+            subscription.status = SubscriptionStatus.ACTIVE
+            subscription.is_active = True
+            subscription.is_trial = False
+            subscription.is_complimentary = True
+            subscription.access_label = access_label
+            subscription.started_at = subscription.started_at or now
+            subscription.expires_at = expires_at
+            subscription.updated_at = now
+
+        await self.session.flush()
+        await self.session.refresh(subscription)
+        logger.info(
+            "[Billing][internal][VPN_INTERNAL_ACCESS_GRANTED] "
+            f"user_id={user_id} subscription_id={subscription.id} "
+            f"complimentary=true access_label={access_label} reused=false"
+        )
+        return subscription
+
     async def create_subscription(
         self,
         user_id: int,
@@ -137,6 +235,8 @@ class BillingService:
             existing.expires_at = new_expires
             existing.status = SubscriptionStatus.ACTIVE
             existing.is_trial = False
+            existing.is_complimentary = False
+            existing.access_label = None
             existing.plan_id = plan.id
             
             if payment:
@@ -160,6 +260,7 @@ class BillingService:
             status=SubscriptionStatus.ACTIVE,
             is_active=True,
             is_trial=False,
+            is_complimentary=False,
             started_at=now,
             expires_at=expires_at,
         )
@@ -184,7 +285,8 @@ class BillingService:
         subscription.expires_at = base + timedelta(days=days)
         subscription.status = SubscriptionStatus.ACTIVE
         subscription.is_active = True
-        
+        subscription.updated_at = now
+
         await self.session.flush()
         await self.session.refresh(subscription)
         
@@ -266,6 +368,8 @@ class BillingService:
     
     async def _process_yookassa_webhook(self, data: dict) -> Payment | None:
         """Process YooKassa webhook."""
+        # Keep this path idempotent. Providers can resend the same event,
+        # and duplicate subscription/referral effects would be a production bug.
         event = data.get("event")
         payment_object = data.get("object", {})
         
@@ -351,6 +455,7 @@ class BillingService:
         active_result = await self.session.execute(
             select(func.count(Subscription.id)).where(
                 Subscription.is_active == True,
+                Subscription.is_complimentary == False,
                 Subscription.expires_at > now,
             )
         )
@@ -361,6 +466,7 @@ class BillingService:
             select(func.count(Subscription.id)).where(
                 Subscription.is_trial == True,
                 Subscription.is_active == True,
+                Subscription.is_complimentary == False,
                 Subscription.expires_at > now,
             )
         )
