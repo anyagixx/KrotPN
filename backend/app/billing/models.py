@@ -90,7 +90,7 @@ class Subscription(SQLModel, table=True):
     
     # Timing
     started_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc), sa_column=Column(DateTime(timezone=True)))
-    expires_at: datetime
+    expires_at: datetime = Field(sa_column=Column(DateTime(timezone=True)))
     
     # Trial
     is_trial: bool = Field(default=False)
@@ -140,7 +140,7 @@ class Payment(SQLModel, table=True):
     # Timestamps
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc), sa_column=Column(DateTime(timezone=True)))
     updated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc), sa_column=Column(DateTime(timezone=True)))
-    paid_at: datetime | None = Field(default=None)
+    paid_at: datetime | None = Field(default=None, sa_column=Column(DateTime(timezone=True)))
     
     # Relationships
     subscription: Subscription | None = Relationship(back_populates="payments")

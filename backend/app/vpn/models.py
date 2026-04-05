@@ -46,7 +46,7 @@ class VPNServer(SQLModel, table=True):
     current_clients: int = Field(default=0)
     
     # Monitoring
-    last_ping_at: datetime | None = Field(default=None)
+    last_ping_at: datetime | None = Field(default=None, sa_column=Column(DateTime(timezone=True)))
     is_online: bool = Field(default=True)
     
     # Timestamps
@@ -80,10 +80,11 @@ class VPNNode(SQLModel, table=True):
 
     max_clients: int = Field(default=100)
     current_clients: int = Field(default=0)
-    last_ping_at: datetime | None = Field(default=None)
+    last_ping_at: datetime | None = Field(default=None, sa_column=Column(DateTime(timezone=True)))
 
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc), sa_column=Column(DateTime(timezone=True)))
     updated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc), sa_column=Column(DateTime(timezone=True)))
+
 
 
 class VPNRoute(SQLModel, table=True):
@@ -137,7 +138,7 @@ class VPNClient(SQLModel, table=True):
     # Statistics
     total_upload_bytes: int = Field(default=0)
     total_download_bytes: int = Field(default=0)
-    last_handshake_at: datetime | None = Field(default=None)
+    last_handshake_at: datetime | None = Field(default=None, sa_column=Column(DateTime(timezone=True)))
     
     # Timestamps
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc), sa_column=Column(DateTime(timezone=True)))

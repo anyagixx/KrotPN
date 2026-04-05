@@ -81,10 +81,10 @@ class UserDevice(SQLModel, table=True):
 
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc), sa_column=Column(DateTime(timezone=True)))
     updated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc), sa_column=Column(DateTime(timezone=True)))
-    revoked_at: datetime | None = Field(default=None)
-    blocked_at: datetime | None = Field(default=None)
-    last_seen_at: datetime | None = Field(default=None)
-    last_handshake_at: datetime | None = Field(default=None)
+    revoked_at: datetime | None = Field(default=None, sa_column=Column(DateTime(timezone=True)))
+    blocked_at: datetime | None = Field(default=None, sa_column=Column(DateTime(timezone=True)))
+    last_seen_at: datetime | None = Field(default=None, sa_column=Column(DateTime(timezone=True)))
+    last_handshake_at: datetime | None = Field(default=None, sa_column=Column(DateTime(timezone=True)))
     last_endpoint: str | None = Field(default=None, max_length=255)
 
     config_version: int = Field(default=1)

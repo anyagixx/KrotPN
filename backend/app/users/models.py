@@ -53,7 +53,7 @@ class User(SQLModel, table=True):
     # Timestamps
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc), sa_column=Column(DateTime(timezone=True)))
     updated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc), sa_column=Column(DateTime(timezone=True)))
-    last_login_at: datetime | None = Field(default=None)
+    last_login_at: datetime | None = Field(default=None, sa_column=Column(DateTime(timezone=True)))
     
     # Relationships
     vpn_clients: list["VPNClient"] = Relationship(back_populates="user")

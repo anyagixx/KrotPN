@@ -51,7 +51,7 @@ class Referral(SQLModel, table=True):
     bonus_days: int = Field(default=0)
     
     # Payment tracking for bonus
-    first_payment_at: datetime | None = Field(default=None)
+    first_payment_at: datetime | None = Field(default=None, sa_column=Column(DateTime(timezone=True)))
     first_payment_amount: float | None = Field(default=None)
     
     # Timestamps
