@@ -13,6 +13,7 @@ import {
   Users,
 } from 'lucide-react'
 import { adminApi } from '../lib/api'
+import type { AdminNode, AdminRoute, NodeForm, RouteForm } from '../types'
 
 function getLoadTone(load?: number) {
   if ((load || 0) >= 80) return 'danger-pill'
@@ -79,18 +80,18 @@ function emptyRouteForm() {
 export default function Servers() {
   const [showNodeModal, setShowNodeModal] = useState(false)
   const [showRouteModal, setShowRouteModal] = useState(false)
-  const [editingNode, setEditingNode] = useState<any>(null)
-  const [editingRoute, setEditingRoute] = useState<any>(null)
+  const [editingNode, setEditingNode] = useState<AdminNode | null>(null)
+  const [editingRoute, setEditingRoute] = useState<AdminRoute | null>(null)
   const [nodeError, setNodeError] = useState('')
   const [routeError, setRouteError] = useState('')
-  const [nodeForm, setNodeForm] = useState<any>(emptyNodeForm())
-  const [routeForm, setRouteForm] = useState<any>(emptyRouteForm())
+  const [nodeForm, setNodeForm] = useState<NodeForm>(emptyNodeForm())
+  const [routeForm, setRouteForm] = useState<RouteForm>(emptyRouteForm())
   const queryClient = useQueryClient()
 
   const { data: nodes, isLoading: nodesLoading } = useQuery('admin-nodes', () => adminApi.getNodes())
   const { data: routes, isLoading: routesLoading } = useQuery('admin-routes', () => adminApi.getRoutes())
 
-  const saveNodeMutation = useMutation(({ id, data }: any) => (
+  const saveNodeMutation = useMutation(({ id, data }: { id?: number; data: Partial<AdminNode> }) => (
     id ? adminApi.updateNode(id, data) : adminApi.createNode(data)
   ), {
     onSuccess: async () => {
@@ -112,7 +113,7 @@ export default function Servers() {
       ])
     },
   })
-  const saveRouteMutation = useMutation(({ id, data }: any) => (
+  const saveRouteMutation = useMutation(({ id, data }: { id?: number; data: Partial<AdminRoute> }) => (
     id ? adminApi.updateRoute(id, data) : adminApi.createRoute(data)
   ), {
     onSuccess: async () => {
@@ -139,10 +140,10 @@ export default function Servers() {
   const routeItems = routes?.data?.routes || []
   const isLoading = nodesLoading || routesLoading
 
-  const onlineCount = nodeItems.filter((node: any) => node.is_online).length
-  const activeRoutes = routeItems.filter((route: any) => route.is_active).length
-  const entryNodes = useMemo(() => nodeItems.filter((node: any) => node.is_entry_node), [nodeItems])
-  const exitNodes = useMemo(() => nodeItems.filter((node: any) => node.is_exit_node), [nodeItems])
+  const onlineCount = nodeItems.filter((node: AdminNode) => node.is_online).length
+  const activeRoutes = routeItems.filter((route: AdminRoute) => route.is_active).length
+  const entryNodes = useMemo(() => nodeItems.filter((node: AdminNode) => node.is_entry_node), [nodeItems])
+  const exitNodes = useMemo(() => nodeItems.filter((node: AdminNode) => node.is_exit_node), [nodeItems])
 
   const openNodeCreate = () => {
     setEditingNode(null)
@@ -151,11 +152,11 @@ export default function Servers() {
     setShowNodeModal(true)
   }
 
-  const openNodeEdit = (node: any) => {
+  const openNodeEdit = (node: AdminNode) => {
     setEditingNode(node)
     setNodeForm({
       name: node.name,
-      role: node.role,
+      role: node.role || 'entry',
       country_code: node.country_code,
       location: node.location,
       endpoint: node.endpoint,
@@ -177,7 +178,7 @@ export default function Servers() {
     setShowRouteModal(true)
   }
 
-  const openRouteEdit = (route: any) => {
+  const openRouteEdit = (route: AdminRoute) => {
     setEditingRoute(route)
     setRouteForm({
       name: route.name,
@@ -186,19 +187,19 @@ export default function Servers() {
       is_active: route.is_active,
       is_default: route.is_default,
       priority: route.priority,
-      max_clients: route.max_clients,
+      max_clients: route.max_clients != null ? String(route.max_clients) : '',
     })
     setRouteError('')
     setShowRouteModal(true)
   }
 
-  const handleDeleteNode = async (node: any) => {
+  const handleDeleteNode = async (node: AdminNode) => {
     if (confirm(`Удалить node ${node.name}?`)) {
       await deleteNodeMutation.mutateAsync(node.id)
     }
   }
 
-  const handleDeleteRoute = async (route: any) => {
+  const handleDeleteRoute = async (route: AdminRoute) => {
     if (confirm(`Удалить route ${route.name}?`)) {
       await deleteRouteMutation.mutateAsync(route.id)
     }
@@ -217,15 +218,15 @@ export default function Servers() {
         id: editingNode?.id,
         data: payload,
       })
-    } catch (error: any) {
-      setNodeError(error?.response?.data?.detail || 'Не удалось сохранить node')
+    } catch (error: unknown) {
+      setNodeError((error as { response?: { data?: { detail?: string } } })?.response?.data?.detail || 'Не удалось сохранить node')
     }
   }
 
   const submitRoute = async () => {
     setRouteError('')
     try {
-      const payload: any = {
+      const payload: Record<string, unknown> = {
         ...routeForm,
         entry_node_id: Number(routeForm.entry_node_id),
         exit_node_id: routeForm.exit_node_id ? Number(routeForm.exit_node_id) : null,
@@ -244,8 +245,8 @@ export default function Servers() {
         id: editingRoute?.id,
         data: payload,
       })
-    } catch (error: any) {
-      setRouteError(error?.response?.data?.detail || 'Не удалось сохранить route')
+    } catch (error: unknown) {
+      setRouteError((error as { response?: { data?: { detail?: string } } })?.response?.data?.detail || 'Не удалось сохранить route')
     }
   }
 
@@ -262,7 +263,7 @@ export default function Servers() {
         <div className="flex flex-wrap items-center gap-3">
           <div className="panel-soft px-4 py-3 text-sm">
             <p className="muted">Маршрутов по умолчанию</p>
-            <p className="mt-1 font-bold">{routeItems.filter((route: any) => route.is_default).length}</p>
+            <p className="mt-1 font-bold">{routeItems.filter((route: AdminRoute) => route.is_default).length}</p>
           </div>
           <button onClick={openNodeCreate} className="btn-primary">
             <Plus className="h-5 w-5" />
@@ -332,7 +333,7 @@ export default function Servers() {
               </div>
             ) : (
               <div className="grid grid-cols-1 gap-4 xl:grid-cols-2">
-                {nodeItems.map((node: any) => (
+                {nodeItems.map((node: AdminNode) => (
                   <div key={node.id} className="panel p-6">
                     <div className="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
                       <div className="flex items-start gap-4">
@@ -449,7 +450,7 @@ export default function Servers() {
               </div>
             ) : (
               <div className="grid grid-cols-1 gap-4 xl:grid-cols-2">
-                {routeItems.map((route: any) => (
+                {routeItems.map((route: AdminRoute) => (
                   <div key={route.id} className="panel p-6">
                     <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
                       <div>
@@ -645,7 +646,7 @@ export default function Servers() {
                 <span className="text-sm muted">Entry node</span>
                 <select className="input" value={routeForm.entry_node_id} onChange={(e) => setRouteForm({ ...routeForm, entry_node_id: e.target.value })}>
                   <option value="">Выбери entry node</option>
-                  {entryNodes.map((node: any) => (
+                  {entryNodes.map((node: AdminNode) => (
                     <option key={node.id} value={String(node.id)}>{node.name} · {node.location}</option>
                   ))}
                 </select>
@@ -654,7 +655,7 @@ export default function Servers() {
                 <span className="text-sm muted">Exit node</span>
                 <select className="input" value={routeForm.exit_node_id} onChange={(e) => setRouteForm({ ...routeForm, exit_node_id: e.target.value })}>
                   <option value="">Без exit node</option>
-                  {exitNodes.map((node: any) => (
+                  {exitNodes.map((node: AdminNode) => (
                     <option key={node.id} value={String(node.id)}>{node.name} · {node.location}</option>
                   ))}
                 </select>

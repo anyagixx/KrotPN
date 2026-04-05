@@ -2,7 +2,7 @@ import { FormEvent, useMemo, useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from 'react-query'
 import { Activity, RefreshCw, Save, Search, ShieldAlert, Trash2 } from 'lucide-react'
 import { adminApi } from '../lib/api'
-
+import type { RoutePolicyRule, DNSBinding, ExplainRouteResult } from '../types'
 type RouteTarget = 'ru' | 'de' | 'direct' | 'default'
 
 function targetOptions(): RouteTarget[] {
@@ -53,7 +53,7 @@ export default function Settings() {
   const [domainError, setDomainError] = useState('')
   const [cidrError, setCidrError] = useState('')
   const [explainError, setExplainError] = useState('')
-  const [explainResult, setExplainResult] = useState<any>(null)
+  const [explainResult, setExplainResult] = useState<ExplainRouteResult | null>(null)
 
   const { data: domainRules, isLoading: domainLoading } = useQuery(
     'routing-policy-domains',
@@ -139,8 +139,8 @@ export default function Settings() {
     const domainItems = domainRules?.data || []
     const cidrItems = cidrRules?.data || []
     return {
-      domainActive: domainItems.filter((item: any) => item.is_active).length,
-      cidrActive: cidrItems.filter((item: any) => item.is_active).length,
+      domainActive: domainItems.filter((item: RoutePolicyRule) => item.is_active).length,
+      cidrActive: cidrItems.filter((item: RoutePolicyRule) => item.is_active).length,
       dnsBindings: dnsBindings?.data?.length || 0,
     }
   }, [cidrRules?.data, dnsBindings?.data, domainRules?.data])
@@ -153,8 +153,8 @@ export default function Settings() {
         ...domainForm,
         priority: Number(domainForm.priority),
       })
-    } catch (error: any) {
-      setDomainError(error?.response?.data?.detail || 'Не удалось сохранить domain rule')
+    } catch (error: unknown) {
+      setDomainError((error as { response?: { data?: { detail?: string } } })?.response?.data?.detail || 'Не удалось сохранить domain rule')
     }
   }
 
@@ -166,8 +166,8 @@ export default function Settings() {
         ...cidrForm,
         priority: Number(cidrForm.priority),
       })
-    } catch (error: any) {
-      setCidrError(error?.response?.data?.detail || 'Не удалось сохранить CIDR rule')
+    } catch (error: unknown) {
+      setCidrError((error as { response?: { data?: { detail?: string } } })?.response?.data?.detail || 'Не удалось сохранить CIDR rule')
     }
   }
 
@@ -177,8 +177,8 @@ export default function Settings() {
     setExplainResult(null)
     try {
       await explainMutation.mutateAsync(explainAddress)
-    } catch (error: any) {
-      setExplainError(error?.response?.data?.detail || 'Не удалось объяснить routing decision')
+    } catch (error: unknown) {
+      setExplainError((error as { response?: { data?: { detail?: string } } })?.response?.data?.detail || 'Не удалось объяснить routing decision')
     }
   }
 
@@ -357,7 +357,7 @@ export default function Settings() {
           <div className="mt-5 grid gap-4 xl:grid-cols-2">
             <div className="space-y-3">
               <h4 className="text-sm font-semibold uppercase tracking-[0.18em] muted">Domain rules</h4>
-              {domainItems.map((rule: any) => (
+              {domainItems.map((rule: RoutePolicyRule) => (
                 <div key={`domain-${rule.id}`} className="panel-soft p-4">
                   <div className="flex items-start justify-between gap-3">
                     <div>
@@ -391,7 +391,7 @@ export default function Settings() {
 
             <div className="space-y-3">
               <h4 className="text-sm font-semibold uppercase tracking-[0.18em] muted">CIDR rules</h4>
-              {cidrItems.map((rule: any) => (
+              {cidrItems.map((rule: RoutePolicyRule) => (
                 <div key={`cidr-${rule.id}`} className="panel-soft p-4">
                   <div className="flex items-start justify-between gap-3">
                     <div>
@@ -478,7 +478,7 @@ export default function Settings() {
           <div className="mt-6">
             <h4 className="text-sm font-semibold uppercase tracking-[0.18em] muted">Active DNS bindings</h4>
             <div className="mt-3 space-y-3">
-              {dnsItems.map((binding: any) => (
+              {dnsItems.map((binding: DNSBinding) => (
                 <div key={`${binding.normalized_domain}-${binding.resolved_ip}`} className="panel-soft p-4">
                   <div className="flex items-start justify-between gap-3">
                     <div>

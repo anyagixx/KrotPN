@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { useQuery } from 'react-query'
 import { Bar, BarChart, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
 import { adminApi } from '../lib/api'
-
+import type { AnalyticsData, BillingStats, ReferralStats } from '../types'
 const chartTheme = {
   tooltip: {
     background: '#10242d',
@@ -16,17 +16,17 @@ const chartTheme = {
 export default function Analytics() {
   const [period, setPeriod] = useState(30)
 
-  const { data: revenueData } = useQuery(['revenue-analytics', period], () => adminApi.getRevenueAnalytics(period))
-  const { data: usersData } = useQuery(['users-analytics', period], () => adminApi.getUsersAnalytics(period))
-  const { data: billingStats } = useQuery('billing-stats', () => adminApi.getBillingStats())
-  const { data: referralStats } = useQuery('referral-stats', () => adminApi.getReferralStats())
+  const { data: revenueData } = useQuery<{ data: AnalyticsData }>(['revenue-analytics', period], () => adminApi.getRevenueAnalytics(period))
+  const { data: usersData } = useQuery<{ data: AnalyticsData }>(['users-analytics', period], () => adminApi.getUsersAnalytics(period))
+  const { data: billingStats } = useQuery<{ data: BillingStats }>('billing-stats', () => adminApi.getBillingStats())
+  const { data: referralStats } = useQuery<{ data: ReferralStats }>('referral-stats', () => adminApi.getReferralStats())
 
   const revenue = revenueData?.data?.daily || []
   const users = usersData?.data?.daily || []
 
   const conversion =
-    billingStats?.data?.trial_subscriptions > 0
-      ? Math.round((billingStats?.data?.active_subscriptions / billingStats?.data?.trial_subscriptions) * 100)
+    (billingStats?.data?.trial_subscriptions ?? 0) > 0
+      ? Math.round(((billingStats?.data?.active_subscriptions ?? 0) / (billingStats?.data?.trial_subscriptions ?? 1)) * 100)
       : 0
 
   return (

@@ -37,9 +37,9 @@ export default function Login() {
         is_superuser: user.role === 'superadmin',
       })
       navigate('/')
-    } catch (err: any) {
+    } catch (err: unknown) {
       setToken(null)
-      setError(err.response?.data?.detail || 'Ошибка авторизации')
+      setError((err as { response?: { data?: { detail?: string } } })?.response?.data?.detail || 'Ошибка авторизации')
     } finally {
       setLoading(false)
     }

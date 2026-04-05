@@ -1,4 +1,11 @@
 import axios from 'axios'
+import type {
+  AdminNode,
+  AdminRoute,
+  AdminPlan,
+  RoutePolicyRule,
+  AdminUser,
+} from '../types'
 
 const API_BASE = '/api'
 
@@ -15,10 +22,34 @@ api.interceptors.request.use((config) => {
 
 api.interceptors.response.use(
   (r) => r,
-  (error) => {
-    if (error.response?.status === 401) {
-      localStorage.removeItem('admin_token')
-      window.location.href = '/login'
+  async (error) => {
+    const originalRequest = error.config
+
+    if (error.response?.status === 401 && !originalRequest._retry) {
+      originalRequest._retry = true
+
+      const refreshToken = localStorage.getItem('admin_refresh_token')
+      if (refreshToken) {
+        try {
+          const refreshApi = axios.create({ baseURL: API_BASE })
+          const { data } = await refreshApi.post('/auth/refresh', {
+            refresh_token: refreshToken,
+          })
+
+          localStorage.setItem('admin_token', data.access_token)
+          localStorage.setItem('admin_refresh_token', data.refresh_token)
+
+          originalRequest.headers.Authorization = `Bearer ${data.access_token}`
+          return api(originalRequest)
+        } catch {
+          localStorage.removeItem('admin_token')
+          localStorage.removeItem('admin_refresh_token')
+          window.location.href = '/login'
+        }
+      } else {
+        localStorage.removeItem('admin_token')
+        window.location.href = '/login'
+      }
     }
     return Promise.reject(error)
   }
@@ -46,7 +77,7 @@ export const adminApi = {
   getUser: (id: number) =>
     api.get(`/admin/users/${id}`),
   
-  updateUser: (id: number, data: any) =>
+  updateUser: (id: number, data: Partial<AdminUser>) =>
     api.put(`/admin/users/${id}`, data),
   
   getServers: () =>
@@ -55,10 +86,10 @@ export const adminApi = {
   getNodes: () =>
     api.get('/admin/nodes'),
 
-  createNode: (data: any) =>
+  createNode: (data: Partial<AdminNode>) =>
     api.post('/admin/nodes', data),
 
-  updateNode: (id: number, data: any) =>
+  updateNode: (id: number, data: Partial<AdminNode>) =>
     api.put(`/admin/nodes/${id}`, data),
 
   deleteNode: (id: number) =>
@@ -67,19 +98,19 @@ export const adminApi = {
   getRoutes: () =>
     api.get('/admin/routes'),
 
-  createRoute: (data: any) =>
+  createRoute: (data: Partial<AdminRoute>) =>
     api.post('/admin/routes', data),
 
-  updateRoute: (id: number, data: any) =>
+  updateRoute: (id: number, data: Partial<AdminRoute>) =>
     api.put(`/admin/routes/${id}`, data),
 
   deleteRoute: (id: number) =>
     api.delete(`/admin/routes/${id}`),
   
-  createServer: (data: any) =>
+  createServer: (data: Partial<AdminNode>) =>
     api.post('/admin/servers', data),
   
-  updateServer: (id: number, data: any) =>
+  updateServer: (id: number, data: Partial<AdminNode>) =>
     api.put(`/admin/servers/${id}`, data),
   
   deleteServer: (id: number) =>
@@ -88,10 +119,10 @@ export const adminApi = {
   getPlans: () =>
     api.get('/admin/billing/plans'),
   
-  createPlan: (data: any) =>
+  createPlan: (data: Partial<AdminPlan>) =>
     api.post('/admin/billing/plans', data),
   
-  updatePlan: (id: number, data: any) =>
+  updatePlan: (id: number, data: Partial<AdminPlan>) =>
     api.put(`/admin/billing/plans/${id}`, data),
   
   deletePlan: (id: number) =>
@@ -124,10 +155,10 @@ export const adminApi = {
   getDomainRouteRules: () =>
     api.get('/routing/policy/domains'),
 
-  createDomainRouteRule: (data: any) =>
+  createDomainRouteRule: (data: Partial<RoutePolicyRule>) =>
     api.post('/routing/policy/domains', data),
 
-  updateDomainRouteRule: (id: number, data: any) =>
+  updateDomainRouteRule: (id: number, data: Partial<RoutePolicyRule>) =>
     api.put(`/routing/policy/domains/${id}`, data),
 
   deleteDomainRouteRule: (id: number) =>
@@ -136,10 +167,10 @@ export const adminApi = {
   getCidrRouteRules: () =>
     api.get('/routing/policy/cidrs'),
 
-  createCidrRouteRule: (data: any) =>
+  createCidrRouteRule: (data: Partial<RoutePolicyRule>) =>
     api.post('/routing/policy/cidrs', data),
 
-  updateCidrRouteRule: (id: number, data: any) =>
+  updateCidrRouteRule: (id: number, data: Partial<RoutePolicyRule>) =>
     api.put(`/routing/policy/cidrs/${id}`, data),
 
   deleteCidrRouteRule: (id: number) =>

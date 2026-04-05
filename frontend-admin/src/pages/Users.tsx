@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react'
 import { useQuery } from 'react-query'
 import { Search, Shield, UserCheck, UserRound, UserX } from 'lucide-react'
 import { adminApi } from '../lib/api'
+import type { AdminUser, PaginatedResponse } from '../types'
 
 function formatDate(value?: string | null) {
   if (!value) return 'Никогда'
@@ -18,7 +19,7 @@ export default function Users() {
   const [page, setPage] = useState(1)
   const [search, setSearch] = useState('')
 
-  const { data, isLoading } = useQuery(['admin-users', page, search], () => adminApi.getUsers(page, search), {
+  const { data, isLoading } = useQuery<{ data: PaginatedResponse<AdminUser> }>(['admin-users', page, search], () => adminApi.getUsers(page, search), {
     keepPreviousData: true,
   })
 
@@ -28,7 +29,7 @@ export default function Users() {
 
   const counters = useMemo(() => {
     return users.reduce(
-      (acc: { active: number; admins: number; blocked: number }, user: any) => {
+      (acc: { active: number; admins: number; blocked: number }, user: AdminUser) => {
         if (user.is_active) acc.active += 1
         else acc.blocked += 1
         if (user.role === 'admin' || user.role === 'superadmin') acc.admins += 1
@@ -110,7 +111,7 @@ export default function Users() {
                   </tr>
                 </thead>
                 <tbody>
-                  {users.map((user: any) => (
+                  {users.map((user: AdminUser) => (
                     <tr key={user.id}>
                       <td>
                         <div className="flex items-center gap-3">

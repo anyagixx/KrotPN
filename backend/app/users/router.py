@@ -12,6 +12,7 @@ GRACE-lite module contract:
 from datetime import timedelta
 
 from fastapi import APIRouter, Depends, Header, HTTPException, Request, status
+from fastapi.responses import JSONResponse
 from slowapi import Limiter
 from slowapi.util import get_remote_address
 
@@ -94,6 +95,35 @@ async def _initialize_new_user_resources(
         await referral_service.create_referral(referred_by_id, user_id)
 
 
+def _make_token_response(access_token: str, refresh_token: str) -> JSONResponse:
+    response = JSONResponse(
+        content={
+            "access_token": access_token,
+            "refresh_token": refresh_token,
+            "expires_in": settings.access_token_expire_minutes * 60,
+        }
+    )
+    response.set_cookie(
+        key="access_token",
+        value=access_token,
+        httponly=True,
+        secure=True,
+        samesite="strict",
+        max_age=settings.access_token_expire_minutes * 60,
+        path="/",
+    )
+    response.set_cookie(
+        key="refresh_token",
+        value=refresh_token,
+        httponly=True,
+        secure=True,
+        samesite="strict",
+        max_age=settings.refresh_token_expire_days * 24 * 60 * 60,
+        path="/api/auth/refresh",
+    )
+    return response
+
+
 # ==================== Auth Endpoints ====================
 
 @router.post("/register", response_model=Token, status_code=status.HTTP_201_CREATED)
@@ -122,11 +152,7 @@ async def register(
     access_token = create_access_token(subject=user.id)
     refresh_token = create_refresh_token(subject=user.id)
 
-    return Token(
-        access_token=access_token,
-        refresh_token=refresh_token,
-        expires_in=settings.access_token_expire_minutes * 60,
-    )
+    return _make_token_response(access_token, refresh_token)
 
 
 @router.post("/login", response_model=Token)
@@ -159,11 +185,7 @@ async def login(
     access_token = create_access_token(subject=user.id)
     refresh_token = create_refresh_token(subject=user.id)
 
-    return Token(
-        access_token=access_token,
-        refresh_token=refresh_token,
-        expires_in=settings.access_token_expire_minutes * 60,
-    )
+    return _make_token_response(access_token, refresh_token)
 
 
 @router.post("/telegram", response_model=Token)
@@ -214,11 +236,7 @@ async def telegram_auth(
     access_token = create_access_token(subject=user.id)
     refresh_token = create_refresh_token(subject=user.id)
 
-    return Token(
-        access_token=access_token,
-        refresh_token=refresh_token,
-        expires_in=settings.access_token_expire_minutes * 60,
-    )
+    return _make_token_response(access_token, refresh_token)
 
 
 @router.post("/refresh", response_model=Token)
@@ -251,11 +269,7 @@ async def refresh_token(
     access_token = create_access_token(subject=user.id)
     new_refresh_token = create_refresh_token(subject=user.id)
 
-    return Token(
-        access_token=access_token,
-        refresh_token=new_refresh_token,
-        expires_in=settings.access_token_expire_minutes * 60,
-    )
+    return _make_token_response(access_token, new_refresh_token)
 
 
 # ==================== User Endpoints ====================

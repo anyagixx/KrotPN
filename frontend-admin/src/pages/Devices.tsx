@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from 'react-query'
 import { Ban, RotateCw, Search, ShieldAlert, ShieldCheck, Trash2 } from 'lucide-react'
 import { adminApi } from '../lib/api'
+import type { AdminDevice } from '../types'
 
 function formatDate(value?: string | null) {
   if (!value) return 'Нет данных'
@@ -25,10 +26,10 @@ export default function Devices() {
       void queryClient.invalidateQueries('admin-devices')
       setFeedback({ tone: 'success', text: message })
     },
-    onError: (error: any) => {
+    onError: (error: unknown) => {
       setFeedback({
         tone: 'error',
-        text: error?.response?.data?.detail || 'Операция не выполнена',
+        text: (error as { response?: { data?: { detail?: string } } })?.response?.data?.detail || 'Операция не выполнена',
       })
     },
   })
@@ -42,10 +43,10 @@ export default function Devices() {
 
   const counters = useMemo(() => {
     return items.reduce(
-      (acc: { active: number; blocked: number; suspicious: number }, item: any) => {
+      (acc: { active: number; blocked: number; suspicious: number }, item: AdminDevice) => {
         if (item.status === 'blocked') acc.blocked += 1
         if (item.status === 'active') acc.active += 1
-        if ((item.recent_event_types || []).some((event: string) => event.includes('suspicious') || event.includes('concurrent'))) {
+        if ((item.recent_event_types ?? []).some((event: string) => event.includes('suspicious') || event.includes('concurrent'))) {
           acc.suspicious += 1
         }
         return acc
@@ -128,7 +129,7 @@ export default function Devices() {
                 </tr>
               </thead>
               <tbody>
-                {items.map((item: any) => (
+                {items.map((item: AdminDevice) => (
                   <tr key={item.id}>
                     <td>
                       <div>
@@ -157,8 +158,8 @@ export default function Devices() {
                     </td>
                     <td>
                       <div className="flex flex-wrap gap-2">
-                        {(item.recent_event_types || []).length ? (
-                          item.recent_event_types.map((event: string) => (
+                        {(item.recent_event_types ?? []).length ? (
+                          (item.recent_event_types ?? []).map((event: string) => (
                             <span key={`${item.id}-${event}`} className="inline-flex rounded-full bg-white/5 px-3 py-1 text-xs font-semibold text-slate-300">
                               {event}
                             </span>

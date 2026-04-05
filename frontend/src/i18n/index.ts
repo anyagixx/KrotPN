@@ -213,7 +213,7 @@ i18n
     lng: localStorage.getItem('language') || 'ru',
     fallbackLng: 'ru',
     interpolation: {
-      escapeValue: false,
+      escapeValue: true,
     },
   })
 

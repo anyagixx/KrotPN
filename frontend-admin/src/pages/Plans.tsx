@@ -2,8 +2,9 @@ import { useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from 'react-query'
 import { Check, CreditCard, Edit, Plus, Star, Trash2 } from 'lucide-react'
 import { adminApi } from '../lib/api'
+import type { AdminPlan } from '../types'
 
-function getFeatures(plan: any): string[] {
+function getFeatures(plan: AdminPlan): string[] {
   if (Array.isArray(plan.features)) return plan.features
   if (typeof plan.features === 'string') {
     try {
@@ -38,7 +39,7 @@ export default function Plans() {
         <div className="flex items-center gap-3">
           <div className="panel-soft px-4 py-3 text-sm">
             <p className="muted">Активных планов</p>
-            <p className="mt-1 font-bold">{items.filter((plan: any) => plan.is_active).length}</p>
+            <p className="mt-1 font-bold">{items.filter((plan: AdminPlan) => plan.is_active).length}</p>
           </div>
           <button onClick={() => setShowModal(true)} className="btn-primary">
             <Plus className="h-5 w-5" />
@@ -65,7 +66,7 @@ export default function Plans() {
         </div>
       ) : (
         <div className="grid grid-cols-1 gap-4 xl:grid-cols-3">
-          {items.map((plan: any) => (
+          {items.map((plan: AdminPlan) => (
             <div key={plan.id} className={`panel relative p-6 ${!plan.is_active ? 'opacity-65' : ''}`}>
               {plan.is_popular ? (
                 <div className="absolute right-5 top-5 metric-pill">
