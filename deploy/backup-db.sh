@@ -1,4 +1,12 @@
 #!/bin/bash
+# START_MODULE_CONTRACT: M-012-BACKUP
+# PURPOSE: Automated PostgreSQL backup via pg_dump from docker container
+# SCOPE: pg_dump execution, gzipped backup storage, 7-backup retention
+# INPUTS: DB credentials from .env file
+# OUTPUTS: Timestamped .sql.gz files in /opt/KrotVPN/backups/db/
+# DEPENDENCIES: M-012 (deploy-surface), PostgreSQL container
+# VERIFICATION: V-M-008 — backup created and can be restored
+# END_MODULE_CONTRACT: M-012-BACKUP
 #
 # KrotVPN Database Backup Script
 # Runs pg_dump from the postgres container, saves timestamped backups,

@@ -3,6 +3,7 @@ Security module for authentication and authorization.
 Handles JWT tokens, password hashing, and encryption.
 """
 # <!-- GRACE: module="M-001" contract="authentication" -->
+# START_BLOCK_TOKEN_BLACKLIST
 
 from datetime import datetime, timedelta, timezone
 from typing import Any
@@ -67,6 +68,7 @@ async def is_token_blacklisted(token: str) -> bool:
     except Exception as e:
         logger.warning(f"[SECURITY] Failed to check token blacklist: {e}")
         return False
+# END_BLOCK_TOKEN_BLACKLIST
 
 
 def get_fernet() -> Fernet:

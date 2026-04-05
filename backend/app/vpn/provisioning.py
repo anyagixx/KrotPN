@@ -1,3 +1,11 @@
+# START_MODULE_CONTRACT: M-003-PROVISIONING
+# PURPOSE: VPN client provisioning — new client creation, reprovisioning, internal/device client flows
+# SCOPE: ProvisioningMixin with _provision_new_client, _reprovision_client, provision_internal_client, provision_device_client
+# INPUTS: User ID, device info, node/route selection, server assignment
+# OUTPUTS: VPNClient records with encrypted private keys, WG peer configuration
+# DEPENDENCIES: M-001 (core security/encrypt), M-003 (vpn models), M-020 (device registry)
+# VERIFICATION: V-M-003 — provisioning produces config consistent with topology
+# END_MODULE_CONTRACT: M-003-PROVISIONING
 """VPN client provisioning helpers."""
 
 from datetime import datetime, timezone

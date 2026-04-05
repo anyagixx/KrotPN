@@ -1,3 +1,19 @@
+# START_MODULE_CONTRACT: M-003-TOPOLOGY
+# PURPOSE: VPN topology management — node/route CRUD, status helpers, legacy server sync
+# SCOPE: TopologyMixin with create/update/delete node/route, status checks, legacy sync, role normalization
+# INPUTS: Node/route definitions, server references, session
+# OUTPUTS: Persisted VPNNode/VPNRoute records, topology state
+# DEPENDENCIES: M-001 (core security/encrypt), M-003 (vpn models), M-007 (routing)
+# VERIFICATION: V-M-003 — topology operations maintain consistent node/route state
+# END_MODULE_CONTRACT: M-003-TOPOLOGY
+# START_MODULE_CONTRACT: M-003-TOPOLOGY
+# PURPOSE: VPN topology management — node/route CRUD, status helpers, legacy server sync
+# SCOPE: TopologyMixin with create/update/delete node/route, status checks, legacy sync, role normalization
+# INPUTS: Node/route definitions, server references, session
+# OUTPUTS: Persisted VPNNode/VPNRoute records, topology state
+# DEPENDENCIES: M-001 (core security/encrypt), M-003 (vpn models), M-007 (routing)
+# VERIFICATION: V-M-003 — topology operations maintain consistent node/route state
+# END_MODULE_CONTRACT: M-003-TOPOLOGY
 """VPN topology (node/route) management helpers."""
 
 from datetime import datetime, timezone

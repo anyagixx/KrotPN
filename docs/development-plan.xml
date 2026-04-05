@@ -3,50 +3,51 @@
 <development-plan>
   <meta>
     <project-name>KrotVPN</project-name>
-    <version>2.7.0</version>
-    <updated>2026-03-27</updated>
-    <current-phase>Device-bound access control, per-plan device limits and detect-first anti-sharing enforcement implemented locally and validated by targeted phase verification</current-phase>
+    <version>2.8.0</version>
+    <updated>2026-04-05</updated>
+    <current-phase>Hardening complete: P1-P6 all done. Security, backend stability, frontend quality, infrastructure, tests/CI, and cleanup phases delivered. System ready for production hardening review.</current-phase>
   </meta>
 
-  <status-summary>
-    <done>
-      Backend, user frontend, admin frontend, bot and deploy surface already exist as an MVP.
-      VPN topology has moved toward VPNNode/VPNRoute but routing policy is still mostly IP-based.
-    </done>
-    <in-progress>
-      Synchronizing GRACE shared artifacts with the real codebase.
-      Designing a policy-driven routing layer that can classify traffic by domain and IP.
-      Designing a backend-driven manual provisioning path so operator-created configs match web-generated configs.
-      Rolling device-bound access control into broader runtime and rollout verification on live infrastructure.
-    </in-progress>
-    <blocked-or-weak>
-      Existing split-tunneling logic is too rigid for domain-level routing.
-      Verification is still weaker than required for autonomous changes in routing-critical code.
-      Handshake anomaly detection is intentionally still in detect-first mode; automatic blocking thresholds are not enabled yet.
-    </blocked-or-weak>
-  </status-summary>
+    <status-summary>
+      <done>
+        Backend, user frontend, admin frontend, bot and deploy surface exist as an MVP.
+        VPN topology has moved toward VPNNode/VPNRoute with domain-aware routing policy.
+        All 8 implementation phases (Phase-1 through Phase-8) are done.
+        All 6 hardening phases (P1-P6) are done: security, backend stability, frontend quality, infrastructure, tests/CI, cleanup.
+        API versioned at /api/v1. Alembic migrations initialized. CI/CD pipeline configured.
+        51 security and quality fixes applied across 6 commits.
+      </done>
+      <in-progress>
+        None — all planned work complete.
+      </in-progress>
+      <blocked-or-weak>
+        Handshake anomaly detection remains in detect-first mode; automatic blocking thresholds not yet enabled.
+        Alembic migration workflow coexists with SQLModel.create_all during transition period.
+        Token blacklist requires Redis — graceful degradation in place but not tested under Redis failure.
+      </blocked-or-weak>
+    </status-summary>
 
   <active-workstreams>
     <WS-001 priority="critical" status="active">
       <name>AI Handoff and Documentation Accuracy</name>
       <goal>Keep GRACE artifacts aligned with the implemented system and planned migration path.</goal>
     </WS-001>
-    <WS-002 priority="critical" status="active">
+    <WS-002 priority="critical" status="done">
       <name>Security and Deployment Hardening</name>
       <goal>Reduce operational risk in secrets handling, admin access and deployment defaults.</goal>
     </WS-002>
-    <WS-003 priority="critical" status="active">
+    <WS-003 priority="critical" status="done">
       <name>VPN Topology and Provisioning Stability</name>
       <goal>Finish stabilizing VPNNode/VPNRoute-based provisioning and analytics invariants.</goal>
     </WS-003>
-    <WS-004 priority="high" status="active">
+    <WS-004 priority="high" status="done">
       <name>Flexible Routing Policy Migration</name>
       <goal>
         Introduce a routing decision engine that supports exact-domain, wildcard-domain, DNS-bound IP
         and CIDR-based classification without breaking the current RU-vs-non-RU baseline.
       </goal>
     </WS-004>
-    <WS-005 priority="high" status="planned">
+    <WS-005 priority="high" status="done">
       <name>Verification and Testability</name>
       <goal>Raise routing, VPN and admin verification to a level safe for autonomous execution.</goal>
     </WS-005>
@@ -334,6 +335,75 @@
       <step-2>Implement suspicion scoring and staged enforcement: detect first, then allow admin review, then optionally enable automatic block thresholds once false-positive risk is understood.</step-2>
       <step-3>Expose admin controls for block, unblock, revoke and rotate actions on specific device peers with audit logging.</step-3>
     </Phase-8>
+    <Phase-9 status="done">
+      <name>Critical Security Fixes (P1)</name>
+      <step-1>Block default secret_key with ValueError instead of warning.</step-1>
+      <step-2>Require explicit DATA_ENCRYPTION_KEY, remove JWT-secret fallback for Fernet.</step-2>
+      <step-3>Fix auth bypass in admin_users_router (Depends() instead of = None).</step-3>
+      <step-4>Remove sshpass from all deploy scripts, require SSH key-based auth.</step-4>
+      <step-5>Remove base64 encoding of secrets in install.sh.</step-5>
+      <step-6>Remove plaintext admin credentials file creation.</step-6>
+      <step-7>Remove hardcoded production IPs, use env vars.</step-7>
+      <step-8>Remove port 8000 external mapping from docker-compose.</step-8>
+    </Phase-9>
+    <Phase-10 status="done">
+      <name>Backend Stability Fixes (P2)</name>
+      <step-1>Replace datetime.utcnow() with datetime.now(timezone.utc) in 40+ locations.</step-1>
+      <step-2>Initialize Alembic with async support and generate baseline migration.</step-2>
+      <step-3>Add Redis-based token blacklist (blacklist_token, is_token_blacklisted).</step-3>
+      <step-4>Fix _reprovision_client to remove old WG peer after adding new one.</step-4>
+      <step-5>Fix server.current_clients counter decrement on subscription expiry.</step-5>
+      <step-6>Fix _get_or_provision_user_client to return proper HTTP 400/409 errors.</step-6>
+      <step-7>Document circular dependency chains in app/core/__init__.py.</step-7>
+      <step-8>Split database.py (1068 lines) into database.py + migrations.py.</step-8>
+    </Phase-10>
+    <Phase-11 status="done">
+      <name>Frontend Security & Quality (P3)</name>
+      <step-1>Add httpOnly secure cookies to auth endpoints alongside Bearer tokens.</step-1>
+      <step-2>Fix refresh token interceptor to use configured axios instance.</step-2>
+      <step-3>Eliminate 53 any usages in admin frontend with 18 typed interfaces.</step-3>
+      <step-4>Migrate react-query v3 to @tanstack/react-query v5.</step-4>
+      <step-5>Fix PWA cache regex to match relative /api/ paths.</step-5>
+      <step-6>Disable sourcemaps in production build.</step-6>
+      <step-7>Fix i18next escapeValue to prevent XSS via translations.</step-7>
+      <step-8>Add refresh token interceptor to admin frontend.</step-8>
+    </Phase-11>
+    <Phase-12 status="done">
+      <name>Infrastructure Hardening (P4)</name>
+      <step-1>Fix deploy idempotency — preserve WG keys on re-deploy.</step-1>
+      <step-2>Add deploy/rollback.sh with backup/restore/list commands.</step-2>
+      <step-3>Add healthchecks for nginx, frontend, frontend-admin.</step-3>
+      <step-4>Add resource limits to all docker-compose containers.</step-4>
+      <step-5>Replace hardcoded eth0 with dynamic interface detection in iptables.</step-5>
+      <step-6>Add security headers to nginx (HSTS, CSP, X-Frame-Options).</step-6>
+      <step-7>Add rate limiting to nginx (5r/m login, 30r/m API).</step-7>
+      <step-8>Add deploy/backup-db.sh for automated pg_dump with 7-backup retention.</step-8>
+      <step-9>Restrict UFW FORWARD to deny + explicit AWG interface rules.</step-9>
+      <step-10>Verify no eval injection in install.sh.</step-10>
+    </Phase-12>
+    <Phase-13 status="done">
+      <name>Tests & CI/CD (P5)</name>
+      <step-1>Add test_security.py (10 tests for JWT, password, Fernet, blacklist).</step-1>
+      <step-2>Add auth rejection tests (401/403 for unauthenticated).</step-2>
+      <step-3>Add test_billing_service.py (5 tests for subscription lifecycle).</step-3>
+      <step-4>Add test_scheduler.py (4 tests for expiry, cleanup, anomaly detection).</step-4>
+      <step-5>Add test_referrals.py (7 tests for code, linking, bonus, stats).</step-5>
+      <step-6>Add coverage config (--cov=app --cov-fail-under=70).</step-6>
+      <step-7>Consolidate test fixtures in conftest.py.</step-7>
+      <step-8>Create .github/workflows/ci.yml with lint, test, build jobs.</step-8>
+      <step-9>Add blocked-device reconnection test (CF-012).</step-9>
+      <step-10>Add CLI idempotency test (CF-007).</step-10>
+    </Phase-13>
+    <Phase-14 status="done">
+      <name>Cleanup & Polish (P6)</name>
+      <step-1>Split vpn/service.py (1112 lines) into service.py, provisioning.py, config.py, topology.py.</step-1>
+      <step-2>Add UserResponse.from_user() factory method.</step-2>
+      <step-3>Add AdminAuditEvent model and AdminAuditMiddleware.</step-3>
+      <step-4>Remove empty app/email/ module.</step-4>
+      <step-5>Remove dead App.tsx in admin frontend.</step-5>
+      <step-6>Migrate all API routes to /api/v1 prefix.</step-6>
+      <step-7>Move hardcoded krotvpn.com URL to Settings.frontend_url.</step-7>
+    </Phase-14>
   </implementation-order>
 
   <observability-notes>

@@ -1,3 +1,19 @@
+# START_MODULE_CONTRACT: M-028
+# PURPOSE: Alembic async migration environment configured with SQLModel metadata
+# SCOPE: Offline and online migration execution, autogenerate support
+# INPUTS: alembic.ini config, SQLModel metadata from all models
+# OUTPUTS: Database schema migrations
+# DEPENDENCIES: M-001 (core database import_all_models), M-028 (migrations)
+# VERIFICATION: V-M-028 — alembic upgrade head works on clean database
+# END_MODULE_CONTRACT: M-028
+# START_MODULE_CONTRACT: M-028
+# PURPOSE: Alembic async migration environment configured with SQLModel metadata
+# SCOPE: Offline and online migration execution, autogenerate support
+# INPUTS: alembic.ini config, SQLModel metadata from all models
+# OUTPUTS: Database schema migrations
+# DEPENDENCIES: M-001 (core database import_all_models), M-028 (migrations)
+# VERIFICATION: V-M-028 — alembic upgrade head works on clean database
+# END_MODULE_CONTRACT: M-028
 import asyncio
 import os
 import sys

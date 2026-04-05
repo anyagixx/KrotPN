@@ -1,282 +1,199 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!--
-  GRACE Requirements Document
-  Product: KrotVPN - Commercial VPN Service with AmneziaWG
-  Version: 1.0.0
--->
+<!-- GRACE-lite Requirements for multi-agent handoff -->
 <requirements>
   <meta>
     <project-name>KrotVPN</project-name>
-    <version>1.0.0</version>
-    <created>2026-03-20</created>
-    <status>draft</status>
+    <version>2.5.0</version>
+    <updated>2026-03-24</updated>
+    <status>active</status>
+    <methodology>GRACE-lite for AI-assisted development</methodology>
   </meta>
 
-  <product-vision>
-    <title>KrotVPN - Commercial VPN Service</title>
-    <description>
-      Коммерческий VPN-сервис на базе AmneziaWG протокола для обхода 
-      блокировок Роскомнадзора. Предоставляет пользователям из России 
-      доступ к заблокированным ресурсам через обфусцированные туннели.
-    </description>
-    <target-audience>
-      Пользователи из России, нуждающиеся в надежном доступе к 
-      заблокированным ресурсам: YouTube, Instagram, Twitter/X, 
-      независимые СМИ, корпоративные сервисы.
-    </target-audience>
-    <unique-value>
-      AmneziaWG протокол с обфускацией, не детектируемый системами DPI.
-      Split-tunneling для российского трафика напрямую.
-    </unique-value>
-  </product-vision>
+  <product>
+    <name>KrotVPN</name>
+    <summary>
+      Коммерческий VPN-сервис на базе AmneziaWG с user dashboard, admin panel,
+      billing, referrals, Telegram bot и двухузловой сетевой моделью RU entry / DE exit.
+    </summary>
+    <target-users>
+      Частные пользователи, которым нужен устойчивый доступ к интернет-ресурсам через
+      обфусцированный VPN, и оператор сервиса, управляющий подписками, маршрутами и узлами.
+    </target-users>
+    <primary-goal>
+      Давать пользователю рабочий VPN-доступ с минимальным количеством шагов:
+      регистрация, пробный доступ или подписка, получение конфигурации, подключение.
+    </primary-goal>
+  </product>
+
+  <scope>
+    <in-scope>
+      FastAPI backend с JWT auth, Telegram auth, subscriptions, billing, referrals, admin API.
+      Пользовательский frontend для регистрации, входа, получения VPN-конфига и просмотра статуса.
+      Admin frontend для пользователей, тарифов, узлов, маршрутов, доменных routing-правил и базовой аналитики.
+      Telegram bot для быстрого входа, выдачи конфига и просмотра подписки.
+      Хост-управляемая интеграция с AmneziaWG, routing, iptables/ipset и deploy scripts.
+      Policy-driven routing по доменам, wildcard-доменам, DNS-bound IP и CIDR с обратной совместимостью к текущему RU baseline.
+    </in-scope>
+    <out-of-scope>
+      Нативные мобильные приложения.
+      Полноценный self-service support center.
+      Deep packet inspection или payload-level traffic inspection.
+      Завершенная enterprise-grade observability и autoscaling.
+    </out-of-scope>
+  </scope>
 
   <use-cases>
-    <!-- User Use Cases -->
-    <use-case id="UC-001" actor="user" priority="critical">
-      <title>Регистрация нового пользователя</title>
-      <description>
-        Пользователь создает аккаунт через email или Telegram.
-        Получает пробный период 3 дня.
-      </description>
-      <acceptance-criteria>
-        Регистрация по email с подтверждением
-        Регистрация через Telegram OAuth
-        Автоматическое создание VPN конфига
-        Пробный период активируется сразу
-      </acceptance-criteria>
+    <use-case id="UC-001" priority="critical">
+      <name>Domain-first route selection</name>
+      <goal>
+        Когда домен известен, система должна принимать маршрутное решение по доменному policy-правилу
+        раньше, чем по общей географии IP-адреса.
+      </goal>
+      <acceptance>
+        Exact-domain rule имеет приоритет над wildcard-domain rule.
+        Wildcard-domain rule имеет приоритет над CIDR rule.
+        При отсутствии явного policy сохраняется текущий RU baseline.
+      </acceptance>
     </use-case>
-
-    <use-case id="UC-002" actor="user" priority="critical">
-      <title>Покупка подписки</title>
-      <description>
-        Пользователь выбирает тариф и оплачивает через ЮKassa/Tinkoff.
-        Поддержка разовых платежей и рекуррентных подписок.
-      </description>
-      <acceptance-criteria>
-        Отображение доступных тарифов
-        Интеграция с платежными системами
-        Автоматическое продление доступа
-        История платежей в личном кабинете
-      </acceptance-criteria>
+    <use-case id="UC-002" priority="critical">
+      <name>Foreign CDN domain with changing IPs</name>
+      <goal>
+        Домен с DE policy должен оставаться routed через DE даже если его IP-адреса меняются из-за CDN или DNS rotation.
+      </goal>
+      <acceptance>
+        DNS binding обновляется по TTL.
+        Истекшие привязки не остаются активными бесконечно.
+        Изменение IP не ломает policy semantics для уже известного домена.
+      </acceptance>
     </use-case>
-
-    <use-case id="UC-003" actor="user" priority="critical">
-      <title>Скачивание VPN конфигурации</title>
-      <description>
-        Пользователь скачивает .conf файл или сканирует QR-код 
-        для настройки VPN клиента.
-      </description>
-      <acceptance-criteria>
-        Генерация QR-кода для мобильных
-        Скачивание .conf файла для desktop
-        Инструкции по настройке для разных платформ
-        Автоматическая генерация при первой покупке
-      </acceptance-criteria>
+    <use-case id="UC-003" priority="high">
+      <name>Admin-managed routing policy</name>
+      <goal>
+        Администратор должен иметь возможность создавать, изменять, отключать и проверять routing policy rules.
+      </goal>
+      <acceptance>
+        Admin API и admin UI отражают effective route target и причину решения.
+        Изменение policy приводит к runtime sync без потери несвязанных правил.
+      </acceptance>
     </use-case>
-
-    <use-case id="UC-004" actor="user" priority="high">
-      <title>Просмотр статистики использования</title>
-      <description>
-        Пользователь видит свой трафик, время использования, 
-        статус подписки.
-      </description>
-      <acceptance-criteria>
-        Отображение upload/download трафика
-        Визуализация использования по дням
-        Статус и остаток подписки
-        История подключений
-      </acceptance-criteria>
-    </use-case>
-
-    <use-case id="UC-005" actor="user" priority="medium">
-      <title>Участие в реферальной программе</title>
-      <description>
-        Пользователь приглашает друзей и получает бонусы.
-      </description>
-      <acceptance-criteria>
-        Генерация реферальной ссылки
-        Начисление бонусов за приглашенных
-        Отслеживание приглашенных пользователей
-        Использование бонусов для оплаты
-      </acceptance-criteria>
-    </use-case>
-
-    <!-- Admin Use Cases -->
-    <use-case id="UC-006" actor="admin" priority="critical">
-      <title>Управление пользователями</title>
-      <description>
-        Администратор просматривает, блокирует, управляет 
-        пользователями и их подписками.
-      </description>
-      <acceptance-criteria>
-        Список всех пользователей с фильтрами
-        Блокировка/разблокировка пользователей
-        Ручное продление подписки
-        Просмотр детальной информации
-      </acceptance-criteria>
-    </use-case>
-
-    <use-case id="UC-007" actor="admin" priority="critical">
-      <title>Управление тарифами</title>
-      <description>
-        Создание и редактирование тарифных планов.
-      </description>
-      <acceptance-criteria>
-        CRUD операции с тарифами
-        Настройка цен и сроков
-        Активация/деактивация тарифов
-        Привязка к платежным системам
-      </acceptance-criteria>
-    </use-case>
-
-    <use-case id="UC-008" actor="admin" priority="high">
-      <title>Просмотр аналитики</title>
-      <description>
-        Дашборд с метриками бизнеса: выручка, пользователи, 
-        конверсия.
-      </description>
-      <acceptance-criteria>
-        Общая выручка по периодам
-        Количество новых пользователей
-        MRR/ARR метрики
-        Конверсия из триала в платного
-      </acceptance-criteria>
-    </use-case>
-
-    <use-case id="UC-009" actor="admin" priority="high">
-      <title>Управление серверами</title>
-      <description>
-        Добавление и мониторинг VPN серверов.
-      </description>
-      <acceptance-criteria>
-        Добавление новых серверов
-        Мониторинг нагрузки
-        Статус серверов (online/offline)
-        Балансировка пользователей
-      </acceptance-criteria>
-    </use-case>
-
-    <use-case id="UC-010" actor="system" priority="critical">
-      <title>Автоматическое управление подписками</title>
-      <description>
-        Система автоматически продлевает/отключает доступ 
-        по подпискам.
-      </description>
-      <acceptance-criteria>
-        Проверка истечения подписок каждый час
-        Отключение доступа при истечении
-        Уведомления об окончании срока
-        Обработка рекуррентных платежей
-      </acceptance-criteria>
+    <use-case id="UC-004" priority="high">
+      <name>Backward-compatible fallback behavior</name>
+      <goal>
+        Пока покрытие доменных правил неполное, система не должна ломать уже работающую модель RU-vs-non-RU.
+      </goal>
+      <acceptance>
+        Unknown domain без явного policy уходит в CIDR evaluation и затем в текущий RU baseline.
+        Rollout возможен поэтапно без обязательного массового переопределения существующих правил.
+      </acceptance>
     </use-case>
   </use-cases>
 
-  <functional-requirements>
-    <requirement id="FR-001" priority="critical">
-      <title>AmneziaWG Integration</title>
+  <critical-user-flows>
+    <flow id="F-001" priority="critical">
+      <name>Email registration and trial provisioning</name>
       <description>
-        Интеграция с AmneziaWG для создания и управления 
-        VPN туннелями. Параметры обфускации: Jc, Jmin, Jmax, S1, S2, H1-H4.
+        Пользователь регистрируется по email, получает trial subscription и VPN client,
+        после чего может скачать конфиг или показать QR.
       </description>
-      <source>legacy-project</source>
-    </requirement>
-
-    <requirement id="FR-002" priority="critical">
-      <title>Split Tunneling</title>
+    </flow>
+    <flow id="F-002" priority="critical">
+      <name>Telegram authentication</name>
       <description>
-        Российский трафик идет напрямую, остальной через VPN туннель.
-        Использование ipset для списка IP России.
+        Пользователь входит через Telegram widget или bot-mediated auth,
+        после чего получает тот же доступ к конфигу и подписке.
       </description>
-      <source>legacy-project</source>
-    </requirement>
-
-    <requirement id="FR-003" priority="critical">
-      <title>Payment Integration</title>
+    </flow>
+    <flow id="F-003" priority="critical">
+      <name>Paid subscription activation</name>
       <description>
-        Интеграция с ЮKassa и Tinkoff для приема платежей.
-        Поддержка рекуррентных платежей.
+        Пользователь выбирает план, создает платеж, webhook подтверждает оплату,
+        подписка продлевается, VPN доступ активируется или остается активным.
       </description>
-    </requirement>
-
-    <requirement id="FR-004" priority="high">
-      <title>Telegram Bot</title>
+    </flow>
+    <flow id="F-004" priority="critical">
+      <name>Config delivery</name>
       <description>
-        Бот для уведомлений, регистрации и базового управления.
+        Пользователь получает VPN config через dashboard или Telegram bot:
+        текст, файл или QR.
       </description>
-    </requirement>
-
-    <requirement id="FR-005" priority="high">
-      <title>Multi-language Support</title>
+    </flow>
+    <flow id="F-005" priority="high">
+      <name>Admin operations</name>
       <description>
-        Интерфейс на русском и английском языках.
+        Администратор логинится, смотрит пользователей, тарифы, состояние узлов,
+        маршрутов, policy-правил и базовую бизнес-аналитику.
       </description>
-    </requirement>
-
-    <requirement id="FR-006" priority="high">
-      <title>PWA Support</title>
+    </flow>
+    <flow id="F-006" priority="critical">
+      <name>Domain-aware route decision</name>
       <description>
-        Progressive Web App для установки на мобильные устройства.
+        При доступе к домену система должна сначала оценивать exact/wildcard domain rules,
+        затем DNS-bound IP и explicit CIDR rules, и только потом текущий RU baseline.
       </description>
-    </requirement>
-
-    <requirement id="FR-007" priority="medium">
-      <title>Referral System</title>
+    </flow>
+    <flow id="F-007" priority="high">
+      <name>DNS-bound policy refresh</name>
       <description>
-        Реферальная программа с бонусами за приглашения.
+        Когда DNS binding для policy-managed домена меняется, runtime route set должен быть обновлен
+        без silent leakage старых адресов.
       </description>
-    </requirement>
+    </flow>
+  </critical-user-flows>
 
-    <requirement id="FR-008" priority="medium">
-      <title>Email Notifications</title>
-      <description>
-        Уведомления о регистрации, оплате, окончании подписки.
-      </description>
-    </requirement>
-  </functional-requirements>
+  <current-functional-baseline>
+    <implemented>
+      Email/password auth и refresh token flow.
+      Telegram auth endpoint и bot-assisted authorization.
+      Trial subscriptions и paid subscriptions.
+      VPN config generation, config download, QR generation, client stats.
+      Referral code generation и referral bonus processing.
+      Admin API и отдельный admin frontend.
+      Docker Compose stack для backend/frontend/admin/nginx/db/redis/telegram-bot.
+      Базовый split-tunneling по RU IPset и custom routes.
+    </implemented>
+    <partial>
+      Billing production hardening.
+      Route-aware migration от legacy VPNServer к VPNNode/VPNRoute.
+      Admin analytics consistency.
+      Email module и уведомления.
+      Domain-aware routing planning approved, but implementation not started.
+      End-to-end verification and repeatable deployment safety.
+    </partial>
+    <known-gaps>
+      Нет нормальной схемы database migrations через Alembic workflow.
+      Deployment security и secrets handling слабые.
+      Тестовое покрытие неполное и локально не всегда воспроизводимо без подготовки окружения.
+      Текущий routing baseline слишком жестко зависит от RU IPset и не покрывает intent-level routing по доменам.
+    </known-gaps>
+  </current-functional-baseline>
 
-  <non-functional-requirements>
-    <requirement id="NFR-001" category="performance">
-      <title>Response Time</title>
-      <description>API должен отвечать за &lt;200ms для 95% запросов</description>
-      <metric>p95 latency &lt; 200ms</metric>
-    </requirement>
+  <non-functional-priorities>
+    <priority rank="1">Безопасность секретов, admin access и billing webhook handling.</priority>
+    <priority rank="2">Надежность VPN provisioning и route-aware topology.</priority>
+    <priority rank="3">Объяснимость и детерминизм routing decision по домену, DNS binding и CIDR.</priority>
+    <priority rank="4">Повторяемый AI handoff через актуальные docs и contracts.</priority>
+    <priority rank="5">Упрощение deployment и снижение host-coupling там, где это возможно.</priority>
+  </non-functional-priorities>
 
-    <requirement id="NFR-002" category="scalability">
-      <title>Concurrent Users</title>
-      <description>Поддержка до 10,000 одновременных VPN подключений</description>
-      <metric>10k concurrent connections</metric>
-    </requirement>
+  <routing-requirements>
+    <requirement id="RR-001">Policy precedence must be deterministic and explicitly documented.</requirement>
+    <requirement id="RR-002">Decision reason must be observable without exposing secrets or raw sensitive payloads.</requirement>
+    <requirement id="RR-003">Domain normalization must avoid duplicate rules caused by casing, trailing dots or wildcard formatting drift.</requirement>
+    <requirement id="RR-004">Runtime sync must remove stale DNS-derived addresses after TTL expiry or rule deactivation.</requirement>
+    <requirement id="RR-005">Fallback to current RU baseline must remain available until policy rollout is complete.</requirement>
+  </routing-requirements>
 
-    <requirement id="NFR-003" category="security">
-      <title>Data Encryption</title>
-      <description>Все чувствительные данные зашифрованы в БД</description>
-      <metric>AES-256 encryption</metric>
-    </requirement>
-
-    <requirement id="NFR-004" category="availability">
-      <title>Uptime</title>
-      <description>Доступность сервиса 99.9%</description>
-      <metric>99.9% uptime SLA</metric>
-    </requirement>
-
-    <requirement id="NFR-005" category="security">
-      <title>Authentication</title>
-      <description>JWT токены с refresh, 2FA опционально</description>
-    </requirement>
-  </non-functional-requirements>
-
-  <constraints>
-    <constraint id="C-001">
-      Протокол AmneziaWG должен остаться без изменений (legacy requirement)
-    </constraint>
-    <constraint id="C-002">
-      Двухуровневая архитектура: RU-сервер (точка входа) + DE-сервер (exit node)
-    </constraint>
-    <constraint id="C-003">
-      Платежные системы должны работать с российскими картами
-    </constraint>
-    <constraint id="C-004">
-      Серверы должны быть на Ubuntu 20.04/22.04
-    </constraint>
-  </constraints>
+  <agent-guidance>
+    <instruction>
+      Новый AI-агент должен сначала прочитать docs/current-status.xml, docs/knowledge-graph.xml,
+      docs/development-plan.xml и docs/verification-plan.xml, и только потом менять код.
+    </instruction>
+    <instruction>
+      При конфликте между старым документом и кодом приоритет имеет код, после чего агент обязан
+      обновить соответствующий документ.
+    </instruction>
+    <instruction>
+      Любая работа по routing policy должна явно называть decision precedence и expected fallback branch.
+    </instruction>
+  </agent-guidance>
 </requirements>

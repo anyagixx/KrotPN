@@ -1,3 +1,19 @@
+# START_MODULE_CONTRACT: M-003-CONFIG
+# PURPOSE: VPN config generation — decrypt private keys, render WG config for clients
+# SCOPE: ConfigMixin with get_client_config
+# INPUTS: VPNClient record, associated nodes/servers
+# OUTPUTS: Rendered WireGuard config string
+# DEPENDENCIES: M-001 (core security/decrypt), M-003 (vpn models)
+# VERIFICATION: V-M-003 — config rendering produces valid WG format
+# END_MODULE_CONTRACT: M-003-CONFIG
+# START_MODULE_CONTRACT: M-003-CONFIG
+# PURPOSE: VPN config generation — decrypt private keys, render WG config for clients
+# SCOPE: ConfigMixin with get_client_config
+# INPUTS: VPNClient record, associated nodes/servers
+# OUTPUTS: Rendered WireGuard config string
+# DEPENDENCIES: M-001 (core security/decrypt), M-003 (vpn models)
+# VERIFICATION: V-M-003 — config rendering produces valid WG format
+# END_MODULE_CONTRACT: M-003-CONFIG
 """VPN config generation helpers."""
 
 from app.core.security import decrypt_data

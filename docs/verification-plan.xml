@@ -3,8 +3,8 @@
 <verification-plan>
   <meta>
     <project-name>KrotVPN</project-name>
-    <version>2.7.0</version>
-    <updated>2026-03-27</updated>
+    <version>2.8.0</version>
+    <updated>2026-04-05</updated>
   </meta>
 
   <verification-philosophy>
@@ -102,12 +102,68 @@
       <failure>Security-relevant actions occur without a durable audit trail.</failure>
       <required-trace>VPN_DEVICE_AUDIT_RECORDED</required-trace>
     </scenario>
+    <scenario id="VM-015" module="V-M-001" evidence="deterministic">
+      <success>App refuses to start with default secret_key (ValueError).</success>
+      <failure>App starts with default key, only emits a warning.</failure>
+      <required-trace>SECURITY_DEFAULT_KEY_REJECTED</required-trace>
+    </scenario>
+    <scenario id="VM-016" module="V-M-001" evidence="deterministic">
+      <success>App refuses to start without DATA_ENCRYPTION_KEY (RuntimeError).</success>
+      <failure>Fernet key is derived from JWT secret, creating single point of compromise.</failure>
+      <required-trace>SECURITY_ENCRYPTION_KEY_REQUIRED</required-trace>
+    </scenario>
+    <scenario id="VM-017" module="V-M-001" evidence="deterministic">
+      <success>Admin endpoint returns 401 without token after fixing auth bypass.</success>
+      <failure>Admin endpoint accessible without authentication.</failure>
+      <required-trace>AUTH_ADMIN_ENDPOINT_REQUIRES_TOKEN</required-trace>
+    </scenario>
+    <scenario id="VM-018" module="V-M-027" evidence="integration">
+      <success>Blacklisted token is rejected by verify_token_with_blacklist.</success>
+      <failure>Blacklisted token remains valid for authentication.</failure>
+      <required-trace>TOKEN_BLACKLISTED TOKEN_REJECTED</required-trace>
+    </scenario>
+    <scenario id="VM-019" module="V-M-028" evidence="deterministic">
+      <success>alembic upgrade head applies all migrations on clean database.</success>
+      <failure>Migration fails or produces schema inconsistent with models.</failure>
+      <required-trace>ALEMBIC_MIGRATION_APPLIED</required-trace>
+    </scenario>
+    <scenario id="VM-020" module="V-M-012" evidence="integration">
+      <success>Double deploy preserves existing WG keys and client connections.</success>
+      <failure>Re-deploy regenerates keys, breaking all client connections.</failure>
+      <required-trace>DEPLOY_IDEMPOTENT KEYS_PRESERVED</required-trace>
+    </scenario>
+    <scenario id="VM-021" module="V-M-012" evidence="integration">
+      <success>deploy/rollback.sh creates backup and can restore from it.</success>
+      <failure>Rollback fails or restores corrupted state.</failure>
+      <required-trace>DEPLOY_BACKUP_CREATED DEPLOY_RESTORED</required-trace>
+    </scenario>
+    <scenario id="VM-022" module="V-M-026" evidence="deterministic">
+      <success>Every /api/v1/admin/* request produces an AdminAuditEvent record.</success>
+      <failure>Admin requests occur without audit trail.</failure>
+      <required-trace>ADMIN_AUDIT_RECORDED</required-trace>
+    </scenario>
+    <scenario id="VM-023" module="V-M-009" evidence="deterministic">
+      <success>Frontend builds with zero any usages in TypeScript source.</success>
+      <failure>tsc --noEmit reports type errors or any usages remain.</failure>
+      <required-trace>TYPESCRIPT_NO_ERRORS</required-trace>
+    </scenario>
+    <scenario id="VM-024" module="V-M-001" evidence="deterministic">
+      <success>All datetime comparisons use timezone-aware values (datetime.now(timezone.utc)).</success>
+      <failure>datetime.utcnow() still present in source code.</failure>
+      <required-trace>DATETIME_TIMEZONE_AWARE</required-trace>
+    </scenario>
+    <scenario id="VM-025" module="V-M-008" evidence="deterministic">
+      <success>Subscription expiry task decrements server.current_clients counter.</success>
+      <failure>Counter drifts upward, reporting more clients than exist.</failure>
+      <required-trace>SUBSCRIPTION_EXPIRED COUNTER_DECREMENTED</required-trace>
+    </scenario>
   </verification-matrix>
 
   <module-verification>
     <V-M-001 module="backend-core">
-      <checks>Backend config and DB initialization remain runnable; auth and crypto helpers still load.</checks>
-      <evidence>backend startup or targeted import/test reasoning</evidence>
+      <checks>Backend config and DB initialization remain runnable; auth and crypto helpers still load. Default secret_key is rejected with ValueError. DATA_ENCRYPTION_KEY is required. Token blacklist functions work with Redis and degrade gracefully without it. All datetime values are timezone-aware.</checks>
+      <tests>backend/tests/test_security.py</tests>
+      <anchors>SECURITY_DEFAULT_KEY_REJECTED SECURITY_ENCRYPTION_KEY_REQUIRED DATETIME_TIMEZONE_AWARE TOKEN_BLACKLISTED</anchors>
     </V-M-001>
     <V-M-002 module="users">
       <checks>Identity creation stays deterministic for both normal and internal users, and manual internal-user resolution cannot create duplicate user rows for the same logical client.</checks>
@@ -120,14 +176,14 @@
       <anchors>VPN_PROVISION_ROUTE_SELECTED VPN_CONFIG_RENDERED VPN_PEER_APPLIED</anchors>
     </V-M-003>
     <V-M-004 module="billing">
-      <checks>Payment and webhook flows remain isolated from routing migration, and complimentary internal access can be granted without entering payment-provider logic.</checks>
-      <tests>backend/tests/test_billing_security.py backend/tests/test_manual_access_policy.py</tests>
+      <checks>Payment and webhook flows remain isolated from routing migration, complimentary internal access can be granted without entering payment-provider logic, and plan device_limit remains visible and mutable through the admin API.</checks>
+      <tests>backend/tests/test_billing_security.py backend/tests/test_manual_access_policy.py backend/tests/test_billing_plan_api.py</tests>
       <anchors>BILLING_WEBHOOK_ACCEPTED BILLING_SUBSCRIPTION_UPDATED VPN_INTERNAL_ACCESS_GRANTED</anchors>
     </V-M-004>
     <V-M-005 module="referrals">
-      <checks>Referral logic remains excluded from manual internal client issuance unless explicitly requested by future policy.</checks>
-      <tests>static review plus future targeted referral-policy tests if manual issuance ever intersects referral creation</tests>
-      <anchors>none-required-for-current-scope</anchors>
+      <checks>Referral logic remains excluded from manual internal client issuance unless explicitly requested by future policy. Referral code generation is unique, self-referral is rejected, first payment bonus works correctly, and stats aggregation is accurate.</checks>
+      <tests>backend/tests/test_referrals.py</tests>
+      <anchors>REFERRAL_CODE_CREATED REFERRAL_LINKED REFERRAL_BONUS_APPLIED</anchors>
     </V-M-005>
     <V-M-006 module="admin-api">
       <checks>Admin routing inspection and analytics endpoints enforce admin auth and reflect current policy state.</checks>
@@ -140,9 +196,9 @@
       <anchors>RUNTIME_ROUTESET_INCREMENTAL RUNTIME_ROUTESET_FULL_REFRESH</anchors>
     </V-M-007>
     <V-M-008 module="tasks">
-      <checks>Background jobs do not auto-assign complimentary internal access or mutate manually managed clients unexpectedly.</checks>
-      <tests>static review until a task is introduced for internal-access cleanup or reporting</tests>
-      <anchors>none-required-for-current-scope</anchors>
+      <checks>Background jobs do not auto-assign complimentary internal access or mutate manually managed clients unexpectedly. Subscription expiry task correctly deactivates expired subscriptions and decrements server.current_clients counter. Daily cleanup and handshake anomaly detection tasks run without errors.</checks>
+      <tests>backend/tests/test_scheduler.py</tests>
+      <anchors>SUBSCRIPTION_EXPIRED COUNTER_DECREMENTED DAILY_CLEANUP_COMPLETED</anchors>
     </V-M-008>
     <V-M-009 module="frontend-user">
       <checks>User frontend still builds and has no contract mismatch with auth, config and subscription APIs.</checks>
@@ -219,7 +275,7 @@
       <anchors>VPN_DEVICE_CREATED VPN_DEVICE_REVOKED VPN_DEVICE_CONFIG_ROTATED VPN_CONFIG_RENDERED</anchors>
     </V-M-022>
     <V-M-023 module="handshake-anomaly-detector">
-      <checks>Handshake observation updates device last-seen state, flags suspicious endpoint churn or near-concurrent reuse, and does not leak secrets or raw private peer material into logs.</checks>
+      <checks>Handshake observation updates device last-seen state, flags suspicious endpoint churn or near-concurrent reuse, persists timestamps safely to production Postgres, and does not leak secrets or raw private peer material into logs.</checks>
       <tests>backend/tests/test_handshake_anomaly_detector.py</tests>
       <anchors>VPN_HANDSHAKE_OBSERVED VPN_HANDSHAKE_ENDPOINT_CHANGED VPN_HANDSHAKE_CONCURRENCY_SUSPECTED VPN_DEVICE_SUSPICION_ESCALATED</anchors>
     </V-M-023>
@@ -233,6 +289,21 @@
       <tests>backend/tests/test_device_audit_log.py</tests>
       <anchors>VPN_DEVICE_AUDIT_RECORDED</anchors>
     </V-M-025>
+    <V-M-026 module="admin-audit-log">
+      <checks>Admin audit middleware logs all /api/v1/admin/* requests without leaking tokens or sensitive bodies. AdminAuditEvent records persist with admin_id, action, resource_type, resource_id.</checks>
+      <tests>static review plus targeted middleware tests when admin audit test suite is added</tests>
+      <anchors>ADMIN_AUDIT_RECORDED</anchors>
+    </V-M-026>
+    <V-M-027 module="token-blacklist">
+      <checks>Token blacklist correctly rejects revoked tokens. Graceful degradation when Redis is unavailable (auth still works). Blacklist TTL matches token expiry.</checks>
+      <tests>backend/tests/test_security.py (blacklist tests)</tests>
+      <anchors>TOKEN_BLACKLISTED TOKEN_REJECTED</anchors>
+    </V-M-027>
+    <V-M-028 module="alembic-migrations">
+      <checks>Alembic env.py correctly imports all models via import_all_models(). Initial baseline migration captures all existing tables. alembic upgrade head works on clean database.</checks>
+      <tests>backend/alembic/versions/2699e47c4e1b_initial_baseline_all_models.py</tests>
+      <anchors>ALEMBIC_MIGRATION_APPLIED</anchors>
+    </V-M-028>
   </module-verification>
 
   <change-matrix>
@@ -337,6 +408,53 @@
       <required>Suspicious handshake reuse leaves structured evidence, admin can review and enforce on a specific device peer, and automatic blocking remains either explicitly disabled or supported by bounded false-positive evidence.</required>
       <required>Blocked devices do not quietly regain access through stale peers or freed slots.</required>
     </Phase-8-Gate>
+    <Phase-9-Gate>
+      <required>App refuses to start with default secret_key (ValueError).</required>
+      <required>App refuses to start without DATA_ENCRYPTION_KEY (RuntimeError).</required>
+      <required>Admin endpoints enforce authentication (no = None bypasses).</required>
+      <required>Zero sshpass, base64-encoded passwords, hardcoded IPs, or plaintext credential files in deploy scripts.</required>
+      <required>Port 8000 not exposed externally in docker-compose.</required>
+    </Phase-9-Gate>
+    <Phase-10-Gate>
+      <required>Zero datetime.utcnow() calls remain in source code.</required>
+      <required>Alembic baseline migration generated and alembic upgrade head works.</required>
+      <required>Token blacklist functions exist and degrade gracefully without Redis.</required>
+      <required>_reprovision_client removes old WG peer after adding new one.</required>
+      <required>server.current_clients counter decremented on subscription expiry.</required>
+      <required>All files in docs/ under 500 lines.</required>
+    </Phase-10-Gate>
+    <Phase-11-Gate>
+      <required>httpOnly secure cookies set on auth endpoints.</required>
+      <required>Zero any usages in frontend-admin TypeScript source.</required>
+      <required>PWA cache matches relative /api/ paths.</required>
+      <required>No sourcemaps in production build.</required>
+      <required>i18next escapeValue set to true.</required>
+    </Phase-11-Gate>
+    <Phase-12-Gate>
+      <required>Double deploy preserves existing WG keys.</required>
+      <required>Rollback script creates backup and can restore.</required>
+      <required>All 6 services have healthchecks in docker-compose.</required>
+      <required>All containers have resource limits.</required>
+      <required>Zero hardcoded eth0 references in deploy scripts.</required>
+      <required>Nginx serves all security headers (HSTS, CSP, X-Frame-Options).</required>
+      <required>UFW FORWARD policy is deny with explicit AWG exceptions.</required>
+    </Phase-12-Gate>
+    <Phase-13-Gate>
+      <required>test_security.py passes with 10+ tests.</required>
+      <required>test_scheduler.py passes with 4+ tests.</required>
+      <required>test_referrals.py passes with 7+ tests.</required>
+      <required>Coverage threshold configured at 70%.</required>
+      <required>GitHub Actions CI pipeline defined and valid YAML.</required>
+      <required>CF-012 (blocked device) and CF-007 (CLI idempotency) tests exist and pass.</required>
+    </Phase-13-Gate>
+    <Phase-14-Gate>
+      <required>vpn/service.py under 500 lines after split.</required>
+      <required>UserResponse.from_user() factory used in all router endpoints.</required>
+      <required>AdminAuditEvent model exists and middleware registered.</required>
+      <required>No empty app/email/ directory.</required>
+      <required>No dead App.tsx in admin frontend.</required>
+      <required>All API routes use /api/v1 prefix.</required>
+    </Phase-14-Gate>
   </phase-gates>
 
   <agent-reporting>

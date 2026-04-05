@@ -1,3 +1,19 @@
+# START_MODULE_CONTRACT: M-028
+# PURPOSE: Database migration helpers extracted from database.py
+# SCOPE: Schema introspection, data migration utilities, legacy compatibility functions
+# INPUTS: Database engine, session, schema definitions
+# OUTPUTS: Migrated database state, compatibility reports
+# DEPENDENCIES: M-001 (core DB engine/settings)
+# VERIFICATION: V-M-028 — alembic upgrade head works on clean database
+# END_MODULE_CONTRACT: M-028
+# START_MODULE_CONTRACT: M-028
+# PURPOSE: Database migration helpers extracted from database.py
+# SCOPE: Schema introspection, data migration utilities, legacy compatibility functions
+# INPUTS: Database engine, session, schema definitions
+# OUTPUTS: Migrated database state, compatibility reports
+# DEPENDENCIES: M-001 (core DB engine/settings)
+# VERIFICATION: V-M-028 — alembic upgrade head works on clean database
+# END_MODULE_CONTRACT: M-028
 """
 Database migration helpers.
 

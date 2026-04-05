@@ -3,9 +3,9 @@
 <knowledge-graph>
   <meta>
     <project-name>KrotVPN</project-name>
-    <version>2.7.0</version>
-    <updated>2026-03-27</updated>
-    <purpose>Fast AI onboarding and navigation for the current system plus the approved routing-policy migration, manual internal client provisioning parity plan, and device-bound access plus anti-sharing architecture.</purpose>
+    <version>2.8.0</version>
+    <updated>2026-04-05</updated>
+    <purpose>Fast AI onboarding and navigation for the current system plus the approved routing-policy migration, manual internal client provisioning parity plan, device-bound access plus anti-sharing architecture, the live hotfixes applied after v2.4.26 rollout, and the P1-P6 hardening sweep (security, backend stability, frontend quality, infrastructure, tests/CI, cleanup).</purpose>
   </meta>
 
   <entry-points>
@@ -21,10 +21,13 @@
   <modules>
     <M-001 NAME="backend-core" TYPE="UTILITY" verification-ref="V-M-001">
       <path>backend/app/core</path>
-      <owns>settings, security, DB sessions, dependency injection, admin bootstrap, topology bootstrap</owns>
+      <owns>settings, security (JWT, password hashing, Fernet encryption, token blacklist), DB sessions, dependency injection, admin bootstrap, topology bootstrap, database migrations</owns>
       <exports>
         <fn-settings>Runtime configuration values and environment parsing</fn-settings>
         <fn-init-db>Database initialization and session lifecycle</fn-init-db>
+        <fn-get-fernet>Fernet encryption with explicit DATA_ENCRYPTION_KEY requirement</fn-get-fernet>
+        <fn-token-blacklist>Redis-based JWT token revocation</fn-token-blacklist>
+        <fn-migrations>Database migration helpers extracted from database.py</fn-migrations>
       </exports>
     </M-001>
     <M-002 NAME="users" TYPE="CORE_LOGIC" verification-ref="V-M-002">
@@ -34,6 +37,12 @@
     <M-003 NAME="vpn" TYPE="CORE_LOGIC" verification-ref="V-M-003">
       <path>backend/app/vpn</path>
       <owns>vpn clients, config generation, QR, topology-aware provisioning and legacy VPNServer compatibility</owns>
+      <sub-modules>
+        <sub-module path="backend/app/vpn/service.py">VPNService class composing ProvisioningMixin, ConfigMixin, TopologyMixin</sub-module>
+        <sub-module path="backend/app/vpn/provisioning.py">ProvisioningMixin: _provision_new_client, _reprovision_client, provision_internal/device_client</sub-module>
+        <sub-module path="backend/app/vpn/config.py">ConfigMixin: get_client_config</sub-module>
+        <sub-module path="backend/app/vpn/topology.py">TopologyMixin: node/route CRUD, status helpers, legacy server sync</sub-module>
+      </sub-modules>
       <exports>
         <type-VPNNode>Physical entry or exit VPN node</type-VPNNode>
         <type-VPNRoute>Logical path between entry and exit nodes</type-VPNRoute>
@@ -42,7 +51,7 @@
     </M-003>
     <M-004 NAME="billing" TYPE="CORE_LOGIC" verification-ref="V-M-004">
       <path>backend/app/billing</path>
-      <owns>plans, subscriptions, payments and YooKassa integration</owns>
+      <owns>plans, subscriptions, per-plan device limits, payments and YooKassa integration</owns>
     </M-004>
     <M-005 NAME="referrals" TYPE="CORE_LOGIC" verification-ref="V-M-005">
       <path>backend/app/referrals</path>
@@ -50,7 +59,11 @@
     </M-005>
     <M-006 NAME="admin-api" TYPE="ENTRY_POINT" verification-ref="V-M-006">
       <path>backend/app/admin</path>
-      <owns>dashboard stats, analytics, migration-safe routing summary and privileged system endpoints</owns>
+      <owns>dashboard stats, analytics, migration-safe routing summary, privileged system endpoints, admin audit logging</owns>
+      <exports>
+        <type-AdminAuditEvent>Admin action audit record</type-AdminAuditEvent>
+        <fn-log-admin-action>Record admin action for audit trail</fn-log-admin-action>
+      </exports>
     </M-006>
     <M-007 NAME="routing" TYPE="INTEGRATION" verification-ref="V-M-007">
       <path>backend/app/routing</path>
@@ -184,6 +197,32 @@
         <fn-record-device-event>Writes a stable lifecycle or anomaly event for later investigation</fn-record-device-event>
       </exports>
     </M-025>
+    <M-026 NAME="admin-audit-log" TYPE="DATA_LAYER" verification-ref="V-M-026">
+      <path>backend/app/admin/audit.py</path>
+      <owns>admin action audit trail and request logging middleware for /api/v1/admin/* endpoints</owns>
+      <exports>
+        <type-AdminAuditEvent>Persisted record of admin action with admin_id, action, resource_type, resource_id, details</type-AdminAuditEvent>
+        <fn-log-admin-action>Writes an audit record for an admin API request</fn-log-admin-action>
+        <type-AdminAuditMiddleware>FastAPI middleware that logs all admin API requests</type-AdminAuditMiddleware>
+      </exports>
+    </M-026>
+    <M-027 NAME="token-blacklist" TYPE="UTILITY" verification-ref="V-M-027">
+      <path>backend/app/core/security.py</path>
+      <owns>Redis-based JWT token revocation for logout and incident response</owns>
+      <exports>
+        <fn-blacklist-token>Adds a token to the Redis blacklist with TTL matching its expiry</fn-blacklist-token>
+        <fn-is-token-blacklisted>Checks if a token has been revoked</fn-is-token-blacklisted>
+        <fn-verify-token-with-blacklist>Verifies token validity and checks blacklist in one call</fn-verify-token-with-blacklist>
+      </exports>
+    </M-027>
+    <M-028 NAME="alembic-migrations" TYPE="UTILITY" verification-ref="V-M-028">
+      <path>backend/alembic/ backend/app/core/migrations.py</path>
+      <owns>database schema migration infrastructure and migration helper functions extracted from database.py</owns>
+      <exports>
+        <fn-alembic-env>Async Alembic environment configured with SQLModel metadata</fn-alembic-env>
+        <fn-migration-helpers>Database migration utilities for schema introspection and data migration</fn-migration-helpers>
+      </exports>
+    </M-028>
   </modules>
 
   <CrossLinks>
@@ -240,6 +279,12 @@
     <link from="M-023" to="M-003">Handshake observations originate from VPN peer state and runtime visibility.</link>
     <link from="M-023" to="M-025">Suspicious peer reuse must leave durable security events.</link>
     <link from="M-024" to="M-025">Admin actions must be traceable in the audit log.</link>
+    <link from="M-006" to="M-026">Admin API requests are logged to the admin audit trail.</link>
+    <link from="M-026" to="M-001">Admin audit log uses core DB session and settings.</link>
+    <link from="M-002" to="M-027">Auth endpoints can blacklist tokens on logout.</link>
+    <link from="M-027" to="M-001">Token blacklist uses core settings and Redis connection.</link>
+    <link from="M-001" to="M-028">Core module depends on Alembic for schema migrations.</link>
+    <link from="M-028" to="M-001">Alembic env.py imports all models via core.database.import_all_models.</link>
   </CrossLinks>
 
   <hotspots>
@@ -253,6 +298,11 @@
     <H-008 module="M-020">Device migration is risky because legacy users already have live peers that must become deterministic primary devices.</H-008>
     <H-009 module="M-023">Handshake anomaly detection can produce false positives on mobile networks if endpoint churn rules are too aggressive.</H-009>
     <H-010 module="M-024">Device block or revoke must target only one peer or operators will accidentally disable whole accounts.</H-010>
+    <H-011 module="M-027">Token blacklist depends on Redis availability — graceful degradation must not break auth when Redis is down.</H-011>
+    <H-012 module="M-028">Alembic migrations must be backward compatible with existing SQLModel.create_all behavior during transition period.</H-012>
+    <H-013 module="M-003">VPN service split into 4 files — import paths must remain stable for all consumers (cli, router, scheduler).</H-013>
+    <H-014 module="M-006">Admin audit middleware logs all /api/v1/admin/* requests — must not log sensitive request bodies or tokens.</H-014>
+    <H-015 module="M-012">Deploy idempotency must preserve WG keys, SSL certs, and .env across repeated runs without data loss.</H-015>
   </hotspots>
 
   <agent-navigation>

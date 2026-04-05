@@ -1,3 +1,19 @@
+# START_MODULE_CONTRACT: M-026
+# PURPOSE: Admin audit logging model and middleware for /api/v1/admin/* requests
+# SCOPE: AdminAuditEvent SQLModel, log_admin_action helper, AdminAuditMiddleware
+# INPUTS: Admin user ID from JWT, request path/method, resource details
+# OUTPUTS: Persisted audit records in admin_audit_events table, structured log entries
+# DEPENDENCIES: M-001 (core DB settings), M-006 (admin-api)
+# VERIFICATION: V-M-026 — every admin request produces audit record
+# END_MODULE_CONTRACT: M-026
+# START_MODULE_CONTRACT: M-026
+# PURPOSE: Admin audit logging model and middleware for /api/v1/admin/* requests
+# SCOPE: AdminAuditEvent SQLModel, log_admin_action helper, AdminAuditMiddleware
+# INPUTS: Admin user ID from JWT, request path/method, resource details
+# OUTPUTS: Persisted audit records in admin_audit_events table, structured log entries
+# DEPENDENCIES: M-001 (core DB settings), M-006 (admin-api)
+# VERIFICATION: V-M-026 — every admin request produces audit record
+# END_MODULE_CONTRACT: M-026
 """Admin audit logging."""
 
 from datetime import datetime, timezone

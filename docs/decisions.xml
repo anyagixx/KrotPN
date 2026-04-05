@@ -6,14 +6,317 @@
     <updated>2026-04-05</updated>
   </meta>
 
-  <!-- Add decisions here as they are made -->
-  <!-- Format:
-  <decision id="D-001" date="YYYY-MM-DD">
-    <context>What prompted this decision</context>
-    <decision>What was decided</decision>
-    <rationale>Why this choice was made</rationale>
-    <status>accepted|superseded|rejected</status>
-    <superseded-by>D-XXX</superseded-by>
+  <!-- Phase 1: Critical Security -->
+  <decision id="D-001" date="2026-04-05">
+    <context>Default secret_key only warned, did not block startup</context>
+    <decision>Change warning to ValueError — app refuses to start with default key</decision>
+    <rationale>Production systems must never ship with default secrets, even with warnings</rationale>
+    <status>accepted</status>
   </decision>
-  -->
+
+  <decision id="D-002" date="2026-04-05">
+    <context>Fernet encryption key derived from JWT secret — single point of compromise</context>
+    <decision>Require explicit DATA_ENCRYPTION_KEY env var, remove fallback derivation</decision>
+    <rationale>Cryptographic separation of concerns — JWT compromise should not expose encrypted data</rationale>
+    <status>accepted</status>
+  </decision>
+
+  <decision id="D-003" date="2026-04-05">
+    <context>admin_users_router list_users had admin: CurrentAdmin = None, bypassing auth</context>
+    <decision>Replace = None with Depends() to enforce authentication</decision>
+    <rationale>Default None overrides FastAPI Depends(), allowing unauthenticated access to admin endpoint</rationale>
+    <status>accepted</status>
+  </decision>
+
+  <decision id="D-004" date="2026-04-05">
+    <context>Deploy scripts used sshpass with passwords visible in ps aux</context>
+    <decision>Remove all sshpass usage, require SSH key-based authentication</decision>
+    <rationale>Password-based SSH in scripts exposes credentials to process listing and shell history</rationale>
+    <status>accepted</status>
+  </decision>
+
+  <decision id="D-005" date="2026-04-05">
+    <context>install.sh used base64 encoding as "encryption" for secrets</context>
+    <decision>Remove base64 encoding, pass secrets as plain env vars through SSH</decision>
+    <rationale>Base64 is encoding, not encryption — provides false sense of security</rationale>
+    <status>accepted</status>
+  </decision>
+
+  <decision id="D-006" date="2026-04-05">
+    <context>deploy-on-server.sh wrote admin credentials to /root/.krotvpn-admin-credentials</context>
+    <decision>Remove plaintext credential file creation entirely</decision>
+    <rationale>Credentials on disk are a persistent attack surface; install.sh already shows them interactively</rationale>
+    <status>accepted</status>
+  </decision>
+
+  <decision id="D-007" date="2026-04-05">
+    <context>Production server IPs hardcoded in deploy scripts and .env.production</context>
+    <decision>Replace all hardcoded IPs with env vars, add to .gitignore</decision>
+    <rationale>Infrastructure IPs in VCS are information disclosure and create deployment coupling</rationale>
+    <status>accepted</status>
+  </decision>
+
+  <decision id="D-008" date="2026-04-05">
+    <context>Backend API port 8000 exposed externally via docker-compose port mapping</context>
+    <decision>Remove 8000:8000 mapping, backend accessible only via nginx proxy</decision>
+    <rationale>Direct API access bypasses nginx security headers, rate limiting, and SSL termination</rationale>
+    <status>accepted</status>
+  </decision>
+
+  <!-- Phase 2: Backend Stability -->
+  <decision id="D-009" date="2026-04-05">
+    <context>datetime.utcnow() used in 40+ locations, deprecated in Python 3.12+</context>
+    <decision>Replace all datetime.utcnow() with datetime.now(timezone.utc)</decision>
+    <rationale>utcnow() returns naive datetime, causing timezone comparison bugs and deprecation warnings</rationale>
+    <status>accepted</status>
+  </decision>
+
+  <decision id="D-010" date="2026-04-05">
+    <context>No Alembic migrations — database schema managed by SQLModel.metadata.create_all on startup</context>
+    <decision>Initialize Alembic with async support and generate initial baseline migration</decision>
+    <rationale>Schema changes in production require migration tracking, not ad-hoc create_all</rationale>
+    <status>accepted</status>
+  </decision>
+
+  <decision id="D-011" date="2026-04-05">
+    <context>No token revocation — compromised tokens valid until expiry</context>
+    <decision>Add Redis-based token blacklist with blacklist_token() and is_token_blacklisted()</decision>
+    <rationale>Token revocation is essential for logout security and incident response</rationale>
+    <status>accepted</status>
+  </decision>
+
+  <decision id="D-012" date="2026-04-05">
+    <context>_reprovision_client created new WG peer but never removed the old one</context>
+    <decision>Capture old public key before generating new keys, call wg_manager.remove_peer() after adding new peer</decision>
+    <rationale>Orphaned peers remain connected and consume server resources</rationale>
+    <status>accepted</status>
+  </decision>
+
+  <decision id="D-013" date="2026-04-05">
+    <context>server.current_clients counter not decremented on subscription expiry</context>
+    <decision>Decrement current_clients with floor-at-zero guard after client deactivation</decision>
+    <rationale>Counter drift causes incorrect capacity reporting and potential over-provisioning</rationale>
+    <status>accepted</status>
+  </decision>
+
+  <decision id="D-014" date="2026-04-05">
+    <context>_get_or_provision_user_client returned None on errors, producing silent 404s</context>
+    <decision>Re-raise DeviceLimitExceededError as HTTP 409, ValueError as HTTP 400</decision>
+    <rationale>Clients need actionable error messages, not generic 404s</rationale>
+    <status>accepted</status>
+  </decision>
+
+  <decision id="D-015" date="2026-04-05">
+    <context>Circular dependencies between vpn, routing, billing, devices modules</context>
+    <decision>Document known dependency chains in app/core/__init__.py, defer full refactoring</decision>
+    <rationale>Full decoupling requires significant architecture change; documentation is the safe first step</rationale>
+    <status>accepted</status>
+  </decision>
+
+  <decision id="D-016" date="2026-04-05">
+    <context>database.py was 1068 lines, mixing engine setup with migration logic</context>
+    <decision>Split into database.py (88 lines) + migrations.py (987 lines)</decision>
+    <rationale>Single Responsibility Principle — connection management and migrations are separate concerns</rationale>
+    <status>accepted</status>
+  </decision>
+
+  <!-- Phase 3: Frontend Security & Quality -->
+  <decision id="D-017" date="2026-04-05">
+    <context>Auth tokens stored in localStorage, vulnerable to XSS</context>
+    <decision>Add httpOnly secure cookies alongside Bearer token responses for backward compatibility</decision>
+    <rationale>httpOnly cookies are inaccessible to JavaScript, eliminating XSS token theft vector</rationale>
+    <status>accepted</status>
+  </decision>
+
+  <decision id="D-018" date="2026-04-05">
+    <context>Refresh token interceptor used bare axios.post() instead of configured instance</context>
+    <decision>Use axios.create({ baseURL }) for refresh calls to avoid interceptor loops</decision>
+    <rationale>Bare axios bypasses base URL config and may cause infinite refresh loops</rationale>
+    <status>accepted</status>
+  </decision>
+
+  <decision id="D-019" date="2026-04-05">
+    <context>53 any usages in admin frontend — zero type safety for CRUD operations</context>
+    <decision>Create 18 typed interfaces in types/index.ts, eliminate all any usages</decision>
+    <rationale>TypeScript without types is JavaScript — no compile-time safety for API contracts</rationale>
+    <status>accepted</status>
+  </decision>
+
+  <decision id="D-020" date="2026-04-05">
+    <context>PWA service worker cache regex matched /https:\/\/api\./ but API calls are relative</context>
+    <decision>Change regex to /^\/api\// to match relative paths</decision>
+    <rationale>PWA cache never triggered because URLs are relative to the same origin</rationale>
+    <status>accepted</status>
+  </decision>
+
+  <decision id="D-021" date="2026-04-05">
+    <context>Sourcemaps enabled in production build</context>
+    <decision>Disable sourcemaps (sourcemap: false)</decision>
+    <rationale>Production sourcemaps expose source code to anyone who inspects the browser</rationale>
+    <status>accepted</status>
+  </decision>
+
+  <decision id="D-022" date="2026-04-05">
+    <context>i18next escapeValue set to false, allowing HTML injection via translations</context>
+    <decision>Set escapeValue: true to prevent XSS through translation strings</decision>
+    <rationale>Unescaped translations are an XSS vector if any translation contains HTML</rationale>
+    <status>accepted</status>
+  </decision>
+
+  <decision id="D-023" date="2026-04-05">
+    <context>Admin frontend had no refresh token interceptor — 401 redirected immediately to login</context>
+    <decision>Add refresh token interceptor mirroring user frontend pattern</decision>
+    <rationale>Admin sessions should not drop on access token expiry if refresh token is still valid</rationale>
+    <status>accepted</status>
+  </decision>
+
+  <!-- Phase 4: Infrastructure Hardening -->
+  <decision id="D-024" date="2026-04-05">
+    <context>Re-deploy regenerated WG keys, breaking existing client connections</context>
+    <decision>Add if-not-exists checks before key generation to preserve existing keys</decision>
+    <rationale>Idempotent deploys must not regenerate cryptographic material</rationale>
+    <status>accepted</status>
+  </decision>
+
+  <decision id="D-025" date="2026-04-05">
+    <context>No rollback mechanism — failed deploy leaves system in unknown state</context>
+    <decision>Create deploy/rollback.sh with backup/restore/list commands</decision>
+    <rationale>Operational safety requires ability to revert to last known good state</rationale>
+    <status>accepted</status>
+  </decision>
+
+  <decision id="D-026" date="2026-04-05">
+    <context>Only 3 of 6 services had healthchecks in docker-compose</context>
+    <decision>Add healthchecks for nginx, frontend, frontend-admin with condition: service_healthy</decision>
+    <rationale>Depends_on without health checks means nginx may start before backend is ready</rationale>
+    <status>accepted</status>
+  </decision>
+
+  <decision id="D-027" date="2026-04-05">
+    <context>No resource limits on containers — single container could consume all host memory</context>
+    <decision>Add deploy.resources.limits to all services (backend 512M, frontend 128M, etc.)</decision>
+    <rationale>Unbounded containers can cause OOM kills affecting all services</rationale>
+    <status>accepted</status>
+  </decision>
+
+  <decision id="D-028" date="2026-04-05">
+    <context>iptables MASQUERADE hardcoded to eth0 interface</context>
+    <decision>Use dynamic interface detection: ip route | grep default | awk '{print $5}'</decision>
+    <rationale>Servers use various interface names (ens3, eth1, enp0s3) — hardcoded eth0 breaks routing</rationale>
+    <status>accepted</status>
+  </decision>
+
+  <decision id="D-029" date="2026-04-05">
+    <context>Nginx had no security headers</context>
+    <decision>Add HSTS, X-Frame-Options DENY, X-Content-Type-Options nosniff, CSP, Referrer-Policy</decision>
+    <rationale>Missing headers enable clickjacking, MIME sniffing, and protocol downgrade attacks</rationale>
+    <status>accepted</status>
+  </decision>
+
+  <decision id="D-030" date="2026-04-05">
+    <context>No rate limiting on nginx — login endpoint vulnerable to brute force</context>
+    <decision>Add limit_req_zone: 5r/m for login, 30r/m for general API</decision>
+    <rationale>Unlimited request rates enable credential stuffing and API abuse</rationale>
+    <status>accepted</status>
+  </decision>
+
+  <decision id="D-031" date="2026-04-05">
+    <context>No database backup strategy</context>
+    <decision>Create deploy/backup-db.sh with pg_dump, 7-backup retention, cron-friendly</decision>
+    <rationale>Production data without backups is a single point of failure</rationale>
+    <status>accepted</status>
+  </decision>
+
+  <decision id="D-032" date="2026-04-05">
+    <context>UFW default allow FORWARD accepted all forwarded traffic</context>
+    <decision>Change to default deny FORWARD + explicit allow on awg0 and awg-client interfaces</decision>
+    <rationale>Open FORWARD policy allows any container to route traffic through the host</rationale>
+    <status>accepted</status>
+  </decision>
+
+  <!-- Phase 5: Tests & CI/CD -->
+  <decision id="D-033" date="2026-04-05">
+    <context>core/security.py had zero test coverage</context>
+    <decision>Create test_security.py with 10 tests covering JWT, password hashing, Fernet, blacklist</decision>
+    <rationale>Security module without tests cannot be trusted during refactoring</rationale>
+    <status>accepted</status>
+  </decision>
+
+  <decision id="D-034" date="2026-04-05">
+    <context>No tests for subscription expiry, scheduler, referrals</context>
+    <decision>Create test_scheduler.py (4 tests), test_referrals.py (7 tests)</decision>
+    <rationale>Background tasks and referral logic are business-critical and untested</rationale>
+    <status>accepted</status>
+  </decision>
+
+  <decision id="D-035" date="2026-04-05">
+    <context>No coverage threshold configured</context>
+    <decision>Add --cov=app --cov-fail-under=70 to pytest addopts</decision>
+    <rationale>Without a floor, coverage can silently regress to zero</rationale>
+    <status>accepted</status>
+  </decision>
+
+  <decision id="D-036" date="2026-04-05">
+    <context>No CI/CD pipeline — no automated checks on push or PR</context>
+    <decision>Create .github/workflows/ci.yml with lint, test, and build jobs</decision>
+    <rationale>Manual testing does not scale and allows regressions into main</rationale>
+    <status>accepted</status>
+  </decision>
+
+  <decision id="D-037" date="2026-04-05">
+    <context>conftest.py had duplicated fixtures</context>
+    <decision>Remove duplicates, add proper async session fixture, consolidate 7 shared fixtures</decision>
+    <rationale>Duplicated fixtures cause confusion and inconsistent test behavior</rationale>
+    <status>accepted</status>
+  </decision>
+
+  <!-- Phase 6: Cleanup & Polish -->
+  <decision id="D-038" date="2026-04-05">
+    <context>vpn/service.py was 1112 lines</context>
+    <decision>Split into service.py (403), provisioning.py (211), config.py (59), topology.py (316)</decision>
+    <rationale>Files over 500 lines are hard to review, test, and maintain</rationale>
+    <status>accepted</status>
+  </decision>
+
+  <decision id="D-039" date="2026-04-05">
+    <context>UserResponse manually constructed in 4 places in router.py</context>
+    <decision>Add UserResponse.from_user() classmethod factory</decision>
+    <rationale>DRY — single source of truth for user serialization shape</rationale>
+    <status>accepted</status>
+  </decision>
+
+  <decision id="D-040" date="2026-04-05">
+    <context>No audit trail for admin actions</context>
+    <decision>Create AdminAuditEvent model and AdminAuditMiddleware for /api/v1/admin/* requests</decision>
+    <rationale>Admin actions without audit trail cannot be investigated after incidents</rationale>
+    <status>accepted</status>
+  </decision>
+
+  <decision id="D-041" date="2026-04-05">
+    <context>Empty app/email/ module with 0-byte __init__.py</context>
+    <decision>Delete the directory, mark SMTP settings as reserved for future use</decision>
+    <rationale>Dead code confuses onboarding and suggests incomplete features</rationale>
+    <status>accepted</status>
+  </decision>
+
+  <decision id="D-042" date="2026-04-05">
+    <context>Dead App.tsx in admin frontend (return null)</context>
+    <decision>Delete the file, remove import from main.tsx</decision>
+    <rationale>Dead files increase cognitive load and bundle size</rationale>
+    <status>accepted</status>
+  </decision>
+
+  <decision id="D-043" date="2026-04-05">
+    <context>All API routes used /api prefix without versioning</context>
+    <decision>Migrate all routers to /api/v1 prefix</decision>
+    <rationale>API versioning enables backward-compatible breaking changes in the future</rationale>
+    <status>accepted</status>
+  </decision>
+
+  <decision id="D-044" date="2026-04-05">
+    <context>Referral URL hardcoded as https://krotvpn.com/register?ref=</context>
+    <decision>Add frontend_url to Settings, use settings.frontend_url in referral links</decision>
+    <rationale>Hardcoded URLs prevent staging/testing environments from working correctly</rationale>
+    <status>accepted</status>
+  </decision>
 </decisions>

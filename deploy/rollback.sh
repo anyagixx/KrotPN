@@ -1,4 +1,12 @@
 #!/bin/bash
+# START_MODULE_CONTRACT: M-012-ROLLBACK
+# PURPOSE: Deploy rollback — backup and restore .env, SSL certs, AWG configs
+# SCOPE: backup, restore, list commands with timestamped backups in /opt/KrotVPN/backups/
+# INPUTS: Command (backup|restore|list), optional backup timestamp
+# OUTPUTS: Timestamped backup archives or restored state
+# DEPENDENCIES: M-012 (deploy-surface)
+# VERIFICATION: V-M-021 — backup created and restore produces working state
+# END_MODULE_CONTRACT: M-012-ROLLBACK
 #
 # KrotVPN Rollback Script
 # Backs up and restores .env, SSL certs, and AWG configs

@@ -1,3 +1,23 @@
+// START_MODULE_CONTRACT: M-010-TYPES
+// PURPOSE: Shared TypeScript interfaces for admin frontend API contracts
+// SCOPE: AdminUser, AdminDevice, AdminPlan, AdminServer, AdminNode, AdminRoute,
+//        BillingStats, ReferralStats, SystemHealth, AnalyticsData, RoutePolicyRule,
+//        DNSBinding, ExplainRouteResult, PaginatedResponse, NodeForm, RouteForm
+// INPUTS: API response data from /api/v1/admin/* endpoints
+// OUTPUTS: Type-safe data for admin UI components
+// DEPENDENCIES: M-010 (frontend-admin), M-006 (admin-api)
+// VERIFICATION: V-M-023 — tsc --noEmit with zero any usages
+// END_MODULE_CONTRACT: M-010-TYPES
+// START_MODULE_CONTRACT: M-010-TYPES
+// PURPOSE: Shared TypeScript interfaces for admin frontend API contracts
+// SCOPE: AdminUser, AdminDevice, AdminPlan, AdminServer, AdminNode, AdminRoute,
+//        BillingStats, ReferralStats, SystemHealth, AnalyticsData, RoutePolicyRule,
+//        DNSBinding, ExplainRouteResult, PaginatedResponse, NodeForm, RouteForm
+// INPUTS: API response data from /api/v1/admin/* endpoints
+// OUTPUTS: Type-safe data for admin UI components
+// DEPENDENCIES: M-010 (frontend-admin), M-006 (admin-api)
+// VERIFICATION: V-M-023 — tsc --noEmit with zero any usages
+// END_MODULE_CONTRACT: M-010-TYPES
 export interface AdminUser {
   id: number
   email: string
