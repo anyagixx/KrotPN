@@ -38,11 +38,10 @@ from app.vpn.schemas import (
 )
 from app.vpn.service import VPNService
 
-router = APIRouter(prefix="/api/vpn", tags=["vpn"])
-# Deprecated compatibility surface. New code should use /api/admin/nodes and /api/admin/routes.
-admin_router = APIRouter(prefix="/api/admin/servers", tags=["admin"])
-admin_nodes_router = APIRouter(prefix="/api/admin/nodes", tags=["admin"])
-admin_routes_router = APIRouter(prefix="/api/admin/routes", tags=["admin"])
+router = APIRouter(prefix="/api/v1/vpn", tags=["vpn"])
+admin_router = APIRouter(prefix="/api/v1/admin/servers", tags=["admin"])
+admin_nodes_router = APIRouter(prefix="/api/v1/admin/nodes", tags=["admin"])
+admin_routes_router = APIRouter(prefix="/api/v1/admin/routes", tags=["admin"])
 
 
 def format_bytes(bytes_count: int) -> str:

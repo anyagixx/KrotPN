@@ -97,6 +97,17 @@ class UserResponse(SQLModel):
 
     model_config = {"from_attributes": True}
 
+    @classmethod
+    def from_user(cls, user: "User") -> "UserResponse":
+        from app.users.models import User
+        return cls(
+            id=user.id, email=user.email, email_verified=user.email_verified,
+            telegram_id=user.telegram_id, telegram_username=user.telegram_username,
+            name=user.name, display_name=user.display_name, avatar_url=user.avatar_url,
+            language=user.language, role=user.role, is_active=user.is_active,
+            created_at=user.created_at, last_login_at=user.last_login_at,
+        )
+
 
 class UserWithStats(UserResponse):
     """User with statistics."""

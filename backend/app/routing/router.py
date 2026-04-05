@@ -50,7 +50,7 @@ from app.routing.models import (
     RoutingStatus,
 )
 
-router = APIRouter(prefix="/api/routing", tags=["routing"])
+router = APIRouter(prefix="/api/v1/routing", tags=["routing"])
 
 # Track last RU update time globally
 _last_ru_update: datetime | None = None

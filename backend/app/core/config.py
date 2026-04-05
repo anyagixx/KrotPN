@@ -117,7 +117,7 @@ class Settings(BaseSettings):
     telegram_bot_token: str | None = None
     telegram_webhook_url: str | None = None
 
-    # Email
+    # Email (reserved for future use — no email module currently)
     smtp_host: str = "smtp.gmail.com"
     smtp_port: int = 587
     smtp_user: str | None = None
@@ -127,6 +127,9 @@ class Settings(BaseSettings):
     # Referral
     referral_bonus_days: int = 7
     referral_min_payment: float = 100.0
+
+    # Frontend
+    frontend_url: str = "https://krotvpn.com"
 
     # Data Encryption
     data_encryption_key: str | None = None

@@ -11,6 +11,7 @@ GRACE-lite entry contract:
 # <!-- GRACE: entry-point="EP-001" -->
 
 from contextlib import asynccontextmanager
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import AsyncGenerator
 
@@ -21,11 +22,13 @@ from loguru import logger
 from slowapi import Limiter, _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
 from slowapi.util import get_remote_address
+from starlette.middleware.base import BaseHTTPMiddleware
 
 from app.core.config import settings
 from app.core.database import init_db, get_db_context
 from app.core.init_admin import ensure_admin_user
 from app.core.init_vpn import ensure_default_vpn_server, ensure_default_vpn_topology
+from app.admin.audit import log_admin_action
 
 # Import routers
 from app.users.router import router as auth_router
@@ -128,6 +131,32 @@ app = FastAPI(
 # Rate limiting
 app.state.limiter = limiter
 app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
+
+
+class AdminAuditMiddleware(BaseHTTPMiddleware):
+    """Logs all admin API requests for audit purposes."""
+
+    async def dispatch(self, request: Request, call_next):
+        from app.core.security import decode_token
+
+        response = await call_next(request)
+
+        if request.url.path.startswith("/api/v1/admin"):
+            auth_header = request.headers.get("authorization")
+            admin_id = None
+            if auth_header and auth_header.startswith("Bearer "):
+                token_data = decode_token(auth_header.split(" ", 1)[1])
+                if token_data and "sub" in token_data:
+                    admin_id = token_data["sub"]
+            logger.info(
+                f"[AUDIT][REQUEST] path={request.url.path} method={request.method} "
+                f"admin_id={admin_id} timestamp={datetime.now(timezone.utc).isoformat()}"
+            )
+
+        return response
+
+
+app.add_middleware(AdminAuditMiddleware)
 
 # CORS
 app.add_middleware(

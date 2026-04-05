@@ -22,7 +22,7 @@ from __future__ import annotations
 
 import ipaddress
 from dataclasses import dataclass
-from datetime import datetime
+from datetime import datetime, timezone
 
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -148,7 +148,7 @@ class DomainRuleStore:
             rule.description = payload.description
         if payload.is_active is not None:
             rule.is_active = payload.is_active
-        rule.updated_at = datetime.utcnow()
+        rule.updated_at = datetime.now(timezone.utc)
         self.session.add(rule)
         await self.session.flush()
         await self.session.refresh(rule)
@@ -187,7 +187,7 @@ class DomainRuleStore:
             rule.description = payload.description
         if payload.is_active is not None:
             rule.is_active = payload.is_active
-        rule.updated_at = datetime.utcnow()
+        rule.updated_at = datetime.now(timezone.utc)
         self.session.add(rule)
         await self.session.flush()
         await self.session.refresh(rule)

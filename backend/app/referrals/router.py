@@ -5,12 +5,12 @@ Referral API router.
 
 from fastapi import APIRouter
 
-from app.core import CurrentAdmin, CurrentUser, DBSession
+from app.core import CurrentAdmin, CurrentUser, DBSession, settings, settings, settings
 from app.referrals.models import ReferralStats
 from app.referrals.service import ReferralService
 
-router = APIRouter(prefix="/api/referrals", tags=["referrals"])
-admin_router = APIRouter(prefix="/api/admin/referrals", tags=["admin"])
+router = APIRouter(prefix="/api/v1/referrals", tags=["referrals"])
+admin_router = APIRouter(prefix="/api/v1/admin/referrals", tags=["admin"])
 
 
 @router.get("/code")
@@ -24,7 +24,7 @@ async def get_referral_code(
     
     return {
         "code": code.code,
-        "link": f"https://krotvpn.com/register?ref={code.code}",
+        "link": f"{settings.frontend_url}/register?ref={code.code}",
     }
 
 

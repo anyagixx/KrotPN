@@ -26,7 +26,7 @@ from app.core import (
     verify_token,
 )
 from app.users.telegram_auth import verify_telegram_auth
-from app.users.models import UserRole
+from app.users.models import User, UserRole
 from app.users.schemas import (
     Token,
     TokenRefresh,
@@ -45,9 +45,9 @@ from app.users.service import UserService
 from app.devices.service import DeviceAccessPolicyService
 from app.vpn.service import VPNService
 
-router = APIRouter(prefix="/api/auth", tags=["auth"])
-users_router = APIRouter(prefix="/api/users", tags=["users"])
-admin_users_router = APIRouter(prefix="/api/admin/users", tags=["admin"])
+router = APIRouter(prefix="/api/v1/auth", tags=["auth"])
+users_router = APIRouter(prefix="/api/v1/users", tags=["users"])
+admin_users_router = APIRouter(prefix="/api/v1/admin/users", tags=["admin"])
 
 limiter = Limiter(key_func=get_remote_address)
 
@@ -119,7 +119,7 @@ def _make_token_response(access_token: str, refresh_token: str) -> JSONResponse:
         secure=True,
         samesite="strict",
         max_age=settings.refresh_token_expire_days * 24 * 60 * 60,
-        path="/api/auth/refresh",
+        path="/api/v1/auth/refresh",
     )
     return response
 
@@ -279,21 +279,7 @@ async def get_current_user_profile(
     current_user: CurrentUser,
 ):
     """Get current user profile."""
-    return UserResponse(
-        id=current_user.id,
-        email=current_user.email,
-        email_verified=current_user.email_verified,
-        telegram_id=current_user.telegram_id,
-        telegram_username=current_user.telegram_username,
-        name=current_user.name,
-        display_name=current_user.display_name,
-        avatar_url=current_user.avatar_url,
-        language=current_user.language,
-        role=current_user.role,
-        is_active=current_user.is_active,
-        created_at=current_user.created_at,
-        last_login_at=current_user.last_login_at,
-    )
+    return UserResponse.from_user(current_user)
 
 
 @users_router.put("/me", response_model=UserResponse)
@@ -306,21 +292,7 @@ async def update_current_user_profile(
     service = UserService(session)
     user = await service.update_user(current_user, data)
     
-    return UserResponse(
-        id=user.id,
-        email=user.email,
-        email_verified=user.email_verified,
-        telegram_id=user.telegram_id,
-        telegram_username=user.telegram_username,
-        name=user.name,
-        display_name=user.display_name,
-        avatar_url=user.avatar_url,
-        language=user.language,
-        role=user.role,
-        is_active=user.is_active,
-        created_at=user.created_at,
-        last_login_at=user.last_login_at,
-    )
+    return UserResponse.from_user(user)
 
 
 @users_router.get("/me/stats", response_model=UserStatsResponse)
@@ -404,24 +376,7 @@ async def list_users(
     total = total_result.scalar()
 
     return UserListResponse(
-        items=[
-            UserResponse(
-                id=u.id,
-                email=u.email,
-                email_verified=u.email_verified,
-                telegram_id=u.telegram_id,
-                telegram_username=u.telegram_username,
-                name=u.name,
-                display_name=u.display_name,
-                avatar_url=u.avatar_url,
-                language=u.language,
-                role=u.role,
-                is_active=u.is_active,
-                created_at=u.created_at,
-                last_login_at=u.last_login_at,
-            )
-            for u in users
-        ],
+        items=[UserResponse.from_user(u) for u in users],
         total=total,
         page=page,
         per_page=per_page,
@@ -446,63 +401,10 @@ async def get_user(
         )
 
     return UserAdminResponse(
-        id=user.id,
-        email=user.email,
-        email_verified=user.email_verified,
-        telegram_id=user.telegram_id,
-        telegram_username=user.telegram_username,
-        name=user.name,
-        display_name=user.display_name,
-        avatar_url=user.avatar_url,
-        language=user.language,
-        role=user.role,
-        is_active=user.is_active,
-        created_at=user.created_at,
-        last_login_at=user.last_login_at,
+        **UserResponse.from_user(user).model_dump(),
         referred_by_id=user.referred_by_id,
         subscription_count=len(user.subscriptions) if user.subscriptions else 0,
         active_subscription_id=None,
-    )
-
-
-@admin_users_router.put("/{user_id}", response_model=UserResponse)
-async def update_user(
-    user_id: int,
-    data: UserAdminUpdate,
-    admin: CurrentAdmin,
-    session: DBSession,
-):
-    """Update user (admin only)."""
-    service = UserService(session)
-    user = await service.get_by_id(user_id)
-    
-    if user is None:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="User not found",
-        )
-
-    update_data = data.model_dump(exclude_unset=True)
-    for field, value in update_data.items():
-        setattr(user, field, value)
-
-    await session.flush()
-    await session.refresh(user)
-
-    return UserResponse(
-        id=user.id,
-        email=user.email,
-        email_verified=user.email_verified,
-        telegram_id=user.telegram_id,
-        telegram_username=user.telegram_username,
-        name=user.name,
-        display_name=user.display_name,
-        avatar_url=user.avatar_url,
-        language=user.language,
-        role=user.role,
-        is_active=user.is_active,
-        created_at=user.created_at,
-        last_login_at=user.last_login_at,
     )
 
 
@@ -515,7 +417,7 @@ async def activate_user(
     """Activate user account (admin only)."""
     service = UserService(session)
     user = await service.get_by_id(user_id)
-    
+
     if user is None:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,

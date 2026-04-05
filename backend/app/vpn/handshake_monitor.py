@@ -14,6 +14,7 @@ MODULE_MAP
 
 CHANGE_SUMMARY
 - 2026-03-27: Added first-pass observe-only detector for endpoint churn and concurrent-handshake suspicion on device-bound peers.
+- 2026-03-27: Normalized observed handshake timestamps before persisting device metadata so live Postgres writes do not fail on timezone-aware values.
 """
 # <!-- GRACE: module="M-023" contract="handshake-anomaly-detector" -->
 
@@ -90,6 +91,7 @@ class HandshakeAnomalyMonitor:
     ) -> None:
         """Update one device from a peer-stat snapshot and record suspicious changes."""
         observed_at = self._coerce_datetime(stat.get("last_handshake")) or datetime.now(timezone.utc)
+        stored_observed_at = self._to_naive_utc(observed_at)
         endpoint = stat.get("endpoint")
         previous_endpoint = device.last_endpoint
         previous_handshake = self._coerce_datetime(device.last_handshake_at)
@@ -145,11 +147,11 @@ class HandshakeAnomalyMonitor:
                     f"previous_endpoint={previous_endpoint} new_endpoint={endpoint}"
                 )
 
-        device.last_seen_at = observed_at
-        device.last_handshake_at = observed_at
+        device.last_seen_at = stored_observed_at
+        device.last_handshake_at = stored_observed_at
         if endpoint:
             device.last_endpoint = endpoint
-        device.updated_at = datetime.utcnow()
+        device.updated_at = datetime.now(timezone.utc)
 
     async def _record_event(
         self,
@@ -184,3 +186,10 @@ class HandshakeAnomalyMonitor:
         if value.tzinfo is None:
             return value.replace(tzinfo=timezone.utc)
         return value.astimezone(timezone.utc)
+
+    @staticmethod
+    def _to_naive_utc(value: datetime) -> datetime:
+        """Convert one observation timestamp into naive UTC for persisted columns."""
+        if value.tzinfo is None:
+            return value
+        return value.astimezone(timezone.utc).replace(tzinfo=None)

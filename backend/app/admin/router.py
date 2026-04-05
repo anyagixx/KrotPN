@@ -24,7 +24,7 @@ CHANGE_SUMMARY
 """
 # <!-- GRACE: module="M-006" api-group="Admin API" -->
 
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 
 from fastapi import APIRouter, HTTPException, Query, status
 from sqlalchemy import func, select
@@ -41,7 +41,7 @@ from app.users.models import User, UserRole
 from app.vpn.models import VPNClient, VPNNode, VPNRoute, VPNServer
 from app.vpn.service import VPNService
 
-router = APIRouter(prefix="/api/admin", tags=["admin"])
+router = APIRouter(prefix="/api/v1/admin", tags=["admin"])
 
 
 async def _serialize_admin_device(
@@ -132,7 +132,7 @@ async def get_admin_stats(
     """Get admin dashboard statistics."""
     # Keep in mind that `online_servers` still counts legacy `VPNServer` rows,
     # so this endpoint is not yet a perfect reflection of the newer node/route topology.
-    now = datetime.utcnow()
+    now = datetime.now(timezone.utc)
     month_start = now.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
     
     # Users count
@@ -249,7 +249,7 @@ async def get_revenue_analytics(
     days: int = Query(default=30, ge=1, le=365),
 ):
     """Get revenue analytics for the last N days."""
-    now = datetime.utcnow()
+    now = datetime.now(timezone.utc)
     start_date = now - timedelta(days=days)
     
     # Daily revenue
@@ -289,7 +289,7 @@ async def get_users_analytics(
     days: int = Query(default=30, ge=1, le=365),
 ):
     """Get user registration analytics."""
-    now = datetime.utcnow()
+    now = datetime.now(timezone.utc)
     start_date = now - timedelta(days=days)
     
     # Daily registrations

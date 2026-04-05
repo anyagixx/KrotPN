@@ -29,7 +29,7 @@ CHANGE_SUMMARY
 
 from __future__ import annotations
 
-from datetime import datetime
+from datetime import datetime, timezone, timezone
 
 from loguru import logger
 from sqlalchemy import select
@@ -171,7 +171,7 @@ class DeviceAccessPolicyService:
         """Revoke one device and deactivate any active peer bound to it."""
         if device.status is not DeviceStatus.REVOKED:
             await self.vpn.deactivate_device_clients(int(device.id))
-            now = datetime.utcnow()
+            now = datetime.now(timezone.utc)
             device.status = DeviceStatus.REVOKED
             device.revoked_at = now
             device.updated_at = now
@@ -193,7 +193,7 @@ class DeviceAccessPolicyService:
     async def rotate_device_config(self, device: UserDevice, *, reason: str = "user_rotate") -> UserDevice:
         """Mark a device config rotation without changing the logical device identity."""
         device.config_version += 1
-        device.updated_at = datetime.utcnow()
+        device.updated_at = datetime.now(timezone.utc)
         await self._record_event(
             user_id=int(device.user_id),
             device_id=int(device.id),
@@ -212,7 +212,7 @@ class DeviceAccessPolicyService:
         """Block one device and deactivate any active peers while preserving slot consumption."""
         if device.status is not DeviceStatus.BLOCKED:
             await self.vpn.deactivate_device_clients(int(device.id))
-            now = datetime.utcnow()
+            now = datetime.now(timezone.utc)
             device.status = DeviceStatus.BLOCKED
             device.blocked_at = now
             device.updated_at = now
@@ -235,7 +235,7 @@ class DeviceAccessPolicyService:
         """Remove the blocked state without automatically restoring the old peer."""
         if device.status is DeviceStatus.BLOCKED:
             device.status = DeviceStatus.ACTIVE
-            device.updated_at = datetime.utcnow()
+            device.updated_at = datetime.now(timezone.utc)
             device.blocked_at = None
             device.block_reason = None
             await self._record_event(

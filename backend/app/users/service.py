@@ -12,7 +12,7 @@ CHANGE_SUMMARY
 """
 # <!-- GRACE: module="M-002" contract="user-service" -->
 
-from datetime import datetime
+from datetime import datetime, timezone, timezone
 import re
 from typing import Any
 
@@ -63,7 +63,7 @@ class UserService:
         if existing is not None:
             if display_name and not existing.name:
                 existing.name = display_name
-                existing.updated_at = datetime.utcnow()
+                existing.updated_at = datetime.now(timezone.utc)
                 await self.session.flush()
                 await self.session.refresh(existing)
             logger.info(
@@ -72,7 +72,7 @@ class UserService:
             )
             return existing
 
-        now = datetime.utcnow()
+        now = datetime.now(timezone.utc)
         user = User(
             email=email,
             email_verified=True,
@@ -167,7 +167,7 @@ class UserService:
                 existing.telegram_username = data.telegram_username
             if data.name:
                 existing.name = data.name
-            existing.last_login_at = datetime.utcnow()
+            existing.last_login_at = datetime.now(timezone.utc)
             await self.session.flush()
             return existing
 
@@ -206,7 +206,7 @@ class UserService:
             return None
 
         # Update last login
-        user.last_login_at = datetime.utcnow()
+        user.last_login_at = datetime.now(timezone.utc)
         await self.session.flush()
 
         return user
@@ -217,7 +217,7 @@ class UserService:
         for field, value in update_data.items():
             setattr(user, field, value)
 
-        user.updated_at = datetime.utcnow()
+        user.updated_at = datetime.now(timezone.utc)
         await self.session.flush()
         await self.session.refresh(user)
         return user
@@ -287,7 +287,7 @@ class UserService:
         from app.vpn.models import VPNClient
 
         # Get active subscription
-        now = datetime.utcnow()
+        now = datetime.now(timezone.utc)
         active_sub_result = await self.session.execute(
             select(Subscription)
             .where(

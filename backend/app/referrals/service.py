@@ -5,7 +5,7 @@ Referral service for managing referral program.
 
 import random
 import string
-from datetime import datetime
+from datetime import datetime, timezone, timezone
 
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -128,7 +128,7 @@ class ReferralService:
         # Give bonus to referrer
         referral.bonus_given = True
         referral.bonus_days = settings.referral_bonus_days
-        referral.first_payment_at = datetime.utcnow()
+        referral.first_payment_at = datetime.now(timezone.utc)
         referral.first_payment_amount = amount
         
         # Update referrer's code stats
@@ -193,7 +193,7 @@ class ReferralService:
         
         return ReferralStats(
             code=code.code,
-            link=f"https://krotvpn.com/register?ref={code.code}",
+            link=f"{settings.frontend_url}/register?ref={code.code}",
             total_referrals=row.total or 0,
             paid_referrals=row.paid or 0,
             bonus_days_earned=row.bonus_days or 0,

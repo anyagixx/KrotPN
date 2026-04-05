@@ -31,7 +31,7 @@ from app.devices.schemas import (
 from app.devices.service import DeviceAccessPolicyService, DeviceLimitExceededError
 from app.vpn.service import VPNService
 
-router = APIRouter(prefix="/api/devices", tags=["devices"])
+router = APIRouter(prefix="/api/v1/devices", tags=["devices"])
 
 
 def _serialize_device(device: UserDevice) -> DeviceResponse:

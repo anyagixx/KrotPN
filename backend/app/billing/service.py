@@ -15,7 +15,7 @@ CHANGE_SUMMARY
 # <!-- GRACE: module="M-004" contract="billing-service" -->
 
 import json
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import Any
 
 from sqlalchemy import and_, func, select
@@ -84,7 +84,7 @@ class BillingService:
     
     async def get_user_subscription(self, user_id: int) -> Subscription | None:
         """Get user's active subscription."""
-        now = datetime.utcnow()
+        now = datetime.now(timezone.utc)
         
         result = await self.session.execute(
             select(Subscription)
@@ -132,7 +132,7 @@ class BillingService:
         access_label: str | None = None,
     ) -> Subscription | None:
         """Return the current complimentary access record for one user."""
-        now = datetime.utcnow()
+        now = datetime.now(timezone.utc)
         query = (
             select(Subscription)
             .where(
@@ -151,7 +151,7 @@ class BillingService:
 
     async def create_trial_subscription(self, user_id: int) -> Subscription:
         """Create a trial subscription for new user."""
-        now = datetime.utcnow()
+        now = datetime.now(timezone.utc)
         expires_at = now + timedelta(days=settings.trial_days)
         
         subscription = Subscription(
@@ -191,7 +191,7 @@ class BillingService:
             )
             return existing
 
-        now = datetime.utcnow()
+        now = datetime.now(timezone.utc)
         expires_at = now + timedelta(days=duration_days)
 
         result = await self.session.execute(
@@ -243,7 +243,7 @@ class BillingService:
         payment: Payment | None = None,
     ) -> Subscription:
         """Create a subscription from a plan."""
-        now = datetime.utcnow()
+        now = datetime.now(timezone.utc)
         
         # Check for existing active subscription
         existing = await self.get_user_subscription(user_id)
@@ -297,7 +297,7 @@ class BillingService:
         days: int,
     ) -> Subscription:
         """Extend a subscription by given days."""
-        now = datetime.utcnow()
+        now = datetime.now(timezone.utc)
         
         # If expired, start from now
         base = max(subscription.expires_at, now)
@@ -416,7 +416,7 @@ class BillingService:
                 return payment
 
             payment.status = PaymentStatus.SUCCEEDED
-            payment.paid_at = datetime.utcnow()
+            payment.paid_at = datetime.now(timezone.utc)
             
             # Create subscription
             plan = await self.get_plan(payment.plan_id)
@@ -447,7 +447,7 @@ class BillingService:
             payment.status = PaymentStatus.CANCELED
             logger.info(f"[BILLING] Payment {payment.id} canceled")
         
-        payment.updated_at = datetime.utcnow()
+        payment.updated_at = datetime.now(timezone.utc)
         await self.session.flush()
         
         return payment
@@ -468,7 +468,7 @@ class BillingService:
     
     async def get_subscription_stats(self) -> dict[str, Any]:
         """Get subscription statistics."""
-        now = datetime.utcnow()
+        now = datetime.now(timezone.utc)
         
         # Active subscriptions
         active_result = await self.session.execute(
