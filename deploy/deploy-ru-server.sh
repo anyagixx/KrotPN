@@ -89,11 +89,13 @@ echo -e "${YELLOW}[6/10] Generating AmneziaWG keys...${NC}"
 mkdir -p /etc/amnezia/amneziawg
 cd /etc/amnezia/amneziawg
 
-# Generate server keys (for VPN clients)
-awg genkey | tee ru_server_private.key | awg pubkey > ru_server_public.key
-
-# Generate client keys (for tunnel to DE)
-awg genkey | tee ru_client_private.key | awg pubkey > ru_client_public.key
+if [ ! -f /etc/amnezia/amneziawg/ru_server_private.key ]; then
+    echo -e "${BLUE}Generating new AmneziaWG keys...${NC}"
+    awg genkey | tee ru_server_private.key | awg pubkey > ru_server_public.key
+    awg genkey | tee ru_client_private.key | awg pubkey > ru_client_public.key
+else
+    echo -e "${GREEN}Reusing existing AmneziaWG keys${NC}"
+fi
 
 RU_SERVER_PRIVATE_KEY=$(cat ru_server_private.key)
 RU_SERVER_PUBLIC_KEY=$(cat ru_server_public.key)
@@ -227,8 +229,9 @@ iptables -t mangle -A AMNEZIA_PREROUTING -j MARK --set-mark $FWMARK
 
 iptables -t nat -D POSTROUTING -o $TUNNEL_IF -j MASQUERADE 2>/dev/null || true
 iptables -t nat -A POSTROUTING -o $TUNNEL_IF -j MASQUERADE
-iptables -t nat -D POSTROUTING -o eth0 -j MASQUERADE 2>/dev/null || true
-iptables -t nat -A POSTROUTING -o eth0 -j MASQUERADE
+EXT_IF=$(ip route | grep default | awk '{print $5}' | head -1)
+iptables -t nat -D POSTROUTING -o $EXT_IF -j MASQUERADE 2>/dev/null || true
+iptables -t nat -A POSTROUTING -o $EXT_IF -j MASQUERADE
 
 iptables -A FORWARD -i $CLIENT_IF -j ACCEPT
 iptables -A FORWARD -o $CLIENT_IF -j ACCEPT
@@ -265,8 +268,11 @@ ufw allow 80/tcp > /dev/null
 ufw allow 443/tcp > /dev/null
 ufw allow 8080/tcp > /dev/null
 ufw allow ${VPN_PORT}/udp > /dev/null
-
-sed -i 's/DEFAULT_FORWARD_POLICY="DROP"/DEFAULT_FORWARD_POLICY="ACCEPT"/' /etc/default/ufw
+ufw default deny FORWARD > /dev/null
+ufw allow in on awg0 > /dev/null
+ufw allow out on awg0 > /dev/null
+ufw allow in on awg-client > /dev/null
+ufw allow out on awg-client > /dev/null
 
 ufw --force enable > /dev/null
 

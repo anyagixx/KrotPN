@@ -146,8 +146,13 @@ sysctl -p /etc/sysctl.d/99-krotvpn.conf > /dev/null
 echo -e "${BLUE}[RU] Generating AmneziaWG keys...${NC}"
 mkdir -p /etc/amnezia/amneziawg
 cd /etc/amnezia/amneziawg
-awg genkey | tee ru_server_private.key | awg pubkey > ru_server_public.key
-awg genkey | tee ru_client_private.key | awg pubkey > ru_client_public.key
+if [ ! -f /etc/amnezia/amneziawg/ru_server_private.key ]; then
+    echo -e "${BLUE}[RU] Generating new AmneziaWG keys...${NC}"
+    awg genkey | tee ru_server_private.key | awg pubkey > ru_server_public.key
+    awg genkey | tee ru_client_private.key | awg pubkey > ru_client_public.key
+else
+    echo -e "${GREEN}[RU] Reusing existing AmneziaWG keys${NC}"
+fi
 
 RU_SERVER_PUBLIC=$(cat ru_server_public.key)
 RU_SERVER_PRIVATE=$(cat ru_server_private.key)
@@ -221,7 +226,12 @@ sysctl -p /etc/sysctl.d/99-krotvpn.conf > /dev/null
 echo -e "${BLUE}[DE] Generating keys...${NC}"
 mkdir -p /etc/amnezia/amneziawg
 cd /etc/amnezia/amneziawg
-awg genkey | tee de_private.key | awg pubkey > de_public.key
+if [ ! -f /etc/amnezia/amneziawg/de_private.key ]; then
+    echo -e "${BLUE}[DE] Generating new AmneziaWG keys...${NC}"
+    awg genkey | tee de_private.key | awg pubkey > de_public.key
+else
+    echo -e "${GREEN}[DE] Reusing existing AmneziaWG keys${NC}"
+fi
 
 DE_PRIVATE=$(cat de_private.key)
 DE_PUBLIC=$(cat de_public.key)
@@ -258,14 +268,17 @@ echo -e "${BLUE}[DE] Configuring firewall...${NC}"
 
 # Reset UFW but keep it simple
 ufw --force reset > /dev/null 2>&1
-ufw default allow FORWARD > /dev/null 2>&1
+ufw default deny FORWARD > /dev/null 2>&1
 ufw allow 22/tcp > /dev/null 2>&1
 ufw allow ${VPN_PORT}/udp > /dev/null 2>&1
+ufw allow in on awg0 > /dev/null 2>&1
+ufw allow out on awg0 > /dev/null 2>&1
 ufw --force enable > /dev/null 2>&1
 
-# Add NAT rule directly via iptables (survives reboot via iptables-persistent or rc.local)
-iptables -t nat -C POSTROUTING -s 10.200.0.0/24 -o eth0 -j MASQUERADE 2>/dev/null || \
-    iptables -t nat -A POSTROUTING -s 10.200.0.0/24 -o eth0 -j MASQUERADE
+# Add NAT rule with dynamic interface detection
+EXT_IF=$(ip route | grep default | awk '{print $5}' | head -1)
+iptables -t nat -C POSTROUTING -s 10.200.0.0/24 -o $EXT_IF -j MASQUERADE 2>/dev/null || \
+    iptables -t nat -A POSTROUTING -s 10.200.0.0/24 -o $EXT_IF -j MASQUERADE
 
 # Save iptables rules
 mkdir -p /etc/iptables
@@ -422,8 +435,9 @@ iptables -t mangle -A AMNEZIA_PREROUTING -j MARK --set-mark $FWMARK
 
 iptables -t nat -D POSTROUTING -o $TUNNEL_IF -j MASQUERADE 2>/dev/null || true
 iptables -t nat -A POSTROUTING -o $TUNNEL_IF -j MASQUERADE
-iptables -t nat -D POSTROUTING -o eth0 -j MASQUERADE 2>/dev/null || true
-iptables -t nat -A POSTROUTING -o eth0 -j MASQUERADE
+EXT_IF=$(ip route | grep default | awk '{print $5}' | head -1)
+iptables -t nat -D POSTROUTING -o $EXT_IF -j MASQUERADE 2>/dev/null || true
+iptables -t nat -A POSTROUTING -o $EXT_IF -j MASQUERADE
 
 iptables -A FORWARD -i $CLIENT_IF -j ACCEPT
 iptables -A FORWARD -o $CLIENT_IF -j ACCEPT
@@ -459,7 +473,11 @@ ufw allow 8080/tcp > /dev/null
 ufw allow 8443/tcp > /dev/null
 ufw allow 8000/tcp > /dev/null
 ufw allow ${VPN_PORT}/udp > /dev/null
-ufw default allow FORWARD > /dev/null
+ufw default deny FORWARD > /dev/null
+ufw allow in on awg0 > /dev/null
+ufw allow out on awg0 > /dev/null
+ufw allow in on awg-client > /dev/null
+ufw allow out on awg-client > /dev/null
 ufw --force enable > /dev/null
 echo -e "${GREEN}✓ Firewall configured${NC}"
 

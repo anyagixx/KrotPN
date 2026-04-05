@@ -76,7 +76,15 @@ echo -e "${YELLOW}[5/6] Generating AmneziaWG keys...${NC}"
 mkdir -p /etc/amnezia/amneziawg
 cd /etc/amnezia/amneziawg
 
-awg genkey | tee de_private.key | awg pubkey > de_public.key
+if [ ! -f /etc/amnezia/amneziawg/de_private.key ]; then
+    echo -e "${BLUE}[DE] Generating new AmneziaWG keys...${NC}"
+    awg genkey | tee de_private.key | awg pubkey > de_public.key
+else
+    echo -e "${GREEN}[DE] Reusing existing AmneziaWG keys${NC}"
+fi
+else
+    echo -e "${GREEN}[DE] Reusing existing AmneziaWG keys${NC}"
+fi
 
 DE_PRIVATE_KEY=$(cat de_private.key)
 DE_PUBLIC_KEY=$(cat de_public.key)
@@ -113,53 +121,17 @@ chmod 600 /etc/amnezia/amneziawg/awg0.conf
 # Configure firewall
 echo -e "${YELLOW}Configuring firewall...${NC}"
 ufw --force reset > /dev/null
+ufw default deny FORWARD > /dev/null
 ufw allow 22/tcp > /dev/null
 ufw allow ${VPN_PORT}/udp > /dev/null
-sed -i 's/DEFAULT_FORWARD_POLICY="DROP"/DEFAULT_FORWARD_POLICY="ACCEPT"/' /etc/default/ufw
+ufw allow in on awg0 > /dev/null
+ufw allow out on awg0 > /dev/null
 
-# Add NAT rules
-cat > /etc/ufw/before.rules << 'NAT'
-#
-# rules.before
-#
-*filter
-:ufw-before-input - [0:0]
-:ufw-before-output - [0:0]
-:ufw-before-forward - [0:0]
-:ufw-not-local - [0:0]
-
--A ufw-before-input -i lo -j ACCEPT
--A ufw-before-output -o lo -j ACCEPT
--A ufw-before-input -m conntrack --ctstate RELATED,ESTABLISHED -j ACCEPT
--A ufw-before-output -m conntrack --ctstate RELATED,ESTABLISHED -j ACCEPT
--A ufw-before-forward -m conntrack --ctstate RELATED,ESTABLISHED -j ACCEPT
--A ufw-before-input -m conntrack --ctstate INVALID -j ufw-logging-deny
--A ufw-before-input -m conntrack --ctstate INVALID -j DROP
--A ufw-before-input -p icmp --icmp-type destination-unreachable -j ACCEPT
--A ufw-before-input -p icmp --icmp-type time-exceeded -j ACCEPT
--A ufw-before-input -p icmp --icmp-type parameter-problem -j ACCEPT
--A ufw-before-input -p icmp --icmp-type echo-request -j ACCEPT
--A ufw-before-output -p icmp --icmp-type destination-unreachable -j ACCEPT
--A ufw-before-output -p icmp --icmp-type time-exceeded -j ACCEPT
--A ufw-before-output -p icmp --icmp-type parameter-problem -j ACCEPT
--A ufw-before-output -p icmp --icmp-type echo-request -j ACCEPT
--A ufw-before-forward -p icmp --icmp-type destination-unreachable -j ACCEPT
--A ufw-before-forward -p icmp --icmp-type time-exceeded -j ACCEPT
--A ufw-before-forward -p icmp --icmp-type parameter-problem -j ACCEPT
--A ufw-before-forward -p icmp --icmp-type echo-request -j ACCEPT
--A ufw-before-input -p udp --sport 67 --dport 68 -j ACCEPT
--A ufw-before-input -j ufw-not-local
--A ufw-not-local -m addrtype --dst-type LOCAL -j RETURN
--A ufw-not-local -m addrtype --dst-type MULTICAST -j RETURN
--A ufw-not-local -m addrtype --dst-type BROADCAST -j RETURN
--A ufw-not-local -j DROP
-COMMIT
-
-*nat
-:POSTROUTING ACCEPT [0:0]
--A POSTROUTING -s 10.200.0.0/24 -o eth0 -j MASQUERADE
-COMMIT
-NAT
+# Add NAT rule with dynamic interface detection
+EXT_IF=$(ip route | grep default | awk '{print $5}' | head -1)
+iptables -t nat -A POSTROUTING -s 10.200.0.0/24 -o $EXT_IF -j MASQUERADE
+mkdir -p /etc/iptables
+iptables-save > /etc/iptables/rules.v4
 
 ufw --force enable > /dev/null
 

@@ -128,8 +128,13 @@ echo -e "${BLUE}[RU] Generating AmneziaWG keys...${NC}"
 mkdir -p /etc/amnezia/amneziawg
 cd /etc/amnezia/amneziawg
 
-awg genkey | tee ru_server_private.key | awg pubkey > ru_server_public.key
-awg genkey | tee ru_client_private.key | awg pubkey > ru_client_public.key
+if [ ! -f /etc/amnezia/amneziawg/ru_server_private.key ]; then
+    echo -e "${BLUE}[RU] Generating new AmneziaWG keys...${NC}"
+    awg genkey | tee ru_server_private.key | awg pubkey > ru_server_public.key
+    awg genkey | tee ru_client_private.key | awg pubkey > ru_client_public.key
+else
+    echo -e "${GREEN}[RU] Reusing existing AmneziaWG keys${NC}"
+fi
 
 RU_SERVER_PUBLIC=$(cat ru_server_public.key)
 RU_CLIENT_PUBLIC=$(cat ru_client_public.key)
@@ -200,7 +205,12 @@ echo -e "${BLUE}[DE] Generating AmneziaWG keys...${NC}"
 mkdir -p /etc/amnezia/amneziawg
 cd /etc/amnezia/amneziawg
 
-awg genkey | tee de_private.key | awg pubkey > de_public.key
+if [ ! -f /etc/amnezia/amneziawg/de_private.key ]; then
+    echo -e "${BLUE}[DE] Generating new AmneziaWG keys...${NC}"
+    awg genkey | tee de_private.key | awg pubkey > de_public.key
+else
+    echo -e "${GREEN}[DE] Reusing existing AmneziaWG keys${NC}"
+fi
 
 DE_PRIVATE=$(cat de_private.key)
 DE_PUBLIC=$(cat de_public.key)
@@ -233,36 +243,17 @@ chmod 600 /etc/amnezia/amneziawg/awg0.conf
 
 echo -e "${BLUE}[DE] Configuring firewall...${NC}"
 ufw --force reset > /dev/null
+ufw default deny FORWARD > /dev/null
 ufw allow 22/tcp > /dev/null
 ufw allow ${VPN_PORT}/udp > /dev/null
-sed -i 's/DEFAULT_FORWARD_POLICY="DROP"/DEFAULT_FORWARD_POLICY="ACCEPT"/' /etc/default/ufw
+ufw allow in on awg0 > /dev/null
+ufw allow out on awg0 > /dev/null
 
-cat > /etc/ufw/before.rules << 'NAT'
-*filter
-:ufw-before-input - [0:0]
-:ufw-before-output - [0:0]
-:ufw-before-forward - [0:0]
-:ufw-not-local - [0:0]
--A ufw-before-input -i lo -j ACCEPT
--A ufw-before-output -o lo -j ACCEPT
--A ufw-before-input -m conntrack --ctstate RELATED,ESTABLISHED -j ACCEPT
--A ufw-before-output -m conntrack --ctstate RELATED,ESTABLISHED -j ACCEPT
--A ufw-before-forward -m conntrack --ctstate RELATED,ESTABLISHED -j ACCEPT
--A ufw-before-input -m conntrack --ctstate INVALID -j DROP
--A ufw-before-input -p icmp --icmp-type echo-request -j ACCEPT
--A ufw-before-output -p icmp --icmp-type echo-request -j ACCEPT
--A ufw-before-input -p udp --sport 67 --dport 68 -j ACCEPT
--A ufw-before-input -j ufw-not-local
--A ufw-not-local -m addrtype --dst-type LOCAL -j RETURN
--A ufw-not-local -m addrtype --dst-type MULTICAST -j RETURN
--A ufw-not-local -m addrtype --dst-type BROADCAST -j RETURN
--A ufw-not-local -j DROP
-COMMIT
-*nat
-:POSTROUTING ACCEPT [0:0]
--A POSTROUTING -s 10.200.0.0/24 -o eth0 -j MASQUERADE
-COMMIT
-NAT
+# Add NAT rule with dynamic interface detection
+EXT_IF=$(ip route | grep default | awk '{print $5}' | head -1)
+iptables -t nat -A POSTROUTING -s 10.200.0.0/24 -o $EXT_IF -j MASQUERADE
+mkdir -p /etc/iptables
+iptables-save > /etc/iptables/rules.v4
 
 ufw --force enable > /dev/null
 
@@ -391,8 +382,9 @@ iptables -t mangle -A AMNEZIA_PREROUTING -j MARK --set-mark $FWMARK
 
 iptables -t nat -D POSTROUTING -o $TUNNEL_IF -j MASQUERADE 2>/dev/null || true
 iptables -t nat -A POSTROUTING -o $TUNNEL_IF -j MASQUERADE
-iptables -t nat -D POSTROUTING -o eth0 -j MASQUERADE 2>/dev/null || true
-iptables -t nat -A POSTROUTING -o eth0 -j MASQUERADE
+EXT_IF=$(ip route | grep default | awk '{print $5}' | head -1)
+iptables -t nat -D POSTROUTING -o $EXT_IF -j MASQUERADE 2>/dev/null || true
+iptables -t nat -A POSTROUTING -o $EXT_IF -j MASQUERADE
 
 iptables -A FORWARD -i $CLIENT_IF -j ACCEPT
 iptables -A FORWARD -o $CLIENT_IF -j ACCEPT
@@ -427,7 +419,11 @@ ufw allow 8080/tcp > /dev/null
 ufw allow 8443/tcp > /dev/null
 # Port 8000 is no longer exposed externally; backend is only accessible via nginx
 ufw allow ${VPN_PORT}/udp > /dev/null
-sed -i 's/DEFAULT_FORWARD_POLICY="DROP"/DEFAULT_FORWARD_POLICY="ACCEPT"/' /etc/default/ufw
+ufw default deny FORWARD > /dev/null
+ufw allow in on awg0 > /dev/null
+ufw allow out on awg0 > /dev/null
+ufw allow in on awg-client > /dev/null
+ufw allow out on awg-client > /dev/null
 ufw --force enable > /dev/null
 
 echo -e "${BLUE}[RU] Starting AmneziaWG...${NC}"
