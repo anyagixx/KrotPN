@@ -26,13 +26,11 @@ def get_fernet() -> Fernet:
     global _fernet
     if _fernet is None:
         if not settings.data_encryption_key:
-            # Generate a key from secret_key if not provided
-            import base64
-            import hashlib
-            key = hashlib.sha256(settings.secret_key.encode()).digest()
-            _fernet = Fernet(base64.urlsafe_b64encode(key))
-        else:
-            _fernet = Fernet(settings.data_encryption_key.encode())
+            raise RuntimeError(
+                "DATA_ENCRYPTION_KEY must be set in environment. "
+                "Generate one with: python -c 'from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())'"
+            )
+        _fernet = Fernet(settings.data_encryption_key.encode())
     return _fernet
 
 

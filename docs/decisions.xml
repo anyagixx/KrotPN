@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- GRACE-lite Decisions Log -->
+<decisions>
+  <meta>
+    <project-name>KrotVPN</project-name>
+    <updated>2026-04-05</updated>
+  </meta>
+
+  <!-- Add decisions here as they are made -->
+  <!-- Format:
+  <decision id="D-001" date="YYYY-MM-DD">
+    <context>What prompted this decision</context>
+    <decision>What was decided</decision>
+    <rationale>Why this choice was made</rationale>
+    <status>accepted|superseded|rejected</status>
+    <superseded-by>D-XXX</superseded-by>
+  </decision>
+  -->
+</decisions>

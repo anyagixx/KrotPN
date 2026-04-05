@@ -35,11 +35,16 @@ require_command() {
 }
 
 verify_host_routing_tools() {
-    local tools=(ip ipset iptables awg awg-quick curl awk grep sshpass)
+    local tools=(ip ipset iptables awg awg-quick curl awk grep)
     for tool in "${tools[@]}"; do
         require_command "$tool"
     done
     echo -e "${GREEN}✓ Host routing toolchain verified${NC}"
+}
+
+# SSH wrapper for DE server (key-based auth)
+ssh_de() {
+    ssh -o ConnectTimeout=30 -o LogLevel=ERROR "$DE_USER@$DE_IP" "$@"
 }
 
 # Read configuration from file
@@ -52,29 +57,6 @@ else
     exit 1
 fi
 
-# Decode base64 passwords
-if [ -n "$DE_PASS_B64" ]; then
-    DE_PASS=$(echo "$DE_PASS_B64" | base64 -d)
-    echo -e "${GREEN}[CONFIG] DE password decoded${NC}"
-else
-    echo -e "${RED}[ERROR] DE_PASS_B64 not found in config${NC}"
-    exit 1
-fi
-
-if [ -n "$RU_PASS_B64" ]; then
-    RU_PASS=$(echo "$RU_PASS_B64" | base64 -d)
-    echo -e "${GREEN}[CONFIG] RU password decoded${NC}"
-else
-    echo -e "${RED}[ERROR] RU_PASS_B64 not found in config${NC}"
-    exit 1
-fi
-
-if [ -n "$ADMIN_PASSWORD_B64" ]; then
-    ADMIN_PASSWORD=$(echo "$ADMIN_PASSWORD_B64" | base64 -d)
-else
-    ADMIN_PASSWORD=""
-fi
-
 ADMIN_EMAIL="${ADMIN_EMAIL:-admin@krotvpn.com}"
 if [ -z "$ADMIN_PASSWORD" ]; then
     ADMIN_PASSWORD=$(python3 -c "import secrets; print(secrets.token_urlsafe(24))")
@@ -84,9 +66,9 @@ else
 fi
 
 # Validate required variables
-if [ -z "$DE_IP" ] || [ -z "$DE_USER" ] || [ -z "$DE_PASS" ]; then
+if [ -z "$DE_IP" ] || [ -z "$DE_USER" ]; then
     echo -e "${RED}[ERROR] Missing required configuration${NC}"
-    echo "Required: DE_IP, DE_USER, DE_PASS"
+    echo "Required: DE_IP, DE_USER"
     exit 1
 fi
 
@@ -113,25 +95,13 @@ echo -e "${CYAN}║  DE Server (Exit):  ${DE_IP}                            ║$
 echo -e "${CYAN}╚══════════════════════════════════════════════════════════════╝${NC}"
 echo ""
 
-# Install sshpass FIRST (needed for DE connection test)
-echo -e "${BLUE}[PREP] Installing sshpass for DE connection...${NC}"
-apt update -qq 2>/dev/null
-apt install -y -qq sshpass 2>/dev/null
-echo -e "${GREEN}✓ sshpass installed${NC}"
-
-# SSH wrapper for DE server
-ssh_de() {
-    sshpass -p "$DE_PASS" ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null \
-        -o ConnectTimeout=30 -o LogLevel=ERROR "$DE_USER@$DE_IP" "$@"
-}
-
 # Test connection to DE
 echo -e "${BLUE}[CHECK] Testing connection to DE server...${NC}"
 if ssh_de "echo ok" 2>/dev/null | grep -q "ok"; then
     echo -e "${GREEN}✓ DE server accessible${NC}"
 else
     echo -e "${RED}✗ Cannot connect to DE server${NC}"
-    echo -e "${YELLOW}  Check that DE server is reachable and credentials are correct${NC}"
+    echo -e "${YELLOW}  Check that DE server is reachable and SSH keys are configured${NC}"
     exit 1
 fi
 echo ""
@@ -332,8 +302,7 @@ chmod +x /tmp/de_setup.sh
 
 # Copy and run on DE server
 echo -e "${BLUE}[RU] Copying setup script to DE server...${NC}"
-sshpass -p "$DE_PASS" scp -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null \
-    -o LogLevel=ERROR /tmp/de_setup.sh "$DE_USER@$DE_IP:/tmp/"
+scp -o LogLevel=ERROR /tmp/de_setup.sh "$DE_USER@$DE_IP:/tmp/"
 
 echo -e "${BLUE}[RU] Running setup on DE server...${NC}"
 ssh_de "bash /tmp/de_setup.sh '$RU_CLIENT_PUBLIC' '$VPN_PORT' '$DE_IP'"
@@ -684,15 +653,8 @@ DOMAIN=${RU_IP}
 EOF
 
 chmod 600 .env
-if [ "$GENERATED_ADMIN_PASSWORD" -eq 1 ]; then
-cat > /root/.krotvpn-admin-credentials << EOF
-ADMIN_EMAIL=${ADMIN_EMAIL}
-ADMIN_PASSWORD=${ADMIN_PASSWORD}
-EOF
-chmod 600 /root/.krotvpn-admin-credentials
-echo -e "${YELLOW}[SECURITY] Admin credentials were auto-generated and saved to /root/.krotvpn-admin-credentials${NC}"
-fi
 echo -e "${GREEN}✓ Configuration created${NC}"
+echo -e "${YELLOW}[SECURITY] Admin credentials were displayed during install. Do not reuse.${NC}"
 
 # Systemd services
 echo -e "${BLUE}[RU] Creating systemd services...${NC}"

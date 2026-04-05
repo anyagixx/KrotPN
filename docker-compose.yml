@@ -1,5 +1,11 @@
 version: '3.8'
 
+# GRACE-lite operational contract:
+# - This file defines the container runtime graph, but the product is not fully container-isolated.
+# - `backend` depends on host-level AmneziaWG state via mounted config and mounted `awg` binary.
+# - Security assumptions here matter: exposed ports, env defaults, and host mounts affect production behavior.
+# - Any change in service names, mounts or ports should trigger updates in docs/knowledge-graph.xml and docs/verification-plan.xml.
+
 services:
   # PostgreSQL Database
   db:
@@ -8,7 +14,7 @@ services:
     restart: unless-stopped
     environment:
       POSTGRES_USER: ${DB_USER:-krotvpn}
-      POSTGRES_PASSWORD: ${DB_PASSWORD:-krotvpn_secret}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:?DB_PASSWORD must be set in .env}
       POSTGRES_DB: ${DB_NAME:-krotvpn}
     volumes:
       - postgres_data:/var/lib/postgresql/data
@@ -53,7 +59,7 @@ services:
     env_file:
       - .env
     environment:
-      - DATABASE_URL=postgresql+asyncpg://${DB_USER:-krotvpn}:${DB_PASSWORD:-krotvpn_secret}@db:5432/${DB_NAME:-krotvpn}
+      - DATABASE_URL=postgresql+asyncpg://${DB_USER:-krotvpn}:${DB_PASSWORD:?DB_PASSWORD must be set in .env}@db:5432/${DB_NAME:-krotvpn}
       - REDIS_URL=redis://redis:6379/0
     volumes:
       - ./logs:/app/logs
@@ -112,7 +118,7 @@ services:
       - "443:443"
       - "8080:8080"
       - "8443:8443"
-      - "8000:8000"
+      # Port 8000 removed — backend accessible only via nginx proxy
     networks:
       - krotvpn-network
 

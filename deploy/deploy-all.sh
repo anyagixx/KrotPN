@@ -1,13 +1,13 @@
 #!/bin/bash
 #
 # KrotVPN Fully Automated Deployment Script
-# Uses SSH password authentication
+# Uses SSH key-based authentication
 #
 # Usage: ./deploy/deploy-all.sh
-# Environment variables: RU_IP, RU_USER, RU_PASS, DE_IP, DE_USER, DE_PASS
+# Environment variables: RU_IP, RU_USER, DE_IP, DE_USER
 # GRACE-lite operational contract:
 # - This is a high-risk script: it provisions servers, writes secrets and mutates host networking.
-# - It relies on `sshpass` and disabled host key verification; do not treat it as a safe baseline.
+# - This script relies on SSH key-based authentication; ensure keys are configured before use.
 # - Default credentials, port exposure and generated `.env` values here directly affect production security.
 # - Any meaningful change must be reviewed as an infrastructure/security change, not just shell refactoring.
 #
@@ -23,23 +23,19 @@ CYAN='\033[0;36m'
 NC='\033[0m'
 
 # Configuration from environment or defaults
-RU_IP="${RU_IP:-212.113.121.164}"
+RU_IP="${RU_IP:-}"
 RU_USER="${RU_USER:-root}"
-RU_PASS="${RU_PASS:-}"
-DE_IP="${DE_IP:-95.216.149.110}"
+DE_IP="${DE_IP:-}"
 DE_USER="${DE_USER:-root}"
-DE_PASS="${DE_PASS:-}"
 VPN_PORT="51821"
 
 # SSH command wrapper
 ssh_ru() {
-    sshpass -p "$RU_PASS" ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null \
-        -o ConnectTimeout=30 -o LogLevel=ERROR "$RU_USER@$RU_IP" "$@"
+    ssh -o ConnectTimeout=30 -o LogLevel=ERROR "$RU_USER@$RU_IP" "$@"
 }
 
 ssh_de() {
-    sshpass -p "$DE_PASS" ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null \
-        -o ConnectTimeout=30 -o LogLevel=ERROR "$DE_USER@$DE_IP" "$@"
+    ssh -o ConnectTimeout=30 -o LogLevel=ERROR "$DE_USER@$DE_IP" "$@"
 }
 
 # Print banner
@@ -51,13 +47,6 @@ echo "║  RU Server (Entry): ${RU_IP}                            ║"
 echo "║  DE Server (Exit):  ${DE_IP}                            ║"
 echo "╚══════════════════════════════════════════════════════════════╝"
 echo -e "${NC}"
-
-# Check credentials
-if [ -z "$RU_PASS" ] || [ -z "$DE_PASS" ]; then
-    echo -e "${RED}ERROR: SSH passwords not set${NC}"
-    echo -e "${YELLOW}Set environment variables: RU_PASS and DE_PASS${NC}"
-    exit 1
-fi
 
 # Check connections
 echo -e "${BLUE}[CHECK] Testing SSH connections...${NC}"
@@ -436,7 +425,7 @@ ufw allow 80/tcp > /dev/null
 ufw allow 443/tcp > /dev/null
 ufw allow 8080/tcp > /dev/null
 ufw allow 8443/tcp > /dev/null
-ufw allow 8000/tcp > /dev/null
+# Port 8000 is no longer exposed externally; backend is only accessible via nginx
 ufw allow ${VPN_PORT}/udp > /dev/null
 sed -i 's/DEFAULT_FORWARD_POLICY="DROP"/DEFAULT_FORWARD_POLICY="ACCEPT"/' /etc/default/ufw
 ufw --force enable > /dev/null
@@ -565,12 +554,6 @@ DOMAIN=${RU_IP}
 EOF
 
 chmod 600 .env
-cat > /root/.krotvpn-admin-credentials << EOF
-ADMIN_EMAIL=${ADMIN_EMAIL}
-ADMIN_PASSWORD=${ADMIN_PASSWORD}
-EOF
-chmod 600 /root/.krotvpn-admin-credentials
-echo -e "${YELLOW}[RU] Admin credentials saved to /root/.krotvpn-admin-credentials${NC}"
 
 # Systemd services
 cat > /etc/systemd/system/krotvpn-routing.service << 'SERVICE'

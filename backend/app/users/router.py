@@ -11,7 +11,7 @@ GRACE-lite module contract:
 
 from datetime import timedelta
 
-from fastapi import APIRouter, Header, HTTPException, Request, status
+from fastapi import APIRouter, Depends, Header, HTTPException, Request, status
 from slowapi import Limiter
 from slowapi.util import get_remote_address
 
@@ -351,8 +351,8 @@ async def list_users(
     search: str | None = None,
     role: UserRole | None = None,
     is_active: bool | None = None,
-    admin: CurrentAdmin = None,
-    session: DBSession = None,
+    admin: CurrentAdmin = Depends(),
+    session: DBSession = Depends(),
 ):
     """List all users (admin only)."""
     from sqlalchemy import func, or_, select

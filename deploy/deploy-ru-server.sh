@@ -38,8 +38,8 @@ verify_host_routing_tools() {
 }
 
 # Configuration
-RU_IP="${RU_IP:-212.113.121.164}"
-DE_IP="${DE_IP:-95.216.149.110}"
+RU_IP="${RU_IP:-}"
+DE_IP="${DE_IP:-}"
 VPN_PORT="${VPN_PORT:-51821}"
 
 echo -e "${BLUE}================================================${NC}"
@@ -367,12 +367,6 @@ DOMAIN=${RU_IP}
 EOF
 
 chmod 600 .env
-cat > /root/.krotvpn-admin-credentials << EOF
-ADMIN_EMAIL=${ADMIN_EMAIL}
-ADMIN_PASSWORD=${ADMIN_PASSWORD}
-EOF
-chmod 600 /root/.krotvpn-admin-credentials
-echo -e "${YELLOW}Admin credentials saved to /root/.krotvpn-admin-credentials${NC}"
 
 # Start AmneziaWG
 echo -e "${YELLOW}Starting AmneziaWG...${NC}"

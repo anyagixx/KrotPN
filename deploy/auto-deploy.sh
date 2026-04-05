@@ -20,8 +20,8 @@ BLUE='\033[0;34m'
 NC='\033[0m'
 
 # Конфигурация серверов
-RU_IP="212.113.121.164"
-DE_IP="95.216.149.110"
+RU_IP="${RU_IP:-}"
+DE_IP="${DE_IP:-}"
 VPN_PORT="51821"
 
 echo -e "${BLUE}╔══════════════════════════════════════════════╗${NC}"
@@ -338,7 +338,7 @@ DATABASE_URL=postgresql+asyncpg://krotvpn:${DB_PASSWORD}@db:5432/krotvpn
 
 REDIS_URL=redis://redis:6379/0
 
-CORS_ORIGINS=["http://212.113.121.164","http://localhost"]
+CORS_ORIGINS=["http://${RU_IP}","http://localhost"]
 
 ADMIN_EMAIL=${ADMIN_EMAIL}
 ADMIN_PASSWORD=${ADMIN_PASSWORD}
@@ -348,7 +348,7 @@ VPN_PORT=51821
 VPN_DNS=8.8.8.8, 1.1.1.1
 VPN_MTU=1360
 VPN_SERVER_PUBLIC_KEY=${RU_SERVER_PUBLIC_KEY}
-VPN_SERVER_ENDPOINT=212.113.121.164
+VPN_SERVER_ENDPOINT=${RU_IP}
 
 AWG_JC=120
 AWG_JMIN=50
@@ -364,16 +364,10 @@ TRIAL_DAYS=3
 REFERRAL_BONUS_DAYS=7
 REFERRAL_MIN_PAYMENT=100.0
 
-DOMAIN=212.113.121.164
+DOMAIN=${RU_IP}
 EOF
 
 chmod 600 .env
-cat > /root/.krotvpn-admin-credentials << EOF
-ADMIN_EMAIL=${ADMIN_EMAIL}
-ADMIN_PASSWORD=${ADMIN_PASSWORD}
-EOF
-chmod 600 /root/.krotvpn-admin-credentials
-echo "===> Admin credentials saved to /root/.krotvpn-admin-credentials"
 
 echo "===> RU сервер готов!"
 echo "RU_CLIENT_PUBLIC_KEY=${RU_CLIENT_PUBLIC_KEY}"

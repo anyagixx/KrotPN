@@ -1,8 +1,13 @@
 #!/bin/bash
 #
-# KrotVPN Interactive Installer v2.4.17
+# KrotVPN Interactive Installer v2.5.0
 # Run this command to install:
 #   curl -fsSL https://raw.githubusercontent.com/anyagixx/KrotVPN/main/install.sh | bash
+# GRACE-lite operational contract:
+# - This script is an interactive bootstrap helper, not a hardened deployment system.
+# - It requires SSH key-based authentication (no sshpass).
+# - Server IPs are provided interactively and never hardcoded.
+# - Agents changing this file must review secrets handling, host trust assumptions and cleanup behavior.
 #
 
 set -e
@@ -21,7 +26,7 @@ print_banner() {
     echo "║                                                              ║"
     echo "║                         K R O T V P N                        ║"
     echo "║                                                              ║"
-    echo "║              Interactive Installer v2.4.17                   ║"
+    echo "║              Interactive Installer v2.5.0                   ║"
     echo "║                                                              ║"
     echo "╚══════════════════════════════════════════════════════════════╝"
     echo -e "${NC}"
@@ -56,7 +61,17 @@ ask() {
         value="$default"
     fi
     
-    eval "$var='$value'"
+    # Safe assignment without eval
+    case "$var" in
+        RU_IP) RU_IP="$value" ;;
+        DE_IP) DE_IP="$value" ;;
+        RU_USER) RU_USER="$value" ;;
+        DE_USER) DE_USER="$value" ;;
+        ADMIN_EMAIL) ADMIN_EMAIL="$value" ;;
+        CONFIRM) CONFIRM="$value" ;;
+        START) START="$value" ;;
+        *) print_error "Unknown variable: $var"; exit 1 ;;
+    esac
 }
 
 ask_password() {
@@ -83,7 +98,12 @@ ask_password() {
         fi
     done
     
-    eval "$var='$password'"
+    # Safe assignment without eval
+    case "$var" in
+        ADMIN_PASSWORD) ADMIN_PASSWORD="$password" ;;
+        ADMIN_PASSWORD_CONFIRM) ADMIN_PASSWORD_CONFIRM="$password" ;;
+        *) print_error "Unknown variable: $var"; exit 1 ;;
+    esac
 }
 
 ask_yesno() {
@@ -104,31 +124,67 @@ ask_yesno() {
         value="$default"
     fi
     
+    local result="n"
     if [ "$value" = "y" ] || [ "$value" = "yes" ]; then
-        eval "$var='y'"
-    else
-        eval "$var='n'"
+        result="y"
     fi
+    
+    case "$var" in
+        CONFIRM) CONFIRM="$result" ;;
+        START) START="$result" ;;
+        *) print_error "Unknown variable: $var"; exit 1 ;;
+    esac
+}
+
+get_admin_config() {
+    print_step "Step 4: Admin credentials"
+
+    echo -e "${BLUE}Set production admin credentials for KrotVPN:${NC}"
+    echo ""
+
+    ask "Admin email" "admin@krotvpn.com" ADMIN_EMAIL
+    if [ -z "$ADMIN_EMAIL" ]; then
+        print_error "Admin email is required"
+        exit 1
+    fi
+
+    while true; do
+        ask_password "Admin password" ADMIN_PASSWORD
+        if [ -z "$ADMIN_PASSWORD" ]; then
+            print_error "Admin password is required"
+            continue
+        fi
+
+        if [ "${#ADMIN_PASSWORD}" -lt 12 ]; then
+            print_error "Admin password must be at least 12 characters"
+            continue
+        fi
+
+        ask_password "Confirm admin password" ADMIN_PASSWORD_CONFIRM
+        if [ "$ADMIN_PASSWORD" != "$ADMIN_PASSWORD_CONFIRM" ]; then
+            print_error "Passwords do not match"
+            continue
+        fi
+
+        break
+    done
 }
 
 check_prerequisites() {
     print_step "Step 1: Checking prerequisites"
-    
-    if ! command -v sshpass &> /dev/null; then
-        print_info "Installing sshpass..."
-        if command -v sudo &> /dev/null; then
-            sudo apt update -qq && sudo apt install -y -qq sshpass
-        else
-            apt update -qq && apt install -y -qq sshpass
-        fi
-    fi
-    print_success "sshpass available"
     
     if ! command -v ssh &> /dev/null; then
         print_error "SSH client not found"
         exit 1
     fi
     print_success "SSH client available"
+
+    # Verify SSH key-based auth is set up
+    print_info "Verifying SSH key-based authentication..."
+    print_info "Make sure you have added your public key to both servers:"
+    print_info "  ssh-copy-id root@<RU_IP>"
+    print_info "  ssh-copy-id root@<DE_IP>"
+    print_success "SSH key-based auth required (no password auth)"
 }
 
 get_server_info() {
@@ -164,51 +220,41 @@ get_server_info() {
     fi
 }
 
-get_credentials() {
-    print_step "Step 3: SSH credentials"
+get_ssh_users() {
+    print_step "Step 3: SSH users"
     
-    echo -e "${BLUE}Enter SSH credentials:${NC}"
+    echo -e "${BLUE}Enter SSH usernames (key-based auth required):${NC}"
     echo ""
     
     echo -e "${CYAN}RU Server (${RU_IP}):${NC}"
     ask "  SSH username" "root" RU_USER
-    ask_password "  SSH password" RU_PASS
-    if [ -z "$RU_PASS" ]; then
-        print_error "Password is required"
-        exit 1
-    fi
     echo ""
     
     echo -e "${CYAN}DE Server (${DE_IP}):${NC}"
     ask "  SSH username" "root" DE_USER
-    ask_password "  SSH password" DE_PASS
-    if [ -z "$DE_PASS" ]; then
-        print_error "Password is required"
-        exit 1
-    fi
     echo ""
     
-    print_info "Testing connection to RU server..."
-    if sshpass -p "$RU_PASS" ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null \
-        -o ConnectTimeout=10 -o LogLevel=ERROR "$RU_USER@$RU_IP" "echo ok" 2>/dev/null | grep -q "ok"; then
-        print_success "RU server connection OK"
+    print_info "Testing SSH key-based connection to RU server..."
+    if ssh -o BatchMode=yes -o ConnectTimeout=10 -o LogLevel=ERROR "$RU_USER@$RU_IP" "echo ok" 2>/dev/null | grep -q "ok"; then
+        print_success "RU server connection OK (key-based)"
     else
-        print_error "Cannot connect to RU server. Check credentials."
+        print_error "Cannot connect to RU server via SSH key."
+        print_error "Run: ssh-copy-id $RU_USER@$RU_IP"
         exit 1
     fi
     
-    print_info "Testing connection to DE server..."
-    if sshpass -p "$DE_PASS" ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null \
-        -o ConnectTimeout=10 -o LogLevel=ERROR "$DE_USER@$DE_IP" "echo ok" 2>/dev/null | grep -q "ok"; then
-        print_success "DE server connection OK"
+    print_info "Testing SSH key-based connection to DE server..."
+    if ssh -o BatchMode=yes -o ConnectTimeout=10 -o LogLevel=ERROR "$DE_USER@$DE_IP" "echo ok" 2>/dev/null | grep -q "ok"; then
+        print_success "DE server connection OK (key-based)"
     else
-        print_error "Cannot connect to DE server. Check credentials."
+        print_error "Cannot connect to DE server via SSH key."
+        print_error "Run: ssh-copy-id $DE_USER@$DE_IP"
         exit 1
     fi
 }
 
 deploy() {
-    print_step "Step 4: Starting deployment"
+    print_step "Step 5: Starting deployment"
     
     echo -e "${BLUE}This will:${NC}"
     echo -e "  1. Clone KrotVPN on RU server"
@@ -226,20 +272,15 @@ deploy() {
     print_info "Deploying... This will take 10-15 minutes."
     echo ""
     
-    # Encode passwords in base64 (handles ALL special characters)
-    RU_PASS_B64=$(echo -n "$RU_PASS" | base64 -w0)
-    DE_PASS_B64=$(echo -n "$DE_PASS" | base64 -w0)
-    
-    # Create config file on RU server with base64 encoded passwords
+    # Create config file on RU server with plain env vars (no encoding)
     print_info "Creating configuration on RU server..."
-    sshpass -p "$RU_PASS" ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null \
-        -o LogLevel=ERROR "$RU_USER@$RU_IP" "cat > /tmp/krotvpn_deploy.conf" << EOF
+    ssh "$RU_USER@$RU_IP" "umask 077 && cat > /tmp/krotvpn_deploy.conf" << EOF
 DE_IP='${DE_IP}'
 DE_USER='${DE_USER}'
-DE_PASS_B64='${DE_PASS_B64}'
 RU_IP='${RU_IP}'
 RU_USER='${RU_USER}'
-RU_PASS_B64='${RU_PASS_B64}'
+ADMIN_EMAIL='${ADMIN_EMAIL}'
+ADMIN_PASSWORD='${ADMIN_PASSWORD}'
 EOF
     
     if [ $? -ne 0 ]; then
@@ -250,8 +291,7 @@ EOF
     
     # Clone repository
     print_info "Cloning KrotVPN repository..."
-    sshpass -p "$RU_PASS" ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null \
-        -o LogLevel=ERROR "$RU_USER@$RU_IP" "
+    ssh "$RU_USER@$RU_IP" "
         cd /opt
         rm -rf KrotVPN 2>/dev/null || true
         git clone https://github.com/anyagixx/KrotVPN.git
@@ -268,8 +308,7 @@ EOF
     print_info "Running deployment script on RU server..."
     echo ""
     
-    sshpass -p "$RU_PASS" ssh -t -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null \
-        -o LogLevel=ERROR "$RU_USER@$RU_IP" "cd /opt/KrotVPN && ./deploy/deploy-on-server.sh"
+    ssh -t "$RU_USER@$RU_IP" "cd /opt/KrotVPN && ./deploy/deploy-on-server.sh"
 }
 
 show_complete() {
@@ -278,7 +317,7 @@ show_complete() {
     echo -e "${GREEN}"
     echo "╔══════════════════════════════════════════════════════════════╗"
     echo "║                                                              ║"
-    echo "║              🎉 KrotVPN is now installed! 🎉                ║"
+    echo "║              KrotVPN is now installed!                      ║"
     echo "║                                                              ║"
     echo "╚══════════════════════════════════════════════════════════════╝"
     echo -e "${NC}"
@@ -287,7 +326,7 @@ show_complete() {
     echo ""
     echo -e "  ${GREEN}Frontend:${NC}    https://${RU_IP}"
     echo -e "  ${GREEN}Admin Panel:${NC} https://${RU_IP}:8443"
-    echo -e "  ${GREEN}Backend API:${NC} https://${RU_IP}:8000"
+    echo -e "  ${GREEN}Backend API:${NC} https://${RU_IP} (via nginx)"
     echo ""
     echo -e "${YELLOW}Note: Browser will warn about self-signed certificate.${NC}"
     echo -e "${YELLOW}Click 'Advanced' → 'Proceed' to continue.${NC}"
@@ -296,12 +335,16 @@ show_complete() {
     echo ""
     echo -e "  ssh root@${RU_IP} \"/opt/KrotVPN/deploy/create-client.sh my_client\""
     echo ""
-    echo -e "${CYAN}Configure in /opt/KrotVPN/.env:${NC}"
+    echo -e "${CYAN}Configured during install:${NC}"
     echo ""
-    echo -e "  • YOOKASSA_SHOP_ID     - for payments"
-    echo -e "  • YOOKASSA_SECRET_KEY  - for payments"
-    echo -e "  • TELEGRAM_BOT_TOKEN   - for Telegram bot"
-    echo -e "  • ADMIN_PASSWORD       - ${RED}change default!${NC}"
+    echo -e "  • ADMIN_EMAIL         - ${GREEN}${ADMIN_EMAIL}${NC}"
+    echo -e "  • ADMIN_PASSWORD      - password entered during installation"
+    echo ""
+    echo -e "${CYAN}Configure later in /opt/KrotVPN/.env:${NC}"
+    echo ""
+    echo -e "  • YOOKASSA_SHOP_ID    - for payments"
+    echo -e "  • YOOKASSA_SECRET_KEY - for payments"
+    echo -e "  • TELEGRAM_BOT_TOKEN  - for Telegram bot"
     echo ""
 }
 
@@ -309,7 +352,8 @@ main() {
     print_banner
     check_prerequisites
     get_server_info
-    get_credentials
+    get_ssh_users
+    get_admin_config
     deploy
     show_complete
 }
