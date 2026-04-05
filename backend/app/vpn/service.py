@@ -25,7 +25,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.config import settings
 from app.vpn.amneziawg import wg_manager
 from app.vpn.config import ConfigMixin
-from app.vpn.models import VPNClient, VPNNode, VPNRoute, VPNServer
+from app.vpn.models import VPNClient, VPNNode, VPNRoute, VPNServer, VPNStats
 from app.vpn.provisioning import ProvisioningMixin
 from app.vpn.topology import TopologyMixin
 
