@@ -308,6 +308,51 @@ else
     exit 1
 fi
 
+# ============================================================
+# CRITICAL: DE server routing for client traffic (10.10.0.0/24)
+# ============================================================
+# Client traffic arrives from RU via awg0 (10.200.0.0/24 tunnel)
+# but the source IP is 10.10.0.0/24. DE must:
+# 1. Route return traffic back to RU via awg0
+# 2. NAT client traffic to the internet
+# 3. Allow forwarding for client traffic
+# ============================================================
+
+echo -e "${BLUE}[DE] Configuring client traffic routing...${NC}"
+
+# 1. Route back to 10.10.0.0/24 via RU tunnel endpoint
+ip route del 10.10.0.0/24 via 10.200.0.2 dev awg0 2>/dev/null || true
+ip route add 10.10.0.0/24 via 10.200.0.2 dev awg0
+echo "  Route: 10.10.0.0/24 via 10.200.0.2 dev awg0"
+
+# 2. NAT client traffic on external interface
+EXT_IF=$(ip route | grep default | awk '{print $5}' | head -1)
+iptables -t nat -D POSTROUTING -s 10.10.0.0/24 -o $EXT_IF -j MASQUERADE 2>/dev/null || true
+iptables -t nat -A POSTROUTING -s 10.10.0.0/24 -o $EXT_IF -j MASQUERADE
+echo "  NAT: 10.10.0.0/24 → $EXT_IF MASQUERADE"
+
+# Also NAT tunnel traffic
+iptables -t nat -D POSTROUTING -s 10.200.0.0/24 -o $EXT_IF -j MASQUERADE 2>/dev/null || true
+iptables -t nat -A POSTROUTING -s 10.200.0.0/24 -o $EXT_IF -j MASQUERADE
+echo "  NAT: 10.200.0.0/24 → $EXT_IF MASQUERADE"
+
+# 3. Allow forwarding for client and tunnel traffic
+iptables -D FORWARD -s 10.10.0.0/24 -j ACCEPT 2>/dev/null || true
+iptables -D FORWARD -d 10.10.0.0/24 -j ACCEPT 2>/dev/null || true
+iptables -I FORWARD 1 -s 10.10.0.0/24 -j ACCEPT
+iptables -I FORWARD 2 -d 10.10.0.0/24 -j ACCEPT
+iptables -D FORWARD -i awg0 -s 10.200.0.0/24 -j ACCEPT 2>/dev/null || true
+iptables -D FORWARD -o awg0 -d 10.200.0.0/24 -j ACCEPT 2>/dev/null || true
+iptables -I FORWARD 3 -i awg0 -s 10.200.0.0/24 -j ACCEPT
+iptables -I FORWARD 4 -o awg0 -d 10.200.0.0/24 -j ACCEPT
+echo "  FORWARD: 10.10.0.0/24 and 10.200.0.0/24 ACCEPT"
+
+# Save rules
+mkdir -p /etc/iptables
+iptables-save > /etc/iptables/rules.v4
+
+echo -e "${GREEN}✓ DE client traffic routing configured${NC}"
+
 echo -e "${GREEN}✓ DE server ready!${NC}"
 DESCRIPT
 
@@ -524,6 +569,46 @@ echo -e "${BLUE}[RU] AmneziaWG status:${NC}"
 awg show
 
 /usr/local/bin/setup_routing.sh
+
+# ============================================================
+# CRITICAL: Client traffic routing through RU→DE tunnel
+# ============================================================
+# Without these rules, client traffic on awg0 goes to the internet
+# directly from RU instead of through the awg-client tunnel to DE.
+# ============================================================
+
+echo -e "${BLUE}[RU] Configuring client traffic routing through tunnel...${NC}"
+
+# 1. Mark all packets from VPN clients (10.10.0.0/24) coming from awg0
+#    This overrides the AMNEZIA_PREROUTING chain which only marks on destination
+iptables -t mangle -D PREROUTING -s 10.10.0.0/24 -i awg0 -j MARK --set-mark 0x64 2>/dev/null || true
+iptables -t mangle -I PREROUTING 1 -s 10.10.0.0/24 -i awg0 -j MARK --set-mark 0x64
+echo "  Mark rule: 10.10.0.0/24 on awg0 → fwmark 0x64"
+
+# 2. Add ip rule: fwmark 0x64 → routing table 100 (tunnel)
+ip rule del fwmark 0x64 lookup 100 2>/dev/null || true
+ip rule add fwmark 0x64 lookup 100 priority 99
+echo "  IP rule: fwmark 0x64 → table 100 (priority 99)"
+
+# 3. Table 100: default route via awg-client (to DE)
+ip route del default dev awg-client table 100 2>/dev/null || true
+ip route del default via 10.200.0.1 dev awg-client table 100 2>/dev/null || true
+ip route add default via 10.200.0.1 dev awg-client table 100
+echo "  Table 100: default via 10.200.0.1 dev awg-client"
+
+# 4. Allow forwarding between awg0 (clients) and awg-client (tunnel to DE)
+iptables -D FORWARD -i awg0 -o awg-client -j ACCEPT 2>/dev/null || true
+iptables -D FORWARD -i awg-client -o awg0 -j ACCEPT 2>/dev/null || true
+iptables -I FORWARD 1 -i awg0 -o awg-client -j ACCEPT
+iptables -I FORWARD 2 -i awg-client -o awg0 -j ACCEPT
+echo "  FORWARD: awg0 ↔ awg-client ACCEPT"
+
+# 5. NAT on RU: masquerade client traffic going through tunnel
+iptables -t nat -D POSTROUTING -s 10.10.0.0/24 -o awg-client -j MASQUERADE 2>/dev/null || true
+iptables -t nat -I POSTROUTING 1 -s 10.10.0.0/24 -o awg-client -j MASQUERADE
+echo "  NAT RU: 10.10.0.0/24 → awg-client MASQUERADE"
+
+echo -e "${GREEN}✓ Client traffic routing configured${NC}"
 
 # Test tunnel - try multiple times
 echo -e "${BLUE}[RU] Testing tunnel to DE (10.200.0.1)...${NC}"
