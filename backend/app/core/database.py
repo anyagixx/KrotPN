@@ -14,6 +14,7 @@ from contextlib import asynccontextmanager
 from typing import TypeVar
 
 from loguru import logger
+from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 from sqlalchemy.pool import NullPool
 from sqlmodel import SQLModel
@@ -57,28 +58,20 @@ async def init_db() -> None:
     import_all_models()
     async with engine.begin() as conn:
         await conn.run_sync(SQLModel.metadata.create_all)
-        # Convert all timestamp without time zone to timestamptz
-        # This is needed because P2-001 changed all datetime.utcnow() to
-        # datetime.now(timezone.utc), but SQLModel defaults to naive timestamps.
+        # Convert all timestamp without time zone to timestamptz for PostgreSQL
+        # Needed because P2-001 changed datetime.utcnow() → datetime.now(timezone.utc)
         if "postgresql" in settings.database_url:
-            await conn.execute("""
-                DO $$
-                DECLARE
-                    r RECORD;
-                BEGIN
-                    FOR r IN
-                        SELECT table_name, column_name
-                        FROM information_schema.columns
-                        WHERE table_schema = 'public'
-                        AND data_type = 'timestamp without time zone'
-                    LOOP
-                        EXECUTE format(
-                            'ALTER TABLE %I ALTER COLUMN %I TYPE timestamptz USING %I AT TIME ZONE ''UTC''',
-                            r.table_name, r.column_name, r.column_name
-                        );
-                    END LOOP;
-                END $$;
-            """)
+            await conn.execute(text(
+                "DO $d$ DECLARE r RECORD; "
+                "BEGIN "
+                "FOR r IN SELECT table_name, column_name FROM information_schema.columns "
+                "WHERE table_schema = 'public' AND data_type = 'timestamp without time zone' "
+                "LOOP "
+                "EXECUTE format('ALTER TABLE %I ALTER COLUMN %I TYPE timestamptz USING %I AT TIME ZONE ''UTC''', "
+                "r.table_name, r.column_name, r.column_name); "
+                "END LOOP; "
+                "END $d$;"
+            ))
         await migrate_existing_schema(conn)
 
 
