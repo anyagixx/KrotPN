@@ -2,7 +2,7 @@
 
 **Коммерческий VPN-сервис с обфускацией AmneziaWG и split-tunneling**
 
-![Version](https://img.shields.io/badge/version-2.4.23-blue)
+![Version](https://img.shields.io/badge/version-2.8.2-blue)
 ![Python](https://img.shields.io/badge/python-3.11-green)
 ![React](https://img.shields.io/badge/react-18-blue)
 ![License](https://img.shields.io/badge/license-MIT-green)
@@ -38,6 +38,21 @@
                         └─────────────┘
 ```
 
+## 🤖 AI Development Handoff
+
+Проект ведётся в режиме `GRACE-lite` для работы с несколькими ИИ-агентами.
+
+Перед любыми изменениями новый агент должен прочитать файлы в таком порядке:
+
+1. `docs/current-status.xml`
+2. `docs/knowledge-graph.xml`
+3. `docs/development-plan.xml`
+4. `docs/verification-plan.xml`
+5. `AGENTS.md`
+
+Это обязательный входной слой проекта: он фиксирует текущую стадию разработки,
+приоритеты, карту модулей и правила проверки изменений.
+
 ## ⚡ Быстрый старт
 
 ### Одна команда установки
@@ -69,7 +84,7 @@ wget -qO- https://raw.githubusercontent.com/anyagixx/KrotVPN/main/install.sh | b
 |--------|-----|
 | **Frontend** | `https://YOUR_RU_IP` |
 | **Admin Panel** | `https://YOUR_RU_IP:8443` |
-| **Backend API** | `https://YOUR_RU_IP:8000` |
+| **Backend API** | `https://YOUR_RU_IP/api/v1/` |
 
 > ⚠️ Браузер предупредит о самоподписанном сертификате. Нажмите "Дополнительно" → "Перейти".
 
@@ -166,9 +181,14 @@ KrotVPN/
 ## 🔐 Безопасность
 
 - **HTTPS** - самоподписанные SSL сертификаты
+- **httpOnly cookies** - защита от XSS кражи токенов
 - **JWT токены** - короткий срок жизни (15 мин)
-- **Fernet шифрование** - чувствительные данные
-- **Rate limiting** - защита от брутфорса
+- **Token blacklist** - отзыв токенов через Redis
+- **Fernet шифрование** - VPN приватные ключи
+- **DATA_ENCRYPTION_KEY** - отдельный ключ шифрования (не из JWT secret)
+- **Rate limiting** - nginx: 5r/m login, 30r/m API
+- **Security headers** - HSTS, CSP, X-Frame-Options
+- **Admin audit log** - все действия админов логируются
 - **CORS whitelist** - контроль доступа
 - **UFW firewall** - на обоих серверах
 
@@ -184,14 +204,14 @@ KrotVPN/
 | Endpoint | Описание |
 |----------|----------|
 | `GET /health` | Health check |
-| `POST /api/auth/register` | Регистрация |
-| `POST /api/auth/login` | Авторизация |
-| `GET /api/vpn/config` | Получить конфиг VPN |
-| `GET /api/vpn/qr` | QR код для клиента |
-| `GET /api/subscription/status` | Статус подписки |
-| `POST /api/billing/create-payment` | Создать платёж |
+| `POST /api/v1/auth/register` | Регистрация |
+| `POST /api/v1/auth/login` | Авторизация |
+| `GET /api/v1/vpn/config` | Получить конфиг VPN |
+| `GET /api/v1/vpn/qr` | QR код для клиента |
+| `GET /api/v1/subscription/status` | Статус подписки |
+| `POST /api/v1/billing/create-payment` | Создать платёж |
 
-Полная документация: `https://YOUR_RU_IP:8000/docs`
+Полная документация: `https://YOUR_RU_IP/docs`
 
 ## 📞 Поддержка
 
