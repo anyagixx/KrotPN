@@ -17,6 +17,7 @@
 """Admin audit logging."""
 
 from datetime import datetime, timezone
+from sqlalchemy import Column, DateTime
 
 from loguru import logger
 from sqlmodel import Field, SQLModel
@@ -33,7 +34,7 @@ class AdminAuditEvent(SQLModel, table=True):
     resource_type: str | None = Field(default=None, max_length=50)
     resource_id: int | None = Field(default=None)
     details: str | None = Field(default=None)
-    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc), sa_column=Column(DateTime(timezone=True)))
 
 
 async def log_admin_action(

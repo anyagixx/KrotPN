@@ -3,7 +3,8 @@ Referral models for referral program.
 """
 # <!-- GRACE: module="M-005" entity="ReferralCode, Referral" -->
 
-from datetime import datetime, timezone, timezone
+from datetime import datetime, timezone
+from sqlalchemy import Column, DateTime, timezone
 from typing import TYPE_CHECKING
 
 from sqlmodel import Field, Relationship, SQLModel
@@ -26,7 +27,7 @@ class ReferralCode(SQLModel, table=True):
     bonus_earned_days: int = Field(default=0)
     
     # Timestamps
-    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc), sa_column=Column(DateTime(timezone=True)))
     
     # Relationships
     user: "User" = Relationship(back_populates="referral_code")
@@ -54,7 +55,7 @@ class Referral(SQLModel, table=True):
     first_payment_amount: float | None = Field(default=None)
     
     # Timestamps
-    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc), sa_column=Column(DateTime(timezone=True)))
     
     # Relationships
     referrer: "User" = Relationship(

@@ -37,7 +37,7 @@ from __future__ import annotations
 from datetime import datetime, timezone, timezone
 from enum import Enum
 
-from sqlalchemy import UniqueConstraint
+from sqlalchemy import Column, DateTime, UniqueConstraint
 from sqlmodel import Field, SQLModel
 
 
@@ -74,8 +74,8 @@ class CustomRoute(SQLModel, table=True):
     route_type: RouteType = Field(default=RouteType.VPN)
     description: str | None = Field(default=None, max_length=500)
     is_active: bool = Field(default=True)
-    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
-    updated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc), sa_column=Column(DateTime(timezone=True)))
+    updated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc), sa_column=Column(DateTime(timezone=True)))
 
 
 class DomainRouteRule(SQLModel, table=True):
@@ -98,8 +98,8 @@ class DomainRouteRule(SQLModel, table=True):
     priority: int = Field(default=100, index=True)
     description: str | None = Field(default=None, max_length=500)
     is_active: bool = Field(default=True, index=True)
-    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
-    updated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc), sa_column=Column(DateTime(timezone=True)))
+    updated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc), sa_column=Column(DateTime(timezone=True)))
 
 
 class CidrRouteRule(SQLModel, table=True):
@@ -120,8 +120,8 @@ class CidrRouteRule(SQLModel, table=True):
     priority: int = Field(default=100, index=True)
     description: str | None = Field(default=None, max_length=500)
     is_active: bool = Field(default=True, index=True)
-    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
-    updated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc), sa_column=Column(DateTime(timezone=True)))
+    updated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc), sa_column=Column(DateTime(timezone=True)))
 
 
 class RoutingStatus(SQLModel):
