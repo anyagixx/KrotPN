@@ -4,7 +4,7 @@ User models for authentication and profile management.
 # <!-- GRACE: module="M-002" entity="User" -->
 
 from datetime import datetime, timezone
-from sqlalchemy import Column, DateTime, timezone
+from sqlalchemy import Column, DateTime
 from enum import Enum
 from typing import TYPE_CHECKING
 

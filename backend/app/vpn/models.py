@@ -8,7 +8,7 @@ CHANGE_SUMMARY
 # <!-- GRACE: module="M-003" entity="VPNServer, VPNNode, VPNRoute, VPNClient" -->
 
 from datetime import datetime, timezone
-from sqlalchemy import Column, DateTime, timezone
+from sqlalchemy import Column, DateTime
 from typing import TYPE_CHECKING
 
 from sqlmodel import Field, Relationship, SQLModel

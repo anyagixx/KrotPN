@@ -8,7 +8,7 @@ CHANGE_SUMMARY
 # <!-- GRACE: module="M-004" entity="Plan, Subscription, Payment" -->
 
 from datetime import datetime, timezone
-from sqlalchemy import Column, DateTime, timezone
+from sqlalchemy import Column, DateTime
 from enum import Enum
 from typing import TYPE_CHECKING
 
