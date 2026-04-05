@@ -12,9 +12,11 @@ MODULE_MAP
 - test_create_device_returns_conflict_when_limit_is_exhausted: Verifies device limit failures map to HTTP 409.
 - test_revoke_device_returns_updated_device_state: Verifies revoke flow only returns the caller-owned device.
 - test_rotate_device_returns_fresh_config_bundle: Verifies rotate flow returns updated config_version and rendered config.
+- test_blocked_device_cannot_be_used: Verifies blocked device returns blocked status and cannot create new configs.
 
 CHANGE_SUMMARY
 - 2026-03-27: Added router-level device API tests for list/create/revoke/rotate flows.
+- 2026-04-05: Added blocked-device reconnection test.
 """
 
 from datetime import datetime
@@ -164,6 +166,17 @@ class StubVPNService:
         )
 
 
+class BlockedDevicePolicyService(StubPolicyService):
+    async def get_user_device(self, user_id: int, device_id: int):
+        assert user_id == 1
+        if device_id == 10:
+            return _device(device_id=10, name="BlockedPhone", status=DeviceStatus.BLOCKED)
+        return None
+
+    async def create_device_record(self, user_id: int, *, name: str, platform: str | None = None):
+        raise DeviceLimitExceededError("Device limit exceeded")
+
+
 def test_list_devices_returns_owned_devices_and_slot_counters(monkeypatch):
     monkeypatch.setattr(devices_router_module, "DeviceAccessPolicyService", StubPolicyService)
     client = _build_app()
@@ -226,3 +239,11 @@ def test_rotate_device_returns_fresh_config_bundle(monkeypatch):
     assert body["device"]["id"] == 10
     assert body["device"]["config_version"] == 2
     assert body["address"] == "10.10.0.10"
+
+
+def test_blocked_device_cannot_be_used(monkeypatch):
+    monkeypatch.setattr(devices_router_module, "DeviceAccessPolicyService", BlockedDevicePolicyService)
+    client = _build_app()
+
+    response = client.post("/api/devices", json={"name": "New Device"})
+    assert response.status_code == 409

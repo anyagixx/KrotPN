@@ -1,4 +1,4 @@
-from app.core.database import _partition_vpn_client_rows
+from app.core.migrations import _partition_vpn_client_rows
 
 
 def test_partition_vpn_client_rows_keeps_active_latest_row_per_user():

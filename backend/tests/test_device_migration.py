@@ -18,11 +18,11 @@ from sqlalchemy.ext.asyncio import create_async_engine
 from sqlalchemy.pool import StaticPool
 from sqlmodel import SQLModel
 
-from app.core.database import (
+from app.core.migrations import (
     _backfill_primary_user_devices,
     _relax_vpn_client_user_uniqueness,
-    import_all_models,
 )
+from app.core.database import import_all_models
 
 
 @pytest.mark.asyncio

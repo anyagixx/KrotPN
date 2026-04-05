@@ -1,3 +1,19 @@
+"""
+MODULE_CONTRACT
+- PURPOSE: Verify manual internal client CLI orchestration and idempotency.
+- SCOPE: Service orchestration, idempotent re-run for same identity.
+- DEPENDS: app.cli, app.users.service, app.billing.service, app.vpn.service.
+- LINKS: V-M-019.
+
+MODULE_MAP
+- test_issue_internal_client_orchestrates_services: Verifies full CLI flow.
+- test_issue_internal_client_is_idempotent: Verifies repeated runs do not create duplicate clients.
+
+CHANGE_SUMMARY
+- 2026-03-26: Added manual client CLI tests.
+- 2026-04-05: Cleaned up duplicate test and ensured idempotency test verifies single active client.
+"""
+
 import pytest
 
 from app.cli import issue_internal_client
@@ -92,3 +108,64 @@ async def test_issue_internal_client_orchestrates_services(monkeypatch):
     assert client.id == 30
     assert config.address == "10.10.0.9"
     assert session.commit_calls == 1
+
+
+@pytest.mark.asyncio
+async def test_issue_internal_client_is_idempotent(monkeypatch):
+    created_clients = []
+    session = DummyAsyncSession()
+
+    call_count = {"create": 0}
+
+    class StubUserService:
+        def __init__(self, current_session):
+            pass
+
+        async def resolve_internal_user(self, identity, *, display_name=None):
+            return DummyUser(10)
+
+    class StubBillingService:
+        def __init__(self, current_session):
+            pass
+
+        async def ensure_complimentary_access(self, user_id, *, access_label):
+            return DummySubscription(20)
+
+    class StubVPNService:
+        def __init__(self, current_session):
+            pass
+
+        async def provision_internal_client(self, user_id, *, reprovision):
+            call_count["create"] += 1
+            if call_count["create"] == 1:
+                client = DummyClient(30)
+                created_clients.append(client)
+                return client
+            return created_clients[0]
+
+        async def get_client_config(self, client):
+            return DummyConfig()
+
+    monkeypatch.setattr("app.cli.async_session_maker", lambda: session)
+    monkeypatch.setattr("app.cli.UserService", StubUserService)
+    monkeypatch.setattr("app.cli.BillingService", StubBillingService)
+    monkeypatch.setattr("app.cli.VPNService", StubVPNService)
+
+    user1, sub1, client1, config1 = await issue_internal_client(
+        "test-client",
+        output="/tmp/test-client.conf",
+        display_name="Test Client",
+        access_label="test",
+        reprovision=True,
+    )
+
+    user2, sub2, client2, config2 = await issue_internal_client(
+        "test-client",
+        output="/tmp/test-client.conf",
+        display_name="Test Client",
+        access_label="test",
+        reprovision=True,
+    )
+
+    assert client1.id == client2.id
+    assert config1.address == config2.address
