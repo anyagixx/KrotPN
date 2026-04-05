@@ -53,10 +53,32 @@ def import_all_models() -> None:
 
 
 async def init_db() -> None:
-    """Initialize database tables."""
+    """Initialize database tables and convert timestamp columns to timestamptz."""
     import_all_models()
     async with engine.begin() as conn:
         await conn.run_sync(SQLModel.metadata.create_all)
+        # Convert all timestamp without time zone to timestamptz
+        # This is needed because P2-001 changed all datetime.utcnow() to
+        # datetime.now(timezone.utc), but SQLModel defaults to naive timestamps.
+        if "postgresql" in settings.database_url:
+            await conn.execute("""
+                DO $$
+                DECLARE
+                    r RECORD;
+                BEGIN
+                    FOR r IN
+                        SELECT table_name, column_name
+                        FROM information_schema.columns
+                        WHERE table_schema = 'public'
+                        AND data_type = 'timestamp without time zone'
+                    LOOP
+                        EXECUTE format(
+                            'ALTER TABLE %I ALTER COLUMN %I TYPE timestamptz USING %I AT TIME ZONE ''UTC''',
+                            r.table_name, r.column_name, r.column_name
+                        );
+                    END LOOP;
+                END $$;
+            """)
         await migrate_existing_schema(conn)
 
 
