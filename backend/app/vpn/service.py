@@ -15,7 +15,7 @@ CHANGE_SUMMARY
 """
 # <!-- GRACE: module="M-003" contract="vpn-service" -->
 
-from datetime import datetime
+from datetime import datetime, timezone, timezone
 from typing import Any
 
 from loguru import logger
@@ -436,7 +436,7 @@ class VPNService:
             client.total_upload_bytes = peer_stats["upload"]
             client.total_download_bytes = peer_stats["download"]
             client.last_handshake_at = peer_stats["last_handshake"]
-            client.updated_at = datetime.utcnow()
+            client.updated_at = datetime.now(timezone.utc)
             await self.session.flush()
 
     async def get_client_stats(self, client: VPNClient) -> VPNStats:
@@ -451,7 +451,7 @@ class VPNService:
         # Check if connected (handshake within last 3 minutes)
         is_connected = False
         if client.last_handshake_at:
-            delta = datetime.utcnow() - client.last_handshake_at
+            delta = datetime.now(timezone.utc) - client.last_handshake_at
             is_connected = delta.total_seconds() < 180
         
         return VPNStats(
@@ -623,7 +623,7 @@ class VPNService:
         node.role = normalized_role
         node.is_entry_node = is_entry_node
         node.is_exit_node = is_exit_node
-        node.updated_at = datetime.utcnow()
+        node.updated_at = datetime.now(timezone.utc)
 
         await self.session.flush()
         await self._sync_legacy_server_for_node(node)
@@ -737,7 +737,7 @@ class VPNService:
         elif "entry_node_id" in changes or "exit_node_id" in changes:
             route.max_clients = self._route_capacity(entry_node, exit_node)
 
-        route.updated_at = datetime.utcnow()
+        route.updated_at = datetime.now(timezone.utc)
         await self.session.flush()
 
         if changes.get("is_default") is True:
@@ -822,7 +822,7 @@ class VPNService:
         legacy_server.is_entry_node = True
         legacy_server.is_exit_node = node.is_exit_node
         legacy_server.max_clients = node.max_clients
-        legacy_server.updated_at = datetime.utcnow()
+        legacy_server.updated_at = datetime.now(timezone.utc)
         await self.session.flush()
 
     async def list_legacy_servers(self) -> list[VPNServer]:
@@ -837,7 +837,7 @@ class VPNService:
         server = await self.get_server(server_id)
         if server is not None:
             server.is_online = is_online
-            server.last_ping_at = datetime.utcnow()
+            server.last_ping_at = datetime.now(timezone.utc)
             await self.session.flush()
 
     def _normalize_node_role(self, role: str) -> tuple[str, bool, bool]:
@@ -1006,10 +1006,16 @@ class VPNService:
         self.session.add(client)
 
         await self.wg.add_peer(public_key, address)
+        if previous_public_key:
+            await self.wg.remove_peer(previous_public_key)
+            logger.info(
+                f"[VPN][peer][VPN_PEER_REMOVED] "
+                f"user_id={client.user_id} client_id={client.id} old_public_key={previous_public_key[:20]}... reprovision=true"
+            )
         logger.info(
             "[VPN][peer][VPN_PEER_APPLIED] "
-            f"user_id={user_id} client_id={client.id} address={address} "
-            f"route_id={client.route_id} entry_node_id={client.entry_node_id} reprovision=false"
+            f"user_id={client.user_id} client_id={client.id} address={address} "
+            f"route_id={client.route_id} entry_node_id={client.entry_node_id} reprovision=true"
         )
         server.current_clients += 1
         await self._apply_topology_client_delta(client, 1)
@@ -1031,6 +1037,7 @@ class VPNService:
         previous_entry_node_id = client.entry_node_id
         previous_exit_node_id = client.exit_node_id
         previous_route_id = client.route_id
+        previous_public_key = client.public_key
         server = await self.get_legacy_server_for_node(entry_node)
         private_key, public_key = await self.wg.generate_keypair()
         used_ips = await self._get_used_ips(
@@ -1051,9 +1058,15 @@ class VPNService:
         client.total_upload_bytes = 0
         client.total_download_bytes = 0
         client.last_handshake_at = None
-        client.updated_at = datetime.utcnow()
+        client.updated_at = datetime.now(timezone.utc)
 
         await self.wg.add_peer(public_key, address)
+        if previous_public_key:
+            await self.wg.remove_peer(previous_public_key)
+            logger.info(
+                f"[VPN][peer][VPN_PEER_REMOVED] "
+                f"user_id={client.user_id} client_id={client.id} old_public_key={previous_public_key[:20]}... reprovision=true"
+            )
         logger.info(
             "[VPN][peer][VPN_PEER_APPLIED] "
             f"user_id={client.user_id} client_id={client.id} address={address} "

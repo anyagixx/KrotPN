@@ -101,8 +101,16 @@ async def get_or_provision_user_client(
                 int(active_device.id),
                 reprovision=False,
             )
-        except ValueError:
-            return None
+        except DeviceLimitExceededError as e:
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail=str(e),
+            )
+        except ValueError as e:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=str(e),
+            )
 
     legacy_client = await service.get_user_client(user_id)
     if legacy_client is not None and legacy_client.device_id is None:
@@ -119,8 +127,16 @@ async def get_or_provision_user_client(
             int(primary_device.id),
             reprovision=False,
         )
-    except (ValueError, DeviceLimitExceededError):
-        return None
+    except DeviceLimitExceededError as e:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail=str(e),
+        )
+    except ValueError as e:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=str(e),
+        )
 
 
 # ==================== User Endpoints ====================

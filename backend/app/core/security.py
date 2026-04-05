@@ -9,16 +9,64 @@ from typing import Any
 
 from cryptography.fernet import Fernet
 from jose import JWTError, jwt
+from loguru import logger
 from passlib.context import CryptContext
 
 from app.core.config import settings
 
 # Password hashing
-# pbkdf2_sha256 avoids bcrypt backend issues and has no 72-byte password limit.
 pwd_context = CryptContext(schemes=["pbkdf2_sha256"], deprecated="auto")
 
 # Data encryption (for sensitive data like VPN private keys)
 _fernet: Fernet | None = None
+
+# Redis connection for token blacklist (lazy init)
+_redis_client: Any = None
+
+
+def _get_redis():
+    """Get or create Redis client for token blacklist."""
+    global _redis_client
+    if _redis_client is None:
+        try:
+            import redis.asyncio as redis
+            _redis_client = redis.from_url(
+                settings.redis_url,
+                decode_responses=True,
+                socket_connect_timeout=2,
+            )
+        except Exception as e:
+            logger.warning(f"[SECURITY] Redis unavailable for token blacklist: {e}")
+            _redis_client = None
+    return _redis_client
+
+
+async def blacklist_token(token: str, expires_in_seconds: int | None = None) -> None:
+    """Add a token to the blacklist so it cannot be reused."""
+    r = _get_redis()
+    if r is None:
+        return
+    try:
+        payload = jwt.decode(token, settings.secret_key, algorithms=["HS256"])
+        exp = payload.get("exp")
+        if exp and expires_in_seconds is None:
+            expires_in_seconds = max(0, int(exp) - int(datetime.now(timezone.utc).timestamp()))
+        key = f"token:blacklist:{token}"
+        await r.setex(key, expires_in_seconds or 3600, "1")
+    except Exception as e:
+        logger.warning(f"[SECURITY] Failed to blacklist token: {e}")
+
+
+async def is_token_blacklisted(token: str) -> bool:
+    """Check if a token has been blacklisted."""
+    r = _get_redis()
+    if r is None:
+        return False
+    try:
+        return await r.exists(f"token:blacklist:{token}") > 0
+    except Exception as e:
+        logger.warning(f"[SECURITY] Failed to check token blacklist: {e}")
+        return False
 
 
 def get_fernet() -> Fernet:
@@ -121,3 +169,13 @@ def verify_token(token: str, expected_type: str = "access") -> str | None:
         return None
 
     return payload.get("sub")
+
+
+async def verify_token_with_blacklist(token: str, expected_type: str = "access") -> str | None:
+    """
+    Verify a JWT token and check it is not blacklisted.
+    Returns the subject (user ID) or None.
+    """
+    if await is_token_blacklisted(token):
+        return None
+    return verify_token(token, expected_type)

@@ -1,5 +1,11 @@
 """
 Bootstrap VPN server, node, and route records from environment configuration.
+
+GRACE-lite module contract:
+- Owns startup-time bootstrap of default VPNServer, VPNNode and VPNRoute records from env.
+- This is the bridge between deploy-time environment configuration and database topology state.
+- It must preserve compatibility between legacy single-hop server records and newer route-aware topology.
+- Incomplete env should degrade to "skip bootstrap", not corrupt topology state.
 """
 
 from loguru import logger
@@ -36,6 +42,8 @@ def _exit_server_config() -> dict[str, str | int | None]:
 
 async def ensure_default_vpn_server(session: AsyncSession) -> VPNServer | None:
     """Ensure the deprecated vpn_servers mirror exists for rollback compatibility."""
+    # This keeps the legacy mirror alive for rollback/compatibility.
+    # Do not remove lightly unless the entire compatibility window is closed.
     entry = _entry_server_config()
     public_key = entry["public_key"]
     endpoint = entry["endpoint"]
@@ -89,6 +97,8 @@ async def ensure_default_vpn_topology(
     legacy_server: VPNServer | None = None,
 ) -> VPNRoute | None:
     """Ensure the route-aware topology exists when entry/exit envs are available."""
+    # This bootstrap path should converge DB topology toward a sane default route
+    # without assuming that every deployment has both entry and exit envs configured.
     entry = _entry_server_config()
     exit_cfg = _exit_server_config()
 

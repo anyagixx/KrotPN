@@ -8,7 +8,7 @@ GRACE-lite module contract:
 """
 # <!-- GRACE: module="M-012" contract="scheduler" -->
 
-from datetime import datetime
+from datetime import datetime, timezone, timezone
 
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from apscheduler.triggers.cron import CronTrigger
@@ -93,7 +93,7 @@ async def check_subscription_expiry():
         from sqlalchemy import select, update
         from app.billing.models import Subscription, SubscriptionStatus
         
-        now = datetime.utcnow()
+        now = datetime.now(timezone.utc)
         
         # Find expired but still active subscriptions
         result = await session.execute(
@@ -124,6 +124,14 @@ async def check_subscription_expiry():
             if client:
                 client.is_active = False
                 await wg_manager.remove_peer(client.public_key)
+                from app.vpn.models import VPNServer
+                server_result = await session.execute(
+                    select(VPNServer).where(VPNServer.id == client.server_id)
+                )
+                server = server_result.scalar_one_or_none()
+                if server and server.current_clients > 0:
+                    server.current_clients -= 1
+                    await session.flush()
             
             logger.info(f"[TASKS] Subscription {sub.id} expired for user {sub.user_id}")
         
@@ -159,7 +167,7 @@ async def update_vpn_stats():
                 client.total_upload_bytes = peer_stats["upload"]
                 client.total_download_bytes = peer_stats["download"]
                 client.last_handshake_at = peer_stats["last_handshake"]
-                client.updated_at = datetime.utcnow()
+                client.updated_at = datetime.now(timezone.utc)
                 updated += 1
         
         await session.commit()
@@ -181,7 +189,7 @@ async def daily_cleanup():
         # Clean old failed payments (older than 30 days)
         from app.billing.models import Payment, PaymentStatus
         
-        cutoff = datetime.utcnow() - timedelta(days=30)
+        cutoff = datetime.now(timezone.utc) - timedelta(days=30)
         
         result = await session.execute(
             delete(Payment)

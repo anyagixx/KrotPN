@@ -1,6 +1,12 @@
 """
 Admin user initialization module.
 Automatically creates admin user from environment variables on startup.
+
+GRACE-lite module contract:
+- Owns startup-time admin bootstrap from environment variables.
+- This module can create privileged users automatically during app startup.
+- Weak `ADMIN_PASSWORD` values are warned about, but not blocked.
+- Changes here directly affect first-login and deployment security posture.
 """
 # <!-- GRACE: module="M-001" contract="admin-initialization" -->
 
@@ -36,6 +42,8 @@ async def ensure_admin_user(session: AsyncSession) -> User | None:
     Returns:
         Created or existing admin user, or None if credentials not configured
     """
+    # Startup calls this automatically. Keep behavior predictable and avoid creating
+    # duplicate or unexpectedly privileged users.
     # Check if admin credentials are configured
     if not settings.admin_email or not settings.admin_password:
         return None
