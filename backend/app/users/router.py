@@ -337,8 +337,8 @@ async def list_users(
     search: str | None = None,
     role: UserRole | None = None,
     is_active: bool | None = None,
-    admin: CurrentAdmin = Depends(),
-    session: DBSession = Depends(),
+    admin: CurrentAdmin = ...,
+    session: DBSession = ...,
 ):
     """List all users (admin only)."""
     from sqlalchemy import func, or_, select
