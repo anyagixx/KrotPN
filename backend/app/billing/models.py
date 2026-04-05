@@ -7,7 +7,7 @@ CHANGE_SUMMARY
 """
 # <!-- GRACE: module="M-004" entity="Plan, Subscription, Payment" -->
 
-from datetime import datetime
+from datetime import datetime, timezone, timezone
 from enum import Enum
 from typing import TYPE_CHECKING
 
@@ -67,8 +67,8 @@ class Plan(SQLModel, table=True):
     sort_order: int = Field(default=0)
     
     # Timestamps
-    created_at: datetime = Field(default_factory=datetime.utcnow)
-    updated_at: datetime = Field(default_factory=datetime.utcnow)
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    updated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
     
     # Relationships
     subscriptions: list["Subscription"] = Relationship(back_populates="plan")
@@ -88,7 +88,7 @@ class Subscription(SQLModel, table=True):
     is_active: bool = Field(default=True)
     
     # Timing
-    started_at: datetime = Field(default_factory=datetime.utcnow)
+    started_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
     expires_at: datetime
     
     # Trial
@@ -101,8 +101,8 @@ class Subscription(SQLModel, table=True):
     recurring_payment_id: str | None = Field(default=None, max_length=100)
     
     # Timestamps
-    created_at: datetime = Field(default_factory=datetime.utcnow)
-    updated_at: datetime = Field(default_factory=datetime.utcnow)
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    updated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
     
     # Relationships
     user: "User" = Relationship(back_populates="subscriptions")
@@ -137,8 +137,8 @@ class Payment(SQLModel, table=True):
     payment_metadata: str | None = Field(default=None)  # JSON
     
     # Timestamps
-    created_at: datetime = Field(default_factory=datetime.utcnow)
-    updated_at: datetime = Field(default_factory=datetime.utcnow)
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    updated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
     paid_at: datetime | None = Field(default=None)
     
     # Relationships

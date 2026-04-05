@@ -3,7 +3,7 @@ User models for authentication and profile management.
 """
 # <!-- GRACE: module="M-002" entity="User" -->
 
-from datetime import datetime
+from datetime import datetime, timezone, timezone
 from enum import Enum
 from typing import TYPE_CHECKING
 
@@ -50,8 +50,8 @@ class User(SQLModel, table=True):
     referred_by_id: int | None = Field(default=None, foreign_key="users.id")
     
     # Timestamps
-    created_at: datetime = Field(default_factory=datetime.utcnow)
-    updated_at: datetime = Field(default_factory=datetime.utcnow)
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    updated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
     last_login_at: datetime | None = Field(default=None)
     
     # Relationships

@@ -7,7 +7,7 @@ CHANGE_SUMMARY
 """
 # <!-- GRACE: module="M-003" entity="VPNServer, VPNNode, VPNRoute, VPNClient" -->
 
-from datetime import datetime
+from datetime import datetime, timezone, timezone
 from typing import TYPE_CHECKING
 
 from sqlmodel import Field, Relationship, SQLModel
@@ -49,8 +49,8 @@ class VPNServer(SQLModel, table=True):
     is_online: bool = Field(default=True)
     
     # Timestamps
-    created_at: datetime = Field(default_factory=datetime.utcnow)
-    updated_at: datetime = Field(default_factory=datetime.utcnow)
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    updated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
     # Relationships
     clients: list["VPNClient"] = Relationship(back_populates="server")
@@ -81,8 +81,8 @@ class VPNNode(SQLModel, table=True):
     current_clients: int = Field(default=0)
     last_ping_at: datetime | None = Field(default=None)
 
-    created_at: datetime = Field(default_factory=datetime.utcnow)
-    updated_at: datetime = Field(default_factory=datetime.utcnow)
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    updated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
 
 class VPNRoute(SQLModel, table=True):
@@ -102,8 +102,8 @@ class VPNRoute(SQLModel, table=True):
     max_clients: int = Field(default=100)
     current_clients: int = Field(default=0)
 
-    created_at: datetime = Field(default_factory=datetime.utcnow)
-    updated_at: datetime = Field(default_factory=datetime.utcnow)
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    updated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
 
 class VPNClient(SQLModel, table=True):
@@ -139,8 +139,8 @@ class VPNClient(SQLModel, table=True):
     last_handshake_at: datetime | None = Field(default=None)
     
     # Timestamps
-    created_at: datetime = Field(default_factory=datetime.utcnow)
-    updated_at: datetime = Field(default_factory=datetime.utcnow)
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    updated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
     
     # Relationships
     user: "User" = Relationship(back_populates="vpn_clients")

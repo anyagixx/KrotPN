@@ -19,7 +19,7 @@ CHANGE_SUMMARY
 """
 # <!-- GRACE: module="M-020" entity="UserDevice, DeviceSecurityEvent" -->
 
-from datetime import datetime
+from datetime import datetime, timezone, timezone
 from enum import Enum
 from typing import TYPE_CHECKING
 from uuid import uuid4
@@ -78,8 +78,8 @@ class UserDevice(SQLModel, table=True):
     platform: str | None = Field(default=None, max_length=50)
     status: DeviceStatus = Field(default=DeviceStatus.ACTIVE, max_length=20)
 
-    created_at: datetime = Field(default_factory=datetime.utcnow)
-    updated_at: datetime = Field(default_factory=datetime.utcnow)
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    updated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
     revoked_at: datetime | None = Field(default=None)
     blocked_at: datetime | None = Field(default=None)
     last_seen_at: datetime | None = Field(default=None)
@@ -105,6 +105,6 @@ class DeviceSecurityEvent(SQLModel, table=True):
     event_type: DeviceSecurityEventType = Field(max_length=50)
     severity: DeviceEventSeverity = Field(default=DeviceEventSeverity.INFO, max_length=20)
     details_json: str | None = Field(default=None)
-    created_at: datetime = Field(default_factory=datetime.utcnow)
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
     device: "UserDevice" = Relationship(back_populates="security_events")
