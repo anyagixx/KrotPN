@@ -34,16 +34,18 @@ require_command() {
     fi
 }
 
-verify_host_routing_tools() {
-    local tools=(ip ipset iptables awg awg-quick curl awk grep)
-    for tool in "${tools[@]}"; do
-        require_command "$tool"
-    done
-    echo -e "${GREEN}✓ Host routing toolchain verified${NC}"
-}
+# Install sshpass if not available (needed for password-based DE auth)
+if ! command -v sshpass &> /dev/null; then
+    echo -e "${BLUE}[INSTALL] Installing sshpass...${NC}"
+    apt-get update -qq && apt-get install -y -qq sshpass 2>/dev/null
+    if command -v sshpass &> /dev/null; then
+        echo -e "${GREEN}✓ sshpass installed${NC}"
+    else
+        echo -e "${RED}[ERROR] Failed to install sshpass${NC}"
+        exit 1
+    fi
+fi
 
-# SSH wrapper for DE server (password-based auth)
-ssh_de() {
     sshpass -p "$DE_PASS" ssh -o StrictHostKeyChecking=accept-new -o ConnectTimeout=30 -o LogLevel=ERROR "$DE_USER@$DE_IP" "$@"
 }
 
