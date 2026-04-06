@@ -187,12 +187,27 @@ get_admin_config() {
 check_prerequisites() {
     print_step "Step 1: Checking prerequisites"
     
-    if ! command -v ssh &> /dev/null; then
-        print_error "SSH client not found"
-        exit 1
+    # Install git if not available
+    if ! command -v git &> /dev/null; then
+        print_info "git not found — installing..."
+        if command -v apt-get &> /dev/null; then
+            sudo apt-get update -qq && sudo apt-get install -y -qq git 2>/dev/null
+        elif command -v yum &> /dev/null; then
+            sudo yum install -y -q git 2>/dev/null
+        elif command -v brew &> /dev/null; then
+            brew install git 2>/dev/null
+        fi
+        if command -v git &> /dev/null; then
+            print_success "git installed"
+        else
+            print_error "Failed to install git. Please install it manually."
+            exit 1
+        fi
+    else
+        print_success "git available"
     fi
-    print_success "SSH client available"
-
+    
+    # Install sshpass if not available
     if ! command -v sshpass &> /dev/null; then
         print_info "sshpass not found — installing..."
         if command -v apt-get &> /dev/null; then
@@ -202,7 +217,6 @@ check_prerequisites() {
         elif command -v brew &> /dev/null; then
             brew install sshpass 2>/dev/null
         fi
-        
         if command -v sshpass &> /dev/null; then
             print_success "sshpass installed"
         else
@@ -211,6 +225,13 @@ check_prerequisites() {
         fi
     else
         print_success "sshpass available"
+    fi
+    
+    if command -v ssh &> /dev/null; then
+        print_success "SSH client available"
+    else
+        print_error "SSH client not found"
+        exit 1
     fi
 }
 
