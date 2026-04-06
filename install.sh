@@ -1,11 +1,11 @@
 #!/bin/bash
 #
-# KrotVPN Interactive Installer v2.5.0
+# KrotVPN Interactive Installer v2.8.2
 # Run this command to install:
-#   curl -fsSL https://raw.githubusercontent.com/anyagixx/KrotVPN/main/install.sh | bash
+#   curl -fsSL https://raw.githubusercontent.com/anyagixx/KrotVPN-qwen/main/install.sh | bash
 # GRACE-lite operational contract:
 # - This script is an interactive bootstrap helper, not a hardened deployment system.
-# - It requires SSH key-based authentication (no sshpass).
+# - It supports both password-based and key-based SSH authentication.
 # - Server IPs are provided interactively and never hardcoded.
 # - Agents changing this file must review secrets handling, host trust assumptions and cleanup behavior.
 #
@@ -26,7 +26,7 @@ print_banner() {
     echo "║                                                              ║"
     echo "║                         K R O T V P N                        ║"
     echo "║                                                              ║"
-    echo "║              Interactive Installer v2.5.0                   ║"
+    echo "║              Interactive Installer v2.8.2                   ║"
     echo "║                                                              ║"
     echo "╚══════════════════════════════════════════════════════════════╝"
     echo -e "${NC}"
@@ -43,6 +43,18 @@ print_step() {
 print_success() { echo -e "${GREEN}✓ $1${NC}"; }
 print_error() { echo -e "${RED}✗ $1${NC}"; }
 print_info() { echo -e "${BLUE}ℹ $1${NC}"; }
+
+# SSH helper — uses sshpass if password is set, otherwise key-based
+ssh_cmd() {
+    local user="$1"
+    local host="$2"
+    shift 2
+    if [ -n "$SSH_PASS" ]; then
+        sshpass -p "$SSH_PASS" ssh -o StrictHostKeyChecking=accept-new -o ConnectTimeout=15 -o LogLevel=ERROR "$user@$host" "$@"
+    else
+        ssh -o StrictHostKeyChecking=accept-new -o ConnectTimeout=15 -o LogLevel=ERROR "$user@$host" "$@"
+    fi
+}
 
 ask() {
     local prompt="$1"
@@ -102,6 +114,8 @@ ask_password() {
     case "$var" in
         ADMIN_PASSWORD) ADMIN_PASSWORD="$password" ;;
         ADMIN_PASSWORD_CONFIRM) ADMIN_PASSWORD_CONFIRM="$password" ;;
+        RU_PASS) RU_PASS="$password" ;;
+        DE_PASS) DE_PASS="$password" ;;
         *) print_error "Unknown variable: $var"; exit 1 ;;
     esac
 }
@@ -137,7 +151,7 @@ ask_yesno() {
 }
 
 get_admin_config() {
-    print_step "Step 4: Admin credentials"
+    print_step "Step 5: Admin credentials"
 
     echo -e "${BLUE}Set production admin credentials for KrotVPN:${NC}"
     echo ""
@@ -179,12 +193,25 @@ check_prerequisites() {
     fi
     print_success "SSH client available"
 
-    # Verify SSH key-based auth is set up
-    print_info "Verifying SSH key-based authentication..."
-    print_info "Make sure you have added your public key to both servers:"
-    print_info "  ssh-copy-id root@<RU_IP>"
-    print_info "  ssh-copy-id root@<DE_IP>"
-    print_success "SSH key-based auth required (no password auth)"
+    if ! command -v sshpass &> /dev/null; then
+        print_info "sshpass not found — installing..."
+        if command -v apt-get &> /dev/null; then
+            sudo apt-get update -qq && sudo apt-get install -y -qq sshpass 2>/dev/null
+        elif command -v yum &> /dev/null; then
+            sudo yum install -y -q sshpass 2>/dev/null
+        elif command -v brew &> /dev/null; then
+            brew install sshpass 2>/dev/null
+        fi
+        
+        if command -v sshpass &> /dev/null; then
+            print_success "sshpass installed"
+        else
+            print_error "Failed to install sshpass. Please install it manually."
+            exit 1
+        fi
+    else
+        print_success "sshpass available"
+    fi
 }
 
 get_server_info() {
@@ -220,41 +247,74 @@ get_server_info() {
     fi
 }
 
-get_ssh_users() {
-    print_step "Step 3: SSH users"
+get_ssh_credentials() {
+    print_step "Step 3: SSH credentials"
     
-    echo -e "${BLUE}Enter SSH usernames (key-based auth required):${NC}"
+    echo -e "${BLUE}Enter SSH credentials for both servers:${NC}"
     echo ""
     
     echo -e "${CYAN}RU Server (${RU_IP}):${NC}"
     ask "  SSH username" "root" RU_USER
+    ask_password "  SSH password" RU_PASS
     echo ""
     
     echo -e "${CYAN}DE Server (${DE_IP}):${NC}"
     ask "  SSH username" "root" DE_USER
+    ask_password "  SSH password" DE_PASS
     echo ""
     
-    print_info "Testing SSH key-based connection to RU server..."
-    if ssh -o BatchMode=yes -o ConnectTimeout=10 -o LogLevel=ERROR "$RU_USER@$RU_IP" "echo ok" 2>/dev/null | grep -q "ok"; then
-        print_success "RU server connection OK (key-based)"
+    # Test RU connection
+    print_info "Testing SSH connection to RU server..."
+    if sshpass -p "$RU_PASS" ssh -o StrictHostKeyChecking=accept-new -o ConnectTimeout=15 -o LogLevel=ERROR "$RU_USER@$RU_IP" "echo ok" 2>/dev/null | grep -q "ok"; then
+        print_success "RU server connection OK"
     else
-        print_error "Cannot connect to RU server via SSH key."
-        print_error "Run: ssh-copy-id $RU_USER@$RU_IP"
+        print_error "Cannot connect to RU server. Check IP, username, and password."
         exit 1
     fi
     
-    print_info "Testing SSH key-based connection to DE server..."
-    if ssh -o BatchMode=yes -o ConnectTimeout=10 -o LogLevel=ERROR "$DE_USER@$DE_IP" "echo ok" 2>/dev/null | grep -q "ok"; then
-        print_success "DE server connection OK (key-based)"
+    # Test DE connection
+    print_info "Testing SSH connection to DE server..."
+    if sshpass -p "$DE_PASS" ssh -o StrictHostKeyChecking=accept-new -o ConnectTimeout=15 -o LogLevel=ERROR "$DE_USER@$DE_IP" "echo ok" 2>/dev/null | grep -q "ok"; then
+        print_success "DE server connection OK"
     else
-        print_error "Cannot connect to DE server via SSH key."
-        print_error "Run: ssh-copy-id $DE_USER@$DE_IP"
+        print_error "Cannot connect to DE server. Check IP, username, and password."
+        exit 1
+    fi
+    
+    # Set up SSH keys from RU to DE for deploy script
+    print_info "Setting up SSH key from RU to DE server..."
+    # Generate key on RU if not exists
+    sshpass -p "$RU_PASS" ssh -o StrictHostKeyChecking=accept-new "$RU_USER@$RU_IP" "
+        if [ ! -f /root/.ssh/id_ed25519 ]; then
+            ssh-keygen -t ed25519 -f /root/.ssh/id_ed25519 -N '' -q
+        fi
+        cat /root/.ssh/id_ed25519.pub
+    " > /tmp/ru_pubkey.txt
+    
+    RU_PUBKEY=$(cat /tmp/ru_pubkey.txt)
+    rm -f /tmp/ru_pubkey.txt
+    
+    # Add RU public key to DE authorized_keys
+    sshpass -p "$DE_PASS" ssh -o StrictHostKeyChecking=accept-new "$DE_USER@$DE_IP" "
+        mkdir -p /root/.ssh
+        chmod 700 /root/.ssh
+        echo '$RU_PUBKEY' >> /root/.ssh/authorized_keys
+        chmod 600 /root/.ssh/authorized_keys
+    "
+    
+    # Verify key-based auth from RU to DE
+    print_info "Verifying RU → DE SSH key auth..."
+    if sshpass -p "$RU_PASS" ssh -o StrictHostKeyChecking=accept-new "$RU_USER@$RU_IP" "ssh -o BatchMode=yes -o ConnectTimeout=10 -o LogLevel=ERROR $DE_USER@$DE_IP 'echo ok'" 2>/dev/null | grep -q "ok"; then
+        print_success "RU → DE SSH key auth OK"
+    else
+        print_error "Failed to set up SSH key from RU to DE."
+        print_error "The deploy script needs key-based auth from RU to DE."
         exit 1
     fi
 }
 
 deploy() {
-    print_step "Step 5: Starting deployment"
+    print_step "Step 6: Starting deployment"
     
     echo -e "${BLUE}This will:${NC}"
     echo -e "  1. Clone KrotVPN on RU server"
@@ -272,9 +332,9 @@ deploy() {
     print_info "Deploying... This will take 10-15 minutes."
     echo ""
     
-    # Create config file on RU server with plain env vars (no encoding)
+    # Create config file on RU server
     print_info "Creating configuration on RU server..."
-    ssh "$RU_USER@$RU_IP" "umask 077 && cat > /tmp/krotvpn_deploy.conf" << EOF
+    sshpass -p "$RU_PASS" ssh -o StrictHostKeyChecking=accept-new "$RU_USER@$RU_IP" "umask 077 && cat > /tmp/krotvpn_deploy.conf" << EOF
 DE_IP='${DE_IP}'
 DE_USER='${DE_USER}'
 RU_IP='${RU_IP}'
@@ -291,10 +351,10 @@ EOF
     
     # Clone repository
     print_info "Cloning KrotVPN repository..."
-    ssh "$RU_USER@$RU_IP" "
+    sshpass -p "$RU_PASS" ssh -o StrictHostKeyChecking=accept-new "$RU_USER@$RU_IP" "
         cd /opt
         rm -rf KrotVPN 2>/dev/null || true
-        git clone https://github.com/anyagixx/KrotVPN.git
+        git clone https://github.com/anyagixx/KrotVPN-qwen.git
         chmod +x /opt/KrotVPN/deploy/*.sh
     "
     
@@ -308,7 +368,7 @@ EOF
     print_info "Running deployment script on RU server..."
     echo ""
     
-    ssh -t "$RU_USER@$RU_IP" "cd /opt/KrotVPN && ./deploy/deploy-on-server.sh"
+    sshpass -p "$RU_PASS" ssh -o StrictHostKeyChecking=accept-new -t "$RU_USER@$RU_IP" "cd /opt/KrotVPN && ./deploy/deploy-on-server.sh"
 }
 
 show_complete() {
@@ -352,7 +412,7 @@ main() {
     print_banner
     check_prerequisites
     get_server_info
-    get_ssh_users
+    get_ssh_credentials
     get_admin_config
     deploy
     show_complete
