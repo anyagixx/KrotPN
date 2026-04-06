@@ -38,7 +38,7 @@ from typing import Annotated
 
 import qrcode
 from fastapi import APIRouter, HTTPException, Query, status
-from fastapi.responses import StreamingResponse
+from fastapi.responses import StreamingResponse, Response
 
 from app.core import CurrentAdmin, CurrentUser, DBSession
 from app.billing.service import BillingService
@@ -262,8 +262,8 @@ async def get_vpn_config_qr(
     buf = io.BytesIO()
     img.save(buf, format="PNG")
     buf.seek(0)
-    
-    return StreamingResponse(buf, media_type="image/png")
+
+    return Response(content=buf.read(), media_type="image/png")
 
 
 @router.get("/stats", response_model=VPNStatsResponse)
