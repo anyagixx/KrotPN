@@ -45,7 +45,6 @@ from app.core.migrations_legacy import (
     _migrate_legacy_vpn_servers_to_nodes,
     _migrate_legacy_vpn_clients_to_topology,
     _sync_vpn_topology_client_counts,
-    _deduplicate_vpn_clients,
     _backfill_primary_user_devices,
 )
 
