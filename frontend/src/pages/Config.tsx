@@ -47,17 +47,25 @@ export default function Config() {
     retry: false,
   })
 
-  // Fetch QR code as blob directly (avoid react-query serialization issues with blobs)
+  // Fetch QR code using fetch (more reliable for blob responses than axios)
   const fetchQRCode = async () => {
     setQrLoading(true)
     setQrError(null)
     setQrBlobUrl(null)
     try {
-      const { data: qrBlob } = await vpnApi.getQRCode()
-      const url = URL.createObjectURL(qrBlob as Blob)
+      const token = localStorage.getItem('access_token')
+      const resp = await fetch('/api/v1/vpn/config/qr', {
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
+      })
+      if (!resp.ok) {
+        const errData = await resp.json().catch(() => ({}))
+        throw new Error(errData.detail || `HTTP ${resp.status}`)
+      }
+      const blob = await resp.blob()
+      const url = URL.createObjectURL(blob)
       setQrBlobUrl(url)
     } catch (err: any) {
-      setQrError(err?.response?.data?.detail || 'Не удалось получить QR-код')
+      setQrError(err?.message || 'Не удалось получить QR-код')
     } finally {
       setQrLoading(false)
     }
