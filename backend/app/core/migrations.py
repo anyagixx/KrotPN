@@ -46,6 +46,8 @@ from app.core.migrations_legacy import (
     _migrate_legacy_vpn_clients_to_topology,
     _sync_vpn_topology_client_counts,
     _backfill_primary_user_devices,
+    _table_exists,
+    _table_has_column,
 )
 
 
@@ -442,22 +444,6 @@ async def _rebuild_vpn_clients_table_for_device_binding(conn) -> None:
             """
         )
     )
-
-
-def _table_exists(sync_conn, table_name: str) -> bool:
-    """Check whether a table already exists."""
-    inspector = inspect(sync_conn)
-    return table_name in inspector.get_table_names()
-
-
-def _table_has_column(sync_conn, table_name: str, column_name: str) -> bool:
-    """Check whether a table contains the requested column."""
-    inspector = inspect(sync_conn)
-    if table_name not in inspector.get_table_names():
-        return False
-
-    columns = inspector.get_columns(table_name)
-    return any(column["name"] == column_name for column in columns)
 
 
 def _legacy_node_role(is_entry_node: bool, is_exit_node: bool) -> str:

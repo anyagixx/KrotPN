@@ -31,8 +31,25 @@ Imported and called by migrations.py during startup.
 """
 
 from loguru import logger
-from sqlalchemy import bindparam, text
+from sqlalchemy import bindparam, inspect, text
 from sqlalchemy.engine import RowMapping
+
+
+def _table_exists(sync_conn, table_name: str) -> bool:
+    """Check whether a table already exists."""
+    inspector = inspect(sync_conn)
+    return table_name in inspector.get_table_names()
+
+
+def _table_has_column(sync_conn, table_name: str, column_name: str) -> bool:
+    """Check whether a table contains the requested column."""
+    inspector = inspect(sync_conn)
+    if table_name not in inspector.get_table_names():
+        return False
+    columns = inspector.get_columns(table_name)
+    return any(column["name"] == column_name for column in columns)
+
+
 def _partition_vpn_client_rows(
     rows: list[RowMapping],
 ) -> tuple[list[RowMapping], list[RowMapping]]:
