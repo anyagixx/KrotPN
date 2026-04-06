@@ -146,8 +146,6 @@ if ! command -v awg &> /dev/null; then
     apt install -y -qq amneziawg amneziawg-tools
 fi
 echo -e "${GREEN}✓ AmneziaWG installed${NC}"
-verify_host_routing_tools
-
 echo -e "${BLUE}[RU] Enabling IP forwarding...${NC}"
 echo "net.ipv4.ip_forward=1" > /etc/sysctl.d/99-krotvpn.conf
 sysctl -p /etc/sysctl.d/99-krotvpn.conf > /dev/null
