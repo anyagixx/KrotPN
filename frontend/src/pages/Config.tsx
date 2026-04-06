@@ -26,6 +26,7 @@ import { useTranslation } from 'react-i18next'
 import { AlertTriangle, ArrowRightLeft, Check, Copy, Download, FileCode2, Laptop2, Monitor, Plus, QrCode, RotateCw, Smartphone, Trash2 } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import toast from 'react-hot-toast'
+import QRCodeCanvas from 'qrcode.react'
 import { deviceApi, type DeviceConfigBundle, vpnApi } from '../lib/api'
 import Loading from '../components/Loading'
 
@@ -34,9 +35,6 @@ export default function Config() {
   const queryClient = useQueryClient()
   const [copied, setCopied] = useState(false)
   const [showQR, setShowQR] = useState(false)
-  const [qrBlobUrl, setQrBlobUrl] = useState<string | null>(null)
-  const [qrLoading, setQrLoading] = useState(false)
-  const [qrError, setQrError] = useState<string | null>(null)
   const [managedBundle, setManagedBundle] = useState<DeviceConfigBundle | null>(null)
   const [newDeviceName, setNewDeviceName] = useState('')
   const [newDevicePlatform, setNewDevicePlatform] = useState('')
@@ -46,30 +44,6 @@ export default function Config() {
   const { data: devicesData } = useQuery('device-list', () => deviceApi.list(), {
     retry: false,
   })
-
-  // Fetch QR code using fetch (more reliable for blob responses than axios)
-  const fetchQRCode = async () => {
-    setQrLoading(true)
-    setQrError(null)
-    setQrBlobUrl(null)
-    try {
-      const token = localStorage.getItem('access_token')
-      const resp = await fetch('/api/v1/vpn/config/qr', {
-        headers: token ? { Authorization: `Bearer ${token}` } : {},
-      })
-      if (!resp.ok) {
-        const errData = await resp.json().catch(() => ({}))
-        throw new Error(errData.detail || `HTTP ${resp.status}`)
-      }
-      const blob = await resp.blob()
-      const url = URL.createObjectURL(blob)
-      setQrBlobUrl(url)
-    } catch (err: any) {
-      setQrError(err?.message || 'Не удалось получить QR-код')
-    } finally {
-      setQrLoading(false)
-    }
-  }
 
   const createDeviceMutation = useMutation(
     (payload: { name: string; platform?: string }) => deviceApi.create(payload),
@@ -460,25 +434,14 @@ export default function Config() {
               </button>
             </div>
 
-            {qrBlobUrl ? (
-              <div className="mt-6 rounded-[24px] bg-white p-5">
-                <img src={qrBlobUrl} alt="QR Code" className="w-full rounded-2xl" />
-              </div>
-            ) : qrError ? (
-              <div className="empty-state mt-6 min-h-[200px]">
-                <AlertTriangle className="h-10 w-10 text-red-200" />
-                <div>
-                  <p className="text-lg font-semibold">QR-код не удалось получить</p>
-                  <p className="mt-1 text-sm muted">
-                    {qrError || 'Попробуй скачать `.conf` или повторить позже.'}
-                  </p>
-                </div>
-              </div>
-            ) : qrLoading ? (
-              <Loading text="Генерируем QR-код..." />
-            ) : (
-              <Loading text="Подготавливаем данные..." />
-            )}
+            <div className="mt-6 flex justify-center rounded-[24px] bg-white p-5">
+              <QRCodeCanvas
+                value={config?.config || ''}
+                size={200}
+                level="M"
+                includeMargin={false}
+              />
+            </div>
           </div>
         </div>
       ) : null}
