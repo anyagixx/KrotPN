@@ -1,3 +1,28 @@
+// FILE: frontend-admin/src/pages/Settings.tsx
+// VERSION: 1.0.0
+// ROLE: UI_COMPONENT
+// MAP_MODE: SUMMARY
+// START_MODULE_CONTRACT
+//   PURPOSE: Admin page for routing policy management (domain/CIDR rules, DNS bindings, explain routing)
+//   SCOPE: Create, toggle, delete routing policy rules; explain routing decisions
+//   DEPENDS: M-010 (frontend-admin), M-006 (admin API)
+//   LINKS: M-010
+// END_MODULE_CONTRACT
+//
+// START_MODULE_MAP
+//   SettingsPage - Main routing policy admin page component
+//   targetOptions - Helper: enum of route targets
+//   targetTone - Helper: CSS class for route target badge
+//   decisionTone - Helper: CSS class for decision reason badge
+//   prettyReason - Helper: format decision reason for display
+//   emptyDomainForm - Factory: initial state for domain rule form
+//   emptyCidrForm - Factory: initial state for CIDR rule form
+// END_MODULE_MAP
+//
+// START_CHANGE_SUMMARY
+//   LAST_CHANGE: v2.8.0 - Added full GRACE MODULE_CONTRACT and MODULE_MAP per GRACE governance protocol
+// END_CHANGE_SUMMARY
+
 import { FormEvent, useMemo, useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from 'react-query'
 import { Activity, RefreshCw, Save, Search, ShieldAlert, Trash2 } from 'lucide-react'
@@ -5,28 +30,47 @@ import { adminApi } from '../lib/api'
 import type { RoutePolicyRule, DNSBinding, ExplainRouteResult } from '../types'
 type RouteTarget = 'ru' | 'de' | 'direct' | 'default'
 
+// START_BLOCK: targetOptions
+// Returns list of available route target options
+// DEPENDS: none
 function targetOptions(): RouteTarget[] {
   return ['ru', 'de', 'direct', 'default']
 }
+// END_BLOCK: targetOptions
 
+// START_BLOCK: targetTone
+// Maps route target to CSS pill class
+// DEPENDS: none (pure function)
 function targetTone(target?: string) {
   if (target === 'ru') return 'metric-pill'
   if (target === 'de') return 'warning-pill'
   if (target === 'direct') return 'danger-pill'
   return 'metric-pill'
 }
+// END_BLOCK: targetTone
 
+// START_BLOCK: decisionTone
+// Maps decision reason to CSS pill class for visual feedback
+// DEPENDS: none (pure function)
 function decisionTone(reason?: string) {
   if (reason?.includes('domain')) return 'metric-pill'
   if (reason === 'dns_bound_ip') return 'warning-pill'
   if (reason === 'cidr_rule') return 'warning-pill'
   return 'danger-pill'
 }
+// END_BLOCK: decisionTone
 
+// START_BLOCK: prettyReason
+// Formats snake_case reason into human-readable text
+// DEPENDS: none (pure function)
 function prettyReason(reason?: string) {
   return reason?.split('_').join(' ') || 'unknown'
 }
+// END_BLOCK: prettyReason
 
+// START_BLOCK: emptyDomainForm
+// Factory: returns initial state for domain rule form
+// DEPENDS: none
 function emptyDomainForm() {
   return {
     domain: '',
@@ -35,7 +79,11 @@ function emptyDomainForm() {
     description: '',
   }
 }
+// END_BLOCK: emptyDomainForm
 
+// START_BLOCK: emptyCidrForm
+// Factory: returns initial state for CIDR rule form
+// DEPENDS: none
 function emptyCidrForm() {
   return {
     cidr: '',
@@ -44,7 +92,15 @@ function emptyCidrForm() {
     description: '',
   }
 }
+// END_BLOCK: emptyCidrForm
 
+// START_BLOCK: Settings
+// Main routing policy admin page: domain/CIDR rules, DNS bindings, explain routing
+// DEPENDS: M-010 (frontend-admin), M-006 (admin API via adminApi)
+//   - adminApi.getDomainRouteRules, adminApi.createDomainRouteRule, adminApi.updateDomainRouteRule, adminApi.deleteDomainRouteRule
+//   - adminApi.getCidrRouteRules, adminApi.createCidrRouteRule, adminApi.updateCidrRouteRule, adminApi.deleteCidrRouteRule
+//   - adminApi.getPolicyDnsBindings
+//   - adminApi.explainRouteDecision
 export default function Settings() {
   const queryClient = useQueryClient()
   const [domainForm, setDomainForm] = useState(emptyDomainForm())
@@ -497,3 +553,4 @@ export default function Settings() {
     </div>
   )
 }
+// END_BLOCK: Settings

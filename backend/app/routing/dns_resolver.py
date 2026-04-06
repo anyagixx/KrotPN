@@ -1,20 +1,23 @@
-"""
-DNS binding observer for policy-managed domains.
-
-MODULE_CONTRACT
-- PURPOSE: Refresh and expire DNS-derived route bindings for policy-managed domains under a bounded TTL cache.
-- SCOPE: Domain resolution hooks, TTL expiry, conflict tracking, and conversion into resolver-consumable DNS bindings.
-- DEPENDS: M-013 route-policy-resolver, M-014 domain rule entities.
-- LINKS: M-015 dns-observer, M-013 route-policy-resolver, V-M-015.
-
-MODULE_MAP
-- DNSBindingRecord: In-memory TTL-tracked DNS binding.
-- DNSObserver: Refreshes DNS bindings and exposes active resolver bindings.
-
-CHANGE_SUMMARY
-- 2026-03-24: Added bounded TTL-aware DNS observer for domain-aware routing migration.
-"""
-# <!-- GRACE: module="M-015" contract="dns-observer" -->
+# FILE: backend/app/routing/dns_resolver.py
+# VERSION: 1.0.0
+# ROLE: RUNTIME
+# MAP_MODE: EXPORTS
+# START_MODULE_CONTRACT
+#   PURPOSE: Refresh and expire DNS-derived route bindings for policy-managed domains under a bounded TTL cache.
+#   SCOPE: Domain resolution hooks, TTL expiry, conflict tracking, and conversion into resolver-consumable DNS bindings.
+#   DEPENDS: M-001 (backend-core), M-007 (routing)
+#   LINKS: M-007 (routing), M-013 (route-policy-resolver), M-014 (domain-rule-store), M-015 (dns-observer), M-016 (route-decision-api), M-017 (route-sync-runtime)
+# END_MODULE_CONTRACT
+#
+# START_MODULE_MAP
+#   DNSBindingRecord - In-memory TTL-tracked DNS binding
+#   DNSObserver - Refreshes DNS bindings and exposes active resolver bindings
+# END_MODULE_MAP
+#
+# START_CHANGE_SUMMARY
+#   LAST_CHANGE: v2.8.0 - Added full GRACE MODULE_CONTRACT and MODULE_MAP per GRACE governance protocol
+# END_CHANGE_SUMMARY
+"""DNS binding observer for policy-managed domains."""
 
 from __future__ import annotations
 
@@ -55,6 +58,7 @@ class DNSObserver:
         self.max_bindings_per_domain = max_bindings_per_domain
         self._bindings: dict[str, list[DNSBindingRecord]] = {}
 
+    # START_BLOCK: refresh_domain_bindings (DNS refresh, ~30 lines)
     async def refresh_domain_bindings(
         self,
         rule: DomainRouteRule,
@@ -96,7 +100,9 @@ class DNSObserver:
             f"domain={rule.normalized_domain} count={len(refreshed)} ttl_seconds={ttl}"
         )
         return refreshed
+    # END_BLOCK: refresh_domain_bindings
 
+    # START_BLOCK: expire_stale_bindings (TTL cleanup, ~18 lines)
     def expire_stale_bindings(self) -> list[DNSBindingRecord]:
         """Expire bindings whose TTL has elapsed and return the removed records."""
         now = self.now_func()
@@ -116,6 +122,7 @@ class DNSObserver:
                 f"domain={binding.normalized_domain} resolved_ip={binding.resolved_ip}"
             )
         return expired
+    # END_BLOCK: expire_stale_bindings
 
     def clear_domain_bindings(self, normalized_domain: str) -> list[DNSBindingRecord]:
         """Remove all bindings for one domain and return removed records."""
@@ -127,6 +134,7 @@ class DNSObserver:
             )
         return removed
 
+    # START_BLOCK: get_active_bindings (binding query, ~14 lines)
     def get_active_bindings(self) -> list[DnsBoundRoute]:
         """Expose active bindings in the resolver-facing shape."""
         now = self.now_func()
@@ -144,3 +152,4 @@ class DNSObserver:
                     )
                 )
         return bindings
+    # END_BLOCK: get_active_bindings

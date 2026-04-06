@@ -1,3 +1,24 @@
+# FILE: backend/app/core/config.py
+# VERSION: 1.0.0
+# ROLE: RUNTIME
+# MAP_MODE: EXPORTS
+# START_MODULE_CONTRACT
+#   PURPOSE: Application configuration and environment variable parsing with validation
+#   SCOPE: Settings model, environment parsing, secret validation, AmneziaWG obfuscation params
+#   DEPENDS: none
+#   LINKS: M-001 (backend-core), V-M-001
+# END_MODULE_CONTRACT
+#
+# START_MODULE_MAP
+#   Settings - Pydantic BaseSettings model with all environment variables and validators
+#   get_settings - lru_cache factory returning validated Settings singleton
+#   settings - Module-level cached Settings instance
+# END_MODULE_MAP
+#
+# START_CHANGE_SUMMARY
+#   LAST_CHANGE: v2.8.0 - Added full GRACE MODULE_CONTRACT and MODULE_MAP per GRACE governance protocol
+# END_CHANGE_SUMMARY
+#
 """
 Application configuration module.
 Loads settings from environment variables.
@@ -17,6 +38,7 @@ from pydantic import Field, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
+# START_BLOCK_SETTINGS_CLASS
 class Settings(BaseSettings):
     """Application settings loaded from environment variables."""
 
@@ -172,8 +194,10 @@ class Settings(BaseSettings):
             "h3": self.awg_h3,
             "h4": self.awg_h4,
         }
+# END_BLOCK_SETTINGS_CLASS
 
 
+# START_BLOCK_GET_SETTINGS
 @lru_cache
 def get_settings() -> Settings:
     """Get cached settings instance."""
@@ -181,3 +205,4 @@ def get_settings() -> Settings:
 
 
 settings = get_settings()
+# END_BLOCK_GET_SETTINGS

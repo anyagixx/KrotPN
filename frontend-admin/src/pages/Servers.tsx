@@ -1,3 +1,30 @@
+// FILE: frontend-admin/src/pages/Servers.tsx
+// VERSION: 1.0.0
+// ROLE: UI_COMPONENT
+// MAP_MODE: SUMMARY
+// START_MODULE_CONTRACT
+//   PURPOSE: Admin page for server/node management
+//   SCOPE: List, create, edit, delete VPN servers/nodes
+//   DEPENDS: M-010 (frontend-admin), M-006 (admin API)
+//   LINKS: M-010
+// END_MODULE_CONTRACT
+//
+// START_MODULE_MAP
+//   ServersPage - Main admin servers page component
+//   getLoadTone - Helper: load percentage tone
+//   getNodeRoleTone - Helper: node role badge tone
+//   getNodeRoleLabel - Helper: node role label text
+//   getTunnelTone - Helper: tunnel status tone
+//   getTunnelLabel - Helper: tunnel status label text
+//   emptyNodeForm - Helper: factory for new node form state
+//   emptyRouteForm - Helper: factory for new route form state
+//   default - React component (default export)
+// END_MODULE_MAP
+//
+// START_CHANGE_SUMMARY
+//   LAST_CHANGE: v2.8.0 - Added full GRACE MODULE_CONTRACT and MODULE_MAP per GRACE governance protocol
+// END_CHANGE_SUMMARY
+
 import { useMemo, useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from 'react-query'
 import {
@@ -15,31 +42,50 @@ import {
 import { adminApi } from '../lib/api'
 import type { AdminNode, AdminRoute, NodeForm, RouteForm } from '../types'
 
+// START_BLOCK: getLoadTone
+// Maps load percentage to CSS pill class for visual indicator
+// DEPENDS: none (pure function)
 function getLoadTone(load?: number) {
   if ((load || 0) >= 80) return 'danger-pill'
   if ((load || 0) >= 50) return 'warning-pill'
   return 'metric-pill'
 }
+// END_BLOCK: getLoadTone
 
+// START_BLOCK: getNodeRoleTone
+// Returns CSS pill class based on node role (entry/exit/combined)
+// DEPENDS: none (pure function)
 function getNodeRoleTone(role?: string) {
   if (role === 'exit') return 'warning-pill'
   if (role === 'combined') return 'danger-pill'
   return 'metric-pill'
 }
+// END_BLOCK: getNodeRoleTone
 
+// START_BLOCK: getNodeRoleLabel
+// Returns human-readable role label for display
+// DEPENDS: none (pure function)
 function getNodeRoleLabel(role?: string) {
   if (role === 'exit') return 'exit'
   if (role === 'combined') return 'combined'
   return 'entry'
 }
+// END_BLOCK: getNodeRoleLabel
 
+// START_BLOCK: getTunnelTone
+// Returns CSS pill class for tunnel status visualization
+// DEPENDS: none (pure function)
 function getTunnelTone(status?: string) {
   if (status === 'up') return 'metric-pill'
   if (status === 'host_managed') return 'warning-pill'
   if (status === 'not_configured') return 'warning-pill'
   return 'danger-pill'
 }
+// END_BLOCK: getTunnelTone
 
+// START_BLOCK: getTunnelLabel
+// Returns human-readable tunnel status label
+// DEPENDS: none (pure function)
 function getTunnelLabel(status?: string) {
   if (status === 'up') return 'tunnel up'
   if (status === 'host_managed') return 'host managed'
@@ -48,7 +94,11 @@ function getTunnelLabel(status?: string) {
   if (status === 'not_configured') return 'exit missing'
   return status || 'unknown'
 }
+// END_BLOCK: getTunnelLabel
 
+// START_BLOCK: emptyNodeForm
+// Factory: returns initial state for node create/edit form
+// DEPENDS: none
 function emptyNodeForm() {
   return {
     name: '',
@@ -64,7 +114,11 @@ function emptyNodeForm() {
     max_clients: 100,
   }
 }
+// END_BLOCK: emptyNodeForm
 
+// START_BLOCK: emptyRouteForm
+// Factory: returns initial state for route create/edit form
+// DEPENDS: none
 function emptyRouteForm() {
   return {
     name: '',
@@ -76,7 +130,14 @@ function emptyRouteForm() {
     max_clients: '',
   }
 }
+// END_BLOCK: emptyRouteForm
 
+// START_BLOCK: Servers
+// Main admin servers page: lists nodes and routes, provides CRUD modals
+// DEPENDS: M-010 (frontend-admin), M-006 (admin API via adminApi)
+//   - react-query for data fetching and cache invalidation
+//   - adminApi.getNodes, adminApi.createNode, adminApi.updateNode, adminApi.deleteNode
+//   - adminApi.getRoutes, adminApi.createRoute, adminApi.updateRoute, adminApi.deleteRoute
 export default function Servers() {
   const [showNodeModal, setShowNodeModal] = useState(false)
   const [showRouteModal, setShowRouteModal] = useState(false)
@@ -88,9 +149,12 @@ export default function Servers() {
   const [routeForm, setRouteForm] = useState<RouteForm>(emptyRouteForm())
   const queryClient = useQueryClient()
 
+  // START_BLOCK: Servers - queries
   const { data: nodes, isLoading: nodesLoading } = useQuery('admin-nodes', () => adminApi.getNodes())
   const { data: routes, isLoading: routesLoading } = useQuery('admin-routes', () => adminApi.getRoutes())
+  // END_BLOCK: Servers - queries
 
+  // START_BLOCK: Servers - mutations
   const saveNodeMutation = useMutation(({ id, data }: { id?: number; data: Partial<AdminNode> }) => (
     id ? adminApi.updateNode(id, data) : adminApi.createNode(data)
   ), {
@@ -135,6 +199,7 @@ export default function Servers() {
       ])
     },
   })
+  // END_BLOCK: Servers - mutations
 
   const nodeItems = nodes?.data?.nodes || []
   const routeItems = routes?.data?.routes || []
@@ -145,13 +210,16 @@ export default function Servers() {
   const entryNodes = useMemo(() => nodeItems.filter((node: AdminNode) => node.is_entry_node), [nodeItems])
   const exitNodes = useMemo(() => nodeItems.filter((node: AdminNode) => node.is_exit_node), [nodeItems])
 
+  // START_BLOCK: Servers - openNodeCreate
   const openNodeCreate = () => {
     setEditingNode(null)
     setNodeForm(emptyNodeForm())
     setNodeError('')
     setShowNodeModal(true)
   }
+  // END_BLOCK: Servers - openNodeCreate
 
+  // START_BLOCK: Servers - openNodeEdit
   const openNodeEdit = (node: AdminNode) => {
     setEditingNode(node)
     setNodeForm({
@@ -170,14 +238,18 @@ export default function Servers() {
     setNodeError('')
     setShowNodeModal(true)
   }
+  // END_BLOCK: Servers - openNodeEdit
 
+  // START_BLOCK: Servers - openRouteCreate
   const openRouteCreate = () => {
     setEditingRoute(null)
     setRouteForm(emptyRouteForm())
     setRouteError('')
     setShowRouteModal(true)
   }
+  // END_BLOCK: Servers - openRouteCreate
 
+  // START_BLOCK: Servers - openRouteEdit
   const openRouteEdit = (route: AdminRoute) => {
     setEditingRoute(route)
     setRouteForm({
@@ -192,19 +264,25 @@ export default function Servers() {
     setRouteError('')
     setShowRouteModal(true)
   }
+  // END_BLOCK: Servers - openRouteEdit
 
+  // START_BLOCK: Servers - handleDeleteNode
   const handleDeleteNode = async (node: AdminNode) => {
     if (confirm(`Удалить node ${node.name}?`)) {
       await deleteNodeMutation.mutateAsync(node.id)
     }
   }
+  // END_BLOCK: Servers - handleDeleteNode
 
+  // START_BLOCK: Servers - handleDeleteRoute
   const handleDeleteRoute = async (route: AdminRoute) => {
     if (confirm(`Удалить route ${route.name}?`)) {
       await deleteRouteMutation.mutateAsync(route.id)
     }
   }
+  // END_BLOCK: Servers - handleDeleteRoute
 
+  // START_BLOCK: Servers - submitNode
   const submitNode = async () => {
     setNodeError('')
     try {
@@ -222,7 +300,9 @@ export default function Servers() {
       setNodeError((error as { response?: { data?: { detail?: string } } })?.response?.data?.detail || 'Не удалось сохранить node')
     }
   }
+  // END_BLOCK: Servers - submitNode
 
+  // START_BLOCK: Servers - submitRoute
   const submitRoute = async () => {
     setRouteError('')
     try {
@@ -249,6 +329,7 @@ export default function Servers() {
       setRouteError((error as { response?: { data?: { detail?: string } } })?.response?.data?.detail || 'Не удалось сохранить route')
     }
   }
+  // END_BLOCK: Servers - submitRoute
 
   return (
     <div className="page-shell">
@@ -699,3 +780,4 @@ export default function Servers() {
     </div>
   )
 }
+// END_BLOCK: Servers

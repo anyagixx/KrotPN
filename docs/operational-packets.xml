@@ -1,0 +1,154 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- GRACE Operational Packets for KrotVPN — execution, graph delta, verification delta, failure handoff templates -->
+<OperationalPackets VERSION="1.0.0">
+  <ExecutionPacketTemplate>
+    <!-- Canonical controller-to-worker execution packet.
+         Used when dispatching module implementation to a worker agent.
+         The worker owns only the files in write-scope. Shared artifacts (plan, graph, verification) are owned by the controller. -->
+    <ExecutionPacket>
+      <module-id>M-EXAMPLE</module-id>
+      <module-name>ExampleDomain</module-name>
+      <purpose>Implement the approved module without architectural drift. Follow the contract, preserve semantic markup, run module-local verification.</purpose>
+      <write-scope>
+        <file-1>backend/app/example/__init__.py</file-1>
+        <file-2>backend/app/example/service.py</file-2>
+        <file-3>backend/app/example/router.py</file-3>
+        <file-4>backend/tests/test_example.py</file-4>
+      </write-scope>
+      <contract-excerpt><![CDATA[
+MODULE_CONTRACT for M-EXAMPLE:
+  PURPOSE: What this module does in one sentence
+  SCOPE: What operations are included
+  DEPENDS: M-001 (backend-core)
+  INPUTS: { param: Type - description }
+  OUTPUTS: { return: Type - description }
+      ]]></contract-excerpt>
+      <graph-entry-excerpt><![CDATA[
+Knowledge graph entry for M-EXAMPLE:
+  path: backend/app/example/
+  owns: Service logic, API router, data models
+  exports: fn-example, router-example
+  verification-ref: V-M-EXAMPLE
+      ]]></graph-entry-excerpt>
+      <dependency-contract-summaries>
+        <dependency-1 module="M-001">backend-core provides settings, DB sessions, security utilities (JWT, password hashing, Fernet)</dependency-1>
+      </dependency-contract-summaries>
+      <verification-excerpt><![CDATA[
+V-M-EXAMPLE MODULE="M-EXAMPLE" PRIORITY="high":
+  test-files: backend/tests/test_example.py
+  module-checks: pytest tests/test_example.py -v
+  scenarios:
+    - kind=success: Primary success path returns expected result
+    - kind=failure: Invalid input rejected with stable error code
+  required-log-markers: [ExampleDomain][function][BLOCK_NAME]
+      ]]></verification-excerpt>
+      <expected-graph-delta-fields>
+        <field-1>imports — new dependencies added</field-1>
+        <field-2>exports — public functions, classes, routers</field-2>
+        <field-3>annotations — fn-*, type-*, class-* entries</field-3>
+        <field-4>CrossLinks — dependency links to other modules</field-4>
+      </expected-graph-delta-fields>
+      <expected-verification-delta-fields>
+        <field-1>test-files — new or modified test files</field-1>
+        <field-2>module-checks — pytest commands that validate the module</field-2>
+        <field-3>required-log-markers — semantic block log anchors</field-3>
+        <field-4>follow-up-checks — wave/phase integration tests</field-4>
+      </expected-verification-delta-fields>
+      <notes>
+        <note-1>Workers must never modify docs/*.xml directly — propose deltas to the controller.</note-1>
+        <note-2>Preserve all START_BLOCK/END_BLOCK anchors when generating code.</note-2>
+        <note-2>Run module-local verification before reporting completion.</note-2>
+      </notes>
+    </ExecutionPacket>
+  </ExecutionPacketTemplate>
+
+  <GraphDeltaTemplate>
+    <!-- Canonical worker-to-controller graph delta.
+         Only list graph facts that actually changed in the code. -->
+    <GraphDelta module="M-EXAMPLE">
+      <imports-added>
+        <import-1>M-001 (backend-core: settings, security, DB)</import-1>
+      </imports-added>
+      <imports-removed />
+      <exports-added>
+        <export-1>fn-do_example — Execute the primary example flow</export-1>
+        <export-2>router-example — FastAPI router with CRUD endpoints</export-2>
+      </exports-added>
+      <exports-removed />
+      <annotations-added>
+        <annotation-1>&lt;fn-do_example PURPOSE="Execute the primary example flow" /&gt;</annotation-1>
+        <annotation-2>&lt;type-ExampleRequest PURPOSE="Request model for example endpoint" /&gt;</annotation-2>
+      </annotations-added>
+      <annotations-removed />
+      <cross-links-added>
+        <CrossLink from="M-EXAMPLE" to="M-001" relation="depends" />
+      </cross-links-added>
+      <cross-links-removed />
+      <notes>
+        <note-1>Only list changes that are real differences in the knowledge graph. Do not list internal helper changes.</note-1>
+      </notes>
+    </GraphDelta>
+  </GraphDeltaTemplate>
+
+  <VerificationDeltaTemplate>
+    <!-- Canonical worker-to-controller verification delta.
+         Update verification-plan.xml with actual test files, commands, and log markers. -->
+    <VerificationDelta module="M-EXAMPLE">
+      <test-files-added>
+        <file-1>backend/tests/test_example.py</file-1>
+      </test-files-added>
+      <test-files-removed />
+      <module-checks>
+        <command-1>cd backend &amp;&amp; pytest tests/test_example.py -v</command-1>
+        <command-2>cd backend &amp;&amp; ruff check app/example/</command-2>
+      </module-checks>
+      <required-log-markers>
+        <marker-1>[ExampleDomain][do_example][BLOCK_VALIDATE_INPUT]</marker-1>
+        <marker-2>[ExampleDomain][do_example][BLOCK_EXECUTE_FLOW]</marker-2>
+        <marker-3>[ExampleDomain][do_example][RETURNED]</marker-3>
+      </required-log-markers>
+      <required-trace-assertions>
+        <assertion-1>Failure path must not emit BLOCK_EXECUTE_FLOW or RETURNED markers.</assertion-1>
+        <assertion-2>Error response must include stable error code (not 500 for user errors).</assertion-2>
+      </required-trace-assertions>
+      <wave-follow-up>
+        <item-1>Run integration check for endpoints that depend on M-EXAMPLE</item-1>
+      </wave-follow-up>
+      <phase-follow-up>
+        <item-1>Run broader regression suite before marking phase done</item-1>
+        <item-2>Review recent log markers for semantic consistency</item-2>
+      </phase-follow-up>
+    </VerificationDelta>
+  </VerificationDeltaTemplate>
+
+  <FailurePacketTemplate>
+    <!-- Canonical verification-to-fixer failure handoff.
+         Used when a module's verification fails and needs debugging. -->
+    <FailurePacket>
+      <scenario>VM-EXAMPLE: Primary success path fails on valid input</scenario>
+      <contract-ref>M-EXAMPLE / V-M-EXAMPLE / scenario-1</contract-ref>
+      <module>M-EXAMPLE</module>
+      <expected-evidence>
+        <marker-1>[ExampleDomain][do_example][BLOCK_VALIDATE_INPUT] emitted</marker-1>
+        <marker-2>[ExampleDomain][do_example][BLOCK_EXECUTE_FLOW] emitted</marker-2>
+        <marker-3>[ExampleDomain][do_example][RETURNED] emitted</marker-3>
+        <assertion-1>Response status 200 with expected result body</assertion-1>
+      </expected-evidence>
+      <observed-evidence>
+        <log-1>[ExampleDomain][do_example][BLOCK_VALIDATE_INPUT] emitted</log-1>
+        <trace-1>BLOCK_VALIDATE_INPUT → threw EXAMPLE_INVALID_STATE at line 42</trace-1>
+        <assertion-1>Response status 500, body contains unhandled exception</assertion-1>
+      </observed-evidence>
+      <first-divergent-block>BLOCK_VALIDATE_INPUT</first-divergent-block>
+      <root-cause-hypothesis>Missing dependency initialization or invalid state in required service</root-cause-hypothesis>
+      <suggested-next-action>Read MODULE_CONTRACT, inspect BLOCK_VALIDATE_INPUT code, check if required dependency is initialized. Apply smallest safe fix. Rerun module-local verification.</suggested-next-action>
+    </FailurePacket>
+
+    <escalation-rules>
+      <rule>If the same scenario fails 3 times with different root causes, escalate to $grace-fix for architectural review.</rule>
+      <rule>If failure is caused by missing environment (host tools, DB, Redis), mark as ENV_BLOCKED, not TEST_FAILED.</rule>
+      <rule>If failure is caused by stale GRACE doc state, run $grace-refresh before attempting fix.</rule>
+      <rule>If failure reveals a contract design flaw, do not silently change the contract — propose an update and get approval.</rule>
+    </escalation-rules>
+  </FailurePacketTemplate>
+</OperationalPackets>

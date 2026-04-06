@@ -1,22 +1,25 @@
-"""
-Routing policy resolver for domain-aware route selection.
-
-MODULE_CONTRACT
-- PURPOSE: Resolve an effective route target from domain, DNS-bound IP, CIDR, RU baseline, and default fallback inputs.
-- SCOPE: Pure decision logic, stable decision reasons, and trace markers for later runtime and API integration.
-- DEPENDS: M-014 domain-rule-store entities, app.routing.domain_rules normalization helpers.
-- LINKS: M-013 route-policy-resolver, M-014 domain-rule-store, V-M-013.
-
-MODULE_MAP
-- DecisionReason: Stable route decision reason codes.
-- RouteDecision: Resolved route target plus evidence fields for debugging and API visibility.
-- DnsBoundRoute: DNS-derived route binding consumable by the resolver before dedicated observer integration lands.
-- RoutePolicyResolver: Deterministic resolver with precedence ordering and stable trace markers.
-
-CHANGE_SUMMARY
-- 2026-03-24: Added deterministic route policy resolver with exact, wildcard, DNS-bound, CIDR, baseline, and default branches.
-"""
-# <!-- GRACE: module="M-013" contract="route-policy-resolver" -->
+# FILE: backend/app/routing/policy.py
+# VERSION: 1.0.0
+# ROLE: RUNTIME
+# MAP_MODE: EXPORTS
+# START_MODULE_CONTRACT
+#   PURPOSE: Resolve an effective route target from domain, DNS-bound IP, CIDR, RU baseline, and default fallback inputs.
+#   SCOPE: Pure decision logic, stable decision reasons, and trace markers for later runtime and API integration.
+#   DEPENDS: M-001 (backend-core), M-007 (routing)
+#   LINKS: M-007 (routing), M-013 (route-policy-resolver), M-014 (domain-rule-store), M-015 (dns-observer), M-016 (route-decision-api), M-017 (route-sync-runtime)
+# END_MODULE_CONTRACT
+#
+# START_MODULE_MAP
+#   DecisionReason - Stable route decision reason codes
+#   RouteDecision - Resolved route target plus evidence fields for debugging and API visibility
+#   DnsBoundRoute - DNS-derived route binding consumable by the resolver
+#   RoutePolicyResolver - Deterministic resolver with precedence ordering and stable trace markers
+# END_MODULE_MAP
+#
+# START_CHANGE_SUMMARY
+#   LAST_CHANGE: v2.8.0 - Added full GRACE MODULE_CONTRACT and MODULE_MAP per GRACE governance protocol
+# END_CHANGE_SUMMARY
+"""Routing policy resolver for domain-aware route selection."""
 
 from __future__ import annotations
 
@@ -87,6 +90,7 @@ class RoutePolicyResolver:
         self.default_target = default_target
         self.is_ru_ip = is_ru_ip or (lambda _: False)
 
+    # START_BLOCK: resolve (main decision logic, ~50 lines)
     def resolve(
         self,
         *,
@@ -154,6 +158,7 @@ class RoutePolicyResolver:
         )
         self._log_decision(decision)
         return decision
+    # END_BLOCK: resolve
 
     def _normalize_domain(self, domain: str | None) -> str | None:
         """Normalize runtime domain input when present."""
@@ -177,6 +182,7 @@ class RoutePolicyResolver:
         except ValueError:
             return None
 
+    # START_BLOCK: _match_domain_rule (domain matching, ~30 lines)
     def _match_domain_rule(
         self,
         normalized_domain: str | None,
@@ -217,7 +223,9 @@ class RoutePolicyResolver:
                 return rule
 
         return None
+    # END_BLOCK: _match_domain_rule
 
+    # START_BLOCK: _decision_from_domain_rule (rule-to-decision, ~18 lines)
     def _decision_from_domain_rule(
         self,
         rule: DomainRouteRule,
@@ -242,6 +250,7 @@ class RoutePolicyResolver:
         )
         self._log_decision(decision)
         return decision
+    # END_BLOCK: _decision_from_domain_rule
 
     def _match_dns_bound_route(
         self,
@@ -257,6 +266,7 @@ class RoutePolicyResolver:
                 return binding
         return None
 
+    # START_BLOCK: _match_cidr_rule (CIDR matching, ~15 lines)
     def _match_cidr_rule(
         self,
         normalized_ip: str | None,
@@ -276,7 +286,9 @@ class RoutePolicyResolver:
             if ip in network:
                 return rule
         return None
+    # END_BLOCK: _match_cidr_rule
 
+    # START_BLOCK: _log_decision (logging, ~12 lines)
     def _log_decision(self, decision: RouteDecision) -> None:
         """Emit a stable resolver log line for verification and debugging."""
         logger.info(
@@ -291,3 +303,4 @@ class RoutePolicyResolver:
             normalized_domain=decision.normalized_domain,
             resolved_ip=decision.resolved_ip,
         )
+    # END_BLOCK: _log_decision

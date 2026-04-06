@@ -1,3 +1,25 @@
+// FILE: frontend/src/pages/Dashboard.tsx
+// VERSION: 1.0.0
+// ROLE: UI_COMPONENT
+// MAP_MODE: SUMMARY
+// START_MODULE_CONTRACT
+//   PURPOSE: Main dashboard showing VPN status, subscription info, traffic stats, server/connection details
+//   SCOPE: Display metrics, subscription CTA, server info cards, quick action links
+//   DEPENDS: M-009 (frontend-user), M-002 (auth API), M-003 (vpn stats API), M-004 (billing API)
+//   LINKS: M-009 (frontend-user)
+// END_MODULE_CONTRACT
+//
+// START_MODULE_MAP
+//   DashboardPage - Main dashboard component with stats, metrics, and quick actions
+//   BLOCK_DASHBOARD_PAGE - DashboardPage default export (223 lines)
+//   default - React component (default export)
+// END_MODULE_MAP
+//
+// START_CHANGE_SUMMARY
+//   LAST_CHANGE: v2.8.0 - Added full GRACE MODULE_CONTRACT and MODULE_MAP per GRACE governance protocol
+// END_CHANGE_SUMMARY
+//
+// START_BLOCK_DASHBOARD_PAGE
 import { useQuery } from 'react-query'
 import { useTranslation } from 'react-i18next'
 import { AlertTriangle, ArrowDown, ArrowRightLeft, ArrowUp, Calendar, Clock, Gift, MapPin, Server, Shield, Zap } from 'lucide-react'
@@ -221,3 +243,4 @@ export default function Dashboard() {
     </div>
   )
 }
+// END_BLOCK_DASHBOARD_PAGE

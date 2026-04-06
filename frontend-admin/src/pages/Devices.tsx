@@ -1,9 +1,32 @@
+// FILE: frontend-admin/src/pages/Devices.tsx
+// VERSION: 1.0.0
+// ROLE: UI_COMPONENT
+// MAP_MODE: SUMMARY
+// START_MODULE_CONTRACT
+//   PURPOSE: Admin page for device management (block/unblock, rotate config, revoke)
+//   SCOPE: List devices with search, anti-sharing signals, device-level actions
+//   DEPENDS: M-010 (frontend-admin), M-006 (admin API)
+//   LINKS: M-010
+// END_MODULE_CONTRACT
+//
+// START_MODULE_MAP
+//   DevicesPage - Main admin devices page component
+//   formatDate - Helper: format date to ru-RU locale string
+// END_MODULE_MAP
+//
+// START_CHANGE_SUMMARY
+//   LAST_CHANGE: v2.8.0 - Added full GRACE MODULE_CONTRACT and MODULE_MAP per GRACE governance protocol
+// END_CHANGE_SUMMARY
+
 import { useMemo, useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from 'react-query'
 import { Ban, RotateCw, Search, ShieldAlert, ShieldCheck, Trash2 } from 'lucide-react'
 import { adminApi } from '../lib/api'
 import type { AdminDevice } from '../types'
 
+// START_BLOCK: formatDate
+// Formats ISO date string to ru-RU locale or returns 'Нет данных'
+// DEPENDS: none (pure function)
 function formatDate(value?: string | null) {
   if (!value) return 'Нет данных'
   return new Date(value).toLocaleString('ru-RU', {
@@ -14,7 +37,13 @@ function formatDate(value?: string | null) {
     minute: '2-digit',
   })
 }
+// END_BLOCK: formatDate
 
+// START_BLOCK: Devices
+// Main admin devices page: device registry, block/unblock, rotate config, revoke
+// DEPENDS: M-010 (frontend-admin), M-006 (admin API via adminApi)
+//   - adminApi.getDevices, adminApi.blockDevice, adminApi.unblockDevice
+//   - adminApi.rotateDevice, adminApi.revokeDevice
 export default function Devices() {
   const [search, setSearch] = useState('')
   const [feedback, setFeedback] = useState<{ tone: 'success' | 'error'; text: string } | null>(null)
@@ -202,3 +231,4 @@ export default function Devices() {
     </div>
   )
 }
+// END_BLOCK: Devices

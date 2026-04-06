@@ -1,4 +1,30 @@
-#!/usr/bin/env python3
+# FILE: backend/app/cli.py
+# VERSION: 1.0.0
+# ROLE: ENTRY_POINT
+# MAP_MODE: SUMMARY
+#
+# START_MODULE_CONTRACT
+#   PURPOSE: Administrative CLI tools for KrotVPN — user provisioning, password management, config validation, internal client issuance
+#   SCOPE: CLI command definitions, argparse setup, async command execution, VPN client config export
+#   DEPENDS: M-001 (core), M-002 (users), M-003 (vpn), M-004 (billing), M-012 (init_admin), M-018 (logging)
+#   LINKS: M-019
+# END_MODULE_CONTRACT
+#
+# START_MODULE_MAP
+#   print_success, print_error, print_info, print_warning — terminal output helpers
+#   cmd_create_admin — create a new admin or superadmin user
+#   cmd_reset_password — reset password for an existing admin
+#   cmd_list_admins — list all admin users with role and status
+#   cmd_check_config — validate admin and database configuration
+#   issue_internal_client — provision internal VPN client via backend services
+#   cmd_create_internal_client — CLI wrapper for internal client provisioning with config export
+#   main — argparse entry point, command dispatch, async command execution
+# END_MODULE_MAP
+#
+# START_CHANGE_SUMMARY
+#   LAST_CHANGE: v2.8.0 - Added full GRACE MODULE_CONTRACT, MODULE_MAP, and BLOCKS per GRACE governance protocol
+#   v2.8.0 — Added GRACE MODULE_CONTRACT, MODULE_MAP, and START_BLOCK/END_BLOCK annotations
+# END_CHANGE_SUMMARY
 """
 KrotVPN CLI tools for administration.
 
@@ -9,9 +35,6 @@ Usage:
     python -m app.cli list-admins
     python -m app.cli check-config
     python -m app.cli create-internal-client --identity family-phone --output /tmp/family-phone.conf
-
-CHANGE_SUMMARY
-- 2026-03-26: Added backend CLI command for internal non-billable client issuance through the normal VPN provisioning path.
 """
 # <!-- GRACE: module="M-007" contract="cli-tools" -->
 
@@ -48,6 +71,7 @@ def print_warning(msg: str) -> None:
     print(f"\033[93m⚠ {msg}\033[0m")
 
 
+# START_BLOCK: cmd_create_admin
 async def cmd_create_admin(
     email: str,
     password: str,
@@ -66,19 +90,21 @@ async def cmd_create_admin(
                 superadmin=superadmin,
             )
             await session.commit()
-            
+
         role_str = "superadmin" if superadmin else "admin"
         print_success(f"Created {role_str} user: {user.email} (ID: {user.id})")
         return 0
-        
+
     except ValueError as e:
         print_error(str(e))
         return 1
     except Exception as e:
         print_error(f"Failed to create admin: {e}")
         return 1
+# END_BLOCK: cmd_create_admin
 
 
+# START_BLOCK: cmd_reset_password
 async def cmd_reset_password(email: str, password: str) -> int:
     """Reset password for an admin user."""
     try:
@@ -90,18 +116,20 @@ async def cmd_reset_password(email: str, password: str) -> int:
                 password=password,
             )
             await session.commit()
-            
+
         print_success(f"Password reset for: {user.email}")
         return 0
-        
+
     except ValueError as e:
         print_error(str(e))
         return 1
     except Exception as e:
         print_error(f"Failed to reset password: {e}")
         return 1
+# END_BLOCK: cmd_reset_password
 
 
+# START_BLOCK: cmd_list_admins
 async def cmd_list_admins() -> int:
     """List all admin users."""
     try:
@@ -113,50 +141,52 @@ async def cmd_list_admins() -> int:
                 ).order_by(User.created_at)
             )
             admins = result.scalars().all()
-            
+
         if not admins:
             print_info("No admin users found")
             return 0
-            
+
         print(f"\n{'ID':<6} {'Email':<35} {'Role':<12} {'Active':<8} {'Created'}")
         print("-" * 80)
-        
+
         for admin in admins:
             print(
                 f"{admin.id:<6} {admin.email:<35} {admin.role.value:<12} "
                 f"{'✓' if admin.is_active else '✗':<8} {admin.created_at.strftime('%Y-%m-%d %H:%M')}"
             )
-        
+
         print(f"\nTotal: {len(admins)} admin user(s)")
         return 0
-        
+
     except Exception as e:
         print_error(f"Failed to list admins: {e}")
         return 1
+# END_BLOCK: cmd_list_admins
 
 
+# START_BLOCK: cmd_check_config
 async def cmd_check_config() -> int:
     """Check admin configuration."""
     print("\n" + "=" * 50)
     print("KrotVPN Admin Configuration Check")
     print("=" * 50 + "\n")
-    
+
     issues = []
-    
+
     # Check ADMIN_EMAIL
     if settings.admin_email:
         print_success(f"ADMIN_EMAIL: {settings.admin_email}")
     else:
         print_warning("ADMIN_EMAIL: Not configured")
         issues.append("ADMIN_EMAIL is not set")
-    
+
     # Check ADMIN_PASSWORD
     if settings.admin_password:
         # Check for default passwords
         password_lower = settings.admin_password.lower()
         default_patterns = ["changeme", "admin", "password", "123456"]
         is_default = any(p in password_lower for p in default_patterns)
-        
+
         if is_default:
             print_warning("ADMIN_PASSWORD: Using default/weak password!")
             issues.append("ADMIN_PASSWORD appears to be a default value")
@@ -165,7 +195,7 @@ async def cmd_check_config() -> int:
     else:
         print_warning("ADMIN_PASSWORD: Not configured")
         issues.append("ADMIN_PASSWORD is not set")
-    
+
     # Check database connection
     try:
         await init_db()
@@ -176,7 +206,7 @@ async def cmd_check_config() -> int:
     except Exception as e:
         print_error(f"Database: Connection failed - {e}")
         issues.append(f"Database connection failed: {e}")
-    
+
     # Check if admin exists
     try:
         async with async_session_maker() as session:
@@ -186,7 +216,7 @@ async def cmd_check_config() -> int:
                 )
             )
             admins = result.scalars().all()
-            
+
         if admins:
             print_success(f"Admin users: {len(admins)} found")
         else:
@@ -195,9 +225,9 @@ async def cmd_check_config() -> int:
                 print_info("Admin will be created automatically on next startup")
     except Exception:
         pass  # Already reported above
-    
+
     print("\n" + "=" * 50)
-    
+
     if issues:
         print_warning(f"Found {len(issues)} issue(s):")
         for issue in issues:
@@ -206,8 +236,10 @@ async def cmd_check_config() -> int:
     else:
         print_success("All checks passed!")
         return 0
+# END_BLOCK: cmd_check_config
 
 
+# START_BLOCK: issue_internal_client
 async def issue_internal_client(
     identity: str,
     *,
@@ -248,8 +280,10 @@ async def issue_internal_client(
         f"subscription_id={subscription.id} reprovision={reprovision}"
     )
     return user, subscription, client, config
+# END_BLOCK: issue_internal_client
 
 
+# START_BLOCK: cmd_create_internal_client
 async def cmd_create_internal_client(
     identity: str,
     *,
@@ -300,8 +334,10 @@ async def cmd_create_internal_client(
     except Exception as e:
         print_error(f"Failed to create internal client: {e}")
         return 1
+# END_BLOCK: cmd_create_internal_client
 
 
+# START_BLOCK: main
 def main() -> int:
     """Main CLI entry point."""
     parser = argparse.ArgumentParser(
@@ -317,9 +353,9 @@ Examples:
   python -m app.cli check-config
         """,
     )
-    
+
     subparsers = parser.add_subparsers(dest="command", help="Available commands")
-    
+
     # create-admin command
     create_parser = subparsers.add_parser(
         "create-admin",
@@ -345,7 +381,7 @@ Examples:
         action="store_true",
         help="Create as superadmin instead of admin",
     )
-    
+
     # reset-password command
     reset_parser = subparsers.add_parser(
         "reset-password",
@@ -361,13 +397,13 @@ Examples:
         required=True,
         help="New password",
     )
-    
+
     # list-admins command
     subparsers.add_parser(
         "list-admins",
         help="List all admin users",
     )
-    
+
     # check-config command
     subparsers.add_parser(
         "check-config",
@@ -403,13 +439,13 @@ Examples:
         action="store_true",
         help="Force key and peer reprovision instead of reusing an existing active client",
     )
-    
+
     args = parser.parse_args()
-    
+
     if not args.command:
         parser.print_help()
         return 1
-    
+
     # Run the appropriate command
     if args.command == "create-admin":
         return asyncio.run(cmd_create_admin(
@@ -437,6 +473,7 @@ Examples:
         ))
 
     return 0
+# END_BLOCK: main
 
 
 if __name__ == "__main__":

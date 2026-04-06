@@ -1,3 +1,26 @@
+// FILE: frontend/src/App.tsx
+// VERSION: 1.0.0
+// ROLE: ENTRY_POINT
+// MAP_MODE: SUMMARY
+// START_MODULE_CONTRACT
+//   PURPOSE: Root application component with routing setup, auth guard, and toaster configuration
+//   SCOPE: BrowserRouter, route definitions (login, register, protected layout + child routes), PrivateRoute HOC, Toaster config
+//   DEPENDS: M-009 (frontend-user), M-002 (auth API)
+//   LINKS: M-009 (frontend-user)
+// END_MODULE_CONTRACT
+//
+// START_MODULE_MAP
+//   PrivateRoute - Auth guard component redirecting to /login when not authenticated
+//   App - Root component with routes and toaster setup
+//   BLOCK_PRIVATE_ROUTE - PrivateRoute auth guard (~10 lines)
+//   BLOCK_APP - App component with routing (72 lines)
+// END_MODULE_MAP
+//
+// START_CHANGE_SUMMARY
+//   LAST_CHANGE: v2.8.0 - Added full GRACE MODULE_CONTRACT and MODULE_MAP per GRACE governance protocol
+// END_CHANGE_SUMMARY
+//
+// START_BLOCK_PRIVATE_ROUTE
 import { useEffect } from 'react'
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { Toaster } from 'react-hot-toast'
@@ -13,14 +36,16 @@ import Settings from './pages/Settings'
 
 function PrivateRoute({ children }: { children: React.ReactNode }) {
   const { isAuthenticated } = useAuthStore()
-  
+
   if (!isAuthenticated) {
     return <Navigate to="/login" replace />
   }
-  
+
   return <>{children}</>
 }
+// END_BLOCK_PRIVATE_ROUTE
 
+// START_BLOCK_APP
 function App() {
   const { isAuthenticated, user, fetchUser } = useAuthStore()
 
@@ -70,3 +95,4 @@ function App() {
 }
 
 export default App
+// END_BLOCK_APP

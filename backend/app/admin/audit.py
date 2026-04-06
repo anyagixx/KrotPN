@@ -1,19 +1,25 @@
-# START_MODULE_CONTRACT: M-026
-# PURPOSE: Admin audit logging model and middleware for /api/v1/admin/* requests
-# SCOPE: AdminAuditEvent SQLModel, log_admin_action helper, AdminAuditMiddleware
-# INPUTS: Admin user ID from JWT, request path/method, resource details
-# OUTPUTS: Persisted audit records in admin_audit_events table, structured log entries
-# DEPENDENCIES: M-001 (core DB settings), M-006 (admin-api)
-# VERIFICATION: V-M-026 — every admin request produces audit record
-# END_MODULE_CONTRACT: M-026
-# START_MODULE_CONTRACT: M-026
-# PURPOSE: Admin audit logging model and middleware for /api/v1/admin/* requests
-# SCOPE: AdminAuditEvent SQLModel, log_admin_action helper, AdminAuditMiddleware
-# INPUTS: Admin user ID from JWT, request path/method, resource details
-# OUTPUTS: Persisted audit records in admin_audit_events table, structured log entries
-# DEPENDENCIES: M-001 (core DB settings), M-006 (admin-api)
-# VERIFICATION: V-M-026 — every admin request produces audit record
-# END_MODULE_CONTRACT: M-026
+# FILE: backend/app/admin/audit.py
+# VERSION: 1.0.0
+# ROLE: RUNTIME
+# MAP_MODE: EXPORTS
+# START_MODULE_CONTRACT
+#   PURPOSE: Admin action audit trail — persist and query admin API request logs
+#   SCOPE: AdminAuditEvent model, middleware for logging admin requests, query helpers
+#   DEPENDS: M-001 (core database), M-006 (admin-api)
+#   LINKS: M-026 (admin-audit-log), V-M-026
+# END_MODULE_CONTRACT
+#
+# START_MODULE_MAP
+#   AdminAuditEvent - Persisted audit record with admin_id, action, resource_type, details
+#   AdminAuditMiddleware - FastAPI middleware logging all /api/v1/admin/* requests
+#   log_admin_action - Helper to write audit entries
+# END_MODULE_MAP
+#
+# START_CHANGE_SUMMARY
+#   LAST_CHANGE: v2.8.0 - Added full GRACE MODULE_CONTRACT, MODULE_MAP, BLOCKS per GRACE governance protocol
+# END_CHANGE_SUMMARY
+#
+
 """Admin audit logging."""
 
 from datetime import datetime, timezone
@@ -37,6 +43,7 @@ class AdminAuditEvent(SQLModel, table=True):
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc), sa_column=Column(DateTime(timezone=True)))
 
 
+# START_BLOCK: log_admin_action
 async def log_admin_action(
     session,
     admin_id: int,
@@ -60,3 +67,4 @@ async def log_admin_action(
         f"resource_type={resource_type} resource_id={resource_id}"
     )
     return event
+# END_BLOCK: log_admin_action

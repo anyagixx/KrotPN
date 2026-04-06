@@ -1,3 +1,24 @@
+# FILE: backend/app/vpn/schemas.py
+# VERSION: 1.0.0
+# ROLE: TYPES
+# MAP_MODE: EXPORTS
+# START_MODULE_CONTRACT
+#   PURPOSE: Request and response schemas for all VPN API endpoints
+#   SCOPE: Config, stats, server/node/route CRUD request and response models
+#   DEPENDS: stdlib datetime, pydantic Field, sqlmodel SQLModel
+#   LINKS: M-003 (vpn), V-M-003
+# END_MODULE_CONTRACT
+#
+# START_MODULE_MAP
+#   VPNConfigResponse, VPNStatsResponse, ServerStatusResponse, ServerListResponse - Config and stats response schemas
+#   NodeStatusResponse, NodeListResponse, RouteStatusResponse, RouteListResponse - Node/route response schemas
+#   NodeCreate, NodeUpdate, RouteCreate, RouteUpdate, ServerCreate, ServerUpdate - Request schemas for CRUD
+# END_MODULE_MAP
+#
+# START_CHANGE_SUMMARY
+#   LAST_CHANGE: v2.8.0 - Converted to full GRACE MODULE_CONTRACT/MAP format with START/END blocks
+# END_CHANGE_SUMMARY
+#
 """
 VPN schemas for API requests and responses.
 """

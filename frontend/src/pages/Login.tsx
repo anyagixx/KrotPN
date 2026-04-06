@@ -1,3 +1,25 @@
+// FILE: frontend/src/pages/Login.tsx
+// VERSION: 1.0.0
+// ROLE: UI_COMPONENT
+// MAP_MODE: SUMMARY
+// START_MODULE_CONTRACT
+//   PURPOSE: Login page with email/password authentication and marketing feature panel
+//   SCOPE: Login form, token storage, navigation to dashboard after successful auth
+//   DEPENDS: M-009 (frontend-user), M-002 (auth API)
+//   LINKS: M-009 (frontend-user)
+// END_MODULE_CONTRACT
+//
+// START_MODULE_MAP
+//   LoginPage - Login component with auth form and feature highlights panel
+//   BLOCK_LOGIN_PAGE - LoginPage default export (127 lines)
+//   default - React component (default export)
+// END_MODULE_MAP
+//
+// START_CHANGE_SUMMARY
+//   LAST_CHANGE: v2.8.0 - Added full GRACE MODULE_CONTRACT and MODULE_MAP per GRACE governance protocol
+// END_CHANGE_SUMMARY
+//
+// START_BLOCK_LOGIN_PAGE
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
@@ -125,3 +147,4 @@ export default function Login() {
     </div>
   )
 }
+// END_BLOCK_LOGIN_PAGE

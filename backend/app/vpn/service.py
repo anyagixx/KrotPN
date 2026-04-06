@@ -1,3 +1,45 @@
+# FILE: backend/app/vpn/service.py
+# VERSION: 1.0.0
+# ROLE: RUNTIME
+# MAP_MODE: EXPORTS
+# START_MODULE_CONTRACT
+#   PURPOSE: VPN business logic — client provisioning, topology selection, config generation, lifecycle management
+#   SCOPE: VPNService class and all async methods for CRUD, activation, deactivation, stats, topology resolution, legacy server sync
+#   DEPENDS: M-001 (core), M-002 (users), M-003 (vpn models), M-004 (billing), M-007 (routing), M-020 (devices)
+#   LINKS: M-003 (vpn), M-020 (device-registry), V-M-003, V-M-020
+# END_MODULE_CONTRACT
+#
+# START_MODULE_MAP
+#   VPNService - Main service class (inherits ConfigMixin, TopologyMixin, ProvisioningMixin)
+#     Methods: get_server, get_node, get_route, get_server_by_public_key, get_active_server, get_active_entry_node, get_default_route, get_active_route, get_server_for_route, list_servers, list_nodes, list_routes, get_client, get_user_client, get_device_client, list_device_clients, deactivate_client, activate_client, create_client, reprovision_client, provision_internal_client, provision_device_client, get_client_config, get_vpn_stats, create_server, update_server, delete_server, create_node, update_node, delete_node, create_route, update_route, delete_route
+# END_MODULE_MAP
+#
+# START_CHANGE_SUMMARY
+#   LAST_CHANGE: v2.8.0 - Converted to full GRACE MODULE_CONTRACT/MAP format with START/END blocks
+# END_CHANGE_SUMMARY
+#
+# =============================================================================
+# VPN service — business logic for client provisioning, topology selection,
+# config generation, lifecycle management.
+# =============================================================================
+"""
+VPN service.
+#         create_client, get_client, get_user_client, get_device_client
+#         list_device_clients, deactivate_device_clients
+#         deactivate_client, activate_client
+#         update_client_stats, get_client_stats
+#         _select_server_for_existing_client
+#         _select_topology_for_existing_client
+#         _select_topology_for_new_client
+#         _resolve_topology_for_server
+#         _sync_client_topology, _apply_topology_client_delta
+#         _apply_topology_client_delta_by_ids
+#         get_legacy_server_for_node
+#
+# CHANGE_SUMMARY
+#   v2.8.0 – Split service into ProvisioningMixin, ConfigMixin, TopologyMixin;
+#            added device-scoped lookup, reprovisioning, and multi-device migration support.
+# =============================================================================
 """
 VPN service for business logic.
 
@@ -30,6 +72,7 @@ from app.vpn.provisioning import ProvisioningMixin
 from app.vpn.topology import TopologyMixin
 
 
+# START_BLOCK: class VPNService
 class VPNService(ProvisioningMixin, ConfigMixin, TopologyMixin):
     """Service for VPN operations."""
 
@@ -37,31 +80,40 @@ class VPNService(ProvisioningMixin, ConfigMixin, TopologyMixin):
         self.session = session
         self.wg = wg_manager
 
+    # START_BLOCK: method get_server
     async def get_server(self, server_id: int | None) -> VPNServer | None:
         """Get VPN server by ID."""
         if server_id is None:
             return None
         return await self.session.get(VPNServer, server_id)
+    # END_BLOCK: method get_server
 
+    # START_BLOCK: method get_node
     async def get_node(self, node_id: int | None) -> VPNNode | None:
         """Get VPN node by ID."""
         if node_id is None:
             return None
         return await self.session.get(VPNNode, node_id)
+    # END_BLOCK: method get_node
 
+    # START_BLOCK: method get_route
     async def get_route(self, route_id: int | None) -> VPNRoute | None:
         """Get VPN route by ID."""
         if route_id is None:
             return None
         return await self.session.get(VPNRoute, route_id)
+    # END_BLOCK: method get_route
 
+    # START_BLOCK: method get_server_by_public_key
     async def get_server_by_public_key(self, public_key: str) -> VPNServer | None:
         """Get legacy VPN server by public key."""
         result = await self.session.execute(
             select(VPNServer).where(VPNServer.public_key == public_key)
         )
         return result.scalar_one_or_none()
+    # END_BLOCK: method get_server_by_public_key
 
+    # START_BLOCK: method get_active_server
     async def get_active_server(self) -> VPNServer | None:
         """Get an active server for new clients."""
         result = await self.session.execute(
@@ -75,7 +127,9 @@ class VPNService(ProvisioningMixin, ConfigMixin, TopologyMixin):
             .order_by(VPNServer.current_clients.asc())
         )
         return result.scalar_one_or_none()
+    # END_BLOCK: method get_active_server
 
+    # START_BLOCK: method get_active_entry_node
     async def get_active_entry_node(self) -> VPNNode | None:
         """Get an active entry node for route-less fallback."""
         result = await self.session.execute(
@@ -89,7 +143,9 @@ class VPNService(ProvisioningMixin, ConfigMixin, TopologyMixin):
             .order_by(VPNNode.current_clients.asc(), VPNNode.created_at.asc())
         )
         return result.scalar_one_or_none()
+    # END_BLOCK: method get_active_entry_node
 
+    # START_BLOCK: method get_default_route
     async def get_default_route(self) -> VPNRoute | None:
         """Get the default active route for new clients."""
         result = await self.session.execute(
@@ -101,7 +157,9 @@ class VPNService(ProvisioningMixin, ConfigMixin, TopologyMixin):
             .order_by(VPNRoute.priority.asc(), VPNRoute.created_at.asc())
         )
         return result.scalar_one_or_none()
+    # END_BLOCK: method get_default_route
 
+    # START_BLOCK: method get_active_route
     async def get_active_route(self) -> VPNRoute | None:
         """Get the next active route when there is no explicit default."""
         route = await self.get_default_route()
@@ -113,14 +171,18 @@ class VPNService(ProvisioningMixin, ConfigMixin, TopologyMixin):
             .order_by(VPNRoute.priority.asc(), VPNRoute.created_at.asc())
         )
         return result.scalar_one_or_none()
+    # END_BLOCK: method get_active_route
 
+    # START_BLOCK: method get_server_for_route
     async def get_server_for_route(self, route: VPNRoute | None) -> VPNServer | None:
         """Resolve the legacy entry server used to provision a route."""
         if route is None:
             return None
         entry_node = await self.get_node(route.entry_node_id)
         return await self.get_legacy_server_for_node(entry_node, create=False)
+    # END_BLOCK: method get_server_for_route
 
+    # START_BLOCK: method create_client
     async def create_client(
         self,
         user_id: int,
@@ -200,11 +262,15 @@ class VPNService(ProvisioningMixin, ConfigMixin, TopologyMixin):
         )
         await self.session.refresh(client)
         return client
+    # END_BLOCK: method create_client
 
+    # START_BLOCK: method get_client
     async def get_client(self, client_id: int) -> VPNClient | None:
         """Get VPN client by ID."""
         return await self.session.get(VPNClient, client_id)
+    # END_BLOCK: method get_client
 
+    # START_BLOCK: method get_user_client
     async def get_user_client(self, user_id: int, active_only: bool = True) -> VPNClient | None:
         """Get one VPN client for a user for backward-compatible callers."""
         query = select(VPNClient).where(VPNClient.user_id == user_id)
@@ -212,7 +278,9 @@ class VPNService(ProvisioningMixin, ConfigMixin, TopologyMixin):
             query = query.where(VPNClient.is_active == True)
         result = await self.session.execute(query.order_by(VPNClient.created_at.asc(), VPNClient.id.asc()))
         return result.scalars().first()
+    # END_BLOCK: method get_user_client
 
+    # START_BLOCK: method get_device_client
     async def get_device_client(self, device_id: int, active_only: bool = True) -> VPNClient | None:
         """Get the VPN client currently bound to one logical device."""
         query = select(VPNClient).where(VPNClient.device_id == device_id)
@@ -220,7 +288,9 @@ class VPNService(ProvisioningMixin, ConfigMixin, TopologyMixin):
             query = query.where(VPNClient.is_active == True)
         result = await self.session.execute(query.order_by(VPNClient.created_at.asc(), VPNClient.id.asc()))
         return result.scalars().first()
+    # END_BLOCK: method get_device_client
 
+    # START_BLOCK: method list_device_clients
     async def list_device_clients(self, device_id: int, *, active_only: bool = False) -> list[VPNClient]:
         """List VPN clients linked to one device."""
         query = select(VPNClient).where(VPNClient.device_id == device_id)
@@ -228,14 +298,18 @@ class VPNService(ProvisioningMixin, ConfigMixin, TopologyMixin):
             query = query.where(VPNClient.is_active == True)
         result = await self.session.execute(query.order_by(VPNClient.created_at.asc()))
         return list(result.scalars().all())
+    # END_BLOCK: method list_device_clients
 
+    # START_BLOCK: method deactivate_device_clients
     async def deactivate_device_clients(self, device_id: int) -> int:
         """Deactivate every active VPN client bound to one device."""
         clients = await self.list_device_clients(device_id, active_only=True)
         for client in clients:
             await self.deactivate_client(client)
         return len(clients)
+    # END_BLOCK: method deactivate_device_clients
 
+    # START_BLOCK: method deactivate_client
     async def deactivate_client(self, client: VPNClient) -> None:
         """Deactivate a VPN client."""
         client.is_active = False
@@ -245,7 +319,9 @@ class VPNService(ProvisioningMixin, ConfigMixin, TopologyMixin):
             server.current_clients -= 1
         await self._apply_topology_client_delta(client, -1)
         await self.session.flush()
+    # END_BLOCK: method deactivate_client
 
+    # START_BLOCK: method activate_client
     async def activate_client(self, client: VPNClient) -> None:
         """Activate a VPN client."""
         client.is_active = True
@@ -255,7 +331,9 @@ class VPNService(ProvisioningMixin, ConfigMixin, TopologyMixin):
             server.current_clients += 1
         await self._apply_topology_client_delta(client, 1)
         await self.session.flush()
+    # END_BLOCK: method activate_client
 
+    # START_BLOCK: method update_client_stats
     async def update_client_stats(self, client: VPNClient) -> None:
         """Update client traffic statistics."""
         stats = await self.wg.get_peer_stats()
@@ -266,7 +344,9 @@ class VPNService(ProvisioningMixin, ConfigMixin, TopologyMixin):
             client.last_handshake_at = peer_stats["last_handshake"]
             client.updated_at = datetime.now(timezone.utc)
             await self.session.flush()
+    # END_BLOCK: method update_client_stats
 
+    # START_BLOCK: method get_client_stats
     async def get_client_stats(self, client: VPNClient) -> VPNStats:
         """Get VPN client statistics."""
         from app.vpn.models import VPNStats
@@ -287,7 +367,9 @@ class VPNService(ProvisioningMixin, ConfigMixin, TopologyMixin):
             server_name=entry_node.name if entry_node else (server.name if server else "Unknown"),
             server_location=entry_node.location if entry_node else (server.location if server else "Unknown"),
         )
+    # END_BLOCK: method get_client_stats
 
+    # START_BLOCK: method _select_server_for_existing_client
     async def _select_server_for_existing_client(self, client: VPNClient) -> VPNServer | None:
         """Reuse the existing server when it is still suitable, otherwise pick a new active one."""
         current_server = await self.get_server(client.server_id)
@@ -303,7 +385,9 @@ class VPNService(ProvisioningMixin, ConfigMixin, TopologyMixin):
         ):
             return current_server
         return await self.get_active_server()
+    # END_BLOCK: method _select_server_for_existing_client
 
+    # START_BLOCK: method _select_topology_for_existing_client
     async def _select_topology_for_existing_client(
         self, client: VPNClient,
     ) -> tuple[VPNRoute | None, VPNNode | None, VPNNode | None, VPNServer | None]:
@@ -324,7 +408,9 @@ class VPNService(ProvisioningMixin, ConfigMixin, TopologyMixin):
             return None, None, None, None
         fallback_route, fallback_entry, fallback_exit = await self._resolve_topology_for_server(server)
         return fallback_route, fallback_entry, fallback_exit, server
+    # END_BLOCK: method _select_topology_for_existing_client
 
+    # START_BLOCK: method _select_topology_for_new_client
     async def _select_topology_for_new_client(
         self,
     ) -> tuple[VPNRoute | None, VPNNode | None, VPNNode | None, VPNServer | None]:
@@ -342,7 +428,9 @@ class VPNService(ProvisioningMixin, ConfigMixin, TopologyMixin):
         server = await self.get_legacy_server_for_node(entry_node)
         route, entry_node, exit_node = await self._resolve_topology_for_server(server)
         return route, entry_node, exit_node, server
+    # END_BLOCK: method _select_topology_for_new_client
 
+    # START_BLOCK: method _resolve_topology_for_server
     async def _resolve_topology_for_server(
         self, server: VPNServer,
     ) -> tuple[VPNRoute | None, VPNNode | None, VPNNode | None]:
@@ -361,7 +449,9 @@ class VPNService(ProvisioningMixin, ConfigMixin, TopologyMixin):
         route = result.scalars().first()
         exit_node = await self.get_node(route.exit_node_id) if route is not None else None
         return route, entry_node, exit_node
+    # END_BLOCK: method _resolve_topology_for_server
 
+    # START_BLOCK: method _sync_client_topology
     async def _sync_client_topology(
         self, client: VPNClient, *, route: VPNRoute | None, entry_node: VPNNode | None, exit_node: VPNNode | None,
     ) -> None:
@@ -369,13 +459,17 @@ class VPNService(ProvisioningMixin, ConfigMixin, TopologyMixin):
         client.route_id = route.id if route is not None else None
         client.entry_node_id = entry_node.id if entry_node is not None else None
         client.exit_node_id = exit_node.id if exit_node is not None else None
+    # END_BLOCK: method _sync_client_topology
 
+    # START_BLOCK: method _apply_topology_client_delta
     async def _apply_topology_client_delta(self, client: VPNClient, delta: int) -> None:
         """Adjust node and route counters for a client assignment."""
         await self._apply_topology_client_delta_by_ids(
             client.route_id, client.entry_node_id, client.exit_node_id, delta,
         )
+    # END_BLOCK: method _apply_topology_client_delta
 
+    # START_BLOCK: method _apply_topology_client_delta_by_ids
     async def _apply_topology_client_delta_by_ids(
         self, route_id: int | None, entry_node_id: int | None, exit_node_id: int | None, delta: int,
     ) -> None:
@@ -389,7 +483,9 @@ class VPNService(ProvisioningMixin, ConfigMixin, TopologyMixin):
         exit_node = await self.get_node(exit_node_id)
         if exit_node is not None:
             exit_node.current_clients = max(0, exit_node.current_clients + delta)
+    # END_BLOCK: method _apply_topology_client_delta_by_ids
 
+    # START_BLOCK: method get_legacy_server_for_node
     async def get_legacy_server_for_node(
         self, node: VPNNode | None, *, create: bool = True,
     ) -> VPNServer | None:
@@ -401,3 +497,5 @@ class VPNService(ProvisioningMixin, ConfigMixin, TopologyMixin):
             return legacy_server
         await self._sync_legacy_server_for_node(node)
         return await self.get_server_by_public_key(node.public_key)
+    # END_BLOCK: method get_legacy_server_for_node
+# END_BLOCK: class VPNService

@@ -1,11 +1,27 @@
-# START_MODULE_CONTRACT: M-003-PROVISIONING
-# PURPOSE: VPN client provisioning — new client creation, reprovisioning, internal/device client flows
-# SCOPE: ProvisioningMixin with _provision_new_client, _reprovision_client, provision_internal_client, provision_device_client
-# INPUTS: User ID, device info, node/route selection, server assignment
-# OUTPUTS: VPNClient records with encrypted private keys, WG peer configuration
-# DEPENDENCIES: M-001 (core security/encrypt), M-003 (vpn models), M-020 (device registry)
-# VERIFICATION: V-M-003 — provisioning produces config consistent with topology
-# END_MODULE_CONTRACT: M-003-PROVISIONING
+# FILE: backend/app/vpn/provisioning.py
+# VERSION: 1.0.0
+# ROLE: RUNTIME
+# MAP_MODE: EXPORTS
+# START_MODULE_CONTRACT
+#   PURPOSE: VPN client provisioning — new client creation, reprovisioning, internal/device client flows
+#   SCOPE: ProvisioningMixin with _provision_new_client, _reprovision_client, provision_internal_client, provision_device_client
+#   DEPENDS: M-001 (core security/encrypt), M-003 (vpn models), M-020 (device registry)
+#   LINKS: M-003 (vpn), V-M-003
+# END_MODULE_CONTRACT
+#
+# START_MODULE_MAP
+#   ProvisioningMixin - Mixin providing VPN client provisioning helpers
+#   ProvisioningMixin._provision_new_client - Create a new VPNClient with WG peer
+#   ProvisioningMixin._reprovision_client - Re-provision an existing client with new keys
+#   ProvisioningMixin.provision_internal_client - Provision or reprovision internal user client
+#   ProvisioningMixin.provision_device_client - Provision or reprovision device-bound client
+#   ProvisioningMixin._get_used_ips - Get set of used IPs for a node/server
+# END_MODULE_MAP
+#
+# START_CHANGE_SUMMARY
+#   LAST_CHANGE: v2.8.0 - Converted to full GRACE MODULE_CONTRACT/MAP format
+# END_CHANGE_SUMMARY
+#
 """VPN client provisioning helpers."""
 
 from datetime import datetime, timezone
@@ -15,6 +31,9 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.security import encrypt_data
+from app.vpn.models import VPNClient, VPNNode, VPNRoute, VPNServer
+
+
 from app.vpn.models import VPNClient, VPNNode, VPNRoute, VPNServer
 
 

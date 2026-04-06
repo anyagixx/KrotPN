@@ -1,3 +1,31 @@
+# FILE: backend/app/vpn/models.py
+# VERSION: 1.0.0
+# ROLE: RUNTIME
+# MAP_MODE: EXPORTS
+# START_MODULE_CONTRACT
+#   PURPOSE: VPN data models — servers, nodes, routes, clients, configs, stats
+#   SCOPE: Schema definitions, field declarations, relationship wiring; no business logic
+#   DEPENDS: M-001 (core database), M-003 (vpn), M-020 (device-registry)
+#   LINKS: M-003 (vpn), M-020 (device-registry), V-M-003, V-M-020
+# END_MODULE_CONTRACT
+#
+# START_MODULE_MAP
+#   ServerStatus - Enum: online, offline, maintenance
+#   VPNServer - Legacy VPN server record (table: vpn_servers)
+#   VPNNode - Route-aware VPN node record (table: vpn_nodes)
+#   VPNRoute - Route linking entry and exit nodes (table: vpn_routes)
+#   VPNClient - VPN client bound to user + device + route (table: vpn_clients)
+#   VPNConfig - Response model for rendered VPN config (non-table)
+#   VPNStats - Response model for VPN statistics (non-table)
+# END_MODULE_MAP
+#
+# START_CHANGE_SUMMARY
+#   LAST_CHANGE: v2.8.0 - Converted to full GRACE MODULE_CONTRACT/MAP format with START/END blocks
+# END_CHANGE_SUMMARY
+#
+#   v2.8.0 – Stabilized multi-device model: device_id uniqueness,
+#            nullable exit_node_id on routes, legacy VPNServer mirror retained.
+# =============================================================================
 """
 VPN models for server and client configuration.
 
@@ -18,45 +46,48 @@ if TYPE_CHECKING:
     from app.users.models import User
 
 
+# START_BLOCK: class VPNServer
 class VPNServer(SQLModel, table=True):
     """Deprecated legacy mirror of an entry-capable node."""
-    
+
     __tablename__ = "vpn_servers"
-    
+
     id: int | None = Field(default=None, primary_key=True)
     name: str = Field(max_length=100)
     location: str = Field(max_length=100)  # e.g., "Germany", "Netherlands"
     endpoint: str = Field(max_length=255)  # IP or hostname
     port: int = Field(default=51821)
-    
+
     # Server keys (private key encrypted)
     public_key: str = Field(max_length=100, unique=True)
     private_key_enc: str | None = Field(default=None, max_length=500)  # Encrypted
-    
+
     # Network configuration
     subnet: str = Field(default="10.10.0.0/24")
-    
+
     # Status
     is_active: bool = Field(default=True)
     is_entry_node: bool = Field(default=False)  # RU server = entry node
     is_exit_node: bool = Field(default=True)  # DE server = exit node
-    
+
     # Capacity
     max_clients: int = Field(default=100)
     current_clients: int = Field(default=0)
-    
+
     # Monitoring
     last_ping_at: datetime | None = Field(default=None, sa_column=Column(DateTime(timezone=True)))
     is_online: bool = Field(default=True)
-    
+
     # Timestamps
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc), sa_column=Column(DateTime(timezone=True)))
     updated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc), sa_column=Column(DateTime(timezone=True)))
 
     # Relationships
     clients: list["VPNClient"] = Relationship(back_populates="server")
+# END_BLOCK: class VPNServer
 
 
+# START_BLOCK: class VPNNode
 class VPNNode(SQLModel, table=True):
     """Physical VPN node used as an entry, exit, or combined hop."""
 
@@ -84,9 +115,11 @@ class VPNNode(SQLModel, table=True):
 
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc), sa_column=Column(DateTime(timezone=True)))
     updated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc), sa_column=Column(DateTime(timezone=True)))
+# END_BLOCK: class VPNNode
 
 
 
+# START_BLOCK: class VPNRoute
 class VPNRoute(SQLModel, table=True):
     """Logical path that connects an entry node to an exit node."""
 
@@ -106,13 +139,15 @@ class VPNRoute(SQLModel, table=True):
 
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc), sa_column=Column(DateTime(timezone=True)))
     updated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc), sa_column=Column(DateTime(timezone=True)))
+# END_BLOCK: class VPNRoute
 
 
+# START_BLOCK: class VPNClient
 class VPNClient(SQLModel, table=True):
     """VPN client configuration for a user."""
-    
+
     __tablename__ = "vpn_clients"
-    
+
     id: int | None = Field(default=None, primary_key=True)
     # User linkage remains for compatibility queries, but uniqueness now belongs
     # to the logical device so one user can own multiple device-bound peers.
@@ -124,32 +159,34 @@ class VPNClient(SQLModel, table=True):
     route_id: int | None = Field(default=None, foreign_key="vpn_routes.id", index=True)
     entry_node_id: int | None = Field(default=None, foreign_key="vpn_nodes.id", index=True)
     exit_node_id: int | None = Field(default=None, foreign_key="vpn_nodes.id", index=True)
-    
+
     # Client keys (private key encrypted)
     public_key: str = Field(max_length=100, unique=True)
     private_key_enc: str = Field(max_length=500)  # Encrypted with Fernet
-    
+
     # Network configuration
     address: str = Field(max_length=20, unique=True)  # e.g., 10.10.0.2
-    
+
     # Status
     is_active: bool = Field(default=True)
-    
+
     # Statistics
     total_upload_bytes: int = Field(default=0)
     total_download_bytes: int = Field(default=0)
     last_handshake_at: datetime | None = Field(default=None, sa_column=Column(DateTime(timezone=True)))
-    
+
     # Timestamps
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc), sa_column=Column(DateTime(timezone=True)))
     updated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc), sa_column=Column(DateTime(timezone=True)))
-    
+
     # Relationships
     user: "User" = Relationship(back_populates="vpn_clients")
     device: "UserDevice" = Relationship(back_populates="vpn_clients")
     server: VPNServer | None = Relationship(back_populates="clients")
+# END_BLOCK: class VPNClient
 
 
+# START_BLOCK: class VPNConfig
 class VPNConfig(SQLModel):
     """Generated VPN configuration for client download."""
     config: str
@@ -163,8 +200,10 @@ class VPNConfig(SQLModel):
     address: str
     public_key: str
     created_at: datetime
+# END_BLOCK: class VPNConfig
 
 
+# START_BLOCK: class VPNStats
 class VPNStats(SQLModel):
     """VPN usage statistics."""
     total_upload_bytes: int
@@ -173,8 +212,10 @@ class VPNStats(SQLModel):
     is_connected: bool
     server_name: str
     server_location: str
+# END_BLOCK: class VPNStats
 
 
+# START_BLOCK: class ServerStatus
 class ServerStatus(SQLModel):
     """Deprecated legacy server status shape kept for compatibility."""
     id: int
@@ -184,3 +225,4 @@ class ServerStatus(SQLModel):
     current_clients: int
     max_clients: int
     load_percent: float
+# END_BLOCK: class ServerStatus

@@ -1,3 +1,22 @@
+# FILE: backend/app/vpn/handshake_monitor.py
+# VERSION: 1.0.0
+# ROLE: RUNTIME
+# MAP_MODE: EXPORTS
+# START_MODULE_CONTRACT
+#   PURPOSE: Observe live peer handshakes, update device presence metadata, record suspicious endpoint-churn or concurrency signals without auto-blocking by default
+#   SCOPE: Active device-bound VPN peers only; detection is observe-first, writes durable audit events for later admin enforcement
+#   DEPENDS: M-001 (database), M-003 (vpn client state, amneziawg), M-020 (device-registry), M-023 (handshake-anomaly-detector), M-025 (device-audit-log)
+#   LINKS: M-023 (handshake-anomaly-detector), M-025 (device-audit-log), V-M-023, V-M-025
+# END_MODULE_CONTRACT
+#
+# START_MODULE_MAP
+#   HandshakeAnomalyMonitor - Observer for peer handshake metadata and anomaly signals (scan_active_peers, observe_peer_stats, _apply_observation, _record_event, _coerce_datetime, _to_naive_utc)
+# END_MODULE_MAP
+#
+# START_CHANGE_SUMMARY
+#   LAST_CHANGE: v2.8.0 - Converted to full GRACE MODULE_CONTRACT/MAP format with START/END blocks
+# END_CHANGE_SUMMARY
+#
 """
 Handshake anomaly detector for device-bound peers.
 
@@ -36,6 +55,7 @@ from app.vpn.amneziawg import wg_manager
 from app.vpn.models import VPNClient
 
 
+# START_BLOCK: HandshakeAnomalyMonitor
 class HandshakeAnomalyMonitor:
     """Observe handshake metadata and record soft fraud signals for one session."""
 
@@ -51,6 +71,7 @@ class HandshakeAnomalyMonitor:
         stats = await self.wg.get_peer_stats()
         return await self.observe_peer_stats(stats)
 
+    # START_BLOCK: observe_peer_stats
     async def observe_peer_stats(self, peer_stats: dict[str, dict]) -> int:
         """Update device metadata from one peer-stats snapshot and write anomaly signals."""
         if not peer_stats:
@@ -82,7 +103,9 @@ class HandshakeAnomalyMonitor:
         if processed:
             await self.session.flush()
         return processed
+    # END_BLOCK: observe_peer_stats
 
+    # START_BLOCK: _apply_observation
     async def _apply_observation(
         self,
         device: UserDevice,
@@ -152,7 +175,9 @@ class HandshakeAnomalyMonitor:
         if endpoint:
             device.last_endpoint = endpoint
         device.updated_at = datetime.now(timezone.utc)
+    # END_BLOCK: _apply_observation
 
+    # START_BLOCK: _record_event
     async def _record_event(
         self,
         *,
@@ -177,6 +202,7 @@ class HandshakeAnomalyMonitor:
             f"user_id={user_id} device_id={device_id} event_type={event_type.value} severity={severity.value}"
         )
         return event
+    # END_BLOCK: _record_event
 
     @staticmethod
     def _coerce_datetime(value: datetime | None) -> datetime | None:
@@ -193,3 +219,4 @@ class HandshakeAnomalyMonitor:
         if value.tzinfo is None:
             return value
         return value.astimezone(timezone.utc).replace(tzinfo=None)
+# END_BLOCK: HandshakeAnomalyMonitor

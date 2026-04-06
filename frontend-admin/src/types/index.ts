@@ -1,23 +1,38 @@
-// START_MODULE_CONTRACT: M-010-TYPES
-// PURPOSE: Shared TypeScript interfaces for admin frontend API contracts
-// SCOPE: AdminUser, AdminDevice, AdminPlan, AdminServer, AdminNode, AdminRoute,
-//        BillingStats, ReferralStats, SystemHealth, AnalyticsData, RoutePolicyRule,
-//        DNSBinding, ExplainRouteResult, PaginatedResponse, NodeForm, RouteForm
-// INPUTS: API response data from /api/v1/admin/* endpoints
-// OUTPUTS: Type-safe data for admin UI components
-// DEPENDENCIES: M-010 (frontend-admin), M-006 (admin-api)
-// VERIFICATION: V-M-023 — tsc --noEmit with zero any usages
-// END_MODULE_CONTRACT: M-010-TYPES
-// START_MODULE_CONTRACT: M-010-TYPES
-// PURPOSE: Shared TypeScript interfaces for admin frontend API contracts
-// SCOPE: AdminUser, AdminDevice, AdminPlan, AdminServer, AdminNode, AdminRoute,
-//        BillingStats, ReferralStats, SystemHealth, AnalyticsData, RoutePolicyRule,
-//        DNSBinding, ExplainRouteResult, PaginatedResponse, NodeForm, RouteForm
-// INPUTS: API response data from /api/v1/admin/* endpoints
-// OUTPUTS: Type-safe data for admin UI components
-// DEPENDENCIES: M-010 (frontend-admin), M-006 (admin-api)
-// VERIFICATION: V-M-023 — tsc --noEmit with zero any usages
-// END_MODULE_CONTRACT: M-010-TYPES
+// FILE: frontend-admin/src/types/index.ts
+// VERSION: 1.0.0
+// ROLE: TYPES
+// MAP_MODE: EXPORTS
+// START_MODULE_CONTRACT
+//   PURPOSE: Shared TypeScript interfaces for admin frontend API contracts
+//   SCOPE: AdminUser, AdminDevice, AdminPlan, AdminServer, AdminNode, AdminRoute, BillingStats, ReferralStats, SystemHealth, AnalyticsData, RoutePolicyRule, DNSBinding, ExplainRouteResult, PaginatedResponse, NodeForm, RouteForm
+//   DEPENDS: M-010 (frontend-admin)
+//   LINKS: M-010 (frontend-admin), M-006 (admin-api)
+// END_MODULE_CONTRACT
+//
+// START_MODULE_MAP
+//   AdminUser, AdminDevice, AdminPlan, AdminServer, AdminNode, AdminRoute - Admin entity interfaces
+//   BillingStats, ReferralStats, SystemHealth, AnalyticsData - Analytics interfaces
+//   RoutePolicyRule, DNSBinding, ExplainRouteResult - Routing interfaces
+//   PaginatedResponse - Generic pagination wrapper
+//   NodeForm, RouteForm - Form state interfaces for CRUD
+// END_MODULE_MAP
+//
+// START_CHANGE_SUMMARY
+//   LAST_CHANGE: v2.8.0 - Converted to full GRACE MODULE_CONTRACT/MAP format with START/END blocks
+// END_CHANGE_SUMMARY
+//
+//          DNSBinding, ExplainRouteResult, PaginatedResponse, NodeForm, RouteForm
+//   DEPENDS: M-010 (frontend-admin), M-006 (admin-api)
+//   LINKS: M-010
+// MODULE_MAP:
+//   AdminUser, AdminDevice, AdminPlan, AdminServer, AdminNode, AdminRoute,
+//   BillingStats, RoutePolicyRule, DNSBinding, SystemHealth, ReferralStats,
+//   AnalyticsDataPoint, AnalyticsData, ExplainRouteResult, PaginatedResponse,
+//   NodeForm, RouteForm — all exported interfaces
+// CHANGE_SUMMARY: v2.8.0 — initial GRACE annotation, removed duplicate contract header and RouteForm
+// =============================================================================
+
+// START_BLOCK: AdminUser
 export interface AdminUser {
   id: number
   email: string
@@ -28,7 +43,9 @@ export interface AdminUser {
   last_login_at?: string | null
   created_at?: string | null
 }
+// END_BLOCK: AdminUser
 
+// START_BLOCK: AdminDevice
 export interface AdminDevice {
   id: number
   user_id: number
@@ -43,7 +60,9 @@ export interface AdminDevice {
   block_reason?: string | null
   recent_event_types?: string[]
 }
+// END_BLOCK: AdminDevice
 
+// START_BLOCK: AdminPlan
 export interface AdminPlan {
   id: number
   name: string
@@ -56,7 +75,9 @@ export interface AdminPlan {
   is_active: boolean
   is_popular?: boolean
 }
+// END_BLOCK: AdminPlan
 
+// START_BLOCK: AdminServer
 export interface AdminServer {
   id: number
   name: string
@@ -69,7 +90,9 @@ export interface AdminServer {
   is_online: boolean
   is_active: boolean
 }
+// END_BLOCK: AdminServer
 
+// START_BLOCK: AdminNode
 export interface AdminNode {
   id: number
   name: string
@@ -88,7 +111,9 @@ export interface AdminNode {
   current_clients: number
   load_percent: number
 }
+// END_BLOCK: AdminNode
 
+// START_BLOCK: AdminRoute
 export interface AdminRoute {
   id: number
   name: string
@@ -107,7 +132,9 @@ export interface AdminRoute {
   tunnel_status?: string
   tunnel_interface?: string
 }
+// END_BLOCK: AdminRoute
 
+// START_BLOCK: BillingStats
 export interface BillingStats {
   total_users: number
   active_subscriptions: number
@@ -115,7 +142,9 @@ export interface BillingStats {
   expired_this_month: number
   revenue_this_month: number
 }
+// END_BLOCK: BillingStats
 
+// START_BLOCK: RoutePolicyRule
 export interface RoutePolicyRule {
   id: number
   domain?: string
@@ -127,7 +156,9 @@ export interface RoutePolicyRule {
   description?: string
   is_active: boolean
 }
+// END_BLOCK: RoutePolicyRule
 
+// START_BLOCK: DNSBinding
 export interface DNSBinding {
   id: number
   normalized_domain: string
@@ -136,31 +167,41 @@ export interface DNSBinding {
   ttl?: number
   updated_at?: string
 }
+// END_BLOCK: DNSBinding
 
+// START_BLOCK: SystemHealth
 export interface SystemHealth {
   backend: string
   database: string
   redis: string
   vpn_tunnel: string
 }
+// END_BLOCK: SystemHealth
 
+// START_BLOCK: ReferralStats
 export interface ReferralStats {
   total_codes: number
   total_referrals: number
   paid_referrals: number
   conversion_rate: number
 }
+// END_BLOCK: ReferralStats
 
+// START_BLOCK: AnalyticsDataPoint
 export interface AnalyticsDataPoint {
   date: string
   revenue?: number
   count?: number
 }
+// END_BLOCK: AnalyticsDataPoint
 
+// START_BLOCK: AnalyticsData
 export interface AnalyticsData {
   daily: AnalyticsDataPoint[]
 }
+// END_BLOCK: AnalyticsData
 
+// START_BLOCK: ExplainRouteResult
 export interface ExplainRouteResult {
   route_target: string
   decision_reason: string
@@ -169,13 +210,17 @@ export interface ExplainRouteResult {
   normalized_domain?: string
   resolved_ip?: string
 }
+// END_BLOCK: ExplainRouteResult
 
+// START_BLOCK: PaginatedResponse
 export interface PaginatedResponse<T> {
   items: T[]
   total: number
   pages: number
 }
+// END_BLOCK: PaginatedResponse
 
+// START_BLOCK: NodeForm
 export interface NodeForm {
   name: string
   role: string
@@ -189,7 +234,9 @@ export interface NodeForm {
   is_online: boolean
   max_clients: string | number
 }
+// END_BLOCK: NodeForm
 
+// START_BLOCK: RouteForm
 export interface RouteForm {
   name: string
   entry_node_id: string
@@ -199,13 +246,4 @@ export interface RouteForm {
   priority: string | number
   max_clients: string
 }
-
-export interface RouteForm {
-  name: string
-  entry_node_id: string
-  exit_node_id: string
-  is_active: boolean
-  is_default: boolean
-  priority: string | number
-  max_clients: string
-}
+// END_BLOCK: RouteForm

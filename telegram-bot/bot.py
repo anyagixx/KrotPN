@@ -1,3 +1,35 @@
+# FILE: telegram-bot/bot.py
+# VERSION: 1.0.0
+# ROLE: ENTRY_POINT
+# MAP_MODE: SUMMARY
+# START_MODULE_CONTRACT
+#   PURPOSE: Telegram bot for KrotVPN — auth mediation, config delivery, subscription status
+#   SCOPE: Telegram commands, backend API integration, user auth flow
+#   DEPENDS: M-001 (core config), M-011 (telegram-bot), M-002 (users API), M-003 (vpn API)
+#   LINKS: M-011 (telegram-bot), V-M-011
+# END_MODULE_CONTRACT
+#
+# START_MODULE_MAP
+#   BackendClient (class): HTTP client for backend API
+#     - telegram_auth: Authenticate user via Telegram
+#     - get_user: Fetch current user profile
+#     - get_vpn_config: Retrieve VPN configuration
+#     - get_subscription: Retrieve subscription status
+#     - get_plans: Retrieve available billing plans
+#   start_command (async): Handle /start command, authenticate user, show welcome menu
+#   help_command (async): Handle /help command, show usage instructions
+#   config_command (async): Handle /config command, deliver VPN config as file
+#   status_command (async): Handle /status command, show subscription status
+#   plans_command (async): Handle /plans command, list billing plans
+#   referral_command (async): Handle /referral command, show referral program info
+#   button_callback (async): Handle inline button callbacks, dispatch to command handlers
+#   main (sync): Entry point — configure and run bot (webhook or polling)
+# END_MODULE_MAP
+#
+# START_CHANGE_SUMMARY
+#   LAST_CHANGE: v2.8.0 - Added full GRACE MODULE_CONTRACT and MODULE_MAP per GRACE governance protocol
+# END_CHANGE_SUMMARY
+
 """
 KrotVPN Telegram Bot.
 
@@ -40,13 +72,14 @@ logger.add(
 )
 
 
+# START_BLOCK: class BackendClient — HTTP client wrapping backend API calls
 class BackendClient:
     """Client for backend API."""
-    
+
     def __init__(self, base_url: str):
         self.base_url = base_url
         self.client = httpx.AsyncClient(timeout=30.0)
-    
+
     async def telegram_auth(self, telegram_id: int, username: str | None) -> dict:
         """Authenticate via Telegram."""
         response = await self.client.post(
@@ -59,7 +92,7 @@ class BackendClient:
         )
         response.raise_for_status()
         return response.json()
-    
+
     async def get_user(self, token: str) -> dict:
         """Get current user."""
         response = await self.client.get(
@@ -68,7 +101,7 @@ class BackendClient:
         )
         response.raise_for_status()
         return response.json()
-    
+
     async def get_vpn_config(self, token: str) -> str:
         """Get VPN config."""
         response = await self.client.get(
@@ -77,7 +110,7 @@ class BackendClient:
         )
         response.raise_for_status()
         return response.json()
-    
+
     async def get_subscription(self, token: str) -> dict:
         """Get subscription status."""
         response = await self.client.get(
@@ -86,12 +119,13 @@ class BackendClient:
         )
         response.raise_for_status()
         return response.json()
-    
+
     async def get_plans(self) -> list:
         """Get available plans."""
         response = await self.client.get(f"{self.base_url}/api/billing/plans")
         response.raise_for_status()
         return response.json()
+# END_BLOCK: class BackendClient
 
 
 backend = BackendClient(BACKEND_URL)
@@ -100,24 +134,25 @@ backend = BackendClient(BACKEND_URL)
 user_tokens: dict[int, str] = {}
 
 
+# START_BLOCK: async start_command — handle /start, authenticate user, show welcome menu
 async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Handle /start command."""
     telegram_id = update.effective_user.id
     username = update.effective_user.username
-    
+
     # Check for referral code
     ref_code = None
     if context.args and len(context.args) > 0:
         ref_code = context.args[0]
-    
+
     # Authenticate
     try:
         data = await backend.telegram_auth(telegram_id, username)
         token = data["access_token"]
         user_tokens[telegram_id] = token
-        
+
         user = await backend.get_user(token)
-        
+
         keyboard = [
             [InlineKeyboardButton("📱 Получить конфиг", callback_data="config")],
             [InlineKeyboardButton("📊 Моя подписка", callback_data="subscription")],
@@ -125,7 +160,7 @@ async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
             [InlineKeyboardButton("🔗 Реферальная ссылка", callback_data="referral")],
         ]
         reply_markup = InlineKeyboardMarkup(keyboard)
-        
+
         welcome_text = f"""
 🛡️ *Добро пожаловать в KrotVPN!*
 
@@ -140,20 +175,22 @@ async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 Выбери действие в меню ниже 👇
 """
-        
+
         await update.message.reply_text(
             welcome_text,
             parse_mode="Markdown",
             reply_markup=reply_markup,
         )
-        
+
     except Exception as e:
         logger.error(f"[BOT] Auth error: {e}")
         await update.message.reply_text(
             "❌ Произошла ошибка. Попробуйте позже.",
         )
+# END_BLOCK: async start_command
 
 
+# START_BLOCK: async help_command — handle /help, show usage instructions
 async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Handle /help command."""
     help_text = """
@@ -177,28 +214,30 @@ async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
 Пишите: @krotvpn_support
 """
     await update.message.reply_text(help_text, parse_mode="Markdown")
+# END_BLOCK: async help_command
 
 
+# START_BLOCK: async config_command — handle /config, deliver VPN config as downloadable file
 async def config_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Handle /config command."""
     telegram_id = update.effective_user.id
-    
+
     if telegram_id not in user_tokens:
         await update.message.reply_text(
             "❌ Сначала нажмите /start для авторизации.",
         )
         return
-    
+
     try:
         config = await backend.get_vpn_config(user_tokens[telegram_id])
-        
+
         # Send config as file
         config_text = config.get("config", "")
         if config_text:
             from io import BytesIO
             file = BytesIO(config_text.encode())
             file.name = f"krotvpn-{telegram_id}.conf"
-            
+
             await update.message.reply_document(
                 document=file,
                 filename=f"krotvpn.conf",
@@ -220,27 +259,29 @@ async def config_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
             await update.message.reply_text(
                 "❌ Конфигурация не найдена. Возможно, у вас нет активной подписки.",
             )
-            
+
     except Exception as e:
         logger.error(f"[BOT] Config error: {e}")
         await update.message.reply_text("❌ Ошибка получения конфигурации.")
+# END_BLOCK: async config_command
 
 
+# START_BLOCK: async status_command — handle /status, show subscription status
 async def status_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Handle /status command."""
     telegram_id = update.effective_user.id
-    
+
     if telegram_id not in user_tokens:
         await update.message.reply_text("❌ Сначала нажмите /start для авторизации.")
         return
-    
+
     try:
         sub = await backend.get_subscription(user_tokens[telegram_id])
-        
+
         if sub.get("has_subscription"):
             status_emoji = "✅" if sub.get("is_active") else "❌"
             trial_text = " (Пробный период)" if sub.get("is_trial") else ""
-            
+
             text = f"""
 📊 *Статус подписки*
 
@@ -257,25 +298,27 @@ async def status_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 Нажмите /plans чтобы посмотреть тарифы.
 """
-        
+
         await update.message.reply_text(text, parse_mode="Markdown")
-        
+
     except Exception as e:
         logger.error(f"[BOT] Status error: {e}")
         await update.message.reply_text("❌ Ошибка получения статуса.")
+# END_BLOCK: async status_command
 
 
+# START_BLOCK: async plans_command — handle /plans, list available billing plans
 async def plans_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Handle /plans command."""
     try:
         plans = await backend.get_plans()
-        
+
         if not plans:
             await update.message.reply_text("❌ Тарифы временно недоступны.")
             return
-        
+
         text = "💰 *Тарифные планы*\n\n"
-        
+
         for plan in plans:
             popular = " ⭐" if plan.get("is_popular") else ""
             text += f"""
@@ -284,24 +327,26 @@ async def plans_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
 📝 {plan.get('description', '')}
 
 """
-        
+
         text += "Для покупки перейдите на сайт: krotvpn.com"
-        
+
         await update.message.reply_text(text, parse_mode="Markdown")
-        
+
     except Exception as e:
         logger.error(f"[BOT] Plans error: {e}")
         await update.message.reply_text("❌ Ошибка получения тарифов.")
+# END_BLOCK: async plans_command
 
 
+# START_BLOCK: async referral_command — handle /referral, show referral program info
 async def referral_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Handle /referral command."""
     telegram_id = update.effective_user.id
-    
+
     if telegram_id not in user_tokens:
         await update.message.reply_text("❌ Сначала нажмите /start для авторизации.")
         return
-    
+
     # For now, just show placeholder
     text = """
 🎁 *Реферальная программа*
@@ -316,15 +361,17 @@ async def referral_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
 Ваша реферальная ссылка доступна в личном кабинете: krotvpn.com/referrals
 """
     await update.message.reply_text(text, parse_mode="Markdown")
+# END_BLOCK: async referral_command
 
 
+# START_BLOCK: async button_callback — handle inline button callbacks, dispatch to command handlers
 async def button_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Handle button callbacks."""
     query = update.callback_query
     await query.answer()
-    
+
     data = query.data
-    
+
     if data == "config":
         # Simulate /config command
         context.args = []
@@ -335,17 +382,19 @@ async def button_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await plans_command(update, context)
     elif data == "referral":
         await referral_command(update, context)
+# END_BLOCK: async button_callback
 
 
+# START_BLOCK: def main — entry point, configure and run bot (webhook or polling)
 def main():
     """Run the bot."""
     if not BOT_TOKEN:
         logger.error("TELEGRAM_BOT_TOKEN not set!")
         return
-    
+
     # Create application
     application = Application.builder().token(BOT_TOKEN).build()
-    
+
     # Add handlers
     application.add_handler(CommandHandler("start", start_command))
     application.add_handler(CommandHandler("help", help_command))
@@ -354,7 +403,7 @@ def main():
     application.add_handler(CommandHandler("plans", plans_command))
     application.add_handler(CommandHandler("referral", referral_command))
     application.add_handler(MessageHandler(filters.CallbackQuery, button_callback))
-    
+
     # Run bot
     if WEBHOOK_URL:
         # Webhook mode (for production)
@@ -369,6 +418,7 @@ def main():
         # Polling mode (for development)
         logger.info("[BOT] Starting polling...")
         application.run_polling(allowed_updates=Update.ALL_TYPES)
+# END_BLOCK: def main
 
 
 if __name__ == "__main__":

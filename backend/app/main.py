@@ -1,3 +1,25 @@
+# FILE: backend/app/main.py
+# VERSION: 1.0.0
+# ROLE: ENTRY_POINT
+# MAP_MODE: EXPORTS
+# START_MODULE_CONTRACT
+#   PURPOSE: FastAPI application bootstrap, router assembly, lifespan management
+#   SCOPE: App lifecycle, CORS, middleware, rate limiting, DB/VPN/admin init, router mounting
+#   DEPENDS: M-001 (core), M-002 (users), M-003 (vpn), M-004 (billing), M-005 (referrals), M-006 (admin), M-007 (routing), M-008 (tasks)
+#   LINKS: EP-001, M-001 — M-008, V-M-001
+# END_MODULE_CONTRACT
+#
+# START_MODULE_MAP
+#   app - FastAPI application instance with lifespan management
+#   lifespan - Async context manager for startup/shutdown (DB, VPN, admin, scheduler)
+#   CORS middleware, rate limiting middleware, request logging middleware
+#   Router mounting: users, vpn, billing, referrals, admin, routing, devices
+# END_MODULE_MAP
+#
+# START_CHANGE_SUMMARY
+#   LAST_CHANGE: v2.8.0 - Added full GRACE MODULE_CONTRACT and MODULE_MAP per GRACE governance protocol
+# END_CHANGE_SUMMARY
+#
 """
 KrotVPN - Commercial VPN Service with AmneziaWG
 Main FastAPI application.
@@ -64,6 +86,7 @@ except OSError as exc:
 limiter = Limiter(key_func=get_remote_address)
 
 
+# START_BLOCK: lifespan
 @asynccontextmanager
 async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     """Application lifespan handler."""
@@ -72,11 +95,11 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     # Startup
     logger.info(f"[APP] Starting {settings.app_name} v{settings.app_version}")
     logger.info(f"[APP] Environment: {settings.environment}")
-    
+
     # Initialize database
     await init_db()
     logger.info("[APP] Database initialized")
-    
+
     # Initialize admin user from environment variables
     async with get_db_context() as session:
         admin_user = await ensure_admin_user(session)
@@ -96,7 +119,7 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
             logger.info(f"[APP] VPN route ready: {vpn_route.name}")
         else:
             logger.info("[APP] VPN route bootstrap skipped or incomplete")
-    
+
     # Production routing is managed by host-level systemd scripts.
     if settings.is_production:
         logger.info("[APP] Routing manager skipped in production (host-managed)")
@@ -104,18 +127,19 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
         from app.routing import routing_manager
         await routing_manager.initialize()
         logger.info("[APP] Routing manager initialized")
-    
+
     # Start task scheduler
     from app.tasks import task_scheduler
     task_scheduler.start()
     logger.info("[APP] Task scheduler started")
-    
+
     yield
-    
+
     # Shutdown
     from app.tasks import task_scheduler
     task_scheduler.stop()
     logger.info("[APP] Shutting down...")
+# END_BLOCK: lifespan
 
 
 # Create application

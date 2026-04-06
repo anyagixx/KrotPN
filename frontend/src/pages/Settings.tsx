@@ -1,3 +1,24 @@
+// FILE: frontend/src/pages/Settings.tsx
+// VERSION: 1.0.0
+// ROLE: UI_COMPONENT
+// MAP_MODE: SUMMARY
+// START_MODULE_CONTRACT
+//   PURPOSE: User settings page -- profile update, language switch, password change
+//   SCOPE: Profile form, language toggle (ru/en), password change form with validation
+//   DEPENDS: M-009 (frontend-user), M-002 (auth API), M-003 (user profile API)
+//   LINKS: M-009 (frontend-user)
+// END_MODULE_CONTRACT
+//
+// START_MODULE_MAP
+//   SettingsPage - Settings component with profile, language, and password sections
+//   BLOCK_SETTINGS_PAGE - SettingsPage default export (172 lines)
+// END_MODULE_MAP
+//
+// START_CHANGE_SUMMARY
+//   LAST_CHANGE: v2.8.0 - Added full GRACE MODULE_CONTRACT and MODULE_MAP per GRACE governance protocol
+// END_CHANGE_SUMMARY
+//
+// START_BLOCK_SETTINGS_PAGE
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useMutation } from 'react-query'
@@ -170,3 +191,4 @@ export default function Settings() {
     </div>
   )
 }
+// END_BLOCK_SETTINGS_PAGE

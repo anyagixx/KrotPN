@@ -1,100 +1,81 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- GRACE-lite Technology Map -->
-<technology>
-  <meta>
-    <project-name>KrotVPN</project-name>
-    <version>2.5.0</version>
-    <updated>2026-03-24</updated>
-    <status>active</status>
-  </meta>
+<!-- GRACE Technology Stack for KrotVPN — runtime, dependencies, tooling, testing, observability, delivery -->
+<TechnologyStack VERSION="1.0.0">
+  <Runtime>Python 3.11 + Node.js 22 (frontend build)</Runtime>
+  <Language>Python 3.11 + TypeScript 5.x</Language>
+  <Framework>FastAPI (backend) + React 18 + Vite (frontend/admin)</Framework>
 
-  <runtime>
-    <backend>
-      <language>Python 3.11</language>
-      <framework>FastAPI</framework>
-      <data-layer>SQLModel + SQLAlchemy async</data-layer>
-      <server>uvicorn</server>
-    </backend>
-    <frontend-user>
-      <framework>React 18 + TypeScript + Vite</framework>
-      <state>Zustand</state>
-      <http-client>Axios</http-client>
-      <pwa>vite-plugin-pwa</pwa>
-    </frontend-user>
-    <frontend-admin>
-      <framework>React 18 + TypeScript + Vite</framework>
-      <state>Zustand</state>
-      <http-client>Axios</http-client>
-      <charts>Recharts</charts>
-    </frontend-admin>
-    <telegram-bot>
-      <language>Python</language>
-      <library>python-telegram-bot</library>
-      <integration>Backend HTTP API</integration>
-    </telegram-bot>
-  </runtime>
+  <Dependencies>
+    <dep name="fastapi" version="0.115.x" purpose="Backend HTTP API framework" />
+    <dep name="sqlmodel" version="0.0.x" purpose="ORM with SQLAlchemy async support" />
+    <dep name="sqlalchemy" version="2.x" purpose="Async database engine" />
+    <dep name="uvicorn" version="0.30.x" purpose="ASGI server" />
+    <dep name="passlib" version="1.7.x" purpose="Password hashing (pbkdf2_sha256)" />
+    <dep name="python-jose" version="3.x" purpose="JWT token handling" />
+    <dep name="cryptography" version="42.x" purpose="Fernet encryption for sensitive data" />
+    <dep name="python-telegram-bot" version="21.x" purpose="Telegram bot framework" />
+    <dep name="httpx" version="0.27.x" purpose="Async HTTP client (Telegram, YooKassa)" />
+    <dep name="react" version="18.x" purpose="Frontend UI library" />
+    <dep name="zustand" version="4.x" purpose="Frontend state management" />
+    <dep name="axios" version="1.x" purpose="HTTP client for API calls" />
+    <dep name="recharts" version="2.x" purpose="Admin dashboard charts" />
+    <dep name="vite-plugin-pwa" version="0.x" purpose="PWA support for user frontend" />
+    <dep name="alembic" version="1.x" purpose="Database migrations (declared, not yet enforced)" />
+    <dep name="pytest" version="8.x" purpose="Backend test runner" />
+    <dep name="ruff" version="0.4.x" purpose="Python linter/formatter" />
+    <dep name="mypy" version="1.x" purpose="Python type checker" />
+  </Dependencies>
 
-  <storage>
-    <primary-db>PostgreSQL in production; SQLite possible for local/dev fallback</primary-db>
-    <cache>Redis configured, but not yet deeply integrated across all flows</cache>
-    <host-filesystem>
-      /etc/amnezia/amneziawg for AmneziaWG configs and interface state.
-    </host-filesystem>
-  </storage>
+  <VersionConstraints>
+    <constraint lib="python" min="3.11" max="3.12.x" reason="Backend code targets Python 3.11; 3.12 may introduce deprecation breaks" />
+    <constraint lib="fastapi" min="0.115.0" max="0.115.x" reason="API stability; avoid 0.116+ breaking changes until verified" />
+    <constraint lib="sqlmodel" min="0.0.20" max="0.x" reason="SQLModel API is unstable; pin to current minor" />
+    <constraint lib="react" min="18.0.0" max="18.x" reason="Frontend code depends on React 18; migration to 19 not planned" />
+  </VersionConstraints>
 
-  <infrastructure>
-    <container-orchestration>Docker Compose</container-orchestration>
-    <reverse-proxy>Nginx</reverse-proxy>
-    <vpn-host-tools>awg, awg-quick, iptables, ipset, ping, ip</vpn-host-tools>
-    <routing-model>
-      Приложение частично контейнеризовано, но VPN и routing завязаны на host-level tools и mounts.
-    </routing-model>
-  </infrastructure>
+  <Tooling>
+    <tool name="backend-linter" value="ruff" version="0.4.x" />
+    <tool name="backend-type-checker" value="mypy" version="1.x" />
+    <tool name="backend-test-runner" value="pytest" version="8.x" />
+    <tool name="frontend-bundler" value="vite" version="5.x" />
+    <tool name="container-runtime" value="docker compose" version="2.x" />
+    <tool name="reverse-proxy" value="nginx" version="1.25.x" />
+    <tool name="vpn-tools" value="awg, awg-quick, iptables, ipset, ip, ping" version="host-provided" />
+    <tool name="secrets-manager" value=".env files + Docker secrets (planned)" version="n/a" />
+  </Tooling>
 
-  <integrations>
-    <billing>YooKassa implemented; Tinkoff declared in config but not actually implemented as first-class runtime module.</billing>
-    <telegram>Telegram Login / bot-mediated auth supported.</telegram>
-    <email>SMTP settings declared; полноценный email module не завершен.</email>
-    <external-ip-detection>
-      VPN layer может обращаться к внешним HTTP endpoints для определения public IP, если endpoint не задан явно.
-    </external-ip-detection>
-  </integrations>
+  <Testing>
+    <module-level>
+      <command>cd backend &amp;&amp; pytest tests/unit/ -v</command>
+      <focus>Fast deterministic unit and contract checks for single modules</focus>
+    </module-level>
+    <wave-level>
+      <command>cd backend &amp;&amp; pytest tests/ -v -k "not slow"</command>
+      <focus>Checks all merged surfaces touched by a wave; integration-level without external services</focus>
+    </wave-level>
+    <phase-level>
+      <command>cd backend &amp;&amp; pytest tests/ -v --cov=app</command>
+      <focus>Broader integration and regression confidence; full test suite including slow tests</focus>
+    </phase-level>
+    <mocking-policy>Prefer fakes and narrow stubs over broad monkey-patching. Mock external services (YooKassa, Telegram API, DNS resolvers) at the boundary, not at the implementation level.</mocking-policy>
+  </Testing>
 
-  <security>
-    <auth>JWT access + refresh tokens</auth>
-    <password-hashing>pbkdf2_sha256 via passlib</password-hashing>
-    <sensitive-data>Fernet encryption for VPN private keys and similar values</sensitive-data>
-    <current-risks>
-      localStorage tokens in both frontends;
-      deployment scripts with weak defaults and sshpass;
-      remote credentials may be materialized during install/deploy;
-      git remote token leak existed in local clone during analysis.
-    </current-risks>
-  </security>
+  <Observability>
+    <logger>Python stdlib logging + structlog (planned)</logger>
+    <log-format>[Module][function][BLOCK_NAME] message</log-format>
+    <required-fields>correlation_id, request_id, actor_id (user or admin)</required-fields>
+    <redaction>Never log secrets, credentials, tokens, private keys, or raw high-risk payloads. All sensitive data must be redacted before logging.</redaction>
+    <log-levels>
+      <info>Normal operation (user login, config generation, payment received)</info>
+      <warning>Degraded but functional (DNS timeout, retry scheduled, stale binding detected)</warning>
+      <error>Functional failure (DB connection lost, webhook processing failed, VPN config generation error)</error>
+      <critical>Security or data integrity incident (secret exposure detected, unauthorized admin access, schema corruption)</critical>
+    </log-levels>
+  </Observability>
 
-  <quality-reality>
-    <implemented-tooling>
-      pytest config in backend pyproject;
-      ruff and mypy configured in backend;
-      frontend build scripts present;
-      backend tests exist for vpn, migrations, telegram auth, billing security.
-    </implemented-tooling>
-    <missing-or-incomplete>
-      CI pipeline in repository;
-      repeatable full-stack local verification;
-      frontend unit/e2e tests in repo;
-      disciplined Alembic migration workflow.
-    </missing-or-incomplete>
-  </quality-reality>
-
-  <agent-notes>
-    <note>
-      Не доверяй старым декларациям в документах о Tinkoff, email service, Alembic, frontend tests
-      без сверки с кодом и файлами.
-    </note>
-    <note>
-      Любая работа с VPN, routing и deployment должна учитывать host-level dependencies,
-      а не только контейнерный код.
-    </note>
-  </agent-notes>
-</technology>
+  <DeliveryShape>
+    <shape>Two-node Docker Compose deployment: RU entry node + DE exit node. Nginx reverse proxy, PostgreSQL primary database, Redis cache. Backend is containerized; VPN routing and host tools (awg, iptables, ipset) run on host with container mounts for config directories.</shape>
+    <deployment>install.sh provisions host, docker-compose.yml orchestrates services, deploy/ scripts handle remote node setup</deployment>
+    <constraints>VPN and routing code is host-coupled — not purely containerized. Deployment security depends on manual secret management (no vault integration yet).</constraints>
+  </DeliveryShape>
+</TechnologyStack>

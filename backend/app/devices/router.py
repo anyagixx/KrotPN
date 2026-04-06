@@ -1,3 +1,27 @@
+# FILE: backend/app/devices/router.py
+# VERSION: 1.0.0
+# ROLE: ENTRY_POINT
+# MAP_MODE: SUMMARY
+# START_MODULE_CONTRACT
+#   PURPOSE: User device management API — list, create, revoke, rotate device-bound configs
+#   SCOPE: Current-user device registry operations only; admin enforcement is separate
+#   DEPENDS: M-001 (auth dependencies), M-003 (vpn service), M-021 (device-access-policy), M-022 (device-provisioning-api)
+#   LINKS: M-022 (device-provisioning-api), V-M-022
+# END_MODULE_CONTRACT
+#
+# START_MODULE_MAP
+#   _serialize_device - Convert device row to public API response shape
+#   _get_user_device_or_404 - Load device and enforce current-user ownership
+#   list_devices - GET /api/v1/devices - return user's devices and slot counters
+#   create_device - POST /api/v1/devices - create device, provision VPN peer, return config
+#   revoke_device - DELETE /api/v1/devices/{id} - revoke device and free slot
+#   rotate_device_config - POST /api/v1/devices/{id}/rotate - rotate config and return fresh bundle
+# END_MODULE_MAP
+#
+# START_CHANGE_SUMMARY
+#   LAST_CHANGE: v2.8.0 - Added full GRACE MODULE_CONTRACT and MODULE_MAP per GRACE governance protocol
+# END_CHANGE_SUMMARY
+#
 """
 User device management API.
 
@@ -8,15 +32,18 @@ MODULE_CONTRACT
 - LINKS: V-M-022.
 
 MODULE_MAP
+- _serialize_device: Converts one device row into the public API shape.
+- _get_user_device_or_404: Loads one device and enforces current-user ownership.
 - list_devices: Returns the current user's tracked devices and slot counters.
 - create_device: Creates one device, provisions one device-bound VPN peer and returns the rendered config.
 - revoke_device: Revokes one device owned by the current user.
 - rotate_device_config: Rotates one device config through device-bound reprovisioning and returns a fresh config.
 
 CHANGE_SUMMARY
+- v2.8.0: Added GRACE-lite entry_point markup with START_BLOCK/END_BLOCK for each endpoint and helper.
 - 2026-03-27: Added first user-facing device management API for list/create/revoke/rotate flows.
 """
-# <!-- GRACE: module="M-022" api-group="User Device API" -->
+# <!-- GRACE: module="M-022" api-group="User Device API" role="ENTRY_POINT" MAP_MODE="SUMMARY" -->
 
 from fastapi import APIRouter, HTTPException, status
 
@@ -34,6 +61,7 @@ from app.vpn.service import VPNService
 router = APIRouter(prefix="/api/v1/devices", tags=["devices"])
 
 
+# <!-- START_BLOCK: _serialize_device -->
 def _serialize_device(device: UserDevice) -> DeviceResponse:
     """Convert one device row into the public API shape."""
     return DeviceResponse(
@@ -52,8 +80,10 @@ def _serialize_device(device: UserDevice) -> DeviceResponse:
         last_endpoint=device.last_endpoint,
         block_reason=device.block_reason,
     )
+# <!-- END_BLOCK: _serialize_device -->
 
 
+# <!-- START_BLOCK: _get_user_device_or_404 -->
 async def _get_user_device_or_404(
     policy: DeviceAccessPolicyService,
     *,
@@ -68,8 +98,10 @@ async def _get_user_device_or_404(
             detail="Device not found",
         )
     return device
+# <!-- END_BLOCK: _get_user_device_or_404 -->
 
 
+# <!-- START_BLOCK: list_devices -->
 @router.get("", response_model=DeviceListResponse)
 async def list_devices(
     current_user: CurrentUser,
@@ -85,8 +117,10 @@ async def list_devices(
         consumed_slots=consumed_slots,
         device_limit=device_limit,
     )
+# <!-- END_BLOCK: list_devices -->
 
 
+# <!-- START_BLOCK: create_device -->
 @router.post("", response_model=DeviceConfigBundleResponse, status_code=status.HTTP_201_CREATED)
 async def create_device(
     payload: DeviceCreateRequest,
@@ -123,8 +157,10 @@ async def create_device(
         address=config.address,
         created_at=config.created_at,
     )
+# <!-- END_BLOCK: create_device -->
 
 
+# <!-- START_BLOCK: revoke_device -->
 @router.delete("/{device_id}", response_model=DeviceResponse)
 async def revoke_device(
     device_id: int,
@@ -136,8 +172,10 @@ async def revoke_device(
     device = await _get_user_device_or_404(policy, user_id=int(current_user.id), device_id=device_id)
     updated = await policy.revoke_device(device)
     return _serialize_device(updated)
+# <!-- END_BLOCK: revoke_device -->
 
 
+# <!-- START_BLOCK: rotate_device_config -->
 @router.post("/{device_id}/rotate", response_model=DeviceConfigBundleResponse)
 async def rotate_device_config(
     device_id: int,
@@ -174,3 +212,4 @@ async def rotate_device_config(
         address=config.address,
         created_at=config.created_at,
     )
+# <!-- END_BLOCK: rotate_device_config -->

@@ -1,3 +1,24 @@
+# FILE: backend/app/core/init_admin.py
+# VERSION: 1.0.0
+# ROLE: RUNTIME
+# MAP_MODE: EXPORTS
+# START_MODULE_CONTRACT
+#   PURPOSE: Admin user bootstrap — auto-create admin from env vars on startup
+#   SCOPE: Environment-based admin creation, password validation, manual admin creation, password reset
+#   DEPENDS: M-001 (config), M-001 (security), M-002 (users models)
+#   LINKS: M-001 (backend-core), main.py (lifespan startup), V-M-001
+# END_MODULE_CONTRACT
+#
+# START_MODULE_MAP
+#   ensure_admin_user - Bootstrap admin from ADMIN_EMAIL/ADMIN_PASSWORD env vars (startup hook)
+#   create_admin_user - Manually create an admin user with given credentials
+#   reset_admin_password - Reset password for existing admin by email
+# END_MODULE_MAP
+#
+# START_CHANGE_SUMMARY
+#   LAST_CHANGE: v2.8.0 - Added full GRACE MODULE_CONTRACT and MODULE_MAP per GRACE governance protocol
+# END_CHANGE_SUMMARY
+#
 """
 Admin user initialization module.
 Automatically creates admin user from environment variables on startup.
@@ -29,6 +50,7 @@ DEFAULT_PASSWORD_PATTERNS = [
 ]
 
 
+# START_BLOCK_BOOTSTRAP
 async def ensure_admin_user(session: AsyncSession) -> User | None:
     """
     Ensure admin user exists in the database.
@@ -90,10 +112,12 @@ async def ensure_admin_user(session: AsyncSession) -> User | None:
     session.add(admin_user)
     await session.flush()
     await session.refresh(admin_user)
-    
+
     return admin_user
+# END_BLOCK_BOOTSTRAP
 
 
+# START_BLOCK_ADMIN_CRUD
 async def create_admin_user(
     session: AsyncSession,
     email: str,
@@ -174,5 +198,6 @@ async def reset_admin_password(
     user.password_hash = hash_password(new_password)
     await session.flush()
     await session.refresh(user)
-    
+
     return user
+# END_BLOCK_ADMIN_CRUD

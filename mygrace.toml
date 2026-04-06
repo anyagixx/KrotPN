@@ -1,0 +1,70 @@
+# MYGRACE Root Manifest
+
+[manifest]
+schema_version = "1"
+role = "root-active-config"
+name = "MYGRACE"
+version = "1.0.0"
+description = "AI-driven development methodology with human-in-the-loop control"
+author = "YOUR_NAME"
+license = "MIT"
+
+[project]
+name = "MYGRACE"
+language_communication = "russian"
+language_artifacts = "english"
+autonomy_mode = "semi-auto"
+
+[bootstrap]
+profile = "core"
+
+[execution]
+implicit_mygrace = true
+autonomy = "guided"
+agents = "single"
+max_loop_attempts = 3
+stop_and_ask = true
+
+[execution_policy]
+default_mode = "PROTOTYPE"
+available_modes = ["PROTOTYPE", "PRODUCTION"]
+commit_after_each_phase = true
+verify_before_commit = true
+
+[capabilities]
+memory = "xml"
+external_integrations = true
+deployment = true
+calibration_hooks = true
+conport_support = true
+
+[contracts]
+governance_file = "docs/governance.toml"
+macros_file = "docs/macros.toml"
+
+[boundary]
+canonical_docs_root = "docs/"
+policy_docs_root = "docs/"
+runtime_state_root = ".mygrace/state/"
+max_lines_per_file = 500
+
+[overrides]
+override_files = []
+
+[modes]
+[modes.PROTOTYPE]
+description = "Fast iteration for prototypes and MVPs"
+max_function_length = 60
+max_complexity = 12
+max_class_size = 400
+linter_style_errors = "warn"
+skeptic_active = false
+
+[modes.PRODUCTION]
+description = "Strict quality gates for production code"
+max_function_length = 20
+max_complexity = 7
+max_class_size = 200
+linter_style_errors = "error"
+skeptic_active = true
+mandatory_logging = true

@@ -1,3 +1,26 @@
+# FILE: backend/app/core/database.py
+# VERSION: 1.0.0
+# ROLE: RUNTIME
+# MAP_MODE: EXPORTS
+# START_MODULE_CONTRACT
+#   PURPOSE: Async database engine/session lifecycle and compatibility migrations
+#   SCOPE: Engine creation, session factory, init_db (schema sync), get_db dependency
+#   DEPENDS: M-001 (config), SQLModel, SQLAlchemy async
+#   LINKS: M-001 (backend-core), all modules using DB, V-M-001
+# END_MODULE_CONTRACT
+#
+# START_MODULE_MAP
+#   engine - AsyncEngine instance with NullPool for async compatibility
+#   async_session_factory - Session factory for request-scoped sessions
+#   init_db - SQLModel.create_all + compatibility migrations + admin/user bootstrap
+#   get_db - FastAPI async_generator dependency for DB session with auto-commit
+#   get_session - AsyncSession context manager for non-request scopes
+# END_MODULE_MAP
+#
+# START_CHANGE_SUMMARY
+#   LAST_CHANGE: v2.8.0 - Added full GRACE MODULE_CONTRACT and MODULE_MAP per GRACE governance protocol
+# END_CHANGE_SUMMARY
+#
 """
 Database module for connection and session management.
 
@@ -24,6 +47,7 @@ from app.core.migrations import migrate_existing_schema
 
 ModelType = TypeVar("ModelType", bound=SQLModel)
 
+# START_BLOCK_ENGINE_SESSION
 # Create async engine
 engine = create_async_engine(
     settings.database_url,
@@ -41,8 +65,10 @@ async_session_maker = async_sessionmaker(
     autocommit=False,
     autoflush=False,
 )
+# END_BLOCK_ENGINE_SESSION
 
 
+# START_BLOCK_IMPORT_MODELS
 def import_all_models() -> None:
     """Import all SQLModel models so relationship targets are registered."""
     import app.billing.models  # noqa: F401
@@ -51,8 +77,10 @@ def import_all_models() -> None:
     import app.routing.models  # noqa: F401
     import app.users.models  # noqa: F401
     import app.vpn.models  # noqa: F401
+# END_BLOCK_IMPORT_MODELS
 
 
+# START_BLOCK_INIT_DB
 async def init_db() -> None:
     """Initialize database tables and convert timestamp columns to timestamptz."""
     import_all_models()
@@ -73,8 +101,10 @@ async def init_db() -> None:
                 "END $d$;"
             ))
         await migrate_existing_schema(conn)
+# END_BLOCK_INIT_DB
 
 
+# START_BLOCK_SESSION_HELPERS
 async def get_session() -> AsyncGenerator[AsyncSession, None]:
     """Dependency for getting async database sessions."""
     async with async_session_maker() as session:
@@ -96,8 +126,11 @@ async def get_db_context() -> AsyncGenerator[AsyncSession, None]:
         except Exception:
             await session.rollback()
             raise
+# END_BLOCK_SESSION_HELPERS
 
 
+# START_BLOCK_GET_BY_ID
 async def get_by_id(session: AsyncSession, model: type[ModelType], id: int) -> ModelType | None:
     """Get a model instance by ID."""
     return await session.get(model, id)
+# END_BLOCK_GET_BY_ID

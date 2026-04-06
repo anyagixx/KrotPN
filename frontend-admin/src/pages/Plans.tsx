@@ -1,9 +1,33 @@
+// FILE: frontend-admin/src/pages/Plans.tsx
+// VERSION: 1.0.0
+// ROLE: UI_COMPONENT
+// MAP_MODE: SUMMARY
+// START_MODULE_CONTRACT
+//   PURPOSE: Admin page for billing plan management (list, display features, delete)
+//   SCOPE: Display tariff plans grid with features, active status, delete; modal placeholder for create
+//   DEPENDS: M-010 (frontend-admin), M-006 (admin API)
+//   LINKS: M-010
+// END_MODULE_CONTRACT
+//
+// START_MODULE_MAP
+//   PlansPage - Main admin plans page component
+//   getFeatures - Helper: parse plan features from array or JSON string
+//   default - React component (default export)
+// END_MODULE_MAP
+//
+// START_CHANGE_SUMMARY
+//   LAST_CHANGE: v2.8.0 - Added full GRACE MODULE_CONTRACT and MODULE_MAP per GRACE governance protocol
+// END_CHANGE_SUMMARY
+
 import { useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from 'react-query'
 import { Check, CreditCard, Edit, Plus, Star, Trash2 } from 'lucide-react'
 import { adminApi } from '../lib/api'
 import type { AdminPlan } from '../types'
 
+// START_BLOCK: getFeatures
+// Parses plan features from array or JSON string into string[]
+// DEPENDS: none (pure function)
 function getFeatures(plan: AdminPlan): string[] {
   if (Array.isArray(plan.features)) return plan.features
   if (typeof plan.features === 'string') {
@@ -15,7 +39,12 @@ function getFeatures(plan: AdminPlan): string[] {
   }
   return []
 }
+// END_BLOCK: getFeatures
 
+// START_BLOCK: Plans
+// Admin plans page: tariff plan grid with features, status, delete; create modal placeholder
+// DEPENDS: M-010 (frontend-admin), M-006 (admin API via adminApi)
+//   - adminApi.getPlans, adminApi.deletePlan
 export default function Plans() {
   const [showModal, setShowModal] = useState(false)
   const queryClient = useQueryClient()
@@ -142,3 +171,4 @@ export default function Plans() {
     </div>
   )
 }
+// END_BLOCK: Plans

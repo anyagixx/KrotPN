@@ -1,3 +1,25 @@
+// FILE: frontend/src/pages/Config.tsx
+// VERSION: 1.0.0
+// ROLE: UI_COMPONENT
+// MAP_MODE: SUMMARY
+// START_MODULE_CONTRACT
+//   PURPOSE: VPN configuration management page -- device registry, config download/copy/QR, route topology display
+//   SCOPE: Device CRUD (create/rotate/revoke), config rendering, QR modal, route and node info cards
+//   DEPENDS: M-009 (frontend-user), M-003 (vpn config API), M-002 (auth API)
+//   LINKS: M-009 (frontend-user)
+// END_MODULE_CONTRACT
+//
+// START_MODULE_MAP
+//   ConfigPage - Main config page component with device management, QR modal, config display
+//   BLOCK_CONFIG_PAGE - ConfigPage default export (545 lines)
+// END_MODULE_MAP
+//
+// START_CHANGE_SUMMARY
+//   LAST_CHANGE: v2.8.0 - Added full GRACE MODULE_CONTRACT and MODULE_MAP per GRACE governance protocol
+//   LAST_CHANGE: v2.8.1 - Fixed QR code not showing: removed disabled={Boolean(managedBundle)} from QR button so device-bound configs can also display QR
+// END_CHANGE_SUMMARY
+//
+// START_BLOCK_CONFIG_PAGE
 import { useEffect, useMemo, useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from 'react-query'
 import { useTranslation } from 'react-i18next'
@@ -69,11 +91,14 @@ export default function Config() {
     },
   )
 
+  // START_BLOCK_QR_URL
   const qrUrl = useMemo(() => {
     if (!qrData?.data) return null
     return URL.createObjectURL(qrData.data)
   }, [qrData?.data])
+  // END_BLOCK_QR_URL
 
+  // START_BLOCK_CLEANUP_QR_URL
   useEffect(() => {
     return () => {
       if (qrUrl) {
@@ -81,7 +106,9 @@ export default function Config() {
       }
     }
   }, [qrUrl])
+  // END_BLOCK_CLEANUP_QR_URL
 
+  // START_BLOCK_HANDLE_DOWNLOAD
   const handleDownload = async () => {
     try {
       const activeConfig = managedBundle?.config ? managedBundle.config : null
@@ -102,7 +129,9 @@ export default function Config() {
       toast.error(t('error'))
     }
   }
+  // END_BLOCK_HANDLE_DOWNLOAD
 
+  // START_BLOCK_HANDLE_COPY
   const handleCopy = async () => {
     const activeConfig = managedBundle?.config || configData?.data?.config
     if (!activeConfig) {
@@ -114,7 +143,9 @@ export default function Config() {
     toast.success(t('copied'))
     setTimeout(() => setCopied(false), 2000)
   }
+  // END_BLOCK_HANDLE_COPY
 
+  // START_BLOCK_HANDLE_CREATE_DEVICE
   const handleCreateDevice = async () => {
     const name = newDeviceName.trim()
     if (!name) {
@@ -126,6 +157,7 @@ export default function Config() {
       platform: newDevicePlatform.trim() || undefined,
     })
   }
+  // END_BLOCK_HANDLE_CREATE_DEVICE
 
   if (isLoading) {
     return <Loading text={t('loading')} />
@@ -372,17 +404,11 @@ export default function Config() {
           </ol>
           <button
             onClick={() => setShowQR(true)}
-            disabled={Boolean(managedBundle)}
             className="btn-secondary mt-5 w-full"
           >
             <QrCode className="h-5 w-5" />
-            {managedBundle ? 'QR для legacy-конфига' : 'Показать QR-код'}
+            Показать QR-код
           </button>
-          {managedBundle ? (
-            <p className="mt-3 text-xs muted">
-              Сейчас отображается device-bound конфиг. QR у legacy-эндпоинта пока привязан к старому совместимому пути, поэтому для нового устройства используйте файл или copy.
-            </p>
-          ) : null}
         </div>
 
         <div className="panel p-6">
@@ -543,3 +569,4 @@ export default function Config() {
     </div>
   )
 }
+// END_BLOCK_CONFIG_PAGE

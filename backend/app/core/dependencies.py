@@ -1,3 +1,26 @@
+# FILE: backend/app/core/dependencies.py
+# VERSION: 1.0.0
+# ROLE: RUNTIME
+# MAP_MODE: EXPORTS
+# START_MODULE_CONTRACT
+#   PURPOSE: FastAPI authentication and authorization dependency injection
+#   SCOPE: JWT token verification, user/admin/superuser role checks, type aliases
+#   DEPENDS: M-001 (config), M-001 (database), M-001 (security), M-002 (users models)
+#   LINKS: M-001 (backend-core), M-002 (users), all protected API routers
+# END_MODULE_CONTRACT
+#
+# START_MODULE_MAP
+#   get_current_user - Extract authenticated user from JWT, raise 401/403
+#   get_current_user_optional - Return user if authenticated, None otherwise (no raise)
+#   get_current_admin - Verify current user has ADMIN or SUPERADMIN role
+#   get_current_superuser - Verify current user has SUPERADMIN role
+#   CurrentUser, OptionalUser, CurrentAdmin, CurrentSuperuser, DBSession - Type aliases for Depends()
+# END_MODULE_MAP
+#
+# START_CHANGE_SUMMARY
+#   LAST_CHANGE: v2.8.0 - Added full GRACE MODULE_CONTRACT and MODULE_MAP per GRACE governance protocol
+# END_CHANGE_SUMMARY
+#
 """
 FastAPI dependencies for authentication and authorization.
 """
@@ -18,6 +41,7 @@ from app.users.models import User, UserRole
 security = HTTPBearer(auto_error=False)
 
 
+# START_BLOCK_AUTH_FUNCTIONS
 async def get_current_user(
     credentials: Annotated[HTTPAuthorizationCredentials | None, Depends(security)],
     session: Annotated[AsyncSession, Depends(get_session)],
@@ -74,8 +98,10 @@ async def get_current_user_optional(
 
     result = await session.execute(select(User).where(User.id == int(user_id)))
     return result.scalar_one_or_none()
+# END_BLOCK_AUTH_FUNCTIONS
 
 
+# START_BLOCK_ROLE_CHECKS
 async def get_current_admin(
     user: Annotated[User, Depends(get_current_user)],
 ) -> User:
@@ -112,3 +138,4 @@ OptionalUser = Annotated[User | None, Depends(get_current_user_optional)]
 CurrentAdmin = Annotated[User, Depends(get_current_admin)]
 CurrentSuperuser = Annotated[User, Depends(get_current_superuser)]
 DBSession = Annotated[AsyncSession, Depends(get_session)]
+# END_BLOCK_ROLE_CHECKS

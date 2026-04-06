@@ -1,3 +1,31 @@
+# FILE: backend/app/core/security.py
+# VERSION: 1.0.0
+# ROLE: RUNTIME
+# MAP_MODE: EXPORTS
+# START_MODULE_CONTRACT
+#   PURPOSE: JWT authentication, password hashing, Fernet encryption, token blacklist
+#   SCOPE: Token creation/verification, password hashing, data encryption, Redis-based token revocation
+#   DEPENDS: M-001 (config), Redis connection
+#   LINKS: M-001 (backend-core), M-002 (users), V-M-001
+# END_MODULE_CONTRACT
+#
+# START_MODULE_MAP
+#   create_access_token - Generate JWT access token with user claims and expiry
+#   create_refresh_token - Generate JWT refresh token with longer expiry
+#   decode_token - Decode and validate JWT token, return payload or raise
+#   get_current_user - FastAPI Depends for extracting authenticated user from JWT
+#   verify_password - Compare plaintext password with stored hash
+#   get_password_hash - Hash password using pbkdf2_sha256
+#   encrypt_data / decrypt_data - Fernet encryption for sensitive values
+#   blacklist_token - Add JWT token to Redis blacklist with TTL
+#   is_token_blacklisted - Check if token is in Redis blacklist
+#   get_fernet - Return initialized Fernet instance with validated key
+# END_MODULE_MAP
+#
+# START_CHANGE_SUMMARY
+#   LAST_CHANGE: v2.8.0 - Added full GRACE MODULE_CONTRACT and MODULE_MAP per GRACE governance protocol
+# END_CHANGE_SUMMARY
+#
 """
 Security module for authentication and authorization.
 Handles JWT tokens, password hashing, and encryption.
@@ -71,6 +99,7 @@ async def is_token_blacklisted(token: str) -> bool:
 # END_BLOCK_TOKEN_BLACKLIST
 
 
+# START_BLOCK_ENCRYPTION
 def get_fernet() -> Fernet:
     """Get Fernet instance for data encryption."""
     global _fernet
@@ -92,8 +121,10 @@ def encrypt_data(data: str) -> str:
 def decrypt_data(encrypted_data: str) -> str:
     """Decrypt sensitive data."""
     return get_fernet().decrypt(encrypted_data.encode()).decode()
+# END_BLOCK_ENCRYPTION
 
 
+# START_BLOCK_PASSWORD
 def hash_password(password: str) -> str:
     """Hash a password using pbkdf2_sha256."""
     return pwd_context.hash(password)
@@ -102,8 +133,10 @@ def hash_password(password: str) -> str:
 def verify_password(plain_password: str, hashed_password: str) -> bool:
     """Verify a password against its hash."""
     return pwd_context.verify(plain_password, hashed_password)
+# END_BLOCK_PASSWORD
 
 
+# START_BLOCK_JWT_TOKENS
 def create_access_token(
     subject: str | int,
     expires_delta: timedelta | None = None,
@@ -181,3 +214,4 @@ async def verify_token_with_blacklist(token: str, expected_type: str = "access")
     if await is_token_blacklisted(token):
         return None
     return verify_token(token, expected_type)
+# END_BLOCK_JWT_TOKENS

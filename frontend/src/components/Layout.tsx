@@ -1,3 +1,25 @@
+// FILE: frontend/src/components/Layout.tsx
+// VERSION: 1.0.0
+// ROLE: UI_COMPONENT
+// MAP_MODE: SUMMARY
+// START_MODULE_CONTRACT
+//   PURPOSE: Main application layout with sidebar navigation, user status panel, and header
+//   SCOPE: Sidebar with nav links, user avatar/identity section, logout, header status badges, Outlet for routed pages
+//   DEPENDS: M-009 (frontend-user), M-002 (auth API)
+//   LINKS: M-009 (frontend-user)
+// END_MODULE_CONTRACT
+//
+// START_MODULE_MAP
+//   Layout - Main layout component with sidebar, nav items, and header
+//   BLOCK_LAYOUT - Layout default export (136 lines)
+//   default - React component (default export)
+// END_MODULE_MAP
+//
+// START_CHANGE_SUMMARY
+//   LAST_CHANGE: v2.8.0 - Added full GRACE MODULE_CONTRACT and MODULE_MAP per GRACE governance protocol
+// END_CHANGE_SUMMARY
+//
+// START_BLOCK_LAYOUT
 import { NavLink, Outlet, useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import {
@@ -134,3 +156,4 @@ export default function Layout() {
     </div>
   )
 }
+// END_BLOCK_LAYOUT

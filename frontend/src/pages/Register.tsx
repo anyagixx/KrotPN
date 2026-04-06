@@ -1,3 +1,25 @@
+// FILE: frontend/src/pages/Register.tsx
+// VERSION: 1.0.0
+// ROLE: UI_COMPONENT
+// MAP_MODE: SUMMARY
+// START_MODULE_CONTRACT
+//   PURPOSE: User registration page with email/password form, referral code support, and onboarding info panel
+//   SCOPE: Form validation (password match), registration API call, token storage, navigation to dashboard
+//   DEPENDS: M-009 (frontend-user), M-002 (auth API), M-005 (referrals)
+//   LINKS: M-009 (frontend-user)
+// END_MODULE_CONTRACT
+//
+// START_MODULE_MAP
+//   RegisterPage - Registration component with form, referral code handling, and marketing panel
+//   BLOCK_REGISTER_PAGE - RegisterPage default export (157 lines)
+//   default - React component (default export)
+// END_MODULE_MAP
+//
+// START_CHANGE_SUMMARY
+//   LAST_CHANGE: v2.8.0 - Added full GRACE MODULE_CONTRACT and MODULE_MAP per GRACE governance protocol
+// END_CHANGE_SUMMARY
+//
+// START_BLOCK_REGISTER_PAGE
 import { useState } from 'react'
 import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
@@ -155,3 +177,4 @@ export default function Register() {
     </div>
   )
 }
+// END_BLOCK_REGISTER_PAGE

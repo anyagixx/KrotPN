@@ -1,12 +1,23 @@
 #!/bin/bash
-# START_MODULE_CONTRACT: M-012-BACKUP
-# PURPOSE: Automated PostgreSQL backup via pg_dump from docker container
-# SCOPE: pg_dump execution, gzipped backup storage, 7-backup retention
-# INPUTS: DB credentials from .env file
-# OUTPUTS: Timestamped .sql.gz files in /opt/KrotVPN/backups/db/
-# DEPENDENCIES: M-012 (deploy-surface), PostgreSQL container
-# VERIFICATION: V-M-008 — backup created and can be restored
-# END_MODULE_CONTRACT: M-012-BACKUP
+# FILE: deploy/backup-db.sh
+# VERSION: 1.0.0
+# ROLE: SCRIPT
+# MAP_MODE: LOCALS
+# START_MODULE_CONTRACT
+#   PURPOSE: Automated PostgreSQL backup via pg_dump from docker container
+#   SCOPE: pg_dump execution, gzipped backup storage, 7-backup retention
+#   DEPENDS: M-012 (deploy-surface), PostgreSQL container running
+#   LINKS: M-012 (deploy-surface), V-M-012
+# END_MODULE_CONTRACT
+#
+# START_MODULE_MAP
+#   pg_dump pipeline - Dump DB to gzipped .sql.gz file in /opt/KrotVPN/backups/db/
+#   retention_cleanup - Remove old backups keeping only last 7
+# END_MODULE_MAP
+#
+# START_CHANGE_SUMMARY
+#   LAST_CHANGE: v2.8.0 - Converted to full GRACE MODULE_CONTRACT/MAP format, removed duplicate contract block
+# END_CHANGE_SUMMARY
 #
 # KrotVPN Database Backup Script
 # Runs pg_dump from the postgres container, saves timestamped backups,

@@ -1,3 +1,25 @@
+// FILE: frontend-admin/src/pages/Dashboard.tsx
+// VERSION: 1.0.0
+// ROLE: UI_COMPONENT
+// MAP_MODE: SUMMARY
+// START_MODULE_CONTRACT
+//   PURPOSE: Admin dashboard page showing operational overview (users, subscriptions, revenue, system health)
+//   SCOPE: Display aggregated stats, system health metrics, routing topology overview
+//   DEPENDS: M-010 (frontend-admin), M-006 (admin API)
+//   LINKS: M-010
+// END_MODULE_CONTRACT
+//
+// START_MODULE_MAP
+//   DashboardPage - Main admin dashboard component
+//   formatCurrency - Helper: format number with ru-RU locale
+//   StatCard - reused component from ../components/StatCard
+//   default - React component (default export)
+// END_MODULE_MAP
+//
+// START_CHANGE_SUMMARY
+//   LAST_CHANGE: v2.8.0 - Added full GRACE MODULE_CONTRACT and MODULE_MAP per GRACE governance protocol
+// END_CHANGE_SUMMARY
+
 import { useQuery } from 'react-query'
 import {
   Activity,
@@ -11,10 +33,19 @@ import {
 import { adminApi } from '../lib/api'
 import StatCard from '../components/StatCard'
 
+// START_BLOCK: formatCurrency
+// Formats number with ru-RU locale for currency display
+// DEPENDS: none (pure function)
 function formatCurrency(value?: number) {
   return Number(value || 0).toLocaleString('ru-RU')
 }
+// END_BLOCK: formatCurrency
 
+// START_BLOCK: Dashboard
+// Admin dashboard: aggregated stats, system health, routing topology overview
+// DEPENDS: M-010 (frontend-admin), M-006 (admin API via adminApi)
+//   - adminApi.getStats (aggregated operational stats)
+//   - adminApi.getSystemHealth (CPU, RAM, disk metrics)
 export default function Dashboard() {
   const { data: stats, isLoading } = useQuery('admin-stats', () => adminApi.getStats())
   const { data: health } = useQuery('system-health', () => adminApi.getSystemHealth())
@@ -173,3 +204,4 @@ export default function Dashboard() {
     </div>
   )
 }
+// END_BLOCK: Dashboard

@@ -1,6 +1,18 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- GRACE-lite Verification Plan -->
-<verification-plan>
+<!-- GRACE Verification Plan for KrotVPN — critical flows, module verification, phase gates, failure triage -->
+<VerificationPlan VERSION="1.0.0">
+  <GlobalPolicy>
+    <log-format>[Module][function][BLOCK_NAME] message</log-format>
+    <deterministic-first>true</deterministic-first>
+    <module-level-focus>Fast deterministic checks close to the module — pytest -k for targeted tests</module-level-focus>
+    <wave-level-focus>Checks only merged surfaces touched by the current wave — pytest tests/ -v</wave-level-focus>
+    <phase-level-focus>Broader integration and regression confidence — pytest tests/ --cov=app</phase-level-focus>
+    <redaction>Never log secrets, credentials, tokens, private keys, or raw high-risk payloads</redaction>
+    <evidence-hierarchy>deterministic assertion &gt; trace assertion &gt; log assertion &gt; semantic evaluation</evidence-hierarchy>
+    <failure-policy>If verification fails, stop and file a failure packet. Do not silently skip or move to next module.</failure-policy>
+    <governance-rule>ALL development is GRACE-governed. No module is implemented without a contract. No module is committed without verification. No verification result is implied — it is either run or explicitly blocked.</governance-rule>
+  </GlobalPolicy>
+
   <meta>
     <project-name>KrotVPN</project-name>
     <version>2.8.0</version>
@@ -471,4 +483,59 @@
     <field>first_divergent_marker</field>
     <field>suggested_next_action</field>
   </failure-triage-packet>
-</verification-plan>
+
+  <PhaseGates>
+    <Gate-Phase-1-8 PHASE="Phase-1 through Phase-8 (Implementation + Device/Anti-sharing)">
+      <goal>All implementation phases completed with passing module-local and wave-level verification</goal>
+      <commands>
+        <command-1>cd backend &amp;&amp; pytest tests/ -v -k "not slow"</command-1>
+        <command-2>cd backend &amp;&amp; ruff check app/</command-2>
+        <command-3>cd backend &amp;&amp; mypy app/</command-3>
+      </commands>
+      <required-evidence>
+        <evidence-1>All 25 modules (M-001 — M-025) have verification entries (V-M-001 — V-M-025)</evidence-1>
+        <evidence-2>Device lifecycle tests cover create, limit-check, revoke, rotate, block, unblock</evidence-2>
+        <evidence-3>Handshake anomaly detector emits structured events with suspicion scores</evidence-3>
+        <evidence-4>CLI idempotency verified — no duplicate active clients for same identity</evidence-4>
+      </required-evidence>
+    </Gate-Phase-1-8>
+    <Gate-Phase-9-14 PHASE="Phase-9 through Phase-14 (P1-P6 Hardening)">
+      <goal>All 6 hardening phases delivered with passing security, stability, quality, infrastructure, CI, and cleanup checks</goal>
+      <commands>
+        <command-1>cd backend &amp;&amp; pytest tests/ -v --cov=app --cov-fail-under=70</command-1>
+        <command-2>cd backend &amp;&amp; ruff check app/ tests/</command-2>
+        <command-3>cd backend &amp;&amp; mypy app/</command-3>
+        <command-4>cd grace-marketplace-main &amp;&amp; bun run ./src/grace.ts lint --path .. --allow-missing-docs</command-4>
+      </commands>
+      <required-evidence>
+        <evidence-1>51 security/quality fixes applied across 6 commits (P1-P6)</evidence-1>
+        <evidence-2>CI pipeline passes lint + test + build on every push</evidence-2>
+        <evidence-3>Token blacklist functional with Redis, graceful degradation tested</evidence-3>
+        <evidence-4>Alembic baseline migration generated and coexists safely with SQLModel.create_all</evidence-4>
+        <evidence-5>No security regressions in auth, billing webhook, or admin endpoints</evidence-5>
+      </required-evidence>
+    </Gate-Phase-9-14>
+  </PhaseGates>
+
+  <FailurePackets>
+    <packet-template>
+      <expected-fields>scenario, expected-evidence, observed-evidence, first-divergent-block, next-action</expected-fields>
+      <shape>
+        <FailurePacket>
+          <scenario>VM-xxx or CF-xxx that failed</scenario>
+          <module>M-xxx where failure occurred</module>
+          <expected>What should have happened per contract or scenario</expected>
+          <observed>What actually happened (with log/trace excerpt)</observed>
+          <first-divergent-block>START_BLOCK name where execution first deviated</first-divergent-block>
+          <root-cause-hypothesis>Why the divergence occurred (bug, missing dependency, env issue)</root-cause-hypothesis>
+          <next-action>Smallest fix to test first, then broader fix if hypothesis confirmed</next-action>
+        </FailurePacket>
+      </shape>
+    </packet-template>
+    <escalation-rules>
+      <rule>If the same scenario fails 3 times with different root causes, escalate to $grace-fix for architectural review</rule>
+      <rule>If a failure is caused by missing environment (host tools, DB, Redis), mark as ENV_BLOCKED, not TEST_FAILED</rule>
+      <rule>If a failure is caused by stale GRACE doc state, run $grace-refresh before attempting fix</rule>
+    </escalation-rules>
+  </FailurePackets>
+</VerificationPlan>

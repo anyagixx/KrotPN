@@ -1,24 +1,28 @@
-"""
-Routing API router.
-
-MODULE_CONTRACT
-- PURPOSE: Expose admin-facing routing status, custom route management, policy CRUD, and route-decision inspection APIs.
-- SCOPE: Routing status reads, RU update trigger, legacy custom-route CRUD, domain/CIDR policy CRUD, DNS binding visibility, and decision explain endpoints.
-- DEPENDS: M-001 auth and DB session injection, M-007 routing runtime, M-013 route-policy-resolver, M-014 domain-rule-store, M-015 dns-observer, M-016 route-decision-api.
-- LINKS: M-007 routing, M-016 route-decision-api, V-M-007, V-M-016.
-
-MODULE_MAP
-- get_routing_status: Returns current routing status and last RU update timestamp.
-- update_ru_ips: Triggers RU ipset refresh through the routing manager.
-- list_custom_routes/create_custom_route/delete_custom_route: Maintain legacy custom-route state and sync it into runtime ipsets.
-- list_domain_route_rules/create_domain_route_rule/update_domain_route_rule/delete_domain_route_rule: Manage domain-based policy rules.
-- list_cidr_route_rules/create_cidr_route_rule/update_cidr_route_rule/delete_cidr_route_rule: Manage CIDR-based policy rules.
-- explain_route_decision: Returns effective route target, reason, and trace marker for an input address.
-- list_policy_dns_bindings: Returns active DNS-derived bindings used by policy decisions.
-
-CHANGE_SUMMARY
-- 2026-03-24: Expanded routing API to include policy CRUD, DNS binding visibility, and decision explainability for route-policy migration work.
-"""
+# FILE: backend/app/routing/router.py
+# VERSION: 1.0.0
+# ROLE: ENTRY_POINT
+# MAP_MODE: SUMMARY
+# START_MODULE_CONTRACT
+#   PURPOSE: Expose admin-facing routing status, custom route management, policy CRUD, and route-decision inspection APIs.
+#   SCOPE: Routing status reads, RU update trigger, legacy custom-route CRUD, domain/CIDR policy CRUD, DNS binding visibility, and decision explain endpoints.
+#   DEPENDS: M-001 (backend-core), M-007 (routing)
+#   LINKS: M-007 (routing), M-013 (route-policy-resolver), M-014 (domain-rule-store), M-015 (dns-observer), M-016 (route-decision-api), M-017 (route-sync-runtime)
+# END_MODULE_CONTRACT
+#
+# START_MODULE_MAP
+#   get_routing_status - Returns current routing status and last RU update timestamp
+#   update_ru_ips - Triggers RU ipset refresh through the routing manager
+#   list_custom_routes / create_custom_route / delete_custom_route - Maintain legacy custom-route state and sync into runtime ipsets
+#   list_domain_route_rules / create_domain_route_rule / update_domain_route_rule / delete_domain_route_rule - Manage domain-based policy rules
+#   list_cidr_route_rules / create_cidr_route_rule / update_cidr_route_rule / delete_cidr_route_rule - Manage CIDR-based policy rules
+#   explain_route_decision - Returns effective route target, reason, and trace marker for an input address
+#   list_policy_dns_bindings - Returns active DNS-derived bindings used by policy decisions
+# END_MODULE_MAP
+#
+# START_CHANGE_SUMMARY
+#   LAST_CHANGE: v2.8.0 - Added full GRACE MODULE_CONTRACT and MODULE_MAP per GRACE governance protocol
+# END_CHANGE_SUMMARY
+"""Routing API router."""
 # <!-- GRACE: module="M-016" api-group="Routing API" -->
 
 import asyncio
@@ -56,6 +60,7 @@ router = APIRouter(prefix="/api/v1/routing", tags=["routing"])
 _last_ru_update: datetime | None = None
 
 
+# START_BLOCK: _resolve_ipv4_addresses (DNS helper, ~15 lines)
 async def _resolve_ipv4_addresses(domain: str) -> list[str]:
     """Resolve a domain to IPv4 addresses for DNS policy bindings."""
     try:
@@ -72,11 +77,13 @@ async def _resolve_ipv4_addresses(domain: str) -> list[str]:
         if ip:
             seen[ip] = None
     return list(seen.keys())
+# END_BLOCK: _resolve_ipv4_addresses
 
 
 policy_dns_observer = DNSObserver(_resolve_ipv4_addresses)
 
 
+# START_BLOCK: get_routing_status (status endpoint, ~18 lines)
 @router.get("/status", response_model=RoutingStatus)
 async def get_routing_status(
     admin: CurrentAdmin,
@@ -84,14 +91,14 @@ async def get_routing_status(
 ):
     """Get routing system status."""
     global _last_ru_update
-    
+
     ipset_stats = await routing_manager.get_ipset_stats()
     tunnel_status = await routing_manager.check_tunnel_status()
-    
+
     # Count custom routes
     result = await session.execute(select(CustomRoute).where(CustomRoute.is_active == True))
     custom_routes = result.scalars().all()
-    
+
     return RoutingStatus(
         ru_ipset_entries=ipset_stats.get(routing_manager.IPSET_RU, {}).get("entries", 0),
         ru_ipset_status=ipset_stats.get(routing_manager.IPSET_RU, {}).get("status", "unknown"),
@@ -99,6 +106,7 @@ async def get_routing_status(
         custom_routes_count=len(custom_routes),
         last_ru_update=_last_ru_update,
     )
+# END_BLOCK: get_routing_status
 
 
 @router.post("/update-ru")
@@ -144,6 +152,7 @@ async def list_custom_routes(
     ]
 
 
+# START_BLOCK: create_custom_route (creation endpoint, ~25 lines)
 @router.post("/custom", response_model=CustomRouteResponse, status_code=status.HTTP_201_CREATED)
 async def create_custom_route(
     data: CustomRouteCreate,
@@ -160,21 +169,21 @@ async def create_custom_route(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Route already exists",
         )
-    
+
     route = CustomRoute(
         address=data.address.strip(),
         route_type=data.route_type,
         description=data.description,
     )
-    
+
     session.add(route)
     await session.flush()
     await session.refresh(route)
-    
+
     # Sync with ipset
     routes = await _get_all_routes(session)
     await routing_manager.sync_custom_routes(routes)
-    
+
     return CustomRouteResponse(
         id=route.id,
         address=route.address,
@@ -183,6 +192,7 @@ async def create_custom_route(
         is_active=route.is_active,
         created_at=route.created_at,
     )
+# END_BLOCK: create_custom_route
 
 
 @router.delete("/custom/{route_id}")
@@ -233,6 +243,7 @@ async def list_domain_route_rules(
     return await store.list_domain_rules()
 
 
+# START_BLOCK: create_domain_route_rule (policy creation, ~12 lines)
 @router.post("/policy/domains", response_model=DomainRouteRuleResponse, status_code=status.HTTP_201_CREATED)
 async def create_domain_route_rule(
     data: DomainRouteRuleCreate,
@@ -250,8 +261,10 @@ async def create_domain_route_rule(
     if rule.is_active:
         await policy_dns_observer.refresh_domain_bindings(rule)
     return rule
+# END_BLOCK: create_domain_route_rule
 
 
+# START_BLOCK: update_domain_route_rule (policy update, ~18 lines)
 @router.put("/policy/domains/{rule_id}", response_model=DomainRouteRuleResponse)
 async def update_domain_route_rule(
     rule_id: int,
@@ -272,8 +285,10 @@ async def update_domain_route_rule(
     else:
         policy_dns_observer.clear_domain_bindings(rule.normalized_domain)
     return rule
+# END_BLOCK: update_domain_route_rule
 
 
+# START_BLOCK: delete_domain_route_rule (policy deletion, ~12 lines)
 @router.delete("/policy/domains/{rule_id}")
 async def delete_domain_route_rule(
     rule_id: int,
@@ -290,6 +305,7 @@ async def delete_domain_route_rule(
     policy_dns_observer.clear_domain_bindings(rule.normalized_domain)
     await store.delete_domain_rule(rule)
     return {"status": "deleted"}
+# END_BLOCK: delete_domain_route_rule
 
 
 @router.get("/policy/cidrs", response_model=list[CidrRouteRuleResponse])
@@ -369,6 +385,7 @@ async def list_policy_dns_bindings(
     ]
 
 
+# START_BLOCK: explain_route_decision (decision explain, ~20 lines)
 @router.post("/policy/explain", response_model=RouteDecisionExplainResponse)
 async def explain_route_decision(
     data: RouteDecisionExplainRequest,
@@ -398,3 +415,4 @@ async def explain_route_decision(
         normalized_domain=decision.normalized_domain,
         resolved_ip=decision.resolved_ip,
     )
+# END_BLOCK: explain_route_decision

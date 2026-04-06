@@ -1,3 +1,25 @@
+// FILE: frontend/src/pages/Referrals.tsx
+// VERSION: 1.0.0
+// ROLE: UI_COMPONENT
+// MAP_MODE: SUMMARY
+// START_MODULE_CONTRACT
+//   PURPOSE: Referral program page -- display referral code, link, stats, and referral history
+//   SCOPE: Code/link copy to clipboard, referral stats cards, referral list with bonus status
+//   DEPENDS: M-009 (frontend-user), M-005 (referrals API)
+//   LINKS: M-009 (frontend-user)
+// END_MODULE_CONTRACT
+//
+// START_MODULE_MAP
+//   ReferralsPage - Referral program component with code, link, stats, and history
+//   BLOCK_REFERRALS_PAGE - ReferralsPage default export (140 lines)
+//   default - React component (default export)
+// END_MODULE_MAP
+//
+// START_CHANGE_SUMMARY
+//   LAST_CHANGE: v2.8.0 - Added full GRACE MODULE_CONTRACT and MODULE_MAP per GRACE governance protocol
+// END_CHANGE_SUMMARY
+//
+// START_BLOCK_REFERRALS_PAGE
 import { useState } from 'react'
 import { useQuery } from 'react-query'
 import { useTranslation } from 'react-i18next'
@@ -138,3 +160,4 @@ export default function Referrals() {
     </div>
   )
 }
+// END_BLOCK_REFERRALS_PAGE

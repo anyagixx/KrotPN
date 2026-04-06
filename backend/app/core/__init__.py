@@ -1,3 +1,25 @@
+# FILE: backend/app/core/__init__.py
+# VERSION: 1.0.0
+# ROLE: BARREL
+# MAP_MODE: SUMMARY
+# START_MODULE_CONTRACT
+#   PURPOSE: Core module re-exports and circular dependency documentation
+#   SCOPE: Aggregates config, database, security, dependencies for convenient imports
+#   DEPENDS: M-001 submodules (config, database, security, dependencies)
+#   LINKS: M-001 (backend-core), all modules importing from app.core
+# END_MODULE_CONTRACT
+#
+# START_MODULE_MAP
+#   Settings, get_settings, settings - Configuration from config.py
+#   engine, async_session_maker, get_session, get_db_context, init_db - Database from database.py
+#   hash_password, verify_password, create_access_token, create_refresh_token, verify_token, encrypt_data, decrypt_data - Security from security.py
+#   get_current_user, get_current_admin, get_current_superuser, CurrentUser, OptionalUser, CurrentAdmin, CurrentSuperuser, DBSession - Dependencies from dependencies.py
+# END_MODULE_MAP
+#
+# START_CHANGE_SUMMARY
+#   LAST_CHANGE: v2.8.0 - Added full GRACE MODULE_CONTRACT and MODULE_MAP per GRACE governance protocol
+# END_CHANGE_SUMMARY
+#
 """Core module exports.
 
 KNOWN CIRCULAR DEPENDENCY CHAINS

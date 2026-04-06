@@ -1,19 +1,23 @@
-# START_MODULE_CONTRACT: M-003-CONFIG
-# PURPOSE: VPN config generation — decrypt private keys, render WG config for clients
-# SCOPE: ConfigMixin with get_client_config
-# INPUTS: VPNClient record, associated nodes/servers
-# OUTPUTS: Rendered WireGuard config string
-# DEPENDENCIES: M-001 (core security/decrypt), M-003 (vpn models)
-# VERIFICATION: V-M-003 — config rendering produces valid WG format
-# END_MODULE_CONTRACT: M-003-CONFIG
-# START_MODULE_CONTRACT: M-003-CONFIG
-# PURPOSE: VPN config generation — decrypt private keys, render WG config for clients
-# SCOPE: ConfigMixin with get_client_config
-# INPUTS: VPNClient record, associated nodes/servers
-# OUTPUTS: Rendered WireGuard config string
-# DEPENDENCIES: M-001 (core security/decrypt), M-003 (vpn models)
-# VERIFICATION: V-M-003 — config rendering produces valid WG format
-# END_MODULE_CONTRACT: M-003-CONFIG
+# FILE: backend/app/vpn/config.py
+# VERSION: 1.0.0
+# ROLE: RUNTIME
+# MAP_MODE: EXPORTS
+# START_MODULE_CONTRACT
+#   PURPOSE: VPN config generation — decrypt private keys, render WireGuard config for clients
+#   SCOPE: ConfigMixin with get_client_config
+#   DEPENDS: M-001 (core security/decrypt), M-003 (vpn models), M-003 (vpn amneziawg)
+#   LINKS: M-003 (vpn), V-M-003
+# END_MODULE_CONTRACT
+#
+# START_MODULE_MAP
+#   ConfigMixin - Mixin providing VPN config generation helpers
+#   ConfigMixin.get_client_config - Render WireGuard config for a VPNClient
+# END_MODULE_MAP
+#
+# START_CHANGE_SUMMARY
+#   LAST_CHANGE: v2.8.0 - Converted to full GRACE MODULE_CONTRACT/MAP format, removed duplicate contract blocks
+# END_CHANGE_SUMMARY
+#
 """VPN config generation helpers."""
 
 from app.core.security import decrypt_data

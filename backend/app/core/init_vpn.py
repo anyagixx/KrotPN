@@ -1,3 +1,27 @@
+# FILE: backend/app/core/init_vpn.py
+# VERSION: 1.0.0
+# ROLE: RUNTIME
+# MAP_MODE: EXPORTS
+# START_MODULE_CONTRACT
+#   PURPOSE: VPN topology bootstrap — auto-create VPN nodes and routes from env vars on startup
+#   SCOPE: Entry/exit node discovery, default route creation, legacy VPNServer mirror sync
+#   DEPENDS: M-001 (config), M-003 (vpn models: VPNServer, VPNNode, VPNRoute)
+#   LINKS: M-001 (backend-core), M-003 (vpn), main.py (lifespan startup), V-M-001
+# END_MODULE_CONTRACT
+#
+# START_MODULE_MAP
+#   ensure_default_vpn_server - Create/sync legacy VPNServer record from env (rollback compatibility)
+#   ensure_default_vpn_topology - Create/sync VPNNode + VPNRoute records for entry→exit topology
+#   _entry_server_config - Resolve entry node config with legacy fallbacks
+#   _exit_server_config - Resolve exit node config from dedicated env vars
+#   _upsert_node - Create or update a VPNNode record by public key
+#   _node_role - Convert is_entry/is_exit booleans to stable role string
+# END_MODULE_MAP
+#
+# START_CHANGE_SUMMARY
+#   LAST_CHANGE: v2.8.0 - Added full GRACE MODULE_CONTRACT and MODULE_MAP per GRACE governance protocol
+# END_CHANGE_SUMMARY
+#
 """
 Bootstrap VPN server, node, and route records from environment configuration.
 
@@ -16,6 +40,7 @@ from app.core.config import settings
 from app.vpn.models import VPNNode, VPNRoute, VPNServer
 
 
+# START_BLOCK_CONFIG_HELPERS
 def _entry_server_config() -> dict[str, str | int | None]:
     """Resolve entry-node config with fallback to legacy VPN_SERVER_* settings."""
     return {
@@ -38,8 +63,10 @@ def _exit_server_config() -> dict[str, str | int | None]:
         "country_code": settings.vpn_exit_server_country_code,
         "max_clients": settings.vpn_exit_server_max_clients,
     }
+# END_BLOCK_CONFIG_HELPERS
 
 
+# START_BLOCK_BOOTSTRAP
 async def ensure_default_vpn_server(session: AsyncSession) -> VPNServer | None:
     """Ensure the deprecated vpn_servers mirror exists for rollback compatibility."""
     # This keeps the legacy mirror alive for rollback/compatibility.
@@ -171,8 +198,10 @@ async def ensure_default_vpn_topology(
         f"[VPN] Default route created: {route.name} ({entry_node.name} -> {exit_node.name})"
     )
     return route
+# END_BLOCK_BOOTSTRAP
 
 
+# START_BLOCK_NODE_HELPERS
 async def _upsert_node(
     session: AsyncSession,
     public_key: str | None,
@@ -228,8 +257,10 @@ async def _upsert_node(
     await session.flush()
     await session.refresh(node)
     return node
+# END_BLOCK_NODE_HELPERS
 
 
+# START_BLOCK_ROLE_STRING
 def _node_role(*, is_entry_node: bool, is_exit_node: bool) -> str:
     """Convert booleans to a stable node role string."""
     if is_entry_node and is_exit_node:
@@ -237,3 +268,4 @@ def _node_role(*, is_entry_node: bool, is_exit_node: bool) -> str:
     if is_exit_node:
         return "exit"
     return "entry"
+# END_BLOCK_ROLE_STRING

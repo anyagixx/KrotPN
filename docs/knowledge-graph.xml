@@ -1,12 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- GRACE-lite Knowledge Graph -->
-<knowledge-graph>
-  <meta>
-    <project-name>KrotVPN</project-name>
-    <version>2.8.0</version>
-    <updated>2026-04-05</updated>
-    <purpose>Fast AI onboarding and navigation for the current system plus the approved routing-policy migration, manual internal client provisioning parity plan, device-bound access plus anti-sharing architecture, the live hotfixes applied after v2.4.26 rollout, and the P1-P6 hardening sweep (security, backend stability, frontend quality, infrastructure, tests/CI, cleanup).</purpose>
-  </meta>
+<!-- GRACE Knowledge Graph for KrotVPN — module map, dependencies, public interfaces, cross-links, hotspots -->
+<KnowledgeGraph VERSION="1.0.0">
+  <Project NAME="KrotVPN" VERSION="2.8.0">
+    <keywords>VPN, WireGuard, split-tunneling, routing, billing, subscriptions, Telegram bot, admin panel, FastAPI, Vue.js, YooKassa, Docker, AWG</keywords>
+    <annotation>Commercial VPN service on AmneziaWG with user dashboard, admin panel, billing, referrals, Telegram bot, and two-node RU/DE network topology. MVP in hardening/stabilization phase under GRACE governance.</annotation>
+    <governance-rule>ALL development in this project is STRICTLY GRACE-governed. No code without contracts. No commits without verification. No XML edits without full reads. This is an engineering protocol, not a recommendation.</governance-rule>
 
   <entry-points>
     <EP-001 path="backend/app/main.py">FastAPI runtime bootstrap and router assembly</EP-001>
@@ -326,4 +324,5 @@
       backend/app/billing/models.py, backend/app/admin/router.py, backend/app/vpn/router.py and any future backend/app/devices module before changing code.
     </device-sharing-entry>
   </agent-navigation>
-</knowledge-graph>
+  </Project>
+</KnowledgeGraph>

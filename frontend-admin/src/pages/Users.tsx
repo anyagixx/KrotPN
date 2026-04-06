@@ -1,9 +1,33 @@
+// FILE: frontend-admin/src/pages/Users.tsx
+// VERSION: 1.0.0
+// ROLE: UI_COMPONENT
+// MAP_MODE: SUMMARY
+// START_MODULE_CONTRACT
+//   PURPOSE: Admin page for user management (list, search, pagination, role/status display)
+//   SCOPE: Paginated user list with search, role badges, active/blocked status
+//   DEPENDS: M-010 (frontend-admin), M-006 (admin API)
+//   LINKS: M-010
+// END_MODULE_CONTRACT
+//
+// START_MODULE_MAP
+//   UsersPage - Main admin users page component
+//   formatDate - Helper: format date to ru-RU locale string
+//   default - React component (default export)
+// END_MODULE_MAP
+//
+// START_CHANGE_SUMMARY
+//   LAST_CHANGE: v2.8.0 - Added full GRACE MODULE_CONTRACT and MODULE_MAP per GRACE governance protocol
+// END_CHANGE_SUMMARY
+
 import { useMemo, useState } from 'react'
 import { useQuery } from 'react-query'
 import { Search, Shield, UserCheck, UserRound, UserX } from 'lucide-react'
 import { adminApi } from '../lib/api'
 import type { AdminUser, PaginatedResponse } from '../types'
 
+// START_BLOCK: formatDate
+// Formats ISO date string to ru-RU locale or returns 'Никогда'
+// DEPENDS: none (pure function)
 function formatDate(value?: string | null) {
   if (!value) return 'Никогда'
   return new Date(value).toLocaleString('ru-RU', {
@@ -14,7 +38,12 @@ function formatDate(value?: string | null) {
     minute: '2-digit',
   })
 }
+// END_BLOCK: formatDate
 
+// START_BLOCK: Users
+// Main admin users page: paginated user list with search and role/status display
+// DEPENDS: M-010 (frontend-admin), M-006 (admin API via adminApi)
+//   - adminApi.getUsers (paginated with search)
 export default function Users() {
   const [page, setPage] = useState(1)
   const [search, setSearch] = useState('')
@@ -182,3 +211,4 @@ export default function Users() {
     </div>
   )
 }
+// END_BLOCK: Users

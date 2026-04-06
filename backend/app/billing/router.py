@@ -1,3 +1,31 @@
+# FILE: backend/app/billing/router.py
+# VERSION: 1.0.0
+# ROLE: ENTRY_POINT
+# MAP_MODE: SUMMARY
+# START_MODULE_CONTRACT
+#   PURPOSE: Expose public billing reads, user subscription and payment actions, YooKassa webhook handling, and admin plan or subscription management over BillingService.
+#   SCOPE: Plan listing, subscription status/detail, payment creation and history, webhook intake, and admin plan or subscription mutation endpoints.
+#   DEPENDS: M-001 (auth, DB session), M-004 (billing models, schemas, service, yookassa), M-006 (admin)
+#   LINKS: M-004 (billing), M-006 (admin)
+# END_MODULE_CONTRACT
+#
+# START_MODULE_MAP
+#   list_plans - Returns active plans for user-facing storefront
+#   get_subscription_status - Returns compact subscription status for current user
+#   get_subscription_detail - Returns detailed subscription state for current user
+#   create_subscription_payment - Starts payment flow for one selected plan
+#   get_payment_history - Returns payment history for current user
+#   yookassa_webhook - Validates and processes YooKassa webhook events
+#   admin_list_plans, admin_create_plan, admin_update_plan, admin_delete_plan - Admin plan management
+#   admin_get_billing_stats - Returns aggregate billing statistics
+#   admin_update_subscription, admin_extend_subscription - Admin subscription mutations
+# END_MODULE_MAP
+#
+# START_CHANGE_SUMMARY
+#   LAST_CHANGE: v2.8.0 - Added full GRACE MODULE_CONTRACT, MODULE_MAP, and BLOCKS per GRACE governance protocol
+#   v2.8.0 - Added full GRACE MODULE_CONTRACT and MODULE_MAP per GRACE governance protocol
+# END_CHANGE_SUMMARY
+#
 """
 Billing API router.
 
@@ -62,6 +90,7 @@ admin_router = APIRouter(prefix="/api/v1/admin/billing", tags=["admin"])
 
 # ==================== Public Plan Endpoints ====================
 
+# START_BLOCK: list_plans
 @router.get("/plans", response_model=list[PlanResponse])
 async def list_plans(
     session: DBSession,
@@ -69,7 +98,7 @@ async def list_plans(
     """List all active subscription plans."""
     service = BillingService(session)
     plans = await service.get_plans(active_only=True)
-    
+
     return [
         PlanResponse(
             id=p.id,
@@ -84,10 +113,12 @@ async def list_plans(
         )
         for p in plans
     ]
+# END_BLOCK
 
 
 # ==================== User Subscription Endpoints ====================
 
+# START_BLOCK: get_subscription_status
 @router.get("/subscription", response_model=SubscriptionStatusResponse)
 async def get_subscription_status(
     current_user: CurrentUser,
@@ -96,7 +127,7 @@ async def get_subscription_status(
     """Get current user's subscription status."""
     service = BillingService(session)
     subscription = await service.get_user_subscription(current_user.id)
-    
+
     if not subscription:
         return SubscriptionStatusResponse(
             has_subscription=False,
@@ -107,16 +138,16 @@ async def get_subscription_status(
             expires_at=None,
             is_recurring=False,
         )
-    
+
     now = datetime.now(timezone.utc)
     days_left = max(0, (subscription.expires_at - now).days)
-    
+
     # Get plan name
     plan_name = None
     if subscription.plan_id:
         plan = await service.get_plan(subscription.plan_id)
         plan_name = plan.name if plan else None
-    
+
     return SubscriptionStatusResponse(
         has_subscription=True,
         is_active=subscription.is_active and subscription.expires_at > now,
@@ -126,8 +157,10 @@ async def get_subscription_status(
         expires_at=subscription.expires_at,
         is_recurring=subscription.is_recurring,
     )
+# END_BLOCK
 
 
+# START_BLOCK: get_subscription_detail
 @router.get("/subscription/detail", response_model=SubscriptionResponse | None)
 async def get_subscription_detail(
     current_user: CurrentUser,
@@ -136,19 +169,19 @@ async def get_subscription_detail(
     """Get current user's subscription details."""
     service = BillingService(session)
     subscription = await service.get_user_subscription(current_user.id)
-    
+
     if not subscription:
         return None
-    
+
     now = datetime.now(timezone.utc)
     days_left = max(0, (subscription.expires_at - now).days)
-    
+
     # Get plan name
     plan_name = None
     if subscription.plan_id:
         plan = await service.get_plan(subscription.plan_id)
         plan_name = plan.name if plan else None
-    
+
     return SubscriptionResponse(
         id=subscription.id,
         plan_id=subscription.plan_id or 0,
@@ -161,10 +194,12 @@ async def get_subscription_detail(
         is_trial=subscription.is_trial,
         is_recurring=subscription.is_recurring,
     )
+# END_BLOCK
 
 
 # ==================== Payment Endpoints ====================
 
+# START_BLOCK: create_subscription_payment
 @router.post("/subscribe", response_model=PaymentResponse)
 async def create_subscription_payment(
     data: SubscribeRequest,
@@ -174,7 +209,7 @@ async def create_subscription_payment(
 ):
     """Create a payment for subscription."""
     service = BillingService(session)
-    
+
     # Get plan
     plan = await service.get_plan(data.plan_id)
     if not plan or not plan.is_active:
@@ -182,7 +217,7 @@ async def create_subscription_payment(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Plan not found or inactive",
         )
-    
+
     # Create payment
     return_url = str(request.url.replace(path="/subscription", query=""))
     payment = await service.create_payment(
@@ -191,7 +226,7 @@ async def create_subscription_payment(
         provider=data.provider,
         return_url=return_url,
     )
-    
+
     return PaymentResponse(
         id=payment.id,
         amount=payment.amount,
@@ -202,8 +237,10 @@ async def create_subscription_payment(
         created_at=payment.created_at,
         paid_at=payment.paid_at,
     )
+# END_BLOCK
 
 
+# START_BLOCK: get_payment_history
 @router.get("/payments", response_model=PaymentHistoryResponse)
 async def get_payment_history(
     current_user: CurrentUser,
@@ -213,7 +250,7 @@ async def get_payment_history(
     """Get user's payment history."""
     service = BillingService(session)
     payments = await service.get_user_payments(current_user.id, limit)
-    
+
     return PaymentHistoryResponse(
         items=[
             PaymentResponse(
@@ -230,10 +267,12 @@ async def get_payment_history(
         ],
         total=len(payments),
     )
+# END_BLOCK
 
 
 # ==================== Webhooks ====================
 
+# START_BLOCK: yookassa_webhook
 @router.post("/webhooks/yookassa")
 async def yookassa_webhook(
     request: Request,
@@ -242,28 +281,30 @@ async def yookassa_webhook(
     """Handle YooKassa webhook notifications."""
     body = await request.body()
     data = await request.json()
-    
+
     logger.info(f"[BILLING] YooKassa webhook: {data.get('event')}")
-    
+
     service = BillingService(session)
-    
+
     signature = request.headers.get("X-Content-Signature", "")
     if not yookassa_client.verify_webhook_signature(body, signature):
         raise HTTPException(status_code=400, detail="Invalid signature")
-    
+
     payment = await service.process_payment_webhook(
         PaymentProvider.YOOKASSA,
         data,
     )
-    
+
     if payment:
         return {"status": "ok", "payment_id": payment.id}
-    
+
     return {"status": "ignored"}
+# END_BLOCK
 
 
 # ==================== Admin Endpoints ====================
 
+# START_BLOCK: admin_list_plans
 @admin_router.get("/plans", response_model=list[PlanResponse])
 async def admin_list_plans(
     admin: CurrentAdmin,
@@ -272,7 +313,7 @@ async def admin_list_plans(
     """List all plans (admin)."""
     service = BillingService(session)
     plans = await service.get_plans(active_only=False)
-    
+
     return [
         PlanResponse(
             id=p.id,
@@ -287,6 +328,7 @@ async def admin_list_plans(
         )
         for p in plans
     ]
+# END_BLOCK
 
 
 @admin_router.post("/plans", status_code=status.HTTP_201_CREATED)
@@ -298,10 +340,11 @@ async def admin_create_plan(
     """Create a new plan (admin)."""
     service = BillingService(session)
     plan = await service.create_plan(data.model_dump())
-    
+
     return {"id": plan.id, "status": "created"}
 
 
+# START_BLOCK: admin_update_plan
 @admin_router.put("/plans/{plan_id}")
 async def admin_update_plan(
     plan_id: int,
@@ -312,26 +355,28 @@ async def admin_update_plan(
     """Update a plan (admin)."""
     service = BillingService(session)
     plan = await service.get_plan(plan_id)
-    
+
     if not plan:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Plan not found",
         )
-    
+
     update_data = data.model_dump(exclude_unset=True)
-    
+
     if "features" in update_data and isinstance(update_data["features"], list):
         update_data["features"] = json.dumps(update_data["features"])
-    
+
     for field, value in update_data.items():
         setattr(plan, field, value)
-    
+
     await session.flush()
-    
+
     return {"status": "updated"}
+# END_BLOCK
 
 
+# START_BLOCK: admin_delete_plan
 @admin_router.delete("/plans/{plan_id}")
 async def admin_delete_plan(
     plan_id: int,
@@ -341,18 +386,19 @@ async def admin_delete_plan(
     """Delete a plan (admin)."""
     service = BillingService(session)
     plan = await service.get_plan(plan_id)
-    
+
     if not plan:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Plan not found",
         )
-    
+
     # Soft delete - just deactivate
     plan.is_active = False
     await session.flush()
-    
+
     return {"status": "deleted"}
+# END_BLOCK
 
 
 @admin_router.get("/stats")
@@ -366,6 +412,7 @@ async def admin_get_billing_stats(
     return stats
 
 
+# START_BLOCK: admin_update_subscription
 @admin_router.put("/subscriptions/{subscription_id}")
 async def admin_update_subscription(
     subscription_id: int,
@@ -375,22 +422,24 @@ async def admin_update_subscription(
 ):
     """Update a subscription (admin)."""
     subscription = await session.get(Subscription, subscription_id)
-    
+
     if not subscription:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Subscription not found",
         )
-    
+
     update_data = data.model_dump(exclude_unset=True)
     for field, value in update_data.items():
         setattr(subscription, field, value)
-    
+
     await session.flush()
-    
+
     return {"status": "updated"}
+# END_BLOCK
 
 
+# START_BLOCK: admin_extend_subscription
 @admin_router.post("/subscriptions/{subscription_id}/extend")
 async def admin_extend_subscription(
     subscription_id: int,
@@ -401,13 +450,14 @@ async def admin_extend_subscription(
     """Extend a subscription by given days (admin)."""
     service = BillingService(session)
     subscription = await session.get(Subscription, subscription_id)
-    
+
     if not subscription:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Subscription not found",
         )
-    
+
     await service.extend_subscription(subscription, days)
-    
+
     return {"status": "extended", "days": days}
+# END_BLOCK

@@ -1,12 +1,25 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- GRACE-lite Development Plan -->
-<development-plan>
+<!-- GRACE Development Plan for KrotVPN — architecture, modules, contracts, data flows, phases, execution policy -->
+<DevelopmentPlan VERSION="1.0.0">
   <meta>
     <project-name>KrotVPN</project-name>
     <version>2.8.0</version>
-    <updated>2026-04-05</updated>
-    <current-phase>Hardening complete: P1-P6 all done. Security, backend stability, frontend quality, infrastructure, tests/CI, and cleanup phases delivered. System ready for production hardening review.</current-phase>
+    <updated>2026-04-06</updated>
+    <current-phase>Hardening complete: P1-P6 all done. System ready for production feature development under GRACE governance.</current-phase>
   </meta>
+
+  <ArchitectureNotes>
+    <objective>Contract-first AI engineering with semantic markup, knowledge graph navigation, and log-driven verification for a production VPN service</objective>
+    <non-goal>Do not rewrite the existing MVP; harden, stabilize, and extend through governed modules with explicit contracts</non-goal>
+    <risk-1>VPN and routing code is host-coupled — testing requires environment preparation, not pure containerized execution</risk-1>
+    <risk-2>Deployment security depends on manual secret management — no vault integration yet</risk-2>
+    <risk-3>Alembic migration workflow coexists with SQLModel.create_all during transition — risk of schema drift</risk-3>
+    <risk-4>Handshake anomaly detection is detect-first mode; automatic blocking thresholds not yet tuned for false-positive risk</risk-4>
+    <architectural-decision>Two-node RU/DE topology with Docker Compose; backend containerized, VPN tools on host with config mounts</architectural-decision>
+    <architectural-decision>Domain-aware routing with deterministic precedence: exact → wildcard → DNS-bound IP → CIDR → RU baseline → default</architectural-decision>
+    <architectural-decision>Device-bound access control with per-plan limits, peer-level revoke/rotate, and audit trail</architectural-decision>
+    <governance-rule>ALL development in this project MUST follow GRACE protocol strictly: $grace-plan → $grace-verification → $grace-execute → $grace-reviewer → $grace-refresh. No contract means no code. No verification means no commit. This is not optional — it is an engineering protocol.</governance-rule>
+  </ArchitectureNotes>
 
     <status-summary>
       <done>
@@ -61,41 +74,190 @@
     </WS-007>
   </active-workstreams>
 
-  <module-catalog>
+  <Modules>
     <M-001 name="backend-core" type="UTILITY" priority="critical" verification-ref="V-M-001">
-      <purpose>Configuration, security, DB lifecycle and bootstrap primitives.</purpose>
-      <target-paths>backend/app/core</target-paths>
+      <contract>
+        <purpose>Configuration, security, DB lifecycle and bootstrap primitives for the entire backend</purpose>
+        <inputs>
+          <param name="env" type="dict" description="Environment variables from .env file" />
+          <param name="settings" type="Settings" description="Pydantic settings object with validated config" />
+        </inputs>
+        <outputs>
+          <param name="engine" type="AsyncEngine" description="Database engine with async support" />
+          <param name="session_factory" type="async_sessionmaker" description="Session factory for DB operations" />
+          <param name="security_utils" type="functions" description="JWT, password hashing, Fernet encryption utilities" />
+        </outputs>
+      </contract>
+      <interface>
+        <export-get_settings PURPOSE="Load and validate application configuration from environment" />
+        <export-get_db PURPOSE="Provide async database session dependency injection" />
+        <export-create_access_token PURPOSE="Generate JWT access token with user claims" />
+        <export-verify_password PURPOSE="Compare plaintext password with hashed stored password" />
+        <export-get_password_hash PURPOSE="Hash password using pbkdf2_sha256" />
+      </interface>
       <depends>none</depends>
+      <target-paths>backend/app/core</target-paths>
+      <observability>
+        <log-prefix>[Core]</log-prefix>
+        <critical-block>STARTUP_CONFIG_LOAD</critical-block>
+      </observability>
     </M-001>
+
     <M-002 name="users" type="CORE_LOGIC" priority="critical" verification-ref="V-M-002">
-      <purpose>User auth, profile and Telegram-linked identity flows.</purpose>
+      <contract>
+        <purpose>User authentication, profile management, and Telegram-linked identity flows</purpose>
+        <inputs>
+          <param name="email" type="str" description="User email for registration/login" />
+          <param name="password" type="str" description="User plaintext password" />
+          <param name="telegram_data" type="dict" description="Telegram auth data from widget or bot" />
+        </inputs>
+        <outputs>
+          <param name="user" type="User" description="User model with profile and subscription linkage" />
+          <param name="tokens" type="TokenPair" description="Access + refresh JWT tokens" />
+        </outputs>
+      </contract>
+      <interface>
+        <export-authenticate_user PURPOSE="Validate credentials and return user + tokens" />
+        <export-register_user PURPOSE="Create new user with email/password and trial subscription" />
+        <export-telegram_auth PURPOSE="Authenticate user via Telegram widget or bot-mediated flow" />
+        <export-get_current_user PURPOSE="Dependency injection for authenticated user from JWT" />
+      </interface>
+      <depends>M-001</depends>
       <target-paths>backend/app/users</target-paths>
-      <depends>M-001</depends>
+      <observability>
+        <log-prefix>[Users]</log-prefix>
+        <critical-block>AUTH_FLOW</critical-block>
+      </observability>
     </M-002>
+
     <M-003 name="vpn" type="CORE_LOGIC" priority="critical" verification-ref="V-M-003">
-      <purpose>VPN provisioning, config generation and topology-aware client assignment.</purpose>
-      <target-paths>backend/app/vpn</target-paths>
+      <contract>
+        <purpose>VPN provisioning, config generation, device-bound peer management, and topology-aware client assignment</purpose>
+        <inputs>
+          <param name="user_id" type="UUID" description="User requesting VPN access" />
+          <param name="device_id" type="UUID" description="Device identifier for peer binding" />
+          <param name="node" type="VPNNode" description="Target VPN node for provisioning" />
+        </inputs>
+        <outputs>
+          <param name="config" type="str" description="WireGuard/AmneziaWG config text for client" />
+          <param name="client" type="VPNClient" description="Provisioned client record with peer info" />
+        </outputs>
+      </contract>
+      <interface>
+        <export-provision_client PURPOSE="Create or retrieve VPN client with device-bound peer" />
+        <export-generate_config PURPOSE="Generate WG/AWG config text for a specific client and node" />
+        <export-revoke_client PURPOSE="Revoke client peer and free device slot" />
+        <export-rotate_client PURPOSE="Generate new peer credentials for existing client" />
+        <export-get_client_stats PURPOSE="Return traffic and connection stats for a client" />
+      </interface>
       <depends>M-001 M-002 M-007</depends>
+      <target-paths>backend/app/vpn</target-paths>
+      <observability>
+        <log-prefix>[VPN]</log-prefix>
+        <critical-block>PROVISIONING_FLOW</critical-block>
+      </observability>
     </M-003>
+
     <M-004 name="billing" type="CORE_LOGIC" priority="critical" verification-ref="V-M-004">
-      <purpose>Plans, subscriptions, payments and webhook processing.</purpose>
+      <contract>
+        <purpose>Plans, subscriptions, payments, and webhook processing with YooKassa integration</purpose>
+        <inputs>
+          <param name="plan_id" type="UUID" description="Selected subscription plan" />
+          <param name="payment_data" type="dict" description="YooKassa payment confirmation webhook" />
+        </inputs>
+        <outputs>
+          <param name="subscription" type="Subscription" description="Active or trial subscription record" />
+          <param name="payment" type="Payment" description="Payment transaction record" />
+        </outputs>
+      </contract>
+      <interface>
+        <export-create_subscription PURPOSE="Activate subscription for user with plan limits" />
+        <export-process_webhook PURPOSE="Handle YooKassa payment confirmation or failure" />
+        <export-get_active_subscription PURPOSE="Return current subscription state for user" />
+        <export-get_plan_limits PURPOSE="Return device limits and features for a plan" />
+      </interface>
+      <depends>M-001</depends>
       <target-paths>backend/app/billing</target-paths>
-      <depends>M-001</depends>
+      <observability>
+        <log-prefix>[Billing]</log-prefix>
+        <critical-block>WEBHOOK_PROCESSING</critical-block>
+      </observability>
     </M-004>
+
     <M-005 name="referrals" type="CORE_LOGIC" priority="high" verification-ref="V-M-005">
-      <purpose>Referral codes, links and bonus accounting.</purpose>
+      <contract>
+        <purpose>Referral code generation, link tracking, and bonus accounting with anti-fraud checks</purpose>
+        <inputs>
+          <param name="referrer_id" type="UUID" description="User who shared referral code" />
+          <param name="referral_code" type="str" description="Code used by referred user" />
+        </inputs>
+        <outputs>
+          <param name="bonus" type="ReferralBonus" description="Bonus credited to referrer" />
+          <param name="stats" type="ReferralStats" description="Referral count and conversion metrics" />
+        </outputs>
+      </contract>
+      <interface>
+        <export-generate_referral_code PURPOSE="Create unique referral code for user" />
+        <export-apply_referral_code PURPOSE="Link new user to referrer and process bonus" />
+        <export-get_referral_stats PURPOSE="Return referral count and bonus for user" />
+      </interface>
+      <depends>M-001</depends>
       <target-paths>backend/app/referrals</target-paths>
-      <depends>M-001</depends>
+      <observability>
+        <log-prefix>[Referrals]</log-prefix>
+        <critical-block>BONUS_PROCESSING</critical-block>
+      </observability>
     </M-005>
+
     <M-006 name="admin-api" type="ENTRY_POINT" priority="high" verification-ref="V-M-006">
-      <purpose>Privileged analytics and operational control endpoints.</purpose>
-      <target-paths>backend/app/admin</target-paths>
+      <contract>
+        <purpose>Privileged analytics and operational control endpoints for administrators</purpose>
+        <inputs>
+          <param name="admin_credentials" type="AdminAuth" description="Admin authentication via JWT or API key" />
+          <param name="query_params" type="dict" description="Filtering, pagination, and date range parameters" />
+        </inputs>
+        <outputs>
+          <param name="analytics" type="AdminAnalytics" description="Aggregated metrics and operational data" />
+          <param name="entities" type="list" description="Paginated lists of users, tariffs, nodes, routes" />
+        </outputs>
+      </contract>
+      <interface>
+        <export-admin_auth PURPOSE="Dependency injection for admin authentication check" />
+        <export-get_user_analytics PURPOSE="Return user counts, activity, subscription breakdown" />
+        <export-get_revenue_analytics PURPOSE="Return payment totals, MRR, conversion metrics" />
+        <export-get_system_health PURPOSE="Return node status, routing state, error rates" />
+      </interface>
       <depends>M-001 M-002 M-003 M-004 M-005 M-007</depends>
+      <target-paths>backend/app/admin</target-paths>
+      <observability>
+        <log-prefix>[Admin]</log-prefix>
+        <critical-block>ADMIN_AUTH</critical-block>
+      </observability>
     </M-006>
+
     <M-007 name="routing" type="INTEGRATION" priority="critical" verification-ref="V-M-007">
-      <purpose>Host-level split-tunneling, ipset/iptables coordination and routing health inspection.</purpose>
-      <target-paths>backend/app/routing</target-paths>
+      <contract>
+        <purpose>Host-level split-tunneling, ipset/iptables coordination, and routing health inspection</purpose>
+        <inputs>
+          <param name="policy_rules" type="list[RoutePolicy]" description="Active domain/CIDR routing rules" />
+          <param name="dns_bindings" type="list[DNSBinding]" description="Current domain-to-IP mappings with TTL" />
+        </inputs>
+        <outputs>
+          <param name="ipset_state" type="IPSet" description="Current ipset entries for RU traffic" />
+          <param name="health" type="RoutingHealth" description="Routing subsystem health status" />
+        </outputs>
+      </contract>
+      <interface>
+        <export-sync_routes PURPOSE="Apply policy decisions to host-level ipset/iptables rules" />
+        <export-get_routing_health PURPOSE="Return routing subsystem health and error counts" />
+        <export-decision_log PURPOSE="Log structured routing decision with reason code" />
+      </interface>
       <depends>M-001</depends>
+      <target-paths>backend/app/routing</target-paths>
+      <observability>
+        <log-prefix>[Routing]</log-prefix>
+        <critical-block>ROUTE_SYNC</critical-block>
+      </observability>
     </M-007>
     <M-008 name="tasks" type="UTILITY" priority="medium" verification-ref="V-M-008">
       <purpose>Background scheduling and recurring maintenance jobs.</purpose>
@@ -189,101 +351,101 @@
       <target-paths>backend/app/devices/models.py backend/app/devices/service.py</target-paths>
       <depends>M-001 M-020 M-023</depends>
     </M-025>
-  </module-catalog>
+    <M-026 name="admin-audit-log" type="DATA_LAYER" priority="high" verification-ref="V-M-026">
+      <purpose>Admin action audit trail and request logging middleware for /api/v1/admin/* endpoints</purpose>
+      <target-paths>backend/app/admin/audit.py</target-paths>
+      <depends>M-001 M-006</depends>
+    </M-026>
+    <M-027 name="token-blacklist" type="UTILITY" priority="critical" verification-ref="V-M-027">
+      <purpose>Redis-based JWT token revocation for logout and incident response with graceful degradation when Redis is unavailable</purpose>
+      <target-paths>backend/app/core/security.py</target-paths>
+      <depends>M-001</depends>
+    </M-027>
+    <M-028 name="alembic-migrations" type="UTILITY" priority="critical" verification-ref="V-M-028">
+      <purpose>Database schema migration infrastructure with async Alembic support and migration helpers</purpose>
+      <target-paths>backend/alembic/ backend/app/core/migrations.py</target-paths>
+      <depends>M-001</depends>
+    </M-028>
+  </Modules>
 
-  <data-flows>
-    <DF-001>
-      <name>Domain-first routing decision</name>
-      <path>M-016 -> M-013 -> M-014 -> M-017</path>
-      <summary>
-        Admin-defined domain policy is evaluated first. Exact and wildcard domain rules override generic RU IP heuristics.
-      </summary>
+  <DataFlow>
+    <DF-001 NAME="Domain-first routing decision" TRIGGER="Incoming traffic with known domain">
+      <step-1>Admin-defined domain policy loaded from M-014</step-1>
+      <step-2>M-013 resolver evaluates exact → wildcard → DNS-bound IP → CIDR → RU baseline</step-2>
+      <step-3>Decision applied with structured log: [Routing][resolve][ROUTE_DECISION] reason=X</step-3>
+      <evidence>M-013 decision log, M-016 admin inspection endpoint, M-007 ipset state</evidence>
     </DF-001>
-    <DF-002>
-      <name>DNS binding to runtime route set</name>
-      <path>M-015 -> M-013 -> M-017</path>
-      <summary>
-        DNS-derived IPs for a matched domain are cached and synchronized into the runtime route set with TTL awareness.
-      </summary>
+    <DF-002 NAME="DNS binding to runtime route set" TRIGGER="DNS TTL expiry or policy refresh">
+      <step-1>M-015 resolves domain and detects IP change</step-1>
+      <step-2>M-013 re-evaluates routing decision for updated IPs</step-2>
+      <step-3>M-017 sync_routes applies incremental update to host ipset</step-3>
+      <evidence>M-015 DNS resolution log, M-017 sync outcome, M-007 ipset diff</evidence>
     </DF-002>
-    <DF-003>
-      <name>Fallback CIDR classification</name>
-      <path>M-013 -> M-014 -> M-017</path>
-      <summary>
-        If no domain policy applies, explicit CIDR rules and the RU baseline determine whether traffic stays local or exits via DE.
-      </summary>
+    <DF-003 NAME="Fallback CIDR classification" TRIGGER="Unknown domain with no explicit policy">
+      <step-1>M-013 checks CIDR rules against traffic IP</step-1>
+      <step-2>If no CIDR match, falls back to RU baseline</step-2>
+      <evidence>M-013 decision log with reason=cidr_rule or reason=ru_baseline</evidence>
     </DF-003>
-    <DF-004>
-      <name>Provisioning and config consistency</name>
-      <path>M-003 -> M-013 -> M-017</path>
-      <summary>
-        VPN provisioning and routing runtime share the same decision policy so client expectations match traffic behavior.
-      </summary>
+    <DF-004 NAME="Provisioning and config consistency" TRIGGER="User requests VPN access">
+      <step-1>M-003 provisions client bound to user + device</step-1>
+      <step-2>M-003 generates config using same topology decision as routing</step-2>
+      <evidence>M-003 config output matches M-007 routing state</evidence>
     </DF-004>
-    <DF-005>
-      <name>Admin observability of policy decisions</name>
-      <path>M-006 -> M-016 -> M-013</path>
-      <summary>
-        Operators can inspect why a domain or IP was routed to RU, DE, DIRECT or DEFAULT.
-      </summary>
+    <DF-005 NAME="Admin observability of policy decisions" TRIGGER="Admin opens routing dashboard">
+      <step-1>M-006 authenticates admin request</step-1>
+      <step-2>M-016 returns policy rules and recent decisions</step-2>
+      <step-3>Frontend renders rules with decision reason breakdown</step-3>
+      <evidence>M-016 API response, M-010 admin UI state</evidence>
     </DF-005>
-    <DF-006>
-      <name>Manual internal client provisioning</name>
-      <path>M-019 -> M-002 -> M-018 -> M-003</path>
-      <summary>
-        Operator-run client creation resolves or creates an internal user, grants non-billable access, provisions a VPN client and returns the same config shape as the web flow.
-      </summary>
+    <DF-006 NAME="Manual internal client provisioning" TRIGGER="Operator runs CLI command">
+      <step-1>M-019 creates/resolves internal user with non-billable access via M-018</step-1>
+      <step-2>M-003 provisions VPN client with device-bound peer</step-2>
+      <step-3>Config exported in same shape as web flow</step-3>
+      <evidence>M-019 CLI output, M-003 config parity with web, M-018 complimentary access marker</evidence>
     </DF-006>
-    <DF-007>
-      <name>Config parity between web and CLI paths</name>
-      <path>M-002 -> M-004 -> M-003 and M-019 -> M-018 -> M-003</path>
-      <summary>
-        Web registration and operator CLI issuance must converge on the same VPNService-based topology selection and config rendering path.
-      </summary>
+    <DF-007 NAME="Config parity between web and CLI paths" TRIGGER="Both web registration and CLI issuance">
+      <step-1>Web: M-002 → M-004 → M-003 (subscription → provisioning)</step-1>
+      <step-2>CLI: M-019 → M-018 → M-003 (internal access → provisioning)</step-2>
+      <step-3>Both converge on same VPNService topology selection and config rendering</step-3>
+      <evidence>Config diff is empty, peer structure identical, subscription state consistent</evidence>
     </DF-007>
-    <DF-008>
-      <name>Manual client idempotency and reprovision safety</name>
-      <path>M-019 -> M-018 -> M-003</path>
-      <summary>
-        Re-running manual client issuance for the same identity should reuse or explicitly reprovision state instead of creating silent duplicate active clients.
-      </summary>
+    <DF-008 NAME="Manual client idempotency and reprovision safety" TRIGGER="Repeated CLI issuance for same identity">
+      <step-1>M-019 resolves existing internal user</step-1>
+      <step-2>If client exists, reuses or explicitly reprovisions (not duplicate creation)</step-2>
+      <evidence>Single active client for identity, peer preserved or explicitly rotated</evidence>
     </DF-008>
-    <DF-009>
-      <name>Device creation under plan limits</name>
-      <path>M-009 -> M-022 -> M-021 -> M-004 -> M-020 -> M-003</path>
-      <summary>
-        A logged-in user requests a new device; device-access policy loads the active subscription and plan, checks active device count against the limit and provisions a distinct peer or rejects the request.
-      </summary>
+    <DF-009 NAME="Device creation under plan limits" TRIGGER="User requests new device">
+      <step-1>M-022 receives device creation request</step-1>
+      <step-2>M-021 loads active subscription + plan, checks device count vs limit</step-2>
+      <step-3>If slot available: M-003 provisions new peer; else: rejects with upgrade hint</step-3>
+      <evidence>M-021 limit check log, M-003 provisioning outcome, M-020 device registry state</evidence>
     </DF-009>
-    <DF-010>
-      <name>Device-specific config lifecycle</name>
-      <path>M-022 -> M-021 -> M-003 -> M-020 -> M-025</path>
-      <summary>
-        Config download, rotation and revocation operate on a concrete device record so each official device has its own peer, address and audit trail.
-      </summary>
+    <DF-010 NAME="Device-specific config lifecycle" TRIGGER="User downloads, rotates, or revokes device config">
+      <step-1>M-022 routes request to M-021 for authorization</step-1>
+      <step-2>M-003 generates/revokes/rotates peer for specific device</step-2>
+      <step-3>M-025 records audit event</step-3>
+      <evidence>M-025 audit trail, M-020 device state, M-003 config output</evidence>
     </DF-010>
-    <DF-011>
-      <name>Handshake anomaly detection and scoring</name>
-      <path>M-003 -> M-023 -> M-025 -> M-021</path>
-      <summary>
-        Runtime handshake or endpoint observations are converted into structured device security events and a suspicion score that can later justify soft or hard enforcement.
-      </summary>
+    <DF-011 NAME="Handshake anomaly detection and scoring" TRIGGER="Peer handshake or endpoint change observed">
+      <step-1>M-003 captures handshake event</step-1>
+      <step-2>M-023 scores suspicion based on endpoint churn, concurrent reuse patterns</step-2>
+      <step-3>M-025 records structured security event</step-3>
+      <evidence>M-023 suspicion score, M-025 audit entry, M-021 enforcement state</evidence>
     </DF-011>
-    <DF-012>
-      <name>Admin peer enforcement</name>
-      <path>M-010 -> M-024 -> M-021 -> M-003 -> M-025</path>
-      <summary>
-        An admin reviews device and anomaly state, then blocks, revokes or unblocks a specific device peer without touching unrelated devices on the same user account.
-      </summary>
+    <DF-012 NAME="Admin peer enforcement" TRIGGER="Admin reviews and acts on suspicious device">
+      <step-1>M-024 shows device + anomaly state in admin UI</step-1>
+      <step-2>Admin chooses block/revoke/unblock</step-2>
+      <step-3>M-021 enforces action on specific device peer</step-3>
+      <step-4>M-025 records admin action in audit trail</step-4>
+      <evidence>M-024 admin action, M-021 enforcement outcome, M-025 audit entry</evidence>
     </DF-012>
-    <DF-013>
-      <name>Legacy client migration to primary device</name>
-      <path>M-020 -> M-021 -> M-003</path>
-      <summary>
-        Existing single-client users are migrated to a deterministic primary device record so the new device-bound model does not orphan current subscriptions or peers.
-      </summary>
+    <DF-013 NAME="Legacy client migration to primary device" TRIGGER="Existing single-client user accesses system">
+      <step-1>M-020 checks if user has primary device record</step-1>
+      <step-2>If not, creates deterministic primary device from existing VPNClient</step-2>
+      <step-3>M-021 links existing peer to primary device</step-3>
+      <evidence>Every user has exactly one primary device, no active peer orphaned</evidence>
     </DF-013>
-  </data-flows>
+  </DataFlow>
 
   <implementation-order>
     <Phase-1 status="done">
@@ -358,7 +520,7 @@
       <step-8>Split database.py (1068 lines) into database.py + migrations.py.</step-8>
     </Phase-10>
     <Phase-11 status="done">
-      <name>Frontend Security & Quality (P3)</name>
+      <name>Frontend Security &amp; Quality (P3)</name>
       <step-1>Add httpOnly secure cookies to auth endpoints alongside Bearer tokens.</step-1>
       <step-2>Fix refresh token interceptor to use configured axios instance.</step-2>
       <step-3>Eliminate 53 any usages in admin frontend with 18 typed interfaces.</step-3>
@@ -382,7 +544,7 @@
       <step-10>Verify no eval injection in install.sh.</step-10>
     </Phase-12>
     <Phase-13 status="done">
-      <name>Tests & CI/CD (P5)</name>
+      <name>Tests &amp; CI/CD (P5)</name>
       <step-1>Add test_security.py (10 tests for JWT, password, Fernet, blacklist).</step-1>
       <step-2>Add auth rejection tests (401/403 for unauthenticated).</step-2>
       <step-3>Add test_billing_service.py (5 tests for subscription lifecycle).</step-3>
@@ -395,7 +557,7 @@
       <step-10>Add CLI idempotency test (CF-007).</step-10>
     </Phase-13>
     <Phase-14 status="done">
-      <name>Cleanup & Polish (P6)</name>
+      <name>Cleanup &amp; Polish (P6)</name>
       <step-1>Split vpn/service.py (1112 lines) into service.py, provisioning.py, config.py, topology.py.</step-1>
       <step-2>Add UserResponse.from_user() factory method.</step-2>
       <step-3>Add AdminAuditEvent model and AdminAuditMiddleware.</step-3>
@@ -478,4 +640,21 @@
     <item>False positives in handshake anomaly detection can block honest mobile users if automatic enforcement is enabled before the detector is tuned.</item>
     <item>Blocked devices must not silently free a plan slot too early, or abuse loops will become cheaper instead of harder.</item>
   </risks>
-</development-plan>
+
+  <ExecutionPolicy>
+    <default-profile>balanced</default-profile>
+    <controller-owns>docs/development-plan.xml, docs/knowledge-graph.xml, docs/verification-plan.xml, docs/operational-packets.xml</controller-owns>
+    <worker-owns>Only module source files and module-local tests inside the approved write scope. Workers must never modify shared XML artifacts directly.</worker-owns>
+    <approval-rules>
+      <rule>Every module implementation requires scoped contract review before commit</rule>
+      <rule>Verification must pass before any commit to shared artifacts</rule>
+      <rule>Shared artifact updates (plan, graph, verification) are applied by controller after wave integration</rule>
+      <rule>$grace-refresh runs after phase completion to sync knowledge graph with codebase</rule>
+    </approval-rules>
+    <execution-profiles>
+      <safe>Approval per wave, review every module, sync after each wave</safe>
+      <balanced>One approval at start, compact packets, targeted sync after wave</balanced>
+      <fast>Mature codebases only, one approval, block only on critical issues</fast>
+    </execution-profiles>
+  </ExecutionPolicy>
+</DevelopmentPlan>

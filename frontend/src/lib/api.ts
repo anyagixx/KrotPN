@@ -1,3 +1,32 @@
+// FILE: frontend/src/lib/api.ts
+// VERSION: 1.0.0
+// ROLE: RUNTIME
+// MAP_MODE: EXPORTS
+// START_MODULE_CONTRACT
+//   PURPOSE: Axios API client with auth interceptors, token refresh logic, and typed API service modules
+//   SCOPE: HTTP client setup, request/response interceptors, auto token refresh, API namespaces (auth, user, vpn, device, billing, referral)
+//   DEPENDS: M-002 (users auth), M-003 (vpn), M-004 (billing), M-005 (referrals)
+//   LINKS: M-009 (frontend-user)
+// END_MODULE_CONTRACT
+//
+// START_MODULE_MAP
+//   api - Axios instance with interceptors
+//   User, TokenResponse, VPNConfig, UserDevice, DeviceList, DeviceConfigBundle - Types
+//   VPNStats, VPNNodeStatus, VPNRouteStatus, UserStats - Types
+//   Plan, SubscriptionStatus, ReferralStats, ReferralListItem - Types
+//   authApi - Login, register, telegram auth, refresh
+//   userApi - Get me, stats, update profile, change password
+//   vpnApi - Config, download, QR, stats, nodes, routes
+//   deviceApi - List, create, rotate, revoke
+//   billingApi - Get plans, subscription, create payment
+//   referralApi - Get code, stats, list
+// END_MODULE_MAP
+//
+// START_CHANGE_SUMMARY
+//   LAST_CHANGE: v2.8.0 - Added full GRACE MODULE_CONTRACT and MODULE_MAP per GRACE governance protocol
+// END_CHANGE_SUMMARY
+//
+// START_BLOCK_API_CLIENT
 import axios from 'axios'
 
 const API_BASE = '/api/v1'
@@ -8,7 +37,9 @@ export const api = axios.create({
     'Content-Type': 'application/json',
   },
 })
+// END_BLOCK_API_CLIENT
 
+// START_BLOCK_REQUEST_INTERCEPTOR
 // Request interceptor - add auth token
 api.interceptors.request.use((config) => {
   const token = localStorage.getItem('access_token')
@@ -17,16 +48,18 @@ api.interceptors.request.use((config) => {
   }
   return config
 })
+// END_BLOCK_REQUEST_INTERCEPTOR
 
+// START_BLOCK_RESPONSE_INTERCEPTOR
 // Response interceptor - handle auth errors
 api.interceptors.response.use(
   (response) => response,
   async (error) => {
     const originalRequest = error.config
-    
+
     if (error.response?.status === 401 && !originalRequest._retry) {
       originalRequest._retry = true
-      
+
       // Try to refresh token
       const refreshToken = localStorage.getItem('refresh_token')
       if (refreshToken) {
@@ -35,10 +68,10 @@ api.interceptors.response.use(
           const { data } = await refreshApi.post('/auth/refresh', {
             refresh_token: refreshToken,
           })
-          
+
           localStorage.setItem('access_token', data.access_token)
           localStorage.setItem('refresh_token', data.refresh_token)
-          
+
           originalRequest.headers.Authorization = `Bearer ${data.access_token}`
           return api(originalRequest)
         } catch {
@@ -51,10 +84,11 @@ api.interceptors.response.use(
         window.location.href = '/login'
       }
     }
-    
+
     return Promise.reject(error)
   }
 )
+// END_BLOCK_RESPONSE_INTERCEPTOR
 
 // Types
 export interface User {
@@ -207,47 +241,52 @@ export interface ReferralListItem {
   first_payment_at: string | null
 }
 
+// START_BLOCK_AUTH_API
 // Auth API
 export const authApi = {
   login: (email: string, password: string) =>
     api.post<TokenResponse>('/auth/login', { email, password }),
-  
+
   register: (email: string, password: string, referral_code?: string) =>
     api.post<TokenResponse>('/auth/register', { email, password, referral_code }),
-  
+
   telegramAuth: (telegram_id: number, telegram_username?: string, referral_code?: string) =>
     api.post<TokenResponse>('/auth/telegram', { telegram_id, telegram_username, referral_code }),
-  
+
   refresh: (refresh_token: string) =>
     api.post<TokenResponse>('/auth/refresh', { refresh_token }),
 }
+// END_BLOCK_AUTH_API
 
+// START_BLOCK_USER_API
 // User API
 export const userApi = {
   getMe: () =>
     api.get<User>('/users/me'),
-  
+
   getStats: () =>
     api.get<UserStats>('/users/me/stats'),
-  
+
   updateProfile: (data: { name?: string; language?: string }) =>
     api.put<User>('/users/me', data),
-  
+
   changePassword: (current_password: string, new_password: string) =>
     api.post('/users/me/change-password', { current_password, new_password }),
 }
+// END_BLOCK_USER_API
 
+// START_BLOCK_VPN_API
 // VPN API
 export const vpnApi = {
   getConfig: () =>
     api.get<VPNConfig>('/vpn/config'),
-  
+
   downloadConfig: () =>
     api.get('/vpn/config/download', { responseType: 'blob' }),
-  
+
   getQRCode: () =>
     api.get('/vpn/config/qr', { responseType: 'blob' }),
-  
+
   getStats: () =>
     api.get<VPNStats>('/vpn/stats'),
 
@@ -257,7 +296,9 @@ export const vpnApi = {
   getRoutes: () =>
     api.get<{ routes: VPNRouteStatus[] }>('/vpn/routes'),
 }
+// END_BLOCK_VPN_API
 
+// START_BLOCK_DEVICE_API
 export const deviceApi = {
   list: () =>
     api.get<DeviceList>('/devices'),
@@ -271,27 +312,32 @@ export const deviceApi = {
   revoke: (deviceId: number) =>
     api.delete<UserDevice>(`/devices/${deviceId}`),
 }
+// END_BLOCK_DEVICE_API
 
+// START_BLOCK_BILLING_API
 // Billing API
 export const billingApi = {
   getPlans: () =>
     api.get<Plan[]>('/billing/plans'),
-  
+
   getSubscription: () =>
     api.get<SubscriptionStatus>('/billing/subscription'),
-  
+
   createPayment: (plan_id: number) =>
     api.post('/billing/subscribe', { plan_id }),
 }
+// END_BLOCK_BILLING_API
 
+// START_BLOCK_REFERRAL_API
 // Referral API
 export const referralApi = {
   getCode: () =>
     api.get('/referrals/code'),
-  
+
   getStats: () =>
     api.get<ReferralStats>('/referrals/stats'),
 
   getList: () =>
     api.get<{ items: ReferralListItem[]; total: number }>('/referrals/list'),
 }
+// END_BLOCK_REFERRAL_API

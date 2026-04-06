@@ -1,3 +1,23 @@
+# FILE: backend/app/users/telegram_auth.py
+# VERSION: 1.0.0
+# ROLE: RUNTIME
+# MAP_MODE: EXPORTS
+# START_MODULE_CONTRACT
+#   PURPOSE: Telegram authentication utilities — verify Login Widget data and parse WebApp initData
+#   SCOPE: HMAC signature verification, auth_date validation (24h expiry), initData parsing
+#   DEPENDS: stdlib (hmac, hashlib, datetime, urllib.parse, json)
+#   LINKS: M-002 (users), M-011 (telegram-bot)
+# END_MODULE_CONTRACT
+#
+# START_MODULE_MAP
+#   verify_telegram_auth - Verify Telegram Login Widget authentication data via HMAC-SHA256
+#   parse_telegram_init_data - Parse Telegram WebApp initData query string into dict
+# END_MODULE_MAP
+#
+# START_CHANGE_SUMMARY
+#   LAST_CHANGE: v2.8.0 - Added full GRACE MODULE_CONTRACT and MODULE_MAP per GRACE governance protocol
+# END_CHANGE_SUMMARY
+#
 """
 Telegram authentication utilities.
 """

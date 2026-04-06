@@ -1,36 +1,39 @@
-"""
-Routing models for split-tunneling and policy-driven routing.
-
-MODULE_CONTRACT
-- PURPOSE: Define persisted routing rules, API schemas, and policy-facing enums for host-level routing decisions.
-- SCOPE: Custom routes, exact-domain rules, wildcard-domain rules, explicit CIDR rules, and routing status response shapes.
-- DEPENDS: sqlmodel, sqlalchemy metadata constraints.
-- LINKS: M-007 routing, M-014 domain-rule-store, V-M-014.
-
-MODULE_MAP
-- RouteType: Legacy custom-route destination enum.
-- RouteTarget: Policy route target enum for RU, DE, DIRECT, or DEFAULT decisions.
-- DomainMatchType: Policy rule classifier for exact and wildcard domain rules.
-- CustomRoute: Existing custom route persistence model.
-- DomainRouteRule: Persisted exact or wildcard domain rule.
-- CidrRouteRule: Persisted explicit IP/CIDR rule.
-- RoutingStatus: Routing runtime status response.
-- CustomRouteCreate: Request schema for custom route creation.
-- CustomRouteResponse: Response schema for custom route reads.
-- DomainRouteRuleCreate: Request schema for domain rule creation.
-- DomainRouteRuleUpdate: Partial-update schema for domain rules.
-- DomainRouteRuleResponse: Response schema for domain rules.
-- CidrRouteRuleCreate: Request schema for CIDR rule creation.
-- CidrRouteRuleUpdate: Partial-update schema for CIDR rules.
-- CidrRouteRuleResponse: Response schema for CIDR rules.
-- RouteDecisionExplainRequest: Request schema for route decision inspection.
-- RouteDecisionExplainResponse: Response schema for effective route decisions.
-- ActiveDNSBindingResponse: Response schema for active DNS-derived bindings.
-
-CHANGE_SUMMARY
-- 2026-03-24: Added domain and CIDR routing rule entities plus policy schemas for domain-aware routing migration.
-"""
-# <!-- GRACE: module="M-007 M-014" entity="CustomRoute,DomainRouteRule,CidrRouteRule" -->
+# FILE: backend/app/routing/models.py
+# VERSION: 1.0.0
+# ROLE: RUNTIME
+# MAP_MODE: EXPORTS
+# START_MODULE_CONTRACT
+#   PURPOSE: Define persisted routing rules, API schemas, and policy-facing enums for host-level routing decisions.
+#   SCOPE: Custom routes, exact-domain rules, wildcard-domain rules, explicit CIDR rules, and routing status response shapes.
+#   DEPENDS: M-001 (backend-core), M-007 (routing)
+#   LINKS: M-007 (routing), M-013 (route-policy-resolver), M-014 (domain-rule-store), M-015 (dns-observer), M-016 (route-decision-api), M-017 (route-sync-runtime)
+# END_MODULE_CONTRACT
+#
+# START_MODULE_MAP
+#   RouteType - Legacy custom-route destination enum
+#   RouteTarget - Policy route target enum (RU, DE, DIRECT, DEFAULT)
+#   DomainMatchType - Policy rule classifier (exact, wildcard)
+#   CustomRoute - Persisted custom route model
+#   DomainRouteRule - Persisted exact/wildcard domain rule model
+#   CidrRouteRule - Persisted explicit IP/CIDR rule model
+#   RoutingStatus - Routing runtime status response
+#   CustomRouteCreate - Request schema for custom route creation
+#   CustomRouteResponse - Response schema for custom route reads
+#   DomainRouteRuleCreate - Request schema for domain rule creation
+#   DomainRouteRuleUpdate - Partial-update schema for domain rules
+#   DomainRouteRuleResponse - Response schema for domain rules
+#   CidrRouteRuleCreate - Request schema for CIDR rule creation
+#   CidrRouteRuleUpdate - Partial-update schema for CIDR rules
+#   CidrRouteRuleResponse - Response schema for CIDR rules
+#   RouteDecisionExplainRequest - Request schema for route decision inspection
+#   RouteDecisionExplainResponse - Response schema for effective route decisions
+#   ActiveDNSBindingResponse - Response schema for active DNS-derived bindings
+# END_MODULE_MAP
+#
+# START_CHANGE_SUMMARY
+#   LAST_CHANGE: v2.8.0 - Added full GRACE MODULE_CONTRACT and MODULE_MAP per GRACE governance protocol
+# END_CHANGE_SUMMARY
+"""Routing models for split-tunneling and policy-driven routing."""
 
 from __future__ import annotations
 
@@ -64,6 +67,7 @@ class DomainMatchType(str, Enum):
     WILDCARD = "wildcard"
 
 
+# START_BLOCK: CustomRoute (table model, ~12 lines)
 class CustomRoute(SQLModel, table=True):
     """Custom routing rule."""
 
@@ -76,8 +80,10 @@ class CustomRoute(SQLModel, table=True):
     is_active: bool = Field(default=True)
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc), sa_column=Column(DateTime(timezone=True)))
     updated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc), sa_column=Column(DateTime(timezone=True)))
+# END_BLOCK: CustomRoute
 
 
+# START_BLOCK: DomainRouteRule (table model, ~17 lines)
 class DomainRouteRule(SQLModel, table=True):
     """Persisted exact or wildcard domain routing rule."""
 
@@ -100,8 +106,10 @@ class DomainRouteRule(SQLModel, table=True):
     is_active: bool = Field(default=True, index=True)
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc), sa_column=Column(DateTime(timezone=True)))
     updated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc), sa_column=Column(DateTime(timezone=True)))
+# END_BLOCK: DomainRouteRule
 
 
+# START_BLOCK: CidrRouteRule (table model, ~15 lines)
 class CidrRouteRule(SQLModel, table=True):
     """Persisted explicit IP or CIDR routing rule."""
 
@@ -122,6 +130,7 @@ class CidrRouteRule(SQLModel, table=True):
     is_active: bool = Field(default=True, index=True)
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc), sa_column=Column(DateTime(timezone=True)))
     updated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc), sa_column=Column(DateTime(timezone=True)))
+# END_BLOCK: CidrRouteRule
 
 
 class RoutingStatus(SQLModel):

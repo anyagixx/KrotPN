@@ -1,6 +1,33 @@
 """
 User service for business logic.
 
+# FILE: backend/app/users/service.py
+# VERSION: 1.0.0
+# ROLE: RUNTIME
+# MAP_MODE: EXPORTS
+# START_MODULE_CONTRACT
+#   PURPOSE: User creation, authentication, Telegram identity linkage, profile mutation, and stats
+#   SCOPE: All business logic for user lifecycle: registration, auth, password management, role updates, stats aggregation
+#   DEPENDS: M-001 (core config, security), M-002 (users models/schemas), SQLAlchemy AsyncSession
+#   LINKS: M-002 (users), M-004 (billing.Subscription), M-005 (vpn.VPNClient), M-006 (referrals)
+# END_MODULE_CONTRACT
+#
+# START_MODULE_MAP
+#   UserService - Main service class for all user operations
+#     get_by_id, get_by_email, get_by_telegram_id - identity lookups
+#     build_internal_user_email, resolve_internal_user - internal user helpers
+#     create_user, create_user_telegram - registration
+#     authenticate_email - credential verification
+#     update_user, change_password, set_password - profile mutations
+#     verify_email, deactivate_user, activate_user, update_role - admin ops
+#     get_user_stats - dashboard statistics aggregation
+# END_MODULE_MAP
+#
+# START_CHANGE_SUMMARY
+#   LAST_CHANGE: 2026-04-06 - Added full GRACE MODULE_CONTRACT, MODULE_MAP, BLOCK markers per GRACE governance protocol
+#   PREVIOUS: 2026-03-26 - Added internal-user resolution helpers for manual non-billable client issuance
+# END_CHANGE_SUMMARY
+
 GRACE-lite module contract:
 - Owns user creation, authentication, Telegram identity linkage and profile mutation.
 - `email` and `telegram_id` are identity keys; duplicate creation must remain impossible.
@@ -27,6 +54,7 @@ from app.users.models import User, UserRole
 from app.users.schemas import UserCreate, UserCreateTelegram, UserUpdate
 
 
+# START_BLOCK_USERSERVICE
 class UserService:
     """Service for user operations."""
 
@@ -51,6 +79,7 @@ class UserService:
             raise ValueError("Internal identity cannot be empty")
         return f"internal+{normalized}@local.krotvpn"
 
+    # START_BLOCK_RESOLVE_INTERNAL_USER
     async def resolve_internal_user(
         self,
         identity: str,
@@ -92,6 +121,7 @@ class UserService:
             f"internal_identity={identity} user_id={user.id} reused=false"
         )
         return user
+    # END_BLOCK_RESOLVE_INTERNAL_USER
 
     async def get_by_telegram_id(self, telegram_id: int) -> User | None:
         """Get user by Telegram ID."""
@@ -100,6 +130,7 @@ class UserService:
         )
         return result.scalar_one_or_none()
 
+    # START_BLOCK_CREATE_USER
     async def create_user(
         self,
         data: UserCreate,
@@ -107,11 +138,11 @@ class UserService:
     ) -> User:
         """
         Create a new user with email/password.
-        
+
         Args:
             data: User creation data
             referral_code: Optional referral code for bonus
-            
+
         Returns:
             Created user
         """
@@ -143,7 +174,9 @@ class UserService:
         await self.session.refresh(user)
 
         return user
+    # END_BLOCK_CREATE_USER
 
+    # START_BLOCK_CREATE_USER_TELEGRAM
     async def create_user_telegram(
         self,
         data: UserCreateTelegram,
@@ -151,11 +184,11 @@ class UserService:
     ) -> User:
         """
         Create a new user via Telegram OAuth.
-        
+
         Args:
             data: Telegram user data
             referral_code: Optional referral code
-            
+
         Returns:
             Created user
         """
@@ -191,11 +224,13 @@ class UserService:
         await self.session.refresh(user)
 
         return user
+    # END_BLOCK_CREATE_USER_TELEGRAM
 
+    # START_BLOCK_AUTHENTICATE_EMAIL
     async def authenticate_email(self, email: str, password: str) -> User | None:
         """
         Authenticate user with email and password.
-        
+
         Returns user if credentials are valid, None otherwise.
         """
         user = await self.get_by_email(email)
@@ -210,6 +245,7 @@ class UserService:
         await self.session.flush()
 
         return user
+    # END_BLOCK_AUTHENTICATE_EMAIL
 
     async def update_user(self, user: User, data: UserUpdate) -> User:
         """Update user profile."""
@@ -222,12 +258,13 @@ class UserService:
         await self.session.refresh(user)
         return user
 
+    # START_BLOCK_CHANGE_PASSWORD
     async def change_password(
         self, user: User, current_password: str, new_password: str
     ) -> bool:
         """
         Change user password.
-        
+
         Returns True if successful, False if current password is wrong.
         """
         if user.password_hash is None:
@@ -242,6 +279,7 @@ class UserService:
         user.password_hash = hash_password(new_password)
         await self.session.flush()
         return True
+    # END_BLOCK_CHANGE_PASSWORD
 
     async def set_password(self, user: User, password: str) -> None:
         """Set password for user (for password reset)."""
@@ -268,6 +306,7 @@ class UserService:
         user.role = role
         await self.session.flush()
 
+    # START_BLOCK_GET_USER_BY_REFERRAL_CODE
     async def _get_user_by_referral_code(self, code: str) -> User | None:
         """Get user by referral code."""
         from app.referrals.models import ReferralCode
@@ -279,7 +318,9 @@ class UserService:
             .options(selectinload(User.referral_code))
         )
         return result.scalar_one_or_none()
+    # END_BLOCK_GET_USER_BY_REFERRAL_CODE
 
+    # START_BLOCK_GET_USER_STATS
     async def get_user_stats(self, user: User) -> dict[str, Any]:
         """Get user statistics."""
         from app.billing.models import Subscription
@@ -330,3 +371,5 @@ class UserService:
             "referrals_count": referrals_count,
             "referral_bonus_days": bonus_days,
         }
+    # END_BLOCK_GET_USER_STATS
+# END_BLOCK_USERSERVICE

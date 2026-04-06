@@ -1,23 +1,49 @@
-# START_MODULE_CONTRACT: M-003-TOPOLOGY
-# PURPOSE: VPN topology management — node/route CRUD, status helpers, legacy server sync
-# SCOPE: TopologyMixin with create/update/delete node/route, status checks, legacy sync, role normalization
-# INPUTS: Node/route definitions, server references, session
-# OUTPUTS: Persisted VPNNode/VPNRoute records, topology state
-# DEPENDENCIES: M-001 (core security/encrypt), M-003 (vpn models), M-007 (routing)
-# VERIFICATION: V-M-003 — topology operations maintain consistent node/route state
-# END_MODULE_CONTRACT: M-003-TOPOLOGY
-# START_MODULE_CONTRACT: M-003-TOPOLOGY
-# PURPOSE: VPN topology management — node/route CRUD, status helpers, legacy server sync
-# SCOPE: TopologyMixin with create/update/delete node/route, status checks, legacy sync, role normalization
-# INPUTS: Node/route definitions, server references, session
-# OUTPUTS: Persisted VPNNode/VPNRoute records, topology state
-# DEPENDENCIES: M-001 (core security/encrypt), M-003 (vpn models), M-007 (routing)
-# VERIFICATION: V-M-003 — topology operations maintain consistent node/route state
-# END_MODULE_CONTRACT: M-003-TOPOLOGY
+# FILE: backend/app/vpn/topology.py
+# VERSION: 1.0.0
+# ROLE: RUNTIME
+# MAP_MODE: EXPORTS
+# START_MODULE_CONTRACT
+#   PURPOSE: VPN topology management — node/route CRUD, status helpers, legacy server sync
+#   SCOPE: TopologyMixin with create/update/delete node/route, status checks, legacy sync, role normalization
+#   DEPENDS: M-001 (core security/encrypt), M-003 (vpn models), M-007 (routing)
+#   LINKS: M-003 (vpn), V-M-003
+# END_MODULE_CONTRACT
+#
+# START_MODULE_MAP
+#   TopologyMixin - Mixin providing VPN topology management helpers
+#   TopologyMixin.list_nodes - List all VPNNode records
+#   TopologyMixin.list_routes - List all VPNRoute records
+#   TopologyMixin.get_node_statuses - Return node status with load percentage
+#   TopologyMixin.get_route_statuses - Return route status with tunnel health
+#   TopologyMixin.create_node - Create a new VPNNode
+#   TopologyMixin.update_node - Update an existing VPNNode
+#   TopologyMixin.delete_node - Delete a VPNNode (with client/route checks)
+#   TopologyMixin.create_route - Create a new VPNRoute
+#   TopologyMixin.update_route - Update an existing VPNRoute
+#   TopologyMixin.delete_route - Delete a VPNRoute (with client check)
+#   TopologyMixin.list_legacy_servers - List legacy VPNServer records
+#   TopologyMixin._normalize_node_role - Convert role string to normalized tuple
+#   TopologyMixin._route_capacity - Calculate route capacity from node limits
+# END_MODULE_MAP
+#
+# START_CHANGE_SUMMARY
+#   LAST_CHANGE: v2.8.0 - Converted to full GRACE MODULE_CONTRACT/MAP format, removed duplicate contract blocks
+# END_CHANGE_SUMMARY
+#
 """VPN topology (node/route) management helpers."""
 
 from datetime import datetime, timezone
 from typing import Any
+
+from loguru import logger
+from sqlalchemy import func, select
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from app.core.security import encrypt_data
+from app.routing.manager import routing_manager
+from app.vpn.models import VPNClient, VPNNode, VPNRoute, VPNServer
+
+
 
 from loguru import logger
 from sqlalchemy import func, select

@@ -1,8 +1,33 @@
+// FILE: frontend-admin/src/pages/Analytics.tsx
+// VERSION: 1.0.0
+// ROLE: UI_COMPONENT
+// MAP_MODE: SUMMARY
+// START_MODULE_CONTRACT
+//   PURPOSE: Admin analytics page with charts for revenue, registrations, subscriptions, referrals
+//   SCOPE: Display period-selectable charts, billing stats, referral funnel, trial-to-paid conversion KPI
+//   DEPENDS: M-010 (frontend-admin), M-006 (admin API)
+//   LINKS: M-010
+// END_MODULE_CONTRACT
+//
+// START_MODULE_MAP
+//   AnalyticsPage - Main admin analytics page component
+//   chartTheme - Recharts theme configuration object
+//   default - React component (default export)
+// END_MODULE_MAP
+//
+// START_CHANGE_SUMMARY
+//   LAST_CHANGE: v2.8.0 - Added full GRACE MODULE_CONTRACT and MODULE_MAP per GRACE governance protocol
+// END_CHANGE_SUMMARY
+
 import { useState } from 'react'
 import { useQuery } from 'react-query'
 import { Bar, BarChart, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
 import { adminApi } from '../lib/api'
 import type { AnalyticsData, BillingStats, ReferralStats } from '../types'
+
+// START_BLOCK: chartTheme
+// Recharts theme configuration for consistent chart styling
+// DEPENDS: none (static config object)
 const chartTheme = {
   tooltip: {
     background: '#10242d',
@@ -12,7 +37,13 @@ const chartTheme = {
   },
   axis: '#82a0aa',
 }
+// END_BLOCK: chartTheme
 
+// START_BLOCK: Analytics
+// Admin analytics page: revenue/registration charts, billing stats, referral funnel, conversion KPI
+// DEPENDS: M-010 (frontend-admin), M-006 (admin API via adminApi)
+//   - adminApi.getRevenueAnalytics, adminApi.getUsersAnalytics
+//   - adminApi.getBillingStats, adminApi.getReferralStats
 export default function Analytics() {
   const [period, setPeriod] = useState(30)
 
@@ -138,3 +169,4 @@ export default function Analytics() {
     </div>
   )
 }
+// END_BLOCK: Analytics

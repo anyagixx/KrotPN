@@ -1,3 +1,28 @@
+# FILE: backend/app/vpn/router.py
+# VERSION: 1.0.0
+# ROLE: ENTRY_POINT
+# MAP_MODE: SUMMARY
+# START_MODULE_CONTRACT
+#   PURPOSE: User-facing and admin-facing VPN API endpoints — config delivery, QR, client stats, node/route CRUD
+#   SCOPE: FastAPI routers for /api/v1/vpn/* and /api/v1/admin/{servers,nodes,routes}/*
+#   DEPENDS: M-001 (core: config, DB, security), M-006 (billing service), M-020 (devices), M-003 (vpn service, models, schemas)
+#   LINKS: M-003 (vpn), M-006 (admin-api), V-M-003, V-M-006, V-M-020
+# END_MODULE_CONTRACT
+#
+# START_MODULE_MAP
+#   router - User-facing VPN API router (/api/v1/vpn/*)
+#   admin_router - Legacy admin servers router (/api/v1/admin/servers/*)
+#   admin_nodes_router - Admin nodes router (/api/v1/admin/nodes/*)
+#   admin_routes_router - Admin routes router (/api/v1/admin/routes/*)
+#   format_bytes - Helper to format byte counts for display
+#   legacy_server_status_from_node - Helper to derive legacy server status from node
+#   get_or_provision_user_client - Helper to get or create VPN client for user
+# END_MODULE_MAP
+#
+# START_CHANGE_SUMMARY
+#   LAST_CHANGE: v2.8.0 - Converted to full GRACE MODULE_CONTRACT/MAP format with START/END blocks
+# END_CHANGE_SUMMARY
+#
 """
 VPN API router.
 
@@ -44,22 +69,25 @@ admin_nodes_router = APIRouter(prefix="/api/v1/admin/nodes", tags=["admin"])
 admin_routes_router = APIRouter(prefix="/api/v1/admin/routes", tags=["admin"])
 
 
+# START_BLOCK: format_bytes
 def format_bytes(bytes_count: int) -> str:
     """Format bytes to human readable string."""
     if bytes_count == 0:
         return "0 B"
-    
+
     units = ["B", "KB", "MB", "GB", "TB"]
     k = 1024
     i = 0
-    
+
     while bytes_count >= k and i < len(units) - 1:
         bytes_count /= k
         i += 1
-    
+
     return f"{bytes_count:.1f} {units[i]}"
+# END_BLOCK: format_bytes
 
 
+# START_BLOCK: legacy_server_status_from_node
 def legacy_server_status_from_node(node_status: dict) -> ServerStatusResponse:
     """Project a route-aware entry node into the legacy server response shape."""
     return ServerStatusResponse(
@@ -71,8 +99,10 @@ def legacy_server_status_from_node(node_status: dict) -> ServerStatusResponse:
         max_clients=node_status["max_clients"],
         load_percent=node_status["load_percent"],
     )
+# END_BLOCK: legacy_server_status_from_node
 
 
+# START_BLOCK: get_or_provision_user_client
 async def get_or_provision_user_client(
     user_id: int,
     session: DBSession,
@@ -136,6 +166,7 @@ async def get_or_provision_user_client(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=str(e),
         )
+# END_BLOCK: get_or_provision_user_client
 
 
 # ==================== User Endpoints ====================

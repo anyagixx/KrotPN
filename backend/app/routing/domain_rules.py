@@ -1,22 +1,25 @@
-"""
-Domain and CIDR routing rule persistence helpers.
-
-MODULE_CONTRACT
-- PURPOSE: Normalize, validate, and persist domain or CIDR policy rules for later route resolution.
-- SCOPE: Domain normalization, CIDR normalization, duplicate detection, ordered reads, and CRUD-style store helpers.
-- DEPENDS: M-001 database session lifecycle, M-014 rule entities in app.routing.models.
-- LINKS: M-014 domain-rule-store, M-013 route-policy-resolver, V-M-014.
-
-MODULE_MAP
-- RuleValidationError: Raised for invalid or conflicting routing rules.
-- normalize_domain_rule_input: Converts domain input into canonical normalized form and match type.
-- normalize_cidr_rule_input: Converts IP/CIDR input into canonical network form.
-- DomainRuleStore: Async persistence helper for domain and CIDR policy rules.
-
-CHANGE_SUMMARY
-- 2026-03-24: Added first-pass rule store for exact-domain, wildcard-domain, and CIDR policy persistence.
-"""
-# <!-- GRACE: module="M-014" contract="domain-rule-store" -->
+# FILE: backend/app/routing/domain_rules.py
+# VERSION: 1.0.0
+# ROLE: RUNTIME
+# MAP_MODE: EXPORTS
+# START_MODULE_CONTRACT
+#   PURPOSE: Normalize, validate, and persist domain or CIDR policy rules for later route resolution.
+#   SCOPE: Domain normalization, CIDR normalization, duplicate detection, ordered reads, and CRUD-style store helpers.
+#   DEPENDS: M-001 (backend-core), M-007 (routing)
+#   LINKS: M-007 (routing), M-013 (route-policy-resolver), M-014 (domain-rule-store), M-015 (dns-observer), M-016 (route-decision-api), M-017 (route-sync-runtime)
+# END_MODULE_CONTRACT
+#
+# START_MODULE_MAP
+#   RuleValidationError - Raised for invalid or conflicting routing rules
+#   normalize_domain_rule_input - Converts domain input into canonical normalized form and match type
+#   normalize_cidr_rule_input - Converts IP/CIDR input into canonical network form
+#   DomainRuleStore - Async persistence helper for domain and CIDR policy rules
+# END_MODULE_MAP
+#
+# START_CHANGE_SUMMARY
+#   LAST_CHANGE: v2.8.0 - Added full GRACE MODULE_CONTRACT and MODULE_MAP per GRACE governance protocol
+# END_CHANGE_SUMMARY
+"""Domain and CIDR routing rule persistence helpers."""
 
 from __future__ import annotations
 
@@ -49,6 +52,7 @@ class NormalizedDomainRule:
     match_type: DomainMatchType
 
 
+# START_BLOCK: normalize_domain_rule_input (domain normalization, ~35 lines)
 def normalize_domain_rule_input(domain: str) -> NormalizedDomainRule:
     """Normalize domain input and classify it as exact or wildcard."""
     raw = domain.strip()
@@ -89,6 +93,7 @@ def normalize_domain_rule_input(domain: str) -> NormalizedDomainRule:
         normalized_domain=normalized,
         match_type=match_type,
     )
+# END_BLOCK: normalize_domain_rule_input
 
 
 def normalize_cidr_rule_input(cidr: str) -> str:
@@ -111,6 +116,7 @@ class DomainRuleStore:
     def __init__(self, session: AsyncSession):
         self.session = session
 
+    # START_BLOCK: create_domain_rule (persistence, ~18 lines)
     async def create_domain_rule(self, payload: DomainRouteRuleCreate) -> DomainRouteRule:
         """Create a normalized domain rule and reject duplicates."""
         normalized = normalize_domain_rule_input(payload.domain)
@@ -133,7 +139,9 @@ class DomainRuleStore:
         await self.session.flush()
         await self.session.refresh(rule)
         return rule
+    # END_BLOCK: create_domain_rule
 
+    # START_BLOCK: update_domain_rule (persistence, ~16 lines)
     async def update_domain_rule(
         self,
         rule: DomainRouteRule,
@@ -153,7 +161,9 @@ class DomainRuleStore:
         await self.session.flush()
         await self.session.refresh(rule)
         return rule
+    # END_BLOCK: update_domain_rule
 
+    # START_BLOCK: create_cidr_rule (persistence, ~18 lines)
     async def create_cidr_rule(self, payload: CidrRouteRuleCreate) -> CidrRouteRule:
         """Create a normalized CIDR rule and reject duplicates."""
         normalized_cidr = normalize_cidr_rule_input(payload.cidr)
@@ -172,7 +182,9 @@ class DomainRuleStore:
         await self.session.flush()
         await self.session.refresh(rule)
         return rule
+    # END_BLOCK: create_cidr_rule
 
+    # START_BLOCK: update_cidr_rule (persistence, ~16 lines)
     async def update_cidr_rule(
         self,
         rule: CidrRouteRule,
@@ -192,7 +204,9 @@ class DomainRuleStore:
         await self.session.flush()
         await self.session.refresh(rule)
         return rule
+    # END_BLOCK: update_cidr_rule
 
+    # START_BLOCK: list_active_domain_rules (query, ~12 lines)
     async def list_active_domain_rules(self) -> list[DomainRouteRule]:
         """Return active domain rules ordered by priority and specificity."""
         result = await self.session.execute(
@@ -205,7 +219,9 @@ class DomainRuleStore:
             )
         )
         return list(result.scalars().all())
+    # END_BLOCK: list_active_domain_rules
 
+    # START_BLOCK: list_domain_rules (query, ~11 lines)
     async def list_domain_rules(self) -> list[DomainRouteRule]:
         """Return all domain rules ordered by activity and priority."""
         result = await self.session.execute(
@@ -217,7 +233,9 @@ class DomainRuleStore:
             )
         )
         return list(result.scalars().all())
+    # END_BLOCK: list_domain_rules
 
+    # START_BLOCK: list_active_cidr_rules (query, ~11 lines)
     async def list_active_cidr_rules(self) -> list[CidrRouteRule]:
         """Return active CIDR rules ordered by priority."""
         result = await self.session.execute(
@@ -229,7 +247,9 @@ class DomainRuleStore:
             )
         )
         return list(result.scalars().all())
+    # END_BLOCK: list_active_cidr_rules
 
+    # START_BLOCK: list_cidr_rules (query, ~11 lines)
     async def list_cidr_rules(self) -> list[CidrRouteRule]:
         """Return all CIDR rules ordered by activity and priority."""
         result = await self.session.execute(
@@ -240,6 +260,7 @@ class DomainRuleStore:
             )
         )
         return list(result.scalars().all())
+    # END_BLOCK: list_cidr_rules
 
     async def delete_domain_rule(self, rule: DomainRouteRule) -> None:
         """Delete a domain rule permanently."""
@@ -251,6 +272,7 @@ class DomainRuleStore:
         await self.session.delete(rule)
         await self.session.flush()
 
+    # START_BLOCK: _find_domain_rule (query helper, ~11 lines)
     async def _find_domain_rule(
         self,
         normalized_domain: str,
@@ -264,6 +286,7 @@ class DomainRuleStore:
             )
         )
         return result.scalar_one_or_none()
+    # END_BLOCK: _find_domain_rule
 
     async def _find_cidr_rule(self, normalized_cidr: str) -> CidrRouteRule | None:
         """Look up a CIDR rule by canonical key."""

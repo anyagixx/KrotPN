@@ -1,3 +1,23 @@
+# FILE: backend/app/vpn/amneziawg.py
+# VERSION: 1.0.0
+# ROLE: RUNTIME
+# MAP_MODE: EXPORTS
+# START_MODULE_CONTRACT
+#   PURPOSE: AmneziaWG integration — key generation, peer management, config generation, obfuscation parameter handling
+#   SCOPE: Low-level WireGuard operations via `awg` CLI; server config file management; peer stats from `awg show dump`
+#   DEPENDS: M-001 (core config, security), stdlib (asyncio, ipaddress, re, pathlib), httpx, loguru
+#   LINKS: M-003 (vpn), V-M-003, V-M-023 (handshake monitor consumes get_peer_stats)
+# END_MODULE_CONTRACT
+#
+# START_MODULE_MAP
+#   AmneziaWGManager - Manager class for AWG CLI operations (generate_keypair, get_server_public_key, get_server_endpoint, get_next_client_ip, create_client_config, add_peer, remove_peer, get_peer_stats, is_service_running, restart_service, update_obfuscation)
+#   wg_manager - Global singleton instance
+# END_MODULE_MAP
+#
+# START_CHANGE_SUMMARY
+#   LAST_CHANGE: v2.8.0 - Converted to full GRACE MODULE_CONTRACT/MAP format with START/END blocks
+# END_CHANGE_SUMMARY
+#
 """
 AmneziaWG integration module.
 Handles WireGuard key generation, peer management, and config generation.
@@ -21,14 +41,15 @@ from app.core.config import settings
 from app.core.security import decrypt_data, encrypt_data
 
 
+# START_BLOCK: AmneziaWGManager
 class AmneziaWGManager:
     """
     Manager for AmneziaWG VPN operations.
-    
+
     IMPORTANT: Obfuscation parameters (Jc, Jmin, Jmax, S1, S2, H1-H4)
     must match between server and client for successful connection.
     """
-    
+
     def __init__(
         self,
         config_dir: str = "/etc/amnezia/amneziawg",
@@ -37,17 +58,18 @@ class AmneziaWGManager:
         self.config_dir = Path(config_dir)
         self.interface = interface
         self.server_config = self.config_dir / f"{self.interface}.conf"
-        
+
         # Obfuscation parameters from settings (MUST match legacy)
         self.obfuscation = settings.awg_obfuscation_params
-        
+
         logger.info(f"[VPN] AmneziaWGManager initialized with interface {interface}")
         logger.debug(f"[VPN] Obfuscation params: {self.obfuscation}")
 
+    # START_BLOCK: generate_keypair
     async def generate_keypair(self) -> Tuple[str, str]:
         """
         Generate a new WireGuard keypair.
-        
+
         Returns:
             Tuple of (private_key, public_key)
         """
@@ -63,7 +85,7 @@ class AmneziaWGManager:
                 raise RuntimeError(private_stderr.decode().strip() or "awg genkey failed")
 
             private_key = private_stdout.decode().strip()
-            
+
             # Derive public key
             public_proc = await asyncio.create_subprocess_exec(
                 "awg", "pubkey",
@@ -76,13 +98,14 @@ class AmneziaWGManager:
                 raise RuntimeError(public_stderr.decode().strip() or "awg pubkey failed")
 
             public_key = public_stdout.decode().strip()
-            
+
             logger.debug(f"[VPN] Generated keypair: public={public_key[:20]}...")
             return private_key, public_key
-            
+
         except Exception as e:
             logger.error(f"[VPN] Error generating keypair: {e}")
             raise
+    # END_BLOCK: generate_keypair
 
     def get_server_public_key(self) -> Optional[str]:
         """
@@ -144,6 +167,7 @@ class AmneziaWGManager:
         
         raise ValueError("No available IP addresses in VPN subnet")
 
+    # START_BLOCK: create_client_config
     def create_client_config(
         self,
         private_key: str,
@@ -153,13 +177,13 @@ class AmneziaWGManager:
     ) -> str:
         """
         Create a client configuration file content.
-        
+
         Args:
             private_key: Client's private key
             address: Client's VPN IP address
             server_public_key: Server's public key
             endpoint: Server's endpoint (IP:port)
-            
+
         Returns:
             Configuration file content as string
         """
@@ -185,15 +209,17 @@ AllowedIPs = 0.0.0.0/0
 PersistentKeepalive = 25
 """
         return config
+    # END_BLOCK: create_client_config
 
+    # START_BLOCK: add_peer
     async def add_peer(self, public_key: str, address: str) -> bool:
         """
         Add a peer to the VPN server.
-        
+
         Args:
             public_key: Client's public key
             address: Client's VPN IP address
-            
+
         Returns:
             True if successful, False otherwise
         """
@@ -205,14 +231,14 @@ PersistentKeepalive = 25
 PublicKey = {public_key}
 AllowedIPs = {address}/32
 """
-            
+
             # Append to server config
             if self.server_config.exists():
                 with open(self.server_config, "a") as f:
                     f.write(peer_config)
             else:
                 raise FileNotFoundError(f"Server config not found: {self.server_config}")
-            
+
             # Apply peer to running interface
             try:
                 proc = await asyncio.create_subprocess_exec(
@@ -223,31 +249,33 @@ AllowedIPs = {address}/32
                     stderr=asyncio.subprocess.PIPE,
                 )
                 await asyncio.wait_for(proc.wait(), timeout=5)
-                
+
                 if proc.returncode != 0:
                     stderr = await proc.stderr.read() if proc.stderr else b""
                     logger.warning(
                         "[VPN] Failed to add peer dynamically, relying on host-managed sync: "
                         f"{stderr.decode().strip() or proc.returncode}"
                     )
-                    
+
             except asyncio.TimeoutError:
                 logger.warning("[VPN] Timeout adding peer dynamically, relying on host-managed sync")
-            
+
             logger.info(f"[VPN] Added peer: {public_key[:20]}... -> {address}")
             return True
-            
+
         except Exception as e:
             logger.error(f"[VPN] Error adding peer: {e}")
             return False
+    # END_BLOCK: add_peer
 
+    # START_BLOCK: remove_peer
     async def remove_peer(self, public_key: str) -> bool:
         """
         Remove a peer from the VPN server.
-        
+
         Args:
             public_key: Client's public key
-            
+
         Returns:
             True if successful, False otherwise
         """
@@ -260,7 +288,7 @@ AllowedIPs = {address}/32
                 stderr=asyncio.subprocess.PIPE,
             )
             await proc.wait()
-            
+
             # Remove from config file
             if self.server_config.exists():
                 content = self.server_config.read_text()
@@ -275,23 +303,25 @@ AllowedIPs = {address}/32
                     "[VPN] Failed to remove peer dynamically, relying on host-managed sync: "
                     f"{stderr.decode().strip() or proc.returncode}"
                 )
-            
+
             logger.info(f"[VPN] Removed peer: {public_key[:20]}...")
             return True
-            
+
         except Exception as e:
             logger.error(f"[VPN] Error removing peer: {e}")
             return False
+    # END_BLOCK: remove_peer
 
+    # START_BLOCK: get_peer_stats
     async def get_peer_stats(self) -> dict:
         """
         Get statistics for all peers.
-        
+
         Returns:
             Dict mapping public_key to stats dict
         """
         stats = {}
-        
+
         try:
             proc = await asyncio.create_subprocess_exec(
                 "awg", "show", self.interface, "dump",
@@ -299,18 +329,18 @@ AllowedIPs = {address}/32
                 stderr=asyncio.subprocess.PIPE,
             )
             stdout, _ = await proc.communicate()
-            
+
             if proc.returncode != 0:
                 return stats
-            
+
             # Parse dump output
             # Format: private-key public-key listen-port fwmark
             # For each peer: public-key preshared-key endpoint allowed-ips latest-handshake transfer-rx transfer-tx
             lines = stdout.decode().strip().split('\n')
-            
+
             if len(lines) < 2:
                 return stats
-            
+
             # Skip first line (interface info)
             for line in lines[1:]:
                 parts = line.split('\t')
@@ -319,7 +349,7 @@ AllowedIPs = {address}/32
                     handshake = int(parts[4]) if parts[4].isdigit() else 0
                     rx_bytes = int(parts[5]) if parts[5].isdigit() else 0
                     tx_bytes = int(parts[6]) if parts[6].isdigit() else 0
-                    
+
                     from datetime import datetime, timezone
                     stats[peer_key] = {
                         "last_handshake": (
@@ -330,11 +360,12 @@ AllowedIPs = {address}/32
                         "upload": tx_bytes,  # tx = sent by client = upload
                         "download": rx_bytes,  # rx = received by client = download
                     }
-                    
+
         except Exception as e:
             logger.error(f"[VPN] Error getting peer stats: {e}")
-        
+
         return stats
+    # END_BLOCK: get_peer_stats
 
     async def is_service_running(self) -> bool:
         """Check if the VPN service is running."""
@@ -364,24 +395,25 @@ AllowedIPs = {address}/32
             logger.error(f"[VPN] Error restarting service: {e}")
             return False
 
+    # START_BLOCK: update_obfuscation
     def update_obfuscation(self, params: dict) -> bool:
         """
         Update obfuscation parameters in server config.
-        
+
         WARNING: This will require all clients to update their configs!
-        
+
         Args:
             params: Dict with obfuscation parameters
-            
+
         Returns:
             True if successful, False otherwise
         """
         if not self.server_config.exists():
             return False
-        
+
         try:
             content = self.server_config.read_text()
-            
+
             for key, val in params.items():
                 # Capitalize key name (Jc, Jmin, Jmax, S1, S2, H1-H4)
                 k = key.capitalize() if key.lower() not in ("jmin", "jmax") else key.capitalize()
@@ -389,17 +421,19 @@ AllowedIPs = {address}/32
                     k = "Jmin"
                 elif key.lower() == "jmax":
                     k = "Jmax"
-                
+
                 content = re.sub(rf'{k}\s*=\s*\d+', f'{k} = {val}', content, flags=re.IGNORECASE)
                 self.obfuscation[key] = int(val)
-            
+
             self.server_config.write_text(content)
             logger.warning(f"[VPN] Obfuscation params updated: {params}")
             return True
-            
+
         except Exception as e:
             logger.error(f"[VPN] Error updating obfuscation: {e}")
             return False
+    # END_BLOCK: update_obfuscation
+# END_BLOCK: AmneziaWGManager
 
 
 # Global instance

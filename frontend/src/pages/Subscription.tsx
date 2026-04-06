@@ -1,3 +1,25 @@
+// FILE: frontend/src/pages/Subscription.tsx
+// VERSION: 1.0.0
+// ROLE: UI_COMPONENT
+// MAP_MODE: SUMMARY
+// START_MODULE_CONTRACT
+//   PURPOSE: Subscription/plans page -- display available plans, current subscription status, and payment initiation
+//   SCOPE: Plan cards with icons, subscription status banner, payment creation and redirect to payment URL
+//   DEPENDS: M-009 (frontend-user), M-004 (billing API)
+//   LINKS: M-009 (frontend-user)
+// END_MODULE_CONTRACT
+//
+// START_MODULE_MAP
+//   SubscriptionPage - Plans listing and subscription status component
+//   BLOCK_SUBSCRIPTION_PAGE - SubscriptionPage default export (148 lines)
+//   default - React component (default export)
+// END_MODULE_MAP
+//
+// START_CHANGE_SUMMARY
+//   LAST_CHANGE: v2.8.0 - Added full GRACE MODULE_CONTRACT and MODULE_MAP per GRACE governance protocol
+// END_CHANGE_SUMMARY
+//
+// START_BLOCK_SUBSCRIPTION_PAGE
 import { useQuery } from 'react-query'
 import { useTranslation } from 'react-i18next'
 import { AlertTriangle, Check, Crown, Rocket, ShieldCheck, Zap } from 'lucide-react'
@@ -146,3 +168,4 @@ export default function Subscription() {
     </div>
   )
 }
+// END_BLOCK_SUBSCRIPTION_PAGE

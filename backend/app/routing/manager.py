@@ -1,14 +1,27 @@
+# FILE: backend/app/routing/manager.py
+# VERSION: 1.0.0
+# ROLE: RUNTIME
+# MAP_MODE: EXPORTS
+# START_MODULE_CONTRACT
+#   PURPOSE: Host-level split-tunneling, ipset/iptables synchronization, route health inspection, and RU baseline maintenance.
+#   SCOPE: Russian IP set management, custom route sync, iptables rule setup, tunnel status checks, policy-aware route resolution.
+#   DEPENDS: M-001 (backend-core), M-007 (routing)
+#   LINKS: M-007 (routing), M-013 (route-policy-resolver), M-014 (domain-rule-store), M-015 (dns-observer), M-016 (route-decision-api), M-017 (route-sync-runtime)
+# END_MODULE_CONTRACT
+#
+# START_MODULE_MAP
+#   RoutingManager - Host-level split-tunneling and route health manager
+#   routing_manager - Global singleton instance
+# END_MODULE_MAP
+#
+# START_CHANGE_SUMMARY
+#   LAST_CHANGE: v2.8.0 - Added full GRACE MODULE_CONTRACT and MODULE_MAP per GRACE governance protocol
+# END_CHANGE_SUMMARY
 """
 Routing manager for split-tunneling and custom routes.
 
 LEGACY SOURCE: krot-prod-main/backend/routing.py
 Handles iptables, ipset, and routing rules.
-
-GRACE-lite module contract:
-- Owns host-level split-tunneling behavior and route health inspection.
-- This code assumes Linux host tools exist and may mutate live routing state.
-- In production, some routing concerns are explicitly host-managed outside the FastAPI process.
-- Changes here should be reviewed like infrastructure changes, not normal application logic.
 """
 # <!-- GRACE: module="M-007" contract="routing-manager" -->
 # <!-- GRACE: legacy-source="krot-prod-main/backend/routing.py" -->
@@ -51,11 +64,12 @@ class RoutingManager:
         self.scheduler = AsyncIOScheduler()
         self._initialized = False
     
+    # START_BLOCK: initialize (scheduler setup, ~15 lines)
     async def initialize(self) -> None:
         """Initialize routing manager and start scheduler."""
         if self._initialized:
             return
-        
+
         # Schedule RU IPset update every 24 hours
         self.scheduler.add_job(
             self.update_ru_ipset,
@@ -64,17 +78,19 @@ class RoutingManager:
             id='update_ru_ipset',
         )
         self.scheduler.start()
-        
+
         # Initial update
         await self.update_ru_ipset()
-        
+
         self._initialized = True
         logger.info("[ROUTING] RoutingManager initialized")
+    # END_BLOCK: initialize
     
+    # START_BLOCK: update_ru_ipset (RU baseline refresh, ~25 lines)
     async def update_ru_ipset(self) -> bool:
         """
         Update Russian IP set from ipverse.
-        
+
         Returns:
             True if successful, False otherwise
         """
@@ -86,7 +102,7 @@ class RoutingManager:
                     stderr=asyncio.subprocess.PIPE,
                 )
                 await proc.wait()
-                
+
                 if proc.returncode == 0:
                     logger.info("[ROUTING] RU IPset updated successfully")
                     return True
@@ -97,11 +113,13 @@ class RoutingManager:
                 logger.warning("[ROUTING] Update script not found, creating...")
                 await self._create_update_script()
                 return await self.update_ru_ipset()
-                
+
         except Exception as e:
             logger.error(f"[ROUTING] Error updating RU IPset: {e}")
             return False
+    # END_BLOCK: update_ru_ipset
     
+    # START_BLOCK: _create_update_script (script generation, ~30 lines)
     async def _create_update_script(self) -> None:
         """Create the RU IPset update script."""
         script_content = '''#!/bin/bash
@@ -124,18 +142,20 @@ curl -sL https://raw.githubusercontent.com/ipverse/rir-ip/master/country/ru/ipv4
 
 echo "RU IPset updated: $(ipset list ru_ips | grep 'Number of entries' | cut -d: -f2) entries"
 '''
-        
+
         # Create directory if needed
         self.update_script.parent.mkdir(parents=True, exist_ok=True)
         self.update_script.write_text(script_content)
         self.update_script.chmod(0o755)
-        
+
         logger.info("[ROUTING] Created update script")
+    # END_BLOCK: _create_update_script
     
+    # START_BLOCK: get_ipset_stats (ipset statistics, ~25 lines)
     async def get_ipset_stats(self) -> dict[str, Any]:
         """Get statistics for IP sets."""
         stats = {}
-        
+
         for ipset_name in [self.IPSET_RU, self.IPSET_CUSTOM_DIRECT, self.IPSET_CUSTOM_VPN]:
             try:
                 proc = await asyncio.create_subprocess_exec(
@@ -144,7 +164,7 @@ echo "RU IPset updated: $(ipset list ru_ips | grep 'Number of entries' | cut -d:
                     stderr=asyncio.subprocess.PIPE,
                 )
                 stdout, _ = await proc.communicate()
-                
+
                 if proc.returncode == 0:
                     lines = stdout.decode().split('\n')
                     for line in lines:
@@ -154,20 +174,22 @@ echo "RU IPset updated: $(ipset list ru_ips | grep 'Number of entries' | cut -d:
                             break
                 else:
                     stats[ipset_name] = {"entries": 0, "status": "inactive"}
-                    
+
             except Exception as e:
                 logger.error(f"[ROUTING] Error getting ipset stats: {e}")
                 stats[ipset_name] = {"entries": 0, "status": "error"}
-        
+
         return stats
+    # END_BLOCK: get_ipset_stats
     
+    # START_BLOCK: check_tunnel_status (tunnel health check, ~40 lines)
     async def check_tunnel_status(self, tunnel_interface: str = "awg0") -> dict[str, str]:
         """
         Check VPN tunnel status.
-        
+
         Args:
             tunnel_interface: Tunnel interface name
-            
+
         Returns:
             Dict with interface and status
         """
@@ -187,15 +209,15 @@ echo "RU IPset updated: $(ipset list ru_ips | grep 'Number of entries' | cut -d:
                 stderr=asyncio.subprocess.PIPE,
             )
             stdout, _ = await proc.communicate()
-            
+
             if proc.returncode != 0:
                 if _config_is_host_managed():
                     return {"interface": tunnel_interface, "status": "host_managed"}
                 return {"interface": tunnel_interface, "status": "down"}
-            
+
             if "UP" not in stdout.decode():
                 return {"interface": tunnel_interface, "status": "down"}
-            
+
             # Try to ping through tunnel
             proc = await asyncio.create_subprocess_exec(
                 "ping", "-c", "1", "-W", "2", "-I", tunnel_interface, "8.8.8.8",
@@ -203,12 +225,12 @@ echo "RU IPset updated: $(ipset list ru_ips | grep 'Number of entries' | cut -d:
                 stderr=asyncio.subprocess.PIPE,
             )
             await proc.wait()
-            
+
             if proc.returncode == 0:
                 return {"interface": tunnel_interface, "status": "up"}
             else:
                 return {"interface": tunnel_interface, "status": "no_connectivity"}
-                
+
         except FileNotFoundError:
             if _config_is_host_managed():
                 return {"interface": tunnel_interface, "status": "host_managed"}
@@ -218,7 +240,9 @@ echo "RU IPset updated: $(ipset list ru_ips | grep 'Number of entries' | cut -d:
             if _config_is_host_managed():
                 return {"interface": tunnel_interface, "status": "host_managed"}
             return {"interface": tunnel_interface, "status": "error"}
+    # END_BLOCK: check_tunnel_status
 
+    # START_BLOCK: is_ip_in_ru_ipset (RU baseline check, ~18 lines)
     async def is_ip_in_ru_ipset(self, ip: str) -> bool:
         """Check whether an IP belongs to the current RU ipset baseline."""
         try:
@@ -240,7 +264,9 @@ echo "RU IPset updated: $(ipset list ru_ips | grep 'Number of entries' | cut -d:
         except Exception as e:
             logger.warning(f"[ROUTING] RU baseline ipset lookup failed for {ip}: {e}")
             return False
+    # END_BLOCK: is_ip_in_ru_ipset
 
+    # START_BLOCK: resolve_effective_target (policy resolution, ~35 lines)
     async def resolve_effective_target(
         self,
         address: str,
@@ -291,7 +317,9 @@ echo "RU IPset updated: $(ipset list ru_ips | grep 'Number of entries' | cut -d:
             )
 
         return decision
+    # END_BLOCK: resolve_effective_target
 
+    # START_BLOCK: _resolve_domain_to_ipv4 (DNS lookup, ~12 lines)
     async def _resolve_domain_to_ipv4(self, domain: str) -> str | None:
         """Resolve a domain to one IPv4 address for policy compatibility checks."""
         try:
@@ -307,7 +335,9 @@ echo "RU IPset updated: $(ipset list ru_ips | grep 'Number of entries' | cut -d:
             if ip:
                 return ip
         return None
+    # END_BLOCK: _resolve_domain_to_ipv4
 
+    # START_BLOCK: _build_legacy_policy_rules (legacy translation, ~35 lines)
     def _build_legacy_policy_rules(
         self,
         routes: list[dict[str, Any]],
@@ -355,6 +385,7 @@ echo "RU IPset updated: $(ipset list ru_ips | grep 'Number of entries' | cut -d:
             )
 
         return domain_rules, cidr_rules
+    # END_BLOCK: _build_legacy_policy_rules
 
     def _legacy_route_target(self, route_type: str) -> RouteTarget:
         """Map legacy direct/vpn routes to policy route targets."""
@@ -380,6 +411,7 @@ echo "RU IPset updated: $(ipset list ru_ips | grep 'Number of entries' | cut -d:
         except ValueError:
             return None
     
+    # START_BLOCK: setup_split_tunnel (iptables setup, ~80 lines)
     async def setup_split_tunnel(
         self,
         client_interface: str = "awg-client",
@@ -388,12 +420,12 @@ echo "RU IPset updated: $(ipset list ru_ips | grep 'Number of entries' | cut -d:
     ) -> bool:
         """
         Setup split-tunneling rules.
-        
+
         Args:
             client_interface: Interface for VPN clients
             tunnel_interface: Interface for exit tunnel
             bypass_ru: Whether to bypass VPN for Russian IPs
-            
+
         Returns:
             True if successful
         """
@@ -406,7 +438,7 @@ echo "RU IPset updated: $(ipset list ru_ips | grep 'Number of entries' | cut -d:
                     stderr=asyncio.subprocess.PIPE,
                 )
                 await proc.wait()
-            
+
             # Add private networks to RU ipset
             for network in ["10.0.0.0/8", "192.168.0.0/16", "172.16.0.0/12"]:
                 proc = await asyncio.create_subprocess_exec(
@@ -415,7 +447,7 @@ echo "RU IPset updated: $(ipset list ru_ips | grep 'Number of entries' | cut -d:
                     stderr=asyncio.subprocess.PIPE,
                 )
                 await proc.wait()
-            
+
             # Setup routing table
             proc = await asyncio.create_subprocess_exec(
                 "ip", "rule", "add", "fwmark", str(self.FWMARK),
@@ -424,7 +456,7 @@ echo "RU IPset updated: $(ipset list ru_ips | grep 'Number of entries' | cut -d:
                 stderr=asyncio.subprocess.PIPE,
             )
             await proc.wait()
-            
+
             proc = await asyncio.create_subprocess_exec(
                 "ip", "route", "add", "default", "dev", tunnel_interface,
                 "table", str(self.ROUTING_TABLE),
@@ -432,7 +464,7 @@ echo "RU IPset updated: $(ipset list ru_ips | grep 'Number of entries' | cut -d:
                 stderr=asyncio.subprocess.PIPE,
             )
             await proc.wait()
-            
+
             # Setup NAT
             proc = await asyncio.create_subprocess_exec(
                 "iptables", "-t", "nat", "-A", "POSTROUTING",
@@ -441,7 +473,7 @@ echo "RU IPset updated: $(ipset list ru_ips | grep 'Number of entries' | cut -d:
                 stderr=asyncio.subprocess.PIPE,
             )
             await proc.wait()
-            
+
             # Create custom mangle chain
             proc = await asyncio.create_subprocess_exec(
                 "iptables", "-t", "mangle", "-N", "AMNEZIA_PREROUTING",
@@ -449,7 +481,7 @@ echo "RU IPset updated: $(ipset list ru_ips | grep 'Number of entries' | cut -d:
                 stderr=asyncio.subprocess.PIPE,
             )
             await proc.wait()
-            
+
             # Link chain to PREROUTING
             proc = await asyncio.create_subprocess_exec(
                 "iptables", "-t", "mangle", "-C", "PREROUTING",
@@ -458,7 +490,7 @@ echo "RU IPset updated: $(ipset list ru_ips | grep 'Number of entries' | cut -d:
                 stderr=asyncio.subprocess.PIPE,
             )
             result = await proc.wait()
-            
+
             if result != 0:
                 proc = await asyncio.create_subprocess_exec(
                     "iptables", "-t", "mangle", "-A", "PREROUTING",
@@ -467,7 +499,7 @@ echo "RU IPset updated: $(ipset list ru_ips | grep 'Number of entries' | cut -d:
                     stderr=asyncio.subprocess.PIPE,
                 )
                 await proc.wait()
-            
+
             # Flush and rebuild rules
             proc = await asyncio.create_subprocess_exec(
                 "iptables", "-t", "mangle", "-F", "AMNEZIA_PREROUTING",
@@ -475,7 +507,7 @@ echo "RU IPset updated: $(ipset list ru_ips | grep 'Number of entries' | cut -d:
                 stderr=asyncio.subprocess.PIPE,
             )
             await proc.wait()
-            
+
             # Custom VPN routes (mark for VPN)
             proc = await asyncio.create_subprocess_exec(
                 "iptables", "-t", "mangle", "-A", "AMNEZIA_PREROUTING",
@@ -485,7 +517,7 @@ echo "RU IPset updated: $(ipset list ru_ips | grep 'Number of entries' | cut -d:
                 stderr=asyncio.subprocess.PIPE,
             )
             await proc.wait()
-            
+
             proc = await asyncio.create_subprocess_exec(
                 "iptables", "-t", "mangle", "-A", "AMNEZIA_PREROUTING",
                 "-m", "set", "--match-set", self.IPSET_CUSTOM_VPN, "dst",
@@ -494,7 +526,7 @@ echo "RU IPset updated: $(ipset list ru_ips | grep 'Number of entries' | cut -d:
                 stderr=asyncio.subprocess.PIPE,
             )
             await proc.wait()
-            
+
             # Custom direct routes (bypass VPN)
             proc = await asyncio.create_subprocess_exec(
                 "iptables", "-t", "mangle", "-A", "AMNEZIA_PREROUTING",
@@ -504,7 +536,7 @@ echo "RU IPset updated: $(ipset list ru_ips | grep 'Number of entries' | cut -d:
                 stderr=asyncio.subprocess.PIPE,
             )
             await proc.wait()
-            
+
             # RU bypass
             if bypass_ru:
                 proc = await asyncio.create_subprocess_exec(
@@ -515,7 +547,7 @@ echo "RU IPset updated: $(ipset list ru_ips | grep 'Number of entries' | cut -d:
                     stderr=asyncio.subprocess.PIPE,
                 )
                 await proc.wait()
-            
+
             # Default: mark for VPN
             proc = await asyncio.create_subprocess_exec(
                 "iptables", "-t", "mangle", "-A", "AMNEZIA_PREROUTING",
@@ -524,13 +556,14 @@ echo "RU IPset updated: $(ipset list ru_ips | grep 'Number of entries' | cut -d:
                 stderr=asyncio.subprocess.PIPE,
             )
             await proc.wait()
-            
+
             logger.info("[ROUTING] Split-tunneling configured successfully")
             return True
-            
+
         except Exception as e:
             logger.error(f"[ROUTING] Error setting up split-tunnel: {e}")
             return False
+    # END_BLOCK: setup_split_tunnel
 
     @dataclass(frozen=True)
     class RouteSyncPlan:
@@ -554,6 +587,7 @@ echo "RU IPset updated: $(ipset list ru_ips | grep 'Number of entries' | cut -d:
             remove_vpn=current_vpn - desired_vpn,
         )
 
+    # START_BLOCK: _collect_desired_route_sets (route resolution, ~25 lines)
     async def _collect_desired_route_sets(
         self,
         routes: list[dict[str, Any]],
@@ -584,7 +618,9 @@ echo "RU IPset updated: $(ipset list ru_ips | grep 'Number of entries' | cut -d:
                 target_set.add(normalized)
 
         return desired_direct, desired_vpn
+    # END_BLOCK: _collect_desired_route_sets
 
+    # START_BLOCK: _get_ipset_entries (ipset read, ~20 lines)
     async def _get_ipset_entries(self, ipset_name: str) -> set[str]:
         """Read current ipset members into canonical strings."""
         proc = await asyncio.create_subprocess_exec(
@@ -610,7 +646,9 @@ echo "RU IPset updated: $(ipset list ru_ips | grep 'Number of entries' | cut -d:
             if normalized is not None:
                 members.add(normalized)
         return members
+    # END_BLOCK: _get_ipset_entries
 
+    # START_BLOCK: _apply_route_sync_plan (incremental sync, ~15 lines)
     async def _apply_route_sync_plan(self, plan: RouteSyncPlan) -> None:
         """Apply an incremental route-set diff to ipset."""
         operations = [
@@ -627,7 +665,9 @@ echo "RU IPset updated: $(ipset list ru_ips | grep 'Number of entries' | cut -d:
                     stderr=asyncio.subprocess.PIPE,
                 )
                 await proc.communicate()
+    # END_BLOCK: _apply_route_sync_plan
 
+    # START_BLOCK: _apply_full_route_sync (full rebuild, ~25 lines)
     async def _apply_full_route_sync(
         self,
         desired_direct: set[str],
@@ -653,11 +693,13 @@ echo "RU IPset updated: $(ipset list ru_ips | grep 'Number of entries' | cut -d:
                     stderr=asyncio.subprocess.PIPE,
                 )
                 await proc.wait()
+    # END_BLOCK: _apply_full_route_sync
     
+    # START_BLOCK: sync_custom_routes (route sync, ~30 lines)
     async def sync_custom_routes(self, routes: list[dict[str, Any]]) -> None:
         """
         Sync custom routes from database to ipset.
-        
+
         Args:
             routes: List of route dicts with 'address' and 'route_type'
         """
@@ -687,6 +729,7 @@ echo "RU IPset updated: $(ipset list ru_ips | grep 'Number of entries' | cut -d:
             )
 
         logger.info(f"[ROUTING] Synced {len(routes)} custom routes")
+    # END_BLOCK: sync_custom_routes
 
 
 # Global instance

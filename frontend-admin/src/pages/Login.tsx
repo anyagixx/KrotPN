@@ -1,9 +1,34 @@
+// FILE: frontend-admin/src/pages/Login.tsx
+// VERSION: 1.0.0
+// ROLE: UI_COMPONENT
+// MAP_MODE: SUMMARY
+// START_MODULE_CONTRACT
+//   PURPOSE: Admin authentication page (login form, role verification, auth store integration)
+//   SCOPE: Email/password login, role gate (admin/superadmin only), redirect to dashboard on success
+//   DEPENDS: M-010 (frontend-admin), M-006 (admin API), auth store
+//   LINKS: M-010
+// END_MODULE_CONTRACT
+//
+// START_MODULE_MAP
+//   LoginPage - Admin login page component with auth flow
+//   default - React component (default export)
+// END_MODULE_MAP
+//
+// START_CHANGE_SUMMARY
+//   LAST_CHANGE: v2.8.0 - Added full GRACE MODULE_CONTRACT and MODULE_MAP per GRACE governance protocol
+// END_CHANGE_SUMMARY
+
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Loader2, Lock, Mail, Shield } from 'lucide-react'
 import { adminApi } from '../lib/api'
 import { useAuthStore } from '../stores/auth'
 
+// START_BLOCK: Login
+// Admin login page: email/password auth, role gate (admin/superadmin only), redirect to dashboard
+// DEPENDS: M-010 (frontend-admin), M-006 (admin API via adminApi)
+//   - adminApi.login, adminApi.getCurrentUser
+//   - useAuthStore (Zustand auth store: setUser, setToken)
 export default function Login() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -134,3 +159,4 @@ export default function Login() {
     </div>
   )
 }
+// END_BLOCK: Login

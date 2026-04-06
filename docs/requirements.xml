@@ -1,199 +1,140 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- GRACE-lite Requirements for multi-agent handoff -->
-<requirements>
-  <meta>
-    <project-name>KrotVPN</project-name>
-    <version>2.5.0</version>
-    <updated>2026-03-24</updated>
-    <status>active</status>
-    <methodology>GRACE-lite for AI-assisted development</methodology>
-  </meta>
-
-  <product>
+<!-- GRACE Requirements for KrotVPN — Contract-first requirements, actors, use cases, constraints, risks -->
+<RequirementsAnalysis VERSION="1.0.0">
+  <Project>
     <name>KrotVPN</name>
-    <summary>
-      Коммерческий VPN-сервис на базе AmneziaWG с user dashboard, admin panel,
-      billing, referrals, Telegram bot и двухузловой сетевой моделью RU entry / DE exit.
-    </summary>
-    <target-users>
-      Частные пользователи, которым нужен устойчивый доступ к интернет-ресурсам через
-      обфусцированный VPN, и оператор сервиса, управляющий подписками, маршрутами и узлами.
-    </target-users>
-    <primary-goal>
-      Давать пользователю рабочий VPN-доступ с минимальным количеством шагов:
-      регистрация, пробный доступ или подписка, получение конфигурации, подключение.
-    </primary-goal>
-  </product>
+    <annotation>Commercial VPN service on AmneziaWG with user dashboard, admin panel, billing, referrals, Telegram bot, and two-node RU/DE network topology</annotation>
+    <keywords>VPN, WireGuard, split-tunneling, routing, billing, subscriptions, Telegram bot, admin panel, FastAPI, Vue.js, YooKassa, Docker, AWG</keywords>
+  </Project>
 
-  <scope>
-    <in-scope>
-      FastAPI backend с JWT auth, Telegram auth, subscriptions, billing, referrals, admin API.
-      Пользовательский frontend для регистрации, входа, получения VPN-конфига и просмотра статуса.
-      Admin frontend для пользователей, тарифов, узлов, маршрутов, доменных routing-правил и базовой аналитики.
-      Telegram bot для быстрого входа, выдачи конфига и просмотра подписки.
-      Хост-управляемая интеграция с AmneziaWG, routing, iptables/ipset и deploy scripts.
-      Policy-driven routing по доменам, wildcard-доменам, DNS-bound IP и CIDR с обратной совместимостью к текущему RU baseline.
-    </in-scope>
-    <out-of-scope>
-      Нативные мобильные приложения.
-      Полноценный self-service support center.
-      Deep packet inspection или payload-level traffic inspection.
-      Завершенная enterprise-grade observability и autoscaling.
-    </out-of-scope>
-  </scope>
+  <Actors>
+    <actor-User>End user who registers, subscribes, receives VPN config, and connects to the VPN service</actor-User>
+    <actor-Administrator>Service operator managing users, tariffs, nodes, routes, policy rules, and analytics</actor-Administrator>
+    <actor-System>Automated backend services for auth, billing, webhook processing, DNS refresh, route sync</actor-System>
+    <actor-TelegramBot>Telegram bot client that mediates auth, config delivery, and subscription status for users</actor-TelegramBot>
+    <actor-PaymentProvider>External YooKassa payment system processing subscriptions</actor-PaymentProvider>
+  </Actors>
 
-  <use-cases>
-    <use-case id="UC-001" priority="critical">
-      <name>Domain-first route selection</name>
-      <goal>
-        Когда домен известен, система должна принимать маршрутное решение по доменному policy-правилу
-        раньше, чем по общей географии IP-адреса.
-      </goal>
-      <acceptance>
-        Exact-domain rule имеет приоритет над wildcard-domain rule.
-        Wildcard-domain rule имеет приоритет над CIDR rule.
-        При отсутствии явного policy сохраняется текущий RU baseline.
-      </acceptance>
-    </use-case>
-    <use-case id="UC-002" priority="critical">
-      <name>Foreign CDN domain with changing IPs</name>
-      <goal>
-        Домен с DE policy должен оставаться routed через DE даже если его IP-адреса меняются из-за CDN или DNS rotation.
-      </goal>
-      <acceptance>
-        DNS binding обновляется по TTL.
-        Истекшие привязки не остаются активными бесконечно.
-        Изменение IP не ломает policy semantics для уже известного домена.
-      </acceptance>
-    </use-case>
-    <use-case id="UC-003" priority="high">
-      <name>Admin-managed routing policy</name>
-      <goal>
-        Администратор должен иметь возможность создавать, изменять, отключать и проверять routing policy rules.
-      </goal>
-      <acceptance>
-        Admin API и admin UI отражают effective route target и причину решения.
-        Изменение policy приводит к runtime sync без потери несвязанных правил.
-      </acceptance>
-    </use-case>
-    <use-case id="UC-004" priority="high">
-      <name>Backward-compatible fallback behavior</name>
-      <goal>
-        Пока покрытие доменных правил неполное, система не должна ломать уже работающую модель RU-vs-non-RU.
-      </goal>
-      <acceptance>
-        Unknown domain без явного policy уходит в CIDR evaluation и затем в текущий RU baseline.
-        Rollout возможен поэтапно без обязательного массового переопределения существующих правил.
-      </acceptance>
-    </use-case>
-  </use-cases>
+  <UseCases>
+    <UC-001>
+      <Name>Domain-first route selection</Name>
+      <Actor>System</Actor>
+      <Action>Evaluates routing policy by domain before IP-based geography</Action>
+      <Goal>Accept routing decision by domain policy earlier than by general IP geography</Goal>
+      <Preconditions>Domain is known for the traffic flow; policy rules exist in the system</Preconditions>
+      <AcceptanceCriteria>Exact-domain rule has priority over wildcard-domain rule. Wildcard-domain rule has priority over CIDR rule. Without explicit policy, current RU baseline is preserved.</AcceptanceCriteria>
+      <Priority>critical</Priority>
+      <RelatedFlows>DF-006, DF-007</RelatedFlows>
+    </UC-001>
 
-  <critical-user-flows>
-    <flow id="F-001" priority="critical">
-      <name>Email registration and trial provisioning</name>
-      <description>
-        Пользователь регистрируется по email, получает trial subscription и VPN client,
-        после чего может скачать конфиг или показать QR.
-      </description>
-    </flow>
-    <flow id="F-002" priority="critical">
-      <name>Telegram authentication</name>
-      <description>
-        Пользователь входит через Telegram widget или bot-mediated auth,
-        после чего получает тот же доступ к конфигу и подписке.
-      </description>
-    </flow>
-    <flow id="F-003" priority="critical">
-      <name>Paid subscription activation</name>
-      <description>
-        Пользователь выбирает план, создает платеж, webhook подтверждает оплату,
-        подписка продлевается, VPN доступ активируется или остается активным.
-      </description>
-    </flow>
-    <flow id="F-004" priority="critical">
-      <name>Config delivery</name>
-      <description>
-        Пользователь получает VPN config через dashboard или Telegram bot:
-        текст, файл или QR.
-      </description>
-    </flow>
-    <flow id="F-005" priority="high">
-      <name>Admin operations</name>
-      <description>
-        Администратор логинится, смотрит пользователей, тарифы, состояние узлов,
-        маршрутов, policy-правил и базовую бизнес-аналитику.
-      </description>
-    </flow>
-    <flow id="F-006" priority="critical">
-      <name>Domain-aware route decision</name>
-      <description>
-        При доступе к домену система должна сначала оценивать exact/wildcard domain rules,
-        затем DNS-bound IP и explicit CIDR rules, и только потом текущий RU baseline.
-      </description>
-    </flow>
-    <flow id="F-007" priority="high">
-      <name>DNS-bound policy refresh</name>
-      <description>
-        Когда DNS binding для policy-managed домена меняется, runtime route set должен быть обновлен
-        без silent leakage старых адресов.
-      </description>
-    </flow>
-  </critical-user-flows>
+    <UC-002>
+      <Name>Foreign CDN domain with changing IPs</Name>
+      <Actor>System</Actor>
+      <Action>Resolves domain to DE exit node even when IPs rotate due to CDN or DNS changes</Action>
+      <Goal>Domain with DE policy stays routed through DE despite IP changes</Goal>
+      <Preconditions>DNS binding is active; TTL is known and respected</Preconditions>
+      <AcceptanceCriteria>DNS binding updates on TTL expiry. Expired bindings do not remain active indefinitely. IP changes do not break policy semantics for known domains.</AcceptanceCriteria>
+      <Priority>critical</Priority>
+      <RelatedFlows>DF-007</RelatedFlows>
+    </UC-002>
 
-  <current-functional-baseline>
-    <implemented>
-      Email/password auth и refresh token flow.
-      Telegram auth endpoint и bot-assisted authorization.
-      Trial subscriptions и paid subscriptions.
-      VPN config generation, config download, QR generation, client stats.
-      Referral code generation и referral bonus processing.
-      Admin API и отдельный admin frontend.
-      Docker Compose stack для backend/frontend/admin/nginx/db/redis/telegram-bot.
-      Базовый split-tunneling по RU IPset и custom routes.
-    </implemented>
-    <partial>
-      Billing production hardening.
-      Route-aware migration от legacy VPNServer к VPNNode/VPNRoute.
-      Admin analytics consistency.
-      Email module и уведомления.
-      Domain-aware routing planning approved, but implementation not started.
-      End-to-end verification and repeatable deployment safety.
-    </partial>
-    <known-gaps>
-      Нет нормальной схемы database migrations через Alembic workflow.
-      Deployment security и secrets handling слабые.
-      Тестовое покрытие неполное и локально не всегда воспроизводимо без подготовки окружения.
-      Текущий routing baseline слишком жестко зависит от RU IPset и не покрывает intent-level routing по доменам.
-    </known-gaps>
-  </current-functional-baseline>
+    <UC-003>
+      <Name>Admin-managed routing policy</Name>
+      <Actor>Administrator</Actor>
+      <Action>Creates, modifies, disables, and reviews routing policy rules</Action>
+      <Goal>Admin can manage routing policy via API and UI with runtime sync</Goal>
+      <Preconditions>Admin is authenticated; admin UI and API are operational</Preconditions>
+      <AcceptanceCriteria>Admin API and UI reflect effective route target and decision reason. Policy changes trigger runtime sync without losing unrelated rules.</AcceptanceCriteria>
+      <Priority>high</Priority>
+      <RelatedFlows>DF-005</RelatedFlows>
+    </UC-003>
 
-  <non-functional-priorities>
-    <priority rank="1">Безопасность секретов, admin access и billing webhook handling.</priority>
-    <priority rank="2">Надежность VPN provisioning и route-aware topology.</priority>
-    <priority rank="3">Объяснимость и детерминизм routing decision по домену, DNS binding и CIDR.</priority>
-    <priority rank="4">Повторяемый AI handoff через актуальные docs и contracts.</priority>
-    <priority rank="5">Упрощение deployment и снижение host-coupling там, где это возможно.</priority>
-  </non-functional-priorities>
+    <UC-004>
+      <Name>Backward-compatible fallback behavior</Name>
+      <Actor>System</Actor>
+      <Action>Falls back to RU-vs-non-RU baseline when domain policy coverage is incomplete</Action>
+      <Goal>Do not break existing routing while domain rules are rolled out incrementally</Goal>
+      <Preconditions>Domain policy coverage is partial; legacy RU baseline is active</Preconditions>
+      <AcceptanceCriteria>Unknown domain without explicit policy goes to CIDR evaluation then current RU baseline. Phased rollout is possible without mandatory mass override of existing rules.</AcceptanceCriteria>
+      <Priority>high</Priority>
+      <RelatedFlows>DF-006</RelatedFlows>
+    </UC-004>
 
-  <routing-requirements>
-    <requirement id="RR-001">Policy precedence must be deterministic and explicitly documented.</requirement>
-    <requirement id="RR-002">Decision reason must be observable without exposing secrets or raw sensitive payloads.</requirement>
-    <requirement id="RR-003">Domain normalization must avoid duplicate rules caused by casing, trailing dots or wildcard formatting drift.</requirement>
-    <requirement id="RR-004">Runtime sync must remove stale DNS-derived addresses after TTL expiry or rule deactivation.</requirement>
-    <requirement id="RR-005">Fallback to current RU baseline must remain available until policy rollout is complete.</requirement>
-  </routing-requirements>
+    <UC-005>
+      <Name>Email registration and trial provisioning</Name>
+      <Actor>User</Actor>
+      <Action>Registers by email, receives trial subscription and VPN client</Action>
+      <Goal>User gets VPN access with minimal steps: register, trial, config, connect</Goal>
+      <Preconditions>Email is valid; system can send confirmation or skip verification</Preconditions>
+      <AcceptanceCriteria>User receives trial subscription, VPN client config (text/file/QR), and can connect successfully.</AcceptanceCriteria>
+      <Priority>critical</Priority>
+      <RelatedFlows>DF-001</RelatedFlows>
+    </UC-005>
 
-  <agent-guidance>
-    <instruction>
-      Новый AI-агент должен сначала прочитать docs/current-status.xml, docs/knowledge-graph.xml,
-      docs/development-plan.xml и docs/verification-plan.xml, и только потом менять код.
-    </instruction>
-    <instruction>
-      При конфликте между старым документом и кодом приоритет имеет код, после чего агент обязан
-      обновить соответствующий документ.
-    </instruction>
-    <instruction>
-      Любая работа по routing policy должна явно называть decision precedence и expected fallback branch.
-    </instruction>
-  </agent-guidance>
-</requirements>
+    <UC-006>
+      <Name>Telegram authentication</Name>
+      <Actor>User</Actor>
+      <Action>Logs in via Telegram widget or bot-mediated auth</Action>
+      <Goal>Same access to config and subscription as email auth</Goal>
+      <Preconditions>Telegram account exists; bot is operational</Preconditions>
+      <AcceptanceCriteria>User authenticated via Telegram receives identical access to VPN config and subscription status.</AcceptanceCriteria>
+      <Priority>critical</Priority>
+      <RelatedFlows>DF-002</RelatedFlows>
+    </UC-006>
+
+    <UC-007>
+      <Name>Paid subscription activation</Name>
+      <Actor>User, PaymentProvider</Actor>
+      <Action>Selects plan, creates payment, webhook confirms, subscription activates</Action>
+      <Goal>Paid subscription provides full VPN access and billing continuity</Goal>
+      <Preconditions>Plan exists; payment provider is configured; webhook endpoint is reachable</Preconditions>
+      <AcceptanceCriteria>Payment confirmed via webhook → subscription activated → VPN access maintained or reactivated. Billing records consistent.</AcceptanceCriteria>
+      <Priority>critical</Priority>
+      <RelatedFlows>DF-003</RelatedFlows>
+    </UC-007>
+
+    <UC-008>
+      <Name>Admin operations dashboard</Name>
+      <Actor>Administrator</Actor>
+      <Action>Reviews users, tariffs, node status, routes, policy rules, and analytics</Action>
+      <Goal>Full visibility into service state for operational management</Goal>
+      <Preconditions>Admin authenticated; admin frontend and API operational</Preconditions>
+      <AcceptanceCriteria>Admin UI displays consistent user counts, tariff data, node health, route status, policy rules, and basic business metrics.</AcceptanceCriteria>
+      <Priority>high</Priority>
+      <RelatedFlows>DF-005</RelatedFlows>
+    </UC-008>
+  </UseCases>
+
+  <NonGoals>
+    <item-1>Native mobile applications (iOS/Android)</item-1>
+    <item-2>Full self-service support center and ticketing</item-2>
+    <item-3>Deep packet inspection or payload-level traffic inspection</item-3>
+    <item-4>Enterprise-grade observability stack and autoscaling in current phase</item-4>
+    <item-5>Multi-region deployment beyond RU/DE two-node topology</item-5>
+  </NonGoals>
+
+  <Constraints>
+    <constraint-1>Two-node deployment: RU entry + DE exit, Docker Compose based</constraint-1>
+    <constraint-2>Secrets must never appear in logs or client-side storage (localStorage tokens must be migrated)</constraint-2>
+    <constraint-3>VPN and routing code is host-coupled (not purely containerized) — iptables, ipset, AWG require host-level access</constraint-3>
+    <constraint-4>Single PostgreSQL database, single Redis instance per deployment</constraint-4>
+    <constraint-5>Migration from legacy VPNServer to VPNNode/VPNRoute must be backward-compatible</constraint-5>
+  </Constraints>
+
+  <Risks>
+    <risk-1>Weak secrets in deploy scripts (sshpass, base64-encoded tokens, hardcoded credentials)</risk-1>
+    <risk-2>Runtime database migrations without Alembic workflow may corrupt schema</risk-2>
+    <risk-3>Long-running DNS-bound routing may leak stale addresses after TTL expiry if cleanup fails</risk-3>
+    <risk-4>Webhook delivery failures from YooKassa may leave subscriptions in inconsistent state</risk-4>
+    <risk-5>Host-coupled routing code makes testing and local development environment-dependent</risk-5>
+    <risk-6>Referral bonus processing edge cases (self-referral, circular chains, duplicate bonuses)</risk-6>
+  </Risks>
+
+  <OpenQuestions>
+    <question-1>Should Alembic migrations be fully automated or require explicit admin approval for schema changes?</question-1>
+    <question-2>What is the exact threshold for anti-sharing violations before auto-suspension?</question-2>
+    <question-3>Should Telegram bot support full subscription management or remain config-delivery-only?</question-3>
+    <question-4>How to handle VPN config versioning when user switches plans or nodes change?</question-4>
+    <question-5>Should domain-aware routing policy support user-custom rules or remain admin-only?</question-5>
+  </OpenQuestions>
+</RequirementsAnalysis>

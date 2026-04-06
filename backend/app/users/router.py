@@ -1,6 +1,29 @@
 """
 User API router.
 
+# FILE: backend/app/users/router.py
+# VERSION: 1.0.0
+# ROLE: ENTRY_POINT
+# MAP_MODE: SUMMARY
+# START_MODULE_CONTRACT
+#   PURPOSE: Exposes auth, current-user, and admin user-management HTTP endpoints
+#   SCOPE: FastAPI routers for /api/v1/auth/*, /api/v1/users/*, /api/v1/admin/users/*
+#   DEPENDS: M-001 (core auth, DBSession, settings), M-002 (users service/schemas/models), M-004 (billing), M-005 (vpn), M-006 (referrals), M-007 (devices)
+#   LINKS: M-002 (users), frontend, frontend-admin, telegram-bot
+# END_MODULE_CONTRACT
+#
+# START_MODULE_MAP
+#   router - Auth endpoints: /register, /login, /telegram, /refresh
+#   users_router - User endpoints: /me, /me (PUT), /me/stats, /me/change-password
+#   admin_users_router - Admin endpoints: list, get, activate, deactivate users
+#   _initialize_new_user_resources - Post-registration orchestrator (trial, VPN, referral)
+#   _make_token_response - JWT cookie/token response builder
+# END_MODULE_MAP
+#
+# START_CHANGE_SUMMARY
+#   LAST_CHANGE: 2026-04-06 - Added full GRACE MODULE_CONTRACT, MODULE_MAP, BLOCK markers per GRACE governance protocol
+# END_CHANGE_SUMMARY
+
 GRACE-lite module contract:
 - Exposes auth, current-user and admin user-management endpoints.
 - Registration is intentionally side-effectful: it may create trial subscription,
@@ -52,6 +75,7 @@ admin_users_router = APIRouter(prefix="/api/v1/admin/users", tags=["admin"])
 limiter = Limiter(key_func=get_remote_address)
 
 
+# START_BLOCK_INITIALIZE_NEW_USER_RESOURCES
 async def _initialize_new_user_resources(
     user_id: int,
     referred_by_id: int | None,
@@ -93,8 +117,10 @@ async def _initialize_new_user_resources(
 
     if referred_by_id is not None:
         await referral_service.create_referral(referred_by_id, user_id)
+# END_BLOCK_INITIALIZE_NEW_USER_RESOURCES
 
 
+# START_BLOCK_MAKE_TOKEN_RESPONSE
 def _make_token_response(access_token: str, refresh_token: str) -> JSONResponse:
     response = JSONResponse(
         content={
@@ -122,10 +148,12 @@ def _make_token_response(access_token: str, refresh_token: str) -> JSONResponse:
         path="/api/v1/auth/refresh",
     )
     return response
+# END_BLOCK_MAKE_TOKEN_RESPONSE
 
 
 # ==================== Auth Endpoints ====================
 
+# START_BLOCK_REGISTER
 @router.post("/register", response_model=Token, status_code=status.HTTP_201_CREATED)
 @limiter.limit("5/minute")
 async def register(
@@ -138,7 +166,7 @@ async def register(
     Returns JWT tokens.
     """
     service = UserService(session)
-    
+
     try:
         user = await service.create_user(data, referral_code=data.referral_code)
         await _initialize_new_user_resources(user.id, user.referred_by_id, session)
@@ -153,8 +181,10 @@ async def register(
     refresh_token = create_refresh_token(subject=user.id)
 
     return _make_token_response(access_token, refresh_token)
+# END_BLOCK_REGISTER
 
 
+# START_BLOCK_LOGIN
 @router.post("/login", response_model=Token)
 @limiter.limit("10/minute")
 async def login(
@@ -167,7 +197,7 @@ async def login(
     Returns JWT tokens.
     """
     service = UserService(session)
-    
+
     user = await service.authenticate_email(data.email, data.password)
     if user is None:
         raise HTTPException(
@@ -186,8 +216,10 @@ async def login(
     refresh_token = create_refresh_token(subject=user.id)
 
     return _make_token_response(access_token, refresh_token)
+# END_BLOCK_LOGIN
 
 
+# START_BLOCK_TELEGRAM_AUTH
 @router.post("/telegram", response_model=Token)
 @limiter.limit("10/minute")
 async def telegram_auth(
@@ -222,7 +254,7 @@ async def telegram_auth(
         )
 
     service = UserService(session)
-    
+
     user = await service.create_user_telegram(data, referral_code=data.referral_code)
     await _initialize_new_user_resources(user.id, user.referred_by_id, session)
 
@@ -237,8 +269,10 @@ async def telegram_auth(
     refresh_token = create_refresh_token(subject=user.id)
 
     return _make_token_response(access_token, refresh_token)
+# END_BLOCK_TELEGRAM_AUTH
 
 
+# START_BLOCK_REFRESH_TOKEN
 @router.post("/refresh", response_model=Token)
 @limiter.limit("20/minute")
 async def refresh_token(
@@ -258,7 +292,7 @@ async def refresh_token(
 
     service = UserService(session)
     user = await service.get_by_id(int(user_id))
-    
+
     if user is None or not user.is_active:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
@@ -270,18 +304,22 @@ async def refresh_token(
     new_refresh_token = create_refresh_token(subject=user.id)
 
     return _make_token_response(access_token, new_refresh_token)
+# END_BLOCK_REFRESH_TOKEN
 
 
 # ==================== User Endpoints ====================
 
+# START_BLOCK_GET_CURRENT_USER_PROFILE
 @users_router.get("/me", response_model=UserResponse)
 async def get_current_user_profile(
     current_user: CurrentUser,
 ):
     """Get current user profile."""
     return UserResponse.from_user(current_user)
+# END_BLOCK_GET_CURRENT_USER_PROFILE
 
 
+# START_BLOCK_UPDATE_CURRENT_USER_PROFILE
 @users_router.put("/me", response_model=UserResponse)
 async def update_current_user_profile(
     data: UserUpdate,
@@ -291,10 +329,12 @@ async def update_current_user_profile(
     """Update current user profile."""
     service = UserService(session)
     user = await service.update_user(current_user, data)
-    
+
     return UserResponse.from_user(user)
+# END_BLOCK_UPDATE_CURRENT_USER_PROFILE
 
 
+# START_BLOCK_GET_CURRENT_USER_STATS
 @users_router.get("/me/stats", response_model=UserStatsResponse)
 async def get_current_user_stats(
     current_user: CurrentUser,
@@ -304,8 +344,10 @@ async def get_current_user_stats(
     service = UserService(session)
     stats = await service.get_user_stats(current_user)
     return UserStatsResponse(**stats)
+# END_BLOCK_GET_CURRENT_USER_STATS
 
 
+# START_BLOCK_CHANGE_PASSWORD
 @users_router.post("/me/change-password")
 async def change_password(
     data: UserChangePassword,
@@ -314,22 +356,24 @@ async def change_password(
 ):
     """Change current user password."""
     service = UserService(session)
-    
+
     success = await service.change_password(
         current_user, data.current_password, data.new_password
     )
-    
+
     if not success:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Current password is incorrect",
         )
-    
+
     return {"status": "password_changed"}
+# END_BLOCK_CHANGE_PASSWORD
 
 
 # ==================== Admin Endpoints ====================
 
+# START_BLOCK_LIST_USERS
 @admin_users_router.get("", response_model=UserListResponse)
 async def list_users(
     page: int = 1,
@@ -382,8 +426,10 @@ async def list_users(
         per_page=per_page,
         pages=(total + per_page - 1) // per_page,
     )
+# END_BLOCK_LIST_USERS
 
 
+# START_BLOCK_GET_USER
 @admin_users_router.get("/{user_id}", response_model=UserAdminResponse)
 async def get_user(
     user_id: int,
@@ -393,7 +439,7 @@ async def get_user(
     """Get user by ID (admin only)."""
     service = UserService(session)
     user = await service.get_by_id(user_id)
-    
+
     if user is None:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
@@ -406,8 +452,10 @@ async def get_user(
         subscription_count=len(user.subscriptions) if user.subscriptions else 0,
         active_subscription_id=None,
     )
+# END_BLOCK_GET_USER
 
 
+# START_BLOCK_ACTIVATE_USER
 @admin_users_router.post("/{user_id}/activate")
 async def activate_user(
     user_id: int,
@@ -426,8 +474,10 @@ async def activate_user(
 
     await service.activate_user(user)
     return {"status": "activated"}
+# END_BLOCK_ACTIVATE_USER
 
 
+# START_BLOCK_DEACTIVATE_USER
 @admin_users_router.post("/{user_id}/deactivate")
 async def deactivate_user(
     user_id: int,
@@ -437,7 +487,7 @@ async def deactivate_user(
     """Deactivate user account (admin only)."""
     service = UserService(session)
     user = await service.get_by_id(user_id)
-    
+
     if user is None:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
@@ -446,3 +496,4 @@ async def deactivate_user(
 
     await service.deactivate_user(user)
     return {"status": "deactivated"}
+# END_BLOCK_DEACTIVATE_USER

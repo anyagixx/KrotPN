@@ -1,27 +1,30 @@
-"""
-Admin API router for analytics and management.
-
-MODULE_CONTRACT
-- PURPOSE: Expose privileged admin analytics and system endpoints over current backend state.
-- SCOPE: Dashboard statistics, revenue analytics, user analytics, system health, and privileged operational visibility.
-- DEPENDS: M-001 auth and DB session injection, M-002 user models, M-003 vpn topology models, M-004 billing models, M-005 referral models, M-006 admin-api graph surface, M-016 route-policy observability dependencies.
-- LINKS: M-006 admin-api, M-016 route-decision-api, V-M-006.
-
-MODULE_MAP
-- get_admin_stats: Aggregates dashboard metrics across users, subscriptions, revenue, VPN, and routing visibility.
-- get_revenue_analytics: Returns grouped payment revenue analytics over a bounded date range.
-- get_users_analytics: Returns grouped user registration analytics over a bounded date range.
-- list_admin_devices: Returns device registry rows with live slot/security context for admin review.
-- block_admin_device: Blocks one device peer without freeing the consumed slot.
-- unblock_admin_device: Clears the blocked state for one device.
-- rotate_admin_device: Reprovisions one device config while keeping the logical device identity.
-- revoke_admin_device: Revokes one device and frees the slot.
-- get_system_health: Returns coarse host health metrics for privileged operators.
-
-CHANGE_SUMMARY
-- 2026-03-24: Added route-aware admin statistics so dashboard reporting can surface node, route, rule, and DNS-binding state during routing migration.
-- 2026-03-27: Added admin device-control endpoints for block/unblock/rotate/revoke and device-level fraud visibility.
-"""
+# FILE: backend/app/admin/router.py
+# VERSION: 1.0.0
+# ROLE: ENTRY_POINT
+# MAP_MODE: SUMMARY
+# START_MODULE_CONTRACT
+#   PURPOSE: Expose privileged admin analytics and system endpoints over current backend state
+#   SCOPE: Dashboard statistics, revenue analytics, user analytics, system health, device control (block/unblock/rotate/revoke)
+#   DEPENDS: M-001 (core database/auth), M-002 (user models), M-003 (vpn topology), M-004 (billing), M-005 (referrals), M-006 (admin-api graph surface), M-016 (route-policy observability)
+#   LINKS: M-006 (admin-api), M-016 (route-decision-api), V-M-006
+# END_MODULE_CONTRACT
+#
+# START_MODULE_MAP
+#   get_admin_stats - Aggregates dashboard metrics across users, subscriptions, revenue, VPN, and routing
+#   get_revenue_analytics - Grouped payment revenue analytics over a bounded date range
+#   get_users_analytics - Grouped user registration analytics over a bounded date range
+#   list_admin_devices - Device registry rows with live slot/security context
+#   block_admin_device - Block one device peer without freeing the consumed slot
+#   unblock_admin_device - Clear the blocked state for one device
+#   rotate_admin_device - Reprovision one device config keeping logical device identity
+#   revoke_admin_device - Revoke one device and free the slot
+#   get_system_health - Coarse host health metrics for privileged operators
+# END_MODULE_MAP
+#
+# START_CHANGE_SUMMARY
+#   LAST_CHANGE: v2.8.0 - Added full GRACE MODULE_CONTRACT, MODULE_MAP, BLOCKS per GRACE governance protocol; replaced docstring header with comment-based GRACE header
+# END_CHANGE_SUMMARY
+#
 # <!-- GRACE: module="M-006" api-group="Admin API" -->
 
 from datetime import datetime, timedelta, timezone
@@ -44,6 +47,7 @@ from app.vpn.service import VPNService
 router = APIRouter(prefix="/api/v1/admin", tags=["admin"])
 
 
+# START_BLOCK: _serialize_admin_device
 async def _serialize_admin_device(
     session: DBSession,
     *,
@@ -88,8 +92,10 @@ async def _serialize_admin_device(
         "active_peer_count": int(active_peer_count),
         "recent_event_types": recent_event_types,
     }
+# END_BLOCK: _serialize_admin_device
 
 
+# START_BLOCK: _list_admin_devices
 async def _list_admin_devices(
     session: DBSession,
     *,
@@ -115,6 +121,7 @@ async def _list_admin_devices(
     for device, user in result.all():
         items.append(await _serialize_admin_device(session, device=device, user=user))
     return items
+# END_BLOCK: _list_admin_devices
 
 
 async def _get_admin_device_or_none(session: DBSession, device_id: int) -> UserDevice | None:
@@ -124,6 +131,7 @@ async def _get_admin_device_or_none(session: DBSession, device_id: int) -> UserD
 
 # ==================== Dashboard Stats ====================
 
+# START_BLOCK: get_admin_stats
 @router.get("/stats")
 async def get_admin_stats(
     admin: CurrentAdmin,
@@ -134,13 +142,13 @@ async def get_admin_stats(
     # so this endpoint is not yet a perfect reflection of the newer node/route topology.
     now = datetime.now(timezone.utc)
     month_start = now.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
-    
+
     # Users count
     total_users = (await session.execute(select(func.count(User.id)))).scalar() or 0
     new_users_month = (await session.execute(
         select(func.count(User.id)).where(User.created_at >= month_start)
     )).scalar() or 0
-    
+
     # Active subscriptions
     active_subs = (await session.execute(
         select(func.count(Subscription.id)).where(
@@ -148,7 +156,7 @@ async def get_admin_stats(
             Subscription.expires_at > now,
         )
     )).scalar() or 0
-    
+
     # Trial subscriptions
     trial_subs = (await session.execute(
         select(func.count(Subscription.id)).where(
@@ -157,7 +165,7 @@ async def get_admin_stats(
             Subscription.expires_at > now,
         )
     )).scalar() or 0
-    
+
     # Revenue this month
     revenue_month = (await session.execute(
         select(func.sum(Payment.amount)).where(
@@ -165,19 +173,19 @@ async def get_admin_stats(
             Payment.paid_at >= month_start,
         )
     )).scalar() or 0
-    
+
     # Total revenue
     total_revenue = (await session.execute(
         select(func.sum(Payment.amount)).where(
             Payment.status == PaymentStatus.SUCCEEDED,
         )
     )).scalar() or 0
-    
+
     # VPN clients
     active_vpn_clients = (await session.execute(
         select(func.count(VPNClient.id)).where(VPNClient.is_active == True)
     )).scalar() or 0
-    
+
     # Servers
     online_servers = (await session.execute(
         select(func.count(VPNServer.id)).where(VPNServer.is_online == True)
@@ -240,8 +248,10 @@ async def get_admin_stats(
             "policy_mode": "domain_first_with_ru_fallback",
         },
     }
+# END_BLOCK: get_admin_stats
 
 
+# START_BLOCK: get_revenue_analytics
 @router.get("/analytics/revenue")
 async def get_revenue_analytics(
     admin: CurrentAdmin,
@@ -251,7 +261,7 @@ async def get_revenue_analytics(
     """Get revenue analytics for the last N days."""
     now = datetime.now(timezone.utc)
     start_date = now - timedelta(days=days)
-    
+
     # Daily revenue
     result = await session.execute(
         select(
@@ -266,7 +276,7 @@ async def get_revenue_analytics(
         .group_by(func.date(Payment.paid_at))
         .order_by(func.date(Payment.paid_at))
     )
-    
+
     daily_data = [
         {
             "date": str(row.date),
@@ -275,13 +285,15 @@ async def get_revenue_analytics(
         }
         for row in result.all()
     ]
-    
+
     return {
         "period_days": days,
         "daily": daily_data,
     }
+# END_BLOCK: get_revenue_analytics
 
 
+# START_BLOCK: get_users_analytics
 @router.get("/analytics/users")
 async def get_users_analytics(
     admin: CurrentAdmin,
@@ -291,7 +303,7 @@ async def get_users_analytics(
     """Get user registration analytics."""
     now = datetime.now(timezone.utc)
     start_date = now - timedelta(days=days)
-    
+
     # Daily registrations
     result = await session.execute(
         select(
@@ -302,7 +314,7 @@ async def get_users_analytics(
         .group_by(func.date(User.created_at))
         .order_by(func.date(User.created_at))
     )
-    
+
     daily_data = [
         {
             "date": str(row.date),
@@ -310,11 +322,12 @@ async def get_users_analytics(
         }
         for row in result.all()
     ]
-    
+
     return {
         "period_days": days,
         "daily": daily_data,
     }
+# END_BLOCK: get_users_analytics
 
 
 @router.get("/devices")
@@ -331,6 +344,7 @@ async def list_admin_devices(
     }
 
 
+# START_BLOCK: block_admin_device
 @router.post("/devices/{device_id}/block")
 async def block_admin_device(
     device_id: int,
@@ -345,8 +359,10 @@ async def block_admin_device(
     updated = await policy.block_device(device, reason=f"admin:{admin.id}")
     user = await session.get(User, updated.user_id)
     return await _serialize_admin_device(session, device=updated, user=user)
+# END_BLOCK: block_admin_device
 
 
+# START_BLOCK: unblock_admin_device
 @router.post("/devices/{device_id}/unblock")
 async def unblock_admin_device(
     device_id: int,
@@ -361,8 +377,10 @@ async def unblock_admin_device(
     updated = await policy.unblock_device(device, reason=f"admin:{admin.id}")
     user = await session.get(User, updated.user_id)
     return await _serialize_admin_device(session, device=updated, user=user)
+# END_BLOCK: unblock_admin_device
 
 
+# START_BLOCK: rotate_admin_device
 @router.post("/devices/{device_id}/rotate")
 async def rotate_admin_device(
     device_id: int,
@@ -379,8 +397,10 @@ async def rotate_admin_device(
     await vpn.provision_device_client(int(updated.user_id), int(updated.id), reprovision=True)
     user = await session.get(User, updated.user_id)
     return await _serialize_admin_device(session, device=updated, user=user)
+# END_BLOCK: rotate_admin_device
 
 
+# START_BLOCK: revoke_admin_device
 @router.delete("/devices/{device_id}")
 async def revoke_admin_device(
     device_id: int,
@@ -395,10 +415,12 @@ async def revoke_admin_device(
     updated = await policy.revoke_device(device, reason=f"admin:{admin.id}")
     user = await session.get(User, updated.user_id)
     return await _serialize_admin_device(session, device=updated, user=user)
+# END_BLOCK: revoke_admin_device
 
 
 # ==================== System ====================
 
+# START_BLOCK: get_system_health
 @router.get("/system/health")
 async def get_system_health(
     admin: CurrentAdmin,
@@ -406,11 +428,11 @@ async def get_system_health(
 ):
     """Get system health status."""
     import psutil
-    
+
     cpu_percent = psutil.cpu_percent(interval=0.5)
     mem = psutil.virtual_memory()
     disk = psutil.disk_usage('/')
-    
+
     return {
         "cpu_percent": cpu_percent,
         "memory": {
@@ -424,3 +446,4 @@ async def get_system_health(
             "percent": disk.percent,
         },
     }
+# END_BLOCK: get_system_health

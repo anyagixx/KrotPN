@@ -1,12 +1,24 @@
 #!/bin/bash
-# START_MODULE_CONTRACT: M-012-ROLLBACK
-# PURPOSE: Deploy rollback — backup and restore .env, SSL certs, AWG configs
-# SCOPE: backup, restore, list commands with timestamped backups in /opt/KrotVPN/backups/
-# INPUTS: Command (backup|restore|list), optional backup timestamp
-# OUTPUTS: Timestamped backup archives or restored state
-# DEPENDENCIES: M-012 (deploy-surface)
-# VERIFICATION: V-M-021 — backup created and restore produces working state
-# END_MODULE_CONTRACT: M-012-ROLLBACK
+# FILE: deploy/rollback.sh
+# VERSION: 1.0.0
+# ROLE: SCRIPT
+# MAP_MODE: LOCALS
+# START_MODULE_CONTRACT
+#   PURPOSE: Deploy rollback — backup and restore .env, SSL certs, AWG configs
+#   SCOPE: backup, restore, list commands with timestamped backups in /opt/KrotVPN/backups/
+#   DEPENDS: M-012 (deploy-surface), host filesystem (/opt/KrotVPN, /etc/amnezia)
+#   LINKS: M-012 (deploy-surface), V-M-012
+# END_MODULE_CONTRACT
+#
+# START_MODULE_MAP
+#   create_backup - Create timestamped backup of .env, SSL certs, AWG configs
+#   restore_backup - Restore from latest backup with pre-restore backup
+#   list_backups - List available backups in /opt/KrotVPN/backups/
+# END_MODULE_MAP
+#
+# START_CHANGE_SUMMARY
+#   LAST_CHANGE: v2.8.0 - Converted to full GRACE MODULE_CONTRACT/MAP format, removed duplicate contract block
+# END_CHANGE_SUMMARY
 #
 # KrotVPN Rollback Script
 # Backs up and restores .env, SSL certs, and AWG configs

@@ -1,3 +1,29 @@
+# FILE: backend/app/billing/service.py
+# VERSION: 1.0.0
+# ROLE: RUNTIME
+# MAP_MODE: EXPORTS
+# START_MODULE_CONTRACT
+#   PURPOSE: Owns plans, subscriptions, payment records and webhook side effects.
+#   SCOPE: Plan CRUD, subscription lifecycle, payment creation/processing, YooKassa webhook handling, complimentary access, device limits, billing stats.
+#   DEPENDS: M-001 (config, database), M-002 (users), M-004 (billing models), M-005 (referrals)
+#   LINKS: M-004 (billing)
+# END_MODULE_CONTRACT
+#
+# START_MODULE_MAP
+#   BillingService - Main service class for all billing operations
+#   get_plans, get_plan, create_plan - Plan CRUD operations
+#   get_user_subscription, get_effective_device_limit, get_user_subscription_history - Subscription reads
+#   get_active_complimentary_access, ensure_complimentary_access - Complimentary access helpers
+#   create_trial_subscription, create_subscription, extend_subscription, deactivate_subscription - Subscription lifecycle
+#   create_payment, process_payment_webhook, _process_yookassa_webhook, get_user_payments - Payment operations
+#   get_subscription_stats - Aggregate billing statistics
+# END_MODULE_MAP
+#
+# START_CHANGE_SUMMARY
+#   LAST_CHANGE: v2.8.0 - Added full GRACE MODULE_CONTRACT, MODULE_MAP, and BLOCKS per GRACE governance protocol
+#   v2.8.0 - Added full GRACE MODULE_CONTRACT and MODULE_MAP per GRACE governance protocol
+# END_CHANGE_SUMMARY
+#
 """
 Billing service for subscription and payment management.
 
@@ -34,31 +60,35 @@ from app.billing.yookassa import yookassa_client
 from loguru import logger
 
 
+# START_BLOCK: BillingService class
 class BillingService:
     """Service for billing operations."""
-    
+
     def __init__(self, session: AsyncSession):
         self.session = session
         self.yookassa = yookassa_client
-    
+
     # ==================== Plans ====================
-    
+
+    # START_BLOCK: get_plans
     async def get_plans(self, active_only: bool = True) -> list[Plan]:
         """Get all subscription plans."""
         query = select(Plan)
-        
+
         if active_only:
             query = query.where(Plan.is_active == True)
-        
+
         query = query.order_by(Plan.sort_order, Plan.price)
-        
+
         result = await self.session.execute(query)
         return list(result.scalars().all())
-    
+    # END_BLOCK
+
     async def get_plan(self, plan_id: int) -> Plan | None:
         """Get plan by ID."""
         return await self.session.get(Plan, plan_id)
-    
+
+    # START_BLOCK: create_plan
     async def create_plan(self, data: dict) -> Plan:
         """Create a new plan."""
         plan = Plan(
@@ -72,20 +102,22 @@ class BillingService:
             is_popular=data.get("is_popular", False),
             sort_order=data.get("sort_order", 0),
         )
-        
+
         self.session.add(plan)
         await self.session.flush()
         await self.session.refresh(plan)
-        
+
         logger.info(f"[BILLING] Plan created: {plan.name}")
         return plan
-    
+    # END_BLOCK
+
     # ==================== Subscriptions ====================
-    
+
+    # START_BLOCK: get_user_subscription
     async def get_user_subscription(self, user_id: int) -> Subscription | None:
         """Get user's active subscription."""
         now = datetime.now(timezone.utc)
-        
+
         result = await self.session.execute(
             select(Subscription)
             .where(
@@ -96,7 +128,9 @@ class BillingService:
             .order_by(Subscription.expires_at.desc())
         )
         return result.scalar_one_or_none()
+    # END_BLOCK
 
+    # START_BLOCK: get_effective_device_limit
     async def get_effective_device_limit(self, user_id: int) -> int:
         """Resolve the device limit for one user from the active subscription context."""
         subscription = await self.get_user_subscription(user_id)
@@ -113,7 +147,9 @@ class BillingService:
         if plan is None:
             return 1
         return max(1, int(plan.device_limit))
-    
+    # END_BLOCK
+
+    # START_BLOCK: get_user_subscription_history
     async def get_user_subscription_history(
         self, user_id: int, limit: int = 10
     ) -> list[Subscription]:
@@ -125,7 +161,9 @@ class BillingService:
             .limit(limit)
         )
         return list(result.scalars().all())
+    # END_BLOCK
 
+    # START_BLOCK: get_active_complimentary_access
     async def get_active_complimentary_access(
         self,
         user_id: int,
@@ -148,12 +186,14 @@ class BillingService:
 
         result = await self.session.execute(query)
         return result.scalar_one_or_none()
+    # END_BLOCK
 
+    # START_BLOCK: create_trial_subscription
     async def create_trial_subscription(self, user_id: int) -> Subscription:
         """Create a trial subscription for new user."""
         now = datetime.now(timezone.utc)
         expires_at = now + timedelta(days=settings.trial_days)
-        
+
         subscription = Subscription(
             user_id=user_id,
             plan_id=None,  # Trial has no plan
@@ -163,14 +203,16 @@ class BillingService:
             started_at=now,
             expires_at=expires_at,
         )
-        
+
         self.session.add(subscription)
         await self.session.flush()
         await self.session.refresh(subscription)
-        
+
         logger.info(f"[BILLING] Trial subscription created for user {user_id}")
         return subscription
+    # END_BLOCK
 
+    # START_BLOCK: ensure_complimentary_access
     async def ensure_complimentary_access(
         self,
         user_id: int,
@@ -235,7 +277,9 @@ class BillingService:
             f"complimentary=true access_label={access_label} reused=false"
         )
         return subscription
+    # END_BLOCK
 
+    # START_BLOCK: create_subscription
     async def create_subscription(
         self,
         user_id: int,
@@ -244,10 +288,10 @@ class BillingService:
     ) -> Subscription:
         """Create a subscription from a plan."""
         now = datetime.now(timezone.utc)
-        
+
         # Check for existing active subscription
         existing = await self.get_user_subscription(user_id)
-        
+
         if existing:
             # Extend existing subscription
             new_expires = existing.expires_at + timedelta(days=plan.duration_days)
@@ -257,22 +301,22 @@ class BillingService:
             existing.is_complimentary = False
             existing.access_label = None
             existing.plan_id = plan.id
-            
+
             if payment:
                 existing.is_recurring = bool(
                     payment.payment_metadata
                     and json.loads(payment.payment_metadata).get("save_payment_method")
                 )
-            
+
             await self.session.flush()
             await self.session.refresh(existing)
-            
+
             logger.info(f"[BILLING] Subscription extended for user {user_id}")
             return existing
-        
+
         # Create new subscription
         expires_at = now + timedelta(days=plan.duration_days)
-        
+
         subscription = Subscription(
             user_id=user_id,
             plan_id=plan.id,
@@ -283,14 +327,16 @@ class BillingService:
             started_at=now,
             expires_at=expires_at,
         )
-        
+
         self.session.add(subscription)
         await self.session.flush()
         await self.session.refresh(subscription)
-        
+
         logger.info(f"[BILLING] Subscription created for user {user_id}")
         return subscription
-    
+    # END_BLOCK
+
+    # START_BLOCK: extend_subscription
     async def extend_subscription(
         self,
         subscription: Subscription,
@@ -298,7 +344,7 @@ class BillingService:
     ) -> Subscription:
         """Extend a subscription by given days."""
         now = datetime.now(timezone.utc)
-        
+
         # If expired, start from now
         base = max(subscription.expires_at, now)
         subscription.expires_at = base + timedelta(days=days)
@@ -308,20 +354,22 @@ class BillingService:
 
         await self.session.flush()
         await self.session.refresh(subscription)
-        
+
         logger.info(f"[BILLING] Subscription {subscription.id} extended by {days} days")
         return subscription
-    
+    # END_BLOCK
+
     async def deactivate_subscription(self, subscription: Subscription) -> None:
         """Deactivate a subscription."""
         subscription.is_active = False
         subscription.status = SubscriptionStatus.CANCELED
         await self.session.flush()
-        
+
         logger.info(f"[BILLING] Subscription {subscription.id} deactivated")
-    
+
     # ==================== Payments ====================
-    
+
+    # START_BLOCK: create_payment
     async def create_payment(
         self,
         user_id: int,
@@ -340,10 +388,10 @@ class BillingService:
             status=PaymentStatus.PENDING,
             description=f"Подписка: {plan.name}",
         )
-        
+
         self.session.add(payment)
         await self.session.flush()
-        
+
         # Create payment in provider
         if provider == PaymentProvider.YOOKASSA:
             try:
@@ -358,22 +406,23 @@ class BillingService:
                         "payment_id": payment.id,
                     },
                 )
-                
+
                 payment.external_id = yookassa_payment["id"]
                 payment.payment_url = yookassa_payment["confirmation"].get("url")
-                
+
                 logger.info(f"[BILLING] YooKassa payment created: {payment.external_id}")
-                
+
             except Exception as e:
                 logger.error(f"[BILLING] YooKassa error: {e}")
                 payment.status = PaymentStatus.FAILED
                 payment.description = str(e)
-        
+
         await self.session.flush()
         await self.session.refresh(payment)
-        
+
         return payment
-    
+    # END_BLOCK
+
     async def process_payment_webhook(
         self,
         provider: PaymentProvider,
@@ -382,33 +431,34 @@ class BillingService:
         """Process payment webhook from provider."""
         if provider == PaymentProvider.YOOKASSA:
             return await self._process_yookassa_webhook(data)
-        
+
         return None
-    
+
+    # START_BLOCK: _process_yookassa_webhook
     async def _process_yookassa_webhook(self, data: dict) -> Payment | None:
         """Process YooKassa webhook."""
         # Keep this path idempotent. Providers can resend the same event,
         # and duplicate subscription/referral effects would be a production bug.
         event = data.get("event")
         payment_object = data.get("object", {})
-        
+
         if event not in ("payment.succeeded", "payment.canceled", "payment.waiting_for_capture"):
             logger.debug(f"[BILLING] Ignoring YooKassa event: {event}")
             return None
-        
+
         external_id = payment_object.get("id")
         status = payment_object.get("status")
-        
+
         # Find payment by external ID
         result = await self.session.execute(
             select(Payment).where(Payment.external_id == external_id)
         )
         payment = result.scalar_one_or_none()
-        
+
         if not payment:
             logger.warning(f"[BILLING] Payment not found for external_id: {external_id}")
             return None
-        
+
         # Update payment status
         if status == "succeeded":
             if payment.status == PaymentStatus.SUCCEEDED:
@@ -417,12 +467,12 @@ class BillingService:
 
             payment.status = PaymentStatus.SUCCEEDED
             payment.paid_at = datetime.now(timezone.utc)
-            
+
             # Create subscription
             plan = await self.get_plan(payment.plan_id)
             if plan:
                 await self.create_subscription(payment.user_id, plan, payment)
-                
+
                 # Create VPN client if not exists
                 from app.vpn.service import VPNService
                 vpn_service = VPNService(self.session)
@@ -436,9 +486,9 @@ class BillingService:
                     payment.user_id,
                     payment.amount,
                 )
-            
+
             logger.info(f"[BILLING] Payment {payment.id} succeeded")
-            
+
         elif status == "canceled":
             if payment.status == PaymentStatus.CANCELED:
                 logger.info(f"[BILLING] Duplicate canceled webhook ignored for payment {payment.id}")
@@ -446,12 +496,14 @@ class BillingService:
 
             payment.status = PaymentStatus.CANCELED
             logger.info(f"[BILLING] Payment {payment.id} canceled")
-        
+
         payment.updated_at = datetime.now(timezone.utc)
         await self.session.flush()
-        
+
         return payment
-    
+    # END_BLOCK
+
+    # START_BLOCK: get_user_payments
     async def get_user_payments(
         self, user_id: int, limit: int = 20
     ) -> list[Payment]:
@@ -463,13 +515,15 @@ class BillingService:
             .limit(limit)
         )
         return list(result.scalars().all())
-    
+    # END_BLOCK
+
     # ==================== Stats ====================
-    
+
+    # START_BLOCK: get_subscription_stats
     async def get_subscription_stats(self) -> dict[str, Any]:
         """Get subscription statistics."""
         now = datetime.now(timezone.utc)
-        
+
         # Active subscriptions
         active_result = await self.session.execute(
             select(func.count(Subscription.id)).where(
@@ -479,7 +533,7 @@ class BillingService:
             )
         )
         active_count = active_result.scalar() or 0
-        
+
         # Trial subscriptions
         trial_result = await self.session.execute(
             select(func.count(Subscription.id)).where(
@@ -490,7 +544,7 @@ class BillingService:
             )
         )
         trial_count = trial_result.scalar() or 0
-        
+
         # Expired this month
         month_start = now.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
         expired_result = await self.session.execute(
@@ -500,7 +554,7 @@ class BillingService:
             )
         )
         expired_count = expired_result.scalar() or 0
-        
+
         # Revenue this month
         revenue_result = await self.session.execute(
             select(func.sum(Payment.amount)).where(
@@ -509,10 +563,12 @@ class BillingService:
             )
         )
         revenue = revenue_result.scalar() or 0
-        
+
         return {
             "active_subscriptions": active_count,
             "trial_subscriptions": trial_count,
             "expired_this_month": expired_count,
             "revenue_this_month": revenue,
         }
+    # END_BLOCK
+# END_BLOCK

@@ -1,0 +1,38 @@
+{
+  "project": "KrotVPN",
+  "version": "3.7.0",
+  "methodology": "GRACE",
+  "root": "..",
+  "docs": {
+    "requirements": "docs/requirements.xml",
+    "technology": "docs/technology.xml",
+    "developmentPlan": "docs/development-plan.xml",
+    "verificationPlan": "docs/verification-plan.xml",
+    "knowledgeGraph": "docs/knowledge-graph.xml",
+    "operationalPackets": "docs/operational-packets.xml",
+    "currentStatus": "docs/current-status.xml",
+    "decisions": "docs/decisions.xml"
+  },
+  "agentsMd": "AGENTS.md",
+  "skills": ".grace/skills",
+  "code": {
+    "sourceDirs": ["backend/app", "frontend/src", "frontend-admin/src", "telegram-bot/src"],
+    "testDirs": ["backend/tests", "frontend/tests", "frontend-admin/tests", "telegram-bot/tests"]
+  },
+  "executionPolicy": {
+    "defaultProfile": "balanced",
+    "requireApprovalBeforeCommit": true,
+    "requireVerificationBeforeCommit": true,
+    "strictGraceMode": true,
+    "rules": {
+      "noContractNoCode": "NEVER write code without reading and understanding MODULE_CONTRACT first",
+      "noDocsNoChanges": "NEVER change code without reading current-status.xml, knowledge-graph.xml, development-plan.xml, verification-plan.xml",
+      "noCommitWithoutVerification": "NEVER commit without passing verification for the affected module",
+      "noDirectXmlEdits": "NEVER edit docs/*.xml without reading the full file first",
+      "alwaysUpdateArtifacts": "AFTER any code change: update MODULE_MAP, then knowledge-graph, then verification-plan if tests changed",
+      "alwaysGraceWorkflow": "ALWAYS follow: $grace-plan -> $grace-verification -> $grace-execute -> $grace-reviewer -> $grace-refresh",
+      "noSilentVerificationSkips": "IF verification cannot run, state EXACTLY why — do not skip or imply coverage exists"
+    },
+    "violation": "Any deviation from these rules is an engineering protocol violation and must be flagged immediately"
+  }
+}
