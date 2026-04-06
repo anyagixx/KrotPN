@@ -46,6 +46,8 @@ if ! command -v sshpass &> /dev/null; then
     fi
 fi
 
+# SSH wrapper for DE server (password-based auth)
+ssh_de() {
     sshpass -p "$DE_PASS" ssh -o StrictHostKeyChecking=accept-new -o ConnectTimeout=30 -o LogLevel=ERROR "$DE_USER@$DE_IP" "$@"
 }
 
