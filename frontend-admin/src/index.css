@@ -110,8 +110,6 @@ textarea {
 
 .input {
   @apply w-full rounded-2xl py-3 text-sm text-slate-50 outline-none transition;
-  padding-left: 1rem;
-  padding-right: 1rem;
   background: rgba(7, 20, 26, 0.86);
   border: 1px solid rgba(157, 203, 216, 0.16);
 }
