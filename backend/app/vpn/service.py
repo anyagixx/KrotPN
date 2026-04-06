@@ -22,40 +22,7 @@
 # VPN service — business logic for client provisioning, topology selection,
 # config generation, lifecycle management.
 # =============================================================================
-"""
-VPN service.
-#         create_client, get_client, get_user_client, get_device_client
-#         list_device_clients, deactivate_device_clients
-#         deactivate_client, activate_client
-#         update_client_stats, get_client_stats
-#         _select_server_for_existing_client
-#         _select_topology_for_existing_client
-#         _select_topology_for_new_client
-#         _resolve_topology_for_server
-#         _sync_client_topology, _apply_topology_client_delta
-#         _apply_topology_client_delta_by_ids
-#         get_legacy_server_for_node
-#
-# CHANGE_SUMMARY
-#   v2.8.0 – Split service into ProvisioningMixin, ConfigMixin, TopologyMixin;
-#            added device-scoped lookup, reprovisioning, and multi-device migration support.
-# =============================================================================
-"""
-VPN service for business logic.
-
-GRACE-lite module contract:
-- Owns VPN client provisioning, topology selection and config generation.
-- New topology model is `VPNNode` + `VPNRoute`; `VPNServer` remains a legacy compatibility mirror.
-- Invariant: one `VPNClient` per user, with topology fields preferred over legacy `server_id`.
-- This module is host-coupled through AmneziaWG tools and should be treated as infrastructure-sensitive code.
-
-CHANGE_SUMMARY
-- 2026-03-26: Added internal-client provisioning helper and stable provisioning/config-render trace markers for manual CLI parity.
-- 2026-03-27: Added device-scoped client lookup helpers so revoke or block policy can target peer state through the existing VPN service.
-- 2026-03-27: Relaxed user-level lookup and added optional device-bound provisioning during the multi-device migration window.
-- 2026-03-27: Added explicit device reprovision helper so rotate flows can refresh one device config without changing logical ownership.
-- 2026-04-05: Split large service into provisioning, config, and topology mixins to keep this file under 500 lines.
-"""
+"""VPN service for business logic."""
 # <!-- GRACE: module="M-003" contract="vpn-service" -->
 
 from datetime import datetime, timezone
