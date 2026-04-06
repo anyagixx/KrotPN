@@ -42,9 +42,14 @@ verify_host_routing_tools() {
     echo -e "${GREEN}✓ Host routing toolchain verified${NC}"
 }
 
-# SSH wrapper for DE server (key-based auth)
+# SSH wrapper for DE server (password-based auth)
 ssh_de() {
-    ssh -o ConnectTimeout=30 -o LogLevel=ERROR "$DE_USER@$DE_IP" "$@"
+    sshpass -p "$DE_PASS" ssh -o StrictHostKeyChecking=accept-new -o ConnectTimeout=30 -o LogLevel=ERROR "$DE_USER@$DE_IP" "$@"
+}
+
+# SCP wrapper for DE server (password-based auth)
+scp_de() {
+    sshpass -p "$DE_PASS" scp -o StrictHostKeyChecking=accept-new -o LogLevel=ERROR "$@" "$DE_USER@$DE_IP:$2"
 }
 
 # Read configuration from file
@@ -360,7 +365,7 @@ chmod +x /tmp/de_setup.sh
 
 # Copy and run on DE server
 echo -e "${BLUE}[RU] Copying setup script to DE server...${NC}"
-scp -o LogLevel=ERROR /tmp/de_setup.sh "$DE_USER@$DE_IP:/tmp/"
+sshpass -p "$DE_PASS" scp -o StrictHostKeyChecking=accept-new -o LogLevel=ERROR /tmp/de_setup.sh "$DE_USER@$DE_IP:/tmp/"
 
 echo -e "${BLUE}[RU] Running setup on DE server...${NC}"
 ssh_de "bash /tmp/de_setup.sh '$RU_CLIENT_PUBLIC' '$VPN_PORT' '$DE_IP'"

@@ -301,37 +301,6 @@ get_ssh_credentials() {
         print_error "Cannot connect to DE server. Check IP, username, and password."
         exit 1
     fi
-    
-    # Set up SSH keys from RU to DE for deploy script
-    print_info "Setting up SSH key from RU to DE server..."
-    # Generate key on RU if not exists
-    sshpass -p "$RU_PASS" ssh -o StrictHostKeyChecking=accept-new "$RU_USER@$RU_IP" "
-        if [ ! -f /root/.ssh/id_ed25519 ]; then
-            ssh-keygen -t ed25519 -f /root/.ssh/id_ed25519 -N '' -q
-        fi
-        cat /root/.ssh/id_ed25519.pub
-    " > /tmp/ru_pubkey.txt
-    
-    RU_PUBKEY=$(cat /tmp/ru_pubkey.txt)
-    rm -f /tmp/ru_pubkey.txt
-    
-    # Add RU public key to DE authorized_keys
-    sshpass -p "$DE_PASS" ssh -o StrictHostKeyChecking=accept-new "$DE_USER@$DE_IP" "
-        mkdir -p /root/.ssh
-        chmod 700 /root/.ssh
-        echo '$RU_PUBKEY' >> /root/.ssh/authorized_keys
-        chmod 600 /root/.ssh/authorized_keys
-    "
-    
-    # Verify key-based auth from RU to DE
-    print_info "Verifying RU → DE SSH key auth..."
-    if sshpass -p "$RU_PASS" ssh -o StrictHostKeyChecking=accept-new "$RU_USER@$RU_IP" "ssh -o BatchMode=yes -o ConnectTimeout=10 -o LogLevel=ERROR $DE_USER@$DE_IP 'echo ok'" 2>/dev/null | grep -q "ok"; then
-        print_success "RU → DE SSH key auth OK"
-    else
-        print_error "Failed to set up SSH key from RU to DE."
-        print_error "The deploy script needs key-based auth from RU to DE."
-        exit 1
-    fi
 }
 
 deploy() {
@@ -353,13 +322,15 @@ deploy() {
     print_info "Deploying... This will take 10-15 minutes."
     echo ""
     
-    # Create config file on RU server
+    # Create config file on RU server with passwords for deploy script
     print_info "Creating configuration on RU server..."
     sshpass -p "$RU_PASS" ssh -o StrictHostKeyChecking=accept-new "$RU_USER@$RU_IP" "umask 077 && cat > /tmp/krotvpn_deploy.conf" << EOF
 DE_IP='${DE_IP}'
 DE_USER='${DE_USER}'
+DE_PASS='${DE_PASS}'
 RU_IP='${RU_IP}'
 RU_USER='${RU_USER}'
+RU_PASS='${RU_PASS}'
 ADMIN_EMAIL='${ADMIN_EMAIL}'
 ADMIN_PASSWORD='${ADMIN_PASSWORD}'
 EOF
