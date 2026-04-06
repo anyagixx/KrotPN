@@ -352,7 +352,7 @@ EOF
         fi
         cd /opt
         rm -rf KrotVPN 2>/dev/null || true
-        git clone https://github.com/anyagixx/KrotVPN-qwen.git
+        git clone https://github.com/anyagixx/KrotVPN-qwen.git KrotVPN
         chmod +x /opt/KrotVPN/deploy/*.sh
     "
     
