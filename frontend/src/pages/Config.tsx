@@ -20,7 +20,7 @@
 // END_CHANGE_SUMMARY
 //
 // START_BLOCK_CONFIG_PAGE
-import { useEffect, useMemo, useState } from 'react'
+import { useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from 'react-query'
 import { useTranslation } from 'react-i18next'
 import { AlertTriangle, ArrowRightLeft, Check, Copy, Download, FileCode2, Laptop2, Monitor, Plus, QrCode, RotateCw, Smartphone, Trash2 } from 'lucide-react'
@@ -34,16 +34,34 @@ export default function Config() {
   const queryClient = useQueryClient()
   const [copied, setCopied] = useState(false)
   const [showQR, setShowQR] = useState(false)
+  const [qrBlobUrl, setQrBlobUrl] = useState<string | null>(null)
+  const [qrLoading, setQrLoading] = useState(false)
+  const [qrError, setQrError] = useState<string | null>(null)
   const [managedBundle, setManagedBundle] = useState<DeviceConfigBundle | null>(null)
   const [newDeviceName, setNewDeviceName] = useState('')
   const [newDevicePlatform, setNewDevicePlatform] = useState('')
 
   const { data: configData, isLoading, error } = useQuery('vpn-config', () => vpnApi.getConfig())
-  const { data: qrData, isLoading: qrLoading, error: qrError } = useQuery('vpn-qr', () => vpnApi.getQRCode(), { enabled: showQR })
   const { data: routesData } = useQuery('vpn-routes', () => vpnApi.getRoutes())
   const { data: devicesData } = useQuery('device-list', () => deviceApi.list(), {
     retry: false,
   })
+
+  // Fetch QR code as blob directly (avoid react-query serialization issues with blobs)
+  const fetchQRCode = async () => {
+    setQrLoading(true)
+    setQrError(null)
+    setQrBlobUrl(null)
+    try {
+      const { data: qrBlob } = await vpnApi.getQRCode()
+      const url = URL.createObjectURL(qrBlob as Blob)
+      setQrBlobUrl(url)
+    } catch (err: any) {
+      setQrError(err?.response?.data?.detail || 'Не удалось получить QR-код')
+    } finally {
+      setQrLoading(false)
+    }
+  }
 
   const createDeviceMutation = useMutation(
     (payload: { name: string; platform?: string }) => deviceApi.create(payload),
@@ -91,22 +109,7 @@ export default function Config() {
     },
   )
 
-  // START_BLOCK_QR_URL
-  const qrUrl = useMemo(() => {
-    if (!qrData?.data) return null
-    return URL.createObjectURL(qrData.data)
-  }, [qrData?.data])
-  // END_BLOCK_QR_URL
-
-  // START_BLOCK_CLEANUP_QR_URL
-  useEffect(() => {
-    return () => {
-      if (qrUrl) {
-        URL.revokeObjectURL(qrUrl)
-      }
-    }
-  }, [qrUrl])
-  // END_BLOCK_CLEANUP_QR_URL
+  // Fetch QR code as blob on demand
 
   // START_BLOCK_HANDLE_DOWNLOAD
   const handleDownload = async () => {
@@ -403,7 +406,10 @@ export default function Config() {
             <li>3. Активируйте профиль и включите туннель.</li>
           </ol>
           <button
-            onClick={() => setShowQR(true)}
+            onClick={() => {
+              setShowQR(true)
+              void fetchQRCode()
+            }}
             className="btn-secondary mt-5 w-full"
           >
             <QrCode className="h-5 w-5" />
@@ -446,9 +452,9 @@ export default function Config() {
               </button>
             </div>
 
-            {qrUrl ? (
+            {qrBlobUrl ? (
               <div className="mt-6 rounded-[24px] bg-white p-5">
-                <img src={qrUrl} alt="QR Code" className="w-full rounded-2xl" />
+                <img src={qrBlobUrl} alt="QR Code" className="w-full rounded-2xl" />
               </div>
             ) : qrError ? (
               <div className="empty-state mt-6 min-h-[200px]">
@@ -456,7 +462,7 @@ export default function Config() {
                 <div>
                   <p className="text-lg font-semibold">QR-код не удалось получить</p>
                   <p className="mt-1 text-sm muted">
-                    {((qrError as any)?.response?.data?.detail as string | undefined) || 'Попробуй скачать `.conf` или повторить позже.'}
+                    {qrError || 'Попробуй скачать `.conf` или повторить позже.'}
                   </p>
                 </div>
               </div>

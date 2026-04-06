@@ -99,8 +99,8 @@ export default function Dashboard() {
         <div className="metric-card">
           <div className="flex items-center justify-between">
             <span className="metric-label">{t('status')}</span>
-            <span className={stats?.is_connected ? 'status-badge-success' : 'status-badge-error'}>
-              {stats?.is_connected ? 'online' : 'offline'}
+            <span className={entryLocation ? 'status-badge-success' : 'status-badge-warning'}>
+              {entryLocation ? 'online' : 'offline'}
             </span>
           </div>
           <div className="mt-5 flex items-center gap-3">
@@ -108,7 +108,7 @@ export default function Dashboard() {
               <Shield className="h-6 w-6" />
             </div>
             <div>
-              <p className="font-bold">{stats?.is_connected ? t('connected') : t('disconnected')}</p>
+              <p className="font-bold">{entryLocation ? t('connected') : t('disconnected')}</p>
               <p className="text-sm muted">{entryLocation || 'Сервер ещё не назначен'}</p>
             </div>
           </div>
