@@ -346,7 +346,9 @@ EOF
     sshpass -p "$RU_PASS" ssh -o StrictHostKeyChecking=accept-new "$RU_USER@$RU_IP" "
         # Install git if not available
         if ! command -v git &> /dev/null; then
-            apt-get update -qq && apt-get install -y -qq git 2>/dev/null
+            echo 'Installing git...'
+            apt-get update
+            apt-get install -y git
         fi
         cd /opt
         rm -rf KrotVPN 2>/dev/null || true
