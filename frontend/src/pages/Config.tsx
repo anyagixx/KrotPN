@@ -388,10 +388,7 @@ export default function Config() {
             <li>3. Активируйте профиль и включите туннель.</li>
           </ol>
           <button
-            onClick={() => {
-              setShowQR(true)
-              void fetchQRCode()
-            }}
+            onClick={() => setShowQR(true)}
             className="btn-secondary mt-5 w-full"
           >
             <QrCode className="h-5 w-5" />
