@@ -663,6 +663,12 @@ chmod 600 server.key
 chmod 644 server.crt
 echo -e "${GREEN}✓ SSL certificate generated${NC}"
 
+# Create directory for RU IP snapshot persistence (Phase-15)
+echo -e "${BLUE}[RU] Creating snapshot directory...${NC}"
+mkdir -p /var/lib/krotvpn
+chmod 755 /var/lib/krotvpn
+echo -e "${GREEN}✓ Snapshot directory created${NC}"
+
 # Generate .env
 echo -e "${BLUE}[RU] Creating configuration...${NC}"
 cd /opt/KrotVPN

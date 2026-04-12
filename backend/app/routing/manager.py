@@ -1,20 +1,21 @@
 # FILE: backend/app/routing/manager.py
-# VERSION: 1.0.0
+# VERSION: 2.0.0
 # ROLE: RUNTIME
 # MAP_MODE: EXPORTS
 # START_MODULE_CONTRACT
-#   PURPOSE: Host-level split-tunneling, ipset/iptables synchronization, route health inspection, and RU baseline maintenance.
-#   SCOPE: Russian IP set management, custom route sync, iptables rule setup, tunnel status checks, policy-aware route resolution.
-#   DEPENDS: M-001 (backend-core), M-007 (routing)
+#   PURPOSE: Host-level split-tunneling, ipset/iptables synchronization, route health inspection, RU baseline maintenance, and automated multi-source RU IP range updates.
+#   SCOPE: Russian IP set management (automated from 3 sources), custom route sync, iptables rule setup, tunnel status checks, policy-aware route resolution.
+#   DEPENDS: M-001 (backend-core), M-007 (routing), M-017 (ru_ipset_updater)
 #   LINKS: M-007 (routing), M-013 (route-policy-resolver), M-014 (domain-rule-store), M-015 (dns-observer), M-016 (route-decision-api), M-017 (route-sync-runtime)
 # END_MODULE_CONTRACT
 #
 # START_MODULE_MAP
-#   RoutingManager - Host-level split-tunneling and route health manager
+#   RoutingManager - Host-level split-tunneling and route health manager with automated RU IP updates
 #   routing_manager - Global singleton instance
 # END_MODULE_MAP
 #
 # START_CHANGE_SUMMARY
+#   LAST_CHANGE: v2.8.5 - Integrated RuIpsetUpdater for automated multi-source RU IP updates (Phase-15)
 #   LAST_CHANGE: v2.8.0 - Added full GRACE MODULE_CONTRACT and MODULE_MAP per GRACE governance protocol
 # END_CHANGE_SUMMARY
 """
@@ -40,6 +41,7 @@ from loguru import logger
 from app.routing.domain_rules import RuleValidationError, normalize_domain_rule_input
 from app.routing.models import CidrRouteRule, DomainMatchType, DomainRouteRule, RouteTarget
 from app.routing.policy import DecisionReason, RouteDecision, RoutePolicyResolver
+from app.routing.ru_ipset_updater import RuIpsetUpdater, RuIpsetStats
 
 
 class RoutingManager:
@@ -63,6 +65,8 @@ class RoutingManager:
         self.update_script = Path("/usr/local/bin/update_ru_ips.sh")
         self.scheduler = AsyncIOScheduler()
         self._initialized = False
+        self.ipset_updater = RuIpsetUpdater()
+        self._last_stats: RuIpsetStats | None = None
     
     # START_BLOCK: initialize (scheduler setup, ~15 lines)
     async def initialize(self) -> None:
@@ -70,11 +74,11 @@ class RoutingManager:
         if self._initialized:
             return
 
-        # Schedule RU IPset update every 24 hours
+        # Schedule RU IPset update every 6 hours (Phase-15)
         self.scheduler.add_job(
             self.update_ru_ipset,
             'interval',
-            hours=24,
+            hours=6,
             id='update_ru_ipset',
         )
         self.scheduler.start()
@@ -85,39 +89,31 @@ class RoutingManager:
         self._initialized = True
         logger.info("[ROUTING] RoutingManager initialized")
     # END_BLOCK: initialize
-    
-    # START_BLOCK: update_ru_ipset (RU baseline refresh, ~25 lines)
+
+    # START_BLOCK: update_ru_ipset (automated multi-source update, ~20 lines)
     async def update_ru_ipset(self) -> bool:
         """
-        Update Russian IP set from ipverse.
+        Update Russian IP set using automated multi-source fetcher.
 
         Returns:
             True if successful, False otherwise
         """
         try:
-            if self.update_script.exists():
-                proc = await asyncio.create_subprocess_exec(
-                    "bash", str(self.update_script),
-                    stdout=asyncio.subprocess.PIPE,
-                    stderr=asyncio.subprocess.PIPE,
-                )
-                await proc.wait()
-
-                if proc.returncode == 0:
-                    logger.info("[ROUTING] RU IPset updated successfully")
-                    return True
-                else:
-                    logger.error("[ROUTING] Failed to update RU IPset")
-                    return False
-            else:
-                logger.warning("[ROUTING] Update script not found, creating...")
-                await self._create_update_script()
-                return await self.update_ru_ipset()
-
+            stats = await self.ipset_updater.update_ru_ipset(self.IPSET_RU)
+            self._last_stats = stats
+            return stats.last_error is None
         except Exception as e:
             logger.error(f"[ROUTING] Error updating RU IPset: {e}")
             return False
     # END_BLOCK: update_ru_ipset
+
+    # START_BLOCK: get_ru_ipset_stats (stats endpoint, ~15 lines)
+    async def get_ru_ipset_stats(self) -> RuIpsetStats:
+        """Get RU ipset statistics without triggering update."""
+        stats = await self.ipset_updater.get_stats(self.IPSET_RU)
+        self._last_stats = stats
+        return stats
+    # END_BLOCK: get_ru_ipset_stats
     
     # START_BLOCK: _create_update_script (script generation, ~30 lines)
     async def _create_update_script(self) -> None:

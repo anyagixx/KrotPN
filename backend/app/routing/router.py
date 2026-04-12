@@ -20,6 +20,7 @@
 # END_MODULE_MAP
 #
 # START_CHANGE_SUMMARY
+#   LAST_CHANGE: v2.8.5 - Added GET /routing/ru-ipset-stats endpoint for Phase-15 RU IP monitoring
 #   LAST_CHANGE: v2.8.0 - Added full GRACE MODULE_CONTRACT and MODULE_MAP per GRACE governance protocol
 # END_CHANGE_SUMMARY
 """Routing API router."""
@@ -35,6 +36,7 @@ from app.core import CurrentAdmin, CurrentUser, DBSession
 from app.routing.domain_rules import DomainRuleStore, RuleValidationError
 from app.routing.dns_resolver import DNSObserver
 from app.routing.manager import routing_manager
+from app.routing.ru_ipset_updater import RuIpsetStats
 from app.routing.models import (
     ActiveDNSBindingResponse,
     CidrRouteRule,
@@ -126,6 +128,21 @@ async def update_ru_ips(
         status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
         detail="Failed to update RU IPset",
     )
+
+
+@router.get("/ru-ipset-stats")
+async def get_ru_ipset_stats(admin: CurrentAdmin):
+    """Get RU ipset statistics without triggering update."""
+    stats = await routing_manager.get_ru_ipset_stats()
+    return {
+        "entries": stats.entries,
+        "last_update": stats.last_update,
+        "sources_used": stats.sources_used,
+        "last_error": stats.last_error,
+        "entries_added": stats.entries_added,
+        "entries_removed": stats.entries_removed,
+        "snapshot_exists": stats.snapshot_exists,
+    }
 
 
 @router.get("/custom", response_model=list[CustomRouteResponse])
