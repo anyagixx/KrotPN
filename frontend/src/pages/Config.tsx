@@ -20,15 +20,15 @@
 // END_CHANGE_SUMMARY
 //
 // START_BLOCK_CONFIG_PAGE
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from 'react-query'
 import { useTranslation } from 'react-i18next'
 import { AlertTriangle, ArrowRightLeft, Check, Copy, Download, FileCode2, Laptop2, Monitor, Plus, QrCode, RotateCw, Smartphone, Trash2 } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import toast from 'react-hot-toast'
+import QRCodeCanvas from 'qrcode.react'
 import { deviceApi, type DeviceConfigBundle, vpnApi } from '../lib/api'
 import Loading from '../components/Loading'
-import QRCodeCanvas from 'qrcode.react'
 
 export default function Config() {
   const { t } = useTranslation()
@@ -536,45 +536,8 @@ function QRModal({
 }) {
   const { t } = useTranslation()
   const [qrType, setQrType] = useState<'amneziawg' | 'amneziavpn'>('amneziawg')
-  const [qrImage, setQrImage] = useState<string | null>(null)
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
 
-  const fetchQR = async (type: 'amneziawg' | 'amneziavpn') => {
-    setLoading(true)
-    setError(null)
-    try {
-      const endpoint = type === 'amneziavpn'
-        ? vpnApi.getAmneziaQRCode
-        : vpnApi.getQRCode
-      const response = await endpoint()
-      const blob = response.data as Blob
-      if (blob.size > 0) {
-        const url = URL.createObjectURL(blob)
-        setQrImage(url)
-      } else {
-        throw new Error('Empty response from server')
-      }
-    } catch (err) {
-      const msg = err instanceof Error ? err.message : 'Unknown error'
-      console.error('Failed to fetch QR:', msg, err)
-      setError(msg)
-      setQrImage(null)
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  const handleSwitch = (type: 'amneziawg' | 'amneziavpn') => {
-    setQrType(type)
-    fetchQR(type)
-  }
-
-  // Fetch initial QR on mount
-  useEffect(() => {
-    fetchQR(qrType)
-  }, [])
-
+  // 100% client-side QR generation — no server fetch, no blob, no CORS issues
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/70 p-4 backdrop-blur-sm">
       <div className="glass w-full max-w-md p-6">
@@ -595,7 +558,7 @@ function QRModal({
         {/* Tab switcher */}
         <div className="mt-4 flex rounded-xl border border-slate-700/50 p-1">
           <button
-            onClick={() => handleSwitch('amneziawg')}
+            onClick={() => setQrType('amneziawg')}
             className={`flex-1 rounded-lg py-2 text-sm font-semibold transition-colors ${
               qrType === 'amneziawg'
                 ? 'bg-cyan-500/20 text-cyan-100'
@@ -605,7 +568,7 @@ function QRModal({
             AmneziaWG
           </button>
           <button
-            onClick={() => handleSwitch('amneziavpn')}
+            onClick={() => setQrType('amneziavpn')}
             className={`flex-1 rounded-lg py-2 text-sm font-semibold transition-colors ${
               qrType === 'amneziavpn'
                 ? 'bg-cyan-500/20 text-cyan-100'
@@ -617,25 +580,19 @@ function QRModal({
         </div>
 
         <div className="mt-6 flex justify-center rounded-[24px] bg-white p-5">
-          {loading ? (
-            <div className="h-[200px] w-[200px] animate-pulse rounded-xl bg-slate-200" />
-          ) : qrImage ? (
-            <img src={qrImage} alt="QR Code" className="h-[200px] w-[200px]" />
-          ) : error ? (
-            <div className="text-center">
-              <p className="text-sm text-red-500 font-semibold">Server QR failed: {error}</p>
-              <p className="mt-2 text-xs text-slate-500">Falling back to client-side QR</p>
-              <div className="mt-4 flex justify-center">
-                <QRCodeCanvas
-                  value={configText}
-                  size={200}
-                  level="H"
-                  includeMargin={false}
-                />
-              </div>
-            </div>
-          ) : null}
+          <QRCodeCanvas
+            value={configText}
+            size={240}
+            level="H"
+            includeMargin={false}
+          />
         </div>
+
+        <p className="mt-3 text-center text-xs muted">
+          {qrType === 'amneziawg'
+            ? 'Сканируйте приложением AmneziaWG'
+            : 'Для AmneziaVPN скачайте .conf файл ниже'}
+        </p>
       </div>
     </div>
   )
