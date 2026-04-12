@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<V-M-024 MODULE="M-024" PRIORITY="high" STATUS="pass">
+  <module>device-admin-control</module>
+  <checks>Admin endpoints can list devices, view anomaly state and block or unblock or revoke a specific device peer while preserving user-level auth boundaries.</checks>
+  <test-files>backend/tests/test_admin_device_control.py</test-files>
+  <commands>pytest tests/test_admin_device_control.py -v</commands>
+  <anchors>VPN_DEVICE_BLOCKED VPN_DEVICE_UNBLOCKED VPN_DEVICE_REVOKED</anchors>
+  <scenarios>
+    <scenario kind="success" trace="VPN_DEVICE_BLOCKED">Admin blocks specific device peer without affecting other devices</scenario>
+    <scenario kind="failure" trace="VPN_DEVICE_BLOCKED">Enforcement bypasses auth or disables whole user account instead of targeted device</scenario>
+  </scenarios>
+</V-M-024>

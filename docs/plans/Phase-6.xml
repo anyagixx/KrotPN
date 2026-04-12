@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Phase-6 NAME="Device registry and limit-aware migration" STATUS="done">
+  <goal>Introduce device registry with lifecycle state and per-plan device limits.</goal>
+  <step-1>M-020: Add per-plan device limit fields and device registry model.</step-1>
+  <step-2>M-003/M-020: Refactor VPNClient linkage from per-user to device-bound peer.</step-2>
+  <step-3>M-020: Migrate existing users to deterministic primary device.</step-3>
+  <modules>M-020, M-021</modules>
+  <verification>V-M-020, V-M-021</verification>
+  <data-flows>none-new (extends DF-004)</data-flows>
+</Phase-6>

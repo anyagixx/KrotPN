@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Phase-7 NAME="User device management and device-bound provisioning" STATUS="done">
+  <goal>Expose device management APIs and update config delivery to be device-aware.</goal>
+  <step-1>M-022: Add device CRUD APIs (list, create, revoke, rotate).</step-1>
+  <step-2>M-009/M-022: Update dashboard for per-device config delivery.</step-2>
+  <step-3>M-021/M-022: Enforce plan limits before provisioning, ensure revoke frees slot, rotate preserves logical device.</step-3>
+  <modules>M-021, M-022, M-009</modules>
+  <verification>V-M-021, V-M-022</verification>
+  <data-flows>extends DF-004 (provisioning and config consistency)</data-flows>
+</Phase-7>

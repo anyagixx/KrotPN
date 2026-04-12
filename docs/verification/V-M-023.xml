@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<V-M-023 MODULE="M-023" PRIORITY="high" STATUS="pass">
+  <module>handshake-anomaly-detector</module>
+  <checks>Handshake observation updates device last-seen state, flags suspicious endpoint churn or near-concurrent reuse, persists timestamps safely to production Postgres, and does not leak secrets or raw private peer material into logs.</checks>
+  <test-files>backend/tests/test_handshake_anomaly_detector.py</test-files>
+  <commands>pytest tests/test_handshake_anomaly_detector.py -v</commands>
+  <anchors>VPN_HANDSHAKE_OBSERVED VPN_HANDSHAKE_ENDPOINT_CHANGED VPN_HANDSHAKE_CONCURRENCY_SUSPECTED VPN_DEVICE_SUSPICION_ESCALATED</anchors>
+  <scenarios>
+    <scenario kind="success" trace="VPN_HANDSHAKE_ENDPOINT_CHANGED">Endpoint change detected and recorded for suspicious reuse</scenario>
+    <scenario kind="success" trace="VPN_HANDSHAKE_CONCURRENCY_SUSPECTED">Near-concurrent reuse flagged as anomaly</scenario>
+  </scenarios>
+</V-M-023>

@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<V-M-009 MODULE="M-009" PRIORITY="high" STATUS="pass">
+  <module>frontend-user</module>
+  <checks>User frontend still builds and has no contract mismatch with auth, config and subscription APIs.</checks>
+  <commands>cd frontend &amp;&amp; npm run build</commands>
+  <anchors>TYPESCRIPT_NO_ERRORS</anchors>
+  <scenarios>
+    <scenario kind="success" trace="TYPESCRIPT_NO_ERRORS">Frontend builds with zero TypeScript errors</scenario>
+  </scenarios>
+</V-M-009>

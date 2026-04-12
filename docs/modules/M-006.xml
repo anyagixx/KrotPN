@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<M-006 NAME="admin-api" TYPE="ENTRY_POINT" STATUS="stable">
+  <path>backend/app/admin</path>
+  <owns>dashboard stats, analytics, migration-safe routing summary, privileged system endpoints, admin audit logging, device peer enforcement</owns>
+  <exports>
+    <fn-admin_auth>Dependency injection for admin authentication check</fn-admin_auth>
+    <fn-get_user_analytics>Return user counts, activity, subscription breakdown</fn-get_user_analytics>
+    <fn-get_revenue_analytics>Return payment totals, MRR, conversion metrics</fn-get_revenue_analytics>
+    <fn-get_system_health>Return node status, routing state, error rates</fn-get_system_health>
+    <fn-list-user-devices>Return device and anomaly state for operator review</fn-list-user-devices>
+    <fn-admin-block-device>Block or unblock one device peer without disabling account</fn-admin-block-device>
+  </exports>
+  <depends>M-001, M-002, M-003, M-004, M-005, M-007, M-014, M-015, M-024, M-026</depends>
+  <verification-ref>V-M-006</verification-ref>
+  <files>
+    <file>backend/app/admin/router.py</file>
+    <file>backend/app/admin/audit.py</file>
+    <file>backend/app/admin/__init__.py</file>
+  </files>
+  <hotspot>H-014: Admin audit middleware must not log sensitive request bodies or tokens</hotspot>
+</M-006>

@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Phase-5 NAME="Manual internal access and CLI provisioning parity" STATUS="done">
+  <goal>Enable operator-managed internal users through backend provisioning with config export parity.</goal>
+  <step-1>M-018: Add internal non-billable access model visible in normal subscription/VPN state.</step-1>
+  <step-2>M-019: Add backend CLI for internal user resolution, access provisioning, client provisioning and config export.</step-2>
+  <step-3>M-012/M-019: Convert deploy/create-client.sh into thin wrapper over backend CLI.</step-3>
+  <step-4>M-003/M-019: Verify config parity between manual and web-issued configs with idempotency and peer persistence.</step-4>
+  <modules>M-018, M-019, M-012</modules>
+  <verification>V-M-018, V-M-019</verification>
+  <data-flows>DF-006 (manual internal client provisioning)</data-flows>
+</Phase-5>

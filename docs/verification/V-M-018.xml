@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<V-M-018 MODULE="M-018" PRIORITY="critical" STATUS="pass">
+  <module>manual-access-policy</module>
+  <checks>Complimentary internal access is created or reused deterministically, remains visible in normal subscription state and does not invoke payment-provider side effects.</checks>
+  <test-files>backend/tests/test_manual_access_policy.py</test-files>
+  <commands>pytest tests/test_manual_access_policy.py -v</commands>
+  <anchors>VPN_INTERNAL_USER_RESOLVED VPN_INTERNAL_ACCESS_GRANTED</anchors>
+  <scenarios>
+    <scenario kind="success" trace="VPN_INTERNAL_ACCESS_GRANTED">Complimentary internal access granted without payment-provider logic</scenario>
+  </scenarios>
+</V-M-018>

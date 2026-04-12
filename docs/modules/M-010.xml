@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<M-010 NAME="frontend-admin" TYPE="UI_COMPONENT" STATUS="stable">
+  <path>frontend-admin</path>
+  <owns>admin login, dashboard, users, servers, plans, analytics, settings and route-policy UI with device anomaly review controls</owns>
+  <depends>M-006, M-024</depends>
+  <verification-ref>V-M-010</verification-ref>
+  <files>
+    <file>frontend-admin/src/main.tsx</file>
+  </files>
+</M-010>

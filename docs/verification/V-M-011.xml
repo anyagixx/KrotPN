@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<V-M-011 MODULE="M-011" PRIORITY="medium" STATUS="pass">
+  <module>telegram-bot</module>
+  <checks>Telegram bot remains on the normal user flow and does not silently consume internal-only manual provisioning paths.</checks>
+  <commands>static review of telegram-bot/bot.py call surfaces</commands>
+  <anchors />
+  <scenarios />
+</V-M-011>

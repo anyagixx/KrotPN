@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Phase-8 NAME="Anti-sharing detection and admin enforcement" STATUS="done">
+  <goal>Detect suspicious device reuse and provide admin enforcement controls.</goal>
+  <step-1>M-023: Add handshake observation and endpoint change detection.</step-1>
+  <step-2>M-023/M-025: Implement suspicion scoring with detect-first enforcement strategy.</step-2>
+  <step-3>M-024/M-025: Add admin block/unblock/revoke/rotate controls with audit logging.</step-3>
+  <modules>M-023, M-024, M-025</modules>
+  <verification>V-M-023, V-M-024, V-M-025</verification>
+  <data-flows>CF-011, CF-012 (anti-sharing critical flows)</data-flows>
+</Phase-8>

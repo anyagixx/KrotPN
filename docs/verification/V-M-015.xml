@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<V-M-015 MODULE="M-015" PRIORITY="high" STATUS="pass">
+  <module>dns-observer</module>
+  <checks>DNS bindings are refreshed by TTL, expired safely and conflict resolution is explicit.</checks>
+  <test-files>backend/tests/test_dns_observer.py</test-files>
+  <commands>pytest tests/test_dns_observer.py -v</commands>
+  <anchors>DNS_BINDING_UPDATED DNS_BINDING_EXPIRED DNS_BINDING_CONFLICT</anchors>
+  <scenarios>
+    <scenario kind="success" trace="DNS_BINDING_UPDATED">DNS binding refresh updates active IP set before stale TTL entries leak</scenario>
+    <scenario kind="success" trace="DNS_BINDING_EXPIRED">Expired binding removed safely</scenario>
+  </scenarios>
+</V-M-015>

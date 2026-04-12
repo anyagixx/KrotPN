@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<M-005 NAME="referrals" TYPE="CORE_LOGIC" STATUS="stable">
+  <path>backend/app/referrals</path>
+  <owns>referral codes, referral links and bonus accounting with anti-fraud checks</owns>
+  <exports>
+    <fn-generate_referral_code>Create unique referral code for user</fn-generate_referral_code>
+    <fn-apply_referral_code>Link new user to referrer and process bonus</fn-apply_referral_code>
+    <fn-get_referral_stats>Return referral count and bonus for user</fn-get_referral_stats>
+  </exports>
+  <depends>M-001</depends>
+  <verification-ref>V-M-005</verification-ref>
+  <files>
+    <file>backend/app/referrals/service.py</file>
+    <file>backend/app/referrals/router.py</file>
+    <file>backend/app/referrals/models.py</file>
+    <file>backend/app/referrals/__init__.py</file>
+  </files>
+</M-005>

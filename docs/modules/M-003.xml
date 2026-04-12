@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<M-003 NAME="vpn" TYPE="CORE_LOGIC" STATUS="stable">
+  <path>backend/app/vpn</path>
+  <owns>vpn clients, config generation, QR, topology-aware provisioning, legacy VPNServer compatibility, device-bound peer management, handshake monitoring</owns>
+  <exports>
+    <fn-provision_client>Create or retrieve VPN client with device-bound peer</fn-provision_client>
+    <fn-generate_config>Generate WG/AWG config text for a specific client and node</fn-generate_config>
+    <fn-revoke_client>Revoke client peer and free device slot</fn-revoke_client>
+    <fn-rotate_client>Generate new peer credentials for existing client</fn-rotate_client>
+    <fn-get_client_stats>Return traffic and connection stats for a client</fn-get_client_stats>
+  </exports>
+  <depends>M-001, M-002, M-007, M-020</depends>
+  <verification-ref>V-M-003</verification-ref>
+  <files>
+    <file>backend/app/vpn/service.py</file>
+    <file>backend/app/vpn/provisioning.py</file>
+    <file>backend/app/vpn/config.py</file>
+    <file>backend/app/vpn/topology.py</file>
+    <file>backend/app/vpn/models.py</file>
+    <file>backend/app/vpn/router.py</file>
+    <file>backend/app/vpn/schemas.py</file>
+    <file>backend/app/vpn/amneziawg.py</file>
+    <file>backend/app/vpn/handshake_monitor.py</file>
+    <file>backend/app/vpn/__init__.py</file>
+  </files>
+  <hotspot>H-001: Topology migration carries legacy VPNServer compatibility</hotspot>
+  <hotspot>H-013: VPN service split into 4 files — import paths must remain stable</hotspot>
+</M-003>

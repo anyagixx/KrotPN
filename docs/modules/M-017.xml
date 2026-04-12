@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<M-017 NAME="route-sync-runtime" TYPE="INTEGRATION" STATUS="stable">
+  <path>backend/app/routing/manager.py</path>
+  <owns>incremental sync of policy decisions into host-level route sets and refresh actions</owns>
+  <exports>
+    <fn-apply-runtime-route-sync>Applies routing-set changes safely on the host</fn-apply-runtime-route-sync>
+    <fn-build-route-sync-plan>Calculates add/remove diffs before touching host ipsets</fn-build-route-sync-plan>
+  </exports>
+  <depends>M-007, M-013, M-014, M-015</depends>
+  <verification-ref>V-M-017</verification-ref>
+  <files>
+    <file>backend/app/routing/manager.py</file>
+  </files>
+  <hotspot>H-005: Incremental route sync is safer than full refresh but easier to get wrong</hotspot>
+</M-017>

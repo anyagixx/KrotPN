@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<M-025 NAME="device-audit-log" TYPE="DATA_LAYER" STATUS="stable">
+  <path>backend/app/devices/models.py backend/app/devices/service.py</path>
+  <owns>durable audit trail for device create, rotate, revoke, block, unblock and anomaly escalation events</owns>
+  <exports>
+    <fn-record-device-event>Writes a stable lifecycle or anomaly event for later investigation</fn-record-device-event>
+  </exports>
+  <depends>M-001, M-020, M-023</depends>
+  <verification-ref>V-M-025</verification-ref>
+  <files>
+    <file>backend/app/devices/models.py</file>
+    <file>backend/app/devices/service.py</file>
+  </files>
+</M-025>

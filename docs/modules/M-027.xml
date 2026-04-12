@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<M-027 NAME="token-blacklist" TYPE="UTILITY" STATUS="stable">
+  <path>backend/app/core/security.py</path>
+  <owns>Redis-based JWT token revocation for logout and incident response with graceful degradation when Redis is unavailable</owns>
+  <exports>
+    <fn-blacklist-token>Adds a token to the Redis blacklist with TTL matching its expiry</fn-blacklist-token>
+    <fn-is-token-blacklisted>Checks if a token has been revoked</fn-is-token-blacklisted>
+    <fn-verify-token-with-blacklist>Verifies token validity and checks blacklist in one call</fn-verify-token-with-blacklist>
+  </exports>
+  <depends>M-001</depends>
+  <verification-ref>V-M-027</verification-ref>
+  <files>
+    <file>backend/app/core/security.py</file>
+  </files>
+  <hotspot>H-011: Token blacklist depends on Redis availability — graceful degradation must not break auth when Redis is down</hotspot>
+</M-027>

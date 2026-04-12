@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<M-013 NAME="route-policy-resolver" TYPE="CORE_LOGIC" STATUS="stable">
+  <path>backend/app/routing/policy.py</path>
+  <owns>deterministic routing decisions from domain exact/wildcard, DNS-bound IP, CIDR and fallback policy</owns>
+  <exports>
+    <fn-resolve-route-decision>Returns route target and decision reason for a domain or IP</fn-resolve-route-decision>
+  </exports>
+  <depends>M-001, M-007, M-014, M-015</depends>
+  <verification-ref>V-M-013</verification-ref>
+  <files>
+    <file>backend/app/routing/policy.py</file>
+  </files>
+  <hotspot>H-003: Resolver precedence must stay deterministic under mixed domain/DNS/CIDR inputs</hotspot>
+</M-013>

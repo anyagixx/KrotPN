@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<M-015 NAME="dns-observer" TYPE="INTEGRATION" STATUS="stable">
+  <path>backend/app/routing/dns_resolver.py</path>
+  <owns>DNS resolution binding, TTL-aware caching and policy refresh triggers</owns>
+  <exports>
+    <fn-refresh-domain-bindings>Refreshes domain-to-IP bindings under TTL constraints</fn-refresh-domain-bindings>
+    <fn-expire-stale-bindings>Expires stale DNS-derived bindings and emits traceable expiry events</fn-expire-stale-bindings>
+  </exports>
+  <depends>M-001, M-013, M-014</depends>
+  <verification-ref>V-M-015</verification-ref>
+  <files>
+    <file>backend/app/routing/dns_resolver.py</file>
+  </files>
+  <hotspot>H-004: DNS TTL expiry and CDN rebinding can silently invalidate policy</hotspot>
+</M-015>

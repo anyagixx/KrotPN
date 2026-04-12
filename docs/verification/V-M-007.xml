@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<V-M-007 MODULE="M-007" PRIORITY="critical" STATUS="pass">
+  <module>routing</module>
+  <checks>Current RU ipset update, custom route sync and tunnel inspection remain safe under host-level assumptions.</checks>
+  <test-files>backend/tests/test_routing_policy_compat.py</test-files>
+  <commands>pytest tests/test_routing_policy_compat.py -v</commands>
+  <anchors>RUNTIME_ROUTESET_INCREMENTAL RUNTIME_ROUTESET_FULL_REFRESH</anchors>
+  <scenarios>
+    <scenario kind="success" trace="RUNTIME_ROUTESET_INCREMENTAL">Route sync applies only affected route-set changes</scenario>
+  </scenarios>
+</V-M-007>

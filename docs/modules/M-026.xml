@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<M-026 NAME="admin-audit-log" TYPE="DATA_LAYER" STATUS="stable">
+  <path>backend/app/admin/audit.py</path>
+  <owns>admin action audit trail and request logging middleware for /api/v1/admin/* endpoints</owns>
+  <exports>
+    <type-AdminAuditEvent>Persisted record of admin action with admin_id, action, resource_type, resource_id, details</type-AdminAuditEvent>
+    <fn-log-admin-action>Writes an audit record for an admin API request</fn-log-admin-action>
+    <type-AdminAuditMiddleware>FastAPI middleware that logs all admin API requests</type-AdminAuditMiddleware>
+  </exports>
+  <depends>M-001, M-006</depends>
+  <verification-ref>V-M-026</verification-ref>
+  <files>
+    <file>backend/app/admin/audit.py</file>
+  </files>
+</M-026>

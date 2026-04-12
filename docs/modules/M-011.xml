@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<M-011 NAME="telegram-bot" TYPE="ENTRY_POINT" STATUS="stable">
+  <path>telegram-bot</path>
+  <owns>Telegram command handling and backend API orchestration for user auth, config retrieval and subscription state</owns>
+  <depends>M-002, M-003, M-004</depends>
+  <verification-ref>V-M-011</verification-ref>
+  <files>
+    <file>telegram-bot/bot.py</file>
+  </files>
+</M-011>

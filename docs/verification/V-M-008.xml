@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<V-M-008 MODULE="M-008" PRIORITY="medium" STATUS="pass">
+  <module>tasks</module>
+  <checks>Background jobs do not auto-assign complimentary internal access or mutate manually managed clients unexpectedly. Subscription expiry task correctly deactivates expired subscriptions and decrements server.current_clients counter. Daily cleanup and handshake anomaly detection tasks run without errors.</checks>
+  <test-files>backend/tests/test_scheduler.py</test-files>
+  <commands>pytest tests/test_scheduler.py -v</commands>
+  <anchors>SUBSCRIPTION_EXPIRED COUNTER_DECREMENTED DAILY_CLEANUP_COMPLETED</anchors>
+  <scenarios>
+    <scenario kind="success" trace="SUBSCRIPTION_EXPIRED">Expired subscription deactivated by scheduler</scenario>
+    <scenario kind="success" trace="COUNTER_DECREMENTED">server.current_clients counter decremented on expiry</scenario>
+  </scenarios>
+</V-M-008>

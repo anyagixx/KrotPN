@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<M-007 NAME="routing" TYPE="INTEGRATION" STATUS="stable">
+  <path>backend/app/routing</path>
+  <owns>split-tunneling, ipset coordination, tunnel health and custom route runtime</owns>
+  <exports>
+    <fn-routing-manager>Host-level routing orchestration</fn-routing-manager>
+    <type-CustomRoute>Persisted custom routing rule</type-CustomRoute>
+    <fn-resolve-effective-target>Compatibility route decision wrapper preserving RU baseline</fn-resolve-effective-target>
+  </exports>
+  <depends>M-001, M-013, M-014</depends>
+  <verification-ref>V-M-007</verification-ref>
+  <files>
+    <file>backend/app/routing/__init__.py</file>
+  </files>
+  <hotspot>H-002: Routing is host-coupled — changes can mutate live system state</hotspot>
+</M-007>

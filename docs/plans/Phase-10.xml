@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Phase-10 NAME="Backend Stability Fixes (P2)" STATUS="done">
+  <goal>Improve backend code reliability, add migration infrastructure and token security.</goal>
+  <step-1>M-001: Replace datetime.utcnow() with timezone-aware values (40+ locations).</step-1>
+  <step-2>M-028: Initialize Alembic with async support, generate baseline migration.</step-2>
+  <step-3>M-027: Add Redis-based token blacklist.</step-3>
+  <step-4>M-003: Fix _reprovision_client to remove old WG peer.</step-4>
+  <step-5>M-008: Fix server.current_clients counter on subscription expiry.</step-5>
+  <step-6>M-003: Fix _get_or_provision_user_client error codes.</step-6>
+  <step-7>M-001: Document circular dependencies.</step-7>
+  <step-8>M-028: Split database.py into database.py + migrations.py.</step-8>
+  <modules>M-001, M-003, M-008, M-028</modules>
+  <verification>V-M-001, V-M-003, V-M-008, V-M-028</verification>
+  <data-flows>VM-024, VM-025, VM-019</data-flows>
+</Phase-10>

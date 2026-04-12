@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Phase-9 NAME="Critical Security Fixes (P1)" STATUS="done">
+  <goal>Eliminate critical security vulnerabilities in deployment and runtime defaults.</goal>
+  <step-1>M-001: Block default secret_key startup with ValueError.</step-1>
+  <step-2>M-001/M-027: Require explicit DATA_ENCRYPTION_KEY, remove JWT-secret fallback.</step-2>
+  <step-3>M-006: Fix auth bypass in admin_users_router.</step-3>
+  <step-4>M-012: Remove sshpass from deploy scripts.</step-4>
+  <step-5>M-012: Remove base64 encoding of secrets.</step-5>
+  <step-6>M-012: Remove plaintext credential file creation.</step-6>
+  <step-7>M-012: Remove hardcoded production IPs.</step-7>
+  <step-8>M-012: Remove port 8000 external mapping from docker-compose.</step-8>
+  <modules>M-001, M-012, M-027</modules>
+  <verification>V-M-001, V-M-012, V-M-027</verification>
+  <data-flows>VM-015, VM-016, VM-017, VM-018</data-flows>
+</Phase-9>

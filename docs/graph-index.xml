@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- MyGRACE Graph Index — lazy-loading entry point for module navigation -->
+<!-- Generated 2026-04-12 from knowledge-graph.xml v1.0.0 -->
+<GraphIndex VERSION="1.0.0" PROJECT="KrotVPN" MODULE-COUNT="28">
+  <M-001 NAME="backend-core" TYPE="UTILITY" STATUS="stable" PATH="backend/app/core" DEPENDS="M-028" VERIFICATION-REF="V-M-001" />
+  <M-002 NAME="users" TYPE="CORE_LOGIC" STATUS="stable" PATH="backend/app/users" DEPENDS="M-001,M-027" VERIFICATION-REF="V-M-002" />
+  <M-003 NAME="vpn" TYPE="CORE_LOGIC" STATUS="stable" PATH="backend/app/vpn" DEPENDS="M-001,M-002,M-007,M-020" VERIFICATION-REF="V-M-003" />
+  <M-004 NAME="billing" TYPE="CORE_LOGIC" STATUS="stable" PATH="backend/app/billing" DEPENDS="M-001,M-021" VERIFICATION-REF="V-M-004" />
+  <M-005 NAME="referrals" TYPE="CORE_LOGIC" STATUS="stable" PATH="backend/app/referrals" DEPENDS="M-001" VERIFICATION-REF="V-M-005" />
+  <M-006 NAME="admin-api" TYPE="ENTRY_POINT" STATUS="stable" PATH="backend/app/admin" DEPENDS="M-001,M-002,M-003,M-004,M-005,M-007,M-014,M-015,M-024,M-026" VERIFICATION-REF="V-M-006" />
+  <M-007 NAME="routing" TYPE="INTEGRATION" STATUS="stable" PATH="backend/app/routing" DEPENDS="M-001,M-013,M-014" VERIFICATION-REF="V-M-007" />
+  <M-008 NAME="tasks" TYPE="UTILITY" STATUS="stable" PATH="backend/app/tasks" DEPENDS="M-001" VERIFICATION-REF="V-M-008" />
+  <M-009 NAME="frontend-user" TYPE="UI_COMPONENT" STATUS="stable" PATH="frontend" DEPENDS="M-002,M-003,M-004,M-005,M-022" VERIFICATION-REF="V-M-009" />
+  <M-010 NAME="frontend-admin" TYPE="UI_COMPONENT" STATUS="stable" PATH="frontend-admin" DEPENDS="M-006,M-024" VERIFICATION-REF="V-M-010" />
+  <M-011 NAME="telegram-bot" TYPE="ENTRY_POINT" STATUS="stable" PATH="telegram-bot" DEPENDS="M-002,M-003,M-004" VERIFICATION-REF="V-M-011" />
+  <M-012 NAME="deploy-surface" TYPE="ENTRY_POINT" STATUS="stable" PATH="deploy install.sh nginx docker-compose.yml" DEPENDS="M-003,M-007,M-019" VERIFICATION-REF="V-M-012" />
+  <M-013 NAME="route-policy-resolver" TYPE="CORE_LOGIC" STATUS="stable" PATH="backend/app/routing/policy.py" DEPENDS="M-001,M-007,M-014,M-015" VERIFICATION-REF="V-M-013" />
+  <M-014 NAME="domain-rule-store" TYPE="DATA_LAYER" STATUS="stable" PATH="backend/app/routing/domain_rules.py backend/app/routing/models.py" DEPENDS="M-001" VERIFICATION-REF="V-M-014" />
+  <M-015 NAME="dns-observer" TYPE="INTEGRATION" STATUS="stable" PATH="backend/app/routing/dns_resolver.py" DEPENDS="M-001,M-013,M-014" VERIFICATION-REF="V-M-015" />
+  <M-016 NAME="route-decision-api" TYPE="ENTRY_POINT" STATUS="stable" PATH="backend/app/routing/router.py backend/app/admin/router.py frontend-admin" DEPENDS="M-006,M-007,M-013,M-014,M-015" VERIFICATION-REF="V-M-016" />
+  <M-017 NAME="route-sync-runtime" TYPE="INTEGRATION" STATUS="stable" PATH="backend/app/routing/manager.py" DEPENDS="M-007,M-013,M-014,M-015" VERIFICATION-REF="V-M-017" />
+  <M-018 NAME="manual-access-policy" TYPE="CORE_LOGIC" STATUS="stable" PATH="backend/app/users/service.py backend/app/billing/service.py backend/app/billing/models.py" DEPENDS="M-001,M-002,M-003,M-004" VERIFICATION-REF="V-M-018" />
+  <M-019 NAME="manual-client-cli" TYPE="ENTRY_POINT" STATUS="stable" PATH="backend/app/cli.py deploy/create-client.sh" DEPENDS="M-001,M-002,M-003,M-004,M-012,M-018" VERIFICATION-REF="V-M-019" />
+  <M-020 NAME="device-registry" TYPE="DATA_LAYER" STATUS="stable" PATH="backend/app/vpn/models.py backend/app/devices/models.py" DEPENDS="M-001,M-002,M-003" VERIFICATION-REF="V-M-020" />
+  <M-021 NAME="device-access-policy" TYPE="CORE_LOGIC" STATUS="stable" PATH="backend/app/devices/service.py backend/app/billing/service.py backend/app/vpn/service.py" DEPENDS="M-001,M-002,M-003,M-004,M-020" VERIFICATION-REF="V-M-021" />
+  <M-022 NAME="device-provisioning-api" TYPE="ENTRY_POINT" STATUS="stable" PATH="backend/app/devices/router.py backend/app/vpn/router.py" DEPENDS="M-001,M-002,M-003,M-004,M-020,M-021" VERIFICATION-REF="V-M-022" />
+  <M-023 NAME="handshake-anomaly-detector" TYPE="INTEGRATION" STATUS="stable" PATH="backend/app/vpn/handshake_monitor.py backend/app/tasks/scheduler.py" DEPENDS="M-001,M-003,M-007,M-020,M-021" VERIFICATION-REF="V-M-023" />
+  <M-024 NAME="device-admin-control" TYPE="ENTRY_POINT" STATUS="stable" PATH="backend/app/admin/router.py frontend-admin" DEPENDS="M-001,M-003,M-006,M-020,M-021,M-023" VERIFICATION-REF="V-M-024" />
+  <M-025 NAME="device-audit-log" TYPE="DATA_LAYER" STATUS="stable" PATH="backend/app/devices/models.py backend/app/devices/service.py" DEPENDS="M-001,M-020,M-023" VERIFICATION-REF="V-M-025" />
+  <M-026 NAME="admin-audit-log" TYPE="DATA_LAYER" STATUS="stable" PATH="backend/app/admin/audit.py" DEPENDS="M-001,M-006" VERIFICATION-REF="V-M-026" />
+  <M-027 NAME="token-blacklist" TYPE="UTILITY" STATUS="stable" PATH="backend/app/core/security.py" DEPENDS="M-001" VERIFICATION-REF="V-M-027" />
+  <M-028 NAME="alembic-migrations" TYPE="UTILITY" STATUS="stable" PATH="backend/alembic/ backend/app/core/migrations.py" DEPENDS="M-001" VERIFICATION-REF="V-M-028" />
+
+  <CrossLinks>
+    <link from="M-002" to="M-001" />
+    <link from="M-003" to="M-001" />
+    <link from="M-003" to="M-002" />
+    <link from="M-003" to="M-007" />
+    <link from="M-003" to="M-020" />
+    <link from="M-004" to="M-001" />
+    <link from="M-004" to="M-021" />
+    <link from="M-005" to="M-001" />
+    <link from="M-006" to="M-002" />
+    <link from="M-006" to="M-003" />
+    <link from="M-006" to="M-004" />
+    <link from="M-006" to="M-005" />
+    <link from="M-006" to="M-014" />
+    <link from="M-006" to="M-015" />
+    <link from="M-006" to="M-024" />
+    <link from="M-006" to="M-026" />
+    <link from="M-007" to="M-001" />
+    <link from="M-007" to="M-013" />
+    <link from="M-007" to="M-014" />
+    <link from="M-008" to="M-001" />
+    <link from="M-009" to="M-002" />
+    <link from="M-009" to="M-003" />
+    <link from="M-009" to="M-004" />
+    <link from="M-009" to="M-005" />
+    <link from="M-009" to="M-022" />
+    <link from="M-010" to="M-006" />
+    <link from="M-010" to="M-024" />
+    <link from="M-011" to="M-002" />
+    <link from="M-011" to="M-003" />
+    <link from="M-011" to="M-004" />
+    <link from="M-012" to="M-003" />
+    <link from="M-012" to="M-007" />
+    <link from="M-012" to="M-019" />
+    <link from="M-013" to="M-007" />
+    <link from="M-013" to="M-014" />
+    <link from="M-013" to="M-015" />
+    <link from="M-014" to="M-016" />
+    <link from="M-015" to="M-017" />
+    <link from="M-016" to="M-013" />
+    <link from="M-017" to="M-007" />
+    <link from="M-018" to="M-002" />
+    <link from="M-018" to="M-004" />
+    <link from="M-018" to="M-003" />
+    <link from="M-019" to="M-018" />
+    <link from="M-019" to="M-003" />
+    <link from="M-019" to="M-012" />
+    <link from="M-020" to="M-021" />
+    <link from="M-021" to="M-022" />
+    <link from="M-021" to="M-023" />
+    <link from="M-021" to="M-025" />
+    <link from="M-022" to="M-003" />
+    <link from="M-023" to="M-003" />
+    <link from="M-023" to="M-025" />
+    <link from="M-024" to="M-025" />
+    <link from="M-026" to="M-001" />
+    <link from="M-002" to="M-027" />
+    <link from="M-027" to="M-001" />
+    <link from="M-001" to="M-028" />
+    <link from="M-028" to="M-001" />
+  </CrossLinks>
+
+  <Hotspots>
+    <H-001 module="M-003" text="Topology migration carries legacy VPNServer compatibility constraints" />
+    <H-002 module="M-007" text="Routing is host-coupled — changes can mutate live system state" />
+    <H-003 module="M-013" text="Resolver precedence must stay deterministic under mixed domain/DNS/CIDR inputs" />
+    <H-004 module="M-015" text="DNS TTL expiry and CDN rebinding can silently invalidate policy" />
+    <H-005 module="M-017" text="Incremental route sync safer than full refresh but easier to get wrong" />
+    <H-006 module="M-018" text="Complimentary internal access must stay explicit or billing/analytics drift" />
+    <H-007 module="M-019" text="Manual client issuance unsafe if scripts bypass backend provisioning" />
+    <H-008 module="M-020" text="Device migration risky — legacy users have live peers needing deterministic primary devices" />
+    <H-009 module="M-023" text="Handshake anomaly detection can false-positive on mobile networks" />
+    <H-010 module="M-024" text="Device block/revoke must target one peer or operators disable whole accounts" />
+    <H-011 module="M-027" text="Token blacklist depends on Redis — graceful degradation must not break auth" />
+    <H-012 module="M-028" text="Alembic migrations must be backward compatible with SQLModel.create_all" />
+    <H-013 module="M-003" text="VPN service split into 4 files — import paths must remain stable" />
+    <H-014 module="M-006" text="Admin audit middleware must not log sensitive bodies or tokens" />
+    <H-015 module="M-012" text="Deploy idempotency must preserve WG keys, SSL certs, .env across runs" />
+  </Hotspots>
+</GraphIndex>

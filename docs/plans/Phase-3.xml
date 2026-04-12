@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Phase-3 NAME="Admin control plane and operator visibility" STATUS="done">
+  <goal>Expose routing policy controls and decision state through admin API and frontend.</goal>
+  <step-1>M-016: Add CRUD endpoints for domain rules and decision inspection.</step-1>
+  <step-2>M-016/M-010: Render policy state in admin frontend.</step-2>
+  <step-3>M-006/M-016: Add migration-safe analytics for routing state.</step-3>
+  <modules>M-006, M-016</modules>
+  <verification>V-M-006, V-M-016</verification>
+  <data-flows>DF-005 (admin observability of policy decisions)</data-flows>
+</Phase-3>

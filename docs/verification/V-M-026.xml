@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<V-M-026 MODULE="M-026" PRIORITY="high" STATUS="pass">
+  <module>admin-audit-log</module>
+  <checks>Admin audit middleware logs all /api/v1/admin/* requests without leaking tokens or sensitive bodies. AdminAuditEvent records persist with admin_id, action, resource_type, resource_id.</checks>
+  <commands>static review plus targeted middleware tests when admin audit test suite is added</commands>
+  <anchors>ADMIN_AUDIT_RECORDED</anchors>
+  <scenarios>
+    <scenario kind="success" trace="ADMIN_AUDIT_RECORDED">Every /api/v1/admin/* request produces an AdminAuditEvent record</scenario>
+  </scenarios>
+</V-M-026>

@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<M-008 NAME="tasks" TYPE="UTILITY" STATUS="stable">
+  <path>backend/app/tasks</path>
+  <owns>scheduler and recurring maintenance jobs including subscription expiry, daily cleanup and handshake anomaly detection</owns>
+  <exports>
+    <fn-scheduler>APScheduler-based recurring job runner</fn-scheduler>
+  </exports>
+  <depends>M-001</depends>
+  <verification-ref>V-M-008</verification-ref>
+  <files>
+    <file>backend/app/tasks/scheduler.py</file>
+    <file>backend/app/tasks/__init__.py</file>
+  </files>
+</M-008>

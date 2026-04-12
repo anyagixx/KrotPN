@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Phase-13 NAME="Tests and CI/CD (P5)" STATUS="done">
+  <goal>Add comprehensive test coverage and CI/CD pipeline.</goal>
+  <step-1>M-001: Add test_security.py (10 tests).</step-1>
+  <step-2>M-002/M-006: Add auth rejection tests (401/403).</step-2>
+  <step-3>M-004: Add test_billing_service.py (5 tests).</step-3>
+  <step-4>M-008: Add test_scheduler.py (4 tests).</step-4>
+  <step-5>M-005: Add test_referrals.py (7 tests).</step-5>
+  <step-6>M-001: Add coverage config (--cov=app --cov-fail-under=70).</step-6>
+  <step-7>M-001: Consolidate test fixtures in conftest.py.</step-7>
+  <step-8>M-001: Create .github/workflows/ci.yml with lint, test, build.</step-8>
+  <step-9>M-024: Add blocked-device reconnection test (CF-012).</step-9>
+  <step-10>M-019: Add CLI idempotency test (CF-007).</step-10>
+  <modules>M-001, M-004, M-008, M-005, M-019</modules>
+  <verification>V-M-001, V-M-004, V-M-008, V-M-005, V-M-019</verification>
+  <data-flows>CF-007, CF-012</data-flows>
+</Phase-13>

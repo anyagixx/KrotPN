@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<V-M-004 MODULE="M-004" PRIORITY="critical" STATUS="pass">
+  <module>billing</module>
+  <checks>Payment and webhook flows remain isolated from routing migration, complimentary internal access can be granted without entering payment-provider logic, and plan device_limit remains visible and mutable through the admin API.</checks>
+  <test-files>backend/tests/test_billing_security.py backend/tests/test_manual_access_policy.py backend/tests/test_billing_plan_api.py</test-files>
+  <commands>pytest tests/test_billing_security.py tests/test_billing_plan_api.py -v</commands>
+  <anchors>BILLING_WEBHOOK_ACCEPTED BILLING_SUBSCRIPTION_UPDATED</anchors>
+  <scenarios>
+    <scenario kind="success" trace="BILLING_WEBHOOK_ACCEPTED">YooKassa webhook accepted with valid signature</scenario>
+    <scenario kind="success" trace="BILLING_SUBSCRIPTION_UPDATED">Subscription state updated after payment confirmation</scenario>
+  </scenarios>
+</V-M-004>

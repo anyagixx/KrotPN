@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<V-M-027 MODULE="M-027" PRIORITY="critical" STATUS="pass">
+  <module>token-blacklist</module>
+  <checks>Token blacklist correctly rejects revoked tokens. Graceful degradation when Redis is unavailable (auth still works). Blacklist TTL matches token expiry.</checks>
+  <test-files>backend/tests/test_security.py</test-files>
+  <commands>pytest tests/test_security.py -v -k blacklist</commands>
+  <anchors>TOKEN_BLACKLISTED TOKEN_REJECTED</anchors>
+  <scenarios>
+    <scenario kind="success" trace="TOKEN_BLACKLISTED">Blacklisted token is rejected by verify_token_with_blacklist</scenario>
+  </scenarios>
+</V-M-027>

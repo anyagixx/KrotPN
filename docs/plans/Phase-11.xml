@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Phase-11 NAME="Frontend Security and Quality (P3)" STATUS="done">
+  <goal>Harden frontend auth storage and improve TypeScript quality.</goal>
+  <step-1>M-009/M-010: Add httpOnly secure cookies to auth endpoints.</step-1>
+  <step-2>M-009/M-010: Fix refresh token interceptor.</step-2>
+  <step-3>M-010: Eliminate 53 any usages in admin frontend with 18 typed interfaces.</step-3>
+  <step-4>M-010: Migrate react-query v3 to TanStack Query v5.</step-4>
+  <step-5>M-009: Fix PWA cache regex for relative /api/ paths.</step-5>
+  <step-6>M-009/M-010: Disable sourcemaps in production.</step-6>
+  <step-7>M-009: Fix i18next escapeValue to prevent XSS.</step-7>
+  <step-8>M-010: Add refresh token interceptor to admin frontend.</step-8>
+  <modules>M-009, M-010</modules>
+  <verification>V-M-009, V-M-010</verification>
+  <data-flows>VM-023 (TypeScript no errors)</data-flows>
+</Phase-11>

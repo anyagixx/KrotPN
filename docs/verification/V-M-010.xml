@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<V-M-010 MODULE="M-010" PRIORITY="high" STATUS="pass">
+  <module>frontend-admin</module>
+  <checks>Admin frontend builds and reflects new route policy surfaces without auth regression.</checks>
+  <commands>cd frontend-admin &amp;&amp; npm run build</commands>
+  <scenarios />
+</V-M-010>

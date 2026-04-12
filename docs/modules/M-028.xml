@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<M-028 NAME="alembic-migrations" TYPE="UTILITY" STATUS="stable">
+  <path>backend/alembic/ backend/app/core/migrations.py</path>
+  <owns>database schema migration infrastructure and migration helper functions extracted from database.py</owns>
+  <exports>
+    <fn-alembic-env>Async Alembic environment configured with SQLModel metadata</fn-alembic-env>
+    <fn-migration-helpers>Database migration utilities for schema introspection and data migration</fn-migration-helpers>
+  </exports>
+  <depends>M-001</depends>
+  <verification-ref>V-M-028</verification-ref>
+  <files>
+    <file>backend/alembic/env.py</file>
+    <file>backend/app/core/migrations.py</file>
+  </files>
+  <hotspot>H-012: Alembic migrations must be backward compatible with existing SQLModel.create_all behavior during transition period</hotspot>
+</M-028>

@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<V-M-012 MODULE="M-012" PRIORITY="critical" STATUS="pass">
+  <module>deploy-surface</module>
+  <checks>Deploy and nginx changes do not introduce weak defaults or unsafe routing assumptions, deploy/create-client.sh becomes a thin wrapper over backend CLI instead of generating raw host-only configs, and fresh RU deploys install a host-level awg0 sync watcher so backend-written peers become active on the live interface.</checks>
+  <commands>bash -n deploy/deploy-ru-server.sh &amp;&amp; bash -n deploy/deploy-on-server.sh &amp;&amp; bash -n deploy/deploy-all.sh &amp;&amp; bash -n deploy/create-client.sh &amp;&amp; bash -n install.sh</commands>
+  <anchors>DEPLOY_IDEMPOTENT KEYS_PRESERVED DEPLOY_BACKUP_CREATED DEPLOY_RESTORED</anchors>
+  <scenarios>
+    <scenario kind="success" trace="DEPLOY_IDEMPOTENT">Double deploy preserves existing WG keys and client connections</scenario>
+    <scenario kind="success" trace="DEPLOY_BACKUP_CREATED">deploy/rollback.sh creates backup</scenario>
+    <scenario kind="success" trace="DEPLOY_RESTORED">Rollback restores from backup successfully</scenario>
+  </scenarios>
+</V-M-012>

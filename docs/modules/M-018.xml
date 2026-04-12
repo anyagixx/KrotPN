@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<M-018 NAME="manual-access-policy" TYPE="CORE_LOGIC" STATUS="stable">
+  <path>backend/app/users/service.py backend/app/billing/service.py backend/app/billing/models.py</path>
+  <owns>resolution of internal operator-managed identities plus explicit complimentary access state for non-billable clients</owns>
+  <exports>
+    <fn-resolve-internal-user>Finds or creates the canonical internal user identity for manual client issuance</fn-resolve-internal-user>
+    <fn-ensure-complimentary-access>Creates or reuses explicit non-billable access state without entering payment-provider flows</fn-ensure-complimentary-access>
+  </exports>
+  <depends>M-001, M-002, M-003, M-004</depends>
+  <verification-ref>V-M-018</verification-ref>
+  <files>
+    <file>backend/app/users/service.py</file>
+    <file>backend/app/billing/service.py</file>
+    <file>backend/app/billing/models.py</file>
+  </files>
+  <hotspot>H-006: Complimentary internal access must stay explicit or billing and analytics will silently drift</hotspot>
+</M-018>

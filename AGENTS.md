@@ -32,13 +32,18 @@ KrotVPN is a production MVP in hardening/stabilization phase. A practical GRACE-
 Every new agent should read files in this exact order before changing code:
 
 1. `docs/current-status.xml`
-2. `docs/knowledge-graph.xml`
-3. `docs/development-plan.xml`
-4. `docs/verification-plan.xml`
-5. `docs/requirements.xml`
-6. `docs/technology.xml`
-7. `docs/operational-packets.xml`
+2. `docs/graph-index.xml`
+3. `docs/modules/M-XXX.xml` (only the module you're changing)
+4. `docs/plan-index.xml`
+5. `docs/plans/Phase-N.xml` (only the relevant phase)
+6. `docs/verification-index.xml`
+7. `docs/verification/V-M-XXX.xml` (only the relevant verification)
 8. `README.md`
+
+For deep reference (rarely needed):
+- `docs/archive/classic-grace/knowledge-graph.xml` — full detail if per-module file is insufficient
+- `docs/archive/classic-grace/development-plan.xml` — complete contracts and architecture notes
+- `docs/archive/classic-grace/verification-plan.xml` — global policy, philosophy, critical flows
 
 ## Project Reality
 
@@ -73,7 +78,7 @@ Markers like `# START_BLOCK_<NAME>` and `# END_BLOCK_<NAME>` are navigation anch
 - proportionally sized so one block fits inside an LLM working window
 
 ### 3. Knowledge Graph Is Always Current
-`docs/knowledge-graph.xml` is the project map. When you add a module, move a module, rename exports, or add dependencies, update the graph so future agents can navigate deterministically.
+`docs/graph-index.xml` + `docs/modules/M-XXX.xml` is the project map. When you add a module, move a module, rename exports, or add dependencies, update both the index and the per-module file so future agents can navigate deterministically.
 
 ### 4. Verification Is a First-Class Artifact
 Testing, traces, and log anchors are designed before large execution waves. `docs/verification-plan.xml` is part of the architecture, not an afterthought. Logs are evidence. Tests are executable contracts.
@@ -86,6 +91,12 @@ Never jump straight to code when requirements, architecture, or verification int
 
 ### 6. Governed Autonomy
 Agents have freedom in HOW to implement, but not in WHAT to build. Contracts, plans, graph references, and verification requirements define the allowed space.
+
+### 7. Lazy-Loading Navigation
+MyGRACE uses indexes for navigation — never read all per-entity files.
+1. Read `docs/graph-index.xml` → find module ID
+2. Read `docs/modules/M-XXX.xml` → only that module
+3. Done. ~145 lines vs ~6500.
 
 ## Semantic Markup Reference
 
@@ -184,17 +195,17 @@ Testing rules:
 
 For any new feature or change:
 
-1. `$grace-plan` — design modules, contracts, dependencies
-2. `$grace-verification` — design tests, scenarios, log markers
+1. `$grace-plan` — design modules, contracts, dependencies (updates `docs/plan-index.xml` + `docs/plans/`)
+2. `$grace-verification` — design tests, scenarios, log markers (updates `docs/verification-index.xml` + `docs/verification/`)
 3. `$grace-execute` or `$grace-multiagent-execute` — implement with scoped reviews
 4. `$grace-reviewer` — verify semantic integrity
-5. `$grace-refresh` — sync shared artifacts with codebase
+5. `$grace-refresh` — sync indexes with per-entity files and codebase
 
 For debugging:
-1. `$grace-fix` — navigate via knowledge graph to the failing block
+1. `$grace-fix` — navigate via graph-index to the failing module
 2. Analyze CONTRACT vs actual code
 3. Fix within semantic block boundaries
-4. Update metadata and rerun verification
+4. Update graph-index and rerun verification
 
 For refactoring:
 1. `$grace-refactor` — classify the refactor type, build a RefactorPacket
@@ -205,19 +216,23 @@ For refactoring:
 ## File Structure
 ```
 docs/
-  requirements.xml       - Product requirements and use cases
-  technology.xml         - Stack decisions, tooling, observability, testing
-  development-plan.xml   - Modules, phases, data flows, ownership, write scopes
-  verification-plan.xml  - Test strategy, trace expectations, module and phase gates
-  knowledge-graph.xml    - Project-wide navigation graph
-  operational-packets.xml - Canonical packet, delta, and failure handoff templates
-  current-status.xml     - Current project state and known risks
-  decisions.xml          - Architectural decisions log
-backend/app/             - FastAPI backend with GRACE markup
-frontend/                - User dashboard (Vue.js)
-frontend-admin/          - Admin panel (Vue.js)
-telegram-bot/            - Telegram bot client
-deploy/                  - Deployment scripts and nginx config
+  graph-index.xml          - MyGRACE module index (≤120 lines, lazy-loading entry)
+  plan-index.xml           - MyGRACE phase index (≤20 lines)
+  verification-index.xml   - MyGRACE verification index (≤35 lines)
+  modules/                 - Per-module files (M-001.xml … M-028.xml, 20-40 lines each)
+  plans/                   - Per-phase files (Phase-1.xml … Phase-14.xml)
+  verification/            - Per-verification files (V-M-001.xml … V-M-028.xml)
+  current-status.xml       - Current project state and known risks
+  decisions.xml            - Architectural decisions log
+  requirements.xml         - Product requirements and use cases
+  technology.xml           - Stack decisions, tooling, observability, testing
+  operational-packets.xml  - Execution/delta/failure handoff packet templates
+  archive/classic-grace/   - Archived monolithic GRACE files (reference only)
+backend/app/               - FastAPI backend with GRACE markup
+frontend/                  - User dashboard (Vue.js)
+frontend-admin/            - Admin panel (Vue.js)
+telegram-bot/              - Telegram bot client
+deploy/                    - Deployment scripts and nginx config
 ```
 
 ## Documentation Artifacts - Unique Tag Convention
@@ -248,8 +263,8 @@ In `docs/*.xml`, repeated entities must use their unique ID as the XML tag name 
 
 1. **Read the MODULE_CONTRACT before editing any file.**
 2. After editing source or test files, update MODULE_MAP in a way that matches the file's role and map mode.
-3. After adding or removing modules, update `docs/knowledge-graph.xml`.
-4. After changing test files, commands, critical scenarios, or log markers, update `docs/verification-plan.xml`.
+3. After adding or removing modules, update `docs/graph-index.xml` and add/remove `docs/modules/M-XXX.xml`.
+4. After changing test files, commands, critical scenarios, or log markers, update `docs/verification-index.xml` and `docs/verification/V-M-XXX.xml`.
 5. After fixing bugs, add a CHANGE_SUMMARY entry and strengthen nearby verification if the old evidence was weak.
 6. Never remove semantic markup anchors unless the structure is intentionally replaced with better anchors.
-7. **Never modify docs/development-plan.xml, docs/knowledge-graph.xml, or docs/verification-plan.xml without reading them first.**
+7. **Never modify docs/graph-index.xml, docs/plan-index.xml, or docs/verification-index.xml without reading them first.**

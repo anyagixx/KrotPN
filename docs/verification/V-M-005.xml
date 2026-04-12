@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<V-M-005 MODULE="M-005" PRIORITY="high" STATUS="pass">
+  <module>referrals</module>
+  <checks>Referral logic remains excluded from manual internal clients issuance. Referral code generation is unique, self-referral is rejected, first payment bonus works correctly, and stats aggregation is accurate.</checks>
+  <test-files>backend/tests/test_referrals.py</test-files>
+  <commands>pytest tests/test_referrals.py -v</commands>
+  <anchors>REFERRAL_CODE_CREATED REFERRAL_LINKED REFERRAL_BONUS_APPLIED</anchors>
+  <scenarios>
+    <scenario kind="success" trace="REFERRAL_CODE_CREATED">Unique referral code created for user</scenario>
+    <scenario kind="success" trace="REFERRAL_LINKED">Referred user linked to referrer</scenario>
+    <scenario kind="success" trace="REFERRAL_BONUS_APPLIED">Bonus credited after first payment</scenario>
+  </scenarios>
+</V-M-005>

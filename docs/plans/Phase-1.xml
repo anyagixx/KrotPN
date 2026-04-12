@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Phase-1 NAME="Policy model and safe compatibility layer" STATUS="done">
+  <goal>Introduce routing policy model and resolver while preserving backward compatibility.</goal>
+  <step-1>M-014: Create DomainRouteRule and CidrRouteRule entities, schemas, CRUD models.</step-1>
+  <step-2>M-013: Implement route-policy resolver with precedence: exact > wildcard > DNS-bound IP > CIDR > RU baseline > default.</step-2>
+  <step-3>M-013/M-014: Ensure RU-vs-non-RU fallback remains functional for backward compatibility.</step-3>
+  <modules>M-013, M-014</modules>
+  <verification>V-M-013, V-M-014</verification>
+  <data-flows>DF-001 (domain-first routing decision), DF-003 (fallback CIDR classification)</data-flows>
+</Phase-1>

@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<V-M-021 MODULE="M-021" PRIORITY="critical" STATUS="pass">
+  <module>device-access-policy</module>
+  <checks>Effective plan device limits are enforced before provisioning, revoked devices free slots, blocked devices do not silently bypass policy, and rotate preserves logical device identity.</checks>
+  <test-files>backend/tests/test_device_access_policy.py</test-files>
+  <commands>pytest tests/test_device_access_policy.py -v</commands>
+  <anchors>VPN_DEVICE_CREATE_REQUESTED VPN_DEVICE_LIMIT_REJECTED VPN_DEVICE_REVOKED VPN_DEVICE_CONFIG_ROTATED VPN_DEVICE_BLOCKED</anchors>
+  <scenarios>
+    <scenario kind="success" trace="VPN_DEVICE_LIMIT_REJECTED">Device creation rejected when plan limit reached</scenario>
+    <scenario kind="success" trace="VPN_DEVICE_REVOKED">Revoking a device frees a slot for new device creation</scenario>
+  </scenarios>
+</V-M-021>

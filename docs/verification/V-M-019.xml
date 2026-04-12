@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<V-M-019 MODULE="M-019" PRIORITY="critical" STATUS="pass">
+  <module>manual-client-cli</module>
+  <checks>Manual CLI issuance resolves the internal identity, provisions through VPNService, exports a working config and stays idempotent unless reprovision is explicitly requested.</checks>
+  <test-files>backend/tests/test_manual_client_cli.py</test-files>
+  <commands>pytest tests/test_manual_client_cli.py -v</commands>
+  <anchors>VPN_MANUAL_CLIENT_REQUESTED VPN_MANUAL_CLIENT_PROVISIONED VPN_CONFIG_RENDERED VPN_MANUAL_CLIENT_OUTPUT_WRITTEN</anchors>
+  <scenarios>
+    <scenario kind="success" trace="VPN_MANUAL_CLIENT_PROVISIONED">CLI issued config through backend provisioning</scenario>
+    <scenario kind="success" trace="VPN_CONFIG_RENDERED">Config rendered correctly for manual client</scenario>
+  </scenarios>
+</V-M-019>

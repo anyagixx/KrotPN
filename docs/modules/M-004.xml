@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<M-004 NAME="billing" TYPE="CORE_LOGIC" STATUS="stable">
+  <path>backend/app/billing</path>
+  <owns>plans, subscriptions, per-plan device limits, payments and YooKassa integration</owns>
+  <exports>
+    <fn-create_subscription>Activate subscription for user with plan limits</fn-create_subscription>
+    <fn-process_webhook>Handle YooKassa payment confirmation or failure</fn-process_webhook>
+    <fn-get_active_subscription>Return current subscription state for user</fn-get_active_subscription>
+    <fn-get_plan_limits>Return device limits and features for a plan</fn-get_plan_limits>
+  </exports>
+  <depends>M-001, M-021</depends>
+  <verification-ref>V-M-004</verification-ref>
+  <files>
+    <file>backend/app/billing/service.py</file>
+    <file>backend/app/billing/router.py</file>
+    <file>backend/app/billing/models.py</file>
+    <file>backend/app/billing/schemas.py</file>
+    <file>backend/app/billing/yookassa.py</file>
+    <file>backend/app/billing/__init__.py</file>
+  </files>
+</M-004>

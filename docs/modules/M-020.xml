@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<M-020 NAME="device-registry" TYPE="DATA_LAYER" STATUS="stable">
+  <path>backend/app/vpn/models.py backend/app/devices/models.py</path>
+  <owns>device records, device lifecycle state, device-linked peer state and durable device security events</owns>
+  <exports>
+    <type-UserDevice>Logical user device with active/revoked/blocked/replaced lifecycle state</type-UserDevice>
+    <type-DeviceSecurityEvent>Audit or anomaly record for device lifecycle or anti-sharing signals</type-DeviceSecurityEvent>
+  </exports>
+  <depends>M-001, M-002, M-003</depends>
+  <verification-ref>V-M-020</verification-ref>
+  <files>
+    <file>backend/app/vpn/models.py</file>
+    <file>backend/app/devices/models.py</file>
+  </files>
+  <hotspot>H-008: Device migration is risky because legacy users already have live peers that must become deterministic primary devices</hotspot>
+</M-020>

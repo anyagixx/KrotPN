@@ -39,14 +39,22 @@ calibration_hooks = true
 conport_support = true
 
 [contracts]
-governance_file = "docs/governance.toml"
-macros_file = "docs/macros.toml"
+# Governance and macros migrated to per-module XML files in docs/modules/
 
 [boundary]
 canonical_docs_root = "docs/"
 policy_docs_root = "docs/"
 runtime_state_root = ".mygrace/state/"
 max_lines_per_file = 500
+
+# MyGRACE lazy-loading configuration
+[lazy_loading]
+graph_index = "docs/graph-index.xml"
+plan_index = "docs/plan-index.xml"
+verification_index = "docs/verification-index.xml"
+module_dir = "docs/modules/"
+plan_dir = "docs/plans/"
+verification_dir = "docs/verification/"
 
 [overrides]
 override_files = []

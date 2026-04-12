@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<M-023 NAME="handshake-anomaly-detector" TYPE="INTEGRATION" STATUS="stable">
+  <path>backend/app/vpn/handshake_monitor.py backend/app/tasks/scheduler.py</path>
+  <owns>handshake observation, endpoint churn detection, suspicion scoring and anti-sharing signal emission</owns>
+  <exports>
+    <fn-observe-peer-handshake>Records last-seen handshake and endpoint data for a device-linked peer</fn-observe-peer-handshake>
+    <fn-score-peer-anomaly>Scores suspicious concurrent or unstable reuse patterns for one peer</fn-score-peer-anomaly>
+  </exports>
+  <depends>M-001, M-003, M-007, M-020, M-021</depends>
+  <verification-ref>V-M-023</verification-ref>
+  <files>
+    <file>backend/app/vpn/handshake_monitor.py</file>
+  </files>
+  <hotspot>H-009: Handshake anomaly detection can produce false positives on mobile networks if endpoint churn rules are too aggressive</hotspot>
+</M-023>

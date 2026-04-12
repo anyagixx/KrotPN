@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<V-M-003 MODULE="M-003" PRIORITY="critical" STATUS="pass">
+  <module>vpn</module>
+  <checks>Provisioning and config generation remain compatible with route-aware topology, including configs exported for operator-managed internal clients.</checks>
+  <test-files>backend/tests/test_vpn_service.py backend/tests/test_vpn_router_compat.py backend/tests/test_manual_client_cli.py</test-files>
+  <commands>pytest tests/test_vpn_service.py tests/test_vpn_router_compat.py -v</commands>
+  <anchors>VPN_PROVISION_ROUTE_SELECTED VPN_CONFIG_RENDERED VPN_PEER_APPLIED</anchors>
+  <scenarios>
+    <scenario kind="success" trace="VPN_PROVISION_ROUTE_SELECTED">Provisioning selects correct topology and routing policy</scenario>
+    <scenario kind="success" trace="VPN_CONFIG_RENDERED">Config rendered successfully for provisioned client</scenario>
+  </scenarios>
+</V-M-003>

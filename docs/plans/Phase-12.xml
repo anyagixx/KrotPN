@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Phase-12 NAME="Infrastructure Hardening (P4)" STATUS="done">
+  <goal>Improve deploy reliability, add backup/restore, harden docker and nginx.</goal>
+  <step-1>M-012: Fix deploy idempotency — preserve WG keys.</step-1>
+  <step-2>M-012: Add deploy/rollback.sh with backup/restore/list.</step-2>
+  <step-3>M-012: Add healthchecks for nginx, frontend, frontend-admin.</step-3>
+  <step-4>M-012: Add resource limits to all docker-compose containers.</step-4>
+  <step-5>M-012: Replace hardcoded eth0 with dynamic interface detection.</step-5>
+  <step-6>M-012: Add security headers to nginx (HSTS, CSP, X-Frame-Options).</step-6>
+  <step-7>M-012: Add rate limiting to nginx.</step-7>
+  <step-8>M-012: Add deploy/backup-db.sh for pg_dump with 7-backup retention.</step-8>
+  <step-9>M-012: Restrict UFW FORWARD to deny + explicit AWG rules.</step-9>
+  <step-10>M-012: Verify no eval injection in install.sh.</step-10>
+  <modules>M-012</modules>
+  <verification>V-M-012, V-M-020, V-M-021</verification>
+  <data-flows>VM-020, VM-021 (deploy idempotent, backup/restore)</data-flows>
+</Phase-12>

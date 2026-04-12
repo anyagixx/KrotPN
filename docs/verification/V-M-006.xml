@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<V-M-006 MODULE="M-006" PRIORITY="high" STATUS="pass">
+  <module>admin-api</module>
+  <checks>Admin routing inspection and analytics endpoints enforce admin auth and reflect current policy state.</checks>
+  <test-files>backend/tests/test_route_decision_api.py backend/tests/test_admin_stats.py</test-files>
+  <commands>pytest tests/test_route_decision_api.py tests/test_admin_stats.py -v</commands>
+  <anchors>AUTH_ADMIN_ENDPOINT_REQUIRES_TOKEN</anchors>
+  <scenarios>
+    <scenario kind="success" trace="AUTH_ADMIN_ENDPOINT_REQUIRES_TOKEN">Admin endpoint returns 401 without token</scenario>
+  </scenarios>
+</V-M-006>

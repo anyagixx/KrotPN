@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<V-M-028 MODULE="M-028" PRIORITY="critical" STATUS="pass">
+  <module>alembic-migrations</module>
+  <checks>Alembic migrations apply all migrations on clean database and produce schema consistent with models. Backward compatible with existing SQLModel.create_all behavior during transition period.</checks>
+  <test-files>backend/tests/test_db_migrations.py</test-files>
+  <commands>pytest tests/test_db_migrations.py -v</commands>
+  <anchors>ALEMBIC_MIGRATION_APPLIED</anchors>
+  <scenarios>
+    <scenario kind="success" trace="ALEMBIC_MIGRATION_APPLIED">alembic upgrade head applies all migrations on clean database</scenario>
+  </scenarios>
+</V-M-028>

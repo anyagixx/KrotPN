@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<M-021 NAME="device-access-policy" TYPE="CORE_LOGIC" STATUS="stable">
+  <path>backend/app/devices/service.py backend/app/billing/service.py backend/app/vpn/service.py</path>
+  <owns>per-plan device limit enforcement, slot accounting and device-level revoke/rotate/block decisions</owns>
+  <exports>
+    <fn-check-device-limit>Determines whether a user may create another active device under the effective plan</fn-check-device-limit>
+    <fn-apply-device-enforcement>Coordinates revoke, rotate, block and unblock state transitions for device-bound peers</fn-apply-device-enforcement>
+  </exports>
+  <depends>M-001, M-002, M-003, M-004, M-020</depends>
+  <verification-ref>V-M-021</verification-ref>
+  <files>
+    <file>backend/app/devices/service.py</file>
+  </files>
+</M-021>

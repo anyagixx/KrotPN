@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<V-M-001 MODULE="M-001" PRIORITY="critical" STATUS="pass">
+  <module>backend-core</module>
+  <checks>Backend config and DB initialization remain runnable; auth and crypto helpers still load. Default secret_key is rejected with ValueError. DATA_ENCRYPTION_KEY is required. Token blacklist functions work with Redis and degrade gracefully without it. All datetime values are timezone-aware.</checks>
+  <test-files>backend/tests/test_security.py</test-files>
+  <commands>pytest tests/test_security.py -v</commands>
+  <anchors>SECURITY_DEFAULT_KEY_REJECTED SECURITY_ENCRYPTION_KEY_REQUIRED DATETIME_TIMEZONE_AWARE TOKEN_BLACKLISTED</anchors>
+  <scenarios>
+    <scenario kind="success" trace="SECURITY_DEFAULT_KEY_REJECTED">App refuses to start with default secret_key</scenario>
+    <scenario kind="success" trace="SECURITY_ENCRYPTION_KEY_REQUIRED">App requires explicit DATA_ENCRYPTION_KEY</scenario>
+    <scenario kind="success" trace="DATETIME_TIMEZONE_AWARE">All datetime comparisons use timezone-aware values</scenario>
+    <scenario kind="success" trace="TOKEN_BLACKLISTED">Blacklisted token is rejected by verify_token_with_blacklist</scenario>
+  </scenarios>
+</V-M-001>
