@@ -1,11 +1,94 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<V-M-017 MODULE="M-017" PRIORITY="critical" STATUS="pass">
-  <module>route-sync-runtime</module>
-  <checks>Runtime sync applies incremental updates correctly, removes stale bindings and avoids rule leakage between RU and DE sets.</checks>
-  <test-files>backend/tests/test_route_sync_runtime.py</test-files>
-  <commands>pytest tests/test_route_sync_runtime.py -v</commands>
-  <anchors>RUNTIME_ROUTESET_INCREMENTAL RUNTIME_ROUTESET_FULL_REFRESH</anchors>
+<V-M-017 MODULE="M-017" PRIORITY="critical" STATUS="pending">
+  <module>route-sync-runtime + RU IP auto-update</module>
+  <checks>
+    Runtime sync applies incremental updates correctly.
+    RU IP auto-update fetches from 3 sources with fallback, validates, and applies incrementally.
+    Atomic ipset swap with rollback on failure.
+    Last-known-good persistence survives service restart.
+    Scheduler triggers update every 6 hours.
+  </checks>
+  <test-files>
+    backend/tests/test_ru_ipset_updater.py
+    backend/tests/test_route_sync_runtime.py
+  </test-files>
+  <module-checks>
+    pytest tests/test_ru_ipset_updater.py -v
+    pytest tests/test_route_sync_runtime.py -v
+    bash -n deploy/deploy-ru-server.sh
+    ipset list ru_ips | wc -l  (live server, must be &gt;1000)
+  </module-checks>
+
+  <!-- Phase-15 Scenarios -->
   <scenarios>
-    <scenario kind="success" trace="RUNTIME_ROUTESET_INCREMENTAL">Runtime sync applies only affected route-set changes for a single rule mutation</scenario>
+    <!-- S1: Normal update, all sources available -->
+    <scenario kind="success" trace="RU_IPSET_UPDATE_ALL_SOURCES">
+      All 3 sources return valid CIDR lists. ipset updated with diff-apply. entries &gt;1000.
+    </scenario>
+    <!-- S2: Primary source unavailable -->
+    <scenario kind="success" trace="RU_IPSET_FALLBACK_SECONDARY">
+      ipverse returns error. anti-zapret + ipgeobace used. ipset still updated.
+    </scenario>
+    <scenario kind="success" trace="RU_IPSET_FALLBACK_SNAPSHOT">
+      All 3 sources return errors. last-known-good snapshot restored. No ipset changes.
+    </scenario>
+    <scenario kind="failure" trace="RU_IPSET_NO_SNAPSHOT">
+      All sources fail, no snapshot exists. Current ipset NOT touched. ERROR logged.
+    </scenario>
+    <scenario kind="failure" trace="RU_IPSET_INVALID_FORMAT">
+      Source returns non-CIDR data. Source rejected. Fallback to next source.
+    </scenario>
+    <scenario kind="failure" trace="RU_IPSET_SANITY_CHECK">
+      Source returns &lt;1000 entries. Source rejected as sanity failure.
+    </scenario>
+    <scenario kind="success" trace="RU_IPSET_INCREMENTAL">
+      Only 50 entries added, 20 removed. Exactly 70 ipset operations, NOT full flush.
+    </scenario>
+    <scenario kind="success" trace="RU_IPSET_ATOMIC_SWAP">
+      Atomic swap succeeds. Old entries removed from memory after swap.
+    </scenario>
+    <scenario kind="failure" trace="RU_IPSET_SWAP_ROLLBACK">
+      Atomic swap fails. ipset restored from last-known-good snapshot.
+    </scenario>
+    <scenario kind="success" trace="RU_IPSET_CHANGE_ALERT">
+      &gt;20% of CIDRs changed. WARNING logged with old/new counts.
+    </scenario>
+    <scenario kind="success" trace="RU_IPSET_SCHEDULER_INTERVAL">
+      APScheduler triggers update every 6 hours (not 24h). Verified by mock clock.
+    </scenario>
+    <scenario kind="success" trace="RU_IPSET_IDEMPOTENT">
+      Same data on second run. 0 ipset operations. No-op confirmed.
+    </scenario>
+    <scenario kind="success" trace="RU_IPSET_SNAPSHOT_PERSIST">
+      After successful update, /var/lib/krotvpn/ru_ips_snapshot.json exists and is valid JSON.
+    </scenario>
+    <scenario kind="success" trace="RU_IPSET_STATS_ENDPOINT">
+      GET /routing/ru-ipset-stats returns entries count, last update time, sources used.
+    </scenario>
   </scenarios>
+
+  <!-- Log markers required -->
+  <required-log-markers>
+    [RuIpsetUpdater][fetch_sources][BLOCK] — source fetch result
+    [RuIpsetUpdater][validate][BLOCK] — validation pass/fail
+    [RuIpsetUpdater][apply_incremental][BLOCK] — add/remove counts
+    [RuIpsetUpdater][fallback][BLOCK] — fallback triggered
+    [RuIpsetUpdater][snapshot][BLOCK] — snapshot saved/restored
+    [Routing][ipset][RU_IPSET_INCREMENTAL] — incremental apply result
+    [Routing][ipset][RU_IPSET_SWAP_ROLLBACK] — rollback after swap failure
+    [Routing][scheduler][RU_IPSET_UPDATE_COMPLETE] — scheduler trigger result
+  </required-log-markers>
+
+  <!-- Redaction rules -->
+  <redaction>
+    Never log source URLs with auth tokens (none expected, but validate).
+    Never log full CIDR lists — only counts and sample IPs.
+  </redaction>
+
+  <!-- Verification level -->
+  <verification-level>
+    <level-1 kind="deterministic">S1-S6, S10-S13: Unit tests with mocked HTTP sources</level-1>
+    <level-2 kind="integration">S7-S9: Integration tests with fake ipset (mocked subprocess)</level-2>
+    <level-3 kind="live">S14: Live server check — ipset list ru_ips | wc -l &gt; 1000</level-3>
+  </verification-level>
 </V-M-017>

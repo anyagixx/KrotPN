@@ -7,7 +7,7 @@
   <V-M-003 MODULE="M-003" PRIORITY="critical" STATUS="pass" TESTS="backend/tests/test_vpn_service.py backend/tests/test_vpn_router_compat.py backend/tests/test_manual_client_cli.py" COMMANDS="pytest tests/test_vpn_service.py tests/test_vpn_router_compat.py -v" />
   <V-M-004 MODULE="M-004" PRIORITY="critical" STATUS="pass" TESTS="backend/tests/test_billing_security.py backend/tests/test_manual_access_policy.py backend/tests/test_billing_plan_api.py" COMMANDS="pytest tests/test_billing_security.py tests/test_billing_plan_api.py -v" />
   <V-M-005 MODULE="M-005" PRIORITY="high" STATUS="pass" TESTS="backend/tests/test_referrals.py" COMMANDS="pytest tests/test_referrals.py -v" />
-  <V-M-006 MODULE="M-006" PRIORITY="high" STATUS="pass" TESTS="backend/tests/test_route_decision_api.py backend/tests/test_admin_stats.py" COMMANDS="pytest tests/test_route_decision_api.py tests/test_admin_stats.py -v" />
+  <V-M-006 MODULE="M-006" PRIORITY="high" STATUS="pending" TESTS="backend/tests/test_route_decision_api.py backend/tests/test_admin_stats.py backend/tests/test_ru_ipset_stats.py" COMMANDS="pytest tests/test_route_decision_api.py tests/test_admin_stats.py tests/test_ru_ipset_stats.py -v" />
   <V-M-007 MODULE="M-007" PRIORITY="critical" STATUS="pass" TESTS="backend/tests/test_routing_policy_compat.py" COMMANDS="pytest tests/test_routing_policy_compat.py -v" />
   <V-M-008 MODULE="M-008" PRIORITY="medium" STATUS="pass" TESTS="backend/tests/test_scheduler.py" COMMANDS="pytest tests/test_scheduler.py -v" />
   <V-M-009 MODULE="M-009" PRIORITY="high" STATUS="pass" TESTS="" COMMANDS="cd frontend &amp;&amp; npm run build" />
@@ -18,7 +18,7 @@
   <V-M-014 MODULE="M-014" PRIORITY="critical" STATUS="pass" TESTS="backend/tests/test_domain_rule_store.py" COMMANDS="pytest tests/test_domain_rule_store.py -v" />
   <V-M-015 MODULE="M-015" PRIORITY="high" STATUS="pass" TESTS="backend/tests/test_dns_observer.py" COMMANDS="pytest tests/test_dns_observer.py -v" />
   <V-M-016 MODULE="M-016" PRIORITY="high" STATUS="pass" TESTS="backend/tests/test_route_decision_api.py" COMMANDS="pytest tests/test_route_decision_api.py -v" />
-  <V-M-017 MODULE="M-017" PRIORITY="critical" STATUS="pass" TESTS="backend/tests/test_route_sync_runtime.py" COMMANDS="pytest tests/test_route_sync_runtime.py -v" />
+  <V-M-017 MODULE="M-017" PRIORITY="critical" STATUS="pending" TESTS="backend/tests/test_ru_ipset_updater.py backend/tests/test_route_sync_runtime.py backend/tests/test_ru_ipset_stats.py" COMMANDS="pytest tests/test_ru_ipset_updater.py tests/test_route_sync_runtime.py -v" />
   <V-M-018 MODULE="M-018" PRIORITY="critical" STATUS="pass" TESTS="backend/tests/test_manual_access_policy.py" COMMANDS="pytest tests/test_manual_access_policy.py -v" />
   <V-M-019 MODULE="M-019" PRIORITY="critical" STATUS="pass" TESTS="backend/tests/test_manual_client_cli.py" COMMANDS="pytest tests/test_manual_client_cli.py -v" />
   <V-M-020 MODULE="M-020" PRIORITY="critical" STATUS="pass" TESTS="backend/tests/test_device_registry.py backend/tests/test_device_migration.py" COMMANDS="pytest tests/test_device_registry.py tests/test_device_migration.py -v" />

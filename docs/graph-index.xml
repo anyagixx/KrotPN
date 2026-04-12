@@ -109,5 +109,6 @@
     <H-013 module="M-003" text="VPN service split into 4 files — import paths must remain stable" />
     <H-014 module="M-006" text="Admin audit middleware must not log sensitive bodies or tokens" />
     <H-015 module="M-012" text="Deploy idempotency must preserve WG keys, SSL certs, .env across runs" />
+    <H-016 module="M-017" text="RU IP auto-update from external sources could introduce incorrect ranges if validation fails" />
   </Hotspots>
 </GraphIndex>

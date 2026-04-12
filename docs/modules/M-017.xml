@@ -1,15 +1,18 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <M-017 NAME="route-sync-runtime" TYPE="INTEGRATION" STATUS="stable">
-  <path>backend/app/routing/manager.py</path>
-  <owns>incremental sync of policy decisions into host-level route sets and refresh actions</owns>
+  <path>backend/app/routing/manager.py backend/app/routing/ru_ipset_updater.py</path>
+  <owns>incremental sync of policy decisions into host-level route sets, automated RU IP range updates from multiple sources with fallback, atomic ipset swap with rollback, last-known-good persistence</owns>
   <exports>
     <fn-apply-runtime-route-sync>Applies routing-set changes safely on the host</fn-apply-runtime-route-sync>
     <fn-build-route-sync-plan>Calculates add/remove diffs before touching host ipsets</fn-build-route-sync-plan>
+    <type-RuIpsetUpdater>Multi-source RU IP fetcher with validation, dedup, and incremental apply</type-RuIpsetUpdater>
   </exports>
   <depends>M-007, M-013, M-014, M-015</depends>
   <verification-ref>V-M-017</verification-ref>
   <files>
     <file>backend/app/routing/manager.py</file>
+    <file>backend/app/routing/ru_ipset_updater.py</file>
   </files>
   <hotspot>H-005: Incremental route sync is safer than full refresh but easier to get wrong</hotspot>
+  <hotspot>H-016: RU IP auto-update from external sources could introduce incorrect ranges if validation fails</hotspot>
 </M-017>
