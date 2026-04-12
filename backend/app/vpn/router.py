@@ -20,6 +20,7 @@
 # END_MODULE_MAP
 #
 # START_CHANGE_SUMMARY
+#   LAST_CHANGE: v2.8.3 - Improved QR code error correction (ERROR_CORRECT_H + box_size=15) for AmneziaVPN compatibility
 #   LAST_CHANGE: v2.8.0 - Converted to full GRACE MODULE_CONTRACT/MAP format with START/END blocks
 # END_CHANGE_SUMMARY
 #
@@ -250,12 +251,18 @@ async def get_vpn_config_qr(
         )
     
     config = await service.get_client_config(client)
-    
-    # Generate QR code
-    qr = qrcode.QRCode(version=1, box_size=10, border=5)
+
+    # Generate QR code with high error correction for reliable scanning
+    # ERROR_CORRECT_H recovers ~30% damage — essential for long WireGuard configs
+    qr = qrcode.QRCode(
+        version=1,
+        error_correction=qrcode.constants.ERROR_CORRECT_H,
+        box_size=15,
+        border=4,
+    )
     qr.add_data(config.config)
     qr.make(fit=True)
-    
+
     img = qr.make_image(fill_color="black", back_color="white")
     
     # Return as PNG
