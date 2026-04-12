@@ -594,7 +594,7 @@ function QRModal({
           ) : (
             <div className="text-center py-8 px-4">
               <p className="text-sm font-semibold text-slate-700">AmneziaVPN не поддерживает QR-коды для WireGuard</p>
-              <p className="mt-2 text-xs text-slate-500">Скачайте <code className="bg-slate-100 px-1 rounded">.conf</code> файл ниже и импортируйте его в AmneziaVPN через <strong>Импорт конфига</strong></p>
+              <p className="mt-2 text-xs text-slate-500">Скачайте <code className="bg-slate-100 px-1 rounded">.conf</code> файл и импортируйте его в AmneziaVPN через <strong>Импорт конфига</strong></p>
             </div>
           )}
         </div>
