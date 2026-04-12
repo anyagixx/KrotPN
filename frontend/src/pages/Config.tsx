@@ -28,6 +28,7 @@ import { Link } from 'react-router-dom'
 import toast from 'react-hot-toast'
 import { deviceApi, type DeviceConfigBundle, vpnApi } from '../lib/api'
 import Loading from '../components/Loading'
+import QRCodeCanvas from 'qrcode.react'
 
 export default function Config() {
   const { t } = useTranslation()
@@ -419,6 +420,7 @@ export default function Config() {
 
       {showQR ? (
         <QRModal
+          configText={config?.config || ''}
           onClose={() => setShowQR(false)}
         />
       ) : null}
@@ -526,27 +528,37 @@ export default function Config() {
 
 // START_BLOCK_QR_MODAL
 function QRModal({
+  configText,
   onClose,
 }: {
+  configText: string
   onClose: () => void
 }) {
   const { t } = useTranslation()
   const [qrType, setQrType] = useState<'amneziawg' | 'amneziavpn'>('amneziawg')
   const [qrImage, setQrImage] = useState<string | null>(null)
-  const [loading, setLoading] = useState(false)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
 
   const fetchQR = async (type: 'amneziawg' | 'amneziavpn') => {
     setLoading(true)
+    setError(null)
     try {
       const endpoint = type === 'amneziavpn'
         ? vpnApi.getAmneziaQRCode
         : vpnApi.getQRCode
       const response = await endpoint()
       const blob = response.data as Blob
-      const url = URL.createObjectURL(blob)
-      setQrImage(url)
+      if (blob.size > 0) {
+        const url = URL.createObjectURL(blob)
+        setQrImage(url)
+      } else {
+        throw new Error('Empty response from server')
+      }
     } catch (err) {
-      console.error('Failed to fetch QR:', err)
+      const msg = err instanceof Error ? err.message : 'Unknown error'
+      console.error('Failed to fetch QR:', msg, err)
+      setError(msg)
       setQrImage(null)
     } finally {
       setLoading(false)
@@ -609,9 +621,20 @@ function QRModal({
             <div className="h-[200px] w-[200px] animate-pulse rounded-xl bg-slate-200" />
           ) : qrImage ? (
             <img src={qrImage} alt="QR Code" className="h-[200px] w-[200px]" />
-          ) : (
-            <p className="text-sm text-slate-500">QR не удалось сгенерировать</p>
-          )}
+          ) : error ? (
+            <div className="text-center">
+              <p className="text-sm text-red-500 font-semibold">Server QR failed: {error}</p>
+              <p className="mt-2 text-xs text-slate-500">Falling back to client-side QR</p>
+              <div className="mt-4 flex justify-center">
+                <QRCodeCanvas
+                  value={configText}
+                  size={200}
+                  level="H"
+                  includeMargin={false}
+                />
+              </div>
+            </div>
+          ) : null}
         </div>
       </div>
     </div>
