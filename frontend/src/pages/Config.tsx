@@ -20,7 +20,7 @@
 // END_CHANGE_SUMMARY
 //
 // START_BLOCK_CONFIG_PAGE
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useMutation, useQuery, useQueryClient } from 'react-query'
 import { useTranslation } from 'react-i18next'
 import { AlertTriangle, ArrowRightLeft, Check, Copy, Download, FileCode2, Laptop2, Monitor, Plus, QrCode, RotateCw, Smartphone, Trash2 } from 'lucide-react'
@@ -419,28 +419,10 @@ export default function Config() {
       </div>
 
       {showQR ? (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/70 p-4 backdrop-blur-sm">
-          <div className="glass w-full max-w-md p-6">
-            <div className="flex items-center justify-between gap-4">
-              <div>
-                <h3 className="text-xl font-bold">{t('scanQR')}</h3>
-                <p className="mt-1 text-sm muted">{t('qrInstructions')}</p>
-              </div>
-              <button onClick={() => setShowQR(false)} className="btn-secondary px-3 py-2">
-                {t('close')}
-              </button>
-            </div>
-
-            <div className="mt-6 flex justify-center rounded-[24px] bg-white p-5">
-              <QRCodeCanvas
-                value={config?.config || ''}
-                size={200}
-                level="M"
-                includeMargin={false}
-              />
-            </div>
-          </div>
-        </div>
+        <QRModal
+          configText={config?.config || ''}
+          onClose={() => setShowQR(false)}
+        />
       ) : null}
 
       <div className="panel p-6">
@@ -543,4 +525,101 @@ export default function Config() {
     </div>
   )
 }
+
+// START_BLOCK_QR_MODAL
+function QRModal({
+  configText,
+  onClose,
+}: {
+  configText: string
+  onClose: () => void
+}) {
+  const { t } = useTranslation()
+  const [qrType, setQrType] = useState<'amneziawg' | 'amneziavpn'>('amneziawg')
+  const [qrImage, setQrImage] = useState<string | null>(null)
+  const [loading, setLoading] = useState(false)
+
+  const fetchQR = async (type: 'amneziawg' | 'amneziavpn') => {
+    setLoading(true)
+    try {
+      const endpoint = type === 'amneziavpn'
+        ? vpnApi.getAmneziaQRCode
+        : vpnApi.getQRCode
+      const response = await endpoint()
+      const blob = response.data as Blob
+      const url = URL.createObjectURL(blob)
+      setQrImage(url)
+    } catch (err) {
+      console.error('Failed to fetch QR:', err)
+      setQrImage(null)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const handleSwitch = (type: 'amneziawg' | 'amneziavpn') => {
+    setQrType(type)
+    fetchQR(type)
+  }
+
+  // Fetch initial QR on mount
+  useEffect(() => {
+    fetchQR(qrType)
+  }, [])
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/70 p-4 backdrop-blur-sm">
+      <div className="glass w-full max-w-md p-6">
+        <div className="flex items-center justify-between gap-4">
+          <div>
+            <h3 className="text-xl font-bold">{t('scanQR')}</h3>
+            <p className="mt-1 text-sm muted">
+              {qrType === 'amneziawg'
+                ? t('qrInstructionsWG')
+                : t('qrInstructionsVPN')}
+            </p>
+          </div>
+          <button onClick={onClose} className="btn-secondary px-3 py-2">
+            {t('close')}
+          </button>
+        </div>
+
+        {/* Tab switcher */}
+        <div className="mt-4 flex rounded-xl border border-slate-700/50 p-1">
+          <button
+            onClick={() => handleSwitch('amneziawg')}
+            className={`flex-1 rounded-lg py-2 text-sm font-semibold transition-colors ${
+              qrType === 'amneziawg'
+                ? 'bg-cyan-500/20 text-cyan-100'
+                : 'text-slate-400 hover:text-slate-200'
+            }`}
+          >
+            AmneziaWG
+          </button>
+          <button
+            onClick={() => handleSwitch('amneziavpn')}
+            className={`flex-1 rounded-lg py-2 text-sm font-semibold transition-colors ${
+              qrType === 'amneziavpn'
+                ? 'bg-cyan-500/20 text-cyan-100'
+                : 'text-slate-400 hover:text-slate-200'
+            }`}
+          >
+            AmneziaVPN
+          </button>
+        </div>
+
+        <div className="mt-6 flex justify-center rounded-[24px] bg-white p-5">
+          {loading ? (
+            <div className="h-[200px] w-[200px] animate-pulse rounded-xl bg-slate-200" />
+          ) : qrImage ? (
+            <img src={qrImage} alt="QR Code" className="h-[200px] w-[200px]" />
+          ) : (
+            <p className="text-sm text-slate-500">QR не удалось сгенерировать</p>
+          )}
+        </div>
+      </div>
+    </div>
+  )
+}
+// END_BLOCK_QR_MODAL
 // END_BLOCK_CONFIG_PAGE

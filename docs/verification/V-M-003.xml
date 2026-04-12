@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <V-M-003 MODULE="M-003" PRIORITY="critical" STATUS="pass">
   <module>vpn</module>
-  <checks>Provisioning and config generation remain compatible with route-aware topology, including configs exported for operator-managed internal clients. QR codes use ERROR_CORRECT_H (30% recovery) for reliable scanning by both AmneziaWG and AmneziaVPN apps.</checks>
+  <checks>Provisioning and config generation remain compatible with route-aware topology, including configs exported for operator-managed internal clients. QR codes use ERROR_CORRECT_H (30% recovery) for reliable scanning. Two QR endpoints: /config/qr (AmneziaWG, raw WireGuard) and /config/qr/amnezia (AmneziaVPN, JSON containers format).</checks>
   <test-files>backend/tests/test_vpn_service.py backend/tests/test_vpn_router_compat.py backend/tests/test_manual_client_cli.py</test-files>
   <commands>pytest tests/test_vpn_service.py tests/test_vpn_router_compat.py -v</commands>
   <anchors>VPN_PROVISION_ROUTE_SELECTED VPN_CONFIG_RENDERED VPN_PEER_APPLIED</anchors>

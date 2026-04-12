@@ -20,6 +20,7 @@
 # END_MODULE_MAP
 #
 # START_CHANGE_SUMMARY
+#   LAST_CHANGE: v2.8.4 - Added /config/qr/amnezia endpoint for AmneziaVPN app (JSON containers format), frontend shows dual QR tabs
 #   LAST_CHANGE: v2.8.3 - Improved QR code error correction (ERROR_CORRECT_H + box_size=15) for AmneziaVPN compatibility
 #   LAST_CHANGE: v2.8.0 - Converted to full GRACE MODULE_CONTRACT/MAP format with START/END blocks
 # END_CHANGE_SUMMARY
@@ -240,16 +241,16 @@ async def get_vpn_config_qr(
     current_user: CurrentUser,
     session: DBSession,
 ):
-    """Get VPN configuration as QR code image."""
+    """Get VPN configuration as QR code image for AmneziaWG app."""
     service = VPNService(session)
-    
+
     client = await get_or_provision_user_client(current_user.id, session)
     if client is None:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="VPN client not found",
         )
-    
+
     config = await service.get_client_config(client)
 
     # Generate QR code with high error correction for reliable scanning
@@ -264,8 +265,60 @@ async def get_vpn_config_qr(
     qr.make(fit=True)
 
     img = qr.make_image(fill_color="black", back_color="white")
-    
+
     # Return as PNG
+    buf = io.BytesIO()
+    img.save(buf, format="PNG")
+    buf.seek(0)
+
+    return Response(content=buf.read(), media_type="image/png")
+
+
+@router.get("/config/qr/amnezia")
+async def get_vpn_config_qr_amnezia(
+    current_user: CurrentUser,
+    session: DBSession,
+):
+    """Get VPN configuration as QR code image for AmneziaVPN app.
+
+    AmneziaVPN expects a JSON format with 'containers' array
+    instead of raw WireGuard INI config.
+    """
+    import json
+
+    service = VPNService(session)
+
+    client = await get_or_provision_user_client(current_user.id, session)
+    if client is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="VPN client not found",
+        )
+
+    config = await service.get_client_config(client)
+
+    # Wrap WireGuard config in AmneziaVPN container format
+    amnezia_config = {
+        "containers": [
+            {
+                "container": "amneziawg",
+                "config_data": config.config,
+            }
+        ],
+        "default": "amneziawg",
+    }
+
+    qr = qrcode.QRCode(
+        version=1,
+        error_correction=qrcode.constants.ERROR_CORRECT_H,
+        box_size=15,
+        border=4,
+    )
+    qr.add_data(json.dumps(amnezia_config))
+    qr.make(fit=True)
+
+    img = qr.make_image(fill_color="black", back_color="white")
+
     buf = io.BytesIO()
     img.save(buf, format="PNG")
     buf.seek(0)

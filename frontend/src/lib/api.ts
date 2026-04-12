@@ -287,6 +287,9 @@ export const vpnApi = {
   getQRCode: () =>
     api.get('/vpn/config/qr', { responseType: 'blob' }),
 
+  getAmneziaQRCode: () =>
+    api.get('/vpn/config/qr/amnezia', { responseType: 'blob' }),
+
   getStats: () =>
     api.get<VPNStats>('/vpn/stats'),
 
