@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Phase-15 NAME="Automated RU IP Range Updates" STATUS="wip">
+  <goal>Automatically keep ru_ips ipset current from 3 public sources with fallback, validation, and atomic swap.</goal>
+  <step-1>M-017: Create RuIpsetUpdater class — multi-source fetch, parse, validate, dedup — DONE</step-1>
+  <step-2>M-017: Implement incremental ipset diff + atomic swap (not flush+rebuild) — DONE</step-2>
+  <step-3>M-017: Last-known-good persistence + rollback on failure — DONE</step-3>
+  <step-4>M-008: Update APScheduler interval from 24h to 6h — DONE</step-4>
+  <step-5>M-017: Add admin endpoint GET /routing/ru-ipset-stats — DONE</step-5>
+  <step-6>M-012: Deploy — create /var/lib/krotvpn/ directory — DONE</step-6>
+  <step-7>M-017: Write unit tests for RuIpsetUpdater (mocked HTTP) — DONE</step-7>
+  <step-8>M-017: Write integration tests (mocked subprocess for ipset) — PENDING</step-8>
+  <step-9>M-017: Update GRACE docs — M-017.xml, V-M-017.xml, graph-index — DONE</step-9>
+  <modules>M-017, M-008, M-012, M-006</modules>
+  <verification>V-M-017</verification>
+  <data-flows>Phase-15: auto RU IP update (new flow)</data-flows>
+</Phase-15>
