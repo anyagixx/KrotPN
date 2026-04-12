@@ -537,13 +537,9 @@ function QRModal({
   const { t } = useTranslation()
   const [qrType, setQrType] = useState<'amneziawg' | 'amneziavpn'>('amneziawg')
 
-  // AmneziaVPN expects JSON with containers array, not raw WireGuard INI
-  const qrValue = qrType === 'amneziavpn'
-    ? JSON.stringify({
-        containers: [{ container: 'amneziawg', config_data: configText }],
-        default: 'amneziawg',
-      })
-    : configText
+  // AmneziaVPN doesn't accept raw WireGuard configs — users must import .conf file
+  // Show a message instead of a broken QR
+  const showQR = qrType === 'amneziawg'
 
   // 100% client-side QR generation — no server fetch, no blob, no CORS issues
   return (
@@ -588,18 +584,25 @@ function QRModal({
         </div>
 
         <div className="mt-6 flex justify-center rounded-[24px] bg-white p-5">
-          <QRCodeCanvas
-            value={qrValue}
-            size={240}
-            level="H"
-            includeMargin={false}
-          />
+          {showQR ? (
+            <QRCodeCanvas
+              value={configText}
+              size={240}
+              level="H"
+              includeMargin={false}
+            />
+          ) : (
+            <div className="text-center py-8 px-4">
+              <p className="text-sm font-semibold text-slate-700">AmneziaVPN не поддерживает QR-коды для WireGuard</p>
+              <p className="mt-2 text-xs text-slate-500">Скачайте <code className="bg-slate-100 px-1 rounded">.conf</code> файл ниже и импортируйте его в AmneziaVPN через <strong>Импорт конфига</strong></p>
+            </div>
+          )}
         </div>
 
         <p className="mt-3 text-center text-xs muted">
           {qrType === 'amneziawg'
             ? 'Сканируйте приложением AmneziaWG'
-            : 'Сканируйте приложением AmneziaVPN (формат containers JSON)'}
+            : 'Скачайте .conf файл ниже и импортируйте в AmneziaVPN'}
         </p>
       </div>
     </div>
