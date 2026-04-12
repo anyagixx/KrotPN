@@ -537,6 +537,14 @@ function QRModal({
   const { t } = useTranslation()
   const [qrType, setQrType] = useState<'amneziawg' | 'amneziavpn'>('amneziawg')
 
+  // AmneziaVPN expects JSON with containers array, not raw WireGuard INI
+  const qrValue = qrType === 'amneziavpn'
+    ? JSON.stringify({
+        containers: [{ container: 'amneziawg', config_data: configText }],
+        default: 'amneziawg',
+      })
+    : configText
+
   // 100% client-side QR generation — no server fetch, no blob, no CORS issues
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/70 p-4 backdrop-blur-sm">
@@ -581,7 +589,7 @@ function QRModal({
 
         <div className="mt-6 flex justify-center rounded-[24px] bg-white p-5">
           <QRCodeCanvas
-            value={configText}
+            value={qrValue}
             size={240}
             level="H"
             includeMargin={false}
@@ -591,7 +599,7 @@ function QRModal({
         <p className="mt-3 text-center text-xs muted">
           {qrType === 'amneziawg'
             ? 'Сканируйте приложением AmneziaWG'
-            : 'Для AmneziaVPN скачайте .conf файл ниже'}
+            : 'Сканируйте приложением AmneziaVPN (формат containers JSON)'}
         </p>
       </div>
     </div>
