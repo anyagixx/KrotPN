@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<M-017 NAME="route-sync-runtime" TYPE="INTEGRATION" STATUS="wip">
+<M-017 NAME="route-sync-runtime" TYPE="INTEGRATION" STATUS="stable">
   <path>backend/app/routing/manager.py backend/app/routing/ru_ipset_updater.py</path>
   <owns>incremental sync of policy decisions into host-level route sets, automated RU IP range updates from 3 sources (ipverse/antizapret/ipgeobase) with fallback, atomic ipset swap with rollback, last-known-good persistence, scheduler (6h interval)</owns>
   <exports>

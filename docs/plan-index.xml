@@ -16,5 +16,5 @@
   <Phase-12 NAME="Infrastructure Hardening (P4)" STATUS="done" STEPS="10" MODULES="M-012,M-001,M-026" />
   <Phase-13 NAME="Tests and CI/CD (P5)" STATUS="done" STEPS="10" MODULES="M-001,M-004,M-008,M-005,M-019" />
   <Phase-14 NAME="Cleanup and Polish (P6)" STATUS="done" STEPS="7" MODULES="M-003,M-002,M-026,M-006,M-001" />
-  <Phase-15 NAME="Automated RU IP Range Updates" STATUS="wip" STEPS="9" MODULES="M-017,M-008,M-012,M-006" />
+  <Phase-15 NAME="Automated RU IP Range Updates" STATUS="done" STEPS="9" MODULES="M-017,M-008,M-012,M-006" />
 </PlanIndex>
