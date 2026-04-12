@@ -26,7 +26,6 @@ import { useTranslation } from 'react-i18next'
 import { AlertTriangle, ArrowRightLeft, Check, Copy, Download, FileCode2, Laptop2, Monitor, Plus, QrCode, RotateCw, Smartphone, Trash2 } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import toast from 'react-hot-toast'
-import QRCodeCanvas from 'qrcode.react'
 import { deviceApi, type DeviceConfigBundle, vpnApi } from '../lib/api'
 import Loading from '../components/Loading'
 
@@ -420,7 +419,6 @@ export default function Config() {
 
       {showQR ? (
         <QRModal
-          configText={config?.config || ''}
           onClose={() => setShowQR(false)}
         />
       ) : null}
@@ -528,10 +526,8 @@ export default function Config() {
 
 // START_BLOCK_QR_MODAL
 function QRModal({
-  configText,
   onClose,
 }: {
-  configText: string
   onClose: () => void
 }) {
   const { t } = useTranslation()
