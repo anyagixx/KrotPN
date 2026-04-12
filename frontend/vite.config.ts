@@ -35,7 +35,11 @@ export default defineConfig({
         ]
       },
       workbox: {
-        globPatterns: ['**/*.{js,css,html,ico,png,svg}'],
+        // NEVER cache index.html — serve fresh from server so code updates are always visible
+        globPatterns: ['**/*.{js,css,ico,png,svg}'],
+        cleanupOutdatedCaches: true,
+        skipWaiting: true,
+        clientsClaim: true,
         runtimeCaching: [
           {
             urlPattern: /^\/api\//i,
