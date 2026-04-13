@@ -1,15 +1,14 @@
 #!/bin/bash
 #
-# KrotPN Fully Automated Deployment Script
+# KrotPN Fully Automated Deployment Script v3.0.0 (Full Tunnel)
 # Uses SSH key-based authentication
 #
 # Usage: ./deploy/deploy-all.sh
 # Environment variables: RU_IP, RU_USER, DE_IP, DE_USER
 # GRACE-lite operational contract:
 # - This is a high-risk script: it provisions servers, writes secrets and mutates host networking.
-# - This script relies on SSH key-based authentication; ensure keys are configured before use.
-# - Default credentials, port exposure and generated `.env` values here directly affect production security.
-# - Any meaningful change must be reviewed as an infrastructure/security change, not just shell refactoring.
+# - All traffic routes via DE server (Full Tunnel, 0.0.0.0/0).
+# - No split-tunneling, ipset, or mangle rules.
 #
 
 set -e
@@ -41,7 +40,7 @@ ssh_de() {
 # Print banner
 echo -e "${CYAN}"
 echo "╔══════════════════════════════════════════════════════════════╗"
-echo "║           KrotPN Automated Deployment v2.1.2               ║"
+echo "║           KrotPN Automated Deployment v3.0.0               ║"
 echo "╠══════════════════════════════════════════════════════════════╣"
 echo "║  RU Server (Entry): ${RU_IP}                            ║"
 echo "║  DE Server (Exit):  ${DE_IP}                            ║"
@@ -90,7 +89,7 @@ require_command() {
 }
 
 verify_host_routing_tools() {
-    local tools=(ip ipset iptables awg awg-quick curl awk grep)
+    local tools=(ip iptables awg awg-quick curl)
     for tool in "${tools[@]}"; do
         require_command "$tool"
     done
@@ -102,7 +101,7 @@ apt update -qq && apt upgrade -y -qq
 
 echo -e "${BLUE}[RU] Installing dependencies...${NC}"
 apt install -y -qq software-properties-common python3-launchpadlib gnupg2 \
-    linux-headers-$(uname -r) curl wget git ipset iptables ufw qrencode \
+    linux-headers-$(uname -r) curl wget git iptables ufw qrencode \
     python3-pip python3-cryptography ca-certificates gnupg openssl
 
 echo -e "${BLUE}[RU] Installing Docker...${NC}"
@@ -175,7 +174,7 @@ require_command() {
 }
 
 verify_host_routing_tools() {
-    local tools=(ip iptables awg awg-quick curl grep)
+    local tools=(ip iptables awg awg-quick curl)
     for tool in "${tools[@]}"; do
         require_command "$tool"
     done
@@ -187,7 +186,7 @@ apt update -qq && apt upgrade -y -qq
 
 echo -e "${BLUE}[DE] Installing dependencies...${NC}"
 apt install -y -qq software-properties-common python3-launchpadlib gnupg2 \
-    linux-headers-$(uname -r) curl wget git ipset iptables ufw qrencode ca-certificates
+    linux-headers-$(uname -r) curl wget git iptables ufw qrencode ca-certificates
 
 echo -e "${BLUE}[DE] Installing AmneziaWG...${NC}"
 if ! command -v awg &> /dev/null; then
@@ -335,63 +334,8 @@ EOF
 
 chmod 600 /etc/amnezia/amneziawg/*.conf
 
-echo -e "${BLUE}[RU] Setting up split-tunneling...${NC}"
-
-cat > /usr/local/bin/update_ru_ips.sh << 'UPDATE_SCRIPT'
-#!/bin/bash
-ipset create ru_ips hash:net 2>/dev/null || true
-ipset add ru_ips 10.0.0.0/8 2>/dev/null || true
-ipset add ru_ips 192.168.0.0/16 2>/dev/null || true
-ipset add ru_ips 172.16.0.0/12 2>/dev/null || true
-ipset add ru_ips 127.0.0.0/8 2>/dev/null || true
-curl -sL --connect-timeout 10 https://raw.githubusercontent.com/ipverse/rir-ip/master/country/ru/ipv4-aggregated.txt 2>/dev/null | \
-    grep -v '^#' | grep -E '^[0-9]' | while read line; do
-        ipset add ru_ips $line 2>/dev/null || true
-    done
-echo "RU IPset updated"
-UPDATE_SCRIPT
-chmod +x /usr/local/bin/update_ru_ips.sh
-
-cat > /usr/local/bin/setup_routing.sh << 'ROUTING_SCRIPT'
-#!/bin/bash
-CLIENT_IF="awg0"
-TUNNEL_IF="awg-client"
-FWMARK=255
-ROUTING_TABLE=100
-
-ipset create ru_ips hash:net 2>/dev/null || ipset flush ru_ips
-ipset create custom_direct hash:net 2>/dev/null || ipset flush custom_direct
-ipset create custom_vpn hash:net 2>/dev/null || ipset flush custom_vpn
-
-ip rule del fwmark $FWMARK lookup $ROUTING_TABLE 2>/dev/null || true
-ip rule add fwmark $FWMARK lookup $ROUTING_TABLE
-
-ip route del default dev $TUNNEL_IF table $ROUTING_TABLE 2>/dev/null || true
-ip route add default dev $TUNNEL_IF table $ROUTING_TABLE
-
-iptables -t mangle -F AMNEZIA_PREROUTING 2>/dev/null || true
-iptables -t mangle -N AMNEZIA_PREROUTING 2>/dev/null || iptables -t mangle -F AMNEZIA_PREROUTING
-iptables -t mangle -D PREROUTING -i $CLIENT_IF -j AMNEZIA_PREROUTING 2>/dev/null || true
-iptables -t mangle -A PREROUTING -i $CLIENT_IF -j AMNEZIA_PREROUTING
-
-iptables -t mangle -A AMNEZIA_PREROUTING -m set --match-set custom_vpn dst -j MARK --set-mark $FWMARK
-iptables -t mangle -A AMNEZIA_PREROUTING -m set --match-set custom_vpn dst -j RETURN
-iptables -t mangle -A AMNEZIA_PREROUTING -m set --match-set custom_direct dst -j RETURN
-iptables -t mangle -A AMNEZIA_PREROUTING -m set --match-set ru_ips dst -j RETURN
-iptables -t mangle -A AMNEZIA_PREROUTING -j MARK --set-mark $FWMARK
-
-iptables -t nat -D POSTROUTING -o $TUNNEL_IF -j MASQUERADE 2>/dev/null || true
-iptables -t nat -A POSTROUTING -o $TUNNEL_IF -j MASQUERADE
-EXT_IF=$(ip route | grep default | awk '{print $5}' | head -1)
-iptables -t nat -D POSTROUTING -o $EXT_IF -j MASQUERADE 2>/dev/null || true
-iptables -t nat -A POSTROUTING -o $EXT_IF -j MASQUERADE
-
-iptables -A FORWARD -i $CLIENT_IF -j ACCEPT
-iptables -A FORWARD -o $CLIENT_IF -j ACCEPT
-
-echo "Split-tunneling configured!"
-ROUTING_SCRIPT
-chmod +x /usr/local/bin/setup_routing.sh
+# Create sync helper script
+echo -e "${BLUE}[RU] Creating helper scripts...${NC}"
 
 cat > /usr/local/bin/krotpn-sync-awg0.sh << 'SYNC_SCRIPT'
 #!/bin/bash
@@ -407,8 +351,6 @@ awg-quick strip awg0 > "$TMP_FILE"
 awg syncconf awg0 "$TMP_FILE"
 SYNC_SCRIPT
 chmod +x /usr/local/bin/krotpn-sync-awg0.sh
-
-/usr/local/bin/update_ru_ips.sh
 
 echo -e "${BLUE}[RU] Configuring firewall...${NC}"
 ufw --force reset > /dev/null
@@ -432,12 +374,28 @@ awg-quick up awg0
 systemctl enable awg-quick@awg0 >/dev/null 2>&1 || true
 awg-quick down awg-client 2>/dev/null || true
 awg-quick up awg-client
-systemctl enable awg-quick@awg0 >/dev/null 2>&1 || true
 systemctl enable awg-quick@awg-client >/dev/null 2>&1 || true
 ip route add 10.200.0.0/24 dev awg-client 2>/dev/null || true
 
-echo -e "${BLUE}[RU] Setting up routing...${NC}"
-/usr/local/bin/setup_routing.sh
+# ============================================================
+# Full Tunnel: Simple FORWARD rules between awg0 and awg-client
+# ============================================================
+
+echo -e "${BLUE}[RU] Configuring Full Tunnel FORWARD rules...${NC}"
+
+# Allow forwarding between awg0 (clients) and awg-client (tunnel to DE)
+iptables -D FORWARD -i awg0 -o awg-client -j ACCEPT 2>/dev/null || true
+iptables -D FORWARD -i awg-client -o awg0 -j ACCEPT 2>/dev/null || true
+iptables -I FORWARD 1 -i awg0 -o awg-client -j ACCEPT
+iptables -I FORWARD 2 -i awg-client -o awg0 -j ACCEPT
+echo "  FORWARD: awg0 ↔ awg-client ACCEPT"
+
+# NAT on RU: masquerade client traffic going through tunnel
+iptables -t nat -D POSTROUTING -s 10.10.0.0/24 -o awg-client -j MASQUERADE 2>/dev/null || true
+iptables -t nat -I POSTROUTING 1 -s 10.10.0.0/24 -o awg-client -j MASQUERADE
+echo "  NAT RU: 10.10.0.0/24 → awg-client MASQUERADE"
+
+echo -e "${GREEN}✓ Full Tunnel forwarding configured${NC}"
 
 sleep 2
 if ping -c 3 10.200.0.1 > /dev/null 2>&1; then
@@ -476,7 +434,7 @@ ADMIN_PASSWORD="${ADMIN_PASSWORD:-$(python3 -c "import secrets; print(secrets.to
 cat > .env << EOF
 # === APPLICATION ===
 APP_NAME=KrotPN
-APP_VERSION=2.4.20
+APP_VERSION=3.0.0
 DEBUG=false
 ENVIRONMENT=production
 HOST=0.0.0.0
@@ -551,46 +509,7 @@ EOF
 
 chmod 600 .env
 
-# Systemd services
-cat > /etc/systemd/system/krotpn-routing.service << 'SERVICE'
-[Unit]
-Description=KrotPN Split-Tunneling Routing
-After=network.target
-
-[Service]
-Type=oneshot
-ExecStart=/usr/local/bin/setup_routing.sh
-RemainAfterExit=yes
-
-[Install]
-WantedBy=multi-user.target
-SERVICE
-
-cat > /etc/systemd/system/krotpn-ru-ips.service << 'SERVICE'
-[Unit]
-Description=KrotPN RU IPset Update
-After=network.target
-
-[Service]
-Type=oneshot
-ExecStart=/usr/local/bin/update_ru_ips.sh
-
-[Install]
-WantedBy=multi-user.target
-SERVICE
-
-cat > /etc/systemd/system/krotpn-ru-ips.timer << 'TIMER'
-[Unit]
-Description=Daily RU IPset Update
-
-[Timer]
-OnCalendar=daily
-Persistent=true
-
-[Install]
-WantedBy=timers.target
-TIMER
-
+# Systemd service for awg0 peer sync only
 cat > /etc/systemd/system/krotpn-sync-awg0.service << 'SERVICE'
 [Unit]
 Description=Sync awg0 peers for KrotPN
@@ -613,8 +532,7 @@ WantedBy=multi-user.target
 PATHUNIT
 
 systemctl daemon-reload
-systemctl enable krotpn-routing krotpn-ru-ips.timer krotpn-sync-awg0.path
-systemctl start krotpn-routing
+systemctl enable krotpn-sync-awg0.path
 systemctl start krotpn-sync-awg0.path
 
 echo -e "${BLUE}[RU] Building and starting Docker containers...${NC}"

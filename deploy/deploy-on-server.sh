@@ -1,11 +1,12 @@
 #!/bin/bash
 #
-# KrotPN Server Deployment Script v2.4.0
+# KrotPN Server Deployment Script v3.0.0 (Full Tunnel)
 # Run this script ON the RU server
 # GRACE-lite operational contract:
 # - This script is executed on the RU host and consumes temporary config from /tmp/krotpn_deploy.conf.
 # - It decodes remote credentials, provisions RU host services and reaches the DE host over SSH.
-# - It is security-sensitive and should be reviewed like infrastructure code.
+# - All traffic routes via DE server (Full Tunnel, 0.0.0.0/0).
+# - No split-tunneling, ipset, or mangle rules.
 #
 
 set -e
@@ -97,7 +98,7 @@ echo -e "${GREEN}[OK] RU IPv4: ${RU_IP}${NC}"
 # Print banner
 echo ""
 echo -e "${CYAN}╔══════════════════════════════════════════════════════════════╗${NC}"
-echo -e "${CYAN}║           KrotPN Automated Deployment v2.4.0               ║${NC}"
+echo -e "${CYAN}║           KrotPN Automated Deployment v3.0.0               ║${NC}"
 echo -e "${CYAN}╠══════════════════════════════════════════════════════════════╣${NC}"
 echo -e "${CYAN}║  RU Server (Entry): ${RU_IP}                            ║${NC}"
 echo -e "${CYAN}║  DE Server (Exit):  ${DE_IP}                            ║${NC}"
@@ -128,7 +129,7 @@ apt update -qq && apt upgrade -y -qq
 
 echo -e "${BLUE}[RU] Installing dependencies...${NC}"
 apt install -y -qq software-properties-common python3-launchpadlib gnupg2 \
-    linux-headers-$(uname -r) curl wget git ipset iptables ufw qrencode \
+    linux-headers-$(uname -r) curl wget git iptables ufw qrencode \
     python3-pip python3-cryptography ca-certificates gnupg openssl
 
 echo -e "${BLUE}[RU] Installing Docker...${NC}"
@@ -146,6 +147,7 @@ if ! command -v awg &> /dev/null; then
     apt install -y -qq amneziawg amneziawg-tools
 fi
 echo -e "${GREEN}✓ AmneziaWG installed${NC}"
+
 echo -e "${BLUE}[RU] Enabling IP forwarding...${NC}"
 echo "net.ipv4.ip_forward=1" > /etc/sysctl.d/99-krotpn.conf
 sysctl -p /etc/sysctl.d/99-krotpn.conf > /dev/null
@@ -180,7 +182,7 @@ echo -e "${CYAN}PHASE 2: DE Server - Installation${NC}"
 echo -e "${CYAN}══════════════════════════════════════════════════════════════${NC}"
 echo ""
 
-# Create script for DE server - FIXED: proper firewall config
+# Create script for DE server
 cat > /tmp/de_setup.sh << 'DESCRIPT'
 #!/bin/bash
 set -e
@@ -215,7 +217,7 @@ apt update -qq && apt upgrade -y -qq
 
 echo -e "${BLUE}[DE] Installing dependencies...${NC}"
 apt install -y -qq software-properties-common python3-launchpadlib gnupg2 \
-    linux-headers-$(uname -r) curl wget git ipset iptables ufw qrencode ca-certificates
+    linux-headers-$(uname -r) curl wget git iptables ufw qrencode ca-certificates
 
 echo -e "${BLUE}[DE] Installing AmneziaWG...${NC}"
 if ! command -v awg &> /dev/null; then
@@ -270,10 +272,7 @@ EOF
 chmod 600 /etc/amnezia/amneziawg/awg0.conf
 echo -e "${GREEN}✓ Config created${NC}"
 
-# FIXED: Proper firewall configuration without breaking UFW
 echo -e "${BLUE}[DE] Configuring firewall...${NC}"
-
-# Reset UFW but keep it simple
 ufw --force reset > /dev/null 2>&1
 ufw default deny FORWARD > /dev/null 2>&1
 ufw allow 22/tcp > /dev/null 2>&1
@@ -282,22 +281,13 @@ ufw allow in on awg0 > /dev/null 2>&1
 ufw allow out on awg0 > /dev/null 2>&1
 ufw --force enable > /dev/null 2>&1
 
-# Add NAT rule with dynamic interface detection
+# NAT rule for tunnel traffic
 EXT_IF=$(ip route | grep default | awk '{print $5}' | head -1)
 iptables -t nat -C POSTROUTING -s 10.200.0.0/24 -o $EXT_IF -j MASQUERADE 2>/dev/null || \
     iptables -t nat -A POSTROUTING -s 10.200.0.0/24 -o $EXT_IF -j MASQUERADE
 
-# Save iptables rules
 mkdir -p /etc/iptables
 iptables-save > /etc/iptables/rules.v4
-
-# Create restore script for boot
-cat > /etc/rc.local << 'RCLOCAL'
-#!/bin/bash
-iptables-restore < /etc/iptables/rules.v4
-exit 0
-RCLOCAL
-chmod +x /etc/rc.local 2>/dev/null || true
 
 echo -e "${GREEN}✓ Firewall configured${NC}"
 
@@ -305,7 +295,6 @@ echo -e "${BLUE}[DE] Starting AmneziaWG...${NC}"
 awg-quick down awg0 2>/dev/null || true
 awg-quick up awg0
 
-# Verify AmneziaWG is running
 sleep 1
 if ip link show awg0 > /dev/null 2>&1; then
     echo -e "${GREEN}✓ AmneziaWG interface awg0 is UP${NC}"
@@ -314,51 +303,6 @@ else
     echo -e "${RED}✗ AmneziaWG failed to start!${NC}"
     exit 1
 fi
-
-# ============================================================
-# CRITICAL: DE server routing for client traffic (10.10.0.0/24)
-# ============================================================
-# Client traffic arrives from RU via awg0 (10.200.0.0/24 tunnel)
-# but the source IP is 10.10.0.0/24. DE must:
-# 1. Route return traffic back to RU via awg0
-# 2. NAT client traffic to the internet
-# 3. Allow forwarding for client traffic
-# ============================================================
-
-echo -e "${BLUE}[DE] Configuring client traffic routing...${NC}"
-
-# 1. Route back to 10.10.0.0/24 via RU tunnel endpoint
-ip route del 10.10.0.0/24 via 10.200.0.2 dev awg0 2>/dev/null || true
-ip route add 10.10.0.0/24 via 10.200.0.2 dev awg0
-echo "  Route: 10.10.0.0/24 via 10.200.0.2 dev awg0"
-
-# 2. NAT client traffic on external interface
-EXT_IF=$(ip route | grep default | awk '{print $5}' | head -1)
-iptables -t nat -D POSTROUTING -s 10.10.0.0/24 -o $EXT_IF -j MASQUERADE 2>/dev/null || true
-iptables -t nat -A POSTROUTING -s 10.10.0.0/24 -o $EXT_IF -j MASQUERADE
-echo "  NAT: 10.10.0.0/24 → $EXT_IF MASQUERADE"
-
-# Also NAT tunnel traffic
-iptables -t nat -D POSTROUTING -s 10.200.0.0/24 -o $EXT_IF -j MASQUERADE 2>/dev/null || true
-iptables -t nat -A POSTROUTING -s 10.200.0.0/24 -o $EXT_IF -j MASQUERADE
-echo "  NAT: 10.200.0.0/24 → $EXT_IF MASQUERADE"
-
-# 3. Allow forwarding for client and tunnel traffic
-iptables -D FORWARD -s 10.10.0.0/24 -j ACCEPT 2>/dev/null || true
-iptables -D FORWARD -d 10.10.0.0/24 -j ACCEPT 2>/dev/null || true
-iptables -I FORWARD 1 -s 10.10.0.0/24 -j ACCEPT
-iptables -I FORWARD 2 -d 10.10.0.0/24 -j ACCEPT
-iptables -D FORWARD -i awg0 -s 10.200.0.0/24 -j ACCEPT 2>/dev/null || true
-iptables -D FORWARD -o awg0 -d 10.200.0.0/24 -j ACCEPT 2>/dev/null || true
-iptables -I FORWARD 3 -i awg0 -s 10.200.0.0/24 -j ACCEPT
-iptables -I FORWARD 4 -o awg0 -d 10.200.0.0/24 -j ACCEPT
-echo "  FORWARD: 10.10.0.0/24 and 10.200.0.0/24 ACCEPT"
-
-# Save rules
-mkdir -p /etc/iptables
-iptables-save > /etc/iptables/rules.v4
-
-echo -e "${GREEN}✓ DE client traffic routing configured${NC}"
 
 echo -e "${GREEN}✓ DE server ready!${NC}"
 DESCRIPT
@@ -440,63 +384,8 @@ EOF
 chmod 600 *.conf
 echo -e "${GREEN}✓ Configs created${NC}"
 
-# Setup scripts
+# Create sync helper script
 echo -e "${BLUE}[RU] Creating helper scripts...${NC}"
-
-cat > /usr/local/bin/update_ru_ips.sh << 'UPDATE_SCRIPT'
-#!/bin/bash
-ipset create ru_ips hash:net 2>/dev/null || true
-for net in 10.0.0.0/8 192.168.0.0/16 172.16.0.0/12 127.0.0.0/8; do
-    ipset add ru_ips $net 2>/dev/null || true
-done
-curl -sL --connect-timeout 10 https://raw.githubusercontent.com/ipverse/rir-ip/master/country/ru/ipv4-aggregated.txt 2>/dev/null | \
-    grep -v '^#' | grep -E '^[0-9]' | while read line; do
-        ipset add ru_ips $line 2>/dev/null || true
-    done
-echo "RU IPset updated: $(ipset list ru_ips 2>/dev/null | grep 'Number of entries' | awk '{print $4}') entries"
-UPDATE_SCRIPT
-chmod +x /usr/local/bin/update_ru_ips.sh
-
-cat > /usr/local/bin/setup_routing.sh << 'ROUTING_SCRIPT'
-#!/bin/bash
-CLIENT_IF="awg0"
-TUNNEL_IF="awg-client"
-FWMARK=255
-ROUTING_TABLE=100
-
-ipset create ru_ips hash:net 2>/dev/null || ipset flush ru_ips
-ipset create custom_direct hash:net 2>/dev/null || ipset flush custom_direct
-ipset create custom_vpn hash:net 2>/dev/null || ipset flush custom_vpn
-
-ip rule del fwmark $FWMARK lookup $ROUTING_TABLE 2>/dev/null || true
-ip rule add fwmark $FWMARK lookup $ROUTING_TABLE
-
-ip route del default dev $TUNNEL_IF table $ROUTING_TABLE 2>/dev/null || true
-ip route add default dev $TUNNEL_IF table $ROUTING_TABLE
-
-iptables -t mangle -F AMNEZIA_PREROUTING 2>/dev/null || true
-iptables -t mangle -N AMNEZIA_PREROUTING 2>/dev/null || iptables -t mangle -F AMNEZIA_PREROUTING
-iptables -t mangle -D PREROUTING -i $CLIENT_IF -j AMNEZIA_PREROUTING 2>/dev/null || true
-iptables -t mangle -A PREROUTING -i $CLIENT_IF -j AMNEZIA_PREROUTING
-
-iptables -t mangle -A AMNEZIA_PREROUTING -m set --match-set custom_vpn dst -j MARK --set-mark $FWMARK
-iptables -t mangle -A AMNEZIA_PREROUTING -m set --match-set custom_vpn dst -j RETURN
-iptables -t mangle -A AMNEZIA_PREROUTING -m set --match-set custom_direct dst -j RETURN
-iptables -t mangle -A AMNEZIA_PREROUTING -m set --match-set ru_ips dst -j RETURN
-iptables -t mangle -A AMNEZIA_PREROUTING -j MARK --set-mark $FWMARK
-
-iptables -t nat -D POSTROUTING -o $TUNNEL_IF -j MASQUERADE 2>/dev/null || true
-iptables -t nat -A POSTROUTING -o $TUNNEL_IF -j MASQUERADE
-EXT_IF=$(ip route | grep default | awk '{print $5}' | head -1)
-iptables -t nat -D POSTROUTING -o $EXT_IF -j MASQUERADE 2>/dev/null || true
-iptables -t nat -A POSTROUTING -o $EXT_IF -j MASQUERADE
-
-iptables -A FORWARD -i $CLIENT_IF -j ACCEPT
-iptables -A FORWARD -o $CLIENT_IF -j ACCEPT
-
-echo "Split-tunneling configured!"
-ROUTING_SCRIPT
-chmod +x /usr/local/bin/setup_routing.sh
 
 cat > /usr/local/bin/krotpn-sync-awg0.sh << 'SYNC_SCRIPT'
 #!/bin/bash
@@ -512,8 +401,6 @@ awg-quick strip awg0 > "$TMP_FILE"
 awg syncconf awg0 "$TMP_FILE"
 SYNC_SCRIPT
 chmod +x /usr/local/bin/krotpn-sync-awg0.sh
-
-/usr/local/bin/update_ru_ips.sh
 
 # Firewall
 echo -e "${BLUE}[RU] Configuring firewall...${NC}"
@@ -550,10 +437,9 @@ awg-quick up awg0
 systemctl enable awg-quick@awg0 >/dev/null 2>&1 || true
 awg-quick down awg-client 2>/dev/null || true
 awg-quick up awg-client
-systemctl enable awg-quick@awg0 >/dev/null 2>&1 || true
 systemctl enable awg-quick@awg-client >/dev/null 2>&1 || true
 
-# FIXED: Add explicit route to tunnel subnet (Table=off doesn't add it)
+# Route to tunnel subnet
 echo -e "${BLUE}[RU] Adding route to DE tunnel subnet...${NC}"
 ip route add 10.200.0.0/24 dev awg-client 2>/dev/null || true
 echo -e "${GREEN}✓ Route to 10.200.0.0/24 added${NC}"
@@ -575,47 +461,28 @@ fi
 echo -e "${BLUE}[RU] AmneziaWG status:${NC}"
 awg show
 
-/usr/local/bin/setup_routing.sh
-
 # ============================================================
-# CRITICAL: Client traffic routing through RU→DE tunnel
+# Full Tunnel: Simple FORWARD rules between awg0 and awg-client
 # ============================================================
-# Without these rules, client traffic on awg0 goes to the internet
-# directly from RU instead of through the awg-client tunnel to DE.
+# All client traffic (10.10.0.0/24) arriving on awg0 is forwarded
+# through the awg-client tunnel to DE. No ipset, no mangle.
 # ============================================================
 
-echo -e "${BLUE}[RU] Configuring client traffic routing through tunnel...${NC}"
+echo -e "${BLUE}[RU] Configuring Full Tunnel FORWARD rules...${NC}"
 
-# 1. Mark all packets from VPN clients (10.10.0.0/24) coming from awg0
-#    This overrides the AMNEZIA_PREROUTING chain which only marks on destination
-iptables -t mangle -D PREROUTING -s 10.10.0.0/24 -i awg0 -j MARK --set-mark 0x64 2>/dev/null || true
-iptables -t mangle -I PREROUTING 1 -s 10.10.0.0/24 -i awg0 -j MARK --set-mark 0x64
-echo "  Mark rule: 10.10.0.0/24 on awg0 → fwmark 0x64"
-
-# 2. Add ip rule: fwmark 0x64 → routing table 100 (tunnel)
-ip rule del fwmark 0x64 lookup 100 2>/dev/null || true
-ip rule add fwmark 0x64 lookup 100 priority 99
-echo "  IP rule: fwmark 0x64 → table 100 (priority 99)"
-
-# 3. Table 100: default route via awg-client (to DE)
-ip route del default dev awg-client table 100 2>/dev/null || true
-ip route del default via 10.200.0.1 dev awg-client table 100 2>/dev/null || true
-ip route add default via 10.200.0.1 dev awg-client table 100
-echo "  Table 100: default via 10.200.0.1 dev awg-client"
-
-# 4. Allow forwarding between awg0 (clients) and awg-client (tunnel to DE)
+# Allow forwarding between awg0 (clients) and awg-client (tunnel to DE)
 iptables -D FORWARD -i awg0 -o awg-client -j ACCEPT 2>/dev/null || true
 iptables -D FORWARD -i awg-client -o awg0 -j ACCEPT 2>/dev/null || true
 iptables -I FORWARD 1 -i awg0 -o awg-client -j ACCEPT
 iptables -I FORWARD 2 -i awg-client -o awg0 -j ACCEPT
 echo "  FORWARD: awg0 ↔ awg-client ACCEPT"
 
-# 5. NAT on RU: masquerade client traffic going through tunnel
+# NAT on RU: masquerade client traffic going through tunnel
 iptables -t nat -D POSTROUTING -s 10.10.0.0/24 -o awg-client -j MASQUERADE 2>/dev/null || true
 iptables -t nat -I POSTROUTING 1 -s 10.10.0.0/24 -o awg-client -j MASQUERADE
 echo "  NAT RU: 10.10.0.0/24 → awg-client MASQUERADE"
 
-echo -e "${GREEN}✓ Client traffic routing configured${NC}"
+echo -e "${GREEN}✓ Full Tunnel forwarding configured${NC}"
 
 # Test tunnel - try multiple times
 echo -e "${BLUE}[RU] Testing tunnel to DE (10.200.0.1)...${NC}"
@@ -663,12 +530,6 @@ chmod 600 server.key
 chmod 644 server.crt
 echo -e "${GREEN}✓ SSL certificate generated${NC}"
 
-# Create directory for RU IP snapshot persistence (Phase-15)
-echo -e "${BLUE}[RU] Creating snapshot directory...${NC}"
-mkdir -p /var/lib/krotpn
-chmod 755 /var/lib/krotpn
-echo -e "${GREEN}✓ Snapshot directory created${NC}"
-
 # Generate .env
 echo -e "${BLUE}[RU] Creating configuration...${NC}"
 cd /opt/KrotPN
@@ -679,7 +540,7 @@ DB_PASSWORD=$(python3 -c "import secrets; print(secrets.token_urlsafe(16))")
 cat > .env << EOF
 # === APPLICATION ===
 APP_NAME=KrotPN
-APP_VERSION=2.4.20
+APP_VERSION=3.0.0
 DEBUG=false
 ENVIRONMENT=production
 HOST=0.0.0.0
@@ -772,44 +633,8 @@ chmod 600 .env
 echo -e "${GREEN}✓ Configuration created${NC}"
 echo -e "${YELLOW}[SECURITY] Admin credentials were displayed during install. Do not reuse.${NC}"
 
-# Systemd services
+# Create systemd service for awg0 peer sync (only the sync, no routing)
 echo -e "${BLUE}[RU] Creating systemd services...${NC}"
-cat > /etc/systemd/system/krotpn-routing.service << 'SERVICE'
-[Unit]
-Description=KrotPN Split-Tunneling Routing
-After=network.target
-
-[Service]
-Type=oneshot
-ExecStart=/usr/local/bin/setup_routing.sh
-RemainAfterExit=yes
-
-[Install]
-WantedBy=multi-user.target
-SERVICE
-
-cat > /etc/systemd/system/krotpn-ru-ips.timer << 'TIMER'
-[Unit]
-Description=Daily RU IPset Update
-
-[Timer]
-OnCalendar=daily
-Persistent=true
-
-[Install]
-WantedBy=timers.target
-TIMER
-
-cat > /etc/systemd/system/krotpn-ru-ips.service << 'SERVICE'
-[Unit]
-Description=Update RU IPset for KrotPN
-After=network-online.target
-Wants=network-online.target
-
-[Service]
-Type=oneshot
-ExecStart=/usr/local/bin/update_ru_ips.sh
-SERVICE
 
 cat > /etc/systemd/system/krotpn-sync-awg0.service << 'SERVICE'
 [Unit]
@@ -833,9 +658,7 @@ WantedBy=multi-user.target
 PATHUNIT
 
 systemctl daemon-reload
-systemctl enable krotpn-routing krotpn-ru-ips.timer krotpn-sync-awg0.path
-systemctl start krotpn-routing
-systemctl start krotpn-ru-ips.timer
+systemctl enable krotpn-sync-awg0.path
 systemctl start krotpn-sync-awg0.path
 echo -e "${GREEN}✓ Systemd services created${NC}"
 
