@@ -100,16 +100,16 @@ wget -qO- https://raw.githubusercontent.com/anyagixx/KrotPN/main/install.sh | ba
 
 ```bash
 # Создать нового админа
-docker exec -it krtpn-backend python -m app.cli create-admin -e admin2@example.com -p secret123
+docker exec -it krotpn-backend python -m app.cli create-admin -e admin2@example.com -p secret123
 
 # Сбросить пароль
-docker exec -it krtpn-backend python -m app.cli reset-password -e your-admin@example.com -p newsecret
+docker exec -it krotpn-backend python -m app.cli reset-password -e your-admin@example.com -p newsecret
 
 # Список всех админов
-docker exec -it krtpn-backend python -m app.cli list-admins
+docker exec -it krotpn-backend python -m app.cli list-admins
 
 # Проверить конфигурацию
-docker exec -it krtpn-backend python -m app.cli check-config
+docker exec -it krotpn-backend python -m app.cli check-config
 ```
 
 ## 📱 Клиентские приложения

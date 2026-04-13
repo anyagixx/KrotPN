@@ -231,7 +231,7 @@ async def download_vpn_config(
         iter([config.config]),
         media_type="text/plain",
         headers={
-            "Content-Disposition": f"attachment; filename=krtpn-{current_user.id}.conf"
+            "Content-Disposition": f"attachment; filename=krotpn-{current_user.id}.conf"
         },
     )
 

@@ -156,7 +156,7 @@ get_admin_config() {
     echo -e "${BLUE}Set production admin credentials for KrotPN:${NC}"
     echo ""
 
-    ask "Admin email" "admin@krtpn.com" ADMIN_EMAIL
+    ask "Admin email" "admin@krotpn.com" ADMIN_EMAIL
     if [ -z "$ADMIN_EMAIL" ]; then
         print_error "Admin email is required"
         exit 1
@@ -324,7 +324,7 @@ deploy() {
     
     # Create config file on RU server with passwords for deploy script
     print_info "Creating configuration on RU server..."
-    sshpass -p "$RU_PASS" ssh -o StrictHostKeyChecking=accept-new "$RU_USER@$RU_IP" "umask 077 && cat > /tmp/krtpn_deploy.conf" << EOF
+    sshpass -p "$RU_PASS" ssh -o StrictHostKeyChecking=accept-new "$RU_USER@$RU_IP" "umask 077 && cat > /tmp/krotpn_deploy.conf" << EOF
 DE_IP='${DE_IP}'
 DE_USER='${DE_USER}'
 DE_PASS='${DE_PASS}'

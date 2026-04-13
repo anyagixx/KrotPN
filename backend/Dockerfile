@@ -14,7 +14,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && rm -rf /var/lib/apt/lists/*
 
 # Create non-root user
-RUN useradd -m -s /bin/bash krtpn
+RUN useradd -m -s /bin/bash krotpn
 
 # Set working directory
 WORKDIR /app
@@ -28,7 +28,7 @@ COPY app/ ./app/
 
 # Create directories
 RUN mkdir -p /app/logs /app/data && \
-    chown -R krtpn:krtpn /app
+    chown -R krotpn:krotpn /app
 
 # Environment
 ENV PYTHONUNBUFFERED=1

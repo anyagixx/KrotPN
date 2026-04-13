@@ -1,5 +1,5 @@
 [project]
-name = "krtpn"
+name = "krotpn"
 version = "1.0.0"
 description = "KrotPN - Commercial VPN Service with AmneziaWG"
 readme = "README.md"

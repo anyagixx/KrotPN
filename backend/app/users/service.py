@@ -77,7 +77,7 @@ class UserService:
         normalized = re.sub(r"[^a-z0-9]+", "-", identity.strip().lower()).strip("-")
         if not normalized:
             raise ValueError("Internal identity cannot be empty")
-        return f"internal+{normalized}@local.krtpn"
+        return f"internal+{normalized}@local.krotpn"
 
     # START_BLOCK_RESOLVE_INTERNAL_USER
     async def resolve_internal_user(

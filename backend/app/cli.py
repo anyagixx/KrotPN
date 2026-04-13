@@ -341,7 +341,7 @@ async def cmd_create_internal_client(
 def main() -> int:
     """Main CLI entry point."""
     parser = argparse.ArgumentParser(
-        prog="krtpn-cli",
+        prog="krotpn-cli",
         description="KrotPN administration CLI tools",
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""

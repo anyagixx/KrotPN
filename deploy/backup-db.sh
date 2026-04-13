@@ -37,7 +37,7 @@ NC='\033[0m'
 
 BACKUP_DIR="/opt/KrotPN/backups/db"
 TIMESTAMP=$(date +%Y%m%d_%H%M%S)
-BACKUP_FILE="${BACKUP_DIR}/krtpn_${TIMESTAMP}.sql.gz"
+BACKUP_FILE="${BACKUP_DIR}/krotpn_${TIMESTAMP}.sql.gz"
 KEEP=7
 
 # Load .env for DB credentials if present
@@ -46,14 +46,14 @@ if [ -f "$ENV_FILE" ]; then
     export $(grep -E '^[A-Z]' "$ENV_FILE" | xargs 2>/dev/null || true)
 fi
 
-DB_USER="${DB_USER:-krtpn}"
-DB_NAME="${DB_NAME:-krtpn}"
+DB_USER="${DB_USER:-krotpn}"
+DB_NAME="${DB_NAME:-krotpn}"
 
 mkdir -p "$BACKUP_DIR"
 
 echo -e "${BLUE}[DB-BACKUP] Starting backup of ${DB_NAME}...${NC}"
 
-docker exec krtpn-db pg_dump -U "$DB_USER" -d "$DB_NAME" --no-owner --no-acl | gzip > "$BACKUP_FILE"
+docker exec krotpn-db pg_dump -U "$DB_USER" -d "$DB_NAME" --no-owner --no-acl | gzip > "$BACKUP_FILE"
 
 if [ -f "$BACKUP_FILE" ] && [ -s "$BACKUP_FILE" ]; then
     FILESIZE=$(du -h "$BACKUP_FILE" | cut -f1)
@@ -66,9 +66,9 @@ fi
 
 # Cleanup old backups, keep only last $KEEP
 echo -e "${BLUE}[DB-BACKUP] Cleaning up old backups (keeping last ${KEEP})...${NC}"
-ls -1t "${BACKUP_DIR}"/krtpn_*.sql.gz 2>/dev/null | tail -n +$((KEEP + 1)) | while read -r old; do
+ls -1t "${BACKUP_DIR}"/krotpn_*.sql.gz 2>/dev/null | tail -n +$((KEEP + 1)) | while read -r old; do
     rm -f "$old"
     echo -e "${YELLOW}  Removed: ${old}${NC}"
 done
 
-echo -e "${GREEN}[DB-BACKUP] Done. Total backups: $(ls -1 "${BACKUP_DIR}"/krtpn_*.sql.gz 2>/dev/null | wc -l)${NC}"
+echo -e "${GREEN}[DB-BACKUP] Done. Total backups: $(ls -1 "${BACKUP_DIR}"/krotpn_*.sql.gz 2>/dev/null | wc -l)${NC}"

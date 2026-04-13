@@ -56,7 +56,7 @@ Use these credentials to access the admin panel at `https://YOUR_RU_IP:8443`:
 
 | Field | Value |
 |-------|-------|
-| **Email** | `admin@krtpn.com` |
+| **Email** | `admin@krotpn.com` |
 | **Password** | `ChangeMeImmediately123!` |
 
 > ⚠️ **Important**: Change the default password immediately after first login!

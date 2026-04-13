@@ -43,7 +43,7 @@
   </decision>
 
   <decision id="D-006" date="2026-04-05">
-    <context>deploy-on-server.sh wrote admin credentials to /root/.krtpn-admin-credentials</context>
+    <context>deploy-on-server.sh wrote admin credentials to /root/.krotpn-admin-credentials</context>
     <decision>Remove plaintext credential file creation entirely</decision>
     <rationale>Credentials on disk are a persistent attack surface; install.sh already shows them interactively</rationale>
     <status>accepted</status>
@@ -314,7 +314,7 @@
   </decision>
 
   <decision id="D-044" date="2026-04-05">
-    <context>Referral URL hardcoded as https://krtpn.com/register?ref=</context>
+    <context>Referral URL hardcoded as https://krotpn.com/register?ref=</context>
     <decision>Add frontend_url to Settings, use settings.frontend_url in referral links</decision>
     <rationale>Hardcoded URLs prevent staging/testing environments from working correctly</rationale>
     <status>accepted</status>

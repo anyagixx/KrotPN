@@ -140,7 +140,7 @@ export default function Layout() {
                 {user?.email?.[0]?.toUpperCase() || 'A'}
               </div>
               <div className="min-w-0">
-                <p className="truncate font-semibold">{user?.email || 'admin@krtpn.com'}</p>
+                <p className="truncate font-semibold">{user?.email || 'admin@krotpn.com'}</p>
                 <p className="text-xs uppercase tracking-[0.14em] muted">{user?.role || 'admin'}</p>
               </div>
             </div>

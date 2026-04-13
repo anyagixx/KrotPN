@@ -11,9 +11,9 @@
         <step>docker compose -f docker-compose.yml up -d</step>
         <step>docker compose -f docker-compose.yml ps</step>
       </steps>
-      <expected>All 6 containers start with new names: krtpn-db, krtpn-redis, krtpn-backend,
-        krtpn-frontend, krtpn-admin, krtpn-nginx. All show "healthy" status.
-        Zero references to "krtpn-" in container names.</expected>
+      <expected>All 6 containers start with new names: krotpn-db, krotpn-redis, krotpn-backend,
+        krotpn-frontend, krotpn-admin, krotpn-nginx. All show "healthy" status.
+        Zero references to "krotpn-" in container names.</expected>
       <command>docker compose ps --format '{{.Name}} {{.Status}}'</command>
     </scenario-1>
 
@@ -22,8 +22,8 @@
         <step>Set RU_IP, DE_IP environment variables</step>
         <step>./deploy/deploy-all.sh</step>
       </steps>
-      <expected>Script completes without errors. All systemd units created with krtpn-* names.
-        .env written with krtpn defaults. Containers running. No references to /opt/KrotPN
+      <expected>Script completes without errors. All systemd units created with krotpn-* names.
+        .env written with krotpn defaults. Containers running. No references to /opt/KrotPN
         in active paths (backward-compat symlink may exist but is not used by scripts).</expected>
       <command>bash -n deploy/deploy-all.sh &amp;&amp; echo "syntax OK"</command>
     </scenario-2>
@@ -40,10 +40,10 @@
     <scenario-4 NAME="VPN client connects">
       <steps>
         <step>Generate config: /opt/KrotPN/deploy/create-client.sh test_user</step>
-        <step>Verify filename: krtpn-*.conf</step>
+        <step>Verify filename: krotpn-*.conf</step>
         <step>Import into AmneziaWG client and connect</step>
       </steps>
-      <expected>AmneziaWG connects successfully. Config filename starts with "krtpn-".
+      <expected>AmneziaWG connects successfully. Config filename starts with "krotpn-".
         Tunnel interface comes up. Ping to 10.10.0.1 (AWG gateway) succeeds.</expected>
       <command>ls /etc/amnezia/amneziawg/clients/test_user.*</command>
     </scenario-4>
@@ -55,7 +55,7 @@
         <step>curl https://google.com (should go direct — RU IP)</step>
       </steps>
       <expected>myip.ru shows RU IP address for RU sites. Split-tunneling routing table
-        uses krtpn-* systemd units. ipset ru_ips populated. No routing leaks.</expected>
+        uses krotpn-* systemd units. ipset ru_ips populated. No routing leaks.</expected>
       <command>ipset list ru_ips | head -5</command>
     </scenario-5>
 
@@ -71,22 +71,22 @@
 
     <scenario-7 NAME="zero remaining KrotPN references (static check)">
       <steps>
-        <step>grep -rni "krtpn" --include='*.py' --include='*.ts' --include='*.tsx' --include='*.yml' --include='*.sh' --include='*.json' --include='*.toml' --include='*.html' backend/ frontend/ frontend-admin/ deploy/ nginx/ docs/ . | grep -v 'archive/' | grep -v 'CHANGELOG.md' | grep -v 'package-lock.json'</step>
+        <step>grep -rni "krotpn" --include='*.py' --include='*.ts' --include='*.tsx' --include='*.yml' --include='*.sh' --include='*.json' --include='*.toml' --include='*.html' backend/ frontend/ frontend-admin/ deploy/ nginx/ docs/ . | grep -v 'archive/' | grep -v 'CHANGELOG.md' | grep -v 'package-lock.json'</step>
       </steps>
       <expected>Zero matches in source files. Archive and CHANGELOG entries are excluded
         intentionally as they are historical records.</expected>
-      <command>grep -rni "krtpn" --include='*.py' --include='*.ts' --include='*.tsx' --include='*.yml' --include='*.sh' --include='*.json' --include='*.toml' --include='*.html' backend/ frontend/ frontend-admin/ deploy/ nginx/ docs/ . 2>/dev/null | grep -vc 'archive\|CHANGELOG\|package-lock' || echo "ZERO_REMAINING"</command>
+      <command>grep -rni "krotpn" --include='*.py' --include='*.ts' --include='*.tsx' --include='*.yml' --include='*.sh' --include='*.json' --include='*.toml' --include='*.html' backend/ frontend/ frontend-admin/ deploy/ nginx/ docs/ . 2>/dev/null | grep -vc 'archive\|CHANGELOG\|package-lock' || echo "ZERO_REMAINING"</command>
     </scenario-7>
 
     <scenario-8 NAME="systemd units renamed">
       <steps>
-        <step>systemctl list-units 'krtpn-*'</step>
-        <step>systemctl list-unit-files 'krtpn-*'</step>
+        <step>systemctl list-units 'krotpn-*'</step>
+        <step>systemctl list-unit-files 'krotpn-*'</step>
       </steps>
-      <expected>Units krtpn-routing.service, krtpn-ru-ips.timer, krtpn-ru-ips.service,
-        krtpn-sync-awg0.service, krtpn-sync-awg0.path all exist and are enabled.
-        Old krtpn-* units are disabled/removed.</expected>
-      <command>systemctl list-unit-files 'krtpn-*' --no-pager</command>
+      <expected>Units krotpn-routing.service, krotpn-ru-ips.timer, krotpn-ru-ips.service,
+        krotpn-sync-awg0.service, krotpn-sync-awg0.path all exist and are enabled.
+        Old krotpn-* units are disabled/removed.</expected>
+      <command>systemctl list-unit-files 'krotpn-*' --no-pager</command>
     </scenario-8>
   </scenarios>
 
@@ -96,8 +96,8 @@
     <check>Frontend builds: cd frontend &amp;&amp; npm run build</check>
     <check>Admin frontend builds: cd frontend-admin &amp;&amp; npm run build</check>
     <check>Backend config loads: cd backend &amp;&amp; python -c "from app.core.config import settings; assert settings.app_name == 'KrotPN'"</check>
-    <check>Log file path: /app/logs/krtpn_*.log (not krtpn_*.log)</check>
-    <check>DB snapshot path: /var/lib/krtpn/ru_ips_snapshot.json (not /var/lib/krtpn/)</check>
+    <check>Log file path: /app/logs/krotpn_*.log (not krotpn_*.log)</check>
+    <check>DB snapshot path: /var/lib/krotpn/ru_ips_snapshot.json (not /var/lib/krotpn/)</check>
   </module-checks>
 
   <log-markers>
@@ -106,11 +106,11 @@
   </log-markers>
 
   <rollback-plan>
-    <step>Backup: tar czf /tmp/krtpn-backup-$(date +%Y%m%d-%H%M).tar.gz /opt/KrotPN</step>
+    <step>Backup: tar czf /tmp/krotpn-backup-$(date +%Y%m%d-%H%M).tar.gz /opt/KrotPN</step>
     <step>Stop: docker compose -f /opt/KrotPN/docker-compose.yml down</step>
     <step>Remove symlink: rm -f /opt/KrotPN</step>
     <step>Restore: mv /opt/KrotPN /opt/KrotPN (if backup was of /opt/KrotPN)</step>
-    <step>Re-enable old systemd units: systemctl enable/start krtpn-*</step>
+    <step>Re-enable old systemd units: systemctl enable/start krotpn-*</step>
     <step>Start: docker compose -f /opt/KrotPN/docker-compose.yml up -d</step>
   </rollback-plan>
 

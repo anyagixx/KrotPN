@@ -10,7 +10,7 @@ Usage:
     python3 /opt/KrotPN/scripts/update_ru_ips.py [--dry-run] [--stats]
 
 Cron (every 6 hours):
-    0 */6 * * * /usr/bin/python3 /opt/KrotPN/scripts/update_ru_ips.py >> /var/log/krtpn-ru-ip-update.log 2>&1
+    0 */6 * * * /usr/bin/python3 /opt/KrotPN/scripts/update_ru_ips.py >> /var/log/krotpn-ru-ip-update.log 2>&1
 """
 
 from __future__ import annotations
@@ -24,7 +24,7 @@ import subprocess
 from datetime import UTC, datetime
 from pathlib import Path
 
-SNAPSHOT_DIR = Path("/var/lib/krtpn")
+SNAPSHOT_DIR = Path("/var/lib/krotpn")
 SNAPSHOT_FILE = SNAPSHOT_DIR / "ru_ips_snapshot.json"
 IPSET_NAME = "ru_ips"
 MIN_ENTRIES = 1000

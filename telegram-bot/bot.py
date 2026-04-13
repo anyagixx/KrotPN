@@ -211,7 +211,7 @@ async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
 4. Подключайтесь!
 
 *Нужна помощь?*
-Пишите: @krtpn_support
+Пишите: @krotpn_support
 """
     await update.message.reply_text(help_text, parse_mode="Markdown")
 # END_BLOCK: async help_command
@@ -236,11 +236,11 @@ async def config_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
         if config_text:
             from io import BytesIO
             file = BytesIO(config_text.encode())
-            file.name = f"krtpn-{telegram_id}.conf"
+            file.name = f"krotpn-{telegram_id}.conf"
 
             await update.message.reply_document(
                 document=file,
-                filename=f"krtpn.conf",
+                filename=f"krotpn.conf",
                 caption=f"""
 📱 *Ваша VPN конфигурация*
 
@@ -328,7 +328,7 @@ async def plans_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 """
 
-        text += "Для покупки перейдите на сайт: krtpn.com"
+        text += "Для покупки перейдите на сайт: krotpn.com"
 
         await update.message.reply_text(text, parse_mode="Markdown")
 
@@ -358,7 +358,7 @@ async def referral_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
 • Бонус зачисляется после первой оплаты друга
 • Без ограничений по количеству приглашений
 
-Ваша реферальная ссылка доступна в личном кабинете: krtpn.com/referrals
+Ваша реферальная ссылка доступна в личном кабинете: krotpn.com/referrals
 """
     await update.message.reply_text(text, parse_mode="Markdown")
 # END_BLOCK: async referral_command

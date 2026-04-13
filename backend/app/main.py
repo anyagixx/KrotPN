@@ -73,7 +73,7 @@ try:
     logs_dir = Path("logs")
     logs_dir.mkdir(parents=True, exist_ok=True)
     logger.add(
-        logs_dir / "krtpn_{time}.log",
+        logs_dir / "krotpn_{time}.log",
         rotation="1 day",
         retention="7 days",
         level="INFO",

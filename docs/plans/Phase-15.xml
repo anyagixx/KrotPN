@@ -6,7 +6,7 @@
   <step-3>M-017: Last-known-good persistence + rollback on failure — DONE</step-3>
   <step-4>M-008: Update APScheduler interval from 24h to 6h — DONE</step-4>
   <step-5>M-017: Add admin endpoint GET /routing/ru-ipset-stats — DONE</step-5>
-  <step-6>M-012: Deploy — create /var/lib/krtpn/ directory + host script — DONE</step-6>
+  <step-6>M-012: Deploy — create /var/lib/krotpn/ directory + host script — DONE</step-6>
   <step-7>M-017: Write unit tests for RuIpsetUpdater (mocked HTTP) — DONE</step-7>
   <step-8>M-017: Write integration tests (mocked subprocess for ipset) — DONE via live host script</step-8>
   <step-9>M-017: Update GRACE docs — M-017.xml, V-M-017.xml, graph-index — DONE</step-9>

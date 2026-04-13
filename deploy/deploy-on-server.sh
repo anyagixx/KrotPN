@@ -3,7 +3,7 @@
 # KrotPN Server Deployment Script v2.4.0
 # Run this script ON the RU server
 # GRACE-lite operational contract:
-# - This script is executed on the RU host and consumes temporary config from /tmp/krtpn_deploy.conf.
+# - This script is executed on the RU host and consumes temporary config from /tmp/krotpn_deploy.conf.
 # - It decodes remote credentials, provisions RU host services and reaches the DE host over SSH.
 # - It is security-sensitive and should be reviewed like infrastructure code.
 #
@@ -21,7 +21,7 @@ NC='\033[0m'
 VPN_PORT="51821"
 
 cleanup_sensitive_files() {
-    rm -f /tmp/krtpn_deploy.conf /tmp/de_setup.sh
+    rm -f /tmp/krotpn_deploy.conf /tmp/de_setup.sh
 }
 
 trap cleanup_sensitive_files EXIT
@@ -57,16 +57,16 @@ scp_de() {
 }
 
 # Read configuration from file
-if [ -f /tmp/krtpn_deploy.conf ]; then
+if [ -f /tmp/krotpn_deploy.conf ]; then
     echo -e "${BLUE}[CONFIG] Loading configuration from file...${NC}"
-    source /tmp/krtpn_deploy.conf
+    source /tmp/krotpn_deploy.conf
 else
-    echo -e "${RED}[ERROR] Configuration file not found: /tmp/krtpn_deploy.conf${NC}"
+    echo -e "${RED}[ERROR] Configuration file not found: /tmp/krotpn_deploy.conf${NC}"
     echo "Please run install.sh first"
     exit 1
 fi
 
-ADMIN_EMAIL="${ADMIN_EMAIL:-admin@krtpn.com}"
+ADMIN_EMAIL="${ADMIN_EMAIL:-admin@krotpn.com}"
 if [ -z "$ADMIN_PASSWORD" ]; then
     ADMIN_PASSWORD=$(python3 -c "import secrets; print(secrets.token_urlsafe(24))")
     GENERATED_ADMIN_PASSWORD=1
@@ -147,8 +147,8 @@ if ! command -v awg &> /dev/null; then
 fi
 echo -e "${GREEN}✓ AmneziaWG installed${NC}"
 echo -e "${BLUE}[RU] Enabling IP forwarding...${NC}"
-echo "net.ipv4.ip_forward=1" > /etc/sysctl.d/99-krtpn.conf
-sysctl -p /etc/sysctl.d/99-krtpn.conf > /dev/null
+echo "net.ipv4.ip_forward=1" > /etc/sysctl.d/99-krotpn.conf
+sysctl -p /etc/sysctl.d/99-krotpn.conf > /dev/null
 
 echo -e "${BLUE}[RU] Generating AmneziaWG keys...${NC}"
 mkdir -p /etc/amnezia/amneziawg
@@ -227,8 +227,8 @@ echo -e "${GREEN}✓ AmneziaWG installed${NC}"
 verify_host_routing_tools
 
 echo -e "${BLUE}[DE] Enabling IP forwarding...${NC}"
-echo "net.ipv4.ip_forward=1" > /etc/sysctl.d/99-krtpn.conf
-sysctl -p /etc/sysctl.d/99-krtpn.conf > /dev/null
+echo "net.ipv4.ip_forward=1" > /etc/sysctl.d/99-krotpn.conf
+sysctl -p /etc/sysctl.d/99-krotpn.conf > /dev/null
 
 echo -e "${BLUE}[DE] Generating keys...${NC}"
 mkdir -p /etc/amnezia/amneziawg
@@ -498,7 +498,7 @@ echo "Split-tunneling configured!"
 ROUTING_SCRIPT
 chmod +x /usr/local/bin/setup_routing.sh
 
-cat > /usr/local/bin/krtpn-sync-awg0.sh << 'SYNC_SCRIPT'
+cat > /usr/local/bin/krotpn-sync-awg0.sh << 'SYNC_SCRIPT'
 #!/bin/bash
 set -e
 
@@ -511,7 +511,7 @@ trap cleanup EXIT
 awg-quick strip awg0 > "$TMP_FILE"
 awg syncconf awg0 "$TMP_FILE"
 SYNC_SCRIPT
-chmod +x /usr/local/bin/krtpn-sync-awg0.sh
+chmod +x /usr/local/bin/krotpn-sync-awg0.sh
 
 /usr/local/bin/update_ru_ips.sh
 
@@ -658,15 +658,15 @@ mkdir -p /opt/KrotPN/ssl
 cd /opt/KrotPN/ssl
 openssl req -x509 -nodes -days 3650 -newkey rsa:2048 \
     -keyout server.key -out server.crt \
-    -subj "/C=RU/ST=Moscow/L=Moscow/O=KrotPN/OU=IT/CN=krtpn.local" 2>/dev/null
+    -subj "/C=RU/ST=Moscow/L=Moscow/O=KrotPN/OU=IT/CN=krotpn.local" 2>/dev/null
 chmod 600 server.key
 chmod 644 server.crt
 echo -e "${GREEN}✓ SSL certificate generated${NC}"
 
 # Create directory for RU IP snapshot persistence (Phase-15)
 echo -e "${BLUE}[RU] Creating snapshot directory...${NC}"
-mkdir -p /var/lib/krtpn
-chmod 755 /var/lib/krtpn
+mkdir -p /var/lib/krotpn
+chmod 755 /var/lib/krotpn
 echo -e "${GREEN}✓ Snapshot directory created${NC}"
 
 # Generate .env
@@ -692,10 +692,10 @@ ACCESS_TOKEN_EXPIRE_MINUTES=15
 REFRESH_TOKEN_EXPIRE_DAYS=7
 
 # === DATABASE ===
-DB_USER=krtpn
+DB_USER=krotpn
 DB_PASSWORD=${DB_PASSWORD}
-DB_NAME=krtpn
-DATABASE_URL=postgresql+asyncpg://krtpn:${DB_PASSWORD}@db:5432/krtpn
+DB_NAME=krotpn
+DATABASE_URL=postgresql+asyncpg://krotpn:${DB_PASSWORD}@db:5432/krotpn
 
 # === REDIS ===
 REDIS_URL=redis://redis:6379/0
@@ -758,7 +758,7 @@ SMTP_HOST=smtp.gmail.com
 SMTP_PORT=587
 SMTP_USER=
 SMTP_PASSWORD=
-EMAIL_FROM=noreply@krtpn.com
+EMAIL_FROM=noreply@krotpn.com
 
 # === REFERRAL ===
 REFERRAL_BONUS_DAYS=7
@@ -774,7 +774,7 @@ echo -e "${YELLOW}[SECURITY] Admin credentials were displayed during install. Do
 
 # Systemd services
 echo -e "${BLUE}[RU] Creating systemd services...${NC}"
-cat > /etc/systemd/system/krtpn-routing.service << 'SERVICE'
+cat > /etc/systemd/system/krotpn-routing.service << 'SERVICE'
 [Unit]
 Description=KrotPN Split-Tunneling Routing
 After=network.target
@@ -788,7 +788,7 @@ RemainAfterExit=yes
 WantedBy=multi-user.target
 SERVICE
 
-cat > /etc/systemd/system/krtpn-ru-ips.timer << 'TIMER'
+cat > /etc/systemd/system/krotpn-ru-ips.timer << 'TIMER'
 [Unit]
 Description=Daily RU IPset Update
 
@@ -800,7 +800,7 @@ Persistent=true
 WantedBy=timers.target
 TIMER
 
-cat > /etc/systemd/system/krtpn-ru-ips.service << 'SERVICE'
+cat > /etc/systemd/system/krotpn-ru-ips.service << 'SERVICE'
 [Unit]
 Description=Update RU IPset for KrotPN
 After=network-online.target
@@ -811,17 +811,17 @@ Type=oneshot
 ExecStart=/usr/local/bin/update_ru_ips.sh
 SERVICE
 
-cat > /etc/systemd/system/krtpn-sync-awg0.service << 'SERVICE'
+cat > /etc/systemd/system/krotpn-sync-awg0.service << 'SERVICE'
 [Unit]
 Description=Sync awg0 peers for KrotPN
 After=network.target
 
 [Service]
 Type=oneshot
-ExecStart=/usr/local/bin/krtpn-sync-awg0.sh
+ExecStart=/usr/local/bin/krotpn-sync-awg0.sh
 SERVICE
 
-cat > /etc/systemd/system/krtpn-sync-awg0.path << 'PATHUNIT'
+cat > /etc/systemd/system/krotpn-sync-awg0.path << 'PATHUNIT'
 [Unit]
 Description=Watch awg0 config changes for KrotPN
 
@@ -833,10 +833,10 @@ WantedBy=multi-user.target
 PATHUNIT
 
 systemctl daemon-reload
-systemctl enable krtpn-routing krtpn-ru-ips.timer krtpn-sync-awg0.path
-systemctl start krtpn-routing
-systemctl start krtpn-ru-ips.timer
-systemctl start krtpn-sync-awg0.path
+systemctl enable krotpn-routing krotpn-ru-ips.timer krotpn-sync-awg0.path
+systemctl start krotpn-routing
+systemctl start krotpn-ru-ips.timer
+systemctl start krotpn-sync-awg0.path
 echo -e "${GREEN}✓ Systemd services created${NC}"
 
 # Docker

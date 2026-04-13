@@ -61,7 +61,7 @@ class Settings(BaseSettings):
 
     # Database
     database_url: str = Field(
-        default="sqlite+aiosqlite:///./krtpn.db",
+        default="sqlite+aiosqlite:///./krotpn.db",
         description="Database connection URL",
     )
 
@@ -151,7 +151,7 @@ class Settings(BaseSettings):
     referral_min_payment: float = 100.0
 
     # Frontend
-    frontend_url: str = "https://krtpn.com"
+    frontend_url: str = "https://krotpn.com"
 
     # Data Encryption
     data_encryption_key: str | None = None

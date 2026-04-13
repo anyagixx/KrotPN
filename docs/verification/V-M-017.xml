@@ -60,7 +60,7 @@
       Same data on second run. 0 ipset operations. No-op confirmed.
     </scenario>
     <scenario kind="success" trace="RU_IPSET_SNAPSHOT_PERSIST">
-      After successful update, /var/lib/krtpn/ru_ips_snapshot.json exists and is valid JSON.
+      After successful update, /var/lib/krotpn/ru_ips_snapshot.json exists and is valid JSON.
     </scenario>
     <scenario kind="success" trace="RU_IPSET_STATS_ENDPOINT">
       GET /routing/ru-ipset-stats returns entries count, last update time, sources used.

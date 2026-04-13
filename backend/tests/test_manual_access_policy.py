@@ -43,7 +43,7 @@ class FakeSession:
 def test_build_internal_user_email_normalizes_identity():
     service = UserService(FakeSession())
 
-    assert service.build_internal_user_email("My Family Client") == "internal+my-family-client@local.krtpn"
+    assert service.build_internal_user_email("My Family Client") == "internal+my-family-client@local.krotpn"
 
 
 def test_resolve_internal_user_reuses_existing_user():
@@ -59,7 +59,7 @@ def test_resolve_internal_user_reuses_existing_user():
     service = UserService(FakeSession())
 
     async def fake_get_by_email(email: str):
-        assert email == "internal+family-phone@local.krtpn"
+        assert email == "internal+family-phone@local.krotpn"
         return user
 
     service.get_by_email = fake_get_by_email  # type: ignore[method-assign]
