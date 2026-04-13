@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!-- Phase-16: KrotPN → KrotPN Rebranding — complete rename with zero breakage guarantee -->
-<Phase-16 NAME="KrotVPN → KrotPN Rebranding" STATUS="done" MODULES="M-012,M-001,M-009,M-011" CREATED="2026-04-13">
+<Phase-16 NAME="KrotVPN to KrotPN Rebranding" STATUS="done" MODULES="M-012,M-001,M-009,M-011" CREATED="2026-04-13">
 
   <purpose>
     Rename every user-facing and operational reference from KrotPN/krtpn to KrotPN/krtpn
