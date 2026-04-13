@@ -67,12 +67,9 @@ const resources = {
 
       // Dashboard
       welcome: 'Добро пожаловать',
-      yourVPN: 'Ваш VPN',
       status: 'Статус',
       connected: 'Подключено',
       disconnected: 'Отключено',
-      server: 'Сервер',
-      location: 'Локация',
       traffic: 'Трафик',
       upload: 'Отправлено',
       download: 'Получено',
@@ -169,12 +166,9 @@ const resources = {
 
       // Dashboard
       welcome: 'Welcome',
-      yourVPN: 'Your VPN',
       status: 'Status',
       connected: 'Connected',
       disconnected: 'Disconnected',
-      server: 'Server',
-      location: 'Location',
       traffic: 'Traffic',
       upload: 'Upload',
       download: 'Download',

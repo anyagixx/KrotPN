@@ -23,7 +23,7 @@
 import { useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from 'react-query'
 import { useTranslation } from 'react-i18next'
-import { AlertTriangle, ArrowRightLeft, Check, Copy, Download, FileCode2, Laptop2, Monitor, Plus, QrCode, RotateCw, Smartphone, Trash2 } from 'lucide-react'
+import { AlertTriangle, Check, Copy, Download, FileCode2, Laptop2, Monitor, Plus, QrCode, RotateCw, Smartphone, Trash2 } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import toast from 'react-hot-toast'
 import QRCodeCanvas from 'qrcode.react'
@@ -40,7 +40,6 @@ export default function Config() {
   const [newDevicePlatform, setNewDevicePlatform] = useState('')
 
   const { data: configData, isLoading, error } = useQuery('vpn-config', () => vpnApi.getConfig())
-  const { data: routesData } = useQuery('vpn-routes', () => vpnApi.getRoutes())
   const { data: devicesData } = useQuery('device-list', () => deviceApi.list(), {
     retry: false,
   })
@@ -153,25 +152,9 @@ export default function Config() {
   const errorMessage = requestError?.response?.data?.detail as string | undefined
   const hasNoConfig = requestError?.response?.status === 404
   const isForbidden = requestError?.response?.status === 403
-  const routes = routesData?.data?.routes || []
   const deviceList = devicesData?.data?.devices || []
   const consumedSlots = devicesData?.data?.consumed_slots || 0
   const deviceLimit = devicesData?.data?.device_limit || 0
-  const routeName = config?.route_name
-  const entryName = config?.entry_server_name || config?.server_name
-  const entryLocation = config?.entry_server_location || config?.server_location
-  const exitName = config?.exit_server_name
-  const exitLocation = config?.exit_server_location
-  const getTunnelBadgeClass = (status?: string) => {
-    if (status === 'up') return 'status-badge-success'
-    if (status === 'host_managed') return 'status-badge-warning'
-    return 'status-badge-error'
-  }
-  const getTunnelLabel = (status?: string) => {
-    if (status === 'up') return 'tunnel up'
-    if (status === 'host_managed') return 'host managed'
-    return status || 'unknown'
-  }
 
   if (hasNoConfig || isForbidden) {
     return (
@@ -199,28 +182,6 @@ export default function Config() {
               Открыть подписку
             </Link>
           </div>
-        </div>
-
-        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-          {routes.map((route: any) => (
-            <div key={route.id} className="metric-card">
-              <div className="flex items-center justify-between">
-                <span className="metric-label">Маршрут</span>
-                <span className={getTunnelBadgeClass(route.tunnel_status)}>
-                  {getTunnelLabel(route.tunnel_status)}
-                </span>
-              </div>
-              <div className="mt-5 flex items-center gap-3">
-                <div className="rounded-2xl bg-white/8 p-3 text-cyan-100">
-                  <ArrowRightLeft className="h-5 w-5" />
-                </div>
-                <div>
-                  <p className="font-bold">{route.name}</p>
-                  <p className="text-sm muted">{route.entry_node_name} -&gt; {route.exit_node_name || 'Exit not set'}</p>
-                </div>
-              </div>
-            </div>
-          ))}
         </div>
       </div>
     )
@@ -455,67 +416,15 @@ export default function Config() {
       </div>
 
       {config ? (
-        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-5">
+        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
           <div className="metric-card">
-            <p className="metric-label">Маршрут</p>
-            <p className="metric-value text-2xl">{routeName || 'Legacy single-node'}</p>
-          </div>
-          <div className="metric-card">
-            <p className="metric-label">Entry node</p>
-            <p className="metric-value text-2xl">{entryName}</p>
-          </div>
-          <div className="metric-card">
-            <p className="metric-label">Entry location</p>
-            <p className="metric-value text-2xl">{entryLocation}</p>
-          </div>
-          <div className="metric-card">
-            <p className="metric-label">Exit</p>
-            <p className="metric-value text-2xl">{exitName || 'Не задан'}</p>
-            <p className="mt-2 text-sm muted">{exitLocation || 'Маршрут ещё не замкнут'}</p>
+            <p className="metric-label">Статус</p>
+            <p className="metric-value text-2xl">Connected to Server</p>
           </div>
           <div className="metric-card">
             <p className="metric-label">VPN IP</p>
             <p className="metric-value text-2xl">{config.address}</p>
           </div>
-        </div>
-      ) : null}
-
-      {config ? (
-        <div className="panel p-6">
-          <div className="mb-5 flex items-center gap-3">
-            <div className="rounded-2xl bg-white/8 p-3 text-cyan-100">
-              <ArrowRightLeft className="h-5 w-5" />
-            </div>
-            <div>
-              <h2 className="text-lg font-bold">Топология маршрута</h2>
-              <p className="text-sm muted">Клиент подключается к entry-ноде, а внешний трафик выходит через exit-ноду.</p>
-            </div>
-          </div>
-
-          <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-            <div className="panel-soft px-4 py-4">
-              <p className="text-xs uppercase tracking-[0.18em] muted">Entry</p>
-              <p className="mt-2 text-lg font-bold">{entryName}</p>
-              <p className="mt-1 text-sm muted">{entryLocation}</p>
-            </div>
-            <div className="panel-soft px-4 py-4">
-              <p className="text-xs uppercase tracking-[0.18em] muted">Route</p>
-              <p className="mt-2 text-lg font-bold">{routeName || 'Legacy single-node'}</p>
-              <p className="mt-1 text-sm muted">
-                {exitName ? `${entryName} -> ${exitName}` : 'Пока используется только entry-узел'}
-              </p>
-            </div>
-            <div className="panel-soft px-4 py-4">
-              <p className="text-xs uppercase tracking-[0.18em] muted">Exit</p>
-              <p className="mt-2 text-lg font-bold">{exitName || 'Не задан'}</p>
-              <p className="mt-1 text-sm muted">{exitLocation || 'Выходной узел не сконфигурирован'}</p>
-            </div>
-          </div>
-        </div>
-      ) : null}
-
-      {config ? (
-        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-2">
           <div className="metric-card">
             <p className="metric-label">Создан</p>
             <p className="metric-value text-2xl">{new Date(config.created_at).toLocaleDateString('ru-RU')}</p>
