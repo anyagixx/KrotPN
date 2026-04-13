@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Phase-17: Full Tunnel Simplification & Frontend Cleanup -->
+<Phase-17 NAME="Full Tunnel Simplification" STATUS="planned" MODULES="M-007,M-012,M-009,M-010" CREATED="2026-04-14">
+
+  <goal>
+    Replace complex Split-Tunneling logic with simple Full Tunnel architecture.
+    All client traffic (0.0.0.0/0) routes via DE server.
+    Remove ipset, DNS observer, and policy resolvers.
+  </goal>
+
+  <step-1 MODULE="M-007,M-017" RISK="CRITICAL">
+    Simplify Backend Routing
+    - Rewrite RoutingManager: remove ipset/iptables mangle logic.
+    - Delete RuIpsetUpdater class and cron jobs.
+    - Ensure simple forwarding (awg0 <-> awg-client) works.
+    - Files: backend/app/routing/manager.py, backend/app/routing/ru_ipset_updater.py (DELETE).
+  </step-1>
+
+  <step-2 MODULE="M-013,M-014,M-015,M-016" RISK="HIGH">
+    Remove Obsolete Modules
+    - Delete policy.py, domain_rules.py, dns_resolver.py.
+    - Delete backend/app/routing/router.py (admin policy endpoints).
+    - Clean imports in M-003 (VPN) and M-006 (Admin).
+  </step-2>
+
+  <step-3 MODULE="M-012" RISK="CRITICAL">
+    Simplify Deploy Scripts
+    - Remove ipset creation, mangle chains, cron jobs from deploy-on-server.sh.
+    - Configure simple FORWARD on RU and NAT on DE.
+    - Delete scripts/update_ru_ips.py.
+  </step-3>
+
+  <step-4 MODULE="M-009" RISK="MEDIUM">
+    Frontend Cleanup
+    - Remove "Route Topology" card (Entry -> Exit).
+    - Remove Split-Tunneling status/RU IP Range.
+    - Simplify Server info to "Connected".
+    - Files: frontend/src/pages/Dashboard.tsx, Config.tsx, i18n/index.ts.
+  </step-4>
+
+  <step-5 MODULE="M-010,M-006" RISK="MEDIUM">
+    Admin Panel Cleanup
+    - Remove Domain/CIDR policy management UI.
+    - Remove Route Decision inspection tools.
+    - Remove DNS Observer stats.
+    - Clean API calls in frontend-admin.
+  </step-5>
+
+  <step-6 MODULE="M-001" RISK="LOW">
+    Update MyGRACE Docs
+    - Update graph-index.xml (remove M-013..M-016).
+    - Update M-007 contract (Full Tunnel).
+    - Update V-M-017 verification scenarios.
+  </step-6>
+
+  <phase-gates>
+    <gate-1>YouTube and Google are accessible via VPN on client.</gate-1>
+    <gate-2>Deploy scripts run without errors on clean servers.</gate-2>
+    <gate-3>No references to 'split-tunneling' or 'ipset' remain in source.</gate-3>
+  </phase-gates>
+
+</Phase-17>
