@@ -10,5 +10,6 @@
   <verification-ref>V-M-007</verification-ref>
   <files>
     <file>backend/app/routing/manager.py</file>
+    <file>backend/app/routing/router.py</file>
   </files>
 </M-007>

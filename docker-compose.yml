@@ -75,6 +75,7 @@ services:
       - ./logs:/app/logs
       - /etc/amnezia/amneziawg:/etc/amnezia/amneziawg
       - /usr/bin/awg:/usr/local/bin/awg:ro
+      - ./backend/app/routing:/app/app/routing
     # CRITICAL: host network mode required for AmneziaWG interface visibility (awg0, awg-client)
     # Without this, backend cannot see host network interfaces for tunnel health checks.
     network_mode: host

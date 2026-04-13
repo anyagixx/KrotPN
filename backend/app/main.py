@@ -60,7 +60,7 @@ from app.vpn.router import router as vpn_router
 from app.vpn.router import admin_router as admin_vpn_router
 from app.vpn.router import admin_nodes_router as admin_vpn_nodes_router
 from app.vpn.router import admin_routes_router as admin_vpn_routes_router
-# NOTE: routing_router removed in Phase-17 (Full Tunnel — no split-tunneling API)
+from app.routing.router import router as routing_router
 from app.billing.router import router as billing_router
 from app.billing.router import admin_router as admin_billing_router
 from app.referrals.router import router as referral_router
@@ -240,8 +240,8 @@ app.include_router(admin_vpn_router)
 app.include_router(admin_vpn_nodes_router)
 app.include_router(admin_vpn_routes_router)
 
-# Routing — removed in Phase-17 (Full Tunnel, no split-tunneling API)
-# app.include_router(routing_router)
+# Routing — minimal status endpoints for Full Tunnel
+app.include_router(routing_router)
 
 # Billing
 app.include_router(billing_router)
