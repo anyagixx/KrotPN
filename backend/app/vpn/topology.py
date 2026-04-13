@@ -44,16 +44,6 @@ from app.routing.manager import routing_manager
 from app.vpn.models import VPNClient, VPNNode, VPNRoute, VPNServer
 
 
-
-from loguru import logger
-from sqlalchemy import func, select
-from sqlalchemy.ext.asyncio import AsyncSession
-
-from app.core.security import encrypt_data
-from app.routing.manager import routing_manager
-from app.vpn.models import VPNClient, VPNNode, VPNRoute, VPNServer
-
-
 class TopologyMixin:
     """Mixin providing VPN topology management helpers."""
 
@@ -114,12 +104,12 @@ class TopologyMixin:
     async def get_route_statuses(self) -> list[dict[str, Any]]:
         routes = await self.list_routes()
         statuses: list[dict[str, Any]] = []
-        tunnel_health = await routing_manager.check_tunnel_status()
+        tunnel_status = await routing_manager.get_status()
         for route in routes:
             entry_node = await self.get_node(route.entry_node_id)
             exit_node = await self.get_node(route.exit_node_id)
             load = (route.current_clients / route.max_clients * 100) if route.max_clients > 0 else 0
-            tunnel_status = tunnel_health.get("status", "unknown") if exit_node is not None else "not_configured"
+            tunnel_status_str = tunnel_status.status if exit_node is not None else "not_configured"
             statuses.append({
                 "id": route.id, "name": route.name,
                 "entry_node_id": route.entry_node_id,
@@ -129,8 +119,8 @@ class TopologyMixin:
                 "exit_node_name": exit_node.name if exit_node else None,
                 "exit_node_location": exit_node.location if exit_node else None,
                 "is_active": route.is_active, "is_default": route.is_default,
-                "tunnel_interface": tunnel_health.get("interface") if exit_node is not None else None,
-                "tunnel_status": tunnel_status, "priority": route.priority,
+                "tunnel_interface": tunnel_status.interface if exit_node is not None else None,
+                "tunnel_status": tunnel_status_str, "priority": route.priority,
                 "current_clients": route.current_clients, "max_clients": route.max_clients,
                 "load_percent": round(load, 1),
             })

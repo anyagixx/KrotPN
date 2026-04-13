@@ -60,7 +60,7 @@ from app.vpn.router import router as vpn_router
 from app.vpn.router import admin_router as admin_vpn_router
 from app.vpn.router import admin_nodes_router as admin_vpn_nodes_router
 from app.vpn.router import admin_routes_router as admin_vpn_routes_router
-from app.routing.router import router as routing_router
+# NOTE: routing_router removed in Phase-17 (Full Tunnel — no split-tunneling API)
 from app.billing.router import router as billing_router
 from app.billing.router import admin_router as admin_billing_router
 from app.referrals.router import router as referral_router
@@ -120,13 +120,10 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
         else:
             logger.info("[APP] VPN route bootstrap skipped or incomplete")
 
-    # Production routing is managed by host-level systemd scripts.
-    if settings.is_production:
-        logger.info("[APP] Routing manager skipped in production (host-managed)")
-    else:
-        from app.routing import routing_manager
-        await routing_manager.initialize()
-        logger.info("[APP] Routing manager initialized")
+    # Routing manager — simple health check only (Full Tunnel, Phase-17)
+    from app.routing import routing_manager
+    await routing_manager.initialize()
+    logger.info("[APP] Routing manager initialized (Full Tunnel mode)")
 
     # Start task scheduler
     from app.tasks import task_scheduler
@@ -243,8 +240,8 @@ app.include_router(admin_vpn_router)
 app.include_router(admin_vpn_nodes_router)
 app.include_router(admin_vpn_routes_router)
 
-# Routing
-app.include_router(routing_router)
+# Routing — removed in Phase-17 (Full Tunnel, no split-tunneling API)
+# app.include_router(routing_router)
 
 # Billing
 app.include_router(billing_router)

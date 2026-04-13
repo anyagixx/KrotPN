@@ -38,8 +38,7 @@ from app.billing.models import Payment, PaymentStatus, Plan, Subscription
 from app.devices.models import DeviceSecurityEvent, UserDevice
 from app.devices.service import DeviceAccessPolicyService
 from app.referrals.models import Referral, ReferralCode
-from app.routing.models import CidrRouteRule, DomainRouteRule
-from app.routing.router import policy_dns_observer
+# NOTE: routing models/observer removed in Phase-17 (Full Tunnel)
 from app.users.models import User, UserRole
 from app.vpn.models import VPNClient, VPNNode, VPNRoute, VPNServer
 from app.vpn.service import VPNService
@@ -210,13 +209,8 @@ async def get_admin_stats(
             VPNRoute.is_default == True,
         )
     )).scalar() or 0
-    active_domain_rules = (await session.execute(
-        select(func.count(DomainRouteRule.id)).where(DomainRouteRule.is_active == True)
-    )).scalar() or 0
-    active_cidr_rules = (await session.execute(
-        select(func.count(CidrRouteRule.id)).where(CidrRouteRule.is_active == True)
-    )).scalar() or 0
-    active_dns_bindings = len(policy_dns_observer.get_active_bindings())
+    # NOTE: routing policy stats removed in Phase-17 (Full Tunnel)
+    # active_domain_rules, active_cidr_rules, active_dns_bindings no longer applicable
 
     return {
         "users": {
@@ -242,10 +236,8 @@ async def get_admin_stats(
             "active_nodes": active_nodes,
             "active_routes": active_routes,
             "default_routes": default_routes,
-            "domain_rules_active": active_domain_rules,
-            "cidr_rules_active": active_cidr_rules,
-            "dns_bindings_active": active_dns_bindings,
-            "policy_mode": "domain_first_with_ru_fallback",
+            "mode": "full_tunnel",
+            "note": "Split-tunneling removed in Phase-17. All traffic via DE server.",
         },
     }
 # END_BLOCK: get_admin_stats

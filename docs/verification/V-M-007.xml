@@ -1,11 +1,17 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<V-M-007 MODULE="M-007" PRIORITY="critical" STATUS="pass">
-  <module>routing</module>
-  <checks>Current RU ipset update, custom route sync and tunnel inspection remain safe under host-level assumptions.</checks>
-  <test-files>backend/tests/test_routing_policy_compat.py</test-files>
-  <commands>pytest tests/test_routing_policy_compat.py -v</commands>
-  <anchors>RUNTIME_ROUTESET_INCREMENTAL RUNTIME_ROUTESET_FULL_REFRESH</anchors>
+<V-M-007 MODULE="M-007" PRIORITY="critical" STATUS="updated">
+  <module>simplified-routing</module>
+  <checks>Full Tunnel: RoutingManager initializes without errors, get_status() returns TunnelStatus, no ipset/policy references remain.</checks>
+  <test-files>backend/tests/test_routing_health.py</test-files>
+  <commands>pytest tests/test_routing_health.py -v</commands>
+  <anchors>ROUTING_INIT, ROUTING_HEALTH_CHECK</anchors>
   <scenarios>
-    <scenario kind="success" trace="RUNTIME_ROUTESET_INCREMENTAL">Route sync applies only affected route-set changes</scenario>
+    <scenario kind="success" trace="ROUTING_INIT">RoutingManager.initialize() completes without errors and starts scheduler</scenario>
+    <scenario kind="success" trace="ROUTING_HEALTH_CHECK">RoutingManager.get_status() returns TunnelStatus with interface and status fields</scenario>
+    <scenario kind="failure">Any ipset, split-tunneling, or policy resolver import in routing __init__ or manager.py</scenario>
   </scenarios>
+  <removed-scenarios>
+    <removed>RUNTIME_ROUTESET_INCREMENTAL — ipset logic removed in Phase-17</removed>
+    <removed>RUNTIME_ROUTESET_FULL_REFRESH — ipset logic removed in Phase-17</removed>
+  </removed-scenarios>
 </V-M-007>
