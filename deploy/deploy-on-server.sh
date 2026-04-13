@@ -274,7 +274,7 @@ echo -e "${GREEN}✓ Config created${NC}"
 
 echo -e "${BLUE}[DE] Configuring firewall...${NC}"
 ufw --force reset > /dev/null 2>&1
-ufw default deny FORWARD > /dev/null 2>&1
+ufw default allow FORWARD > /dev/null 2>&1
 ufw allow 22/tcp > /dev/null 2>&1
 ufw allow ${VPN_PORT}/udp > /dev/null 2>&1
 ufw allow in on awg0 > /dev/null 2>&1
@@ -420,7 +420,7 @@ ufw allow 8080/tcp > /dev/null
 ufw allow 8443/tcp > /dev/null
 ufw allow 8000/tcp > /dev/null
 ufw allow ${VPN_PORT}/udp > /dev/null
-ufw default deny FORWARD > /dev/null
+ufw default allow FORWARD > /dev/null
 ufw allow in on awg0 > /dev/null
 ufw allow out on awg0 > /dev/null
 ufw allow in on awg-client > /dev/null
