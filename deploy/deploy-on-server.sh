@@ -517,6 +517,40 @@ if [ "$TUNNEL_OK" = false ]; then
     ssh_de "awg show" 2>/dev/null || echo "    Cannot connect to DE"
 fi
 
+# ============================================================
+# Policy Routing: Client traffic MUST go through tunnel to DE
+# ============================================================
+# Without this, client packets (10.10.0.0/24) go to the default
+# route (eth0/internet) instead of through awg-client to DE.
+# ============================================================
+
+echo -e "${BLUE}[RU] Configuring policy routing for VPN clients...${NC}"
+
+# Create custom routing table if not exists
+if ! grep -q "100.*vpnclients" /etc/iproute2/rt_tables 2>/dev/null; then
+    echo "100 vpnclients" >> /etc/iproute2/rt_tables
+    echo "  Created routing table 'vpnclients' (id 100)"
+fi
+
+# Add rule: all packets from client subnet use table 100
+ip rule add from 10.10.0.0/24 lookup 100 2>/dev/null || true
+echo "  Added ip rule: from 10.10.0.0/24 lookup vpnclients"
+
+# Add default route via awg-client in table 100
+ip route add default dev awg-client table 100 2>/dev/null || true
+echo "  Added default route via awg-client in table vpnclients"
+
+# Persist policy routing across reboots
+cat > /etc/network/if-up.d/krotpn-policy-routing << 'ROUTING_SCRIPT'
+#!/bin/sh
+# Restore VPN client policy routing after interface restart
+echo "100 vpnclients" >> /etc/iproute2/rt_tables 2>/dev/null || true
+ip rule add from 10.10.0.0/24 lookup 100 2>/dev/null || true
+ip route add default dev awg-client table 100 2>/dev/null || true
+ROUTING_SCRIPT
+chmod +x /etc/network/if-up.d/krotpn-policy-routing
+echo "  ✅ Policy routing persisted across reboots"
+
 # Update KrotPN
 echo -e "${BLUE}[RU] Updating KrotPN application...${NC}"
 cd /opt/KrotPN
