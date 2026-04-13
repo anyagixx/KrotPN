@@ -1,10 +1,10 @@
 version: '3.8'
 
 # GRACE-lite operational contract:
-# - This file defines the container runtime graph, but the product is not fully container-isolated.
-# - `backend` depends on host-level AmneziaWG state via mounted config and mounted `awg` binary.
-# - Security assumptions here matter: exposed ports, env defaults, and host mounts affect production behavior.
-# - Any change in service names, mounts or ports should trigger updates in docs/knowledge-graph.xml and docs/verification-plan.xml.
+# - All containers use network_mode: host for simplicity.
+# - Backend needs host network for AmneziaWG interface visibility (awg0, awg-client).
+# - Frontends proxy to backend on 127.0.0.1:8000 via host network.
+# - Nginx proxies to 127.0.0.1:80/8000 via host network.
 
 services:
   # PostgreSQL Database
@@ -28,9 +28,6 @@ services:
         limits:
           memory: 256M
           cpus: '0.5'
-    networks:
-      - krotpn-network
-    # Not exposed externally - only accessible via internal network
 
   # Redis Cache
   redis:
@@ -50,9 +47,6 @@ services:
         limits:
           memory: 256M
           cpus: '0.5'
-    networks:
-      - krotpn-network
-    # Not exposed externally - only accessible via internal network
 
   # Backend API
   backend:
@@ -69,23 +63,17 @@ services:
     env_file:
       - .env
     environment:
-      - DATABASE_URL=postgresql+asyncpg://${DB_USER:-krotpn}:${DB_PASSWORD:?DB_PASSWORD must be set in .env}@db:5432/${DB_NAME:-krotpn}
-      - REDIS_URL=redis://redis:6379/0
+      - DATABASE_URL=postgresql+asyncpg://${DB_USER:-krotpn}:${DB_PASSWORD:?DB_PASSWORD must be set in .env}@127.0.0.1:5432/${DB_NAME:-krotpn}
+      - REDIS_URL=redis://127.0.0.1:6379/0
     volumes:
       - ./logs:/app/logs
       - /etc/amnezia/amneziawg:/etc/amnezia/amneziawg
       - /usr/bin/awg:/usr/local/bin/awg:ro
       - ./backend/app/routing:/app/app/routing
-    # CRITICAL: host network mode required for AmneziaWG interface visibility (awg0, awg-client)
-    # Without this, backend cannot see host network interfaces for tunnel health checks.
     network_mode: host
     cap_add:
       - NET_ADMIN
       - SYS_ADMIN
-    extra_hosts:
-      - "db:172.18.0.2"
-      - "redis:172.18.0.3"
-    # Not exposed externally - proxied via nginx
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
       interval: 30s
@@ -108,14 +96,12 @@ services:
     depends_on:
       backend:
         condition: service_healthy
+    network_mode: host
     healthcheck:
       test: ["CMD-SHELL", "curl -f http://localhost:80/ || exit 1"]
       interval: 30s
       timeout: 10s
       retries: 3
-    networks:
-      - krotpn-network
-    # Not exposed externally - proxied via nginx
     deploy:
       resources:
         limits:
@@ -132,14 +118,12 @@ services:
     depends_on:
       backend:
         condition: service_healthy
+    network_mode: host
     healthcheck:
-      test: ["CMD-SHELL", "curl -f http://localhost:80/ || exit 1"]
+      test: ["CMD-SHELL", "curl -f http://localhost:8080/ || exit 1"]
       interval: 30s
       timeout: 10s
       retries: 3
-    networks:
-      - krotpn-network
-    # Not exposed externally - proxied via nginx
     deploy:
       resources:
         limits:
@@ -161,18 +145,12 @@ services:
     volumes:
       - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
       - ./ssl:/etc/nginx/ssl:ro
-    ports:
-      - "80:80"
-      - "443:443"
-      - "8080:8080"
-      - "8443:8443"
+    network_mode: host
     healthcheck:
       test: ["CMD-SHELL", "curl -f http://localhost:80/ || exit 1"]
       interval: 30s
       timeout: 10s
       retries: 3
-    networks:
-      - krotpn-network
     deploy:
       resources:
         limits:
@@ -182,7 +160,3 @@ services:
 volumes:
   postgres_data:
   redis_data:
-
-networks:
-  krotpn-network:
-    driver: bridge
