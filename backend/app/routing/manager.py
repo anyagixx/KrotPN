@@ -73,18 +73,25 @@ class RoutingManager:
         logger.info("[ROUTING] Simplified RoutingManager initialized (Full Tunnel mode)")
 
     async def _check_tunnel_health(self) -> None:
-        """Check if the tunnel interface is up."""
+        """Check if the tunnel interface is up and has at least one peer with handshake."""
         try:
+            # Use 'awg show' to check tunnel health because with network_mode: host
+            # we can see host interfaces. We check both interface existence AND peer status.
             proc = await asyncio.create_subprocess_exec(
-                "ip", "link", "show", self._status.interface,
+                "awg", "show", self._status.interface,
                 stdout=asyncio.subprocess.PIPE,
                 stderr=asyncio.subprocess.PIPE,
             )
-            stdout, _ = await proc.communicate()
+            stdout, stderr = await proc.communicate()
 
-            if proc.returncode == 0 and b"UP" in stdout:
+            output = stdout.decode() + stderr.decode()
+
+            if proc.returncode == 0 and "interface:" in output and "peer:" in output:
                 self._status.status = "up"
                 logger.debug(f"[ROUTING] Tunnel {self._status.interface} is UP")
+            elif proc.returncode == 0 and "interface:" in output:
+                self._status.status = "degraded"
+                logger.warning(f"[ROUTING] Tunnel {self._status.interface} is UP but has no peers")
             else:
                 self._status.status = "down"
                 logger.warning(f"[ROUTING] Tunnel {self._status.interface} is DOWN")

@@ -75,8 +75,15 @@ services:
       - ./logs:/app/logs
       - /etc/amnezia/amneziawg:/etc/amnezia/amneziawg
       - /usr/bin/awg:/usr/local/bin/awg:ro
-    networks:
-      - krotpn-network
+    # CRITICAL: host network mode required for AmneziaWG interface visibility (awg0, awg-client)
+    # Without this, backend cannot see host network interfaces for tunnel health checks.
+    network_mode: host
+    cap_add:
+      - NET_ADMIN
+      - SYS_ADMIN
+    extra_hosts:
+      - "db:172.18.0.2"
+      - "redis:172.18.0.3"
     # Not exposed externally - proxied via nginx
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
