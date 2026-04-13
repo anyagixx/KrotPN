@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!-- Phase-17: Full Tunnel Simplification & Frontend Cleanup -->
-<Phase-17 NAME="Full Tunnel Simplification" STATUS="planned" MODULES="M-007,M-012,M-009,M-010" CREATED="2026-04-14">
+<Phase-17 NAME="Full Tunnel Simplification" STATUS="done" MODULES="M-007,M-012,M-009,M-010" CREATED="2026-04-14">
 
   <goal>
     Replace complex Split-Tunneling logic with simple Full Tunnel architecture.

@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<V-M-006 MODULE="M-006" PRIORITY="high" STATUS="pass">
+<V-M-006 MODULE="M-006" PRIORITY="high" STATUS="pending">
   <module>admin-api</module>
   <checks>Admin routing inspection and analytics endpoints enforce admin auth and reflect current policy state.</checks>
   <test-files>backend/tests/test_route_decision_api.py backend/tests/test_admin_stats.py</test-files>

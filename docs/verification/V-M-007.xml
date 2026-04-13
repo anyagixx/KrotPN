@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<V-M-007 MODULE="M-007" PRIORITY="critical" STATUS="updated">
+<V-M-007 MODULE="M-007" PRIORITY="critical" STATUS="pass">
   <module>simplified-routing</module>
   <checks>Full Tunnel: RoutingManager initializes without errors, get_status() returns TunnelStatus, no ipset/policy references remain.</checks>
   <test-files>backend/tests/test_routing_health.py</test-files>
