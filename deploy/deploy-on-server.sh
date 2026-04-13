@@ -281,10 +281,18 @@ ufw allow in on awg0 > /dev/null 2>&1
 ufw allow out on awg0 > /dev/null 2>&1
 ufw --force enable > /dev/null 2>&1
 
-# NAT rule for tunnel traffic
+# Add FORWARD rules for tunnel traffic
+iptables -D FORWARD -i awg0 -o eth0 -j ACCEPT 2>/dev/null || true
+iptables -D FORWARD -i eth0 -o awg0 -j ACCEPT 2>/dev/null || true
+iptables -I FORWARD 1 -i awg0 -o eth0 -j ACCEPT
+iptables -I FORWARD 2 -i eth0 -o awg0 -j ACCEPT
+
+# NAT rule for both tunnel (10.200.0.0/24) and client (10.10.0.0/24) traffic
 EXT_IF=$(ip route | grep default | awk '{print $5}' | head -1)
 iptables -t nat -C POSTROUTING -s 10.200.0.0/24 -o $EXT_IF -j MASQUERADE 2>/dev/null || \
     iptables -t nat -A POSTROUTING -s 10.200.0.0/24 -o $EXT_IF -j MASQUERADE
+iptables -t nat -C POSTROUTING -s 10.10.0.0/24 -o $EXT_IF -j MASQUERADE 2>/dev/null || \
+    iptables -t nat -A POSTROUTING -s 10.10.0.0/24 -o $EXT_IF -j MASQUERADE
 
 mkdir -p /etc/iptables
 iptables-save > /etc/iptables/rules.v4
