@@ -12,6 +12,7 @@ services:
     image: postgres:15-alpine
     container_name: krotpn-db
     restart: unless-stopped
+    network_mode: host
     environment:
       POSTGRES_USER: ${DB_USER:-krotpn}
       POSTGRES_PASSWORD: ${DB_PASSWORD:?DB_PASSWORD must be set in .env}
@@ -19,7 +20,7 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-krotpn}"]
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-krotpn} -h 127.0.0.1"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -34,11 +35,12 @@ services:
     image: redis:7-alpine
     container_name: krotpn-redis
     restart: unless-stopped
-    command: redis-server --appendonly yes --maxmemory 256mb --maxmemory-policy allkeys-lru
+    network_mode: host
+    command: redis-server --appendonly yes --maxmemory 256mb --maxmemory-policy allkeys-lru --bind 127.0.0.1
     volumes:
       - redis_data:/data
     healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
+      test: ["CMD", "redis-cli", "-h", "127.0.0.1", "ping"]
       interval: 10s
       timeout: 5s
       retries: 5
