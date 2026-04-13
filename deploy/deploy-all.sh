@@ -248,9 +248,16 @@ ufw allow ${VPN_PORT}/udp > /dev/null
 ufw allow in on awg0 > /dev/null
 ufw allow out on awg0 > /dev/null
 
-# Add NAT rule with dynamic interface detection
+# Add FORWARD rules for tunnel traffic
+iptables -D FORWARD -i awg0 -o eth0 -j ACCEPT 2>/dev/null || true
+iptables -D FORWARD -i eth0 -o awg0 -j ACCEPT 2>/dev/null || true
+iptables -I FORWARD 1 -i awg0 -o eth0 -j ACCEPT
+iptables -I FORWARD 2 -i eth0 -o awg0 -j ACCEPT
+
+# Add NAT for both tunnel network (10.200.0.0/24) and client network (10.10.0.0/24)
 EXT_IF=$(ip route | grep default | awk '{print $5}' | head -1)
 iptables -t nat -A POSTROUTING -s 10.200.0.0/24 -o $EXT_IF -j MASQUERADE
+iptables -t nat -A POSTROUTING -s 10.10.0.0/24 -o $EXT_IF -j MASQUERADE
 mkdir -p /etc/iptables
 iptables-save > /etc/iptables/rules.v4
 
@@ -469,6 +476,10 @@ VPN_DNS=8.8.8.8, 1.1.1.1
 VPN_MTU=1360
 VPN_SERVER_PUBLIC_KEY=${RU_SERVER_PUBLIC}
 VPN_SERVER_ENDPOINT=${RU_IP}
+VPN_ENTRY_SERVER_PUBLIC_KEY=${RU_SERVER_PUBLIC}
+VPN_ENTRY_SERVER_ENDPOINT=${RU_IP}
+VPN_EXIT_SERVER_PUBLIC_KEY=${DE_PUBLIC_KEY}
+VPN_EXIT_SERVER_ENDPOINT=${DE_IP}
 
 # === AMNEZIAWG OBFUSCATION ===
 AWG_JC=120
