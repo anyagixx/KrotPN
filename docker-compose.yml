@@ -100,7 +100,7 @@ services:
         condition: service_healthy
     network_mode: host
     healthcheck:
-      test: ["CMD-SHELL", "curl -f http://localhost:80/ || exit 1"]
+      test: ["CMD-SHELL", "curl -f http://localhost:3000/ || exit 1"]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -122,7 +122,7 @@ services:
         condition: service_healthy
     network_mode: host
     healthcheck:
-      test: ["CMD-SHELL", "curl -f http://localhost:8080/ || exit 1"]
+      test: ["CMD-SHELL", "curl -f http://localhost:3001/ || exit 1"]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -149,7 +149,7 @@ services:
       - ./ssl:/etc/nginx/ssl:ro
     network_mode: host
     healthcheck:
-      test: ["CMD-SHELL", "curl -f http://localhost:80/ || exit 1"]
+      test: ["CMD-SHELL", "curl -f http://localhost:3000/ || exit 1"]
       interval: 30s
       timeout: 10s
       retries: 3
