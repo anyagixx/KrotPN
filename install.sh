@@ -2,7 +2,7 @@
 #
 # KrotPN Interactive Installer v2.8.2
 # Run this command to install:
-#   curl -fsSL https://raw.githubusercontent.com/anyagixx/KrotPN-qwen/main/install.sh | bash
+#   curl -fsSL https://raw.githubusercontent.com/anyagixx/KrotPN/main/install.sh | bash
 # GRACE-lite operational contract:
 # - This script is an interactive bootstrap helper, not a hardened deployment system.
 # - It supports both password-based and key-based SSH authentication.
@@ -352,7 +352,7 @@ EOF
         fi
         cd /opt
         rm -rf KrotPN 2>/dev/null || true
-        git clone https://github.com/anyagixx/KrotPN-qwen.git KrotPN
+        git clone https://github.com/anyagixx/KrotPN.git KrotPN
         chmod +x /opt/KrotPN/deploy/*.sh
     "
     

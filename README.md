@@ -58,13 +58,13 @@
 ### Одна команда установки
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/anyagixx/KrotPN-qwen/main/install.sh | bash
+curl -fsSL https://raw.githubusercontent.com/anyagixx/KrotPN/main/install.sh | bash
 ```
 
 Или с wget:
 
 ```bash
-wget -qO- https://raw.githubusercontent.com/anyagixx/KrotPN-qwen/main/install.sh | bash
+wget -qO- https://raw.githubusercontent.com/anyagixx/KrotPN/main/install.sh | bash
 ```
 
 Установщик проведёт вас через все шаги интерактивно.
