@@ -1,4 +1,4 @@
-# KrotVPN — GRACE Engineering Protocol
+# KrotPN — GRACE Engineering Protocol
 
 ## ⚠️ MANDATORY: ALL DEVELOPMENT STRICTLY VIA GRACE
 
@@ -25,7 +25,7 @@
 VPN, WireGuard, split-tunneling, routing, billing, subscriptions, Telegram bot, admin panel, FastAPI, Vue.js, YooKassa, Docker, AWG
 
 ## Annotation
-KrotVPN is a production MVP in hardening/stabilization phase. A practical GRACE-governed project for a VPN service with split-tunneling, subscription billing, referral bonuses, and an admin dashboard.
+KrotPN is a production MVP in hardening/stabilization phase. A practical GRACE-governed project for a VPN service with split-tunneling, subscription billing, referral bonuses, and an admin dashboard.
 
 ## Read Order
 
@@ -47,7 +47,7 @@ For deep reference (rarely needed):
 
 ## Project Reality
 
-- `KrotVPN` is not a greenfield project. It is an implemented MVP in hardening/stabilization.
+- `KrotPN` is not a greenfield project. It is an implemented MVP in hardening/stabilization.
 - The main risks are currently in security, deployment, VPN topology migration, and verification discipline.
 - Code is the source of truth when docs lag, but docs must be updated after meaningful changes.
 - **All development follows GRACE**: Contract-First → Semantic Markup → Knowledge Graph → Verification → Execute → Review

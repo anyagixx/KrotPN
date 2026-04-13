@@ -1,15 +1,15 @@
-# 🚀 KrotVPN Quick Start Guide
+# 🚀 KrotPN Quick Start Guide
 
 ## One-Line Installation
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/anyagixx/KrotVPN/main/install.sh | bash
+curl -fsSL https://raw.githubusercontent.com/anyagixx/KrotPN/main/install.sh | bash
 ```
 
 Or with wget:
 
 ```bash
-wget -qO- https://raw.githubusercontent.com/anyagixx/KrotVPN/main/install.sh | bash
+wget -qO- https://raw.githubusercontent.com/anyagixx/KrotPN/main/install.sh | bash
 ```
 
 The installer will guide you through the setup process interactively.
@@ -31,7 +31,7 @@ The installer will guide you through the setup process interactively.
 1. ✅ Checks your environment
 2. ✅ Asks for server IP addresses
 3. ✅ Helps set up SSH keys
-4. ✅ Downloads KrotVPN
+4. ✅ Downloads KrotPN
 5. ✅ Deploys to both servers automatically
 6. ✅ Generates SSL certificates for HTTPS
 7. ✅ Starts all services
@@ -56,7 +56,7 @@ Use these credentials to access the admin panel at `https://YOUR_RU_IP:8443`:
 
 | Field | Value |
 |-------|-------|
-| **Email** | `admin@krotvpn.com` |
+| **Email** | `admin@krtpn.com` |
 | **Password** | `ChangeMeImmediately123!` |
 
 > ⚠️ **Important**: Change the default password immediately after first login!
@@ -64,17 +64,17 @@ Use these credentials to access the admin panel at `https://YOUR_RU_IP:8443`:
 ### Create VPN Client
 
 ```bash
-ssh root@YOUR_RU_IP "/opt/KrotVPN/deploy/create-client.sh my_client"
+ssh root@YOUR_RU_IP "/opt/KrotPN/deploy/create-client.sh my_client"
 ```
 
 Scan the QR code with **AmneziaWG** app on your phone.
 
 ### Configure (Optional)
 
-Edit `/opt/KrotVPN/.env` on RU server:
+Edit `/opt/KrotPN/.env` on RU server:
 
 ```bash
-ssh root@YOUR_RU_IP "nano /opt/KrotVPN/.env"
+ssh root@YOUR_RU_IP "nano /opt/KrotPN/.env"
 ```
 
 | Variable | Description |
@@ -87,7 +87,7 @@ ssh root@YOUR_RU_IP "nano /opt/KrotVPN/.env"
 After editing, restart:
 
 ```bash
-ssh root@YOUR_RU_IP "cd /opt/KrotVPN && docker compose restart"
+ssh root@YOUR_RU_IP "cd /opt/KrotPN && docker compose restart"
 ```
 
 ---
@@ -106,13 +106,13 @@ ssh root@YOUR_RU_IP "cd /opt/KrotVPN && docker compose restart"
 ### Check service status
 
 ```bash
-ssh root@YOUR_RU_IP "docker compose -f /opt/KrotVPN/docker-compose.yml ps"
+ssh root@YOUR_RU_IP "docker compose -f /opt/KrotPN/docker-compose.yml ps"
 ```
 
 ### View logs
 
 ```bash
-ssh root@YOUR_RU_IP "docker compose -f /opt/KrotVPN/docker-compose.yml logs -f backend"
+ssh root@YOUR_RU_IP "docker compose -f /opt/KrotPN/docker-compose.yml logs -f backend"
 ```
 
 ### Check VPN tunnel
@@ -125,12 +125,12 @@ ssh root@YOUR_RU_IP "ping -c 3 10.200.0.1"
 ### Restart services
 
 ```bash
-ssh root@YOUR_RU_IP "cd /opt/KrotVPN && docker compose restart"
+ssh root@YOUR_RU_IP "cd /opt/KrotPN && docker compose restart"
 ```
 
 ---
 
 ## Support
 
-- **GitHub**: https://github.com/anyagixx/KrotVPN
-- **Issues**: https://github.com/anyagixx/KrotVPN/issues
+- **GitHub**: https://github.com/anyagixx/KrotPN
+- **Issues**: https://github.com/anyagixx/KrotPN/issues

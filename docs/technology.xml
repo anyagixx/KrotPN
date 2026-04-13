@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- GRACE Technology Stack for KrotVPN — runtime, dependencies, tooling, testing, observability, delivery -->
+<!-- GRACE Technology Stack for KrotPN — runtime, dependencies, tooling, testing, observability, delivery -->
 <TechnologyStack VERSION="1.0.0">
   <Runtime>Python 3.11 + Node.js 22 (frontend build)</Runtime>
   <Language>Python 3.11 + TypeScript 5.x</Language>

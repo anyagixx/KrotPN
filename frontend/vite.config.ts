@@ -9,8 +9,8 @@ export default defineConfig({
       registerType: 'autoUpdate',
       includeAssets: ['favicon.ico', 'apple-touch-icon.png', 'mask-icon.svg'],
       manifest: {
-        name: 'KrotVPN',
-        short_name: 'KrotVPN',
+        name: 'KrotPN',
+        short_name: 'KrotPN',
         description: 'VPN Service for bypassing Russian censorship',
         theme_color: '#6366f1',
         background_color: '#0f111a',

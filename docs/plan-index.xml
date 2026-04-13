@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!-- MyGRACE Plan Index — lazy-loading entry point for phase navigation -->
 <!-- Generated 2026-04-12 from development-plan.xml -->
-<PlanIndex VERSION="1.0.0" PROJECT="KrotVPN" PHASE-COUNT="14">
+<PlanIndex VERSION="1.0.0" PROJECT="KrotPN" PHASE-COUNT="15">
   <Phase-1 NAME="Policy model and safe compatibility layer" STATUS="done" STEPS="3" MODULES="M-013,M-014" />
   <Phase-2 NAME="Runtime synchronization and DNS binding" STATUS="done" STEPS="3" MODULES="M-015,M-017" />
   <Phase-3 NAME="Admin control plane and operator visibility" STATUS="done" STEPS="3" MODULES="M-006,M-016" />
@@ -17,4 +17,5 @@
   <Phase-13 NAME="Tests and CI/CD (P5)" STATUS="done" STEPS="10" MODULES="M-001,M-004,M-008,M-005,M-019" />
   <Phase-14 NAME="Cleanup and Polish (P6)" STATUS="done" STEPS="7" MODULES="M-003,M-002,M-026,M-006,M-001" />
   <Phase-15 NAME="Automated RU IP Range Updates" STATUS="done" STEPS="9" MODULES="M-017,M-008,M-012,M-006" />
+  <Phase-16 NAME="KrotPN → KrotPN Rebranding" STATUS="planned" STEPS="12" MODULES="M-012,M-001,M-009,M-011" />
 </PlanIndex>

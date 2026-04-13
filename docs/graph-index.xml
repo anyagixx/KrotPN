@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!-- MyGRACE Graph Index — lazy-loading entry point for module navigation -->
 <!-- Generated 2026-04-12 from knowledge-graph.xml v1.0.0 -->
-<GraphIndex VERSION="1.0.0" PROJECT="KrotVPN" MODULE-COUNT="28">
+<GraphIndex VERSION="1.0.0" PROJECT="KrotPN" MODULE-COUNT="28">
   <M-001 NAME="backend-core" TYPE="UTILITY" STATUS="stable" PATH="backend/app/core" DEPENDS="M-028" VERIFICATION-REF="V-M-001" />
   <M-002 NAME="users" TYPE="CORE_LOGIC" STATUS="stable" PATH="backend/app/users" DEPENDS="M-001,M-027" VERIFICATION-REF="V-M-002" />
   <M-003 NAME="vpn" TYPE="CORE_LOGIC" STATUS="stable" PATH="backend/app/vpn" DEPENDS="M-001,M-002,M-007,M-020" VERIFICATION-REF="V-M-003" />

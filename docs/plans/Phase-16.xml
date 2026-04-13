@@ -1,0 +1,135 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Phase-16: KrotPN → KrotPN Rebranding — complete rename with zero breakage guarantee -->
+<Phase-16 NAME="KrotPN → KrotPN Rebranding" STATUS="planned" MODULES="M-012,M-001,M-009,M-011" CREATED="2026-04-13">
+
+  <purpose>
+    Rename every user-facing and operational reference from KrotPN/krtpn to KrotPN/krtpn
+    across the entire project while guaranteeing zero deploy breakage. This includes container
+    names, script paths, config values, doc metadata, frontend strings, and systemd unit names.
+    Code structure (Python modules, frontend components, DB schema) remains unchanged.
+  </purpose>
+
+  <scope>
+    <in>All files containing "KrotPN", "krtpn", or "krtpn-" in content or names</in>
+    <out>Python import paths, frontend component names, DB table names, AWG interface names</out>
+    <out>Volume names (postgres_data, redis_data) — unchanged</out>
+    <out>IP addresses, ports, SSL certs, YooKassa/Telegram tokens</out>
+    <out>Directory names (backend/app, frontend/, etc.) — unchanged</out>
+  </scope>
+
+  <safety-constraints>
+    <constraint>Atomic rename on server: stop containers → rename dirs → update configs → start</constraint>
+    <constraint>Backward compat: /opt/KrotPN symlink → /opt/KrotPN for 30 days</constraint>
+    <constraint>Deploy idempotency: scripts check for BOTH old and new directory names</constraint>
+    <constraint>Rollback: full backup before rename, restore from backup if deploy fails</constraint>
+    <constraint>DB name stays "krtpn" initially — rename in a later phase if desired</constraint>
+  </safety-constraints>
+
+  <step-1 MODULE="M-012" RISK="CRITICAL">
+    docker-compose.yml: rename all container names, network, env defaults
+    krtpn-db → krtpn-db, krtpn-redis → krtpn-redis, krtpn-backend → krtpn-backend,
+    krtpn-frontend → krtpn-frontend, krtpn-admin → krtpn-admin, krtpn-nginx → krtpn-nginx,
+    krtpn-network → krtpn-network, DB_USER default krtpn → krtpn, DB_NAME default krtpn → krtpn
+  </step-1>
+
+  <step-2 MODULE="M-012" RISK="CRITICAL">
+    Deploy scripts: update /opt/KrotPN → /opt/KrotPN, all systemd unit names
+    krtpn-routing → krtpn-routing, krtpn-ru-ips → krtpn-ru-ips,
+    krtpn-sync-awg0 → krtpn-sync-awg0, krtpn_deploy.conf → krtpn_deploy.conf,
+    sysctl 99-krtpn.conf → 99-krtpn.conf
+  </step-2>
+
+  <step-3 MODULE="M-001" RISK="CRITICAL">
+    Backend config: app_name "KrotPN" → "KrotPN", default DB URL, frontend_url
+    krtpn.db → krtpn.db, https://krtpn.com → https://krtpn.com,
+    local.krtpn → local.krtpn, noreply@krtpn.com → noreply@krtpn.com,
+    krtpn-cli → krtpn-cli
+  </step-3>
+
+  <step-4 MODULE="M-012" RISK="HIGH">
+    Dockerfiles: LABEL maintainer, descriptions
+    backend/Dockerfile: "KrotPN" → "KrotPN", user krtpn → krtpn
+    telegram-bot/Dockerfile: maintainer "KrotPN Telegram Bot" → "KrotPN Telegram Bot"
+    nginx/generate-certs.sh: /opt/KrotPN → /opt/KrotPN, cert O=KrotPN → O=KrotPN
+  </step-4>
+
+  <step-5 MODULE="M-001" RISK="HIGH">
+    MyGRACE docs: ALL 28 module files, 3 indexes, 15 phase files, verification files
+    PROJECT="KrotPN" → PROJECT="KrotPN" in all index headers
+    All references in requirements.xml, technology.xml, decisions.xml, operational-packets.xml
+    All archive/classic-grace/*.xml references (historical — update or annotate)
+  </step-5>
+
+  <step-6 MODULE="M-012" RISK="HIGH">
+    AGENTS.md: project name, all example paths and commands
+    README.md: all headings, URLs, commands, container names
+    QUICKSTART.md: all headings, URLs, paths, commands
+    DEPLOYMENT_GUIDE.md: all headings, paths, commands, examples
+    mygrace.toml: name = "KrotPN" (optional — project identity)
+    CHANGELOG.md: add rebranding entry, keep historical references
+  </step-6>
+
+  <step-7 MODULE="M-009" RISK="MEDIUM">
+    Frontend i18n and UI strings
+    frontend/src/i18n/index.ts: appName 'KrotPN' → 'KrotPN'
+    frontend-admin/src/i18n/index.ts: appName 'KrotPN' → 'KrotPN'
+    frontend/src/pages/Login.tsx: "KrotPN Secure Access" → "KrotPN Secure Access"
+    frontend-admin/src/pages/Login.tsx: "KrotPN Control Plane" → "KrotPN Control Plane"
+    frontend-admin/src/components/Layout.tsx: sidebar "KrotPN" → "KrotPN"
+    frontend/index.html: title, description meta
+    frontend-admin/index.html: title
+    frontend/vite.config.ts: PWA name, short_name
+  </step-7>
+
+  <step-8 MODULE="M-009" RISK="LOW">
+    package.json files: name, description
+    frontend/package.json: "krtpn-frontend" → "krtpn-frontend"
+    frontend-admin/package.json: "krtpn-admin" → "krtpn-admin"
+    frontend/package-lock.json, frontend-admin/package-lock.json — regenerated after package.json edit
+    backend/pyproject.toml: name "krtpn" → "krtpn", description
+  </step-8>
+
+  <step-9 MODULE="M-011" RISK="MEDIUM">
+    Telegram bot: bot description in bot.py (if any hardcoded strings)
+    backend/app/billing/service.py: payment description "KrotPN" → "KrotPN"
+    backend/app/vpn/router.py: config filename krtpn-{id}.conf → krtpn-{id}.conf
+    frontend/src/pages/Config.tsx: config filename krtpn-*.conf → krtpn-*.conf
+  </step-9>
+
+  <step-10 MODULE="M-012" RISK="CRITICAL">
+    Nginx config and operational paths
+    deploy/nginx/default — if references KrotPN in headers/comments
+    nginx/generate-certs.sh: all /opt/krtpn → /opt/krtpn paths
+    .env.example: APP_NAME, DATABASE_URL, ADMIN_EMAIL, EMAIL_FROM defaults
+  </step-10>
+
+  <step-11 MODULE="M-012" RISK="CRITICAL">
+    Git remote and repository references
+    Update all github.com/anyagixx/KrotPN* URLs to new repo URL
+    install.sh: clone URL, checkout path
+    deploy/deploy-all.sh: clone URL, cd path
+  </step-11>
+
+  <step-12 MODULE="M-012" RISK="CRITICAL">
+    Live deploy verification on VPS
+    1. Full backup: tar czf /tmp/krtpn-backup-$(date +%Y%m%d).tar.gz /opt/KrotPN
+    2. Stop all containers: docker compose -f /opt/KrotPN/docker-compose.yml down
+    3. Rename directory: mv /opt/KrotPN /opt/KrotPN
+    4. Create backward-compat symlink: ln -s /opt/KrotPN /opt/KrotPN
+    5. Update all config files in /opt/KrotPN (this phase changes)
+    6. Stop and rename systemd units: disable old, enable new
+    7. Start: docker compose -f /opt/KrotPN/docker-compose.yml up -d
+    8. Verify: all containers running, health checks passing
+    9. Test VPN connection, routing, admin panel, billing webhook
+  </step-12>
+
+  <phase-gates>
+    <gate-1>All static files pass grep: zero remaining "KrotPN"/"krtpn" in source (except archive and CHANGELOG)</gate-1>
+    <gate-2>docker compose config validates with new names</gate-2>
+    <gate-3>bash -n passes on all deploy scripts</gate-3>
+    <gate-4>frontend and frontend-admin build successfully</gate-4>
+    <gate-5>Live deploy on VPS: all 6 containers healthy with krtpn-* names</gate-5>
+    <gate-6>VPN client connects with krtpn-*.conf, split-tunneling works</gate-6>
+  </phase-gates>
+
+</Phase-16>

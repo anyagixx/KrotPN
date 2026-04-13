@@ -102,8 +102,8 @@ export default function Config() {
       const link = window.document.createElement('a')
       link.href = url
       const fileName = managedBundle?.device.device_key
-        ? `krotvpn-${managedBundle.device.device_key}.conf`
-        : 'krotvpn.conf'
+        ? `krtpn-${managedBundle.device.device_key}.conf`
+        : 'krtpn.conf'
       link.setAttribute('download', fileName)
       window.document.body.appendChild(link)
       link.click()

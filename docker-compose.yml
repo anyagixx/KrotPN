@@ -10,16 +10,16 @@ services:
   # PostgreSQL Database
   db:
     image: postgres:15-alpine
-    container_name: krotvpn-db
+    container_name: krtpn-db
     restart: unless-stopped
     environment:
-      POSTGRES_USER: ${DB_USER:-krotvpn}
+      POSTGRES_USER: ${DB_USER:-krtpn}
       POSTGRES_PASSWORD: ${DB_PASSWORD:?DB_PASSWORD must be set in .env}
-      POSTGRES_DB: ${DB_NAME:-krotvpn}
+      POSTGRES_DB: ${DB_NAME:-krtpn}
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-krotvpn}"]
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-krtpn}"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -29,13 +29,13 @@ services:
           memory: 256M
           cpus: '0.5'
     networks:
-      - krotvpn-network
+      - krtpn-network
     # Not exposed externally - only accessible via internal network
 
   # Redis Cache
   redis:
     image: redis:7-alpine
-    container_name: krotvpn-redis
+    container_name: krtpn-redis
     restart: unless-stopped
     command: redis-server --appendonly yes --maxmemory 256mb --maxmemory-policy allkeys-lru
     volumes:
@@ -51,7 +51,7 @@ services:
           memory: 256M
           cpus: '0.5'
     networks:
-      - krotvpn-network
+      - krtpn-network
     # Not exposed externally - only accessible via internal network
 
   # Backend API
@@ -59,7 +59,7 @@ services:
     build:
       context: ./backend
       dockerfile: Dockerfile
-    container_name: krotvpn-backend
+    container_name: krtpn-backend
     restart: unless-stopped
     depends_on:
       db:
@@ -69,14 +69,14 @@ services:
     env_file:
       - .env
     environment:
-      - DATABASE_URL=postgresql+asyncpg://${DB_USER:-krotvpn}:${DB_PASSWORD:?DB_PASSWORD must be set in .env}@db:5432/${DB_NAME:-krotvpn}
+      - DATABASE_URL=postgresql+asyncpg://${DB_USER:-krtpn}:${DB_PASSWORD:?DB_PASSWORD must be set in .env}@db:5432/${DB_NAME:-krtpn}
       - REDIS_URL=redis://redis:6379/0
     volumes:
       - ./logs:/app/logs
       - /etc/amnezia/amneziawg:/etc/amnezia/amneziawg
       - /usr/bin/awg:/usr/local/bin/awg:ro
     networks:
-      - krotvpn-network
+      - krtpn-network
     # Not exposed externally - proxied via nginx
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
@@ -95,7 +95,7 @@ services:
     build:
       context: ./frontend
       dockerfile: Dockerfile
-    container_name: krotvpn-frontend
+    container_name: krtpn-frontend
     restart: unless-stopped
     depends_on:
       backend:
@@ -106,7 +106,7 @@ services:
       timeout: 10s
       retries: 3
     networks:
-      - krotvpn-network
+      - krtpn-network
     # Not exposed externally - proxied via nginx
     deploy:
       resources:
@@ -119,7 +119,7 @@ services:
     build:
       context: ./frontend-admin
       dockerfile: Dockerfile
-    container_name: krotvpn-admin
+    container_name: krtpn-admin
     restart: unless-stopped
     depends_on:
       backend:
@@ -130,7 +130,7 @@ services:
       timeout: 10s
       retries: 3
     networks:
-      - krotvpn-network
+      - krtpn-network
     # Not exposed externally - proxied via nginx
     deploy:
       resources:
@@ -141,7 +141,7 @@ services:
   # Nginx SSL Proxy
   nginx:
     image: nginx:alpine
-    container_name: krotvpn-nginx
+    container_name: krtpn-nginx
     restart: unless-stopped
     depends_on:
       frontend:
@@ -164,7 +164,7 @@ services:
       timeout: 10s
       retries: 3
     networks:
-      - krotvpn-network
+      - krtpn-network
     deploy:
       resources:
         limits:
@@ -176,5 +176,5 @@ volumes:
   redis_data:
 
 networks:
-  krotvpn-network:
+  krtpn-network:
     driver: bridge

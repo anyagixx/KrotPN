@@ -5,22 +5,22 @@
 # MAP_MODE: LOCALS
 # START_MODULE_CONTRACT
 #   PURPOSE: Deploy rollback — backup and restore .env, SSL certs, AWG configs
-#   SCOPE: backup, restore, list commands with timestamped backups in /opt/KrotVPN/backups/
-#   DEPENDS: M-012 (deploy-surface), host filesystem (/opt/KrotVPN, /etc/amnezia)
+#   SCOPE: backup, restore, list commands with timestamped backups in /opt/KrotPN/backups/
+#   DEPENDS: M-012 (deploy-surface), host filesystem (/opt/KrotPN, /etc/amnezia)
 #   LINKS: M-012 (deploy-surface), V-M-012
 # END_MODULE_CONTRACT
 #
 # START_MODULE_MAP
 #   create_backup - Create timestamped backup of .env, SSL certs, AWG configs
 #   restore_backup - Restore from latest backup with pre-restore backup
-#   list_backups - List available backups in /opt/KrotVPN/backups/
+#   list_backups - List available backups in /opt/KrotPN/backups/
 # END_MODULE_MAP
 #
 # START_CHANGE_SUMMARY
 #   LAST_CHANGE: v2.8.0 - Converted to full GRACE MODULE_CONTRACT/MAP format, removed duplicate contract block
 # END_CHANGE_SUMMARY
 #
-# KrotVPN Rollback Script
+# KrotPN Rollback Script
 # Backs up and restores .env, SSL certs, and AWG configs
 #
 # Usage:
@@ -37,7 +37,7 @@ YELLOW='\033[1;33m'
 BLUE='\033[0;34m'
 NC='\033[0m'
 
-BACKUP_DIR="/opt/KrotVPN/backups"
+BACKUP_DIR="/opt/KrotPN/backups"
 TIMESTAMP=$(date +%Y%m%d_%H%M%S)
 
 usage() {
@@ -56,17 +56,17 @@ create_backup() {
     echo -e "${BLUE}[ROLLBACK] Creating backup at ${dest}${NC}"
 
     # Backup .env
-    if [ -f /opt/KrotVPN/.env ]; then
-        cp /opt/KrotVPN/.env "${dest}/.env"
+    if [ -f /opt/KrotPN/.env ]; then
+        cp /opt/KrotPN/.env "${dest}/.env"
         echo -e "${GREEN}  ✓ Backed up .env${NC}"
     else
         echo -e "${YELLOW}  ⚠ .env not found, skipping${NC}"
     fi
 
     # Backup SSL certs
-    if [ -d /opt/KrotVPN/ssl ]; then
+    if [ -d /opt/KrotPN/ssl ]; then
         mkdir -p "${dest}/ssl"
-        cp -r /opt/KrotVPN/ssl/* "${dest}/ssl/" 2>/dev/null || true
+        cp -r /opt/KrotPN/ssl/* "${dest}/ssl/" 2>/dev/null || true
         echo -e "${GREEN}  ✓ Backed up SSL certs${NC}"
     else
         echo -e "${YELLOW}  ⚠ SSL directory not found, skipping${NC}"
@@ -100,15 +100,15 @@ restore_backup() {
 
     # Restore .env
     if [ -f "${latest}/.env" ]; then
-        cp "${latest}/.env" /opt/KrotVPN/.env
-        chmod 600 /opt/KrotVPN/.env
+        cp "${latest}/.env" /opt/KrotPN/.env
+        chmod 600 /opt/KrotPN/.env
         echo -e "${GREEN}  ✓ Restored .env${NC}"
     fi
 
     # Restore SSL certs
     if [ -d "${latest}/ssl" ]; then
-        mkdir -p /opt/KrotVPN/ssl
-        cp -r "${latest}/ssl/"* /opt/KrotVPN/ssl/ 2>/dev/null || true
+        mkdir -p /opt/KrotPN/ssl
+        cp -r "${latest}/ssl/"* /opt/KrotPN/ssl/ 2>/dev/null || true
         echo -e "${GREEN}  ✓ Restored SSL certs${NC}"
     fi
 
@@ -120,7 +120,7 @@ restore_backup() {
     fi
 
     echo -e "${GREEN}[ROLLBACK] Restore complete. Restart services to apply changes.${NC}"
-    echo -e "${YELLOW}  docker compose -f /opt/KrotVPN/docker-compose.yml restart${NC}"
+    echo -e "${YELLOW}  docker compose -f /opt/KrotPN/docker-compose.yml restart${NC}"
 }
 
 list_backups() {

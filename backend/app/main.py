@@ -21,7 +21,7 @@
 # END_CHANGE_SUMMARY
 #
 """
-KrotVPN - Commercial VPN Service with AmneziaWG
+KrotPN - Commercial VPN Service with AmneziaWG
 Main FastAPI application.
 
 GRACE-lite entry contract:
@@ -73,7 +73,7 @@ try:
     logs_dir = Path("logs")
     logs_dir.mkdir(parents=True, exist_ok=True)
     logger.add(
-        logs_dir / "krotvpn_{time}.log",
+        logs_dir / "krtpn_{time}.log",
         rotation="1 day",
         retention="7 days",
         level="INFO",

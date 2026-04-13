@@ -1,7 +1,7 @@
 [project]
-name = "krotvpn"
+name = "krtpn"
 version = "1.0.0"
-description = "KrotVPN - Commercial VPN Service with AmneziaWG"
+description = "KrotPN - Commercial VPN Service with AmneziaWG"
 readme = "README.md"
 requires-python = ">=3.11"
 license = {text = "MIT"}

@@ -1,9 +1,9 @@
 #!/bin/bash
 #
-# KrotVPN Server Deployment Script v2.4.0
+# KrotPN Server Deployment Script v2.4.0
 # Run this script ON the RU server
 # GRACE-lite operational contract:
-# - This script is executed on the RU host and consumes temporary config from /tmp/krotvpn_deploy.conf.
+# - This script is executed on the RU host and consumes temporary config from /tmp/krtpn_deploy.conf.
 # - It decodes remote credentials, provisions RU host services and reaches the DE host over SSH.
 # - It is security-sensitive and should be reviewed like infrastructure code.
 #
@@ -21,7 +21,7 @@ NC='\033[0m'
 VPN_PORT="51821"
 
 cleanup_sensitive_files() {
-    rm -f /tmp/krotvpn_deploy.conf /tmp/de_setup.sh
+    rm -f /tmp/krtpn_deploy.conf /tmp/de_setup.sh
 }
 
 trap cleanup_sensitive_files EXIT
@@ -57,16 +57,16 @@ scp_de() {
 }
 
 # Read configuration from file
-if [ -f /tmp/krotvpn_deploy.conf ]; then
+if [ -f /tmp/krtpn_deploy.conf ]; then
     echo -e "${BLUE}[CONFIG] Loading configuration from file...${NC}"
-    source /tmp/krotvpn_deploy.conf
+    source /tmp/krtpn_deploy.conf
 else
-    echo -e "${RED}[ERROR] Configuration file not found: /tmp/krotvpn_deploy.conf${NC}"
+    echo -e "${RED}[ERROR] Configuration file not found: /tmp/krtpn_deploy.conf${NC}"
     echo "Please run install.sh first"
     exit 1
 fi
 
-ADMIN_EMAIL="${ADMIN_EMAIL:-admin@krotvpn.com}"
+ADMIN_EMAIL="${ADMIN_EMAIL:-admin@krtpn.com}"
 if [ -z "$ADMIN_PASSWORD" ]; then
     ADMIN_PASSWORD=$(python3 -c "import secrets; print(secrets.token_urlsafe(24))")
     GENERATED_ADMIN_PASSWORD=1
@@ -97,7 +97,7 @@ echo -e "${GREEN}[OK] RU IPv4: ${RU_IP}${NC}"
 # Print banner
 echo ""
 echo -e "${CYAN}╔══════════════════════════════════════════════════════════════╗${NC}"
-echo -e "${CYAN}║           KrotVPN Automated Deployment v2.4.0               ║${NC}"
+echo -e "${CYAN}║           KrotPN Automated Deployment v2.4.0               ║${NC}"
 echo -e "${CYAN}╠══════════════════════════════════════════════════════════════╣${NC}"
 echo -e "${CYAN}║  RU Server (Entry): ${RU_IP}                            ║${NC}"
 echo -e "${CYAN}║  DE Server (Exit):  ${DE_IP}                            ║${NC}"
@@ -147,8 +147,8 @@ if ! command -v awg &> /dev/null; then
 fi
 echo -e "${GREEN}✓ AmneziaWG installed${NC}"
 echo -e "${BLUE}[RU] Enabling IP forwarding...${NC}"
-echo "net.ipv4.ip_forward=1" > /etc/sysctl.d/99-krotvpn.conf
-sysctl -p /etc/sysctl.d/99-krotvpn.conf > /dev/null
+echo "net.ipv4.ip_forward=1" > /etc/sysctl.d/99-krtpn.conf
+sysctl -p /etc/sysctl.d/99-krtpn.conf > /dev/null
 
 echo -e "${BLUE}[RU] Generating AmneziaWG keys...${NC}"
 mkdir -p /etc/amnezia/amneziawg
@@ -227,8 +227,8 @@ echo -e "${GREEN}✓ AmneziaWG installed${NC}"
 verify_host_routing_tools
 
 echo -e "${BLUE}[DE] Enabling IP forwarding...${NC}"
-echo "net.ipv4.ip_forward=1" > /etc/sysctl.d/99-krotvpn.conf
-sysctl -p /etc/sysctl.d/99-krotvpn.conf > /dev/null
+echo "net.ipv4.ip_forward=1" > /etc/sysctl.d/99-krtpn.conf
+sysctl -p /etc/sysctl.d/99-krtpn.conf > /dev/null
 
 echo -e "${BLUE}[DE] Generating keys...${NC}"
 mkdir -p /etc/amnezia/amneziawg
@@ -498,7 +498,7 @@ echo "Split-tunneling configured!"
 ROUTING_SCRIPT
 chmod +x /usr/local/bin/setup_routing.sh
 
-cat > /usr/local/bin/krotvpn-sync-awg0.sh << 'SYNC_SCRIPT'
+cat > /usr/local/bin/krtpn-sync-awg0.sh << 'SYNC_SCRIPT'
 #!/bin/bash
 set -e
 
@@ -511,7 +511,7 @@ trap cleanup EXIT
 awg-quick strip awg0 > "$TMP_FILE"
 awg syncconf awg0 "$TMP_FILE"
 SYNC_SCRIPT
-chmod +x /usr/local/bin/krotvpn-sync-awg0.sh
+chmod +x /usr/local/bin/krtpn-sync-awg0.sh
 
 /usr/local/bin/update_ru_ips.sh
 
@@ -642,9 +642,9 @@ if [ "$TUNNEL_OK" = false ]; then
     ssh_de "awg show" 2>/dev/null || echo "    Cannot connect to DE"
 fi
 
-# Update KrotVPN
-echo -e "${BLUE}[RU] Updating KrotVPN application...${NC}"
-cd /opt/KrotVPN
+# Update KrotPN
+echo -e "${BLUE}[RU] Updating KrotPN application...${NC}"
+cd /opt/KrotPN
 CURRENT_BRANCH=$(git symbolic-ref --short -q HEAD || true)
 if [ -n "$CURRENT_BRANCH" ]; then
     git pull --ff-only origin "$CURRENT_BRANCH"
@@ -654,31 +654,31 @@ fi
 
 # Generate SSL
 echo -e "${BLUE}[RU] Generating SSL certificate...${NC}"
-mkdir -p /opt/KrotVPN/ssl
-cd /opt/KrotVPN/ssl
+mkdir -p /opt/KrotPN/ssl
+cd /opt/KrotPN/ssl
 openssl req -x509 -nodes -days 3650 -newkey rsa:2048 \
     -keyout server.key -out server.crt \
-    -subj "/C=RU/ST=Moscow/L=Moscow/O=KrotVPN/OU=IT/CN=krotvpn.local" 2>/dev/null
+    -subj "/C=RU/ST=Moscow/L=Moscow/O=KrotPN/OU=IT/CN=krtpn.local" 2>/dev/null
 chmod 600 server.key
 chmod 644 server.crt
 echo -e "${GREEN}✓ SSL certificate generated${NC}"
 
 # Create directory for RU IP snapshot persistence (Phase-15)
 echo -e "${BLUE}[RU] Creating snapshot directory...${NC}"
-mkdir -p /var/lib/krotvpn
-chmod 755 /var/lib/krotvpn
+mkdir -p /var/lib/krtpn
+chmod 755 /var/lib/krtpn
 echo -e "${GREEN}✓ Snapshot directory created${NC}"
 
 # Generate .env
 echo -e "${BLUE}[RU] Creating configuration...${NC}"
-cd /opt/KrotVPN
+cd /opt/KrotPN
 SECRET_KEY=$(python3 -c "import secrets; print(secrets.token_urlsafe(32))")
 DATA_KEY=$(python3 -c "from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())")
 DB_PASSWORD=$(python3 -c "import secrets; print(secrets.token_urlsafe(16))")
 
 cat > .env << EOF
 # === APPLICATION ===
-APP_NAME=KrotVPN
+APP_NAME=KrotPN
 APP_VERSION=2.4.20
 DEBUG=false
 ENVIRONMENT=production
@@ -692,10 +692,10 @@ ACCESS_TOKEN_EXPIRE_MINUTES=15
 REFRESH_TOKEN_EXPIRE_DAYS=7
 
 # === DATABASE ===
-DB_USER=krotvpn
+DB_USER=krtpn
 DB_PASSWORD=${DB_PASSWORD}
-DB_NAME=krotvpn
-DATABASE_URL=postgresql+asyncpg://krotvpn:${DB_PASSWORD}@db:5432/krotvpn
+DB_NAME=krtpn
+DATABASE_URL=postgresql+asyncpg://krtpn:${DB_PASSWORD}@db:5432/krtpn
 
 # === REDIS ===
 REDIS_URL=redis://redis:6379/0
@@ -758,7 +758,7 @@ SMTP_HOST=smtp.gmail.com
 SMTP_PORT=587
 SMTP_USER=
 SMTP_PASSWORD=
-EMAIL_FROM=noreply@krotvpn.com
+EMAIL_FROM=noreply@krtpn.com
 
 # === REFERRAL ===
 REFERRAL_BONUS_DAYS=7
@@ -774,9 +774,9 @@ echo -e "${YELLOW}[SECURITY] Admin credentials were displayed during install. Do
 
 # Systemd services
 echo -e "${BLUE}[RU] Creating systemd services...${NC}"
-cat > /etc/systemd/system/krotvpn-routing.service << 'SERVICE'
+cat > /etc/systemd/system/krtpn-routing.service << 'SERVICE'
 [Unit]
-Description=KrotVPN Split-Tunneling Routing
+Description=KrotPN Split-Tunneling Routing
 After=network.target
 
 [Service]
@@ -788,7 +788,7 @@ RemainAfterExit=yes
 WantedBy=multi-user.target
 SERVICE
 
-cat > /etc/systemd/system/krotvpn-ru-ips.timer << 'TIMER'
+cat > /etc/systemd/system/krtpn-ru-ips.timer << 'TIMER'
 [Unit]
 Description=Daily RU IPset Update
 
@@ -800,9 +800,9 @@ Persistent=true
 WantedBy=timers.target
 TIMER
 
-cat > /etc/systemd/system/krotvpn-ru-ips.service << 'SERVICE'
+cat > /etc/systemd/system/krtpn-ru-ips.service << 'SERVICE'
 [Unit]
-Description=Update RU IPset for KrotVPN
+Description=Update RU IPset for KrotPN
 After=network-online.target
 Wants=network-online.target
 
@@ -811,19 +811,19 @@ Type=oneshot
 ExecStart=/usr/local/bin/update_ru_ips.sh
 SERVICE
 
-cat > /etc/systemd/system/krotvpn-sync-awg0.service << 'SERVICE'
+cat > /etc/systemd/system/krtpn-sync-awg0.service << 'SERVICE'
 [Unit]
-Description=Sync awg0 peers for KrotVPN
+Description=Sync awg0 peers for KrotPN
 After=network.target
 
 [Service]
 Type=oneshot
-ExecStart=/usr/local/bin/krotvpn-sync-awg0.sh
+ExecStart=/usr/local/bin/krtpn-sync-awg0.sh
 SERVICE
 
-cat > /etc/systemd/system/krotvpn-sync-awg0.path << 'PATHUNIT'
+cat > /etc/systemd/system/krtpn-sync-awg0.path << 'PATHUNIT'
 [Unit]
-Description=Watch awg0 config changes for KrotVPN
+Description=Watch awg0 config changes for KrotPN
 
 [Path]
 PathModified=/etc/amnezia/amneziawg/awg0.conf
@@ -833,15 +833,15 @@ WantedBy=multi-user.target
 PATHUNIT
 
 systemctl daemon-reload
-systemctl enable krotvpn-routing krotvpn-ru-ips.timer krotvpn-sync-awg0.path
-systemctl start krotvpn-routing
-systemctl start krotvpn-ru-ips.timer
-systemctl start krotvpn-sync-awg0.path
+systemctl enable krtpn-routing krtpn-ru-ips.timer krtpn-sync-awg0.path
+systemctl start krtpn-routing
+systemctl start krtpn-ru-ips.timer
+systemctl start krtpn-sync-awg0.path
 echo -e "${GREEN}✓ Systemd services created${NC}"
 
 # Docker
 echo -e "${BLUE}[RU] Building and starting Docker containers...${NC}"
-cd /opt/KrotVPN
+cd /opt/KrotPN
 mkdir -p logs
 chown 1000:1000 logs
 docker compose up -d --build
@@ -857,7 +857,7 @@ echo -e "  Admin Panel: ${CYAN}https://${RU_IP}:8443${NC}"
 echo -e "  Backend API: ${CYAN}https://${RU_IP}:8000${NC}"
 echo ""
 echo -e "  Create VPN client:"
-echo -e "  ${YELLOW}/opt/KrotVPN/deploy/create-client.sh my_client${NC}"
+echo -e "  ${YELLOW}/opt/KrotPN/deploy/create-client.sh my_client${NC}"
 echo ""
 
 # Cleanup happens via trap

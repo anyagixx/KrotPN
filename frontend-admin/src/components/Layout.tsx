@@ -89,7 +89,7 @@ export default function Layout() {
                 <Shield className="h-7 w-7" />
               </div>
               <div>
-                <p className="text-xs font-bold uppercase tracking-[0.22em] text-emerald-200/75">KrotVPN</p>
+                <p className="text-xs font-bold uppercase tracking-[0.22em] text-emerald-200/75">KrotPN</p>
                 <h1 className="text-xl font-extrabold">Admin Console</h1>
                 <p className="mt-1 text-sm muted">Операционный кабинет сервиса</p>
               </div>
@@ -140,7 +140,7 @@ export default function Layout() {
                 {user?.email?.[0]?.toUpperCase() || 'A'}
               </div>
               <div className="min-w-0">
-                <p className="truncate font-semibold">{user?.email || 'admin@krotvpn.com'}</p>
+                <p className="truncate font-semibold">{user?.email || 'admin@krtpn.com'}</p>
                 <p className="text-xs uppercase tracking-[0.14em] muted">{user?.role || 'admin'}</p>
               </div>
             </div>

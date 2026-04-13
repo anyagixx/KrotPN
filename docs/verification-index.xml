@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!-- MyGRACE Verification Index — lazy-loading entry point for verification navigation -->
 <!-- Generated 2026-04-12 from verification-plan.xml -->
-<VerificationIndex VERSION="1.0.0" PROJECT="KrotVPN" ENTRY-COUNT="28">
+<VerificationIndex VERSION="1.0.0" PROJECT="KrotPN" ENTRY-COUNT="29">
   <V-M-001 MODULE="M-001" PRIORITY="critical" STATUS="pass" TESTS="backend/tests/test_security.py" COMMANDS="pytest tests/test_security.py -v" />
   <V-M-002 MODULE="M-002" PRIORITY="critical" STATUS="pass" TESTS="backend/tests/test_telegram_auth.py backend/tests/test_manual_access_policy.py backend/tests/test_manual_client_cli.py" COMMANDS="pytest tests/test_telegram_auth.py tests/test_manual_access_policy.py tests/test_manual_client_cli.py -v" />
   <V-M-003 MODULE="M-003" PRIORITY="critical" STATUS="pass" TESTS="backend/tests/test_vpn_service.py backend/tests/test_vpn_router_compat.py backend/tests/test_manual_client_cli.py" COMMANDS="pytest tests/test_vpn_service.py tests/test_vpn_router_compat.py -v" />
@@ -30,4 +30,5 @@
   <V-M-026 MODULE="M-026" PRIORITY="high" STATUS="pass" TESTS="" COMMANDS="static review plus middleware tests" />
   <V-M-027 MODULE="M-027" PRIORITY="critical" STATUS="pass" TESTS="backend/tests/test_security.py (blacklist tests)" COMMANDS="pytest tests/test_security.py -v -k blacklist" />
   <V-M-028 MODULE="M-028" PRIORITY="critical" STATUS="pass" TESTS="backend/tests/test_db_migrations.py" COMMANDS="pytest tests/test_db_migrations.py -v" />
+  <V-M-029 MODULE="M-012" PRIORITY="critical" STATUS="planned" TESTS="rebranding verification: static grep + live deploy checks" COMMANDS="docker compose config &amp;&amp; bash -n deploy/*.sh &amp;&amp; bash -n install.sh &amp;&amp; cd frontend &amp;&amp; npm run build &amp;&amp; cd ../frontend-admin &amp;&amp; npm run build" />
 </VerificationIndex>

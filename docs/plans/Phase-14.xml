@@ -7,7 +7,7 @@
   <step-4>M-001: Remove empty app/email/ module.</step-4>
   <step-5>M-010: Remove dead App.tsx in admin frontend.</step-5>
   <step-6>M-001/M-006: Migrate all API routes to /api/v1 prefix.</step-6>
-  <step-7>M-001: Move hardcoded krotvpn.com URL to Settings.frontend_url.</step-7>
+  <step-7>M-001: Move hardcoded krtpn.com URL to Settings.frontend_url.</step-7>
   <modules>M-003, M-002, M-026, M-006, M-001</modules>
   <verification>V-M-001, V-M-002, V-M-026, V-M-006</verification>
   <data-flows>none-new</data-flows>

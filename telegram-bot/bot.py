@@ -3,7 +3,7 @@
 # ROLE: ENTRY_POINT
 # MAP_MODE: SUMMARY
 # START_MODULE_CONTRACT
-#   PURPOSE: Telegram bot for KrotVPN — auth mediation, config delivery, subscription status
+#   PURPOSE: Telegram bot for KrotPN — auth mediation, config delivery, subscription status
 #   SCOPE: Telegram commands, backend API integration, user auth flow
 #   DEPENDS: M-001 (core config), M-011 (telegram-bot), M-002 (users API), M-003 (vpn API)
 #   LINKS: M-011 (telegram-bot), V-M-011
@@ -31,7 +31,7 @@
 # END_CHANGE_SUMMARY
 
 """
-KrotVPN Telegram Bot.
+KrotPN Telegram Bot.
 
 GRACE-lite module contract:
 - Provides a convenience channel over backend APIs, not a separate source of truth.
@@ -162,7 +162,7 @@ async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
         reply_markup = InlineKeyboardMarkup(keyboard)
 
         welcome_text = f"""
-🛡️ *Добро пожаловать в KrotVPN!*
+🛡️ *Добро пожаловать в KrotPN!*
 
 Привет, {user.get('display_name', 'пользователь')}!
 
@@ -194,7 +194,7 @@ async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
 async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Handle /help command."""
     help_text = """
-🛡️ *KrotVPN Bot - Справка*
+🛡️ *KrotPN Bot - Справка*
 
 *Доступные команды:*
 /start - Главное меню
@@ -211,7 +211,7 @@ async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
 4. Подключайтесь!
 
 *Нужна помощь?*
-Пишите: @krotvpn_support
+Пишите: @krtpn_support
 """
     await update.message.reply_text(help_text, parse_mode="Markdown")
 # END_BLOCK: async help_command
@@ -236,11 +236,11 @@ async def config_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
         if config_text:
             from io import BytesIO
             file = BytesIO(config_text.encode())
-            file.name = f"krotvpn-{telegram_id}.conf"
+            file.name = f"krtpn-{telegram_id}.conf"
 
             await update.message.reply_document(
                 document=file,
-                filename=f"krotvpn.conf",
+                filename=f"krtpn.conf",
                 caption=f"""
 📱 *Ваша VPN конфигурация*
 
@@ -328,7 +328,7 @@ async def plans_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 """
 
-        text += "Для покупки перейдите на сайт: krotvpn.com"
+        text += "Для покупки перейдите на сайт: krtpn.com"
 
         await update.message.reply_text(text, parse_mode="Markdown")
 
@@ -358,7 +358,7 @@ async def referral_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
 • Бонус зачисляется после первой оплаты друга
 • Без ограничений по количеству приглашений
 
-Ваша реферальная ссылка доступна в личном кабинете: krotvpn.com/referrals
+Ваша реферальная ссылка доступна в личном кабинете: krtpn.com/referrals
 """
     await update.message.reply_text(text, parse_mode="Markdown")
 # END_BLOCK: async referral_command

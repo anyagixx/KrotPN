@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- GRACE Operational Packets for KrotVPN — execution, graph delta, verification delta, failure handoff templates -->
+<!-- GRACE Operational Packets for KrotPN — execution, graph delta, verification delta, failure handoff templates -->
 <OperationalPackets VERSION="1.0.0">
   <ExecutionPacketTemplate>
     <!-- Canonical controller-to-worker execution packet.

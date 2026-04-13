@@ -1,7 +1,7 @@
-# KrotVPN Backend Dockerfile
+# KrotPN Backend Dockerfile
 FROM python:3.11-slim
 
-LABEL maintainer="KrotVPN"
+LABEL maintainer="KrotPN"
 LABEL description="Commercial VPN Service with AmneziaWG"
 
 # Install system dependencies
@@ -14,7 +14,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && rm -rf /var/lib/apt/lists/*
 
 # Create non-root user
-RUN useradd -m -s /bin/bash krotvpn
+RUN useradd -m -s /bin/bash krtpn
 
 # Set working directory
 WORKDIR /app
@@ -28,7 +28,7 @@ COPY app/ ./app/
 
 # Create directories
 RUN mkdir -p /app/logs /app/data && \
-    chown -R krotvpn:krotvpn /app
+    chown -R krtpn:krtpn /app
 
 # Environment
 ENV PYTHONUNBUFFERED=1

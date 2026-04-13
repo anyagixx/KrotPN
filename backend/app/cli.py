@@ -4,7 +4,7 @@
 # MAP_MODE: SUMMARY
 #
 # START_MODULE_CONTRACT
-#   PURPOSE: Administrative CLI tools for KrotVPN — user provisioning, password management, config validation, internal client issuance
+#   PURPOSE: Administrative CLI tools for KrotPN — user provisioning, password management, config validation, internal client issuance
 #   SCOPE: CLI command definitions, argparse setup, async command execution, VPN client config export
 #   DEPENDS: M-001 (core), M-002 (users), M-003 (vpn), M-004 (billing), M-012 (init_admin), M-018 (logging)
 #   LINKS: M-019
@@ -26,7 +26,7 @@
 #   v2.8.0 — Added GRACE MODULE_CONTRACT, MODULE_MAP, and START_BLOCK/END_BLOCK annotations
 # END_CHANGE_SUMMARY
 """
-KrotVPN CLI tools for administration.
+KrotPN CLI tools for administration.
 
 Usage:
     python -m app.cli create-admin --email admin@example.com --password secret
@@ -168,7 +168,7 @@ async def cmd_list_admins() -> int:
 async def cmd_check_config() -> int:
     """Check admin configuration."""
     print("\n" + "=" * 50)
-    print("KrotVPN Admin Configuration Check")
+    print("KrotPN Admin Configuration Check")
     print("=" * 50 + "\n")
 
     issues = []
@@ -341,8 +341,8 @@ async def cmd_create_internal_client(
 def main() -> int:
     """Main CLI entry point."""
     parser = argparse.ArgumentParser(
-        prog="krotvpn-cli",
-        description="KrotVPN administration CLI tools",
+        prog="krtpn-cli",
+        description="KrotPN administration CLI tools",
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 Examples:

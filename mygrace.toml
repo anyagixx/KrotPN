@@ -3,14 +3,14 @@
 [manifest]
 schema_version = "1"
 role = "root-active-config"
-name = "MYGRACE"
+name = "KrotPN"
 version = "1.0.0"
 description = "AI-driven development methodology with human-in-the-loop control"
 author = "YOUR_NAME"
 license = "MIT"
 
 [project]
-name = "MYGRACE"
+name = "KrotPN"
 language_communication = "russian"
 language_artifacts = "english"
 autonomy_mode = "semi-auto"

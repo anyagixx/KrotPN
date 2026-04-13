@@ -1,8 +1,8 @@
 #!/bin/bash
 #
-# KrotVPN Interactive Installer v2.8.2
+# KrotPN Interactive Installer v2.8.2
 # Run this command to install:
-#   curl -fsSL https://raw.githubusercontent.com/anyagixx/KrotVPN-qwen/main/install.sh | bash
+#   curl -fsSL https://raw.githubusercontent.com/anyagixx/KrotPN-qwen/main/install.sh | bash
 # GRACE-lite operational contract:
 # - This script is an interactive bootstrap helper, not a hardened deployment system.
 # - It supports both password-based and key-based SSH authentication.
@@ -153,10 +153,10 @@ ask_yesno() {
 get_admin_config() {
     print_step "Step 5: Admin credentials"
 
-    echo -e "${BLUE}Set production admin credentials for KrotVPN:${NC}"
+    echo -e "${BLUE}Set production admin credentials for KrotPN:${NC}"
     echo ""
 
-    ask "Admin email" "admin@krotvpn.com" ADMIN_EMAIL
+    ask "Admin email" "admin@krtpn.com" ADMIN_EMAIL
     if [ -z "$ADMIN_EMAIL" ]; then
         print_error "Admin email is required"
         exit 1
@@ -238,7 +238,7 @@ check_prerequisites() {
 get_server_info() {
     print_step "Step 2: Server configuration"
     
-    echo -e "${BLUE}KrotVPN requires two servers:${NC}"
+    echo -e "${BLUE}KrotPN requires two servers:${NC}"
     echo -e "  ${CYAN}• RU Server (Russia)${NC} - Entry node, hosts the application"
     echo -e "  ${CYAN}• DE Server (Germany/EU)${NC} - Exit node, provides internet access"
     echo ""
@@ -307,7 +307,7 @@ deploy() {
     print_step "Step 6: Starting deployment"
     
     echo -e "${BLUE}This will:${NC}"
-    echo -e "  1. Clone KrotVPN on RU server"
+    echo -e "  1. Clone KrotPN on RU server"
     echo -e "  2. Install dependencies on both servers"
     echo -e "  3. Configure AmneziaWG VPN tunnel"
     echo -e "  4. Start Docker containers with HTTPS"
@@ -324,7 +324,7 @@ deploy() {
     
     # Create config file on RU server with passwords for deploy script
     print_info "Creating configuration on RU server..."
-    sshpass -p "$RU_PASS" ssh -o StrictHostKeyChecking=accept-new "$RU_USER@$RU_IP" "umask 077 && cat > /tmp/krotvpn_deploy.conf" << EOF
+    sshpass -p "$RU_PASS" ssh -o StrictHostKeyChecking=accept-new "$RU_USER@$RU_IP" "umask 077 && cat > /tmp/krtpn_deploy.conf" << EOF
 DE_IP='${DE_IP}'
 DE_USER='${DE_USER}'
 DE_PASS='${DE_PASS}'
@@ -342,7 +342,7 @@ EOF
     print_success "Config created"
     
     # Clone repository
-    print_info "Cloning KrotVPN repository..."
+    print_info "Cloning KrotPN repository..."
     sshpass -p "$RU_PASS" ssh -o StrictHostKeyChecking=accept-new "$RU_USER@$RU_IP" "
         # Install git if not available
         if ! command -v git &> /dev/null; then
@@ -351,9 +351,9 @@ EOF
             apt-get install -y git
         fi
         cd /opt
-        rm -rf KrotVPN 2>/dev/null || true
-        git clone https://github.com/anyagixx/KrotVPN-qwen.git KrotVPN
-        chmod +x /opt/KrotVPN/deploy/*.sh
+        rm -rf KrotPN 2>/dev/null || true
+        git clone https://github.com/anyagixx/KrotPN-qwen.git KrotPN
+        chmod +x /opt/KrotPN/deploy/*.sh
     "
     
     if [ $? -ne 0 ]; then
@@ -366,7 +366,7 @@ EOF
     print_info "Running deployment script on RU server..."
     echo ""
     
-    sshpass -p "$RU_PASS" ssh -o StrictHostKeyChecking=accept-new -t "$RU_USER@$RU_IP" "cd /opt/KrotVPN && ./deploy/deploy-on-server.sh"
+    sshpass -p "$RU_PASS" ssh -o StrictHostKeyChecking=accept-new -t "$RU_USER@$RU_IP" "cd /opt/KrotPN && ./deploy/deploy-on-server.sh"
 }
 
 show_complete() {
@@ -375,7 +375,7 @@ show_complete() {
     echo -e "${GREEN}"
     echo "╔══════════════════════════════════════════════════════════════╗"
     echo "║                                                              ║"
-    echo "║              KrotVPN is now installed!                      ║"
+    echo "║              KrotPN is now installed!                      ║"
     echo "║                                                              ║"
     echo "╚══════════════════════════════════════════════════════════════╝"
     echo -e "${NC}"
@@ -391,14 +391,14 @@ show_complete() {
     echo ""
     echo -e "${CYAN}Create VPN client:${NC}"
     echo ""
-    echo -e "  ssh root@${RU_IP} \"/opt/KrotVPN/deploy/create-client.sh my_client\""
+    echo -e "  ssh root@${RU_IP} \"/opt/KrotPN/deploy/create-client.sh my_client\""
     echo ""
     echo -e "${CYAN}Configured during install:${NC}"
     echo ""
     echo -e "  • ADMIN_EMAIL         - ${GREEN}${ADMIN_EMAIL}${NC}"
     echo -e "  • ADMIN_PASSWORD      - password entered during installation"
     echo ""
-    echo -e "${CYAN}Configure later in /opt/KrotVPN/.env:${NC}"
+    echo -e "${CYAN}Configure later in /opt/KrotPN/.env:${NC}"
     echo ""
     echo -e "  • YOOKASSA_SHOP_ID    - for payments"
     echo -e "  • YOOKASSA_SECRET_KEY - for payments"

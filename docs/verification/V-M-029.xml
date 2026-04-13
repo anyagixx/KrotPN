@@ -1,0 +1,117 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- V-M-029: Rebranding Verification — KrotPN → KrotPN migration -->
+<V-M-029 MODULE="M-012" PRIORITY="critical" STATUS="planned">
+  <description>Verify that the complete KrotPN → KrotPN rebranding produces zero breakage
+  across all deploy surfaces, container names, scripts, frontend UI, and live operations.</description>
+
+  <scenarios>
+    <scenario-1 NAME="docker compose up -d (clean)">
+      <steps>
+        <step>docker compose -f docker-compose.yml down --remove-orphans</step>
+        <step>docker compose -f docker-compose.yml up -d</step>
+        <step>docker compose -f docker-compose.yml ps</step>
+      </steps>
+      <expected>All 6 containers start with new names: krtpn-db, krtpn-redis, krtpn-backend,
+        krtpn-frontend, krtpn-admin, krtpn-nginx. All show "healthy" status.
+        Zero references to "krtpn-" in container names.</expected>
+      <command>docker compose ps --format '{{.Name}} {{.Status}}'</command>
+    </scenario-1>
+
+    <scenario-2 NAME="deploy-all.sh on fresh VPS">
+      <steps>
+        <step>Set RU_IP, DE_IP environment variables</step>
+        <step>./deploy/deploy-all.sh</step>
+      </steps>
+      <expected>Script completes without errors. All systemd units created with krtpn-* names.
+        .env written with krtpn defaults. Containers running. No references to /opt/KrotPN
+        in active paths (backward-compat symlink may exist but is not used by scripts).</expected>
+      <command>bash -n deploy/deploy-all.sh &amp;&amp; echo "syntax OK"</command>
+    </scenario-2>
+
+    <scenario-3 NAME="backend health endpoint">
+      <steps>
+        <step>curl https://server/health</step>
+      </steps>
+      <expected>HTTP 200 OK with JSON containing "app_name": "KrotPN".
+        No references to "KrotPN" in response headers or body.</expected>
+      <command>curl -sf https://localhost/health | python3 -m json.tool</command>
+    </scenario-3>
+
+    <scenario-4 NAME="VPN client connects">
+      <steps>
+        <step>Generate config: /opt/KrotPN/deploy/create-client.sh test_user</step>
+        <step>Verify filename: krtpn-*.conf</step>
+        <step>Import into AmneziaWG client and connect</step>
+      </steps>
+      <expected>AmneziaWG connects successfully. Config filename starts with "krtpn-".
+        Tunnel interface comes up. Ping to 10.10.0.1 (AWG gateway) succeeds.</expected>
+      <command>ls /etc/amnezia/amneziawg/clients/test_user.*</command>
+    </scenario-4>
+
+    <scenario-5 NAME="split-tunneling works (myip.ru test)">
+      <steps>
+        <step>Connect VPN client</step>
+        <step>curl https://myip.ru</step>
+        <step>curl https://google.com (should go direct — RU IP)</step>
+      </steps>
+      <expected>myip.ru shows RU IP address for RU sites. Split-tunneling routing table
+        uses krtpn-* systemd units. ipset ru_ips populated. No routing leaks.</expected>
+      <command>ipset list ru_ips | head -5</command>
+    </scenario-5>
+
+    <scenario-6 NAME="admin panel loads over HTTPS">
+      <steps>
+        <step>curl -k https://server/admin/</step>
+        <step>Open in browser: https://server/admin/</step>
+      </steps>
+      <expected>Admin panel loads. Login page shows "KrotPN Control Plane" (not "KrotPN").
+        Sidebar displays "KrotPN". Admin login succeeds with credentials from .env.</expected>
+      <command>curl -sk https://localhost/admin/ | grep -i "KrotPN" | head -3</command>
+    </scenario-6>
+
+    <scenario-7 NAME="zero remaining KrotPN references (static check)">
+      <steps>
+        <step>grep -rni "krtpn" --include='*.py' --include='*.ts' --include='*.tsx' --include='*.yml' --include='*.sh' --include='*.json' --include='*.toml' --include='*.html' backend/ frontend/ frontend-admin/ deploy/ nginx/ docs/ . | grep -v 'archive/' | grep -v 'CHANGELOG.md' | grep -v 'package-lock.json'</step>
+      </steps>
+      <expected>Zero matches in source files. Archive and CHANGELOG entries are excluded
+        intentionally as they are historical records.</expected>
+      <command>grep -rni "krtpn" --include='*.py' --include='*.ts' --include='*.tsx' --include='*.yml' --include='*.sh' --include='*.json' --include='*.toml' --include='*.html' backend/ frontend/ frontend-admin/ deploy/ nginx/ docs/ . 2>/dev/null | grep -vc 'archive\|CHANGELOG\|package-lock' || echo "ZERO_REMAINING"</command>
+    </scenario-7>
+
+    <scenario-8 NAME="systemd units renamed">
+      <steps>
+        <step>systemctl list-units 'krtpn-*'</step>
+        <step>systemctl list-unit-files 'krtpn-*'</step>
+      </steps>
+      <expected>Units krtpn-routing.service, krtpn-ru-ips.timer, krtpn-ru-ips.service,
+        krtpn-sync-awg0.service, krtpn-sync-awg0.path all exist and are enabled.
+        Old krtpn-* units are disabled/removed.</expected>
+      <command>systemctl list-unit-files 'krtpn-*' --no-pager</command>
+    </scenario-8>
+  </scenarios>
+
+  <module-checks>
+    <check>docker-compose.yml validates: docker compose config</check>
+    <check>All deploy scripts pass syntax: bash -n deploy/*.sh install.sh</check>
+    <check>Frontend builds: cd frontend &amp;&amp; npm run build</check>
+    <check>Admin frontend builds: cd frontend-admin &amp;&amp; npm run build</check>
+    <check>Backend config loads: cd backend &amp;&amp; python -c "from app.core.config import settings; assert settings.app_name == 'KrotPN'"</check>
+    <check>Log file path: /app/logs/krtpn_*.log (not krtpn_*.log)</check>
+    <check>DB snapshot path: /var/lib/krtpn/ru_ips_snapshot.json (not /var/lib/krtpn/)</check>
+  </module-checks>
+
+  <log-markers>
+    <marker>[Rebranding][Phase-16][step-N] Renamed {old} → {new}</marker>
+    <marker>[Rebranding][Phase-16][verification] Scenario {N}: {name} → {PASS|FAIL}</marker>
+  </log-markers>
+
+  <rollback-plan>
+    <step>Backup: tar czf /tmp/krtpn-backup-$(date +%Y%m%d-%H%M).tar.gz /opt/KrotPN</step>
+    <step>Stop: docker compose -f /opt/KrotPN/docker-compose.yml down</step>
+    <step>Remove symlink: rm -f /opt/KrotPN</step>
+    <step>Restore: mv /opt/KrotPN /opt/KrotPN (if backup was of /opt/KrotPN)</step>
+    <step>Re-enable old systemd units: systemctl enable/start krtpn-*</step>
+    <step>Start: docker compose -f /opt/KrotPN/docker-compose.yml up -d</step>
+  </rollback-plan>
+
+</V-M-029>

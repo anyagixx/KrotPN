@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- GRACE Requirements for KrotVPN — Contract-first requirements, actors, use cases, constraints, risks -->
+<!-- GRACE Requirements for KrotPN — Contract-first requirements, actors, use cases, constraints, risks -->
 <RequirementsAnalysis VERSION="1.0.0">
   <Project>
-    <name>KrotVPN</name>
+    <name>KrotPN</name>
     <annotation>Commercial VPN service on AmneziaWG with user dashboard, admin panel, billing, referrals, Telegram bot, and two-node RU/DE network topology</annotation>
     <keywords>VPN, WireGuard, split-tunneling, routing, billing, subscriptions, Telegram bot, admin panel, FastAPI, Vue.js, YooKassa, Docker, AWG</keywords>
   </Project>

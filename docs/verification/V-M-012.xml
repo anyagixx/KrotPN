@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <V-M-012 MODULE="M-012" PRIORITY="critical" STATUS="pass">
   <module>deploy-surface</module>
-  <checks>Deploy and nginx changes do not introduce weak defaults or unsafe routing assumptions. Deploy creates /var/lib/krotvpn/ directory for RU IP snapshots. Snapshot directory permissions are correct (root:root, 755).</checks>
+  <checks>Deploy and nginx changes do not introduce weak defaults or unsafe routing assumptions. Deploy creates /var/lib/krtpn/ directory for RU IP snapshots. Snapshot directory permissions are correct (root:root, 755).</checks>
   <commands>bash -n deploy/deploy-ru-server.sh &amp;&amp; bash -n deploy/deploy-on-server.sh &amp;&amp; bash -n deploy/deploy-all.sh &amp;&amp; bash -n deploy/create-client.sh &amp;&amp; bash -n install.sh</commands>
   <anchors>DEPLOY_IDEMPOTENT KEYS_PRESERVED DEPLOY_BACKUP_CREATED DEPLOY_RESTORED</anchors>
   <scenarios>

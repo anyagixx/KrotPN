@@ -8,24 +8,24 @@ KEY_FILE="$SSL_DIR/server.key"
 if [ ! -f "$CERT_FILE" ] || [ ! -f "$KEY_FILE" ]; then
     echo "Generating self-signed SSL certificate..."
     
-    # Check if certificates exist in /opt/KrotVPN/ssl (mounted volume)
-    if [ -f "/opt/krotvpn/ssl/server.crt" ] && [ -f "/opt/krotvpn/ssl/server.key" ]; then
-        echo "Using existing certificates from /opt/krotvpn/ssl"
-        cp /opt/krotvpn/ssl/server.crt "$CERT_FILE"
-        cp /opt/krotvpn/ssl/server.key "$KEY_FILE"
+    # Check if certificates exist in /opt/KrotPN/ssl (mounted volume)
+    if [ -f "/opt/krtpn/ssl/server.crt" ] && [ -f "/opt/krtpn/ssl/server.key" ]; then
+        echo "Using existing certificates from /opt/krtpn/ssl"
+        cp /opt/krtpn/ssl/server.crt "$CERT_FILE"
+        cp /opt/krtpn/ssl/server.key "$KEY_FILE"
     else
         echo "Creating new self-signed certificate..."
         openssl req -x509 -nodes -days 3650 -newkey rsa:2048 \
             -keyout "$KEY_FILE" \
             -out "$CERT_FILE" \
-            -subj "/C=RU/ST=Moscow/L=Moscow/O=KrotVPN/OU=IT/CN=krotvpn.local"
+            -subj "/C=RU/ST=Moscow/L=Moscow/O=KrotPN/OU=IT/CN=krtpn.local"
         
         # Save to mounted volume for persistence
-        mkdir -p /opt/krotvpn/ssl
-        cp "$CERT_FILE" /opt/krotvpn/ssl/
-        cp "$KEY_FILE" /opt/krotvpn/ssl/
+        mkdir -p /opt/krtpn/ssl
+        cp "$CERT_FILE" /opt/krtpn/ssl/
+        cp "$KEY_FILE" /opt/krtpn/ssl/
         
-        echo "Certificate generated and saved to /opt/krotvpn/ssl"
+        echo "Certificate generated and saved to /opt/krtpn/ssl"
     fi
 fi
 

@@ -50,7 +50,7 @@ class Settings(BaseSettings):
     )
 
     # Application
-    app_name: str = "KrotVPN"
+    app_name: str = "KrotPN"
     app_version: str = "2.4.27"
     debug: bool = False
     environment: Literal["development", "staging", "production"] = "development"
@@ -61,7 +61,7 @@ class Settings(BaseSettings):
 
     # Database
     database_url: str = Field(
-        default="sqlite+aiosqlite:///./krotvpn.db",
+        default="sqlite+aiosqlite:///./krtpn.db",
         description="Database connection URL",
     )
 
@@ -151,7 +151,7 @@ class Settings(BaseSettings):
     referral_min_payment: float = 100.0
 
     # Frontend
-    frontend_url: str = "https://krotvpn.com"
+    frontend_url: str = "https://krtpn.com"
 
     # Data Encryption
     data_encryption_key: str | None = None

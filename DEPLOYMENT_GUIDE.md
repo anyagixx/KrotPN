@@ -1,4 +1,4 @@
-# 🚀 Руководство по запуску KrotVPN
+# 🚀 Руководство по запуску KrotPN
 
 ## 📋 Содержание
 
@@ -43,8 +43,8 @@
 
 ```bash
 # 1. Клонируем репозиторий
-git clone https://github.com/anyagixx/KrotVPN.git
-cd KrotVPN
+git clone https://github.com/anyagixx/KrotPN.git
+cd KrotPN
 
 # 2. Создаём .env файл
 cp .env.example .env
@@ -114,15 +114,15 @@ sudo apt update
 sudo apt install amneziawg amneziawg-tools -y
 
 # Включаем форвардинг
-echo "net.ipv4.ip_forward=1" | sudo tee /etc/sysctl.d/99-krotvpn.conf
-sudo sysctl -p /etc/sysctl.d/99-krotvpn.conf
+echo "net.ipv4.ip_forward=1" | sudo tee /etc/sysctl.d/99-krtpn.conf
+sudo sysctl -p /etc/sysctl.d/99-krtpn.conf
 ```
 
 ### Шаг 3: Клонирование проекта
 
 ```bash
-git clone https://github.com/anyagixx/KrotVPN.git
-cd KrotVPN
+git clone https://github.com/anyagixx/KrotPN.git
+cd KrotPN
 ```
 
 ### Шаг 4: Генерация ключей
@@ -155,7 +155,7 @@ nano .env
 # === ОБЯЗАТЕЛЬНЫЕ ===
 SECRET_KEY=ваш_32_символьный_ключ
 DATA_ENCRYPTION_KEY=ваш_fernet_ключ
-DATABASE_URL=postgresql+asyncpg://krotvpn:password@db:5432/krotvpn
+DATABASE_URL=postgresql+asyncpg://krtpn:password@db:5432/krtpn
 
 # === YOOKASSA ===
 YOOKASSA_SHOP_ID=ваш_shop_id
@@ -195,7 +195,7 @@ VPN_SERVER_ENDPOINT=ip_сервера
 
 ```env
 # Application
-APP_NAME=KrotVPN
+APP_NAME=KrotPN
 APP_VERSION=1.0.0
 DEBUG=false
 ENVIRONMENT=production
@@ -205,7 +205,7 @@ HOST=0.0.0.0
 PORT=8000
 
 # Database
-DATABASE_URL=postgresql+asyncpg://krotvpn:SecurePassword123@db:5432/krotvpn
+DATABASE_URL=postgresql+asyncpg://krtpn:SecurePassword123@db:5432/krtpn
 
 # Redis
 REDIS_URL=redis://redis:6379/0
@@ -219,10 +219,10 @@ REFRESH_TOKEN_EXPIRE_DAYS=7
 DATA_ENCRYPTION_KEY=Z7Y8x9w0v1u2t3s4r5q6p7o8n9m0l1k2j3i4h5g6f7e8=
 
 # CORS
-CORS_ORIGINS=["https://krotvpn.com","https://admin.krotvpn.com"]
+CORS_ORIGINS=["https://krtpn.com","https://admin.krtpn.com"]
 
 # Admin
-ADMIN_EMAIL=admin@krotvpn.com
+ADMIN_EMAIL=admin@krtpn.com
 ADMIN_PASSWORD=ChangeMeImmediately123!
 
 # VPN Configuration
@@ -257,7 +257,7 @@ SMTP_HOST=smtp.gmail.com
 SMTP_PORT=587
 SMTP_USER=your-email@gmail.com
 SMTP_PASSWORD=your-app-password
-EMAIL_FROM=noreply@krotvpn.com
+EMAIL_FROM=noreply@krtpn.com
 
 # Referral
 REFERRAL_BONUS_DAYS=7
@@ -310,17 +310,17 @@ docker-compose down
 
 ```bash
 # Создаём сервис для backend
-sudo tee /etc/systemd/system/krotvpn-backend.service << 'SERVICE'
+sudo tee /etc/systemd/system/krtpn-backend.service << 'SERVICE'
 [Unit]
-Description=KrotVPN Backend API
+Description=KrotPN Backend API
 After=network.target postgresql.service redis.service
 
 [Service]
 Type=simple
-User=krotvpn
-WorkingDirectory=/opt/krotvpn/backend
-Environment="PATH=/opt/krotvpn/backend/venv/bin"
-ExecStart=/opt/krotvpn/backend/venv/bin/uvicorn app.main:app --host 0.0.0.0 --port 8000
+User=krtpn
+WorkingDirectory=/opt/krtpn/backend
+Environment="PATH=/opt/krtpn/backend/venv/bin"
+ExecStart=/opt/krtpn/backend/venv/bin/uvicorn app.main:app --host 0.0.0.0 --port 8000
 Restart=always
 RestartSec=10
 
@@ -329,8 +329,8 @@ WantedBy=multi-user.target
 SERVICE
 
 sudo systemctl daemon-reload
-sudo systemctl enable krotvpn-backend
-sudo systemctl start krotvpn-backend
+sudo systemctl enable krtpn-backend
+sudo systemctl start krtpn-backend
 ```
 
 ---
@@ -364,7 +364,7 @@ open http://localhost:5174
 
 ```bash
 # Подключение к PostgreSQL
-docker exec -it krotvpn-db psql -U krotvpn -d krotvpn
+docker exec -it krtpn-db psql -U krtpn -d krtpn
 
 # Проверка таблиц
 \dt
@@ -399,7 +399,7 @@ docker-compose logs backend
 # 3. Не установлен PostgreSQL
 
 # Проверяем подключение к БД
-docker exec -it krotvpn-db pg_isready -U krotvpn
+docker exec -it krtpn-db pg_isready -U krtpn
 ```
 
 ### Проблема: Frontend не подключается к API
@@ -496,19 +496,19 @@ docker-compose exec backend alembic upgrade head
 
 ```bash
 # Backup базы данных
-docker exec krotvpn-db pg_dump -U krotvpn krotvpn > backup_$(date +%Y%m%d).sql
+docker exec krtpn-db pg_dump -U krtpn krtpn > backup_$(date +%Y%m%d).sql
 
 # Restore
-cat backup_20260321.sql | docker exec -i krotvpn-db psql -U krotvpn krotvpn
+cat backup_20260321.sql | docker exec -i krtpn-db psql -U krtpn krtpn
 ```
 
 ---
 
 ## Контакты поддержки
 
-- **Telegram:** @krotvpn_support
-- **Email:** support@krotvpn.com
-- **GitHub Issues:** https://github.com/anyagixx/KrotVPN/issues
+- **Telegram:** @krtpn_support
+- **Email:** support@krtpn.com
+- **GitHub Issues:** https://github.com/anyagixx/KrotPN/issues
 
 ---
 

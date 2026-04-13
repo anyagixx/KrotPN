@@ -1,6 +1,6 @@
 FROM python:3.11-slim
 
-LABEL maintainer="KrotVPN Telegram Bot"
+LABEL maintainer="KrotPN Telegram Bot"
 
 WORKDIR /app
 

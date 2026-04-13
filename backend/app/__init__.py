@@ -3,7 +3,7 @@
 # ROLE: BARREL
 # MAP_MODE: SUMMARY
 # START_MODULE_CONTRACT
-#   PURPOSE: Root package for KrotVPN backend application
+#   PURPOSE: Root package for KrotPN backend application
 #   SCOPE: Version metadata only; no runtime exports
 #   DEPENDS: none
 #   LINKS: M-001 (backend-core)
@@ -17,5 +17,5 @@
 #   LAST_CHANGE: v2.8.0 - Added full GRACE MODULE_CONTRACT and MODULE_MAP per GRACE governance protocol
 # END_CHANGE_SUMMARY
 #
-"""KrotVPN Backend Application."""
+"""KrotPN Backend Application."""
 __version__ = "1.0.0"

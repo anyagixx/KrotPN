@@ -77,7 +77,7 @@ export default function Login() {
           <div>
             <div className="inline-flex items-center gap-3 rounded-full border border-emerald-200/12 bg-emerald-300/10 px-4 py-2 text-sm font-semibold text-emerald-100">
               <Shield className="h-4 w-4" />
-              KrotVPN Control Plane
+              KrotPN Control Plane
             </div>
             <h1 className="mt-8 max-w-xl text-5xl font-extrabold tracking-tight text-white">
               Админ-панель для живого управления VPN-сервисом
@@ -108,7 +108,7 @@ export default function Login() {
                 <Shield className="h-8 w-8" />
               </div>
               <h2 className="mt-5 text-3xl font-extrabold">Вход в админку</h2>
-              <p className="mt-2 text-sm muted">Используй учётную запись администратора KrotVPN.</p>
+              <p className="mt-2 text-sm muted">Используй учётную запись администратора KrotPN.</p>
             </div>
 
             <form onSubmit={handleSubmit} className="glass space-y-4 p-6">
@@ -119,7 +119,7 @@ export default function Login() {
                   <input
                     type="email"
                     className="input pl-12"
-                    placeholder="admin@krotvpn.com"
+                    placeholder="admin@krtpn.com"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     required

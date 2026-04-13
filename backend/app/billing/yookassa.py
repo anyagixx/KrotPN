@@ -93,7 +93,7 @@ class YooKassaClient:
             },
             "confirmation": {
                 "type": "redirect",
-                "return_url": return_url or settings.telegram_webhook_url or "https://krotvpn.com",
+                "return_url": return_url or settings.telegram_webhook_url or "https://krtpn.com",
             },
             "capture": True,
             "description": description,

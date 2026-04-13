@@ -11,11 +11,11 @@ YELLOW='\033[1;33m'
 BLUE='\033[0;34m'
 NC='\033[0m'
 
-BACKEND_CONTAINER="${BACKEND_CONTAINER:-krotvpn-backend}"
+BACKEND_CONTAINER="${BACKEND_CONTAINER:-krtpn-backend}"
 CONFIG_DIR="${CONFIG_DIR:-/etc/amnezia/amneziawg/clients}"
 ACCESS_LABEL="${ACCESS_LABEL:-internal-unlimited}"
 VPN_INTERFACE="${VPN_INTERFACE:-awg0}"
-HOST_SYNC_SCRIPT="${HOST_SYNC_SCRIPT:-/usr/local/bin/krotvpn-sync-awg0.sh}"
+HOST_SYNC_SCRIPT="${HOST_SYNC_SCRIPT:-/usr/local/bin/krtpn-sync-awg0.sh}"
 CLI_ARGS=()
 
 usage() {

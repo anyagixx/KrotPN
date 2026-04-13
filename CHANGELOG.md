@@ -15,7 +15,7 @@ All notable changes to this project will be documented in this file.
 - Skipped container-side routing initialization in production and kept split-tunneling under host-managed systemd services
 - Fixed RU deploy flow for detached tag checkouts by avoiding `git pull` when no branch is checked out
 - Ensured backend log directory ownership is prepared before `docker compose up`
-- Added the missing `krotvpn-ru-ips.service` unit and started the daily RU IP update timer correctly
+- Added the missing `krtpn-ru-ips.service` unit and started the daily RU IP update timer correctly
 
 ## [2.4.18] - 2026-03-23
 
@@ -176,7 +176,7 @@ All notable changes to this project will be documented in this file.
 
 ### Usage
 After installation, login to Admin Panel (`https://YOUR_IP:8443`) with:
-- **Email**: `admin@krotvpn.com` (or your custom `ADMIN_EMAIL`)
+- **Email**: `admin@krtpn.com` (or your custom `ADMIN_EMAIL`)
 - **Password**: `ChangeMeImmediately123!` (or your custom `ADMIN_PASSWORD`)
 
 ⚠️ **Important**: Change the default password immediately after first login!
@@ -184,16 +184,16 @@ After installation, login to Admin Panel (`https://YOUR_IP:8443`) with:
 ### CLI Examples
 ```bash
 # Create additional admin
-docker exec -it krotvpn-backend python -m app.cli create-admin -e admin2@example.com -p secret123
+docker exec -it krtpn-backend python -m app.cli create-admin -e admin2@example.com -p secret123
 
 # Reset admin password
-docker exec -it krotvpn-backend python -m app.cli reset-password -e admin@krotvpn.com -p newsecret
+docker exec -it krtpn-backend python -m app.cli reset-password -e admin@krtpn.com -p newsecret
 
 # List all admins
-docker exec -it krotvpn-backend python -m app.cli list-admins
+docker exec -it krtpn-backend python -m app.cli list-admins
 
 # Check configuration
-docker exec -it krotvpn-backend python -m app.cli check-config
+docker exec -it krtpn-backend python -m app.cli check-config
 ```
 
 

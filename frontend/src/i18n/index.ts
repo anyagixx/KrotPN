@@ -28,7 +28,7 @@ const resources = {
   ru: {
     translation: {
       // Common
-      appName: 'KrotVPN',
+      appName: 'KrotPN',
       loading: 'Загрузка...',
       error: 'Ошибка',
       success: 'Успешно',
@@ -130,7 +130,7 @@ const resources = {
   en: {
     translation: {
       // Common
-      appName: 'KrotVPN',
+      appName: 'KrotPN',
       loading: 'Loading...',
       error: 'Error',
       success: 'Success',

@@ -1,4 +1,4 @@
-# 🐀 KrotVPN
+# 🐀 KrotPN
 
 **Коммерческий VPN-сервис с обфускацией AmneziaWG и split-tunneling**
 
@@ -58,13 +58,13 @@
 ### Одна команда установки
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/anyagixx/KrotVPN-qwen/main/install.sh | bash
+curl -fsSL https://raw.githubusercontent.com/anyagixx/KrotPN-qwen/main/install.sh | bash
 ```
 
 Или с wget:
 
 ```bash
-wget -qO- https://raw.githubusercontent.com/anyagixx/KrotVPN-qwen/main/install.sh | bash
+wget -qO- https://raw.githubusercontent.com/anyagixx/KrotPN-qwen/main/install.sh | bash
 ```
 
 Установщик проведёт вас через все шаги интерактивно.
@@ -100,16 +100,16 @@ wget -qO- https://raw.githubusercontent.com/anyagixx/KrotVPN-qwen/main/install.s
 
 ```bash
 # Создать нового админа
-docker exec -it krotvpn-backend python -m app.cli create-admin -e admin2@example.com -p secret123
+docker exec -it krtpn-backend python -m app.cli create-admin -e admin2@example.com -p secret123
 
 # Сбросить пароль
-docker exec -it krotvpn-backend python -m app.cli reset-password -e your-admin@example.com -p newsecret
+docker exec -it krtpn-backend python -m app.cli reset-password -e your-admin@example.com -p newsecret
 
 # Список всех админов
-docker exec -it krotvpn-backend python -m app.cli list-admins
+docker exec -it krtpn-backend python -m app.cli list-admins
 
 # Проверить конфигурацию
-docker exec -it krotvpn-backend python -m app.cli check-config
+docker exec -it krtpn-backend python -m app.cli check-config
 ```
 
 ## 📱 Клиентские приложения
@@ -127,31 +127,31 @@ docker exec -it krotvpn-backend python -m app.cli check-config
 
 ```bash
 ssh root@YOUR_RU_IP
-/opt/KrotVPN/deploy/create-client.sh username
+/opt/KrotPN/deploy/create-client.sh username
 ```
 
 ### Проверка состояния
 
 ```bash
-ssh root@YOUR_RU_IP "docker compose -f /opt/KrotVPN/docker-compose.yml ps"
+ssh root@YOUR_RU_IP "docker compose -f /opt/KrotPN/docker-compose.yml ps"
 ```
 
 ### Логи
 
 ```bash
-ssh root@YOUR_RU_IP "docker compose -f /opt/KrotVPN/docker-compose.yml logs -f backend"
+ssh root@YOUR_RU_IP "docker compose -f /opt/KrotPN/docker-compose.yml logs -f backend"
 ```
 
 ### Перезапуск
 
 ```bash
-ssh root@YOUR_RU_IP "cd /opt/KrotVPN && docker compose restart"
+ssh root@YOUR_RU_IP "cd /opt/KrotPN && docker compose restart"
 ```
 
 ## 📁 Структура проекта
 
 ```
-KrotVPN/
+KrotPN/
 ├── install.sh              # Интерактивный установщик
 ├── backend/                # FastAPI Backend
 │   └── app/
@@ -215,8 +215,8 @@ KrotVPN/
 
 ## 📞 Поддержка
 
-- **GitHub**: https://github.com/anyagixx/KrotVPN
-- **Issues**: https://github.com/anyagixx/KrotVPN/issues
+- **GitHub**: https://github.com/anyagixx/KrotPN
+- **Issues**: https://github.com/anyagixx/KrotPN/issues
 
 ## 📄 Лицензия
 

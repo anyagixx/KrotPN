@@ -11,7 +11,7 @@
 # END_MODULE_CONTRACT
 #
 # START_MODULE_MAP
-#   pg_dump pipeline - Dump DB to gzipped .sql.gz file in /opt/KrotVPN/backups/db/
+#   pg_dump pipeline - Dump DB to gzipped .sql.gz file in /opt/KrotPN/backups/db/
 #   retention_cleanup - Remove old backups keeping only last 7
 # END_MODULE_MAP
 #
@@ -19,7 +19,7 @@
 #   LAST_CHANGE: v2.8.0 - Converted to full GRACE MODULE_CONTRACT/MAP format, removed duplicate contract block
 # END_CHANGE_SUMMARY
 #
-# KrotVPN Database Backup Script
+# KrotPN Database Backup Script
 # Runs pg_dump from the postgres container, saves timestamped backups,
 # keeps only the last 7 backups. Suitable for cron.
 #
@@ -35,25 +35,25 @@ YELLOW='\033[1;33m'
 BLUE='\033[0;34m'
 NC='\033[0m'
 
-BACKUP_DIR="/opt/KrotVPN/backups/db"
+BACKUP_DIR="/opt/KrotPN/backups/db"
 TIMESTAMP=$(date +%Y%m%d_%H%M%S)
-BACKUP_FILE="${BACKUP_DIR}/krotvpn_${TIMESTAMP}.sql.gz"
+BACKUP_FILE="${BACKUP_DIR}/krtpn_${TIMESTAMP}.sql.gz"
 KEEP=7
 
 # Load .env for DB credentials if present
-ENV_FILE="/opt/KrotVPN/.env"
+ENV_FILE="/opt/KrotPN/.env"
 if [ -f "$ENV_FILE" ]; then
     export $(grep -E '^[A-Z]' "$ENV_FILE" | xargs 2>/dev/null || true)
 fi
 
-DB_USER="${DB_USER:-krotvpn}"
-DB_NAME="${DB_NAME:-krotvpn}"
+DB_USER="${DB_USER:-krtpn}"
+DB_NAME="${DB_NAME:-krtpn}"
 
 mkdir -p "$BACKUP_DIR"
 
 echo -e "${BLUE}[DB-BACKUP] Starting backup of ${DB_NAME}...${NC}"
 
-docker exec krotvpn-db pg_dump -U "$DB_USER" -d "$DB_NAME" --no-owner --no-acl | gzip > "$BACKUP_FILE"
+docker exec krtpn-db pg_dump -U "$DB_USER" -d "$DB_NAME" --no-owner --no-acl | gzip > "$BACKUP_FILE"
 
 if [ -f "$BACKUP_FILE" ] && [ -s "$BACKUP_FILE" ]; then
     FILESIZE=$(du -h "$BACKUP_FILE" | cut -f1)
@@ -66,9 +66,9 @@ fi
 
 # Cleanup old backups, keep only last $KEEP
 echo -e "${BLUE}[DB-BACKUP] Cleaning up old backups (keeping last ${KEEP})...${NC}"
-ls -1t "${BACKUP_DIR}"/krotvpn_*.sql.gz 2>/dev/null | tail -n +$((KEEP + 1)) | while read -r old; do
+ls -1t "${BACKUP_DIR}"/krtpn_*.sql.gz 2>/dev/null | tail -n +$((KEEP + 1)) | while read -r old; do
     rm -f "$old"
     echo -e "${YELLOW}  Removed: ${old}${NC}"
 done
 
-echo -e "${GREEN}[DB-BACKUP] Done. Total backups: $(ls -1 "${BACKUP_DIR}"/krotvpn_*.sql.gz 2>/dev/null | wc -l)${NC}"
+echo -e "${GREEN}[DB-BACKUP] Done. Total backups: $(ls -1 "${BACKUP_DIR}"/krtpn_*.sql.gz 2>/dev/null | wc -l)${NC}"

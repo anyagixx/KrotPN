@@ -398,7 +398,7 @@ class BillingService:
                 yookassa_payment = await self.yookassa.create_payment(
                     amount=plan.price,
                     currency=plan.currency,
-                    description=f"KrotVPN - {plan.name}",
+                    description=f"KrotPN - {plan.name}",
                     return_url=return_url,
                     metadata={
                         "user_id": user_id,

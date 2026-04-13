@@ -64,7 +64,7 @@ export default function Login() {
           <div>
             <div className="inline-flex items-center gap-3 rounded-full border border-emerald-200/12 bg-emerald-300/10 px-4 py-2 text-sm font-semibold text-emerald-100">
               <Shield className="h-4 w-4" />
-              KrotVPN Secure Access
+              KrotPN Secure Access
             </div>
             <h1 className="mt-8 max-w-xl text-5xl font-extrabold tracking-tight text-white">
               Премиальный VPN-кабинет для приватного доступа без лишней сложности

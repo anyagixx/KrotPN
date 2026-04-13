@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# KrotVPN Quick Start - One command deployment
+# KrotPN Quick Start - One command deployment
 # This is a wrapper for deploy-all.sh
 #
 # Usage: ./deploy/quick-start.sh

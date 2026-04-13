@@ -47,7 +47,7 @@ from loguru import logger
 
 # --- Configuration ---
 
-SNAPSHOT_DIR = Path("/var/lib/krotvpn")
+SNAPSHOT_DIR = Path("/var/lib/krtpn")
 SNAPSHOT_FILE = SNAPSHOT_DIR / "ru_ips_snapshot.json"
 
 MIN_ENTRIES = 1000
