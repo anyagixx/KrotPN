@@ -74,7 +74,6 @@ def import_all_models() -> None:
     import app.billing.models  # noqa: F401
     import app.devices.models  # noqa: F401
     import app.referrals.models  # noqa: F401
-    import app.routing.models  # noqa: F401
     import app.users.models  # noqa: F401
     import app.vpn.models  # noqa: F401
 # END_BLOCK_IMPORT_MODELS
