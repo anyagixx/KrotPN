@@ -1,8 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<V-M-014 MODULE="M-014" PRIORITY="critical" STATUS="pass">
-  <module>domain-rule-store</module>
-  <checks>Rule persistence preserves priority, activation state, domain normalization and duplicate handling.</checks>
-  <test-files>backend/tests/test_domain_rule_store.py</test-files>
-  <commands>pytest tests/test_domain_rule_store.py -v</commands>
-  <scenarios />
-</V-M-014>

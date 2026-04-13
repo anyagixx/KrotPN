@@ -1,23 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<M-007 NAME="routing" TYPE="UTILITY" STATUS="simplifying">
-  <path>backend/app/routing</path>
-  <owns>tunnel health check, simplified routing status (Full Tunnel)</owns>
+<M-007 NAME="routing" TYPE="UTILITY" STATUS="stable">
+  <path>backend/app/routing/manager.py</path>
+  <owns>Tunnel health checks and simple status reporting for Full Tunnel architecture.</owns>
   <exports>
-    <RoutingManager>Simple tunnel health manager with initialize() and get_status()</RoutingManager>
-    <routing_manager>Global singleton instance</routing_manager>
+    <fn-initialize>Starts health check scheduler</fn-initialize>
+    <fn-get_status>Returns current tunnel status (up/down/error)</fn-get_status>
   </exports>
   <depends>M-001</depends>
   <verification-ref>V-M-007</verification-ref>
   <files>
-    <file>backend/app/routing/__init__.py</file>
     <file>backend/app/routing/manager.py</file>
   </files>
-  <removed>
-    <file>backend/app/routing/ru_ipset_updater.py</file>
-    <note>Removed in Phase-17 Step-1: ipset logic no longer needed in Full Tunnel</note>
-  </removed>
-  <hotspot>H-002: Routing is host-coupled — changes can mutate live system state</hotspot>
-  <change-summary>
-    <entry version="v2.10.0" date="2026-04-14">Phase-17 Step-1: Simplified to Full Tunnel. Removed split-tunneling, ipset, policy resolver logic. Only health check remains.</entry>
-  </change-summary>
 </M-007>

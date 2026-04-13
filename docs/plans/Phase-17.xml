@@ -9,18 +9,11 @@
   </goal>
 
   <step-1 MODULE="M-007,M-017" RISK="CRITICAL">
-    Simplify Backend Routing
-    - Rewrite RoutingManager: remove ipset/iptables mangle logic.
-    - Delete RuIpsetUpdater class and cron jobs.
-    - Ensure simple forwarding (awg0 <-> awg-client) works.
-    - Files: backend/app/routing/manager.py, backend/app/routing/ru_ipset_updater.py (DELETE).
+    Simplify Backend Routing — DONE (cb7359a)
   </step-1>
 
   <step-2 MODULE="M-013,M-014,M-015,M-016" RISK="HIGH">
-    Remove Obsolete Modules
-    - Delete policy.py, domain_rules.py, dns_resolver.py.
-    - Delete backend/app/routing/router.py (admin policy endpoints).
-    - Clean imports in M-003 (VPN) and M-006 (Admin).
+    Remove Obsolete Modules — DONE (2675b3a)
   </step-2>
 
   <step-3 MODULE="M-012" RISK="CRITICAL">

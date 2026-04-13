@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!-- MyGRACE Verification Index — lazy-loading entry point for verification navigation -->
 <!-- Generated 2026-04-12 from verification-plan.xml -->
-<VerificationIndex VERSION="1.0.0" PROJECT="KrotPN" ENTRY-COUNT="29">
+<VerificationIndex VERSION="1.0.0" PROJECT="KrotPN" ENTRY-COUNT="25">
   <V-M-001 MODULE="M-001" PRIORITY="critical" STATUS="pass" TESTS="backend/tests/test_security.py" COMMANDS="pytest tests/test_security.py -v" />
   <V-M-002 MODULE="M-002" PRIORITY="critical" STATUS="pass" TESTS="backend/tests/test_telegram_auth.py backend/tests/test_manual_access_policy.py backend/tests/test_manual_client_cli.py" COMMANDS="pytest tests/test_telegram_auth.py tests/test_manual_access_policy.py tests/test_manual_client_cli.py -v" />
   <V-M-003 MODULE="M-003" PRIORITY="critical" STATUS="pass" TESTS="backend/tests/test_vpn_service.py backend/tests/test_vpn_router_compat.py backend/tests/test_manual_client_cli.py" COMMANDS="pytest tests/test_vpn_service.py tests/test_vpn_router_compat.py -v" />
@@ -14,10 +14,6 @@
   <V-M-010 MODULE="M-010" PRIORITY="high" STATUS="pass" TESTS="" COMMANDS="cd frontend-admin &amp;&amp; npm run build" />
   <V-M-011 MODULE="M-011" PRIORITY="medium" STATUS="pass" TESTS="backend/tests/test_telegram_auth.py" COMMANDS="static review of telegram-bot/bot.py" />
   <V-M-012 MODULE="M-012" PRIORITY="critical" STATUS="pass" TESTS="" COMMANDS="bash -n deploy/deploy-ru-server.sh &amp;&amp; bash -n deploy/deploy-on-server.sh &amp;&amp; bash -n deploy/deploy-all.sh &amp;&amp; bash -n deploy/create-client.sh &amp;&amp; bash -n install.sh" />
-  <V-M-013 MODULE="M-013" PRIORITY="critical" STATUS="pass" TESTS="backend/tests/test_route_policy_resolver.py" COMMANDS="pytest tests/test_route_policy_resolver.py -v" />
-  <V-M-014 MODULE="M-014" PRIORITY="critical" STATUS="pass" TESTS="backend/tests/test_domain_rule_store.py" COMMANDS="pytest tests/test_domain_rule_store.py -v" />
-  <V-M-015 MODULE="M-015" PRIORITY="high" STATUS="pass" TESTS="backend/tests/test_dns_observer.py" COMMANDS="pytest tests/test_dns_observer.py -v" />
-  <V-M-016 MODULE="M-016" PRIORITY="high" STATUS="pass" TESTS="backend/tests/test_route_decision_api.py" COMMANDS="pytest tests/test_route_decision_api.py -v" />
   <V-M-017 MODULE="M-017" PRIORITY="critical" STATUS="pending" TESTS="backend/tests/test_ru_ipset_updater.py backend/tests/test_route_sync_runtime.py backend/tests/test_ru_ipset_stats.py" COMMANDS="pytest tests/test_ru_ipset_updater.py tests/test_route_sync_runtime.py -v" />
   <V-M-018 MODULE="M-018" PRIORITY="critical" STATUS="pass" TESTS="backend/tests/test_manual_access_policy.py" COMMANDS="pytest tests/test_manual_access_policy.py -v" />
   <V-M-019 MODULE="M-019" PRIORITY="critical" STATUS="pass" TESTS="backend/tests/test_manual_client_cli.py" COMMANDS="pytest tests/test_manual_client_cli.py -v" />
