@@ -4,7 +4,7 @@
 // MAP_MODE: EXPORTS
 // START_MODULE_CONTRACT
 //   PURPOSE: Shared TypeScript interfaces for admin frontend API contracts
-//   SCOPE: AdminUser, AdminDevice, AdminPlan, AdminServer, AdminNode, AdminRoute, BillingStats, ReferralStats, SystemHealth, AnalyticsData, RoutePolicyRule, DNSBinding, ExplainRouteResult, PaginatedResponse, NodeForm, RouteForm
+//   SCOPE: AdminUser, AdminDevice, AdminPlan, AdminServer, AdminNode, AdminRoute, BillingStats, ReferralStats, SystemHealth, AnalyticsData, PaginatedResponse, NodeForm, RouteForm
 //   DEPENDS: M-010 (frontend-admin)
 //   LINKS: M-010 (frontend-admin), M-006 (admin-api)
 // END_MODULE_CONTRACT
@@ -12,7 +12,6 @@
 // START_MODULE_MAP
 //   AdminUser, AdminDevice, AdminPlan, AdminServer, AdminNode, AdminRoute - Admin entity interfaces
 //   BillingStats, ReferralStats, SystemHealth, AnalyticsData - Analytics interfaces
-//   RoutePolicyRule, DNSBinding, ExplainRouteResult - Routing interfaces
 //   PaginatedResponse - Generic pagination wrapper
 //   NodeForm, RouteForm - Form state interfaces for CRUD
 // END_MODULE_MAP
@@ -20,17 +19,6 @@
 // START_CHANGE_SUMMARY
 //   LAST_CHANGE: v2.8.0 - Converted to full GRACE MODULE_CONTRACT/MAP format with START/END blocks
 // END_CHANGE_SUMMARY
-//
-//          DNSBinding, ExplainRouteResult, PaginatedResponse, NodeForm, RouteForm
-//   DEPENDS: M-010 (frontend-admin), M-006 (admin-api)
-//   LINKS: M-010
-// MODULE_MAP:
-//   AdminUser, AdminDevice, AdminPlan, AdminServer, AdminNode, AdminRoute,
-//   BillingStats, RoutePolicyRule, DNSBinding, SystemHealth, ReferralStats,
-//   AnalyticsDataPoint, AnalyticsData, ExplainRouteResult, PaginatedResponse,
-//   NodeForm, RouteForm — all exported interfaces
-// CHANGE_SUMMARY: v2.8.0 — initial GRACE annotation, removed duplicate contract header and RouteForm
-// =============================================================================
 
 // START_BLOCK: AdminUser
 export interface AdminUser {
@@ -144,31 +132,6 @@ export interface BillingStats {
 }
 // END_BLOCK: BillingStats
 
-// START_BLOCK: RoutePolicyRule
-export interface RoutePolicyRule {
-  id: number
-  domain?: string
-  cidr?: string
-  normalized_domain?: string
-  normalized_cidr?: string
-  route_target: string
-  priority: number
-  description?: string
-  is_active: boolean
-}
-// END_BLOCK: RoutePolicyRule
-
-// START_BLOCK: DNSBinding
-export interface DNSBinding {
-  id: number
-  normalized_domain: string
-  resolved_ip: string
-  route_target: string
-  ttl?: number
-  updated_at?: string
-}
-// END_BLOCK: DNSBinding
-
 // START_BLOCK: SystemHealth
 export interface SystemHealth {
   backend: string
@@ -200,17 +163,6 @@ export interface AnalyticsData {
   daily: AnalyticsDataPoint[]
 }
 // END_BLOCK: AnalyticsData
-
-// START_BLOCK: ExplainRouteResult
-export interface ExplainRouteResult {
-  route_target: string
-  decision_reason: string
-  trace_marker: string
-  rule_id?: number | null
-  normalized_domain?: string
-  resolved_ip?: string
-}
-// END_BLOCK: ExplainRouteResult
 
 // START_BLOCK: PaginatedResponse
 export interface PaginatedResponse<T> {

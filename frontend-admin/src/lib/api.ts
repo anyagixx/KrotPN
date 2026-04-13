@@ -5,14 +5,14 @@
 // START_MODULE_CONTRACT
 //   PURPOSE: HTTP API client with JWT auth, refresh-token interceptor, and typed admin endpoint bindings
 //   SCOPE: Axios instance, request/response interceptors, adminApi facade for all backend endpoints
-//   DEPENDS: M-010 (frontend-admin), M-006 (backend API), axios, types (AdminNode, AdminRoute, AdminPlan, RoutePolicyRule, AdminUser)
+//   DEPENDS: M-010 (frontend-admin), M-006 (backend API), axios, types (AdminNode, AdminRoute, AdminPlan, AdminUser)
 //   LINKS: M-010, M-006
 // END_MODULE_CONTRACT
 //
 // START_MODULE_MAP
 //   api - Base axios instance with auth header injection via localStorage
 //   response interceptor - Handles 401 with refresh-token retry logic, redirect to /login on failure
-//   adminApi - Facade object grouping all admin API endpoints by domain (auth, users, servers, nodes, routes, plans, billing, referrals, devices, routing policy)
+//   adminApi - Facade object grouping all admin API endpoints by domain (auth, users, servers, nodes, routes, plans, billing, referrals, devices)
 // END_MODULE_MAP
 //
 // START_CHANGE_SUMMARY
@@ -25,7 +25,6 @@ import type {
   AdminNode,
   AdminRoute,
   AdminPlan,
-  RoutePolicyRule,
   AdminUser,
 } from '../types'
 
@@ -89,8 +88,8 @@ api.interceptors.response.use(
 
 // START_BLOCK: adminApi
 // Facade object exposing all admin backend endpoints grouped by domain
-// Domains: auth, users, stats/analytics, servers, nodes, routes, billing/plans, referrals, devices, routing-policy
-// DEPENDS: /api/* backend routes (M-006), types (AdminNode, AdminRoute, AdminPlan, RoutePolicyRule, AdminUser)
+// Domains: auth, users, stats/analytics, servers, nodes, routes, billing/plans, referrals, devices
+// DEPENDS: /api/* backend routes (M-006), types (AdminNode, AdminRoute, AdminPlan, AdminUser)
 export const adminApi = {
   // Auth
   login: (email: string, password: string) =>
@@ -197,39 +196,5 @@ export const adminApi = {
 
   revokeDevice: (id: number) =>
     api.delete(`/admin/devices/${id}`),
-
-  // Routing Policy - Domains
-  getDomainRouteRules: () =>
-    api.get('/routing/policy/domains'),
-
-  createDomainRouteRule: (data: Partial<RoutePolicyRule>) =>
-    api.post('/routing/policy/domains', data),
-
-  updateDomainRouteRule: (id: number, data: Partial<RoutePolicyRule>) =>
-    api.put(`/routing/policy/domains/${id}`, data),
-
-  deleteDomainRouteRule: (id: number) =>
-    api.delete(`/routing/policy/domains/${id}`),
-
-  // Routing Policy - CIDRs
-  getCidrRouteRules: () =>
-    api.get('/routing/policy/cidrs'),
-
-  createCidrRouteRule: (data: Partial<RoutePolicyRule>) =>
-    api.post('/routing/policy/cidrs', data),
-
-  updateCidrRouteRule: (id: number, data: Partial<RoutePolicyRule>) =>
-    api.put(`/routing/policy/cidrs/${id}`, data),
-
-  deleteCidrRouteRule: (id: number) =>
-    api.delete(`/routing/policy/cidrs/${id}`),
-
-  // Routing Policy - DNS Bindings
-  getPolicyDnsBindings: () =>
-    api.get('/routing/policy/dns-bindings'),
-
-  // Routing Policy - Explain
-  explainRouteDecision: (address: string) =>
-    api.post('/routing/policy/explain', { address }),
 }
 // END_BLOCK: adminApi

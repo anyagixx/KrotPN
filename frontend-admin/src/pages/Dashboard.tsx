@@ -4,7 +4,7 @@
 // MAP_MODE: SUMMARY
 // START_MODULE_CONTRACT
 //   PURPOSE: Admin dashboard page showing operational overview (users, subscriptions, revenue, system health)
-//   SCOPE: Display aggregated stats, system health metrics, routing topology overview
+//   SCOPE: Display aggregated stats, system health metrics
 //   DEPENDS: M-010 (frontend-admin), M-006 (admin API)
 //   LINKS: M-010
 // END_MODULE_CONTRACT
@@ -25,9 +25,7 @@ import {
   Activity,
   CreditCard,
   DollarSign,
-  Server,
   ShieldCheck,
-  TrendingUp,
   Users,
 } from 'lucide-react'
 import { adminApi } from '../lib/api'
@@ -138,68 +136,6 @@ export default function Dashboard() {
           value={formatCurrency(s?.revenue?.this_month)}
           suffix="₽"
         />
-        <StatCard
-          icon={<Server className="h-6 w-6" />}
-          label="Активных domain rules"
-          value={s?.routing?.domain_rules_active || 0}
-        />
-      </section>
-
-      <section className="grid gap-4 lg:grid-cols-4">
-        <div className="panel p-6">
-          <div className="mb-5 flex items-center gap-3">
-            <TrendingUp className="h-5 w-5 text-emerald-200" />
-            <h3 className="text-lg font-semibold">Рост аудитории</h3>
-          </div>
-          <p className="text-4xl font-extrabold">{s?.users?.new_this_month || 0}</p>
-          <p className="mt-2 text-sm muted">Новых регистраций в текущем месяце.</p>
-        </div>
-
-        <div className="panel p-6">
-          <div className="mb-5 flex items-center gap-3">
-            <CreditCard className="h-5 w-5 text-cyan-200" />
-            <h3 className="text-lg font-semibold">Trial-пул</h3>
-          </div>
-          <p className="text-4xl font-extrabold">{s?.subscriptions?.trial || 0}</p>
-          <p className="mt-2 text-sm muted">Активные пробные подписки, требующие конверсии в оплату.</p>
-        </div>
-
-        <div className="panel p-6">
-          <div className="mb-5 flex items-center gap-3">
-            <Activity className="h-5 w-5 text-cyan-200" />
-            <h3 className="text-lg font-semibold">VPN клиенты</h3>
-          </div>
-          <p className="text-4xl font-extrabold">{s?.vpn?.active_clients || 0}</p>
-          <p className="mt-2 text-sm muted">Количество активных клиентов с доступом к сети.</p>
-        </div>
-
-        <div className="panel p-6">
-          <div className="mb-5 flex items-center gap-3">
-            <Server className="h-5 w-5 text-amber-200" />
-            <h3 className="text-lg font-semibold">Routing topology</h3>
-          </div>
-          <div className="space-y-4 text-sm">
-            <div className="flex items-center justify-between">
-              <span className="muted">Онлайн узлов</span>
-              <span className="font-bold">{s?.routing?.online_nodes || 0}</span>
-            </div>
-            <div className="flex items-center justify-between">
-              <span className="muted">Активных маршрутов</span>
-              <span className="font-bold">{s?.routing?.active_routes || 0}</span>
-            </div>
-            <div className="flex items-center justify-between">
-              <span className="muted">DNS bindings</span>
-              <span className="font-bold">{s?.routing?.dns_bindings_active || 0}</span>
-            </div>
-            <div className="flex items-center justify-between">
-              <span className="muted">Legacy VPNServer</span>
-              <span className="font-bold">{s?.vpn?.online_servers || 0}</span>
-            </div>
-          </div>
-          <p className="mt-4 text-xs muted">
-            {s?.vpn?.topology_note || 'Legacy server metric kept only for migration visibility.'}
-          </p>
-        </div>
       </section>
     </div>
   )

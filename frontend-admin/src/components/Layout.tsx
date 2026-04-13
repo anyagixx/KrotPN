@@ -28,7 +28,6 @@ import {
   LayoutDashboard,
   LogOut,
   Server,
-  Settings,
   Shield,
   ShieldAlert,
   Users,
@@ -46,7 +45,6 @@ const navItems = [
   { to: '/servers', icon: Server, label: 'Ноды и маршруты', hint: 'Entry, exit и route topology' },
   { to: '/plans', icon: CreditCard, label: 'Тарифы', hint: 'Подписки и цены' },
   { to: '/analytics', icon: BarChart3, label: 'Аналитика', hint: 'Выручка и конверсия' },
-  { to: '/settings', icon: Settings, label: 'Настройки', hint: 'Системные параметры' },
 ]
 // END_BLOCK: navItems
 
@@ -60,7 +58,6 @@ const pageMeta: Record<string, { title: string; description: string }> = {
   '/servers': { title: 'Ноды и маршруты', description: 'Физические узлы и логические цепочки, по которым выдаётся трафик клиентам.' },
   '/plans': { title: 'Тарифы', description: 'Текущие подписки и конфигурация продуктовой линейки.' },
   '/analytics': { title: 'Аналитика', description: 'Ключевые метрики роста и монетизации.' },
-  '/settings': { title: 'Настройки', description: 'Базовые параметры инсталляции и реферальной модели.' },
 }
 // END_BLOCK: pageMeta
 

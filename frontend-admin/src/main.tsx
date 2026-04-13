@@ -37,7 +37,6 @@ import Devices from './pages/Devices'
 import Servers from './pages/Servers'
 import Plans from './pages/Plans'
 import Analytics from './pages/Analytics'
-import Settings from './pages/Settings'
 import Layout from './components/Layout'
 import { useAuthStore } from './stores/auth'
 import './index.css'
@@ -68,7 +67,6 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
             <Route path="servers" element={<Servers />} />
             <Route path="plans" element={<Plans />} />
             <Route path="analytics" element={<Analytics />} />
-            <Route path="settings" element={<Settings />} />
           </Route>
         </Routes>
       </BrowserRouter>
