@@ -1,0 +1,116 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Phase-18: Deploy-Time AWG Stealth Obfuscation -->
+<Phase-18 NAME="Deploy-Time AWG Stealth Obfuscation" STATUS="wip" MODULES="M-030,M-012,M-001,M-003,M-020,M-028,M-019,M-022" CREATED="2026-04-18">
+
+  <goal>
+    Implement AmneziaWG stealth obfuscation from the local AmnezWG reference so every fresh RU/DE deploy generates
+    valid bounded obfuscation parameters for both the client-facing RU interface and the RU-to-DE relay tunnel.
+    Backend-generated user, device, manual, raw config, and QR outputs must match the deployed RU awg0 profile.
+  </goal>
+
+  <non-goals>
+    <item-1>No automatic rotation of existing production clients without an explicit operator flag.</item-1>
+    <item-2>No blind copy of the standalone firewall rules that would close KrotPN web, admin, or SSH surfaces.</item-2>
+    <item-3>No floating build of AmneziaWG tools from unpinned upstream commits in production deploys.</item-3>
+  </non-goals>
+
+  <step-1 MODULE="M-030" RISK="CRITICAL">
+    Create AWGObfuscationProfile contract and helpers for generation, parsing, validation, and rendering.
+    Ranges: H1-H4 100000000..2147483647, S1/S2 15..150, Jc 4..8, Jmin 40..50, Jmax 100..200.
+  </step-1>
+
+  <step-2 MODULE="M-012,M-030" RISK="CRITICAL">
+    Add deploy shell helper that creates CLIENT_PROFILE for external clients/RU awg0 and RELAY_PROFILE for RU awg-client/DE awg0.
+    Fresh deploy generates both profiles; upgrade deploy preserves existing profiles unless STEALTH_ROTATE=1 is explicitly set.
+  </step-2>
+
+  <step-3 MODULE="M-012" RISK="CRITICAL">
+    Update deploy/deploy-on-server.sh and deploy/deploy-all.sh to install or build AmneziaWG userspace/tooling safely.
+    Prefer pinned versions or checksums, disable stock wireguard only when compatible, and set WG_QUICK_USERSPACE_IMPLEMENTATION for managed services.
+  </step-3>
+
+  <step-4 MODULE="M-012,M-030" RISK="CRITICAL">
+    Render DE awg0.conf and RU awg-client.conf from RELAY_PROFILE and verify parity before starting either side.
+    Preserve Full Tunnel policy routing and NAT introduced in Phase-17.
+  </step-4>
+
+  <step-5 MODULE="M-012,M-030" RISK="CRITICAL">
+    Render RU awg0.conf and backend .env AWG_CLIENT_* values from CLIENT_PROFILE.
+    Fresh deploy may default VPN_PORT to 443/udp; upgrades preserve the previous port unless explicitly changed.
+  </step-5>
+
+  <step-6 MODULE="M-001,M-030" RISK="HIGH">
+    Add backend settings validation for CLIENT_PROFILE values and fallback parsing from /etc/amnezia/amneziawg/awg0.conf when env is absent.
+    Settings must never log private keys, preshared keys, or full profile dumps.
+  </step-6>
+
+  <step-7 MODULE="M-020,M-028" RISK="CRITICAL">
+    Add nullable encrypted VPNClient.preshared_key_enc and Alembic migration.
+    Existing clients stay valid with NULL PSK; newly provisioned or rotated clients receive PSK.
+  </step-7>
+
+  <step-8 MODULE="M-003,M-019,M-022,M-030" RISK="CRITICAL">
+    Update provisioning, manual CLI, config download, and QR flows to include CLIENT_PROFILE plus PresharedKey for new/rotated clients.
+    All outputs must share one rendering path to prevent QR/raw/manual divergence.
+  </step-8>
+
+  <step-9 MODULE="M-012,M-030" RISK="HIGH">
+    Adapt kernel/firewall performance hardening from the reference: BBR/fq, safe UDP buffer tuning, qdisc, and AWG UDP NOTRACK.
+    Rules must be additive/idempotent and must not block HTTPS, admin, backend health, or SSH.
+  </step-9>
+
+  <step-10 MODULE="M-030,M-012,M-003,M-020,M-028" RISK="CRITICAL">
+    Run deterministic tests, static deploy checks, and live rollout gates:
+    profile parity, RU-DE handshake, new client handshake, DE egress, upgrade preservation, explicit rotation behavior.
+  </step-10>
+
+  <data-flows>
+    <DF-AWG-001 NAME="Fresh deploy profile propagation">
+      deploy helper generates CLIENT_PROFILE and RELAY_PROFILE -> writes RU/DE AWG configs -> writes backend .env -> services start -> parity checks pass.
+    </DF-AWG-001>
+    <DF-AWG-002 NAME="Client config generation">
+      user/device/manual provisioning -> backend loads CLIENT_PROFILE -> generates keypair and PSK -> adds RU awg0 peer -> renders raw config and QR.
+    </DF-AWG-002>
+    <DF-AWG-003 NAME="Upgrade preservation">
+      deploy detects existing awg0/awg-client profiles -> preserves values and VPN port -> backend env stays compatible -> existing clients keep working.
+    </DF-AWG-003>
+  </data-flows>
+
+  <execution-status updated="2026-04-19">
+    <local-implemented>
+      M-030 profile helpers, deploy helper sourcing/copying, CLIENT_PROFILE and RELAY_PROFILE rendering,
+      backend CLIENT_PROFILE loading with awg0.conf fallback, nullable encrypted VPNClient preshared keys,
+      provisioning/reprovisioning PSK generation, config download PSK rendering, and deploy static checks.
+    </local-implemented>
+    <local-verification>
+      15 V-M-030 tests passed with ../.venv/bin/python -m pytest -o addopts=''; M-017 py_compile passed;
+      consolidated bash -n passed for deploy/lib/awg-obfuscation.sh, deploy scripts, and install.sh.
+      Frontend and admin frontend production builds passed. docker compose config --no-interpolate passed.
+    </local-verification>
+    <local-blockers>
+      Exact docker compose config still requires deploy-generated .env with DB_PASSWORD. Exact pytest without -o addopts=''
+      still requires pytest-cov in the local .venv because backend/pyproject.toml injects --cov options globally.
+    </local-blockers>
+    <blocked-live-gates>
+      Live RU/DE deploy, STEALTH_ROTATE=1 rotation, RU-DE handshake, new client handshake, and DE egress remain blocked by V-M-030 operator-approval policy.
+    </blocked-live-gates>
+  </execution-status>
+
+  <phase-gates>
+    <gate-1>Static grep finds no hardcoded production obfuscation values like Jc=120/Jmax=1000 in generated deploy config templates.</gate-1>
+    <gate-2>CLIENT_PROFILE in backend settings exactly matches RU awg0.conf.</gate-2>
+    <gate-3>RELAY_PROFILE exactly matches RU awg-client.conf and DE awg0.conf.</gate-3>
+    <gate-4>Newly provisioned client config contains Jc/Jmin/Jmax/S1/S2/H1-H4 and PresharedKey and handshakes with RU awg0.</gate-4>
+    <gate-5>RU-DE tunnel handshakes and client traffic exits through DE under Full Tunnel policy routing.</gate-5>
+    <gate-6>Upgrade deploy without STEALTH_ROTATE preserves existing profile and port.</gate-6>
+  </phase-gates>
+
+  <risk-assessment>
+    <risk-1 severity="critical">Changing obfuscation or UDP port invalidates existing client configs unless rotation is explicit.</risk-1>
+    <risk-2 severity="critical">RU and DE relay profiles must be identical across both tunnel endpoints or RU-DE connectivity fails.</risk-2>
+    <risk-3 severity="high">Preshared-key migration must be nullable to avoid breaking legacy peers.</risk-3>
+    <risk-4 severity="high">Standalone stealth firewall rules must be adapted because RU also hosts web, admin, nginx, Docker, and SSH surfaces.</risk-4>
+    <risk-5 severity="high">Building AmneziaWG from unpinned upstream sources at deploy time creates supply-chain and reproducibility risk.</risk-5>
+  </risk-assessment>
+
+</Phase-18>

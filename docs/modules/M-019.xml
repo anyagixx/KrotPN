@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <M-019 NAME="manual-client-cli" TYPE="ENTRY_POINT" STATUS="stable">
   <path>backend/app/cli.py deploy/create-client.sh</path>
-  <owns>operator-triggered manual client issuance, config export and QR/output handling over backend provisioning logic</owns>
+  <owns>operator-triggered manual client issuance, profile-consistent config export and QR/output handling over backend provisioning logic</owns>
   <exports>
     <fn-create-internal-client>Backend CLI entry that provisions or reuses an internal client and exports a working config</fn-create-internal-client>
-    <fn-export-manual-client-config>Writes config or QR output after backend provisioning succeeds</fn-export-manual-client-config>
+    <fn-export-manual-client-config>Writes config or QR output after backend provisioning succeeds using the same CLIENT_PROFILE as web provisioning</fn-export-manual-client-config>
   </exports>
   <depends>M-001, M-002, M-003, M-004, M-012, M-018</depends>
   <verification-ref>V-M-019</verification-ref>
@@ -13,4 +13,5 @@
     <file>deploy/create-client.sh</file>
   </files>
   <hotspot>H-007: Manual client issuance is unsafe if shell scripts bypass backend topology and config generation logic</hotspot>
+  <hotspot>H-017: Manual configs must not bypass backend profile and preshared-key rendering</hotspot>
 </M-019>

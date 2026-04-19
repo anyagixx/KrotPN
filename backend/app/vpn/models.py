@@ -14,12 +14,13 @@
 #   VPNServer - Legacy VPN server record (table: vpn_servers)
 #   VPNNode - Route-aware VPN node record (table: vpn_nodes)
 #   VPNRoute - Route linking entry and exit nodes (table: vpn_routes)
-#   VPNClient - VPN client bound to user + device + route (table: vpn_clients)
+#   VPNClient - VPN client bound to user + device + route with nullable encrypted preshared key (table: vpn_clients)
 #   VPNConfig - Response model for rendered VPN config (non-table)
 #   VPNStats - Response model for VPN statistics (non-table)
 # END_MODULE_MAP
 #
 # START_CHANGE_SUMMARY
+#   LAST_CHANGE: v3.0.0 - Added nullable encrypted preshared key storage for new AWG peers
 #   LAST_CHANGE: v2.8.0 - Converted to full GRACE MODULE_CONTRACT/MAP format with START/END blocks
 # END_CHANGE_SUMMARY
 #
@@ -163,6 +164,7 @@ class VPNClient(SQLModel, table=True):
     # Client keys (private key encrypted)
     public_key: str = Field(max_length=100, unique=True)
     private_key_enc: str = Field(max_length=500)  # Encrypted with Fernet
+    preshared_key_enc: str | None = Field(default=None, max_length=500)
 
     # Network configuration
     address: str = Field(max_length=20, unique=True)  # e.g., 10.10.0.2

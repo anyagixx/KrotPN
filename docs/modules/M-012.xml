@@ -1,19 +1,21 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <M-012 NAME="deploy-surface" TYPE="ENTRY_POINT" STATUS="stable">
   <path>deploy install.sh nginx docker-compose.yml</path>
-  <owns>installation, deploy scripts, runtime composition, proxying, cert generation, host-tool preflight, awg0 peer sync watchers, deploy-time secret handling, backup/restore, nginx hardening</owns>
-  <depends>M-003, M-007, M-019</depends>
+  <owns>installation, deploy scripts, runtime composition, proxying, cert generation, host-tool preflight, AWG stealth profile generation, awg0 peer sync watchers, deploy-time secret handling, backup/restore, nginx hardening</owns>
+  <depends>M-003, M-007, M-019, M-030</depends>
   <verification-ref>V-M-012</verification-ref>
   <files>
-    <file>deploy/deploy-ru-server.sh</file>
     <file>deploy/deploy-on-server.sh</file>
     <file>deploy/deploy-all.sh</file>
+    <file>deploy/lib/awg-obfuscation.sh</file>
+    <file>deploy/quick-start.sh</file>
     <file>deploy/create-client.sh</file>
+    <file>deploy/remove-client.sh</file>
     <file>deploy/rollback.sh</file>
     <file>deploy/backup-db.sh</file>
     <file>install.sh</file>
     <file>docker-compose.yml</file>
-    <file>deploy/nginx/default</file>
   </files>
   <hotspot>H-015: Deploy idempotency must preserve WG keys, SSL certs, .env across repeated runs</hotspot>
+  <hotspot>H-017: Fresh deploys may generate obfuscation profiles, but upgrades must preserve profiles unless rotation is explicit</hotspot>
 </M-012>

@@ -13,6 +13,10 @@
 
 set -e
 
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# shellcheck source=deploy/lib/awg-obfuscation.sh
+source "${SCRIPT_DIR}/lib/awg-obfuscation.sh"
+
 # Colors
 RED='\033[0;31m'
 GREEN='\033[0;32m'
@@ -26,7 +30,7 @@ RU_IP="${RU_IP:-}"
 RU_USER="${RU_USER:-root}"
 DE_IP="${DE_IP:-}"
 DE_USER="${DE_USER:-root}"
-VPN_PORT="51821"
+VPN_PORT="${VPN_PORT:-443}"
 
 # SSH command wrapper
 ssh_ru() {
@@ -35,6 +39,14 @@ ssh_ru() {
 
 ssh_de() {
     ssh -o ConnectTimeout=30 -o LogLevel=ERROR "$DE_USER@$DE_IP" "$@"
+}
+
+scp_ru() {
+    scp -o ConnectTimeout=30 -o LogLevel=ERROR "$1" "$RU_USER@$RU_IP:$2"
+}
+
+scp_de() {
+    scp -o ConnectTimeout=30 -o LogLevel=ERROR "$1" "$DE_USER@$DE_IP:$2"
 }
 
 # Print banner
@@ -61,6 +73,8 @@ if ! ssh_de "echo ok" 2>/dev/null | grep -q "ok"; then
     exit 1
 fi
 echo -e "${GREEN}✓ DE server accessible${NC}"
+scp_ru "${SCRIPT_DIR}/lib/awg-obfuscation.sh" /tmp/krotpn-awg-obfuscation.sh
+scp_de "${SCRIPT_DIR}/lib/awg-obfuscation.sh" /tmp/krotpn-awg-obfuscation.sh
 echo ""
 
 # ============================================================
@@ -71,8 +85,9 @@ echo -e "${CYAN}PHASE 1: RU Server - Installing dependencies & generating keys${
 echo -e "${CYAN}══════════════════════════════════════════════════════════════${NC}"
 echo ""
 
-ssh_ru "bash -s" << 'REMOTE_SCRIPT'
+ssh_ru "STEALTH_ROTATE='${STEALTH_ROTATE:-0}' VPN_PORT='${VPN_PORT}' bash -s" << 'REMOTE_SCRIPT'
 set -e
+source /tmp/krotpn-awg-obfuscation.sh
 
 RED='\033[0;31m'
 GREEN='\033[0;32m'
@@ -117,6 +132,7 @@ if ! command -v awg &> /dev/null; then
     apt update -qq
     apt install -y -qq amneziawg amneziawg-tools
 fi
+awg_configure_userspace
 verify_host_routing_tools
 
 echo -e "${BLUE}[RU] Enabling IP forwarding...${NC}"
@@ -138,10 +154,29 @@ fi
 RU_SERVER_PUBLIC=$(cat ru_server_public.key)
 RU_CLIENT_PUBLIC=$(cat ru_client_public.key)
 
+EXISTING_VPN_PORT="$(awg_profile_extract /etc/amnezia/amneziawg/awg0.conf ListenPort 2>/dev/null || true)"
+if [ "${STEALTH_ROTATE:-0}" != "1" ] && [ -n "$EXISTING_VPN_PORT" ]; then
+    VPN_PORT="$EXISTING_VPN_PORT"
+    echo -e "${GREEN}[RU] Preserving existing VPN UDP port ${VPN_PORT}${NC}"
+fi
+awg_profile_ensure CLIENT_ /etc/amnezia/amneziawg/awg0.conf "${STEALTH_ROTATE:-0}"
+awg_profile_ensure RELAY_ /etc/amnezia/amneziawg/awg-client.conf "${STEALTH_ROTATE:-0}"
+awg_profile_lines CLIENT_ > /etc/amnezia/amneziawg/krotpn-client-profile.conf
+awg_profile_lines RELAY_ > /etc/amnezia/amneziawg/krotpn-relay-profile.conf
+chmod 600 /etc/amnezia/amneziawg/krotpn-*-profile.conf
+
 echo -e "${GREEN}[RU] Keys generated:${NC}"
 echo -e "  Server Public: ${RU_SERVER_PUBLIC}"
 echo -e "  Client Public: ${RU_CLIENT_PUBLIC}"
 REMOTE_SCRIPT
+
+PRESERVED_VPN_PORT=$(ssh_ru "source /tmp/krotpn-awg-obfuscation.sh; awg_profile_extract /etc/amnezia/amneziawg/awg0.conf ListenPort 2>/dev/null || true")
+if [ -n "$PRESERVED_VPN_PORT" ]; then
+    VPN_PORT="$PRESERVED_VPN_PORT"
+fi
+RELAY_PROFILE_ENV=$(ssh_ru "source /tmp/krotpn-awg-obfuscation.sh; awg_profile_load RELAY_ /etc/amnezia/amneziawg/krotpn-relay-profile.conf; awg_profile_env_lines RELAY_ RELAY_")
+CLIENT_PROFILE_ENV=$(ssh_ru "source /tmp/krotpn-awg-obfuscation.sh; awg_profile_load CLIENT_ /etc/amnezia/amneziawg/krotpn-client-profile.conf; awg_profile_env_lines CLIENT_ CLIENT_")
+RELAY_PROFILE_ASSIGNMENTS=$(printf '%s' "$RELAY_PROFILE_ENV" | tr '\n' ' ')
 
 echo ""
 
@@ -156,8 +191,9 @@ echo ""
 # Get RU client public key
 RU_CLIENT_PUBLIC_KEY=$(ssh_ru "cat /etc/amnezia/amneziawg/ru_client_public.key")
 
-ssh_de "RU_CLIENT_PUBLIC_KEY='${RU_CLIENT_PUBLIC_KEY}' VPN_PORT='${VPN_PORT}' bash -s" << 'REMOTE_SCRIPT'
+ssh_de "RU_CLIENT_PUBLIC_KEY='${RU_CLIENT_PUBLIC_KEY}' VPN_PORT='${VPN_PORT}' STEALTH_ROTATE='${STEALTH_ROTATE:-0}' ${RELAY_PROFILE_ASSIGNMENTS} bash -s" << 'REMOTE_SCRIPT'
 set -e
+source /tmp/krotpn-awg-obfuscation.sh
 
 RED='\033[0;31m'
 GREEN='\033[0;32m'
@@ -194,6 +230,7 @@ if ! command -v awg &> /dev/null; then
     apt update -qq
     apt install -y -qq amneziawg amneziawg-tools
 fi
+awg_configure_userspace
 verify_host_routing_tools
 
 echo -e "${BLUE}[DE] Enabling IP forwarding...${NC}"
@@ -214,6 +251,12 @@ fi
 DE_PRIVATE=$(cat de_private.key)
 DE_PUBLIC=$(cat de_public.key)
 
+awg_profile_validate RELAY_
+if [ "${STEALTH_ROTATE:-0}" != "1" ] && [ -f /etc/amnezia/amneziawg/awg0.conf ]; then
+    awg_profile_load DE_RELAY_ /etc/amnezia/amneziawg/awg0.conf
+    awg_profile_require_equal RELAY_ DE_RELAY_ "DE awg0 relay profile"
+fi
+
 echo -e "${GREEN}[DE] Keys generated:${NC}"
 echo -e "  Public: ${DE_PUBLIC}"
 
@@ -223,15 +266,7 @@ cat > /etc/amnezia/amneziawg/awg0.conf << EOF
 PrivateKey = ${DE_PRIVATE}
 Address = 10.200.0.1/24
 ListenPort = ${VPN_PORT}
-Jc = 120
-Jmin = 50
-Jmax = 1000
-S1 = 111
-S2 = 222
-H1 = 1
-H2 = 2
-H3 = 3
-H4 = 4
+$(awg_profile_lines RELAY_)
 
 [Peer]
 PublicKey = ${RU_CLIENT_PUBLIC_KEY}
@@ -260,6 +295,7 @@ iptables -t nat -A POSTROUTING -s 10.200.0.0/24 -o $EXT_IF -j MASQUERADE
 iptables -t nat -A POSTROUTING -s 10.10.0.0/24 -o $EXT_IF -j MASQUERADE
 mkdir -p /etc/iptables
 iptables-save > /etc/iptables/rules.v4
+awg_apply_host_hardening "${VPN_PORT}"
 
 ufw --force enable > /dev/null
 
@@ -285,6 +321,7 @@ DE_PUBLIC_KEY=$(ssh_de "cat /etc/amnezia/amneziawg/de_public.key")
 
 ssh_ru "DE_PUBLIC_KEY='${DE_PUBLIC_KEY}' RU_IP='${RU_IP}' DE_IP='${DE_IP}' VPN_PORT='${VPN_PORT}' bash -s" << 'REMOTE_SCRIPT'
 set -e
+source /tmp/krotpn-awg-obfuscation.sh
 
 RED='\033[0;31m'
 GREEN='\033[0;32m'
@@ -297,6 +334,8 @@ cd /etc/amnezia/amneziawg
 RU_CLIENT_PRIVATE=$(cat ru_client_private.key)
 RU_SERVER_PRIVATE=$(cat ru_server_private.key)
 RU_SERVER_PUBLIC=$(cat ru_server_public.key)
+awg_profile_load CLIENT_ /etc/amnezia/amneziawg/krotpn-client-profile.conf
+awg_profile_load RELAY_ /etc/amnezia/amneziawg/krotpn-relay-profile.conf
 
 echo -e "${BLUE}[RU] Creating tunnel configuration to DE...${NC}"
 cat > /etc/amnezia/amneziawg/awg-client.conf << EOF
@@ -305,15 +344,7 @@ PrivateKey = ${RU_CLIENT_PRIVATE}
 Address = 10.200.0.2/24
 Table = off
 DNS = 8.8.8.8
-Jc = 120
-Jmin = 50
-Jmax = 1000
-S1 = 111
-S2 = 222
-H1 = 1
-H2 = 2
-H3 = 3
-H4 = 4
+$(awg_profile_lines RELAY_)
 
 [Peer]
 PublicKey = ${DE_PUBLIC_KEY}
@@ -328,15 +359,7 @@ cat > /etc/amnezia/amneziawg/awg0.conf << EOF
 PrivateKey = ${RU_SERVER_PRIVATE}
 Address = 10.10.0.1/24
 ListenPort = ${VPN_PORT}
-Jc = 120
-Jmin = 50
-Jmax = 1000
-S1 = 111
-S2 = 222
-H1 = 1
-H2 = 2
-H3 = 3
-H4 = 4
+$(awg_profile_lines CLIENT_)
 EOF
 
 chmod 600 /etc/amnezia/amneziawg/*.conf
@@ -374,6 +397,7 @@ ufw allow out on awg0 > /dev/null
 ufw allow in on awg-client > /dev/null
 ufw allow out on awg-client > /dev/null
 ufw --force enable > /dev/null
+awg_apply_host_hardening "${VPN_PORT}"
 
 echo -e "${BLUE}[RU] Starting AmneziaWG...${NC}"
 awg-quick down awg0 2>/dev/null || true
@@ -482,15 +506,9 @@ VPN_EXIT_SERVER_PUBLIC_KEY=${DE_PUBLIC_KEY}
 VPN_EXIT_SERVER_ENDPOINT=${DE_IP}
 
 # === AMNEZIAWG OBFUSCATION ===
-AWG_JC=120
-AWG_JMIN=50
-AWG_JMAX=1000
-AWG_S1=111
-AWG_S2=222
-AWG_H1=1
-AWG_H2=2
-AWG_H3=3
-AWG_H4=4
+$(awg_profile_env_lines CLIENT_ "AWG_CLIENT_")
+$(awg_profile_env_lines RELAY_ "AWG_RELAY_")
+$(awg_profile_env_lines CLIENT_ "AWG_")
 
 # === TRIAL ===
 TRIAL_DAYS=3

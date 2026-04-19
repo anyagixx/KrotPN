@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<M-030 NAME="awg-stealth-obfuscation" TYPE="INTEGRATION" STATUS="wip">
+  <path>backend/app/vpn/obfuscation.py deploy/lib/awg-obfuscation.sh</path>
+  <owns>deploy-time AmneziaWG stealth profile generation, validation, rendering, and parity between RU client-facing configs and RU-DE relay configs</owns>
+  <exports>
+    <type-AWGObfuscationProfile>Typed profile containing Jc, Jmin, Jmax, S1, S2, H1, H2, H3, H4</type-AWGObfuscationProfile>
+    <fn-generate-awg-profile>Generate bounded random stealth parameters from the approved AmnezWG reference ranges</fn-generate-awg-profile>
+    <fn-parse-awg-profile>Parse an existing awg config into a validated profile for upgrade-safe preservation</fn-parse-awg-profile>
+    <fn-render-awg-profile>Render profile lines for server, relay, backend env, and client config outputs</fn-render-awg-profile>
+    <fn-validate-awg-profile-pair>Verify both endpoints of a link use identical obfuscation parameters before service restart</fn-validate-awg-profile-pair>
+  </exports>
+  <profiles>
+    <profile-client>CLIENT_PROFILE applies to external clients and RU awg0.</profile-client>
+    <profile-relay>RELAY_PROFILE applies to RU awg-client and DE awg0.</profile-relay>
+  </profiles>
+  <ranges>
+    <range-H1-H4>100000000..2147483647</range-H1-H4>
+    <range-S1-S2>15..150</range-S1-S2>
+    <range-Jc>4..8</range-Jc>
+    <range-Jmin>40..50</range-Jmin>
+    <range-Jmax>100..200</range-Jmax>
+  </ranges>
+  <depends>M-001, M-012, M-028</depends>
+  <verification-ref>V-M-030</verification-ref>
+  <files>
+    <file>backend/app/vpn/obfuscation.py</file>
+    <file>deploy/lib/awg-obfuscation.sh</file>
+  </files>
+  <implementation-status updated="2026-04-18">
+    <local>Implemented profile generation/parsing/rendering, deploy helper integration, backend CLIENT_PROFILE loading, nullable encrypted PSK support, and static/unit verification.</local>
+    <blocked>Live RU/DE deploy, STEALTH_ROTATE=1 rotation, RU-DE handshake, client handshake, and DE egress gates require explicit operator approval.</blocked>
+  </implementation-status>
+  <hotspot>H-017: Changing AWG obfuscation or UDP port invalidates existing client configs unless rotation is explicit</hotspot>
+</M-030>

@@ -1,21 +1,19 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <M-017 NAME="route-sync-runtime" TYPE="INTEGRATION" STATUS="stable">
-  <path>backend/app/routing/manager.py backend/app/routing/ru_ipset_updater.py</path>
-  <owns>incremental sync of policy decisions into host-level route sets, automated RU IP range updates from 3 sources (ipverse/antizapret/ipgeobase) with fallback, atomic ipset swap with rollback, last-known-good persistence, scheduler (6h interval)</owns>
+  <path>backend/app/routing/manager.py backend/app/routing/router.py deploy/deploy-on-server.sh</path>
+  <owns>Full Tunnel routing cleanup, tunnel-health status integration, and deploy-script checks that ensure removed split-tunneling/ipset artifacts do not return</owns>
   <exports>
-    <fn-apply-runtime-route-sync>Applies routing-set changes safely on the host</fn-apply-runtime-route-sync>
-    <fn-build-route-sync-plan>Calculates add/remove diffs before touching host ipsets</fn-build-route-sync-plan>
-    <fn-update_ru_ipset>Triggers automated multi-source RU IP update</fn-update_ru_ipset>
-    <fn-get_ru_ipset_stats>Returns RU ipset statistics without triggering update</fn-get_ru_ipset_stats>
-    <type-RuIpsetUpdater>Multi-source RU IP fetcher with validation, dedup, and incremental apply</type-RuIpsetUpdater>
-    <type-RuIpsetStats>Dataclass for RU ipset update statistics</type-RuIpsetStats>
+    <fn-routing_manager-get_status>Returns Full Tunnel health status through RoutingManager</fn-routing_manager-get_status>
+    <fn-get_routing_status>Exposes tunnel status for frontend/admin visibility</fn-get_routing_status>
+    <check-deploy-full-tunnel>Verifies deploy scripts no longer create ipset, mangle, or resolver artifacts</check-deploy-full-tunnel>
   </exports>
-  <depends>M-007, M-013, M-014, M-015</depends>
+  <depends>M-007, M-012</depends>
   <verification-ref>V-M-017</verification-ref>
   <files>
     <file>backend/app/routing/manager.py</file>
-    <file>backend/app/routing/ru_ipset_updater.py</file>
+    <file>backend/app/routing/router.py</file>
+    <file>deploy/deploy-on-server.sh</file>
   </files>
-  <hotspot>H-005: Incremental route sync is safer than full refresh but easier to get wrong</hotspot>
-  <hotspot>H-016: RU IP auto-update from external sources could introduce incorrect ranges if validation fails</hotspot>
+  <hotspot>H-005: Full Tunnel cleanup is simpler than route sync but stale host-routing artifacts can break verification</hotspot>
+  <hotspot>H-016: Removed RU IP auto-update references must stay absent from deploy and verification surfaces</hotspot>
 </M-017>

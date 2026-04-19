@@ -11,14 +11,15 @@
 #
 # START_MODULE_MAP
 #   ProvisioningMixin - Mixin providing VPN client provisioning helpers
-#   ProvisioningMixin._provision_new_client - Create a new VPNClient with WG peer
-#   ProvisioningMixin._reprovision_client - Re-provision an existing client with new keys
+#   ProvisioningMixin._provision_new_client - Create a new VPNClient with WG keypair and encrypted AWG preshared key
+#   ProvisioningMixin._reprovision_client - Re-provision an existing client with new keys and encrypted AWG preshared key
 #   ProvisioningMixin.provision_internal_client - Provision or reprovision internal user client
 #   ProvisioningMixin.provision_device_client - Provision or reprovision device-bound client
 #   ProvisioningMixin._get_used_ips - Get set of used IPs for a node/server
 # END_MODULE_MAP
 #
 # START_CHANGE_SUMMARY
+#   LAST_CHANGE: v3.0.0 - Generate and store encrypted preshared keys for new or rotated AWG peers
 #   LAST_CHANGE: v2.8.0 - Converted to full GRACE MODULE_CONTRACT/MAP format
 # END_CHANGE_SUMMARY
 #
@@ -31,9 +32,6 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.security import encrypt_data
-from app.vpn.models import VPNClient, VPNNode, VPNRoute, VPNServer
-
-
 from app.vpn.models import VPNClient, VPNNode, VPNRoute, VPNServer
 
 
@@ -93,9 +91,11 @@ class ProvisioningMixin:
             raise ValueError("Entry node is required for provisioning")
         server = await self.get_legacy_server_for_node(entry_node)
         private_key, public_key = await self.wg.generate_keypair()
+        preshared_key = await self.wg.generate_preshared_key()
         used_ips = await self._get_used_ips(entry_node_id=entry_node.id, server_id=server.id)
         address = self.wg.get_next_client_ip(used_ips)
         private_key_enc = encrypt_data(private_key)
+        preshared_key_enc = encrypt_data(preshared_key)
 
         client = VPNClient(
             user_id=user_id,
@@ -106,11 +106,12 @@ class ProvisioningMixin:
             exit_node_id=exit_node.id if exit_node is not None else None,
             public_key=public_key,
             private_key_enc=private_key_enc,
+            preshared_key_enc=preshared_key_enc,
             address=address,
             is_active=True,
         )
         self.session.add(client)
-        await self.wg.add_peer(public_key, address)
+        await self.wg.add_peer(public_key, address, preshared_key=preshared_key)
         logger.info(
             "[VPN][peer][VPN_PEER_APPLIED] "
             f"user_id={client.user_id} client_id={client.id} address={address} "
@@ -138,6 +139,7 @@ class ProvisioningMixin:
         previous_public_key = client.public_key
         server = await self.get_legacy_server_for_node(entry_node)
         private_key, public_key = await self.wg.generate_keypair()
+        preshared_key = await self.wg.generate_preshared_key()
         used_ips = await self._get_used_ips(
             entry_node_id=entry_node.id,
             server_id=server.id,
@@ -151,6 +153,7 @@ class ProvisioningMixin:
         client.exit_node_id = exit_node.id if exit_node is not None else None
         client.public_key = public_key
         client.private_key_enc = encrypt_data(private_key)
+        client.preshared_key_enc = encrypt_data(preshared_key)
         client.address = address
         client.is_active = True
         client.total_upload_bytes = 0
@@ -158,7 +161,7 @@ class ProvisioningMixin:
         client.last_handshake_at = None
         client.updated_at = datetime.now(timezone.utc)
 
-        await self.wg.add_peer(public_key, address)
+        await self.wg.add_peer(public_key, address, preshared_key=preshared_key)
         if previous_public_key:
             await self.wg.remove_peer(previous_public_key)
             logger.info(

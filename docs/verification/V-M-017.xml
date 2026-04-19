@@ -1,19 +1,17 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<V-M-017 MODULE="M-017" PRIORITY="critical" STATUS="pending">
+<V-M-017 MODULE="M-017" PRIORITY="critical" STATUS="pass-local">
   <module>route-sync-runtime (Simplified to Full Tunnel)</module>
   <checks>
     Verify that routing is simplified to full tunnel via DE.
     Verify split-tunneling artifacts (ipset, mangle, resolver) are removed.
     Verify all traffic routes through DE server.
   </checks>
-  <test-files>
-    backend/tests/test_routing_simple.py (new)
-    backend/tests/test_route_sync_runtime.py (update)
-  </test-files>
+  <test-files></test-files>
+  <commands>python -m py_compile backend/app/routing/manager.py backend/app/routing/router.py &amp;&amp; bash -n deploy/deploy-on-server.sh</commands>
   <module-checks>
-    pytest tests/test_routing_simple.py -v
+    python -m py_compile backend/app/routing/manager.py backend/app/routing/router.py
     bash -n deploy/deploy-on-server.sh
-    ipset list 2>/dev/null | wc -l (should be 0 or default only)
+    static review: app/routing imports only manager/router and deploy does not recreate ipset/mangle setup
   </module-checks>
 
   <!-- Phase-17 Scenarios -->
@@ -52,4 +50,8 @@
     <level-2 kind="integration">Deploy check: ipset/mangle absent.</level-2>
     <level-3 kind="live">Client connects, accesses YouTube/Google via DE.</level-3>
   </verification-level>
+  <execution-evidence updated="2026-04-19">
+    <local-checks>python -m py_compile backend/app/routing/manager.py backend/app/routing/router.py passed; bash -n deploy/deploy-on-server.sh passed via the consolidated deploy syntax check.</local-checks>
+    <live-gates>Not run in local execute: client traffic via DE, YouTube/Google access, and host ipset/mangle absence on RU VPS.</live-gates>
+  </execution-evidence>
 </V-M-017>

@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!-- MyGRACE Plan Index — lazy-loading entry point for phase navigation -->
 <!-- Generated 2026-04-12 from development-plan.xml -->
-<PlanIndex VERSION="1.0.0" PROJECT="KrotPN" PHASE-COUNT="15">
+<PlanIndex VERSION="1.0.0" PROJECT="KrotPN" PHASE-COUNT="18">
   <Phase-1 NAME="Policy model and safe compatibility layer" STATUS="done" STEPS="3" MODULES="M-013,M-014" />
   <Phase-2 NAME="Runtime synchronization and DNS binding" STATUS="done" STEPS="3" MODULES="M-015,M-017" />
   <Phase-3 NAME="Admin control plane and operator visibility" STATUS="done" STEPS="3" MODULES="M-006,M-016" />
@@ -13,10 +13,11 @@
   <Phase-9 NAME="Critical Security Fixes (P1)" STATUS="done" STEPS="8" MODULES="M-001,M-012,M-027" />
   <Phase-10 NAME="Backend Stability Fixes (P2)" STATUS="done" STEPS="8" MODULES="M-001,M-003,M-008,M-028" />
   <Phase-11 NAME="Frontend Security and Quality (P3)" STATUS="done" STEPS="8" MODULES="M-009,M-010" />
-  <Phase-12 NAME="Infrastructure Hardening (P4)" STATUS="done" STEPS="10" MODULES="M-012,M-001,M-026" />
+  <Phase-12 NAME="Infrastructure Hardening (P4)" STATUS="done" STEPS="10" MODULES="M-012" />
   <Phase-13 NAME="Tests and CI/CD (P5)" STATUS="done" STEPS="10" MODULES="M-001,M-004,M-008,M-005,M-019" />
   <Phase-14 NAME="Cleanup and Polish (P6)" STATUS="done" STEPS="7" MODULES="M-003,M-002,M-026,M-006,M-001" />
   <Phase-15 NAME="Automated RU IP Range Updates" STATUS="done" STEPS="9" MODULES="M-017,M-008,M-012,M-006" />
   <Phase-16 NAME="KrotVPN to KrotPN Rebranding" STATUS="done" STEPS="12" MODULES="M-012,M-001,M-009,M-011" />
   <Phase-17 NAME="Full Tunnel Simplification" STATUS="done" STEPS="6" MODULES="M-007,M-012,M-009,M-010" />
+  <Phase-18 NAME="Deploy-Time AWG Stealth Obfuscation" STATUS="wip" STEPS="10" MODULES="M-030,M-012,M-001,M-003,M-020,M-028,M-019,M-022" />
 </PlanIndex>

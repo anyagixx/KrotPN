@@ -10,7 +10,7 @@
     <fn-list-user-devices>Return device and anomaly state for operator review</fn-list-user-devices>
     <fn-admin-block-device>Block or unblock one device peer without disabling account</fn-admin-block-device>
   </exports>
-  <depends>M-001, M-002, M-003, M-004, M-005, M-007, M-014, M-015, M-024, M-026</depends>
+  <depends>M-001, M-002, M-003, M-004, M-005, M-007, M-024, M-026</depends>
   <verification-ref>V-M-006</verification-ref>
   <files>
     <file>backend/app/admin/router.py</file>

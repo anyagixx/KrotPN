@@ -13,6 +13,7 @@
 #   migrate_existing_schema - Main entry point: runs all schema compatibility migrations
 #   _ensure_vpn_client_topology_columns - Add route/entry/exit columns to vpn_clients
 #   _ensure_vpn_client_device_columns - Add device_id column to vpn_clients
+#   _ensure_vpn_client_preshared_key_column - Add nullable encrypted preshared key column to vpn_clients
 #   _ensure_subscription_internal_access_columns - Add complimentary access columns
 #   _ensure_plan_device_limit_column - Add device_limit to plans
 #   _ensure_unique_vpn_client_device_id - Create unique index on device_id
@@ -26,6 +27,7 @@
 # END_MODULE_MAP
 #
 # START_CHANGE_SUMMARY
+#   LAST_CHANGE: v3.0.0 - Added nullable vpn_clients.preshared_key_enc compatibility migration
 #   LAST_CHANGE: v2.8.0 - Split from original migrations.py (1003 lines) into core + legacy per GRACE <1000 line rule
 # END_CHANGE_SUMMARY
 #
@@ -77,6 +79,7 @@ async def migrate_existing_schema(conn) -> None:
     await _ensure_plan_device_limit_column(conn)
     await _ensure_vpn_client_topology_columns(conn)
     await _ensure_vpn_client_device_columns(conn)
+    await _ensure_vpn_client_preshared_key_column(conn)
     await _migrate_legacy_vpn_servers_to_nodes(conn)
     await _migrate_legacy_vpn_clients_to_topology(conn)
     await _sync_vpn_topology_client_counts(conn)
@@ -263,6 +266,19 @@ async def _ensure_vpn_client_device_columns(conn) -> None:
     )
 
 
+async def _ensure_vpn_client_preshared_key_column(conn) -> None:
+    """Add nullable encrypted preshared-key storage to vpn_clients."""
+    has_vpn_clients = await conn.run_sync(_table_exists, "vpn_clients")
+    if not has_vpn_clients:
+        return
+
+    if await conn.run_sync(_table_has_column, "vpn_clients", "preshared_key_enc"):
+        return
+
+    await conn.execute(text("ALTER TABLE vpn_clients ADD COLUMN preshared_key_enc VARCHAR(500)"))
+    logger.info("[Migration][vpn-client-psk][AWG_PSK_MIGRATED] Added vpn_clients.preshared_key_enc")
+
+
 async def _ensure_subscription_internal_access_columns(conn) -> None:
     """Add complimentary-access columns to subscriptions on already deployed databases."""
     has_subscriptions = await conn.run_sync(_table_exists, "subscriptions")
@@ -369,6 +385,7 @@ async def _rebuild_vpn_clients_table_for_device_binding(conn) -> None:
                 exit_node_id INTEGER,
                 public_key VARCHAR(100) NOT NULL UNIQUE,
                 private_key_enc VARCHAR(500) NOT NULL,
+                preshared_key_enc VARCHAR(500),
                 address VARCHAR(20) NOT NULL UNIQUE,
                 is_active BOOLEAN NOT NULL DEFAULT TRUE,
                 total_upload_bytes INTEGER NOT NULL DEFAULT 0,
@@ -399,6 +416,7 @@ async def _rebuild_vpn_clients_table_for_device_binding(conn) -> None:
                 exit_node_id,
                 public_key,
                 private_key_enc,
+                preshared_key_enc,
                 address,
                 is_active,
                 total_upload_bytes,
@@ -417,6 +435,7 @@ async def _rebuild_vpn_clients_table_for_device_binding(conn) -> None:
                 exit_node_id,
                 public_key,
                 private_key_enc,
+                preshared_key_enc,
                 address,
                 is_active,
                 total_upload_bytes,

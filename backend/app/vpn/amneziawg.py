@@ -10,11 +10,12 @@
 # END_MODULE_CONTRACT
 #
 # START_MODULE_MAP
-#   AmneziaWGManager - Manager class for AWG CLI operations (generate_keypair, get_server_public_key, get_server_endpoint, get_next_client_ip, create_client_config, add_peer, remove_peer, get_peer_stats, is_service_running, restart_service, update_obfuscation)
+#   AmneziaWGManager - Manager class for AWG CLI operations (generate_keypair, generate_preshared_key, get_server_public_key, get_server_endpoint, get_next_client_ip, create_client_config, add_peer, remove_peer, get_peer_stats, is_service_running, restart_service, update_obfuscation)
 #   wg_manager - Global singleton instance
 # END_MODULE_MAP
 #
 # START_CHANGE_SUMMARY
+#   LAST_CHANGE: v3.0.0 - Load deploy-time AWG CLIENT_PROFILE, render optional PresharedKey, and avoid raw profile logs
 #   LAST_CHANGE: v2.8.0 - Converted to full GRACE MODULE_CONTRACT/MAP format with START/END blocks
 # END_CHANGE_SUMMARY
 #
@@ -30,7 +31,9 @@ PROTOCOL: AmneziaWG parameters MUST remain unchanged for compatibility.
 
 import asyncio
 import ipaddress
+import os
 import re
+import tempfile
 from pathlib import Path
 from typing import Optional, Tuple
 
@@ -38,7 +41,12 @@ import httpx
 from loguru import logger
 
 from app.core.config import settings
-from app.core.security import decrypt_data, encrypt_data
+from app.vpn.obfuscation import (
+    AWGObfuscationProfile,
+    AWGProfileError,
+    parse_awg_profile_file,
+    profile_from_mapping,
+)
 
 
 # START_BLOCK: AmneziaWGManager
@@ -59,11 +67,47 @@ class AmneziaWGManager:
         self.interface = interface
         self.server_config = self.config_dir / f"{self.interface}.conf"
 
-        # Obfuscation parameters from settings (MUST match legacy)
-        self.obfuscation = settings.awg_obfuscation_params
+        # CLIENT_PROFILE is preferred, server config parsing preserves upgrades,
+        # and legacy AWG_* stays as the final no-rotation fallback.
+        self.obfuscation_profile: AWGObfuscationProfile | None = None
+        self.obfuscation = self._load_obfuscation_params()
 
         logger.info(f"[VPN] AmneziaWGManager initialized with interface {interface}")
-        logger.debug(f"[VPN] Obfuscation params: {self.obfuscation}")
+        logger.debug("[VPN] AWG obfuscation parameters loaded without dumping profile values")
+
+    # START_BLOCK: _load_obfuscation_params
+    def _load_obfuscation_params(self) -> dict[str, int]:
+        """Load client-facing obfuscation params without rotating existing installs."""
+        try:
+            client_profile = settings.awg_client_obfuscation_params
+            if client_profile is not None:
+                profile = profile_from_mapping(client_profile)
+                self.obfuscation_profile = profile
+                return profile.as_dict()
+        except AWGProfileError as e:
+            raise ValueError(f"Invalid AWG_CLIENT profile: {e}") from e
+
+        try:
+            parsed_profile = parse_awg_profile_file(self.server_config)
+            if parsed_profile is not None:
+                self.obfuscation_profile = parsed_profile
+                logger.info("[VPN][config][AWG_PROFILE_PRESERVED] Loaded obfuscation profile from awg0.conf")
+                return parsed_profile.as_dict()
+        except AWGProfileError:
+            logger.warning(
+                "[VPN][config][AWG_PROFILE_PRESERVED] Existing awg0.conf profile is outside new bounds; "
+                "falling back to legacy AWG_* settings"
+            )
+
+        try:
+            profile = profile_from_mapping(settings.awg_obfuscation_params)
+            self.obfuscation_profile = profile
+            return profile.as_dict()
+        except AWGProfileError:
+            # Legacy deployments may still contain old AmneziaWG examples such
+            # as Jc=120/Jmax=1000. Keep them for compatibility until rotation.
+            return settings.awg_obfuscation_params
+    # END_BLOCK: _load_obfuscation_params
 
     # START_BLOCK: generate_keypair
     async def generate_keypair(self) -> Tuple[str, str]:
@@ -106,6 +150,25 @@ class AmneziaWGManager:
             logger.error(f"[VPN] Error generating keypair: {e}")
             raise
     # END_BLOCK: generate_keypair
+
+    # START_BLOCK: generate_preshared_key
+    async def generate_preshared_key(self) -> str:
+        """Generate a new AmneziaWG preshared key for one client peer."""
+        try:
+            proc = await asyncio.create_subprocess_exec(
+                "awg", "genpsk",
+                stdout=asyncio.subprocess.PIPE,
+                stderr=asyncio.subprocess.PIPE,
+            )
+            stdout, stderr = await proc.communicate()
+            if proc.returncode != 0:
+                raise RuntimeError(stderr.decode().strip() or "awg genpsk failed")
+
+            return stdout.decode().strip()
+        except Exception as e:
+            logger.error(f"[VPN] Error generating preshared key: {e}")
+            raise
+    # END_BLOCK: generate_preshared_key
 
     def get_server_public_key(self) -> Optional[str]:
         """
@@ -174,6 +237,7 @@ class AmneziaWGManager:
         address: str,
         server_public_key: str,
         endpoint: str,
+        preshared_key: str | None = None,
     ) -> str:
         """
         Create a client configuration file content.
@@ -183,10 +247,12 @@ class AmneziaWGManager:
             address: Client's VPN IP address
             server_public_key: Server's public key
             endpoint: Server's endpoint (IP:port)
+            preshared_key: Optional AmneziaWG preshared key for this peer
 
         Returns:
             Configuration file content as string
         """
+        preshared_key_line = f"PresharedKey = {preshared_key}\n" if preshared_key else ""
         config = f"""[Interface]
 PrivateKey = {private_key}
 Address = {address}/32
@@ -204,7 +270,7 @@ H4 = {self.obfuscation['h4']}
 
 [Peer]
 PublicKey = {server_public_key}
-Endpoint = {endpoint}:{settings.vpn_port}
+{preshared_key_line}Endpoint = {endpoint}:{settings.vpn_port}
 AllowedIPs = 0.0.0.0/0
 PersistentKeepalive = 25
 """
@@ -212,25 +278,27 @@ PersistentKeepalive = 25
     # END_BLOCK: create_client_config
 
     # START_BLOCK: add_peer
-    async def add_peer(self, public_key: str, address: str) -> bool:
+    async def add_peer(self, public_key: str, address: str, preshared_key: str | None = None) -> bool:
         """
         Add a peer to the VPN server.
 
         Args:
             public_key: Client's public key
             address: Client's VPN IP address
+            preshared_key: Optional preshared key stored for this peer
 
         Returns:
             True if successful, False otherwise
         """
         try:
             # Add peer config to file
-            peer_config = f"""
-
-[Peer]
-PublicKey = {public_key}
-AllowedIPs = {address}/32
-"""
+            preshared_key_line = f"PresharedKey = {preshared_key}\n" if preshared_key else ""
+            peer_config = (
+                "\n\n[Peer]\n"
+                f"PublicKey = {public_key}\n"
+                f"{preshared_key_line}"
+                f"AllowedIPs = {address}/32\n"
+            )
 
             # Append to server config
             if self.server_config.exists():
@@ -241,14 +309,26 @@ AllowedIPs = {address}/32
 
             # Apply peer to running interface
             try:
-                proc = await asyncio.create_subprocess_exec(
-                    "awg", "set", self.interface,
-                    "peer", public_key,
-                    "allowed-ips", f"{address}/32",
-                    stdout=asyncio.subprocess.PIPE,
-                    stderr=asyncio.subprocess.PIPE,
-                )
-                await asyncio.wait_for(proc.wait(), timeout=5)
+                psk_file = None
+                try:
+                    command = ["awg", "set", self.interface, "peer", public_key]
+                    if preshared_key:
+                        psk_file = tempfile.NamedTemporaryFile("w", delete=False)
+                        psk_file.write(f"{preshared_key}\n")
+                        psk_file.close()
+                        os.chmod(psk_file.name, 0o600)
+                        command.extend(["preshared-key", psk_file.name])
+                    command.extend(["allowed-ips", f"{address}/32"])
+
+                    proc = await asyncio.create_subprocess_exec(
+                        *command,
+                        stdout=asyncio.subprocess.PIPE,
+                        stderr=asyncio.subprocess.PIPE,
+                    )
+                    await asyncio.wait_for(proc.wait(), timeout=5)
+                finally:
+                    if psk_file is not None:
+                        Path(psk_file.name).unlink(missing_ok=True)
 
                 if proc.returncode != 0:
                     stderr = await proc.stderr.read() if proc.stderr else b""
@@ -293,8 +373,12 @@ AllowedIPs = {address}/32
             if self.server_config.exists():
                 content = self.server_config.read_text()
                 # Remove peer section
-                pattern = rf'\n\[Peer\]\nPublicKey\s*=\s*{re.escape(public_key)}\nAllowedIPs\s*=\s*[^\n]+\n'
-                new_content = re.sub(pattern, '', content)
+                pattern = (
+                    rf'\n\[Peer\]\n'
+                    rf'(?:(?!\n\[).)*?PublicKey\s*=\s*{re.escape(public_key)}\n'
+                    rf'(?:(?!\n\[).)*?(?=\n\[|$)'
+                )
+                new_content = re.sub(pattern, '', content, flags=re.DOTALL)
                 self.server_config.write_text(new_content)
 
             if proc.returncode != 0:
@@ -426,7 +510,11 @@ AllowedIPs = {address}/32
                 self.obfuscation[key] = int(val)
 
             self.server_config.write_text(content)
-            logger.warning(f"[VPN] Obfuscation params updated: {params}")
+            try:
+                self.obfuscation_profile = profile_from_mapping(self.obfuscation)
+            except AWGProfileError:
+                self.obfuscation_profile = None
+            logger.warning("[VPN] Obfuscation params updated; clients must refresh configs")
             return True
 
         except Exception as e:

@@ -1,16 +1,18 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <M-028 NAME="alembic-migrations" TYPE="UTILITY" STATUS="stable">
   <path>backend/alembic/ backend/app/core/migrations.py</path>
-  <owns>database schema migration infrastructure and migration helper functions extracted from database.py</owns>
+  <owns>database schema migration infrastructure, nullable VPN client preshared-key migration, and migration helper functions extracted from database.py</owns>
   <exports>
     <fn-alembic-env>Async Alembic environment configured with SQLModel metadata</fn-alembic-env>
     <fn-migration-helpers>Database migration utilities for schema introspection and data migration</fn-migration-helpers>
+    <fn-vpn-client-psk-migration>Adds nullable encrypted preshared-key storage without invalidating existing clients</fn-vpn-client-psk-migration>
   </exports>
-  <depends>M-001</depends>
+  <depends>M-001, M-020</depends>
   <verification-ref>V-M-028</verification-ref>
   <files>
     <file>backend/alembic/env.py</file>
     <file>backend/app/core/migrations.py</file>
   </files>
   <hotspot>H-012: Alembic migrations must be backward compatible with existing SQLModel.create_all behavior during transition period</hotspot>
+  <hotspot>H-017: Preshared-key schema must be nullable for legacy peers and mandatory only for new rotations</hotspot>
 </M-028>

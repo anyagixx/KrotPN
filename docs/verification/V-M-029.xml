@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!-- V-M-029: Rebranding Verification — KrotPN → KrotPN migration -->
-<V-M-029 MODULE="M-012" PRIORITY="critical" STATUS="planned">
+<V-M-029 MODULE="M-012" PRIORITY="critical" STATUS="partial-local">
   <description>Verify that the complete KrotPN → KrotPN rebranding produces zero breakage
   across all deploy surfaces, container names, scripts, frontend UI, and live operations.</description>
 
@@ -48,15 +48,15 @@
       <command>ls /etc/amnezia/amneziawg/clients/test_user.*</command>
     </scenario-4>
 
-    <scenario-5 NAME="split-tunneling works (myip.ru test)">
+    <scenario-5 NAME="full tunnel egress works (myip.ru/google test)">
       <steps>
         <step>Connect VPN client</step>
         <step>curl https://myip.ru</step>
-        <step>curl https://google.com (should go direct — RU IP)</step>
+        <step>curl https://google.com through the active VPN tunnel</step>
       </steps>
-      <expected>myip.ru shows RU IP address for RU sites. Split-tunneling routing table
-        uses krotpn-* systemd units. ipset ru_ips populated. No routing leaks.</expected>
-      <command>ipset list ru_ips | head -5</command>
+      <expected>Client traffic exits through DE under Full Tunnel policy routing. No split-tunneling,
+        ipset, resolver precedence, or mangle artifacts are required.</expected>
+      <command>ip route show table 100 &amp;&amp; ip rule show | grep '10.10.0.0/24'</command>
     </scenario-5>
 
     <scenario-6 NAME="admin panel loads over HTTPS">
@@ -99,6 +99,12 @@
     <check>Log file path: /app/logs/krotpn_*.log (not krotpn_*.log)</check>
     <check>DB snapshot path: /var/lib/krotpn/ru_ips_snapshot.json (not /var/lib/krotpn/)</check>
   </module-checks>
+
+  <execution-evidence updated="2026-04-19">
+    <local-passed>docker compose config --no-interpolate passed; all deploy shell syntax checks passed; frontend npm run build passed; frontend-admin npm run build passed; backend config import check passed with explicit test secrets.</local-passed>
+    <local-blocked>Exact docker compose config is blocked locally because deploy-generated .env is absent and docker-compose.yml intentionally requires env_file .env plus DB_PASSWORD.</local-blocked>
+    <live-gates>Not run locally: docker compose up health, backend HTTPS health, VPN client connect, admin HTTPS login, systemd unit checks, fresh VPS deploy.</live-gates>
+  </execution-evidence>
 
   <log-markers>
     <marker>[Rebranding][Phase-16][step-N] Renamed {old} → {new}</marker>

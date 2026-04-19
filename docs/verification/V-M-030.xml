@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<V-M-030 MODULE="M-030" PRIORITY="critical" STATUS="pass-local">
+  <module>awg-stealth-obfuscation</module>
+  <checks>
+    Verify AmneziaWG stealth profiles are generated within approved ranges, preserved on upgrade,
+    applied with exact CLIENT_PROFILE and RELAY_PROFILE parity, and rendered into every backend-generated
+    client config path with nullable legacy-compatible preshared-key behavior.
+  </checks>
+  <test-files>backend/tests/test_awg_obfuscation.py backend/tests/test_vpn_stealth_config.py backend/tests/test_db_migrations.py backend/tests/test_deploy_awg_obfuscation_static.py</test-files>
+  <commands>cd backend &amp;&amp; SECRET_KEY=test-secret-key-with-enough-length DATA_ENCRYPTION_KEY=dpFmfSVqfdAK3yx5MQV6Tcv35RZuw5MzaH0yhxJ01q0= PYTHONPATH=. ../.venv/bin/python -m pytest -o addopts='' tests/test_awg_obfuscation.py tests/test_vpn_stealth_config.py tests/test_db_migrations.py tests/test_deploy_awg_obfuscation_static.py -v &amp;&amp; cd .. &amp;&amp; bash -n deploy/lib/awg-obfuscation.sh deploy/deploy-on-server.sh deploy/deploy-all.sh install.sh</commands>
+  <anchors>AWG_PROFILE_GENERATED AWG_PROFILE_PRESERVED AWG_PROFILE_PARITY_OK AWG_CLIENT_CONFIG_RENDERED AWG_PSK_MIGRATED AWG_PROFILE_MISMATCH</anchors>
+
+  <verification-levels>
+    <level-1 kind="module-local">Profile generation, parse, render, bounds, and mismatch detection are deterministic unit assertions.</level-1>
+    <level-2 kind="wave-level">Deploy static tests verify no hardcoded production profiles and scripts preserve profiles unless STEALTH_ROTATE=1.</level-2>
+    <level-3 kind="phase-level">Live RU/DE rollout verifies awg-client handshake, client awg0 handshake, and DE egress for a newly provisioned client.</level-3>
+  </verification-levels>
+
+  <evidence-matrix>
+    <evidence-profile-generation>test_awg_obfuscation.py asserts H1-H4, S1/S2, Jc, Jmin, Jmax ranges and rejects invalid values.</evidence-profile-generation>
+    <evidence-profile-parity>test_awg_obfuscation.py asserts RELAY_PROFILE equality before RU/DE service restart and CLIENT_PROFILE equality before config export.</evidence-profile-parity>
+    <evidence-upgrade-preservation>test_deploy_awg_obfuscation_static.py asserts existing profile parse path wins unless STEALTH_ROTATE=1 and helper validation aborts on any missing or invalid key.</evidence-upgrade-preservation>
+    <evidence-client-rendering>test_vpn_stealth_config.py asserts raw config, Amnezia QR payload, device config, and manual CLI config share one renderer.</evidence-client-rendering>
+    <evidence-psk-migration>test_db_migrations.py asserts VPNClient.preshared_key_enc is nullable for legacy rows and encrypted for new rows.</evidence-psk-migration>
+  </evidence-matrix>
+
+  <scenarios>
+    <scenario-1 kind="success" trace="AWG_PROFILE_GENERATED">Fresh deploy creates distinct CLIENT_PROFILE and RELAY_PROFILE using approved AmnezWG ranges.</scenario-1>
+    <scenario-2 kind="success" trace="AWG_PROFILE_PRESERVED">Upgrade deploy without STEALTH_ROTATE preserves existing AWG profiles and VPN port.</scenario-2>
+    <scenario-3 kind="success" trace="AWG_PROFILE_PARITY_OK">RELAY_PROFILE matches on RU awg-client and DE awg0; CLIENT_PROFILE matches backend settings and RU awg0.</scenario-3>
+    <scenario-4 kind="success" trace="AWG_CLIENT_CONFIG_RENDERED">New or rotated client config includes obfuscation values and PresharedKey while legacy NULL-PSK clients still render.</scenario-4>
+    <scenario-5 kind="failure" trace="AWG_PROFILE_MISMATCH">Profile mismatch aborts deploy/service restart before breaking live tunnel state.</scenario-5>
+    <scenario-6 kind="failure" trace="AWG_SECRET_LEAK">Logs and deploy output redact private keys, PSKs, full configs, and raw profile dumps.</scenario-6>
+  </scenarios>
+
+  <required-log-markers>
+    <marker-1>[Deploy][awg-profile][AWG_PROFILE_GENERATED]</marker-1>
+    <marker-2>[Deploy][awg-profile][AWG_PROFILE_PRESERVED]</marker-2>
+    <marker-3>[Deploy][awg-profile][AWG_PROFILE_PARITY_OK]</marker-3>
+    <marker-4>[VPN][config][AWG_CLIENT_CONFIG_RENDERED]</marker-4>
+    <marker-5>[Migration][vpn-client-psk][AWG_PSK_MIGRATED]</marker-5>
+    <marker-6>[Deploy][awg-profile][AWG_PROFILE_MISMATCH]</marker-6>
+  </required-log-markers>
+
+  <redaction>
+    Never log private keys, preshared keys, full client configs, raw QR payloads, or complete live profile values.
+  </redaction>
+
+  <autonomous-execution-safety>
+    <allowed>Unit tests, static script checks, XML/doc updates, and local config rendering tests may run autonomously.</allowed>
+    <blocked>Live RU/DE deploy, STEALTH_ROTATE=1, port changes, and client profile rotation require explicit operator approval.</blocked>
+  </autonomous-execution-safety>
+
+  <execution-evidence updated="2026-04-19">
+    <local-tests>15 passed with ../.venv/bin/python -m pytest -o addopts='' for V-M-030 test files on 2026-04-19.</local-tests>
+    <syntax-checks>bash -n passed for deploy/lib/awg-obfuscation.sh deploy/deploy-on-server.sh deploy/deploy-all.sh install.sh and the remaining deploy scripts.</syntax-checks>
+    <environment-note>Exact pytest command without -o addopts='' is blocked in the current .venv because pytest-cov is not installed while backend/pyproject.toml adds --cov options globally.</environment-note>
+    <live-gates>Not run: RU-DE handshake, new client handshake, DE egress, upgrade preservation on live hosts, and explicit STEALTH_ROTATE behavior.</live-gates>
+  </execution-evidence>
+</V-M-030>

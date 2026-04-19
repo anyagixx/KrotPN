@@ -15,6 +15,7 @@
 # END_MODULE_MAP
 #
 # START_CHANGE_SUMMARY
+#   LAST_CHANGE: v3.0.0 - Re-activate peers with stored preshared keys when present
 #   LAST_CHANGE: v2.8.0 - Converted to full GRACE MODULE_CONTRACT/MAP format with START/END blocks
 # END_CHANGE_SUMMARY
 #
@@ -32,6 +33,7 @@ from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.config import settings
+from app.core.security import decrypt_data
 from app.vpn.amneziawg import wg_manager
 from app.vpn.config import ConfigMixin
 from app.vpn.models import VPNClient, VPNNode, VPNRoute, VPNServer, VPNStats
@@ -292,7 +294,8 @@ class VPNService(ProvisioningMixin, ConfigMixin, TopologyMixin):
     async def activate_client(self, client: VPNClient) -> None:
         """Activate a VPN client."""
         client.is_active = True
-        await self.wg.add_peer(client.public_key, client.address)
+        preshared_key = decrypt_data(client.preshared_key_enc) if client.preshared_key_enc else None
+        await self.wg.add_peer(client.public_key, client.address, preshared_key=preshared_key)
         server = await self.get_server(client.server_id)
         if server and server.current_clients < server.max_clients:
             server.current_clients += 1

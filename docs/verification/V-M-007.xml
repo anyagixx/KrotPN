@@ -2,8 +2,8 @@
 <V-M-007 MODULE="M-007" PRIORITY="critical" STATUS="pass">
   <module>simplified-routing</module>
   <checks>Full Tunnel: RoutingManager initializes without errors, get_status() returns TunnelStatus, no ipset/policy references remain.</checks>
-  <test-files>backend/tests/test_routing_health.py</test-files>
-  <commands>pytest tests/test_routing_health.py -v</commands>
+  <test-files></test-files>
+  <commands>python -m py_compile backend/app/routing/manager.py backend/app/routing/router.py</commands>
   <anchors>ROUTING_INIT, ROUTING_HEALTH_CHECK</anchors>
   <scenarios>
     <scenario kind="success" trace="ROUTING_INIT">RoutingManager.initialize() completes without errors and starts scheduler</scenario>

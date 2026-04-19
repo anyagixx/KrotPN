@@ -1,13 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <M-001 NAME="backend-core" TYPE="UTILITY" STATUS="stable">
   <path>backend/app/core</path>
-  <owns>settings, security (JWT, password hashing, Fernet encryption, token blacklist), DB sessions, dependency injection, admin bootstrap, topology bootstrap, database migrations</owns>
+  <owns>settings, security (JWT, password hashing, Fernet encryption, token blacklist), DB sessions, dependency injection, admin bootstrap, topology bootstrap, database migrations, AWG stealth profile settings</owns>
   <exports>
     <fn-settings>Runtime configuration values and environment parsing</fn-settings>
     <fn-init-db>Database initialization and session lifecycle</fn-init-db>
     <fn-get-fernet>Fernet encryption with explicit DATA_ENCRYPTION_KEY requirement</fn-get-fernet>
     <fn-token-blacklist>Redis-based JWT token revocation</fn-token-blacklist>
     <fn-migrations>Database migration helpers extracted from database.py</fn-migrations>
+    <fn-awg-profile-settings>Validated environment settings for CLIENT_PROFILE and RELAY_PROFILE obfuscation values</fn-awg-profile-settings>
   </exports>
   <depends>M-028</depends>
   <verification-ref>V-M-001</verification-ref>

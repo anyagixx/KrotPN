@@ -1,11 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <M-022 NAME="device-provisioning-api" TYPE="ENTRY_POINT" STATUS="stable">
   <path>backend/app/devices/router.py backend/app/vpn/router.py</path>
-  <owns>user-facing device management, config retrieval and device-bound provisioning APIs</owns>
+  <owns>user-facing device management, stealth-aware config retrieval and device-bound provisioning APIs</owns>
   <exports>
     <fn-create-device>Creates a device and provisions a distinct peer or rejects on plan limit</fn-create-device>
     <fn-rotate-device-config>Reissues peer material for one logical device while invalidating the old config</fn-rotate-device-config>
     <fn-revoke-device>Revokes a specific device and frees or preserves a slot according to policy</fn-revoke-device>
+    <fn-download-stealth-config>Returns AmneziaWG config and QR payload with CLIENT_PROFILE and preshared-key parity</fn-download-stealth-config>
   </exports>
   <depends>M-001, M-002, M-003, M-004, M-020, M-021</depends>
   <verification-ref>V-M-022</verification-ref>
@@ -13,4 +14,5 @@
     <file>backend/app/devices/router.py</file>
     <file>backend/app/devices/schemas.py</file>
   </files>
+  <hotspot>H-017: QR/raw config endpoints must not diverge in profile or preshared-key content</hotspot>
 </M-022>

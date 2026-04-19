@@ -11,10 +11,11 @@
 #
 # START_MODULE_MAP
 #   ConfigMixin - Mixin providing VPN config generation helpers
-#   ConfigMixin.get_client_config - Render WireGuard config for a VPNClient
+#   ConfigMixin.get_client_config - Render AWG config for a VPNClient with optional encrypted preshared key
 # END_MODULE_MAP
 #
 # START_CHANGE_SUMMARY
+#   LAST_CHANGE: v3.0.0 - Render nullable client preshared keys without breaking legacy clients
 #   LAST_CHANGE: v2.8.0 - Converted to full GRACE MODULE_CONTRACT/MAP format, removed duplicate contract blocks
 # END_CHANGE_SUMMARY
 #
@@ -51,15 +52,19 @@ class ConfigMixin:
         if not endpoint:
             raise ValueError("Cannot determine server endpoint")
 
-        config_content = self.wg.create_client_config(
-            private_key=private_key,
-            address=client.address,
-            server_public_key=entry_node.public_key if entry_node.public_key else (server.public_key if server else ""),
-            endpoint=endpoint,
-        )
+        config_kwargs = {
+            "private_key": private_key,
+            "address": client.address,
+            "server_public_key": entry_node.public_key if entry_node.public_key else (server.public_key if server else ""),
+            "endpoint": endpoint,
+        }
+        if client.preshared_key_enc:
+            config_kwargs["preshared_key"] = decrypt_data(client.preshared_key_enc)
+
+        config_content = self.wg.create_client_config(**config_kwargs)
         from loguru import logger
         logger.info(
-            "[VPN][config][VPN_CONFIG_RENDERED] "
+            "[VPN][config][VPN_CONFIG_RENDERED][AWG_CLIENT_CONFIG_RENDERED] "
             f"user_id={client.user_id} client_id={client.id} route_id={client.route_id} "
             f"entry_node_id={client.entry_node_id} resolved_endpoint={endpoint}"
         )
