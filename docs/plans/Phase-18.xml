@@ -91,8 +91,14 @@
       Exact docker compose config still requires deploy-generated .env with DB_PASSWORD. Exact pytest without -o addopts=''
       still requires pytest-cov in the local .venv because backend/pyproject.toml injects --cov options globally.
     </local-blockers>
+    <published-rc>
+      Commit 2d742a8fc190a8077c6b0dfbd35818c11cec899d was pushed to origin/main, so fresh VPS deploys from
+      github.com/anyagixx/KrotPN.git will include Phase-18 AWG stealth obfuscation code.
+    </published-rc>
     <blocked-live-gates>
-      Live RU/DE deploy, STEALTH_ROTATE=1 rotation, RU-DE handshake, new client handshake, and DE egress remain blocked by V-M-030 operator-approval policy.
+      Operator approval was granted on 2026-04-19. Live RU/DE deploy, STEALTH_ROTATE=1 rotation, RU-DE handshake,
+      new client handshake, and DE egress are still not run because the current execution environment does not
+      provide RU_IP and DE_IP target variables or an equivalent deploy inventory.
     </blocked-live-gates>
   </execution-status>
 
