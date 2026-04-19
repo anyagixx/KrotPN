@@ -4,7 +4,9 @@
   <step-1>Run routing verification: exact-domain, wildcard, TTL expiry, fallback branches.</step-1>
   <step-2>Gate production rollout on host-level safety review for ipset/nftables.</step-2>
   <step-3>Make domain-aware policy the preferred routing control surface after stable evidence.</step-3>
-  <modules>M-007, M-013</modules>
-  <verification>V-M-007, V-M-013</verification>
+  <modules>M-007, M-017</modules>
+  <archived-modules>M-013 removed by Phase-17 Full Tunnel Simplification.</archived-modules>
+  <verification>V-M-007, V-M-017</verification>
+  <archived-verification>V-M-013 superseded by Full Tunnel verification.</archived-verification>
   <data-flows>DF-001, DF-002, DF-003</data-flows>
 </Phase-4>

@@ -4,7 +4,9 @@
   <step-1>M-014: Create DomainRouteRule and CidrRouteRule entities, schemas, CRUD models.</step-1>
   <step-2>M-013: Implement route-policy resolver with precedence: exact > wildcard > DNS-bound IP > CIDR > RU baseline > default.</step-2>
   <step-3>M-013/M-014: Ensure RU-vs-non-RU fallback remains functional for backward compatibility.</step-3>
-  <modules>M-013, M-014</modules>
-  <verification>V-M-013, V-M-014</verification>
+  <modules>M-007, M-017</modules>
+  <archived-modules>M-013, M-014 removed by Phase-17 Full Tunnel Simplification.</archived-modules>
+  <verification>V-M-007, V-M-017</verification>
+  <archived-verification>V-M-013, V-M-014 superseded by Full Tunnel verification.</archived-verification>
   <data-flows>DF-001 (domain-first routing decision), DF-003 (fallback CIDR classification)</data-flows>
 </Phase-1>

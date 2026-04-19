@@ -29,7 +29,7 @@
     <item>Fresh RU and DE servers were deployed and validated on March 26, 2026 with live AWG tunnel handshake and healthy backend/frontend/admin HTTPS surfaces on RU.</item>
     <item>Manual internal client issuance through deploy/create-client.sh now produces configs through backend CLI and applies peers to live awg0 state on RU.</item>
     <item>New RU host-level awg0 config watcher automatically syncs peer changes from backend-driven provisioning, so both manual and web-issued clients become active without manual awg commands.</item>
-    <item>Release v2.11.0-awg-obfuscation-rc1 was deployed from GitHub main and operator-validated on RU/DE VPS with AWG stealth obfuscation, profile parity, RU-DE handshake, new client handshake, DE egress, and upgrade preservation.</item>
+    <item>Release v2.11.0-awg-obfuscation-stable was deployed from GitHub main and operator-validated on RU/DE VPS with AWG stealth obfuscation, profile parity, RU-DE handshake, new client handshake, DE egress, and upgrade preservation.</item>
   </what-is-working>
 
   <what-is-fragile>
@@ -73,9 +73,10 @@
 
   <handoff-instructions>
     <step>Read this file first.</step>
-    <step>Read docs/knowledge-graph.xml second.</step>
-    <step>Read docs/development-plan.xml and docs/verification-plan.xml third.</step>
+    <step>Read docs/graph-index.xml second and then only the relevant docs/modules/M-XXX.xml files.</step>
+    <step>Read docs/plan-index.xml and then only the relevant docs/plans/Phase-N.xml files.</step>
+    <step>Read docs/verification-index.xml and then only the relevant docs/verification/V-M-XXX.xml files.</step>
     <step>Only then inspect the code of the module you are changing.</step>
-    <step>After completing work, update the relevant docs if system behavior, priorities or verification changed.</step>
+    <step>After completing work, update the relevant MyGRACE docs if system behavior, priorities or verification changed.</step>
   </handoff-instructions>
 </current-status>

@@ -4,7 +4,9 @@
   <step-1>M-017: Extend runtime sync for incremental host-level updates instead of full resets.</step-1>
   <step-2>M-015: Add DNS observer with bounded cache and TTL-driven expiry/refresh.</step-2>
   <step-3>M-013/M-015/M-017: Add structured decision logging for every policy branch.</step-3>
-  <modules>M-015, M-017</modules>
-  <verification>V-M-015, V-M-017</verification>
+  <modules>M-017</modules>
+  <archived-modules>M-013, M-015 removed by Phase-17 Full Tunnel Simplification.</archived-modules>
+  <verification>V-M-017</verification>
+  <archived-verification>V-M-015 superseded by Full Tunnel verification.</archived-verification>
   <data-flows>DF-002 (DNS binding to runtime route set)</data-flows>
 </Phase-2>
