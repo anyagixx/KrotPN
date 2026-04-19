@@ -3,7 +3,7 @@
 <current-status>
   <meta>
     <project-name>KrotPN</project-name>
-    <updated>2026-03-27</updated>
+    <updated>2026-04-19</updated>
     <status>active-development</status>
   </meta>
 
@@ -29,6 +29,7 @@
     <item>Fresh RU and DE servers were deployed and validated on March 26, 2026 with live AWG tunnel handshake and healthy backend/frontend/admin HTTPS surfaces on RU.</item>
     <item>Manual internal client issuance through deploy/create-client.sh now produces configs through backend CLI and applies peers to live awg0 state on RU.</item>
     <item>New RU host-level awg0 config watcher automatically syncs peer changes from backend-driven provisioning, so both manual and web-issued clients become active without manual awg commands.</item>
+    <item>Release v2.11.0-awg-obfuscation-rc1 was deployed from GitHub main and operator-validated on RU/DE VPS with AWG stealth obfuscation, profile parity, RU-DE handshake, new client handshake, DE egress, and upgrade preservation.</item>
   </what-is-working>
 
   <what-is-fragile>
@@ -48,6 +49,9 @@
     </gate>
     <gate id="routing-phase-4-step-3" status="passed">
       <summary>Admin UI treats route policy as the preferred control surface, and live rollout evidence now exists for the host-managed routing path.</summary>
+    </gate>
+    <gate id="phase-18-awg-obfuscation" status="passed">
+      <summary>Deploy-time AWG stealth obfuscation validated on live RU/DE VPS from GitHub main; CLIENT_PROFILE and RELAY_PROFILE parity, handshakes, client egress and non-rotation upgrade preservation passed.</summary>
     </gate>
   </rollout-gates>
 

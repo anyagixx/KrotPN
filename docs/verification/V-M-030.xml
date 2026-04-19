@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<V-M-030 MODULE="M-030" PRIORITY="critical" STATUS="pass-local">
+<V-M-030 MODULE="M-030" PRIORITY="critical" STATUS="pass-live">
   <module>awg-stealth-obfuscation</module>
   <checks>
     Verify AmneziaWG stealth profiles are generated within approved ranges, preserved on upgrade,
@@ -56,6 +56,7 @@
     <syntax-checks>bash -n passed for deploy/lib/awg-obfuscation.sh deploy/deploy-on-server.sh deploy/deploy-all.sh install.sh and the remaining deploy scripts.</syntax-checks>
     <published-rc>Commit 2d742a8fc190a8077c6b0dfbd35818c11cec899d pushed to origin/main after operator approval.</published-rc>
     <environment-note>Exact pytest command without -o addopts='' is blocked in the current .venv because pytest-cov is not installed while backend/pyproject.toml adds --cov options globally.</environment-note>
-    <live-gates>Not run: RU-DE handshake, new client handshake, DE egress, upgrade preservation on live hosts, and explicit STEALTH_ROTATE behavior because RU_IP/DE_IP live targets were not provided in the execution environment.</live-gates>
+    <live-gates>Operator-confirmed pass on 2026-04-19: GitHub-main deploy, RU-DE handshake, new client handshake, DE egress, profile parity, and upgrade preservation without STEALTH_ROTATE all worked on VPS hosts.</live-gates>
+    <rotation-note>Explicit STEALTH_ROTATE=1 remains a separate operator-controlled rotation path because it intentionally changes profiles and requires client config reissue.</rotation-note>
   </execution-evidence>
 </V-M-030>

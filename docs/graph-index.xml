@@ -26,7 +26,7 @@
   <M-026 NAME="admin-audit-log" TYPE="DATA_LAYER" STATUS="stable" PATH="backend/app/admin/audit.py" DEPENDS="M-001,M-006" VERIFICATION-REF="V-M-026" />
   <M-027 NAME="token-blacklist" TYPE="UTILITY" STATUS="stable" PATH="backend/app/core/security.py" DEPENDS="M-001" VERIFICATION-REF="V-M-027" />
   <M-028 NAME="alembic-migrations" TYPE="UTILITY" STATUS="stable" PATH="backend/alembic/ backend/app/core/migrations.py" DEPENDS="M-001,M-020" VERIFICATION-REF="V-M-028" />
-  <M-030 NAME="awg-stealth-obfuscation" TYPE="INTEGRATION" STATUS="wip" PATH="backend/app/vpn/obfuscation.py deploy/lib/awg-obfuscation.sh" DEPENDS="M-001,M-012,M-028" VERIFICATION-REF="V-M-030" />
+  <M-030 NAME="awg-stealth-obfuscation" TYPE="INTEGRATION" STATUS="stable" PATH="backend/app/vpn/obfuscation.py deploy/lib/awg-obfuscation.sh" DEPENDS="M-001,M-012,M-028" VERIFICATION-REF="V-M-030" />
 
   <CrossLinks>
     <link from="M-002" to="M-001" />

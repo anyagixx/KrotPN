@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!-- Phase-18: Deploy-Time AWG Stealth Obfuscation -->
-<Phase-18 NAME="Deploy-Time AWG Stealth Obfuscation" STATUS="wip" MODULES="M-030,M-012,M-001,M-003,M-020,M-028,M-019,M-022" CREATED="2026-04-18">
+<Phase-18 NAME="Deploy-Time AWG Stealth Obfuscation" STATUS="done" MODULES="M-030,M-012,M-001,M-003,M-020,M-028,M-019,M-022" CREATED="2026-04-18" COMPLETED="2026-04-19">
 
   <goal>
     Implement AmneziaWG stealth obfuscation from the local AmnezWG reference so every fresh RU/DE deploy generates
@@ -95,11 +95,16 @@
       Commit 2d742a8fc190a8077c6b0dfbd35818c11cec899d was pushed to origin/main, so fresh VPS deploys from
       github.com/anyagixx/KrotPN.git will include Phase-18 AWG stealth obfuscation code.
     </published-rc>
-    <blocked-live-gates>
-      Operator approval was granted on 2026-04-19. Live RU/DE deploy, STEALTH_ROTATE=1 rotation, RU-DE handshake,
-      new client handshake, and DE egress are still not run because the current execution environment does not
-      provide RU_IP and DE_IP target variables or an equivalent deploy inventory.
-    </blocked-live-gates>
+    <live-verification>
+      Operator confirmed on 2026-04-19 that GitHub-main deploy of v2.11.0-awg-obfuscation-rc1 completed successfully
+      and all Phase-18 live gates were checked: RU/DE rollout, CLIENT_PROFILE parity, RELAY_PROFILE parity,
+      RU-DE handshake, new client handshake with obfuscation and PresharedKey, DE egress, and upgrade preservation
+      without STEALTH_ROTATE.
+    </live-verification>
+    <rotation-note>
+      STEALTH_ROTATE=1 remains intentionally operator-only and should be tested only as an explicit rotation scenario
+      because it requires reissuing client configs.
+    </rotation-note>
   </execution-status>
 
   <phase-gates>

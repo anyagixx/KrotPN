@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<M-030 NAME="awg-stealth-obfuscation" TYPE="INTEGRATION" STATUS="wip">
+<M-030 NAME="awg-stealth-obfuscation" TYPE="INTEGRATION" STATUS="stable">
   <path>backend/app/vpn/obfuscation.py deploy/lib/awg-obfuscation.sh</path>
   <owns>deploy-time AmneziaWG stealth profile generation, validation, rendering, and parity between RU client-facing configs and RU-DE relay configs</owns>
   <exports>
@@ -26,9 +26,10 @@
     <file>backend/app/vpn/obfuscation.py</file>
     <file>deploy/lib/awg-obfuscation.sh</file>
   </files>
-  <implementation-status updated="2026-04-18">
+  <implementation-status updated="2026-04-19">
     <local>Implemented profile generation/parsing/rendering, deploy helper integration, backend CLIENT_PROFILE loading, nullable encrypted PSK support, and static/unit verification.</local>
-    <blocked>Live RU/DE deploy, STEALTH_ROTATE=1 rotation, RU-DE handshake, client handshake, and DE egress gates require explicit operator approval.</blocked>
+    <live>Operator-confirmed live deploy succeeded with RU/DE rollout, obfuscation profile parity, RU-DE handshake, new client handshake, DE egress, and upgrade preservation checks.</live>
+    <rotation-note>STEALTH_ROTATE=1 remains an explicit operator-only rotation path because it invalidates existing client configs until they are reissued.</rotation-note>
   </implementation-status>
   <hotspot>H-017: Changing AWG obfuscation or UDP port invalidates existing client configs unless rotation is explicit</hotspot>
 </M-030>
