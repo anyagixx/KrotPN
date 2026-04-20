@@ -1,9 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <M-025 NAME="device-audit-log" TYPE="DATA_LAYER" STATUS="stable">
   <path>backend/app/devices/models.py backend/app/devices/service.py</path>
-  <owns>durable audit trail for device create, rotate, revoke, block, unblock and anomaly escalation events</owns>
+  <owns>durable audit trail for device lifecycle, anti-abuse detection, soft auto-rotation and degraded-mode events</owns>
   <exports>
     <fn-record-device-event>Writes a stable lifecycle or anomaly event for later investigation</fn-record-device-event>
+    <enum-anti-abuse-events>ping_pong_abuse_detected, multi_network_abuse_detected, anti_abuse_auto_rotate_started, anti_abuse_auto_rotate_completed, anti_abuse_cooldown_skipped, anti_abuse_redis_degraded</enum-anti-abuse-events>
   </exports>
   <depends>M-001, M-020, M-023</depends>
   <verification-ref>V-M-025</verification-ref>

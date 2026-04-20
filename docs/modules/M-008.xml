@@ -1,9 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <M-008 NAME="tasks" TYPE="UTILITY" STATUS="stable">
   <path>backend/app/tasks</path>
-  <owns>scheduler and recurring maintenance jobs including subscription expiry, daily cleanup and handshake anomaly detection</owns>
+  <owns>scheduler and recurring maintenance jobs including subscription expiry, daily cleanup and configurable anti-abuse handshake scans</owns>
   <exports>
     <fn-scheduler>APScheduler-based recurring job runner</fn-scheduler>
+    <fn-detect-handshake-anomalies>Configurable seconds-based job that delegates live peer observations to M-023/M-031</fn-detect-handshake-anomalies>
   </exports>
   <depends>M-001</depends>
   <verification-ref>V-M-008</verification-ref>

@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!-- MyGRACE Graph Index — lazy-loading entry point for module navigation -->
 <!-- Generated 2026-04-12 from knowledge-graph.xml v1.0.0 -->
-<GraphIndex VERSION="1.0.0" PROJECT="KrotPN" MODULE-COUNT="25">
+<GraphIndex VERSION="1.0.0" PROJECT="KrotPN" MODULE-COUNT="26">
   <M-001 NAME="backend-core" TYPE="UTILITY" STATUS="stable" PATH="backend/app/core" DEPENDS="M-028" VERIFICATION-REF="V-M-001" />
   <M-002 NAME="users" TYPE="CORE_LOGIC" STATUS="stable" PATH="backend/app/users" DEPENDS="M-001,M-027" VERIFICATION-REF="V-M-002" />
   <M-003 NAME="vpn" TYPE="CORE_LOGIC" STATUS="stable" PATH="backend/app/vpn" DEPENDS="M-001,M-002,M-007,M-020,M-030" VERIFICATION-REF="V-M-003" />
@@ -20,13 +20,14 @@
   <M-020 NAME="device-registry" TYPE="DATA_LAYER" STATUS="stable" PATH="backend/app/vpn/models.py backend/app/devices/models.py" DEPENDS="M-001,M-002,M-003" VERIFICATION-REF="V-M-020" />
   <M-021 NAME="device-access-policy" TYPE="CORE_LOGIC" STATUS="stable" PATH="backend/app/devices/service.py backend/app/billing/service.py backend/app/vpn/service.py" DEPENDS="M-001,M-002,M-003,M-004,M-020" VERIFICATION-REF="V-M-021" />
   <M-022 NAME="device-provisioning-api" TYPE="ENTRY_POINT" STATUS="stable" PATH="backend/app/devices/router.py backend/app/vpn/router.py" DEPENDS="M-001,M-002,M-003,M-004,M-020,M-021" VERIFICATION-REF="V-M-022" />
-  <M-023 NAME="handshake-anomaly-detector" TYPE="INTEGRATION" STATUS="stable" PATH="backend/app/vpn/handshake_monitor.py backend/app/tasks/scheduler.py" DEPENDS="M-001,M-003,M-007,M-020,M-021" VERIFICATION-REF="V-M-023" />
+  <M-023 NAME="handshake-anomaly-detector" TYPE="INTEGRATION" STATUS="stable" PATH="backend/app/vpn/handshake_monitor.py backend/app/tasks/scheduler.py" DEPENDS="M-001,M-003,M-007,M-020,M-021,M-031" VERIFICATION-REF="V-M-023" />
   <M-024 NAME="device-admin-control" TYPE="ENTRY_POINT" STATUS="stable" PATH="backend/app/admin/router.py frontend-admin" DEPENDS="M-001,M-003,M-006,M-020,M-021,M-023" VERIFICATION-REF="V-M-024" />
   <M-025 NAME="device-audit-log" TYPE="DATA_LAYER" STATUS="stable" PATH="backend/app/devices/models.py backend/app/devices/service.py" DEPENDS="M-001,M-020,M-023" VERIFICATION-REF="V-M-025" />
   <M-026 NAME="admin-audit-log" TYPE="DATA_LAYER" STATUS="stable" PATH="backend/app/admin/audit.py" DEPENDS="M-001,M-006" VERIFICATION-REF="V-M-026" />
   <M-027 NAME="token-blacklist" TYPE="UTILITY" STATUS="stable" PATH="backend/app/core/security.py" DEPENDS="M-001" VERIFICATION-REF="V-M-027" />
   <M-028 NAME="alembic-migrations" TYPE="UTILITY" STATUS="stable" PATH="backend/alembic/ backend/app/core/migrations.py" DEPENDS="M-001,M-020" VERIFICATION-REF="V-M-028" />
   <M-030 NAME="awg-stealth-obfuscation" TYPE="INTEGRATION" STATUS="stable" PATH="backend/app/vpn/obfuscation.py deploy/lib/awg-obfuscation.sh" DEPENDS="M-001,M-012,M-028" VERIFICATION-REF="V-M-030" />
+  <M-031 NAME="anti-ping-pong-abuse" TYPE="INTEGRATION" STATUS="done" PATH="backend/app/vpn/anti_abuse.py backend/app/vpn/handshake_monitor.py backend/app/tasks/scheduler.py" DEPENDS="M-001,M-003,M-008,M-020,M-021,M-023,M-025" VERIFICATION-REF="V-M-031" />
 
   <CrossLinks>
     <link from="M-002" to="M-001" />
@@ -75,6 +76,7 @@
     <link from="M-022" to="M-003" />
     <link from="M-023" to="M-003" />
     <link from="M-023" to="M-025" />
+    <link from="M-023" to="M-031" />
     <link from="M-024" to="M-025" />
     <link from="M-026" to="M-001" />
     <link from="M-002" to="M-027" />
@@ -85,6 +87,13 @@
     <link from="M-030" to="M-001" />
     <link from="M-030" to="M-012" />
     <link from="M-030" to="M-028" />
+    <link from="M-031" to="M-001" />
+    <link from="M-031" to="M-003" />
+    <link from="M-031" to="M-008" />
+    <link from="M-031" to="M-020" />
+    <link from="M-031" to="M-021" />
+    <link from="M-031" to="M-023" />
+    <link from="M-031" to="M-025" />
   </CrossLinks>
 
   <Hotspots>
@@ -105,5 +114,6 @@
     <H-015 module="M-012" text="Deploy idempotency must preserve WG keys, SSL certs, .env across runs" />
     <H-016 module="M-017" text="Removed RU IP auto-update references must stay absent from deploy and verification surfaces" />
     <H-017 module="M-030" text="Changing AWG obfuscation or UDP port invalidates existing client configs unless rotation is explicit" />
+    <H-018 module="M-031" text="Anti-abuse auto-rotation must distinguish normal roaming from true endpoint ping-pong before invalidating configs" />
   </Hotspots>
 </GraphIndex>

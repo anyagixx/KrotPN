@@ -11,7 +11,7 @@
 #
 # START_MODULE_MAP
 #   DeviceStatus - Enum: active, revoked, blocked, replaced
-#   DeviceSecurityEventType - Enum: created, migrated, rotated, revoked, blocked, unblocked, suspicious events
+#   DeviceSecurityEventType - Enum: lifecycle events, legacy suspicion events, anti-abuse detection/enforcement events
 #   DeviceEventSeverity - Enum: info, warning, critical
 #   _default_device_key - Generate opaque stable identifier for logs/API
 #   UserDevice - Logical user device tracked separately from VPN peer
@@ -19,6 +19,7 @@
 # END_MODULE_MAP
 #
 # START_CHANGE_SUMMARY
+#   LAST_CHANGE: v3.1.0 - Added anti-abuse detection, auto-rotation, cooldown and degraded-mode event types
 #   LAST_CHANGE: v2.8.0 - Added full GRACE MODULE_CONTRACT and MODULE_MAP per GRACE governance protocol
 # END_CHANGE_SUMMARY
 #
@@ -81,6 +82,12 @@ class DeviceSecurityEventType(str, Enum):
     DEVICE_UNBLOCKED = "device_unblocked"
     SUSPICIOUS_ENDPOINT_CHURN = "suspicious_endpoint_churn"
     CONCURRENT_HANDSHAKE_SUSPECTED = "concurrent_handshake_suspected"
+    PING_PONG_ABUSE_DETECTED = "ping_pong_abuse_detected"
+    MULTI_NETWORK_ABUSE_DETECTED = "multi_network_abuse_detected"
+    ANTI_ABUSE_AUTO_ROTATE_STARTED = "anti_abuse_auto_rotate_started"
+    ANTI_ABUSE_AUTO_ROTATE_COMPLETED = "anti_abuse_auto_rotate_completed"
+    ANTI_ABUSE_COOLDOWN_SKIPPED = "anti_abuse_cooldown_skipped"
+    ANTI_ABUSE_REDIS_DEGRADED = "anti_abuse_redis_degraded"
 # <!-- END_BLOCK: DeviceSecurityEventType -->
 
 

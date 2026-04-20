@@ -1,11 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <V-M-025 MODULE="M-025" PRIORITY="high" STATUS="pass">
   <module>device-audit-log</module>
-  <checks>Every device lifecycle and anomaly escalation writes an audit entry with stable event types and enough context for later investigation.</checks>
+  <checks>Every device lifecycle, anti-abuse detection, auto-rotation, cooldown and degraded-mode event writes an audit entry with stable event types and enough context for later investigation.</checks>
   <test-files>backend/tests/test_device_audit_log.py</test-files>
-  <commands>pytest tests/test_device_audit_log.py -v</commands>
-  <anchors>VPN_DEVICE_AUDIT_RECORDED</anchors>
+  <commands>cd backend &amp;&amp; SECRET_KEY=test-secret-key-with-enough-length DATA_ENCRYPTION_KEY=dpFmfSVqfdAK3yx5MQV6Tcv35RZuw5MzaH0yhxJ01q0= PYTHONPATH=. ../.venv/bin/python -m pytest -o addopts='' tests/test_device_audit_log.py -v</commands>
+  <anchors>VPN_DEVICE_AUDIT_RECORDED ping_pong_abuse_detected anti_abuse_auto_rotate_completed</anchors>
   <scenarios>
     <scenario kind="success" trace="VPN_DEVICE_AUDIT_RECORDED">Every device lifecycle event produces an audit record with device_id, user_id and event type</scenario>
+    <scenario kind="success" trace="ping_pong_abuse_detected">Anti-abuse event types are persisted and exposed by recent-event helpers</scenario>
   </scenarios>
 </V-M-025>

@@ -3,17 +3,18 @@
 # ROLE: RUNTIME
 # MAP_MODE: EXPORTS
 # START_MODULE_CONTRACT
-#   PURPOSE: Observe live peer handshakes, update device presence metadata, record suspicious endpoint-churn or concurrency signals without auto-blocking by default
-#   SCOPE: Active device-bound VPN peers only; detection is observe-first, writes durable audit events for later admin enforcement
+#   PURPOSE: Observe live peer handshakes, update device presence metadata, and delegate roaming-vs-abuse classification to anti-ping-pong analysis
+#   SCOPE: Active device-bound VPN peers only; writes durable audit events and optional soft auto-rotation for confirmed abuse
 #   DEPENDS: M-001 (database), M-003 (vpn client state, amneziawg), M-020 (device-registry), M-023 (handshake-anomaly-detector), M-025 (device-audit-log)
 #   LINKS: M-023 (handshake-anomaly-detector), M-025 (device-audit-log), V-M-023, V-M-025
 # END_MODULE_CONTRACT
 #
 # START_MODULE_MAP
-#   HandshakeAnomalyMonitor - Observer for peer handshake metadata and anomaly signals (scan_active_peers, observe_peer_stats, _apply_observation, _record_event, _coerce_datetime, _to_naive_utc)
+#   HandshakeAnomalyMonitor - Observer for peer handshake metadata and anti-abuse decisions (scan_active_peers, observe_peer_stats, _apply_observation, _record_event, _coerce_datetime, _to_naive_utc)
 # END_MODULE_MAP
 #
 # START_CHANGE_SUMMARY
+#   LAST_CHANGE: v3.1.0 - Delegated endpoint churn classification to anti-ping-pong abuse analyzer with soft enforcement
 #   LAST_CHANGE: v2.8.0 - Converted to full GRACE MODULE_CONTRACT/MAP format with START/END blocks
 # END_CHANGE_SUMMARY
 #
@@ -21,15 +22,15 @@
 Handshake anomaly detector for device-bound peers.
 
 MODULE_CONTRACT
-- PURPOSE: Observe live peer handshakes, update device presence metadata and record suspicious endpoint-churn or concurrency signals without auto-blocking by default.
-- SCOPE: Active device-bound VPN peers only; detection is observe-first and writes durable audit events for later admin enforcement.
+- PURPOSE: Observe live peer handshakes, update device presence metadata and delegate endpoint-history classification to anti-ping-pong analysis.
+- SCOPE: Active device-bound VPN peers only; detection is observe-first unless M-031 returns a confirmed abuse decision and auto_rotate is enabled.
 - DEPENDS: M-001 DB session lifecycle, M-003 vpn client state, M-020 device-registry, M-023 handshake-anomaly-detector, M-025 device-audit-log.
 - LINKS: V-M-023, V-M-025.
 
 MODULE_MAP
 - HandshakeAnomalyMonitor: Coordinates peer-stat polling and anomaly-event recording.
 - scan_active_peers: Pulls runtime peer stats and applies observe-first anomaly rules.
-- observe_peer_stats: Updates per-device handshake metadata and records suspicious events when endpoints churn too quickly.
+- observe_peer_stats: Updates per-device handshake metadata, allows roaming, and records confirmed anti-abuse events.
 
 CHANGE_SUMMARY
 - 2026-03-27: Added first-pass observe-only detector for endpoint churn and concurrent-handshake suspicion on device-bound peers.
@@ -52,6 +53,7 @@ from app.devices.models import (
     UserDevice,
 )
 from app.vpn.amneziawg import wg_manager
+from app.vpn.anti_abuse import AntiAbuseAnalyzer, AntiAbuseEnforcer, EndpointObservation
 from app.vpn.models import VPNClient
 
 
@@ -59,12 +61,21 @@ from app.vpn.models import VPNClient
 class HandshakeAnomalyMonitor:
     """Observe handshake metadata and record soft fraud signals for one session."""
 
-    ENDPOINT_CHURN_WINDOW_SECONDS = 600
-    CONCURRENCY_SUSPECT_WINDOW_SECONDS = 120
-
-    def __init__(self, session: AsyncSession):
+    def __init__(
+        self,
+        session: AsyncSession,
+        *,
+        analyzer: AntiAbuseAnalyzer | None = None,
+        enforcer: AntiAbuseEnforcer | None = None,
+    ):
         self.session = session
         self.wg = wg_manager
+        self.analyzer = analyzer or AntiAbuseAnalyzer()
+        self.enforcer = enforcer or AntiAbuseEnforcer(
+            session,
+            store=self.analyzer.store,
+            config=self.analyzer.config,
+        )
 
     async def scan_active_peers(self) -> int:
         """Poll live peer stats and apply observe-first anomaly detection."""
@@ -117,7 +128,6 @@ class HandshakeAnomalyMonitor:
         stored_observed_at = self._to_naive_utc(observed_at)
         endpoint = stat.get("endpoint")
         previous_endpoint = device.last_endpoint
-        previous_handshake = self._coerce_datetime(device.last_handshake_at)
 
         logger.info(
             "[VPN][handshake][VPN_HANDSHAKE_OBSERVED] "
@@ -132,43 +142,24 @@ class HandshakeAnomalyMonitor:
                 f"previous_endpoint={previous_endpoint} new_endpoint={endpoint}"
             )
 
-            delta_seconds = None
-            if previous_handshake is not None:
-                delta_seconds = abs((observed_at - previous_handshake).total_seconds())
-
-            if delta_seconds is not None and delta_seconds <= self.ENDPOINT_CHURN_WINDOW_SECONDS:
-                await self._record_event(
-                    user_id=int(client.user_id),
-                    device_id=int(device.id),
-                    event_type=DeviceSecurityEventType.SUSPICIOUS_ENDPOINT_CHURN,
-                    severity=DeviceEventSeverity.WARNING,
-                    details_json=(
-                        f'{{"previous_endpoint":"{previous_endpoint}","new_endpoint":"{endpoint}",'
-                        f'"delta_seconds":{int(delta_seconds)}}}'
-                    ),
-                )
-                logger.warning(
-                    "[VPN][handshake][VPN_DEVICE_SUSPICION_ESCALATED] "
-                    f"user_id={client.user_id} device_id={device.id} signal=suspicious_endpoint_churn "
-                    f"delta_seconds={int(delta_seconds)}"
-                )
-
-            if delta_seconds is not None and delta_seconds <= self.CONCURRENCY_SUSPECT_WINDOW_SECONDS:
-                await self._record_event(
-                    user_id=int(client.user_id),
-                    device_id=int(device.id),
-                    event_type=DeviceSecurityEventType.CONCURRENT_HANDSHAKE_SUSPECTED,
-                    severity=DeviceEventSeverity.WARNING,
-                    details_json=(
-                        f'{{"previous_endpoint":"{previous_endpoint}","new_endpoint":"{endpoint}",'
-                        f'"delta_seconds":{int(delta_seconds)}}}'
-                    ),
-                )
-                logger.warning(
-                    "[VPN][handshake][VPN_HANDSHAKE_CONCURRENCY_SUSPECTED] "
-                    f"user_id={client.user_id} device_id={device.id} delta_seconds={int(delta_seconds)} "
-                    f"previous_endpoint={previous_endpoint} new_endpoint={endpoint}"
-                )
+        observation = EndpointObservation.from_peer(
+            public_key=client.public_key,
+            user_id=int(client.user_id),
+            device_id=int(device.id),
+            endpoint=endpoint,
+            observed_at=observed_at,
+        )
+        decision = await self.analyzer.analyze(observation)
+        if decision.event_type is not None:
+            await self._record_event(
+                user_id=int(client.user_id),
+                device_id=int(device.id),
+                event_type=decision.event_type,
+                severity=DeviceEventSeverity.WARNING,
+                details_json=decision.details_json(),
+            )
+        if decision.should_enforce:
+            await self.enforcer.enforce(decision=decision, device=device, client=client)
 
         device.last_seen_at = stored_observed_at
         device.last_handshake_at = stored_observed_at

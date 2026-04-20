@@ -8,8 +8,10 @@ MODULE_CONTRACT
 MODULE_MAP
 - test_device_policy_writes_full_audit_sequence: Verifies one device accumulates the expected lifecycle and enforcement events.
 - test_get_recent_event_types_returns_newest_first: Verifies audit-log helpers expose compact recent event markers in descending order.
+- test_get_recent_event_types_includes_anti_abuse_events: Verifies durable anti-abuse event types are exposed by audit helpers.
 
 CHANGE_SUMMARY
+- 2026-04-20: Added audit-log coverage for anti-abuse event types.
 - 2026-03-27: Added device audit-log tests for lifecycle and admin-enforcement transitions.
 """
 
@@ -22,7 +24,7 @@ from sqlmodel import SQLModel
 
 from app.billing.models import Plan, Subscription, SubscriptionStatus
 from app.core.database import import_all_models
-from app.devices.models import DeviceSecurityEventType
+from app.devices.models import DeviceEventSeverity, DeviceSecurityEvent, DeviceSecurityEventType
 from app.devices.service import DeviceAccessPolicyService
 from app.users.models import User, UserRole
 
@@ -126,3 +128,26 @@ async def test_get_recent_event_types_returns_newest_first(audit_session: AsyncS
         DeviceSecurityEventType.CONFIG_ROTATED.value,
         DeviceSecurityEventType.DEVICE_CREATED.value,
     ]
+
+
+@pytest.mark.asyncio
+async def test_get_recent_event_types_includes_anti_abuse_events(audit_session: AsyncSession):
+    user_id = await _seed_user_with_subscription(audit_session)
+    policy = DeviceAccessPolicyService(audit_session)
+    policy.vpn = StubVPNService()
+
+    device = await policy.create_device_record(user_id, name="Android", platform="android")
+    audit_session.add(
+        DeviceSecurityEvent(
+            user_id=user_id,
+            device_id=int(device.id),
+            event_type=DeviceSecurityEventType.PING_PONG_ABUSE_DETECTED,
+            severity=DeviceEventSeverity.WARNING,
+            details_json='{"decision":"ping_pong_abuse"}',
+        )
+    )
+    await audit_session.flush()
+
+    recent = await policy.get_recent_event_types(int(device.id), limit=2)
+
+    assert recent[0] == DeviceSecurityEventType.PING_PONG_ABUSE_DETECTED.value

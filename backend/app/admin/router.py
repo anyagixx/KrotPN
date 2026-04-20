@@ -13,7 +13,7 @@
 #   get_admin_stats - Aggregates dashboard metrics across users, subscriptions, revenue, VPN, and routing
 #   get_revenue_analytics - Grouped payment revenue analytics over a bounded date range
 #   get_users_analytics - Grouped user registration analytics over a bounded date range
-#   list_admin_devices - Device registry rows with live slot/security context
+#   list_admin_devices - Device registry rows with live slot/security context and recent anti-abuse events
 #   block_admin_device - Block one device peer without freeing the consumed slot
 #   unblock_admin_device - Clear the blocked state for one device
 #   rotate_admin_device - Reprovision one device config keeping logical device identity
@@ -22,6 +22,7 @@
 # END_MODULE_MAP
 #
 # START_CHANGE_SUMMARY
+#   LAST_CHANGE: v3.1.0 - Added recent anti-abuse event context to admin device payloads
 #   LAST_CHANGE: v2.8.0 - Added full GRACE MODULE_CONTRACT, MODULE_MAP, BLOCKS per GRACE governance protocol; replaced docstring header with comment-based GRACE header
 # END_CHANGE_SUMMARY
 #
@@ -35,7 +36,7 @@ from sqlmodel import col
 
 from app.core import CurrentAdmin, CurrentSuperuser, DBSession
 from app.billing.models import Payment, PaymentStatus, Plan, Subscription
-from app.devices.models import DeviceSecurityEvent, UserDevice
+from app.devices.models import DeviceSecurityEvent, DeviceSecurityEventType, UserDevice
 from app.devices.service import DeviceAccessPolicyService
 from app.referrals.models import Referral, ReferralCode
 # NOTE: routing models/observer removed in Phase-17 (Full Tunnel)
@@ -44,6 +45,15 @@ from app.vpn.models import VPNClient, VPNNode, VPNRoute, VPNServer
 from app.vpn.service import VPNService
 
 router = APIRouter(prefix="/api/v1/admin", tags=["admin"])
+
+ANTI_ABUSE_EVENT_TYPES = {
+    DeviceSecurityEventType.PING_PONG_ABUSE_DETECTED,
+    DeviceSecurityEventType.MULTI_NETWORK_ABUSE_DETECTED,
+    DeviceSecurityEventType.ANTI_ABUSE_AUTO_ROTATE_STARTED,
+    DeviceSecurityEventType.ANTI_ABUSE_AUTO_ROTATE_COMPLETED,
+    DeviceSecurityEventType.ANTI_ABUSE_COOLDOWN_SKIPPED,
+    DeviceSecurityEventType.ANTI_ABUSE_REDIS_DEGRADED,
+}
 
 
 # START_BLOCK: _serialize_admin_device
@@ -70,6 +80,18 @@ async def _serialize_admin_device(
         .limit(3)
     )
     recent_event_types = [event.value for event in recent_events_result.scalars().all()]
+    recent_anti_abuse_events_result = await session.execute(
+        select(DeviceSecurityEvent.event_type)
+        .where(
+            DeviceSecurityEvent.device_id == device.id,
+            DeviceSecurityEvent.event_type.in_(ANTI_ABUSE_EVENT_TYPES),
+        )
+        .order_by(DeviceSecurityEvent.created_at.desc())
+        .limit(5)
+    )
+    recent_anti_abuse_event_types = [
+        event.value for event in recent_anti_abuse_events_result.scalars().all()
+    ]
 
     return {
         "id": device.id,
@@ -90,6 +112,7 @@ async def _serialize_admin_device(
         "last_endpoint": device.last_endpoint,
         "active_peer_count": int(active_peer_count),
         "recent_event_types": recent_event_types,
+        "recent_anti_abuse_event_types": recent_anti_abuse_event_types,
     }
 # END_BLOCK: _serialize_admin_device
 

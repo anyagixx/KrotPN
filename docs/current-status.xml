@@ -3,7 +3,7 @@
 <current-status>
   <meta>
     <project-name>KrotPN</project-name>
-    <updated>2026-04-19</updated>
+    <updated>2026-04-20</updated>
     <status>active-development</status>
   </meta>
 
@@ -30,6 +30,7 @@
     <item>Manual internal client issuance through deploy/create-client.sh now produces configs through backend CLI and applies peers to live awg0 state on RU.</item>
     <item>New RU host-level awg0 config watcher automatically syncs peer changes from backend-driven provisioning, so both manual and web-issued clients become active without manual awg commands.</item>
     <item>Release v2.11.0-awg-obfuscation-stable was deployed from GitHub main and operator-validated on RU/DE VPS with AWG stealth obfuscation, profile parity, RU-DE handshake, new client handshake, DE egress, and upgrade preservation.</item>
+    <item>Phase-19 anti-ping-pong abuse detection is implemented locally: observe-mode roaming tolerance, Redis-backed endpoint history, soft auto-rotation path, admin anti-abuse context, and V-M-031 verification passed on 2026-04-20.</item>
   </what-is-working>
 
   <what-is-fragile>
@@ -52,6 +53,9 @@
     </gate>
     <gate id="phase-18-awg-obfuscation" status="passed">
       <summary>Deploy-time AWG stealth obfuscation validated on live RU/DE VPS from GitHub main; CLIENT_PROFILE and RELAY_PROFILE parity, handshakes, client egress and non-rotation upgrade preservation passed.</summary>
+    </gate>
+    <gate id="phase-19-anti-ping-pong-abuse" status="passed-local">
+      <summary>Local target verification passed: anti-abuse classifier, handshake monitor integration, scheduler interval, cooldown enforcement, audit events and admin anti-abuse context.</summary>
     </gate>
   </rollout-gates>
 

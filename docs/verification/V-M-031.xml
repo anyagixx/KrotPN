@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<V-M-031 MODULE="M-031" PRIORITY="critical" STATUS="pass">
+  <module>anti-ping-pong-abuse</module>
+  <checks>
+    Verify endpoint history distinguishes normal roaming from true ping-pong reuse, ignores NAT port-only changes,
+    degrades safely without Redis, and auto-rotates configs only for confirmed abuse under cooldown control.
+  </checks>
+  <test-files>backend/tests/test_anti_ping_pong_detector.py backend/tests/test_handshake_anomaly_detector.py backend/tests/test_scheduler.py backend/tests/test_device_access_policy.py backend/tests/test_device_audit_log.py backend/tests/test_admin_device_control.py</test-files>
+  <commands>cd backend &amp;&amp; SECRET_KEY=test-secret-key-with-enough-length DATA_ENCRYPTION_KEY=dpFmfSVqfdAK3yx5MQV6Tcv35RZuw5MzaH0yhxJ01q0= PYTHONPATH=. ../.venv/bin/python -m pytest -o addopts='' tests/test_anti_ping_pong_detector.py tests/test_handshake_anomaly_detector.py tests/test_scheduler.py tests/test_device_access_policy.py tests/test_device_audit_log.py tests/test_admin_device_control.py -v</commands>
+  <last-run date="2026-04-20" result="pass">24 passed, 12 warnings. Command was run outside sandbox because sandboxed aiosqlite async SQLite initialization hangs.</last-run>
+  <anchors>VPN_ENDPOINT_ROAMING_OBSERVED VPN_ENDPOINT_PINGPONG_DETECTED VPN_ENDPOINT_MULTI_NETWORK_DETECTED VPN_ANTI_ABUSE_AUTO_ROTATE_STARTED VPN_ANTI_ABUSE_AUTO_ROTATE_COMPLETED VPN_ANTI_ABUSE_REDIS_DEGRADED VPN_ANTI_ABUSE_ENFORCEMENT_SKIPPED_COOLDOWN</anchors>
+
+  <scenarios>
+    <scenario-1 kind="success" trace="VPN_ENDPOINT_ROAMING_OBSERVED">Single endpoint IP transition A to B is treated as roaming and does not rotate config.</scenario-1>
+    <scenario-2 kind="success" trace="VPN_ENDPOINT_PINGPONG_DETECTED">Alternating A to B to A to B within the configured window is classified as abuse.</scenario-2>
+    <scenario-3 kind="success" trace="VPN_ENDPOINT_MULTI_NETWORK_DETECTED">Four or more unique IPs inside the configured window produce a multi-network abuse signal.</scenario-3>
+    <scenario-4 kind="success" trace="VPN_ANTI_ABUSE_AUTO_ROTATE_COMPLETED">Auto-rotate preserves logical device identity, removes the old peer and makes a new config available.</scenario-4>
+    <scenario-5 kind="failure" trace="VPN_ANTI_ABUSE_REDIS_DEGRADED">Redis outage must not trigger auto-rotation or block a device.</scenario-5>
+    <scenario-6 kind="failure" trace="VPN_ANTI_ABUSE_ENFORCEMENT_SKIPPED_COOLDOWN">Repeated abuse signals inside cooldown write evidence but do not rotate repeatedly.</scenario-6>
+  </scenarios>
+
+  <module-checks>
+    <check>Classifier is deterministic and testable without a live AWG host.</check>
+    <check>Redis history keys use hashed peer identifiers and never store private keys, PSKs or raw configs.</check>
+    <check>Scheduler interval is configurable and idempotent across app restarts.</check>
+    <check>All durable events include user_id, device_id, event_type and safe context.</check>
+  </module-checks>
+
+  <rollout-policy>
+    <step-1>Deploy with ANTI_ABUSE_MODE=observe and inspect events on live RU host.</step-1>
+    <step-2>Enable ANTI_ABUSE_MODE=auto_rotate only after live evidence shows no false positives for normal roaming.</step-2>
+    <step-3>Keep rollback simple: switch ANTI_ABUSE_MODE=observe or disabled and restart backend scheduler.</step-3>
+  </rollout-policy>
+</V-M-031>

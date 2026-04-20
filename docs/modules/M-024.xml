@@ -1,9 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <M-024 NAME="device-admin-control" TYPE="ENTRY_POINT" STATUS="stable">
   <path>backend/app/admin/router.py frontend-admin</path>
-  <owns>admin review and enforcement for device state, peer blocks and anomaly investigations</owns>
+  <owns>admin review and enforcement for device state, peer blocks, anomaly investigations and recent anti-abuse context</owns>
   <exports>
     <fn-list-user-devices>Returns device and anomaly state for operator review</fn-list-user-devices>
+    <fn-list-recent-anti-abuse-events>Returns compact recent anti-abuse event types for operator triage</fn-list-recent-anti-abuse-events>
     <fn-admin-block-device>Blocks or unblocks one device peer without disabling unrelated account access</fn-admin-block-device>
   </exports>
   <depends>M-001, M-003, M-006, M-020, M-021, M-023</depends>

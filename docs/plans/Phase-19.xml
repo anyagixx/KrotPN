@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Phase-19 NAME="Anti-Ping-Pong Abuse Detection" STATUS="done" MODULES="M-031,M-001,M-003,M-008,M-020,M-021,M-023,M-024,M-025" CREATED="2026-04-20" COMPLETED="2026-04-20">
+  <goal>
+    Replace naive endpoint-change suspicion with Redis-backed endpoint history that distinguishes normal roaming
+    from true WireGuard/AWG ping-pong reuse, then apply soft auto-rotation only for confirmed abuse patterns.
+  </goal>
+
+  <scope>
+    <item-1>Do not change billing device limits; reuse existing per-plan device slots.</item-1>
+    <item-2>Do not introduce hard account bans in this phase.</item-2>
+    <item-3>Do not inspect payload traffic; only AWG peer metadata and endpoint IP history are used.</item-3>
+    <item-4>Keep initial rollout safe with observe mode before auto_rotate mode is enabled in production.</item-4>
+  </scope>
+
+  <step-1 MODULE="M-031,M-001" RISK="CRITICAL" STATUS="done">
+    Add anti-abuse settings: mode, scan interval, history window, TTL, ping-pong alternation threshold,
+    unique-IP threshold and enforcement cooldown. Defaults must be safe for local tests and production observe rollout.
+  </step-1>
+
+  <step-2 MODULE="M-031" RISK="CRITICAL" STATUS="done">
+    Create anti_abuse classifier with normalized IP extraction, port-change ignore rules, bounded history trimming,
+    A-B-A-B ping-pong detection and excessive unique-IP churn detection.
+  </step-2>
+
+  <step-3 MODULE="M-031,M-001" RISK="HIGH" STATUS="done">
+    Add Redis-backed endpoint history store with TTL plus deterministic in-memory fake for tests.
+    Redis outage must return degraded observe-only decisions.
+  </step-3>
+
+  <step-4 MODULE="M-023,M-031" RISK="CRITICAL" STATUS="done">
+    Refactor HandshakeAnomalyMonitor to call the classifier instead of treating every rapid endpoint change as abuse.
+    Preserve last_seen, last_handshake and last_endpoint metadata writes.
+  </step-4>
+
+  <step-5 MODULE="M-008,M-031" RISK="MEDIUM" STATUS="done">
+    Make detect_handshake_anomalies interval configurable in seconds and target 15 to 30 seconds for production.
+    Ensure job registration stays idempotent.
+  </step-5>
+
+  <step-6 MODULE="M-021,M-003,M-025,M-031" RISK="CRITICAL" STATUS="done">
+    Implement soft enforcement: on confirmed abuse, acquire Redis cooldown lock, record audit event,
+    rotate logical device config and reprovision the peer so the shared old config stops working.
+  </step-6>
+
+  <step-7 MODULE="M-020,M-025" RISK="MEDIUM" STATUS="done">
+    Add durable event types for ping-pong abuse detection, multi-network abuse detection, auto-rotate start,
+    auto-rotate completion, cooldown skip and Redis degraded mode.
+  </step-7>
+
+  <step-8 MODULE="M-024,M-025" RISK="MEDIUM" STATUS="done">
+    Extend admin device payload with recent anti-abuse event context so operators can see why a config was rotated.
+  </step-8>
+
+  <step-9 MODULE="M-031,M-023,M-008,M-021,M-024,M-025" RISK="CRITICAL" STATUS="done">
+    Add verification for roaming, ping-pong, multi-network abuse, Redis degradation, cooldown, scheduler interval,
+    audit events and config rotation side effects.
+  </step-9>
+
+  <data-flows>
+    <DF-ANTI-001>Normal roaming: peer endpoint A to B once in the window -> classifier returns roaming -> no rotation.</DF-ANTI-001>
+    <DF-ANTI-002>Ping-pong abuse: peer endpoint A to B to A to B inside the window -> audit event -> auto-rotate if mode allows.</DF-ANTI-002>
+    <DF-ANTI-003>Redis degraded: history store unavailable -> log degraded marker -> persist no enforcement action.</DF-ANTI-003>
+  </data-flows>
+
+  <phase-gates>
+    <gate-1>Port-only endpoint changes never trigger abuse.</gate-1>
+    <gate-2>A single Wi-Fi to LTE transition does not rotate config.</gate-2>
+    <gate-3>A-B-A-B endpoint alternation triggers abuse only after the configured threshold.</gate-3>
+    <gate-4>Auto-rotation removes the old peer and keeps the same logical device identity.</gate-4>
+    <gate-5>Redis outage does not auto-rotate any device.</gate-5>
+  </phase-gates>
+
+  <execution-evidence>
+    <result>pass</result>
+    <command>cd backend &amp;&amp; SECRET_KEY=test-secret-key-with-enough-length DATA_ENCRYPTION_KEY=dpFmfSVqfdAK3yx5MQV6Tcv35RZuw5MzaH0yhxJ01q0= PYTHONPATH=. ../.venv/bin/python -m pytest -o addopts='' tests/test_anti_ping_pong_detector.py tests/test_handshake_anomaly_detector.py tests/test_scheduler.py tests/test_device_access_policy.py tests/test_device_audit_log.py tests/test_admin_device_control.py -v</command>
+    <summary>24 passed, 12 warnings on 2026-04-20. Run outside sandbox because sandboxed aiosqlite async SQLite initialization hangs.</summary>
+  </execution-evidence>
+</Phase-19>

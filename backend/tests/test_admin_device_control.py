@@ -8,20 +8,36 @@ MODULE_CONTRACT
 MODULE_MAP
 - _build_client: Constructs a FastAPI test client with admin and DB dependency overrides.
 - test_list_admin_devices_returns_device_table_payload: Verifies device table payload is exposed to admins.
+- test_serialize_admin_device_exposes_recent_anti_abuse_events: Verifies admin device rows include anti-abuse context.
 - test_block_unblock_rotate_and_revoke_admin_device: Verifies admin actions target one device and reuse the shared serializer.
 
 CHANGE_SUMMARY
+- 2026-04-20: Added admin payload coverage for recent anti-abuse event context.
 - 2026-03-27: Added admin device-control API tests for list and mutation flows.
 """
 
+from datetime import datetime, timezone
 from types import SimpleNamespace
 
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
+import pytest
+from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
+from sqlalchemy.pool import StaticPool
+from sqlmodel import SQLModel
 
 from app.admin import router as admin_router_module
 from app.core import get_current_admin
 from app.core.database import get_session
+from app.core.database import import_all_models
+from app.devices.models import (
+    DeviceEventSeverity,
+    DeviceSecurityEvent,
+    DeviceSecurityEventType,
+    DeviceStatus,
+    UserDevice,
+)
+from app.users.models import User, UserRole
 
 
 class DummySession:
@@ -63,19 +79,80 @@ def test_list_admin_devices_returns_device_table_payload(monkeypatch):
                 "config_version": 1,
                 "active_peer_count": 1,
                 "recent_event_types": ["device_created"],
+                "recent_anti_abuse_event_types": ["ping_pong_abuse_detected"],
             }
         ]
 
     monkeypatch.setattr(admin_router_module, "_list_admin_devices", fake_list_admin_devices)
     client = _build_client()
 
-    response = client.get("/api/admin/devices?search=iphone")
+    response = client.get("/api/v1/admin/devices?search=iphone")
 
     assert response.status_code == 200
     body = response.json()
     assert body["total"] == 1
     assert body["items"][0]["name"] == "Family iPhone"
     assert body["items"][0]["recent_event_types"] == ["device_created"]
+    assert body["items"][0]["recent_anti_abuse_event_types"] == ["ping_pong_abuse_detected"]
+
+
+@pytest.mark.asyncio
+async def test_serialize_admin_device_exposes_recent_anti_abuse_events():
+    import_all_models()
+    engine = create_async_engine(
+        "sqlite+aiosqlite:///:memory:",
+        future=True,
+        poolclass=StaticPool,
+    )
+    async with engine.begin() as conn:
+        await conn.run_sync(SQLModel.metadata.create_all)
+
+    async with AsyncSession(engine, expire_on_commit=False) as session:
+        user = User(
+            email="anti-abuse@example.com",
+            password_hash="hash",
+            role=UserRole.USER,
+            is_active=True,
+        )
+        session.add(user)
+        await session.flush()
+
+        device = UserDevice(
+            user_id=int(user.id),
+            name="Android",
+            platform="android",
+            status=DeviceStatus.ACTIVE,
+        )
+        session.add(device)
+        await session.flush()
+
+        session.add(
+            DeviceSecurityEvent(
+                user_id=int(user.id),
+                device_id=int(device.id),
+                event_type=DeviceSecurityEventType.PING_PONG_ABUSE_DETECTED,
+                severity=DeviceEventSeverity.WARNING,
+                details_json='{"decision":"ping_pong_abuse"}',
+                created_at=datetime.now(timezone.utc),
+            )
+        )
+        session.add(
+            DeviceSecurityEvent(
+                user_id=int(user.id),
+                device_id=int(device.id),
+                event_type=DeviceSecurityEventType.DEVICE_CREATED,
+                severity=DeviceEventSeverity.INFO,
+                details_json=None,
+                created_at=datetime.now(timezone.utc),
+            )
+        )
+        await session.flush()
+
+        payload = await admin_router_module._serialize_admin_device(session, device=device, user=user)
+
+    await engine.dispose()
+
+    assert payload["recent_anti_abuse_event_types"] == ["ping_pong_abuse_detected"]
 
 
 def test_block_unblock_rotate_and_revoke_admin_device(monkeypatch):
@@ -132,10 +209,10 @@ def test_block_unblock_rotate_and_revoke_admin_device(monkeypatch):
     monkeypatch.setattr(admin_router_module, "_serialize_admin_device", fake_serialize)
     client = _build_client()
 
-    block_response = client.post("/api/admin/devices/5/block")
-    unblock_response = client.post("/api/admin/devices/5/unblock")
-    rotate_response = client.post("/api/admin/devices/5/rotate")
-    revoke_response = client.delete("/api/admin/devices/5")
+    block_response = client.post("/api/v1/admin/devices/5/block")
+    unblock_response = client.post("/api/v1/admin/devices/5/unblock")
+    rotate_response = client.post("/api/v1/admin/devices/5/rotate")
+    revoke_response = client.delete("/api/v1/admin/devices/5")
 
     assert block_response.status_code == 200
     assert block_response.json()["status"] == "blocked"

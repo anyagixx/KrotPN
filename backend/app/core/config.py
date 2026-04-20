@@ -4,7 +4,7 @@
 # MAP_MODE: EXPORTS
 # START_MODULE_CONTRACT
 #   PURPOSE: Application configuration and environment variable parsing with validation
-#   SCOPE: Settings model, environment parsing, secret validation, AmneziaWG obfuscation params
+#   SCOPE: Settings model, environment parsing, secret validation, AmneziaWG obfuscation params, anti-abuse thresholds
 #   DEPENDS: none
 #   LINKS: M-001 (backend-core), V-M-001
 # END_MODULE_CONTRACT
@@ -13,11 +13,13 @@
 #   Settings - Pydantic BaseSettings model with all environment variables and validators
 #   Settings.awg_client_obfuscation_params - Validated deploy-time CLIENT_PROFILE mapping when AWG_CLIENT_* is present
 #   Settings.awg_relay_obfuscation_params - Validated deploy-time RELAY_PROFILE mapping when AWG_RELAY_* is present
+#   Settings.anti_abuse_* - Observe/auto-rotate mode and endpoint-history thresholds for shared-config detection
 #   get_settings - lru_cache factory returning validated Settings singleton
 #   settings - Module-level cached Settings instance
 # END_MODULE_MAP
 #
 # START_CHANGE_SUMMARY
+#   LAST_CHANGE: v3.1.0 - Added anti-abuse mode, scan interval, history, ping-pong and cooldown settings
 #   LAST_CHANGE: v3.0.0 - Added AWG_CLIENT_*/AWG_RELAY_* profile settings while preserving legacy AWG_* compatibility
 #   LAST_CHANGE: v2.8.0 - Added full GRACE MODULE_CONTRACT and MODULE_MAP per GRACE governance protocol
 # END_CHANGE_SUMMARY
@@ -86,6 +88,16 @@ class Settings(BaseSettings):
         default="redis://localhost:6379/0",
         description="Redis connection URL",
     )
+
+    # Anti-abuse / shared-config detection
+    anti_abuse_mode: Literal["disabled", "observe", "auto_rotate"] = "observe"
+    anti_abuse_scan_interval_seconds: int = Field(default=30, ge=5)
+    anti_abuse_history_window_seconds: int = Field(default=300, ge=30)
+    anti_abuse_history_ttl_seconds: int = Field(default=900, ge=60)
+    anti_abuse_pingpong_window_seconds: int = Field(default=180, ge=30)
+    anti_abuse_pingpong_min_alternations: int = Field(default=4, ge=4)
+    anti_abuse_unique_ip_threshold: int = Field(default=4, ge=3)
+    anti_abuse_enforcement_cooldown_seconds: int = Field(default=900, ge=60)
 
     # Security
     secret_key: str = Field(

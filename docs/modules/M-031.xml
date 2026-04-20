@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<M-031 NAME="anti-ping-pong-abuse" TYPE="INTEGRATION" STATUS="done">
+  <path>backend/app/vpn/anti_abuse.py backend/app/vpn/handshake_monitor.py backend/app/tasks/scheduler.py</path>
+  <owns>Redis-backed endpoint history, roaming-vs-ping-pong classification, and soft auto-rotation enforcement for shared AWG configs</owns>
+  <exports>
+    <type-EndpointObservation>Normalized endpoint observation containing IP, observed_at, peer hash, user_id and device_id</type-EndpointObservation>
+    <type-AntiAbuseDecision>Classifier result: ok, roaming, warning, ping_pong_abuse, multi_network_abuse, degraded</type-AntiAbuseDecision>
+    <fn-normalize-endpoint-ip>Extract IP from AWG endpoint and ignore NAT port-only changes</fn-normalize-endpoint-ip>
+    <fn-record-endpoint-observation>Append bounded TTL history for one peer in Redis</fn-record-endpoint-observation>
+    <fn-classify-endpoint-history>Detect A-B-A-B ping-pong and excessive unique IP churn while allowing sequential roaming</fn-classify-endpoint-history>
+    <fn-enforce-auto-rotate>Rotate one logical device config using existing device policy and VPN reprovisioning primitives</fn-enforce-auto-rotate>
+  </exports>
+  <configuration>
+    <env-ANTI_ABUSE_MODE>disabled, observe, or auto_rotate; initial production rollout should start with observe</env-ANTI_ABUSE_MODE>
+    <env-ANTI_ABUSE_SCAN_INTERVAL_SECONDS>Scheduler interval target, default 30 seconds</env-ANTI_ABUSE_SCAN_INTERVAL_SECONDS>
+    <env-ANTI_ABUSE_HISTORY_WINDOW_SECONDS>Classifier window, default 300 seconds</env-ANTI_ABUSE_HISTORY_WINDOW_SECONDS>
+    <env-ANTI_ABUSE_HISTORY_TTL_SECONDS>Redis history TTL, default 900 seconds</env-ANTI_ABUSE_HISTORY_TTL_SECONDS>
+    <env-ANTI_ABUSE_ENFORCEMENT_COOLDOWN_SECONDS>Per-device auto-rotation cooldown, default 900 seconds</env-ANTI_ABUSE_ENFORCEMENT_COOLDOWN_SECONDS>
+  </configuration>
+  <decisions>
+    <decision-1>Store short-lived endpoint history in Redis; persist only audit and enforcement events in Postgres.</decision-1>
+    <decision-2>Ignore endpoint port changes and classify by normalized IP only.</decision-2>
+    <decision-3>Auto-rotation is soft enforcement, not account ban; it invalidates the shared config and requires the user to download a new one.</decision-3>
+    <decision-4>Redis outage degrades to observe-only logging and must not trigger auto-rotation.</decision-4>
+  </decisions>
+  <depends>M-001, M-003, M-008, M-020, M-021, M-023, M-025</depends>
+  <verification-ref>V-M-031</verification-ref>
+  <files>
+    <file>backend/app/vpn/anti_abuse.py</file>
+    <file>backend/app/vpn/handshake_monitor.py</file>
+    <file>backend/app/tasks/scheduler.py</file>
+    <file>backend/app/core/config.py</file>
+    <file>backend/app/devices/models.py</file>
+    <file>backend/app/devices/service.py</file>
+    <file>backend/app/admin/router.py</file>
+  </files>
+  <implementation-status updated="2026-04-20">
+    <done>Implemented anti_abuse classifier/store/enforcer, handshake monitor delegation, configurable scheduler interval, durable audit event types and admin anti-abuse context.</done>
+    <verification>V-M-031 passed on 2026-04-20: 24 passed, 12 warnings. Pytest was run outside sandbox because async SQLite/aiosqlite hangs inside sandbox.</verification>
+  </implementation-status>
+  <hotspot>H-018: Auto-rotation must not punish normal Wi-Fi to LTE roaming, mobile carrier NAT churn, or Redis degradation.</hotspot>
+</M-031>

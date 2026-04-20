@@ -1,15 +1,17 @@
 """
 MODULE_CONTRACT
 - PURPOSE: Verify observe-only handshake anomaly detection for device-bound peers.
-- SCOPE: Device metadata updates, endpoint change tracking and durable anomaly-event creation.
-- DEPENDS: M-001 database models, M-003 vpn clients, M-020 device-registry, M-023 handshake-anomaly-detector, M-025 device-audit-log.
-- LINKS: V-M-023, V-M-025.
+- SCOPE: Device metadata updates, endpoint roaming tolerance and durable anti-ping-pong event creation.
+- DEPENDS: M-001 database models, M-003 vpn clients, M-020 device-registry, M-023 handshake-anomaly-detector, M-025 device-audit-log, M-031 anti-ping-pong-abuse.
+- LINKS: V-M-023, V-M-025, V-M-031.
 
 MODULE_MAP
 - test_observe_peer_stats_updates_device_presence_metadata: Verifies live handshake observation refreshes endpoint and seen timestamps.
-- test_observe_peer_stats_records_endpoint_churn_and_concurrency_signals: Verifies quick endpoint changes emit warning-level anomaly events without blocking the peer.
+- test_observe_peer_stats_treats_single_endpoint_change_as_roaming: Verifies one IP transition does not emit abuse events.
+- test_observe_peer_stats_records_ping_pong_signal: Verifies A-B-A-B endpoint alternation emits anti-abuse evidence.
 
 CHANGE_SUMMARY
+- 2026-04-20: Replaced naive endpoint-churn assertions with anti-ping-pong observe-mode coverage.
 - 2026-03-27: Added tests for endpoint churn and concurrent-handshake suspicion in observe-only mode.
 """
 
@@ -23,6 +25,12 @@ from sqlmodel import SQLModel
 
 from app.core.database import import_all_models
 from app.devices.models import DeviceSecurityEvent, DeviceSecurityEventType, DeviceStatus, UserDevice
+from app.vpn.anti_abuse import (
+    AntiAbuseAnalyzer,
+    AntiAbuseConfig,
+    AntiAbuseMode,
+    InMemoryEndpointHistoryStore,
+)
 from app.users.models import User, UserRole
 from app.vpn.handshake_monitor import HandshakeAnomalyMonitor
 from app.vpn.models import VPNClient
@@ -78,10 +86,45 @@ async def _seed_device_bound_client(session: AsyncSession) -> tuple[UserDevice, 
     return device, client
 
 
+def _build_observe_monitor(session: AsyncSession) -> HandshakeAnomalyMonitor:
+    analyzer = AntiAbuseAnalyzer(
+        store=InMemoryEndpointHistoryStore(),
+        config=AntiAbuseConfig(
+            mode=AntiAbuseMode.OBSERVE,
+            history_window_seconds=300,
+            history_ttl_seconds=900,
+            pingpong_window_seconds=180,
+            pingpong_min_alternations=4,
+            unique_ip_threshold=4,
+            enforcement_cooldown_seconds=900,
+        ),
+    )
+    return HandshakeAnomalyMonitor(session, analyzer=analyzer)
+
+
+async def _observe_endpoint(
+    monitor: HandshakeAnomalyMonitor,
+    client: VPNClient,
+    *,
+    endpoint: str,
+    observed_at: datetime,
+) -> int:
+    return await monitor.observe_peer_stats(
+        {
+            client.public_key: {
+                "last_handshake": observed_at,
+                "endpoint": endpoint,
+                "upload": 2048,
+                "download": 4096,
+            }
+        }
+    )
+
+
 @pytest.mark.asyncio
 async def test_observe_peer_stats_updates_device_presence_metadata(device_monitor_session: AsyncSession):
     device, client = await _seed_device_bound_client(device_monitor_session)
-    monitor = HandshakeAnomalyMonitor(device_monitor_session)
+    monitor = _build_observe_monitor(device_monitor_session)
     observed_at = datetime.now(timezone.utc)
 
     processed = await monitor.observe_peer_stats(
@@ -105,24 +148,22 @@ async def test_observe_peer_stats_updates_device_presence_metadata(device_monito
 
 
 @pytest.mark.asyncio
-async def test_observe_peer_stats_records_endpoint_churn_and_concurrency_signals(device_monitor_session: AsyncSession):
+async def test_observe_peer_stats_treats_single_endpoint_change_as_roaming(device_monitor_session: AsyncSession):
     device, client = await _seed_device_bound_client(device_monitor_session)
-    previous_handshake = datetime.now(timezone.utc) - timedelta(seconds=45)
-    device.last_endpoint = "203.0.113.1:51820"
-    device.last_seen_at = previous_handshake
-    device.last_handshake_at = previous_handshake
-    await device_monitor_session.flush()
+    monitor = _build_observe_monitor(device_monitor_session)
+    observed_at = datetime.now(timezone.utc)
 
-    monitor = HandshakeAnomalyMonitor(device_monitor_session)
-    await monitor.observe_peer_stats(
-        {
-            client.public_key: {
-                "last_handshake": datetime.now(timezone.utc),
-                "endpoint": "198.51.100.7:51820",
-                "upload": 2048,
-                "download": 4096,
-            }
-        }
+    await _observe_endpoint(
+        monitor,
+        client,
+        endpoint="203.0.113.1:51820",
+        observed_at=observed_at,
+    )
+    await _observe_endpoint(
+        monitor,
+        client,
+        endpoint="198.51.100.7:51820",
+        observed_at=observed_at + timedelta(seconds=45),
     )
 
     result = await device_monitor_session.execute(
@@ -130,5 +171,36 @@ async def test_observe_peer_stats_records_endpoint_churn_and_concurrency_signals
     )
     event_types = list(result.scalars().all())
 
-    assert DeviceSecurityEventType.SUSPICIOUS_ENDPOINT_CHURN in event_types
-    assert DeviceSecurityEventType.CONCURRENT_HANDSHAKE_SUSPECTED in event_types
+    assert DeviceSecurityEventType.PING_PONG_ABUSE_DETECTED not in event_types
+    assert DeviceSecurityEventType.MULTI_NETWORK_ABUSE_DETECTED not in event_types
+    assert DeviceSecurityEventType.SUSPICIOUS_ENDPOINT_CHURN not in event_types
+    assert DeviceSecurityEventType.CONCURRENT_HANDSHAKE_SUSPECTED not in event_types
+
+
+@pytest.mark.asyncio
+async def test_observe_peer_stats_records_ping_pong_signal(device_monitor_session: AsyncSession):
+    device, client = await _seed_device_bound_client(device_monitor_session)
+    monitor = _build_observe_monitor(device_monitor_session)
+    observed_at = datetime.now(timezone.utc)
+
+    for index, endpoint in enumerate(
+        [
+            "203.0.113.1:51820",
+            "198.51.100.7:51820",
+            "203.0.113.1:51820",
+            "198.51.100.7:51820",
+        ]
+    ):
+        await _observe_endpoint(
+            monitor,
+            client,
+            endpoint=endpoint,
+            observed_at=observed_at + timedelta(seconds=index * 30),
+        )
+
+    result = await device_monitor_session.execute(
+        select(DeviceSecurityEvent.event_type).where(DeviceSecurityEvent.device_id == device.id)
+    )
+    event_types = list(result.scalars().all())
+
+    assert DeviceSecurityEventType.PING_PONG_ABUSE_DETECTED in event_types

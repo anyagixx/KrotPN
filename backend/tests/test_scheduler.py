@@ -10,8 +10,10 @@ MODULE_MAP
 - test_subscription_expiry_decrements_server_current_clients: Verifies server counter decrement.
 - test_daily_cleanup_does_not_crash: Verifies daily cleanup runs without errors.
 - test_handshake_anomaly_detection_runs_without_errors: Verifies anomaly detection task runs.
+- test_scheduler_registers_configured_handshake_interval: Verifies anti-abuse scan interval is seconds-based and configurable.
 
 CHANGE_SUMMARY
+- 2026-04-20: Added scheduler interval coverage for anti-ping-pong scans.
 - 2026-04-05: Added scheduler task tests for Phase 5.
 """
 
@@ -53,20 +55,6 @@ async def session():
         yield s
 
     await engine.dispose()
-
-
-class FakeSessionMaker:
-    def __init__(self, session):
-        self._session = session
-
-    async def __aenter__(self):
-        return self._session
-
-    async def __aexit__(self, *args):
-        pass
-
-    def __call__(self):
-        return self
 
 
 class FakeSessionMaker:
@@ -197,3 +185,37 @@ async def test_handshake_anomaly_detection_runs_without_errors(session: AsyncSes
     await scheduler_mod.detect_handshake_anomalies()
 
     mock_monitor.scan_active_peers.assert_called_once()
+
+
+def test_scheduler_registers_configured_handshake_interval(monkeypatch):
+    class FakeScheduler:
+        def __init__(self):
+            self.jobs = []
+            self.started = False
+
+        def add_job(self, func, trigger, *, id, replace_existing):
+            self.jobs.append(
+                {
+                    "func": func,
+                    "trigger": trigger,
+                    "id": id,
+                    "replace_existing": replace_existing,
+                }
+            )
+
+        def start(self):
+            self.started = True
+
+    fake_scheduler = FakeScheduler()
+    monkeypatch.setattr(scheduler_mod, "AsyncIOScheduler", lambda: fake_scheduler)
+    monkeypatch.setattr(scheduler_mod.settings, "anti_abuse_scan_interval_seconds", 15)
+
+    scheduler = scheduler_mod.TaskScheduler()
+    scheduler.start()
+
+    handshake_jobs = [job for job in fake_scheduler.jobs if job["id"] == "detect_handshake_anomalies"]
+
+    assert fake_scheduler.started is True
+    assert len(handshake_jobs) == 1
+    assert handshake_jobs[0]["replace_existing"] is True
+    assert handshake_jobs[0]["trigger"].interval.total_seconds() == 15
