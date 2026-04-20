@@ -4,13 +4,14 @@
 # MAP_MODE: EXPORTS
 # START_MODULE_CONTRACT
 #   PURPOSE: Application configuration and environment variable parsing with validation
-#   SCOPE: Settings model, environment parsing, secret validation, AmneziaWG obfuscation params, anti-abuse thresholds
-#   DEPENDS: none
-#   LINKS: M-001 (backend-core), V-M-001
+#   SCOPE: Settings model, environment parsing, secret validation, VPN network settings, AmneziaWG obfuscation params, anti-abuse thresholds
+#   DEPENDS: M-032 (vpn-network-addressing-capacity)
+#   LINKS: M-001 (backend-core), M-032, V-M-001, V-M-032
 # END_MODULE_CONTRACT
 #
 # START_MODULE_MAP
 #   Settings - Pydantic BaseSettings model with all environment variables and validators
+#   Settings.vpn_network - Resolved client/relay subnet configuration with capacity validation
 #   Settings.awg_client_obfuscation_params - Validated deploy-time CLIENT_PROFILE mapping when AWG_CLIENT_* is present
 #   Settings.awg_relay_obfuscation_params - Validated deploy-time RELAY_PROFILE mapping when AWG_RELAY_* is present
 #   Settings.anti_abuse_* - Observe/auto-rotate mode and endpoint-history thresholds for shared-config detection
@@ -19,6 +20,7 @@
 # END_MODULE_MAP
 #
 # START_CHANGE_SUMMARY
+#   LAST_CHANGE: v3.2.0 - Added configurable VPN client/relay subnet and capacity profile settings
 #   LAST_CHANGE: v3.1.0 - Added anti-abuse mode, scan interval, history, ping-pong and cooldown settings
 #   LAST_CHANGE: v3.0.0 - Added AWG_CLIENT_*/AWG_RELAY_* profile settings while preserving legacy AWG_* compatibility
 #   LAST_CHANGE: v2.8.0 - Added full GRACE MODULE_CONTRACT and MODULE_MAP per GRACE governance protocol
@@ -41,6 +43,13 @@ from typing import Literal
 
 from pydantic import Field, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
+
+from app.core.vpn_network import (
+    DEFAULT_VPN_CLIENT_SUBNET,
+    DEFAULT_VPN_RELAY_SUBNET,
+    VPNNetworkSettings,
+    build_vpn_network_settings,
+)
 
 
 AWG_SETTING_BOUNDS = {
@@ -118,7 +127,17 @@ class Settings(BaseSettings):
     admin_password: str | None = None
 
     # VPN Configuration
-    vpn_subnet: str = "10.10.0.0/24"
+    # VPN_SUBNET is the legacy backend allocation knob. VPN_CLIENT_SUBNET is
+    # preferred for new deployments; both are preserved to keep old .env files
+    # upgrade-safe.
+    vpn_subnet: str = DEFAULT_VPN_CLIENT_SUBNET
+    vpn_client_subnet: str | None = None
+    vpn_client_gateway: str | None = None
+    vpn_relay_subnet: str = DEFAULT_VPN_RELAY_SUBNET
+    vpn_relay_de_address: str | None = None
+    vpn_relay_ru_address: str | None = None
+    vpn_capacity_profile: int = Field(default=0, ge=0)
+    vpn_network_rotate: bool = False
     vpn_port: int = 51821
     vpn_dns: str = "8.8.8.8, 1.1.1.1"
     vpn_mtu: int = 1360
@@ -126,19 +145,19 @@ class Settings(BaseSettings):
     vpn_server_endpoint: str | None = None
     vpn_server_name: str = "RU Entry Node"
     vpn_server_location: str = "Russia"
-    vpn_server_max_clients: int = 500
+    vpn_server_max_clients: int = 1000
     vpn_entry_server_public_key: str | None = None
     vpn_entry_server_endpoint: str | None = None
     vpn_entry_server_name: str = "RU Entry Node"
     vpn_entry_server_location: str = "Russia"
     vpn_entry_server_country_code: str = "RU"
-    vpn_entry_server_max_clients: int = 500
+    vpn_entry_server_max_clients: int = 1000
     vpn_exit_server_public_key: str | None = None
     vpn_exit_server_endpoint: str | None = None
     vpn_exit_server_name: str = "DE Exit Node"
     vpn_exit_server_location: str = "Germany"
     vpn_exit_server_country_code: str = "DE"
-    vpn_exit_server_max_clients: int = 500
+    vpn_exit_server_max_clients: int = 1000
     vpn_default_route_name: str = "RU -> DE"
 
     # AmneziaWG Obfuscation Parameters
@@ -227,6 +246,24 @@ class Settings(BaseSettings):
     @property
     def is_production(self) -> bool:
         return self.environment == "production"
+
+    @property
+    def active_vpn_client_subnet(self) -> str:
+        """Return the active client subnet with VPN_CLIENT_SUBNET preferred over legacy VPN_SUBNET."""
+        return self.vpn_client_subnet or self.vpn_subnet
+
+    @property
+    def vpn_network(self) -> VPNNetworkSettings:
+        """Return resolved VPN client/relay network settings."""
+        return build_vpn_network_settings(
+            client_subnet=self.active_vpn_client_subnet,
+            client_gateway=self.vpn_client_gateway,
+            relay_subnet=self.vpn_relay_subnet,
+            relay_de_address=self.vpn_relay_de_address,
+            relay_ru_address=self.vpn_relay_ru_address,
+            capacity_profile=self.vpn_capacity_profile,
+            rotate_enabled=self.vpn_network_rotate,
+        )
 
     @property
     def awg_obfuscation_params(self) -> dict:

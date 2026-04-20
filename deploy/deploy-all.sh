@@ -16,6 +16,8 @@ set -e
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 # shellcheck source=deploy/lib/awg-obfuscation.sh
 source "${SCRIPT_DIR}/lib/awg-obfuscation.sh"
+# shellcheck source=deploy/lib/vpn-network.sh
+source "${SCRIPT_DIR}/lib/vpn-network.sh"
 
 # Colors
 RED='\033[0;31m'
@@ -31,6 +33,7 @@ RU_USER="${RU_USER:-root}"
 DE_IP="${DE_IP:-}"
 DE_USER="${DE_USER:-root}"
 VPN_PORT="${VPN_PORT:-443}"
+VPN_NETWORK_ROTATE="${VPN_NETWORK_ROTATE:-0}"
 
 # SSH command wrapper
 ssh_ru() {
@@ -75,6 +78,8 @@ fi
 echo -e "${GREEN}✓ DE server accessible${NC}"
 scp_ru "${SCRIPT_DIR}/lib/awg-obfuscation.sh" /tmp/krotpn-awg-obfuscation.sh
 scp_de "${SCRIPT_DIR}/lib/awg-obfuscation.sh" /tmp/krotpn-awg-obfuscation.sh
+scp_ru "${SCRIPT_DIR}/lib/vpn-network.sh" /tmp/krotpn-vpn-network.sh
+scp_de "${SCRIPT_DIR}/lib/vpn-network.sh" /tmp/krotpn-vpn-network.sh
 echo ""
 
 # ============================================================
@@ -85,9 +90,10 @@ echo -e "${CYAN}PHASE 1: RU Server - Installing dependencies & generating keys${
 echo -e "${CYAN}══════════════════════════════════════════════════════════════${NC}"
 echo ""
 
-ssh_ru "STEALTH_ROTATE='${STEALTH_ROTATE:-0}' VPN_PORT='${VPN_PORT}' bash -s" << 'REMOTE_SCRIPT'
+ssh_ru "STEALTH_ROTATE='${STEALTH_ROTATE:-0}' VPN_PORT='${VPN_PORT}' VPN_CLIENT_SUBNET='${VPN_CLIENT_SUBNET:-}' VPN_CLIENT_GATEWAY='${VPN_CLIENT_GATEWAY:-}' VPN_RELAY_SUBNET='${VPN_RELAY_SUBNET:-}' VPN_RELAY_DE_ADDRESS='${VPN_RELAY_DE_ADDRESS:-}' VPN_RELAY_RU_ADDRESS='${VPN_RELAY_RU_ADDRESS:-}' VPN_CAPACITY_PROFILE='${VPN_CAPACITY_PROFILE:-}' VPN_NETWORK_ROTATE='${VPN_NETWORK_ROTATE:-0}' bash -s" << 'REMOTE_SCRIPT'
 set -e
 source /tmp/krotpn-awg-obfuscation.sh
+source /tmp/krotpn-vpn-network.sh
 
 RED='\033[0;31m'
 GREEN='\033[0;32m'
@@ -164,6 +170,7 @@ awg_profile_ensure RELAY_ /etc/amnezia/amneziawg/awg-client.conf "${STEALTH_ROTA
 awg_profile_lines CLIENT_ > /etc/amnezia/amneziawg/krotpn-client-profile.conf
 awg_profile_lines RELAY_ > /etc/amnezia/amneziawg/krotpn-relay-profile.conf
 chmod 600 /etc/amnezia/amneziawg/krotpn-*-profile.conf
+vpn_network_resolve /etc/amnezia/amneziawg/awg0.conf /etc/amnezia/amneziawg/awg-client.conf
 
 echo -e "${GREEN}[RU] Keys generated:${NC}"
 echo -e "  Server Public: ${RU_SERVER_PUBLIC}"
@@ -174,6 +181,8 @@ PRESERVED_VPN_PORT=$(ssh_ru "source /tmp/krotpn-awg-obfuscation.sh; awg_profile_
 if [ -n "$PRESERVED_VPN_PORT" ]; then
     VPN_PORT="$PRESERVED_VPN_PORT"
 fi
+NETWORK_ENV=$(ssh_ru "source /tmp/krotpn-vpn-network.sh; VPN_CLIENT_SUBNET='${VPN_CLIENT_SUBNET:-}' VPN_CLIENT_GATEWAY='${VPN_CLIENT_GATEWAY:-}' VPN_RELAY_SUBNET='${VPN_RELAY_SUBNET:-}' VPN_RELAY_DE_ADDRESS='${VPN_RELAY_DE_ADDRESS:-}' VPN_RELAY_RU_ADDRESS='${VPN_RELAY_RU_ADDRESS:-}' VPN_CAPACITY_PROFILE='${VPN_CAPACITY_PROFILE:-}' VPN_NETWORK_ROTATE='${VPN_NETWORK_ROTATE:-0}'; vpn_network_resolve /etc/amnezia/amneziawg/awg0.conf /etc/amnezia/amneziawg/awg-client.conf >/dev/null && vpn_network_env_lines")
+eval "$NETWORK_ENV"
 RELAY_PROFILE_ENV=$(ssh_ru "source /tmp/krotpn-awg-obfuscation.sh; awg_profile_load RELAY_ /etc/amnezia/amneziawg/krotpn-relay-profile.conf; awg_profile_env_lines RELAY_ RELAY_")
 CLIENT_PROFILE_ENV=$(ssh_ru "source /tmp/krotpn-awg-obfuscation.sh; awg_profile_load CLIENT_ /etc/amnezia/amneziawg/krotpn-client-profile.conf; awg_profile_env_lines CLIENT_ CLIENT_")
 RELAY_PROFILE_ASSIGNMENTS=$(printf '%s' "$RELAY_PROFILE_ENV" | tr '\n' ' ')
@@ -191,9 +200,10 @@ echo ""
 # Get RU client public key
 RU_CLIENT_PUBLIC_KEY=$(ssh_ru "cat /etc/amnezia/amneziawg/ru_client_public.key")
 
-ssh_de "RU_CLIENT_PUBLIC_KEY='${RU_CLIENT_PUBLIC_KEY}' VPN_PORT='${VPN_PORT}' STEALTH_ROTATE='${STEALTH_ROTATE:-0}' ${RELAY_PROFILE_ASSIGNMENTS} bash -s" << 'REMOTE_SCRIPT'
+ssh_de "RU_CLIENT_PUBLIC_KEY='${RU_CLIENT_PUBLIC_KEY}' VPN_PORT='${VPN_PORT}' STEALTH_ROTATE='${STEALTH_ROTATE:-0}' VPN_CLIENT_SUBNET='${VPN_CLIENT_SUBNET}' VPN_CLIENT_GATEWAY='${VPN_CLIENT_GATEWAY}' VPN_RELAY_SUBNET='${VPN_RELAY_SUBNET}' VPN_RELAY_DE_ADDRESS='${VPN_RELAY_DE_ADDRESS}' VPN_RELAY_RU_ADDRESS='${VPN_RELAY_RU_ADDRESS}' VPN_CAPACITY_PROFILE='${VPN_CAPACITY_PROFILE}' VPN_NETWORK_ROTATE='${VPN_NETWORK_ROTATE}' VPN_NETWORK_PRESERVED='${VPN_NETWORK_PRESERVED:-0}' ${RELAY_PROFILE_ASSIGNMENTS} bash -s" << 'REMOTE_SCRIPT'
 set -e
 source /tmp/krotpn-awg-obfuscation.sh
+source /tmp/krotpn-vpn-network.sh
 
 RED='\033[0;31m'
 GREEN='\033[0;32m'
@@ -252,10 +262,13 @@ DE_PRIVATE=$(cat de_private.key)
 DE_PUBLIC=$(cat de_public.key)
 
 awg_profile_validate RELAY_
+vpn_network_apply_defaults
+vpn_network_validate
 if [ "${STEALTH_ROTATE:-0}" != "1" ] && [ -f /etc/amnezia/amneziawg/awg0.conf ]; then
     awg_profile_load DE_RELAY_ /etc/amnezia/amneziawg/awg0.conf
     awg_profile_require_equal RELAY_ DE_RELAY_ "DE awg0 relay profile"
 fi
+vpn_network_require_address_match /etc/amnezia/amneziawg/awg0.conf "${VPN_RELAY_DE_CIDR}" "DE awg0 relay"
 
 echo -e "${GREEN}[DE] Keys generated:${NC}"
 echo -e "  Public: ${DE_PUBLIC}"
@@ -264,13 +277,13 @@ echo -e "${BLUE}[DE] Creating AmneziaWG configuration...${NC}"
 cat > /etc/amnezia/amneziawg/awg0.conf << EOF
 [Interface]
 PrivateKey = ${DE_PRIVATE}
-Address = 10.200.0.1/24
+Address = ${VPN_RELAY_DE_CIDR}
 ListenPort = ${VPN_PORT}
 $(awg_profile_lines RELAY_)
 
 [Peer]
 PublicKey = ${RU_CLIENT_PUBLIC_KEY}
-AllowedIPs = 10.200.0.2/32
+AllowedIPs = ${VPN_RELAY_RU_ALLOWED_IP}
 EOF
 
 chmod 600 /etc/amnezia/amneziawg/awg0.conf
@@ -289,10 +302,10 @@ iptables -D FORWARD -i eth0 -o awg0 -j ACCEPT 2>/dev/null || true
 iptables -I FORWARD 1 -i awg0 -o eth0 -j ACCEPT
 iptables -I FORWARD 2 -i eth0 -o awg0 -j ACCEPT
 
-# Add NAT for both tunnel network (10.200.0.0/24) and client network (10.10.0.0/24)
+# Add NAT for both relay and client traffic
 EXT_IF=$(ip route | grep default | awk '{print $5}' | head -1)
-iptables -t nat -A POSTROUTING -s 10.200.0.0/24 -o $EXT_IF -j MASQUERADE
-iptables -t nat -A POSTROUTING -s 10.10.0.0/24 -o $EXT_IF -j MASQUERADE
+iptables -t nat -A POSTROUTING -s ${VPN_RELAY_SUBNET} -o $EXT_IF -j MASQUERADE
+iptables -t nat -A POSTROUTING -s ${VPN_CLIENT_SUBNET} -o $EXT_IF -j MASQUERADE
 mkdir -p /etc/iptables
 iptables-save > /etc/iptables/rules.v4
 awg_apply_host_hardening "${VPN_PORT}"
@@ -319,9 +332,10 @@ echo ""
 # Get DE public key
 DE_PUBLIC_KEY=$(ssh_de "cat /etc/amnezia/amneziawg/de_public.key")
 
-ssh_ru "DE_PUBLIC_KEY='${DE_PUBLIC_KEY}' RU_IP='${RU_IP}' DE_IP='${DE_IP}' VPN_PORT='${VPN_PORT}' bash -s" << 'REMOTE_SCRIPT'
+ssh_ru "DE_PUBLIC_KEY='${DE_PUBLIC_KEY}' RU_IP='${RU_IP}' DE_IP='${DE_IP}' VPN_PORT='${VPN_PORT}' VPN_CLIENT_SUBNET='${VPN_CLIENT_SUBNET}' VPN_CLIENT_GATEWAY='${VPN_CLIENT_GATEWAY}' VPN_RELAY_SUBNET='${VPN_RELAY_SUBNET}' VPN_RELAY_DE_ADDRESS='${VPN_RELAY_DE_ADDRESS}' VPN_RELAY_RU_ADDRESS='${VPN_RELAY_RU_ADDRESS}' VPN_CAPACITY_PROFILE='${VPN_CAPACITY_PROFILE}' VPN_NETWORK_ROTATE='${VPN_NETWORK_ROTATE}' VPN_NETWORK_PRESERVED='${VPN_NETWORK_PRESERVED:-0}' bash -s" << 'REMOTE_SCRIPT'
 set -e
 source /tmp/krotpn-awg-obfuscation.sh
+source /tmp/krotpn-vpn-network.sh
 
 RED='\033[0;31m'
 GREEN='\033[0;32m'
@@ -336,12 +350,16 @@ RU_SERVER_PRIVATE=$(cat ru_server_private.key)
 RU_SERVER_PUBLIC=$(cat ru_server_public.key)
 awg_profile_load CLIENT_ /etc/amnezia/amneziawg/krotpn-client-profile.conf
 awg_profile_load RELAY_ /etc/amnezia/amneziawg/krotpn-relay-profile.conf
+vpn_network_apply_defaults
+vpn_network_validate
+vpn_network_require_address_match /etc/amnezia/amneziawg/awg0.conf "${VPN_CLIENT_INTERFACE_CIDR}" "RU awg0 client interface"
+vpn_network_require_address_match /etc/amnezia/amneziawg/awg-client.conf "${VPN_RELAY_RU_CIDR}" "RU awg-client relay interface"
 
 echo -e "${BLUE}[RU] Creating tunnel configuration to DE...${NC}"
 cat > /etc/amnezia/amneziawg/awg-client.conf << EOF
 [Interface]
 PrivateKey = ${RU_CLIENT_PRIVATE}
-Address = 10.200.0.2/24
+Address = ${VPN_RELAY_RU_CIDR}
 Table = off
 DNS = 8.8.8.8
 $(awg_profile_lines RELAY_)
@@ -357,7 +375,7 @@ echo -e "${BLUE}[RU] Creating VPN server configuration...${NC}"
 cat > /etc/amnezia/amneziawg/awg0.conf << EOF
 [Interface]
 PrivateKey = ${RU_SERVER_PRIVATE}
-Address = 10.10.0.1/24
+Address = ${VPN_CLIENT_INTERFACE_CIDR}
 ListenPort = ${VPN_PORT}
 $(awg_profile_lines CLIENT_)
 EOF
@@ -406,7 +424,7 @@ systemctl enable awg-quick@awg0 >/dev/null 2>&1 || true
 awg-quick down awg-client 2>/dev/null || true
 awg-quick up awg-client
 systemctl enable awg-quick@awg-client >/dev/null 2>&1 || true
-ip route add 10.200.0.0/24 dev awg-client 2>/dev/null || true
+ip route add ${VPN_RELAY_SUBNET} dev awg-client 2>/dev/null || true
 
 # ============================================================
 # Full Tunnel: Simple FORWARD rules between awg0 and awg-client
@@ -422,14 +440,14 @@ iptables -I FORWARD 2 -i awg-client -o awg0 -j ACCEPT
 echo "  FORWARD: awg0 ↔ awg-client ACCEPT"
 
 # NAT on RU: masquerade client traffic going through tunnel
-iptables -t nat -D POSTROUTING -s 10.10.0.0/24 -o awg-client -j MASQUERADE 2>/dev/null || true
-iptables -t nat -I POSTROUTING 1 -s 10.10.0.0/24 -o awg-client -j MASQUERADE
-echo "  NAT RU: 10.10.0.0/24 → awg-client MASQUERADE"
+iptables -t nat -D POSTROUTING -s ${VPN_CLIENT_SUBNET} -o awg-client -j MASQUERADE 2>/dev/null || true
+iptables -t nat -I POSTROUTING 1 -s ${VPN_CLIENT_SUBNET} -o awg-client -j MASQUERADE
+echo "  NAT RU: ${VPN_CLIENT_SUBNET} -> awg-client MASQUERADE"
 
 echo -e "${GREEN}✓ Full Tunnel forwarding configured${NC}"
 
 sleep 2
-if ping -c 3 10.200.0.1 > /dev/null 2>&1; then
+if ping -c 3 ${VPN_RELAY_DE_ADDRESS} > /dev/null 2>&1; then
     echo -e "${GREEN}[RU] ✓ Tunnel to DE is working!${NC}"
 else
     echo -e "${RED}[RU] ✗ Tunnel test failed${NC}"
@@ -494,7 +512,14 @@ ADMIN_EMAIL=${ADMIN_EMAIL}
 ADMIN_PASSWORD=${ADMIN_PASSWORD}
 
 # === VPN CONFIGURATION ===
-VPN_SUBNET=10.10.0.0/24
+VPN_SUBNET=${VPN_CLIENT_SUBNET}
+VPN_CLIENT_SUBNET=${VPN_CLIENT_SUBNET}
+VPN_CLIENT_GATEWAY=${VPN_CLIENT_GATEWAY}
+VPN_RELAY_SUBNET=${VPN_RELAY_SUBNET}
+VPN_RELAY_DE_ADDRESS=${VPN_RELAY_DE_ADDRESS}
+VPN_RELAY_RU_ADDRESS=${VPN_RELAY_RU_ADDRESS}
+VPN_CAPACITY_PROFILE=${VPN_CAPACITY_PROFILE}
+VPN_NETWORK_ROTATE=${VPN_NETWORK_ROTATE}
 VPN_PORT=${VPN_PORT}
 VPN_DNS=8.8.8.8, 1.1.1.1
 VPN_MTU=1360
@@ -581,7 +606,7 @@ echo -e "${CYAN}═════════════════════�
 echo ""
 
 echo -e "${BLUE}[CHECK] Tunnel RU ↔ DE...${NC}"
-if ssh_ru "ping -c 2 10.200.0.1" 2>/dev/null | grep -q "bytes from"; then
+if ssh_ru "ping -c 2 ${VPN_RELAY_DE_ADDRESS}" 2>/dev/null | grep -q "bytes from"; then
     echo -e "${GREEN}✓ Tunnel working${NC}"
 else
     echo -e "${RED}✗ Tunnel not working${NC}"

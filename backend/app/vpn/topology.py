@@ -5,8 +5,8 @@
 # START_MODULE_CONTRACT
 #   PURPOSE: VPN topology management — node/route CRUD, status helpers, legacy server sync
 #   SCOPE: TopologyMixin with create/update/delete node/route, status checks, legacy sync, role normalization
-#   DEPENDS: M-001 (core security/encrypt), M-003 (vpn models), M-007 (routing)
-#   LINKS: M-003 (vpn), V-M-003
+#   DEPENDS: M-001 (core security/encrypt), M-003 (vpn models), M-007 (routing), M-032 (vpn-network-addressing-capacity)
+#   LINKS: M-003 (vpn), M-032, V-M-003, V-M-032
 # END_MODULE_CONTRACT
 #
 # START_MODULE_MAP
@@ -27,6 +27,7 @@
 # END_MODULE_MAP
 #
 # START_CHANGE_SUMMARY
+#   LAST_CHANGE: v3.2.0 - Sync new legacy server mirrors with the resolved VPN client subnet
 #   LAST_CHANGE: v2.8.0 - Converted to full GRACE MODULE_CONTRACT/MAP format, removed duplicate contract blocks
 # END_CHANGE_SUMMARY
 #
@@ -39,6 +40,7 @@ from loguru import logger
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.core.config import settings
 from app.core.security import encrypt_data
 from app.routing.manager import routing_manager
 from app.vpn.models import VPNClient, VPNNode, VPNRoute, VPNServer
@@ -302,6 +304,7 @@ class TopologyMixin:
             legacy_server = VPNServer(
                 name=node.name, location=node.location, endpoint=node.endpoint,
                 port=node.port, public_key=node.public_key, private_key_enc=node.private_key_enc,
+                subnet=settings.active_vpn_client_subnet,
                 is_active=node.is_active, is_online=node.is_online, is_entry_node=True,
                 is_exit_node=node.is_exit_node, max_clients=node.max_clients,
                 current_clients=node.current_clients,

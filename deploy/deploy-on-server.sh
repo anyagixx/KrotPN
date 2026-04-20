@@ -14,6 +14,8 @@ set -e
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 # shellcheck source=deploy/lib/awg-obfuscation.sh
 source "${SCRIPT_DIR}/lib/awg-obfuscation.sh"
+# shellcheck source=deploy/lib/vpn-network.sh
+source "${SCRIPT_DIR}/lib/vpn-network.sh"
 
 # Colors
 RED='\033[0;31m'
@@ -184,6 +186,8 @@ awg_profile_lines CLIENT_ > /etc/amnezia/amneziawg/krotpn-client-profile.conf
 awg_profile_lines RELAY_ > /etc/amnezia/amneziawg/krotpn-relay-profile.conf
 chmod 600 /etc/amnezia/amneziawg/krotpn-*-profile.conf
 
+vpn_network_resolve /etc/amnezia/amneziawg/awg0.conf /etc/amnezia/amneziawg/awg-client.conf
+
 echo -e "${GREEN}✓ Keys generated${NC}"
 echo -e "  Server Public: ${RU_SERVER_PUBLIC}"
 echo -e "  Client Public: ${RU_CLIENT_PUBLIC}"
@@ -217,6 +221,7 @@ RELAY_H3="${11}"
 RELAY_H4="${12}"
 
 source /tmp/krotpn-awg-obfuscation.sh
+source /tmp/krotpn-vpn-network.sh
 
 RED='\033[0;31m'
 GREEN='\033[0;32m'
@@ -274,10 +279,13 @@ DE_PRIVATE=$(cat de_private.key)
 DE_PUBLIC=$(cat de_public.key)
 
 awg_profile_validate RELAY_
+vpn_network_apply_defaults
+vpn_network_validate
 if [ "${STEALTH_ROTATE:-0}" != "1" ] && [ -f /etc/amnezia/amneziawg/awg0.conf ]; then
     awg_profile_load DE_RELAY_ /etc/amnezia/amneziawg/awg0.conf
     awg_profile_require_equal RELAY_ DE_RELAY_ "DE awg0 relay profile"
 fi
+vpn_network_require_address_match /etc/amnezia/amneziawg/awg0.conf "${VPN_RELAY_DE_CIDR}" "DE awg0 relay"
 
 echo -e "${GREEN}✓ Keys generated${NC}"
 echo -e "  DE Public: ${DE_PUBLIC}"
@@ -286,13 +294,13 @@ echo -e "${BLUE}[DE] Creating AmneziaWG config...${NC}"
 cat > /etc/amnezia/amneziawg/awg0.conf << EOF
 [Interface]
 PrivateKey = ${DE_PRIVATE}
-Address = 10.200.0.1/24
+Address = ${VPN_RELAY_DE_CIDR}
 ListenPort = ${VPN_PORT}
 $(awg_profile_lines RELAY_)
 
 [Peer]
 PublicKey = ${RU_CLIENT_PUBLIC}
-AllowedIPs = 10.200.0.2/32
+AllowedIPs = ${VPN_RELAY_RU_ALLOWED_IP}
 EOF
 
 chmod 600 /etc/amnezia/amneziawg/awg0.conf
@@ -313,12 +321,12 @@ iptables -D FORWARD -i eth0 -o awg0 -j ACCEPT 2>/dev/null || true
 iptables -I FORWARD 1 -i awg0 -o eth0 -j ACCEPT
 iptables -I FORWARD 2 -i eth0 -o awg0 -j ACCEPT
 
-# NAT rule for both tunnel (10.200.0.0/24) and client (10.10.0.0/24) traffic
+# NAT rule for both relay and client traffic
 EXT_IF=$(ip route | grep default | awk '{print $5}' | head -1)
-iptables -t nat -C POSTROUTING -s 10.200.0.0/24 -o $EXT_IF -j MASQUERADE 2>/dev/null || \
-    iptables -t nat -A POSTROUTING -s 10.200.0.0/24 -o $EXT_IF -j MASQUERADE
-iptables -t nat -C POSTROUTING -s 10.10.0.0/24 -o $EXT_IF -j MASQUERADE 2>/dev/null || \
-    iptables -t nat -A POSTROUTING -s 10.10.0.0/24 -o $EXT_IF -j MASQUERADE
+iptables -t nat -C POSTROUTING -s ${VPN_RELAY_SUBNET} -o $EXT_IF -j MASQUERADE 2>/dev/null || \
+    iptables -t nat -A POSTROUTING -s ${VPN_RELAY_SUBNET} -o $EXT_IF -j MASQUERADE
+iptables -t nat -C POSTROUTING -s ${VPN_CLIENT_SUBNET} -o $EXT_IF -j MASQUERADE 2>/dev/null || \
+    iptables -t nat -A POSTROUTING -s ${VPN_CLIENT_SUBNET} -o $EXT_IF -j MASQUERADE
 
 mkdir -p /etc/iptables
 iptables-save > /etc/iptables/rules.v4
@@ -348,9 +356,10 @@ chmod +x /tmp/de_setup.sh
 echo -e "${BLUE}[RU] Copying setup script to DE server...${NC}"
 sshpass -p "$DE_PASS" scp -o StrictHostKeyChecking=accept-new -o LogLevel=ERROR /tmp/de_setup.sh "$DE_USER@$DE_IP:/tmp/"
 sshpass -p "$DE_PASS" scp -o StrictHostKeyChecking=accept-new -o LogLevel=ERROR "${SCRIPT_DIR}/lib/awg-obfuscation.sh" "$DE_USER@$DE_IP:/tmp/krotpn-awg-obfuscation.sh"
+sshpass -p "$DE_PASS" scp -o StrictHostKeyChecking=accept-new -o LogLevel=ERROR "${SCRIPT_DIR}/lib/vpn-network.sh" "$DE_USER@$DE_IP:/tmp/krotpn-vpn-network.sh"
 
 echo -e "${BLUE}[RU] Running setup on DE server...${NC}"
-ssh_de "STEALTH_ROTATE='${STEALTH_ROTATE:-0}' bash /tmp/de_setup.sh '$RU_CLIENT_PUBLIC' '$VPN_PORT' '$DE_IP'$(awg_profile_args RELAY_)"
+ssh_de "STEALTH_ROTATE='${STEALTH_ROTATE:-0}' VPN_CLIENT_SUBNET='${VPN_CLIENT_SUBNET}' VPN_CLIENT_GATEWAY='${VPN_CLIENT_GATEWAY}' VPN_RELAY_SUBNET='${VPN_RELAY_SUBNET}' VPN_RELAY_DE_ADDRESS='${VPN_RELAY_DE_ADDRESS}' VPN_RELAY_RU_ADDRESS='${VPN_RELAY_RU_ADDRESS}' VPN_CAPACITY_PROFILE='${VPN_CAPACITY_PROFILE}' VPN_NETWORK_ROTATE='${VPN_NETWORK_ROTATE}' VPN_NETWORK_PRESERVED='${VPN_NETWORK_PRESERVED:-0}' bash /tmp/de_setup.sh '$RU_CLIENT_PUBLIC' '$VPN_PORT' '$DE_IP'$(awg_profile_args RELAY_)"
 
 # Get DE public key
 DE_PUBLIC_KEY=$(ssh_de "cat /etc/amnezia/amneziawg/de_public.key")
@@ -381,7 +390,7 @@ echo -e "${BLUE}[RU] Creating tunnel config to DE...${NC}"
 cat > awg-client.conf << EOF
 [Interface]
 PrivateKey = ${RU_CLIENT_PRIVATE}
-Address = 10.200.0.2/24
+Address = ${VPN_RELAY_RU_CIDR}
 Table = off
 $(awg_profile_lines RELAY_)
 
@@ -396,7 +405,7 @@ echo -e "${BLUE}[RU] Creating VPN server config...${NC}"
 cat > awg0.conf << EOF
 [Interface]
 PrivateKey = ${RU_SERVER_PRIVATE}
-Address = 10.10.0.1/24
+Address = ${VPN_CLIENT_INTERFACE_CIDR}
 ListenPort = ${VPN_PORT}
 $(awg_profile_lines CLIENT_)
 EOF
@@ -462,12 +471,12 @@ systemctl enable awg-quick@awg-client >/dev/null 2>&1 || true
 
 # Route to tunnel subnet
 echo -e "${BLUE}[RU] Adding route to DE tunnel subnet...${NC}"
-ip route add 10.200.0.0/24 dev awg-client 2>/dev/null || true
-echo -e "${GREEN}✓ Route to 10.200.0.0/24 added${NC}"
+ip route add ${VPN_RELAY_SUBNET} dev awg-client 2>/dev/null || true
+echo -e "${GREEN}✓ Route to ${VPN_RELAY_SUBNET} added${NC}"
 
 # Show routing table for debugging
 echo -e "${BLUE}[RU] Current routes to DE tunnel:${NC}"
-ip route show | grep -E "(awg-client|10.200)" || echo "No routes found"
+ip route show | grep -E "(awg-client|${VPN_RELAY_SUBNET%%/*})" || echo "No routes found"
 
 # Verify awg-client is up
 echo -e "${BLUE}[RU] Verifying awg-client interface...${NC}"
@@ -485,7 +494,7 @@ awg show
 # ============================================================
 # Full Tunnel: Simple FORWARD rules between awg0 and awg-client
 # ============================================================
-# All client traffic (10.10.0.0/24) arriving on awg0 is forwarded
+# All client traffic arriving on awg0 is forwarded
 # through the awg-client tunnel to DE. No ipset, no mangle.
 # ============================================================
 
@@ -499,18 +508,18 @@ iptables -I FORWARD 2 -i awg-client -o awg0 -j ACCEPT
 echo "  FORWARD: awg0 ↔ awg-client ACCEPT"
 
 # NAT on RU: masquerade client traffic going through tunnel
-iptables -t nat -D POSTROUTING -s 10.10.0.0/24 -o awg-client -j MASQUERADE 2>/dev/null || true
-iptables -t nat -I POSTROUTING 1 -s 10.10.0.0/24 -o awg-client -j MASQUERADE
-echo "  NAT RU: 10.10.0.0/24 → awg-client MASQUERADE"
+iptables -t nat -D POSTROUTING -s ${VPN_CLIENT_SUBNET} -o awg-client -j MASQUERADE 2>/dev/null || true
+iptables -t nat -I POSTROUTING 1 -s ${VPN_CLIENT_SUBNET} -o awg-client -j MASQUERADE
+echo "  NAT RU: ${VPN_CLIENT_SUBNET} -> awg-client MASQUERADE"
 
 echo -e "${GREEN}✓ Full Tunnel forwarding configured${NC}"
 
 # Test tunnel - try multiple times
-echo -e "${BLUE}[RU] Testing tunnel to DE (10.200.0.1)...${NC}"
+echo -e "${BLUE}[RU] Testing tunnel to DE (${VPN_RELAY_DE_ADDRESS})...${NC}"
 TUNNEL_OK=false
 for i in 1 2 3 4 5; do
     sleep 2
-    if ping -c 2 -W 3 10.200.0.1 > /dev/null 2>&1; then
+    if ping -c 2 -W 3 ${VPN_RELAY_DE_ADDRESS} > /dev/null 2>&1; then
         TUNNEL_OK=true
         echo -e "${GREEN}✓ Tunnel to DE is working! (attempt $i)${NC}"
         break
@@ -525,7 +534,7 @@ if [ "$TUNNEL_OK" = false ]; then
     echo -e "${YELLOW}  - RU awg-client status:${NC}"
     awg show awg-client 2>/dev/null || echo "    Cannot show awg-client"
     echo -e "${YELLOW}  - Routes:${NC}"
-    ip route show | grep -E "(awg|10.200)" || echo "    No relevant routes"
+    ip route show | grep -E "(awg|${VPN_RELAY_SUBNET%%/*})" || echo "    No relevant routes"
     echo -e "${YELLOW}  - DE AmneziaWG status:${NC}"
     ssh_de "awg show" 2>/dev/null || echo "    Cannot connect to DE"
 fi
@@ -533,7 +542,7 @@ fi
 # ============================================================
 # Policy Routing: Client traffic MUST go through tunnel to DE
 # ============================================================
-# Without this, client packets (10.10.0.0/24) go to the default
+# Without this, client packets from the selected client subnet go to the default
 # route (eth0/internet) instead of through awg-client to DE.
 # ============================================================
 
@@ -546,19 +555,19 @@ if ! grep -q "100.*vpnclients" /etc/iproute2/rt_tables 2>/dev/null; then
 fi
 
 # Add rule: all packets from client subnet use table 100
-ip rule add from 10.10.0.0/24 lookup 100 2>/dev/null || true
-echo "  Added ip rule: from 10.10.0.0/24 lookup vpnclients"
+ip rule add from ${VPN_CLIENT_SUBNET} lookup 100 2>/dev/null || true
+echo "  Added ip rule: from ${VPN_CLIENT_SUBNET} lookup vpnclients"
 
 # Add default route via awg-client in table 100
 ip route add default dev awg-client table 100 2>/dev/null || true
 echo "  Added default route via awg-client in table vpnclients"
 
 # Persist policy routing across reboots
-cat > /etc/network/if-up.d/krotpn-policy-routing << 'ROUTING_SCRIPT'
+cat > /etc/network/if-up.d/krotpn-policy-routing << ROUTING_SCRIPT
 #!/bin/sh
 # Restore VPN client policy routing after interface restart
 echo "100 vpnclients" >> /etc/iproute2/rt_tables 2>/dev/null || true
-ip rule add from 10.10.0.0/24 lookup 100 2>/dev/null || true
+ip rule add from ${VPN_CLIENT_SUBNET} lookup 100 2>/dev/null || true
 ip route add default dev awg-client table 100 2>/dev/null || true
 ROUTING_SCRIPT
 chmod +x /etc/network/if-up.d/krotpn-policy-routing
@@ -624,7 +633,14 @@ ADMIN_EMAIL=${ADMIN_EMAIL}
 ADMIN_PASSWORD=${ADMIN_PASSWORD}
 
 # === VPN CONFIGURATION ===
-VPN_SUBNET=10.10.0.0/24
+VPN_SUBNET=${VPN_CLIENT_SUBNET}
+VPN_CLIENT_SUBNET=${VPN_CLIENT_SUBNET}
+VPN_CLIENT_GATEWAY=${VPN_CLIENT_GATEWAY}
+VPN_RELAY_SUBNET=${VPN_RELAY_SUBNET}
+VPN_RELAY_DE_ADDRESS=${VPN_RELAY_DE_ADDRESS}
+VPN_RELAY_RU_ADDRESS=${VPN_RELAY_RU_ADDRESS}
+VPN_CAPACITY_PROFILE=${VPN_CAPACITY_PROFILE}
+VPN_NETWORK_ROTATE=${VPN_NETWORK_ROTATE}
 VPN_PORT=${VPN_PORT}
 VPN_DNS=8.8.8.8, 1.1.1.1
 VPN_MTU=1360
@@ -632,19 +648,19 @@ VPN_SERVER_PUBLIC_KEY=${RU_SERVER_PUBLIC}
 VPN_SERVER_ENDPOINT=${RU_IP}
 VPN_SERVER_NAME=RU Entry Node
 VPN_SERVER_LOCATION=Russia
-VPN_SERVER_MAX_CLIENTS=500
+VPN_SERVER_MAX_CLIENTS=1000
 VPN_ENTRY_SERVER_PUBLIC_KEY=${RU_SERVER_PUBLIC}
 VPN_ENTRY_SERVER_ENDPOINT=${RU_IP}
 VPN_ENTRY_SERVER_NAME=RU Entry Node
 VPN_ENTRY_SERVER_LOCATION=Russia
 VPN_ENTRY_SERVER_COUNTRY_CODE=RU
-VPN_ENTRY_SERVER_MAX_CLIENTS=500
+VPN_ENTRY_SERVER_MAX_CLIENTS=1000
 VPN_EXIT_SERVER_PUBLIC_KEY=${DE_PUBLIC_KEY}
 VPN_EXIT_SERVER_ENDPOINT=${DE_IP}
 VPN_EXIT_SERVER_NAME=DE Exit Node
 VPN_EXIT_SERVER_LOCATION=Germany
 VPN_EXIT_SERVER_COUNTRY_CODE=DE
-VPN_EXIT_SERVER_MAX_CLIENTS=500
+VPN_EXIT_SERVER_MAX_CLIENTS=1000
 VPN_DEFAULT_ROUTE_NAME=RU -> DE
 
 # === AMNEZIAWG OBFUSCATION ===

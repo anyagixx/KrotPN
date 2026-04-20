@@ -17,6 +17,7 @@ MODULE_MAP
 CHANGE_SUMMARY
 - 2026-03-27: Added router-level device API tests for list/create/revoke/rotate flows.
 - 2026-04-05: Added blocked-device reconnection test.
+- 2026-04-20: Aligned test paths with /api/v1/devices prefix and 172.29 client addressing.
 """
 
 from datetime import datetime
@@ -133,7 +134,7 @@ class StubVPNService:
             route_id=None,
             entry_node_id=10,
             created_at=datetime.utcnow(),
-            address="10.10.0.9",
+            address="172.29.0.9",
             public_key="pub-91",
         )
 
@@ -147,13 +148,13 @@ class StubVPNService:
             route_id=None,
             entry_node_id=10,
             created_at=datetime.utcnow(),
-            address="10.10.0.10",
+            address="172.29.0.10",
             public_key="pub-92",
         )
 
     async def get_client_config(self, client):
         return SimpleNamespace(
-            config="[Interface]\nAddress = 10.10.0.9/32",
+            config="[Interface]\nAddress = 172.29.0.9/32",
             server_name="RU Entry",
             server_location="Russia",
             route_name="default-ru",
@@ -181,7 +182,7 @@ def test_list_devices_returns_owned_devices_and_slot_counters(monkeypatch):
     monkeypatch.setattr(devices_router_module, "DeviceAccessPolicyService", StubPolicyService)
     client = _build_app()
 
-    response = client.get("/api/devices")
+    response = client.get("/api/v1/devices")
 
     assert response.status_code == 200
     body = response.json()
@@ -196,14 +197,14 @@ def test_create_device_returns_device_bound_config_bundle(monkeypatch):
     monkeypatch.setattr(devices_router_module, "VPNService", StubVPNService)
     client = _build_app()
 
-    response = client.post("/api/devices", json={"name": "MacBook", "platform": "macos"})
+    response = client.post("/api/v1/devices", json={"name": "MacBook", "platform": "macos"})
 
     assert response.status_code == 201
     body = response.json()
     assert body["device"]["name"] == "MacBook"
     assert body["device"]["platform"] == "macos"
     assert body["server_name"] == "RU Entry"
-    assert body["address"] == "10.10.0.9"
+    assert body["address"] == "172.29.0.9"
 
 
 def test_create_device_returns_conflict_when_limit_is_exhausted(monkeypatch):
@@ -211,7 +212,7 @@ def test_create_device_returns_conflict_when_limit_is_exhausted(monkeypatch):
     monkeypatch.setattr(devices_router_module, "VPNService", StubVPNService)
     client = _build_app()
 
-    response = client.post("/api/devices", json={"name": "MacBook"})
+    response = client.post("/api/v1/devices", json={"name": "MacBook"})
 
     assert response.status_code == 409
     assert response.json()["detail"] == "Device limit exceeded"
@@ -221,7 +222,7 @@ def test_revoke_device_returns_updated_device_state(monkeypatch):
     monkeypatch.setattr(devices_router_module, "DeviceAccessPolicyService", StubPolicyService)
     client = _build_app()
 
-    response = client.delete("/api/devices/10")
+    response = client.delete("/api/v1/devices/10")
 
     assert response.status_code == 200
     assert response.json()["status"] == "revoked"
@@ -232,18 +233,18 @@ def test_rotate_device_returns_fresh_config_bundle(monkeypatch):
     monkeypatch.setattr(devices_router_module, "VPNService", StubVPNService)
     client = _build_app()
 
-    response = client.post("/api/devices/10/rotate")
+    response = client.post("/api/v1/devices/10/rotate")
 
     assert response.status_code == 200
     body = response.json()
     assert body["device"]["id"] == 10
     assert body["device"]["config_version"] == 2
-    assert body["address"] == "10.10.0.10"
+    assert body["address"] == "172.29.0.10"
 
 
 def test_blocked_device_cannot_be_used(monkeypatch):
     monkeypatch.setattr(devices_router_module, "DeviceAccessPolicyService", BlockedDevicePolicyService)
     client = _build_app()
 
-    response = client.post("/api/devices", json={"name": "New Device"})
+    response = client.post("/api/v1/devices", json={"name": "New Device"})
     assert response.status_code == 409

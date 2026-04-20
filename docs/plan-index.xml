@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!-- MyGRACE Plan Index — lazy-loading entry point for phase navigation -->
 <!-- Generated 2026-04-12 from development-plan.xml -->
-<PlanIndex VERSION="1.0.0" PROJECT="KrotPN" PHASE-COUNT="19">
+<PlanIndex VERSION="1.0.0" PROJECT="KrotPN" PHASE-COUNT="20">
   <Phase-1 NAME="Policy model and safe compatibility layer" STATUS="done" STEPS="3" MODULES="M-007,M-017" />
   <Phase-2 NAME="Runtime synchronization and DNS binding" STATUS="done" STEPS="3" MODULES="M-017" />
   <Phase-3 NAME="Admin control plane and operator visibility" STATUS="done" STEPS="3" MODULES="M-006,M-010,M-017" />
@@ -21,4 +21,5 @@
   <Phase-17 NAME="Full Tunnel Simplification" STATUS="done" STEPS="6" MODULES="M-007,M-012,M-009,M-010" />
   <Phase-18 NAME="Deploy-Time AWG Stealth Obfuscation" STATUS="done" STEPS="10" MODULES="M-030,M-012,M-001,M-003,M-020,M-028,M-019,M-022" />
   <Phase-19 NAME="Anti-Ping-Pong Abuse Detection" STATUS="done" STEPS="9" MODULES="M-031,M-001,M-003,M-008,M-020,M-021,M-023,M-024,M-025" />
+  <Phase-20 NAME="Configurable VPN Subnets and 1000-Device Capacity" STATUS="done" STEPS="10" MODULES="M-032,M-001,M-003,M-012,M-019,M-020,M-022,M-028,M-030" />
 </PlanIndex>

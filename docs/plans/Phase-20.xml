@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Phase-20 NAME="Configurable VPN Subnets and 1000-Device Capacity" STATUS="done" MODULES="M-032,M-001,M-003,M-012,M-019,M-020,M-022,M-028,M-030" CREATED="2026-04-20" COMPLETED="2026-04-20">
+  <goal>
+    Remove fixed 10.0.0.0/8 VPN addressing assumptions and make KrotPN deployable with address pools sized for
+    500 and 1000 client devices.
+  </goal>
+
+  <scope>
+    <item-1>Fresh deployments must support non-10.0.0.0/8 tunnel networks so KrotPN can coexist with OpenVPN using 10.0.0.0/8.</item-1>
+    <item-2>Client address pools must be validated against 500/1000-device capacity profiles.</item-2>
+    <item-3>RU/DE relay addressing, host routes, NAT and policy-routing must use the same selected network settings.</item-3>
+    <item-4>Existing production clients must not be silently invalidated; live migration requires explicit operator-controlled rotation.</item-4>
+  </scope>
+
+  <design>
+    <choice-1>Recommended fresh-deploy client subnet: 172.29.0.0/22, gateway 172.29.0.1, clients 172.29.0.2 through 172.29.3.254.</choice-1>
+    <choice-2>Recommended RU/DE relay subnet: 172.29.255.0/30, DE 172.29.255.1, RU 172.29.255.2.</choice-2>
+    <choice-3>Use /22 as the minimum 1000-device profile and allow /21 for headroom beyond 1000 devices.</choice-3>
+    <choice-4>Expose VPN_NETWORK_ROTATE as an explicit migration gate because existing AWG client configs embed tunnel addresses.</choice-4>
+  </design>
+
+  <step-1 MODULE="M-032,M-001" RISK="CRITICAL" STATUS="done">
+    Add backend settings and validation helpers for VPN_CLIENT_SUBNET, VPN_CLIENT_GATEWAY, VPN_RELAY_SUBNET,
+    VPN_RELAY_DE_ADDRESS, VPN_RELAY_RU_ADDRESS, VPN_CAPACITY_PROFILE and VPN_NETWORK_ROTATE.
+  </step-1>
+
+  <step-2 MODULE="M-032,M-012" RISK="CRITICAL" STATUS="done">
+    Replace hardcoded 10.10.0.0/24 and 10.200.0.0/24 values in deploy scripts with validated env-derived variables.
+  </step-2>
+
+  <step-3 MODULE="M-032,M-003,M-020" RISK="CRITICAL" STATUS="done">
+    Make VPN client IP allocation capacity-aware and reject subnet/capacity combinations that cannot serve 500/1000 devices.
+  </step-3>
+
+  <step-4 MODULE="M-032,M-003,M-028" RISK="HIGH" STATUS="done">
+    Align VPNServer and bootstrap defaults with selected subnets without mutating existing DB rows unless migration is explicit.
+  </step-4>
+
+  <step-5 MODULE="M-032,M-012" RISK="HIGH" STATUS="done">
+    Add deploy preflight checks for overlap with existing host routes, OpenVPN 10.0.0.0/8, Docker networks and selected KrotPN subnets.
+  </step-5>
+
+  <step-6 MODULE="M-032,M-003,M-019,M-022" RISK="CRITICAL" STATUS="done">
+    Add explicit live-migration behavior that rotates/reprovisions client configs only when VPN_NETWORK_ROTATE=1.
+  </step-6>
+
+  <step-7 MODULE="M-032,M-012,M-030" RISK="CRITICAL" STATUS="done">
+    Update routing, NAT, policy-routing, forwarding and RU/DE relay setup to derive all rules from selected client and relay networks.
+  </step-7>
+
+  <step-8 MODULE="M-032,M-012" RISK="MEDIUM" STATUS="done">
+    Update env templates and operator docs with recommended 172.29.0.0/22 client and 172.29.255.0/30 relay settings.
+  </step-8>
+
+  <step-9 MODULE="M-032,M-003,M-012,M-019,M-022" RISK="CRITICAL" STATUS="done">
+    Add regression tests and static deploy-script checks that reject hardcoded 10.10/10.200 assumptions outside compatibility notes.
+  </step-9>
+
+  <step-10 MODULE="M-032" RISK="CRITICAL" STATUS="done">
+    Run backend and shell verification gates, then mark V-M-032 passed only with command evidence.
+  </step-10>
+
+  <data-flows>
+    <DF-P20-FRESH-DEPLOY>Operator env to deploy validation to AWG interface addresses to backend VPN allocation to generated client configs.</DF-P20-FRESH-DEPLOY>
+    <DF-P20-UPGRADE-PRESERVE>Existing deployment to config validation to no network rotation to current DB client addresses and configs remaining valid.</DF-P20-UPGRADE-PRESERVE>
+    <DF-P20-EXPLICIT-MIGRATION>VPN_NETWORK_ROTATE=1 to host route/NAT replacement to client config rotation/reprovisioning to old 10.x assumptions removed.</DF-P20-EXPLICIT-MIGRATION>
+    <DF-P20-CAPACITY>VPN_CAPACITY_PROFILE=1000 to subnet capacity check to /24 rejected and /22 or larger accepted.</DF-P20-CAPACITY>
+  </data-flows>
+
+  <phase-gates>
+    <gate-1>No fresh deployment path requires 10.0.0.0/8 for KrotPN tunnel addressing.</gate-1>
+    <gate-2>1000-device profile passes only with a subnet that has at least 1000 usable client addresses after reservations.</gate-2>
+    <gate-3>Upgrade path without VPN_NETWORK_ROTATE does not mutate existing client addresses.</gate-3>
+    <gate-4>RU/DE relay, AWG obfuscation, anti-abuse and manual-device config generation remain compatible after subnet changes.</gate-4>
+  </phase-gates>
+
+  <execution-evidence>
+    <result>pass</result>
+    <command>cd backend &amp;&amp; SECRET_KEY=test-secret-key-with-enough-length DATA_ENCRYPTION_KEY=dpFmfSVqfdAK3yx5MQV6Tcv35RZuw5MzaH0yhxJ01q0= PYTHONPATH=. ../.venv/bin/python -m pytest -o addopts='' tests/test_vpn_network_addressing.py tests/test_deploy_network_subnets_static.py tests/test_vpn_service.py tests/test_manual_client_cli.py tests/test_device_api.py -v</command>
+    <summary>25 passed, 9 warnings on 2026-04-20.</summary>
+    <command>bash -n install.sh deploy/deploy-on-server.sh deploy/deploy-all.sh deploy/lib/vpn-network.sh</command>
+    <summary>Shell syntax gate passed on 2026-04-20.</summary>
+  </execution-evidence>
+</Phase-20>

@@ -5,8 +5,8 @@
 # START_MODULE_CONTRACT
 #   PURPOSE: VPN client provisioning — new client creation, reprovisioning, internal/device client flows
 #   SCOPE: ProvisioningMixin with _provision_new_client, _reprovision_client, provision_internal_client, provision_device_client
-#   DEPENDS: M-001 (core security/encrypt), M-003 (vpn models), M-020 (device registry)
-#   LINKS: M-003 (vpn), V-M-003
+#   DEPENDS: M-001 (core security/encrypt), M-003 (vpn models), M-020 (device registry), M-032 (vpn-network-addressing-capacity)
+#   LINKS: M-003 (vpn), M-032, V-M-003, V-M-032
 # END_MODULE_CONTRACT
 #
 # START_MODULE_MAP
@@ -19,6 +19,7 @@
 # END_MODULE_MAP
 #
 # START_CHANGE_SUMMARY
+#   LAST_CHANGE: v3.2.0 - Allocate and reprovision client addresses from the selected server subnet with explicit rotation guard
 #   LAST_CHANGE: v3.0.0 - Generate and store encrypted preshared keys for new or rotated AWG peers
 #   LAST_CHANGE: v2.8.0 - Converted to full GRACE MODULE_CONTRACT/MAP format
 # END_CHANGE_SUMMARY
@@ -31,7 +32,9 @@ from loguru import logger
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.core.config import settings
 from app.core.security import encrypt_data
+from app.core.vpn_network import choose_reprovision_address
 from app.vpn.models import VPNClient, VPNNode, VPNRoute, VPNServer
 
 
@@ -93,7 +96,7 @@ class ProvisioningMixin:
         private_key, public_key = await self.wg.generate_keypair()
         preshared_key = await self.wg.generate_preshared_key()
         used_ips = await self._get_used_ips(entry_node_id=entry_node.id, server_id=server.id)
-        address = self.wg.get_next_client_ip(used_ips)
+        address = self.wg.get_next_client_ip(used_ips, subnet=server.subnet)
         private_key_enc = encrypt_data(private_key)
         preshared_key_enc = encrypt_data(preshared_key)
 
@@ -145,7 +148,13 @@ class ProvisioningMixin:
             server_id=server.id,
             exclude_client_id=int(client.id) if client.id is not None else None,
         )
-        address = self.wg.get_next_client_ip(used_ips)
+        address = choose_reprovision_address(
+            existing_address=client.address,
+            used_ips=used_ips,
+            client_subnet=server.subnet,
+            rotate_enabled=settings.vpn_network_rotate,
+            capacity_profile=settings.vpn_capacity_profile,
+        )
 
         client.server_id = server.id
         client.route_id = route.id if route is not None else None

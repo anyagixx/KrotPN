@@ -103,6 +103,17 @@
       <Priority>high</Priority>
       <RelatedFlows>DF-005</RelatedFlows>
     </UC-008>
+
+    <UC-009>
+      <Name>Non-conflicting VPN addressing and capacity sizing</Name>
+      <Actor>Administrator</Actor>
+      <Action>Deploys KrotPN with non-10.0.0.0/8 VPN networks and selects a capacity-safe client address pool</Action>
+      <Goal>KrotPN coexists with OpenVPN using 10.0.0.0/8 and can serve 500/1000 client devices</Goal>
+      <Preconditions>Operator controls deployment env settings; RU/DE nodes can be reconfigured through deploy scripts</Preconditions>
+      <AcceptanceCriteria>Fresh deployment can use 172.x tunnel networks. A 1000-device profile rejects /24 pools and accepts a pool with at least 1000 usable client addresses. Existing client configs are not silently invalidated during upgrade.</AcceptanceCriteria>
+      <Priority>critical</Priority>
+      <RelatedFlows>DF-P20-FRESH-DEPLOY, DF-P20-CAPACITY</RelatedFlows>
+    </UC-009>
   </UseCases>
 
   <NonGoals>

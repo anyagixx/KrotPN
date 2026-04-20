@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<M-032 NAME="vpn-network-addressing-capacity" TYPE="INTEGRATION" STATUS="done">
+  <path>backend/app/core/vpn_network.py backend/app/core/config.py backend/app/vpn/amneziawg.py backend/app/vpn/models.py backend/app/core/init_vpn.py backend/app/vpn/provisioning.py backend/app/vpn/topology.py deploy/lib/vpn-network.sh deploy/deploy-on-server.sh deploy/deploy-all.sh install.sh .env.example .env.production</path>
+  <owns>Configurable VPN client and RU/DE relay address pools, non-10.0.0.0/8 deployment defaults, capacity validation for 500/1000 client devices, and explicit address-pool migration controls</owns>
+  <exports>
+    <fn-build-vpn-network-settings>Normalize backend client/relay network settings and validate capacity/overlap constraints</fn-build-vpn-network-settings>
+    <fn-vpn-network-resolve>Deploy helper that preserves existing AWG interface networks unless VPN_NETWORK_ROTATE=1</fn-vpn-network-resolve>
+    <env-VPN_CLIENT_SUBNET>Operator-selected client address pool; recommended fresh-deploy value is 172.29.0.0/22 for up to 1000 devices</env-VPN_CLIENT_SUBNET>
+    <env-VPN_CLIENT_GATEWAY>Server-side AWG client-interface address derived from the client subnet, normally 172.29.0.1</env-VPN_CLIENT_GATEWAY>
+    <env-VPN_RELAY_SUBNET>Operator-selected RU/DE transit pool; recommended fresh-deploy value is 172.29.255.0/30</env-VPN_RELAY_SUBNET>
+    <env-VPN_RELAY_DE_ADDRESS>DE relay interface address inside the transit subnet, normally 172.29.255.1</env-VPN_RELAY_DE_ADDRESS>
+    <env-VPN_RELAY_RU_ADDRESS>RU relay client address inside the transit subnet, normally 172.29.255.2</env-VPN_RELAY_RU_ADDRESS>
+    <env-VPN_CAPACITY_PROFILE>Validated capacity profile such as 500 or 1000 that rejects too-small client pools</env-VPN_CAPACITY_PROFILE>
+    <env-VPN_NETWORK_ROTATE>Explicit operator gate for live address-pool migration and client config reprovisioning</env-VPN_NETWORK_ROTATE>
+  </exports>
+  <configuration>
+    <default-client-subnet>172.29.0.0/22 for fresh deployments; legacy upgrades preserve existing configured subnet unless migration is explicit</default-client-subnet>
+    <default-relay-subnet>172.29.255.0/30 for fresh RU/DE transit</default-relay-subnet>
+    <minimum-1000-profile>/22 after reserving server/gateway addresses</minimum-1000-profile>
+    <headroom-option>/21 when operator wants growth beyond 1000 devices without another tunnel renumbering</headroom-option>
+  </configuration>
+  <decisions>
+    <decision-1>Fresh deployments should avoid 10.0.0.0/8 because the operator already uses that supernet for OpenVPN.</decision-1>
+    <decision-2>/24 pools are invalid for 500/1000-device targets; /22 is the minimum practical 1000-device profile and /21 is the recommended headroom option.</decision-2>
+    <decision-3>Existing deployments must not silently change client tunnel addresses because AWG configs embed fixed Address values.</decision-3>
+    <decision-4>Deploy scripts and backend allocation must derive client, relay, NAT, policy-routing and config-generation behavior from one validated network source.</decision-4>
+  </decisions>
+  <depends>M-001, M-003, M-012, M-019, M-020, M-022, M-028, M-030</depends>
+  <verification-ref>V-M-032</verification-ref>
+  <files>
+    <file>backend/app/core/config.py</file>
+    <file>backend/app/core/vpn_network.py</file>
+    <file>backend/app/vpn/amneziawg.py</file>
+    <file>backend/app/vpn/models.py</file>
+    <file>backend/app/core/init_vpn.py</file>
+    <file>backend/app/vpn/provisioning.py</file>
+    <file>backend/app/vpn/topology.py</file>
+    <file>deploy/lib/vpn-network.sh</file>
+    <file>deploy/deploy-on-server.sh</file>
+    <file>deploy/deploy-all.sh</file>
+    <file>install.sh</file>
+    <file>.env.example</file>
+    <file>.env.production</file>
+  </files>
+  <implementation-status updated="2026-04-20">
+    <done>Implemented backend VPN network helpers, capacity-aware client allocation, explicit reprovision migration guard, deploy-time network helper, 172.29 fresh-deploy env defaults, and static regression tests.</done>
+    <verification>V-M-032 passed on 2026-04-20: 25 passed, 9 warnings; bash syntax gate passed for install.sh, deploy scripts and deploy/lib/vpn-network.sh.</verification>
+  </implementation-status>
+  <hotspot>H-019: Address-pool changes must be explicit because existing clients need rotated/reprovisioned configs.</hotspot>
+</M-032>

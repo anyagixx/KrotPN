@@ -4,9 +4,9 @@
 # MAP_MODE: EXPORTS
 # START_MODULE_CONTRACT
 #   PURPOSE: AmneziaWG integration — key generation, peer management, config generation, obfuscation parameter handling
-#   SCOPE: Low-level WireGuard operations via `awg` CLI; server config file management; peer stats from `awg show dump`
-#   DEPENDS: M-001 (core config, security), stdlib (asyncio, ipaddress, re, pathlib), httpx, loguru
-#   LINKS: M-003 (vpn), V-M-003, V-M-023 (handshake monitor consumes get_peer_stats)
+#   SCOPE: Low-level WireGuard operations via `awg` CLI; server config file management; peer stats from `awg show dump`; capacity-aware client IP allocation
+#   DEPENDS: M-001 (core config, security), M-032 (vpn-network-addressing-capacity), stdlib (asyncio, re, pathlib), httpx, loguru
+#   LINKS: M-003 (vpn), M-032, V-M-003, V-M-023, V-M-032
 # END_MODULE_CONTRACT
 #
 # START_MODULE_MAP
@@ -15,6 +15,7 @@
 # END_MODULE_MAP
 #
 # START_CHANGE_SUMMARY
+#   LAST_CHANGE: v3.2.0 - Made client IP allocation subnet-explicit and capacity-aware for 500/1000-device pools
 #   LAST_CHANGE: v3.0.0 - Load deploy-time AWG CLIENT_PROFILE, render optional PresharedKey, and avoid raw profile logs
 #   LAST_CHANGE: v2.8.0 - Converted to full GRACE MODULE_CONTRACT/MAP format with START/END blocks
 # END_CHANGE_SUMMARY
@@ -30,7 +31,6 @@ PROTOCOL: AmneziaWG parameters MUST remain unchanged for compatibility.
 # <!-- GRACE: legacy-source="krot-prod-main/backend/amneziawg.py" -->
 
 import asyncio
-import ipaddress
 import os
 import re
 import tempfile
@@ -41,6 +41,7 @@ import httpx
 from loguru import logger
 
 from app.core.config import settings
+from app.core.vpn_network import next_client_ip
 from app.vpn.obfuscation import (
     AWGObfuscationProfile,
     AWGProfileError,
@@ -210,25 +211,37 @@ class AmneziaWGManager:
         logger.warning("[VPN] Could not detect external IP")
         return None
 
-    def get_next_client_ip(self, used_ips: set[str]) -> str:
+    def get_next_client_ip(
+        self,
+        used_ips: set[str],
+        *,
+        subnet: str | None = None,
+        gateway_address: str | None = None,
+    ) -> str:
         """
         Get the next available IP address in the VPN subnet.
         
         Args:
             used_ips: Set of already used IP addresses
+            subnet: Optional explicit client subnet, otherwise settings.vpn_network is used
+            gateway_address: Optional explicit gateway address to reserve
             
         Returns:
             Next available IP address
         """
-        # Parse subnet from settings
-        network = ipaddress.ip_network(settings.vpn_subnet, strict=False)
-        
-        # Start from .2 (skip network address and gateway)
-        for ip in list(network.hosts())[1:]:
-            if str(ip) not in used_ips:
-                return str(ip)
-        
-        raise ValueError("No available IP addresses in VPN subnet")
+        network = settings.vpn_network
+        if gateway_address is not None:
+            resolved_gateway = gateway_address
+        elif subnet is None:
+            resolved_gateway = network.client_gateway
+        else:
+            resolved_gateway = None
+        return next_client_ip(
+            used_ips,
+            client_subnet=subnet or network.client_subnet,
+            gateway_address=resolved_gateway,
+            capacity_profile=settings.vpn_capacity_profile,
+        )
 
     # START_BLOCK: create_client_config
     def create_client_config(

@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!-- MyGRACE Graph Index — lazy-loading entry point for module navigation -->
 <!-- Generated 2026-04-12 from knowledge-graph.xml v1.0.0 -->
-<GraphIndex VERSION="1.0.0" PROJECT="KrotPN" MODULE-COUNT="26">
+<GraphIndex VERSION="1.0.0" PROJECT="KrotPN" MODULE-COUNT="27">
   <M-001 NAME="backend-core" TYPE="UTILITY" STATUS="stable" PATH="backend/app/core" DEPENDS="M-028" VERIFICATION-REF="V-M-001" />
   <M-002 NAME="users" TYPE="CORE_LOGIC" STATUS="stable" PATH="backend/app/users" DEPENDS="M-001,M-027" VERIFICATION-REF="V-M-002" />
   <M-003 NAME="vpn" TYPE="CORE_LOGIC" STATUS="stable" PATH="backend/app/vpn" DEPENDS="M-001,M-002,M-007,M-020,M-030" VERIFICATION-REF="V-M-003" />
@@ -28,6 +28,7 @@
   <M-028 NAME="alembic-migrations" TYPE="UTILITY" STATUS="stable" PATH="backend/alembic/ backend/app/core/migrations.py" DEPENDS="M-001,M-020" VERIFICATION-REF="V-M-028" />
   <M-030 NAME="awg-stealth-obfuscation" TYPE="INTEGRATION" STATUS="stable" PATH="backend/app/vpn/obfuscation.py deploy/lib/awg-obfuscation.sh" DEPENDS="M-001,M-012,M-028" VERIFICATION-REF="V-M-030" />
   <M-031 NAME="anti-ping-pong-abuse" TYPE="INTEGRATION" STATUS="done" PATH="backend/app/vpn/anti_abuse.py backend/app/vpn/handshake_monitor.py backend/app/tasks/scheduler.py" DEPENDS="M-001,M-003,M-008,M-020,M-021,M-023,M-025" VERIFICATION-REF="V-M-031" />
+  <M-032 NAME="vpn-network-addressing-capacity" TYPE="INTEGRATION" STATUS="done" PATH="backend/app/core/vpn_network.py backend/app/core/config.py backend/app/vpn/amneziawg.py backend/app/vpn/models.py backend/app/core/init_vpn.py backend/app/vpn/provisioning.py backend/app/vpn/topology.py deploy/lib/vpn-network.sh deploy/deploy-on-server.sh deploy/deploy-all.sh install.sh .env.example .env.production" DEPENDS="M-001,M-003,M-012,M-019,M-020,M-022,M-028,M-030" VERIFICATION-REF="V-M-032" />
 
   <CrossLinks>
     <link from="M-002" to="M-001" />
@@ -94,6 +95,14 @@
     <link from="M-031" to="M-021" />
     <link from="M-031" to="M-023" />
     <link from="M-031" to="M-025" />
+    <link from="M-032" to="M-001" />
+    <link from="M-032" to="M-003" />
+    <link from="M-032" to="M-012" />
+    <link from="M-032" to="M-019" />
+    <link from="M-032" to="M-020" />
+    <link from="M-032" to="M-022" />
+    <link from="M-032" to="M-028" />
+    <link from="M-032" to="M-030" />
   </CrossLinks>
 
   <Hotspots>
@@ -115,5 +124,6 @@
     <H-016 module="M-017" text="Removed RU IP auto-update references must stay absent from deploy and verification surfaces" />
     <H-017 module="M-030" text="Changing AWG obfuscation or UDP port invalidates existing client configs unless rotation is explicit" />
     <H-018 module="M-031" text="Anti-abuse auto-rotation must distinguish normal roaming from true endpoint ping-pong before invalidating configs" />
+    <H-019 module="M-032" text="Changing VPN address pools breaks existing client configs unless migration explicitly rotates/reprovisions devices; /24 pools cannot serve 500/1000 devices" />
   </Hotspots>
 </GraphIndex>

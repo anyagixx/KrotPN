@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<V-M-032 MODULE="M-032" PRIORITY="critical" STATUS="pass">
+  <module>vpn-network-addressing-capacity</module>
+  <checks>
+    Verify configurable VPN addressing, non-10.0.0.0/8 coexistence with OpenVPN, and 500/1000-device capacity behavior.
+  </checks>
+  <test-files>backend/tests/test_vpn_network_addressing.py backend/tests/test_deploy_network_subnets_static.py backend/tests/test_vpn_service.py backend/tests/test_manual_client_cli.py backend/tests/test_device_api.py</test-files>
+  <commands>cd backend &amp;&amp; SECRET_KEY=test-secret-key-with-enough-length DATA_ENCRYPTION_KEY=dpFmfSVqfdAK3yx5MQV6Tcv35RZuw5MzaH0yhxJ01q0= PYTHONPATH=. ../.venv/bin/python -m pytest -o addopts='' tests/test_vpn_network_addressing.py tests/test_deploy_network_subnets_static.py tests/test_vpn_service.py tests/test_manual_client_cli.py tests/test_device_api.py -v &amp;&amp; cd .. &amp;&amp; bash -n install.sh deploy/deploy-on-server.sh deploy/deploy-all.sh deploy/lib/vpn-network.sh</commands>
+  <last-run date="2026-04-20" result="pass">25 passed, 9 warnings. Shell syntax gate passed for install.sh, deploy/deploy-on-server.sh, deploy/deploy-all.sh and deploy/lib/vpn-network.sh.</last-run>
+  <verification-levels>
+    <level-module-local>Pure Python tests for subnet parsing, gateway derivation, capacity validation, allocation bounds and migration guard decisions.</level-module-local>
+    <level-wave>Static deploy-script tests for env propagation, generated AWG addresses, NAT/policy-routing substitutions and absence of hardcoded 10.10/10.200 runtime assumptions.</level-wave>
+    <level-phase>End-to-end dry-run evidence that fresh deploy settings flow into backend config, RU client interface, DE/RU relay interface, manual clients and device API configs.</level-phase>
+  </verification-levels>
+
+  <verification-matrix>
+    <matrix-1 target="fresh-client-subnet" evidence="deterministic">Given VPN_CLIENT_SUBNET=172.29.0.0/22, gateway is 172.29.0.1 and the first generated client address is inside 172.29.0.0/22, not 10.0.0.0/8.</matrix-1>
+    <matrix-2 target="relay-subnet" evidence="deterministic">Given VPN_RELAY_SUBNET=172.29.255.0/30, DE address is 172.29.255.1 and RU address is 172.29.255.2.</matrix-2>
+    <matrix-3 target="capacity-1000" evidence="deterministic">VPN_CAPACITY_PROFILE=1000 rejects /24 and accepts /22 or larger after reserved addresses are removed.</matrix-3>
+    <matrix-4 target="upgrade-preserve" evidence="deterministic">Without VPN_NETWORK_ROTATE, existing VPNClient.address values are not rewritten and generated configs remain tied to stored addresses.</matrix-4>
+    <matrix-5 target="explicit-migration" evidence="trace">With VPN_NETWORK_ROTATE=1, migration emits required markers and routes all client config changes through existing rotation/reprovision flows.</matrix-5>
+    <matrix-6 target="deploy-safety" evidence="static-integration">Deploy scripts pass bash syntax checks and static tests prove client/relay/NAT/routing values come from validated env variables.</matrix-6>
+  </verification-matrix>
+
+  <required-log-markers>
+    <marker-1>[VPNNetwork][load_settings][SUBNET_CONFIGURED]</marker-1>
+    <marker-2>[VPNNetwork][validate_capacity][CAPACITY_VALIDATED]</marker-2>
+    <marker-3>[VPNNetwork][validate_overlap][OVERLAP_DETECTED]</marker-3>
+    <marker-4>[VPNNetwork][migration_guard][ROTATION_REQUIRED]</marker-4>
+    <marker-5>[DeployVPN][configure_client_interface][CLIENT_SUBNET_APPLIED]</marker-5>
+    <marker-6>[DeployVPN][configure_relay_interface][RELAY_SUBNET_APPLIED]</marker-6>
+  </required-log-markers>
+
+  <telemetry-requirements>
+    <field-1>client_subnet, relay_subnet, capacity_profile, usable_address_count and rotate_enabled must be logged as structured non-secret fields.</field-1>
+    <field-2>Do not log private keys, preshared keys, full client configs, SSH credentials, tokens, passwords or raw .env contents.</field-2>
+    <field-3>Overlap detection must identify conflicting CIDRs but must not dump full host route tables into application logs.</field-3>
+  </telemetry-requirements>
+
+  <scenarios>
+    <scenario-1 kind="success" trace="[VPNNetwork][load_settings][SUBNET_CONFIGURED]">Fresh deploy with VPN_CLIENT_SUBNET=172.29.0.0/22 configures the server gateway as 172.29.0.1 and allocates clients from 172.29.0.2 onward.</scenario-1>
+    <scenario-2 kind="success" trace="[DeployVPN][configure_relay_interface][RELAY_SUBNET_APPLIED]">Fresh RU/DE relay deploy with VPN_RELAY_SUBNET=172.29.255.0/30 configures DE as 172.29.255.1 and RU as 172.29.255.2.</scenario-2>
+    <scenario-3 kind="failure" trace="[VPNNetwork][validate_capacity][CAPACITY_VALIDATED]">VPN_CAPACITY_PROFILE=1000 rejects /24 pools and accepts /22 or larger pools with at least 1000 usable client addresses.</scenario-3>
+    <scenario-4 kind="success" trace="[VPNNetwork][migration_guard][ROTATION_REQUIRED]">Upgrade without VPN_NETWORK_ROTATE preserves existing VPNClient.address values and does not silently invalidate generated client configs.</scenario-4>
+    <scenario-5 kind="success" trace="[VPNNetwork][migration_guard][ROTATION_REQUIRED]">Explicit VPN_NETWORK_ROTATE=1 performs host rule replacement and forces client config reprovisioning through existing rotation flows.</scenario-5>
+    <scenario-6 kind="failure" trace="[VPNNetwork][validate_overlap][OVERLAP_DETECTED]">Deploy static checks fail if runtime paths retain hardcoded 10.10.0.0/24 or 10.200.0.0/24 assumptions outside documented compatibility references.</scenario-6>
+  </scenarios>
+
+  <module-checks>
+    <check>Client and relay subnets can be set to non-10.0.0.0/8 ranges for new deployments.</check>
+    <check>1000-device capacity cannot be configured with a pool smaller than the validated threshold.</check>
+    <check>Existing clients are protected from accidental address-pool migration unless the operator enables explicit rotation.</check>
+    <check>AWG obfuscation and anti-abuse flows remain compatible with generated configs after subnet changes.</check>
+  </module-checks>
+
+  <autonomous-execution-safety>
+    <safe>Autonomous execution may edit config parsing, pure subnet helpers, tests, env examples and static deploy-script generation logic.</safe>
+    <requires-operator>Live VPS route mutation, actual AWG interface reload, production VPN_NETWORK_ROTATE=1 and mass client config rotation require explicit operator approval.</requires-operator>
+    <stop-if>Stop execution if overlap with active routes is detected, existing client addresses would be rewritten with VPN_NETWORK_ROTATE=0, or the selected capacity profile cannot be satisfied.</stop-if>
+  </autonomous-execution-safety>
+
+  <rollout-policy>
+    <step-1>Use the 172.29.0.0/22 client subnet and 172.29.255.0/30 relay subnet for new VPS test deployments.</step-1>
+    <step-2>For existing deployments, run first with VPN_NETWORK_ROTATE=0 and verify no client addresses are changed.</step-2>
+    <step-3>Enable VPN_NETWORK_ROTATE=1 only during a planned maintenance window because all affected clients must download new configs.</step-3>
+  </rollout-policy>
+</V-M-032>

@@ -4,9 +4,9 @@
 # MAP_MODE: EXPORTS
 # START_MODULE_CONTRACT
 #   PURPOSE: VPN topology bootstrap — auto-create VPN nodes and routes from env vars on startup
-#   SCOPE: Entry/exit node discovery, default route creation, legacy VPNServer mirror sync
-#   DEPENDS: M-001 (config), M-003 (vpn models: VPNServer, VPNNode, VPNRoute)
-#   LINKS: M-001 (backend-core), M-003 (vpn), main.py (lifespan startup), V-M-001
+#   SCOPE: Entry/exit node discovery, default route creation, legacy VPNServer mirror sync, address-pool migration guard
+#   DEPENDS: M-001 (config), M-003 (vpn models: VPNServer, VPNNode, VPNRoute), M-032 (vpn-network-addressing-capacity)
+#   LINKS: M-001 (backend-core), M-003 (vpn), M-032, main.py (lifespan startup), V-M-001, V-M-032
 # END_MODULE_CONTRACT
 #
 # START_MODULE_MAP
@@ -19,6 +19,7 @@
 # END_MODULE_MAP
 #
 # START_CHANGE_SUMMARY
+#   LAST_CHANGE: v3.2.0 - Bootstrap legacy VPNServer subnet from resolved network settings with explicit rotation guard
 #   LAST_CHANGE: v2.8.0 - Added full GRACE MODULE_CONTRACT and MODULE_MAP per GRACE governance protocol
 # END_CHANGE_SUMMARY
 #
@@ -83,8 +84,28 @@ async def ensure_default_vpn_server(session: AsyncSession) -> VPNServer | None:
         select(VPNServer).where(VPNServer.public_key == public_key)
     )
     server = result.scalar_one_or_none()
+    network = settings.vpn_network
 
     if server:
+        if server.subnet != network.client_subnet:
+            if settings.vpn_network_rotate:
+                server.subnet = network.client_subnet
+                logger.info(
+                    "[VPNNetwork][migration_guard][ROTATION_REQUIRED] legacy VPN server subnet rotated explicitly",
+                    extra={
+                        "client_subnet": network.client_subnet,
+                        "rotate_enabled": settings.vpn_network_rotate,
+                    },
+                )
+            else:
+                logger.warning(
+                    "[VPNNetwork][migration_guard][ROTATION_REQUIRED] preserving legacy VPN server subnet",
+                    extra={
+                        "existing_subnet": server.subnet,
+                        "configured_subnet": network.client_subnet,
+                        "rotate_enabled": settings.vpn_network_rotate,
+                    },
+                )
         server.name = str(entry["name"])
         server.location = str(entry["location"])
         server.endpoint = str(endpoint)
@@ -105,6 +126,7 @@ async def ensure_default_vpn_server(session: AsyncSession) -> VPNServer | None:
         endpoint=str(endpoint),
         port=settings.vpn_port,
         public_key=str(public_key),
+        subnet=network.client_subnet,
         is_active=True,
         is_online=True,
         is_entry_node=True,

@@ -2,7 +2,9 @@ from datetime import datetime
 
 import pytest
 
+from app.vpn import config as vpn_config_module
 from app.vpn import service as vpn_service_module
+from app.vpn import topology as vpn_topology_module
 from app.vpn.models import VPNClient, VPNNode, VPNRoute, VPNServer
 from app.vpn.service import VPNService
 
@@ -258,7 +260,7 @@ async def test_get_client_config_prefers_route_topology_over_legacy_server(monke
     monkeypatch.setattr(service, "get_route", fake_get_route)
     monkeypatch.setattr(service, "get_node", fake_get_node)
     monkeypatch.setattr(service, "get_server", fake_get_server)
-    monkeypatch.setattr(vpn_service_module, "decrypt_data", lambda value: "decrypted-private")
+    monkeypatch.setattr(vpn_config_module, "decrypt_data", lambda value: "decrypted-private")
 
     def fake_create_client_config(*, private_key, address, server_public_key, endpoint):
         config_calls.append((private_key, address, server_public_key, endpoint))
@@ -409,11 +411,11 @@ async def test_get_route_statuses_includes_tunnel_health(monkeypatch):
         return None
 
     async def fake_check_tunnel_status():
-        return {"interface": "awg0", "status": "up"}
+        return type("TunnelStatus", (), {"interface": "awg0", "status": "up"})()
 
     monkeypatch.setattr(service, "list_routes", fake_list_routes)
     monkeypatch.setattr(service, "get_node", fake_get_node)
-    monkeypatch.setattr(vpn_service_module.routing_manager, "check_tunnel_status", fake_check_tunnel_status)
+    monkeypatch.setattr(vpn_topology_module.routing_manager, "get_status", fake_check_tunnel_status)
 
     statuses = await service.get_route_statuses()
 

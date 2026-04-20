@@ -5,8 +5,8 @@
 # START_MODULE_CONTRACT
 #   PURPOSE: VPN data models — servers, nodes, routes, clients, configs, stats
 #   SCOPE: Schema definitions, field declarations, relationship wiring; no business logic
-#   DEPENDS: M-001 (core database), M-003 (vpn), M-020 (device-registry)
-#   LINKS: M-003 (vpn), M-020 (device-registry), V-M-003, V-M-020
+#   DEPENDS: M-001 (core database), M-003 (vpn), M-020 (device-registry), M-032 (vpn-network-addressing-capacity)
+#   LINKS: M-003 (vpn), M-020 (device-registry), M-032, V-M-003, V-M-020, V-M-032
 # END_MODULE_CONTRACT
 #
 # START_MODULE_MAP
@@ -20,6 +20,7 @@
 # END_MODULE_MAP
 #
 # START_CHANGE_SUMMARY
+#   LAST_CHANGE: v3.2.0 - Updated fresh-deploy VPNServer subnet and capacity defaults for 1000-device pools
 #   LAST_CHANGE: v3.0.0 - Added nullable encrypted preshared key storage for new AWG peers
 #   LAST_CHANGE: v2.8.0 - Converted to full GRACE MODULE_CONTRACT/MAP format with START/END blocks
 # END_CHANGE_SUMMARY
@@ -41,6 +42,8 @@ from sqlalchemy import Column, DateTime
 from typing import TYPE_CHECKING
 
 from sqlmodel import Field, Relationship, SQLModel
+
+from app.core.vpn_network import DEFAULT_VPN_CLIENT_SUBNET
 
 if TYPE_CHECKING:
     from app.devices.models import UserDevice
@@ -64,7 +67,7 @@ class VPNServer(SQLModel, table=True):
     private_key_enc: str | None = Field(default=None, max_length=500)  # Encrypted
 
     # Network configuration
-    subnet: str = Field(default="10.10.0.0/24")
+    subnet: str = Field(default=DEFAULT_VPN_CLIENT_SUBNET)
 
     # Status
     is_active: bool = Field(default=True)
@@ -72,7 +75,7 @@ class VPNServer(SQLModel, table=True):
     is_exit_node: bool = Field(default=True)  # DE server = exit node
 
     # Capacity
-    max_clients: int = Field(default=100)
+    max_clients: int = Field(default=1000)
     current_clients: int = Field(default=0)
 
     # Monitoring
@@ -110,7 +113,7 @@ class VPNNode(SQLModel, table=True):
     is_entry_node: bool = Field(default=False)
     is_exit_node: bool = Field(default=False)
 
-    max_clients: int = Field(default=100)
+    max_clients: int = Field(default=1000)
     current_clients: int = Field(default=0)
     last_ping_at: datetime | None = Field(default=None, sa_column=Column(DateTime(timezone=True)))
 
@@ -135,7 +138,7 @@ class VPNRoute(SQLModel, table=True):
     is_active: bool = Field(default=True)
     is_default: bool = Field(default=False)
     priority: int = Field(default=100)
-    max_clients: int = Field(default=100)
+    max_clients: int = Field(default=1000)
     current_clients: int = Field(default=0)
 
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc), sa_column=Column(DateTime(timezone=True)))
@@ -167,7 +170,7 @@ class VPNClient(SQLModel, table=True):
     preshared_key_enc: str | None = Field(default=None, max_length=500)
 
     # Network configuration
-    address: str = Field(max_length=20, unique=True)  # e.g., 10.10.0.2
+    address: str = Field(max_length=20, unique=True)  # e.g., 172.29.0.2
 
     # Status
     is_active: bool = Field(default=True)
