@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<V-M-032 MODULE="M-032" PRIORITY="critical" STATUS="pass">
+<V-M-032 MODULE="M-032" PRIORITY="critical" STATUS="pass-live">
   <module>vpn-network-addressing-capacity</module>
   <checks>
     Verify configurable VPN addressing, non-10.0.0.0/8 coexistence with OpenVPN, and 500/1000-device capacity behavior.
@@ -7,6 +7,7 @@
   <test-files>backend/tests/test_vpn_network_addressing.py backend/tests/test_deploy_network_subnets_static.py backend/tests/test_vpn_service.py backend/tests/test_manual_client_cli.py backend/tests/test_device_api.py</test-files>
   <commands>cd backend &amp;&amp; SECRET_KEY=test-secret-key-with-enough-length DATA_ENCRYPTION_KEY=dpFmfSVqfdAK3yx5MQV6Tcv35RZuw5MzaH0yhxJ01q0= PYTHONPATH=. ../.venv/bin/python -m pytest -o addopts='' tests/test_vpn_network_addressing.py tests/test_deploy_network_subnets_static.py tests/test_vpn_service.py tests/test_manual_client_cli.py tests/test_device_api.py -v &amp;&amp; cd .. &amp;&amp; bash -n install.sh deploy/deploy-on-server.sh deploy/deploy-all.sh deploy/lib/vpn-network.sh</commands>
   <last-run date="2026-04-20" result="pass">25 passed, 9 warnings. Shell syntax gate passed for install.sh, deploy/deploy-on-server.sh, deploy/deploy-all.sh and deploy/lib/vpn-network.sh.</last-run>
+  <live-run date="2026-04-20" result="pass">Operator-confirmed VPS deployment test passed for release v2.13.0-vpn-network-capacity-stable.</live-run>
   <verification-levels>
     <level-module-local>Pure Python tests for subnet parsing, gateway derivation, capacity validation, allocation bounds and migration guard decisions.</level-module-local>
     <level-wave>Static deploy-script tests for env propagation, generated AWG addresses, NAT/policy-routing substitutions and absence of hardcoded 10.10/10.200 runtime assumptions.</level-wave>

@@ -28,7 +28,7 @@
   <M-028 NAME="alembic-migrations" TYPE="UTILITY" STATUS="stable" PATH="backend/alembic/ backend/app/core/migrations.py" DEPENDS="M-001,M-020" VERIFICATION-REF="V-M-028" />
   <M-030 NAME="awg-stealth-obfuscation" TYPE="INTEGRATION" STATUS="stable" PATH="backend/app/vpn/obfuscation.py deploy/lib/awg-obfuscation.sh" DEPENDS="M-001,M-012,M-028" VERIFICATION-REF="V-M-030" />
   <M-031 NAME="anti-ping-pong-abuse" TYPE="INTEGRATION" STATUS="done" PATH="backend/app/vpn/anti_abuse.py backend/app/vpn/handshake_monitor.py backend/app/tasks/scheduler.py" DEPENDS="M-001,M-003,M-008,M-020,M-021,M-023,M-025" VERIFICATION-REF="V-M-031" />
-  <M-032 NAME="vpn-network-addressing-capacity" TYPE="INTEGRATION" STATUS="done" PATH="backend/app/core/vpn_network.py backend/app/core/config.py backend/app/vpn/amneziawg.py backend/app/vpn/models.py backend/app/core/init_vpn.py backend/app/vpn/provisioning.py backend/app/vpn/topology.py deploy/lib/vpn-network.sh deploy/deploy-on-server.sh deploy/deploy-all.sh install.sh .env.example .env.production" DEPENDS="M-001,M-003,M-012,M-019,M-020,M-022,M-028,M-030" VERIFICATION-REF="V-M-032" />
+  <M-032 NAME="vpn-network-addressing-capacity" TYPE="INTEGRATION" STATUS="stable" PATH="backend/app/core/vpn_network.py backend/app/core/config.py backend/app/vpn/amneziawg.py backend/app/vpn/models.py backend/app/core/init_vpn.py backend/app/vpn/provisioning.py backend/app/vpn/topology.py deploy/lib/vpn-network.sh deploy/deploy-on-server.sh deploy/deploy-all.sh install.sh .env.example .env.production" DEPENDS="M-001,M-003,M-012,M-019,M-020,M-022,M-028,M-030" VERIFICATION-REF="V-M-032" />
 
   <CrossLinks>
     <link from="M-002" to="M-001" />

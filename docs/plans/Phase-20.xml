@@ -80,5 +80,7 @@
     <summary>25 passed, 9 warnings on 2026-04-20.</summary>
     <command>bash -n install.sh deploy/deploy-on-server.sh deploy/deploy-all.sh deploy/lib/vpn-network.sh</command>
     <summary>Shell syntax gate passed on 2026-04-20.</summary>
+    <live-result>pass</live-result>
+    <summary>Operator-confirmed VPS deployment test passed for release v2.13.0-vpn-network-capacity-stable on 2026-04-20.</summary>
   </execution-evidence>
 </Phase-20>

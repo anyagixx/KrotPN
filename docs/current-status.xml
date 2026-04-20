@@ -31,7 +31,7 @@
     <item>New RU host-level awg0 config watcher automatically syncs peer changes from backend-driven provisioning, so both manual and web-issued clients become active without manual awg commands.</item>
     <item>Release v2.11.0-awg-obfuscation-stable was deployed from GitHub main and operator-validated on RU/DE VPS with AWG stealth obfuscation, profile parity, RU-DE handshake, new client handshake, DE egress, and upgrade preservation.</item>
     <item>Phase-19 anti-ping-pong abuse detection is implemented locally: observe-mode roaming tolerance, Redis-backed endpoint history, soft auto-rotation path, admin anti-abuse context, and V-M-031 verification passed on 2026-04-20.</item>
-    <item>Phase-20 configurable VPN subnets and 1000-device capacity is implemented locally: fresh deploy defaults use 172.29.0.0/22 for clients and 172.29.255.0/30 for RU/DE relay, capacity validation rejects /24 for 1000 devices, and address-pool migration requires VPN_NETWORK_ROTATE=1.</item>
+    <item>Phase-20 configurable VPN subnets and 1000-device capacity is live-tested: release v2.13.0-vpn-network-capacity-stable deployed successfully on VPS, fresh deploy defaults use 172.29.0.0/22 for clients and 172.29.255.0/30 for RU/DE relay, capacity validation rejects /24 for 1000 devices, and address-pool migration requires VPN_NETWORK_ROTATE=1.</item>
   </what-is-working>
 
   <what-is-fragile>
@@ -58,8 +58,8 @@
     <gate id="phase-19-anti-ping-pong-abuse" status="passed-local">
       <summary>Local target verification passed: anti-abuse classifier, handshake monitor integration, scheduler interval, cooldown enforcement, audit events and admin anti-abuse context.</summary>
     </gate>
-    <gate id="phase-20-vpn-network-addressing-capacity" status="passed-local">
-      <summary>Local target verification passed: configurable VPN network helpers, deploy static checks, service/manual/device config regressions and shell syntax gates.</summary>
+    <gate id="phase-20-vpn-network-addressing-capacity" status="passed-live">
+      <summary>Local target verification passed and operator-confirmed VPS deployment test passed for release v2.13.0-vpn-network-capacity-stable on 2026-04-20.</summary>
     </gate>
   </rollout-gates>
 

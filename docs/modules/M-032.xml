@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<M-032 NAME="vpn-network-addressing-capacity" TYPE="INTEGRATION" STATUS="done">
+<M-032 NAME="vpn-network-addressing-capacity" TYPE="INTEGRATION" STATUS="stable">
   <path>backend/app/core/vpn_network.py backend/app/core/config.py backend/app/vpn/amneziawg.py backend/app/vpn/models.py backend/app/core/init_vpn.py backend/app/vpn/provisioning.py backend/app/vpn/topology.py deploy/lib/vpn-network.sh deploy/deploy-on-server.sh deploy/deploy-all.sh install.sh .env.example .env.production</path>
   <owns>Configurable VPN client and RU/DE relay address pools, non-10.0.0.0/8 deployment defaults, capacity validation for 500/1000 client devices, and explicit address-pool migration controls</owns>
   <exports>
@@ -45,6 +45,7 @@
   <implementation-status updated="2026-04-20">
     <done>Implemented backend VPN network helpers, capacity-aware client allocation, explicit reprovision migration guard, deploy-time network helper, 172.29 fresh-deploy env defaults, and static regression tests.</done>
     <verification>V-M-032 passed on 2026-04-20: 25 passed, 9 warnings; bash syntax gate passed for install.sh, deploy scripts and deploy/lib/vpn-network.sh.</verification>
+    <live-verification>Operator-confirmed VPS deployment test passed for release v2.13.0-vpn-network-capacity-stable on 2026-04-20.</live-verification>
   </implementation-status>
   <hotspot>H-019: Address-pool changes must be explicit because existing clients need rotated/reprovisioned configs.</hotspot>
 </M-032>
