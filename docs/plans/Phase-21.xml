@@ -41,7 +41,7 @@
     Make backend test collection clean by archiving or rewriting obsolete tests for removed routing modules.
   </step-4>
 
-  <step-5 MODULE="M-033" RISK="MEDIUM" STATUS="pending">
+  <step-5 MODULE="M-033" RISK="MEDIUM" STATUS="done">
     Synchronize graph CrossLinks, plan-index, verification-index, README handoff, and per-entity files.
   </step-5>
 

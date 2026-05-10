@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!-- MyGRACE Verification Index — lazy-loading entry point for verification navigation -->
-<!-- Generated 2026-04-12 from verification-plan.xml -->
+<!-- MyGRACE verification index generated from per-verification files; archived monoliths are reference-only -->
 <VerificationIndex VERSION="1.0.0" PROJECT="KrotPN" ENTRY-COUNT="35">
   <V-M-001 MODULE="M-001" PRIORITY="critical" STATUS="pass" TESTS="backend/tests/test_security.py" COMMANDS="pytest tests/test_security.py -v" />
   <V-M-002 MODULE="M-002" PRIORITY="critical" STATUS="pass" TESTS="backend/tests/test_telegram_auth.py backend/tests/test_manual_access_policy.py backend/tests/test_manual_client_cli.py" COMMANDS="pytest tests/test_telegram_auth.py tests/test_manual_access_policy.py tests/test_manual_client_cli.py -v" />

@@ -22,6 +22,7 @@
   <execution-notes>
     <note-1>Phase-21 step-1 audit classified stale routing references as active cleanup targets, historical/superseded references, or valid Full Tunnel regression assertions.</note-1>
     <note-2>Phase-21 step-4 archived obsolete routing-policy/ipset tests under backend/tests/archive/phase17_removed_routing with non-test filenames to keep pytest collection aligned with Full Tunnel runtime.</note-2>
+    <note-3>Phase-21 step-5 synchronized index comments, dependency CrossLinks, AI handoff text, and active frontend-admin per-entity wording with MyGRACE and Full Tunnel reality.</note-3>
   </execution-notes>
   <hotspot>H-020: Stale split-tunnel tests and phase references can break verification even when runtime Full Tunnel code is correct</hotspot>
 </M-033>

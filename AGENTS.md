@@ -10,10 +10,10 @@
 
 1. **Всегда объявляй Skill перед действием.** Назови конкретный скилл: `$grace-plan`, `$grace-fix`, `$grace-refresh`, `$grace-exec` и т.д.
 2. **Никогда не пиши код без MODULE_CONTRACT.** Контракт — источник истины. Код реализует контракт, а не наоборот.
-3. **Никогда не меняй код без чтения GRACE-документов.** Порядок: `current-status.xml` → `knowledge-graph.xml` → `development-plan.xml` → `verification-plan.xml` → код.
+3. **Никогда не меняй код без чтения MyGRACE-документов.** Порядок: `current-status.xml` → `graph-index.xml` → `docs/modules/M-XXX.xml` → `plan-index.xml` → `docs/plans/Phase-N.xml` → `verification-index.xml` → `docs/verification/V-M-XXX.xml` → код.
 4. **Никогда не коммить без passing verification.** Тесты должны пройти до коммита.
 5. **Никогда не менять shared XML-артефакты без чтения их полностью.** `docs/*.xml` — load-bearing структура, не документация.
-6. **После любого изменения кода — обновить MODULE_MAP, knowledge-graph, verification-plan (если тесты изменились).**
+6. **После любого изменения кода — обновить MODULE_MAP, `graph-index.xml` + per-module файл, `verification-index.xml` + per-verification файл (если тесты изменились).**
 7. **Запрещено писать код напрямую.** Всегда следуй workflow выбранного скилла.
 8. **Если верификацию невозможно запустить — скажи точно почему.** Не пропускай, не имплицируй покрытие.
 
@@ -22,10 +22,10 @@
 ---
 
 ## Keywords
-VPN, WireGuard, split-tunneling, routing, billing, subscriptions, Telegram bot, admin panel, FastAPI, Vue.js, YooKassa, Docker, AWG
+VPN, WireGuard, Full Tunnel, routing, billing, subscriptions, Telegram bot, admin panel, FastAPI, Vue.js, YooKassa, Docker, AWG
 
 ## Annotation
-KrotPN is a production MVP in hardening/stabilization phase. A practical GRACE-governed project for a VPN service with split-tunneling, subscription billing, referral bonuses, and an admin dashboard.
+KrotPN is a production MVP in hardening/stabilization phase. A practical GRACE-governed project for a Full Tunnel VPN service with subscription billing, referral bonuses, and an admin dashboard.
 
 ## Read Order
 
@@ -60,7 +60,7 @@ For deep reference (rarely needed):
 - `backend/app/billing`: plans, subscriptions, payments, YooKassa
 - `backend/app/referrals`: referral codes and bonuses
 - `backend/app/admin`: admin analytics/system endpoints
-- `backend/app/routing`: split-tunneling and host routing logic
+- `backend/app/routing`: Full Tunnel routing manager and host safety boundaries
 - `frontend`: user dashboard
 - `frontend-admin`: admin panel
 - `telegram-bot`: bot client over backend API
@@ -81,7 +81,7 @@ Markers like `# START_BLOCK_<NAME>` and `# END_BLOCK_<NAME>` are navigation anch
 `docs/graph-index.xml` + `docs/modules/M-XXX.xml` is the project map. When you add a module, move a module, rename exports, or add dependencies, update both the index and the per-module file so future agents can navigate deterministically.
 
 ### 4. Verification Is a First-Class Artifact
-Testing, traces, and log anchors are designed before large execution waves. `docs/verification-plan.xml` is part of the architecture, not an afterthought. Logs are evidence. Tests are executable contracts.
+Testing, traces, and log anchors are designed before large execution waves. `docs/verification-index.xml` + `docs/verification/V-M-XXX.xml` are part of the architecture, not an afterthought. Logs are evidence. Tests are executable contracts.
 
 ### 5. Top-Down Synthesis
 Code generation follows:
@@ -172,7 +172,7 @@ Rules:
 
 ## Verification Conventions
 
-`docs/verification-plan.xml` is the project-wide verification contract. Keep it current when module scope, test files, commands, critical log markers, or gate expectations change. Use `docs/operational-packets.xml` as the canonical schema for execution packets, graph deltas, verification deltas, and failure handoff packets.
+`docs/verification-index.xml` + `docs/verification/V-M-XXX.xml` are the active verification contract. Keep them current when module scope, test files, commands, critical log markers, or gate expectations change. Use `docs/operational-packets.xml` as the canonical schema for execution packets, graph deltas, verification deltas, and failure handoff packets.
 
 Testing rules:
 - deterministic assertions first

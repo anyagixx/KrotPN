@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!-- MyGRACE Graph Index — lazy-loading entry point for module navigation -->
-<!-- Generated 2026-04-12 from knowledge-graph.xml v1.0.0 -->
+<!-- MyGRACE index generated from per-module contracts; archived monoliths are reference-only -->
 <GraphIndex VERSION="1.0.0" PROJECT="KrotPN" MODULE-COUNT="34">
   <M-001 NAME="backend-core" TYPE="UTILITY" STATUS="stable" PATH="backend/app/core" DEPENDS="M-028" VERIFICATION-REF="V-M-001" />
   <M-002 NAME="users" TYPE="CORE_LOGIC" STATUS="stable" PATH="backend/app/users" DEPENDS="M-001,M-027" VERIFICATION-REF="V-M-002" />
@@ -47,10 +47,12 @@
     <link from="M-004" to="M-001" />
     <link from="M-004" to="M-021" />
     <link from="M-005" to="M-001" />
+    <link from="M-006" to="M-001" />
     <link from="M-006" to="M-002" />
     <link from="M-006" to="M-003" />
     <link from="M-006" to="M-004" />
     <link from="M-006" to="M-005" />
+    <link from="M-006" to="M-007" />
     <link from="M-006" to="M-024" />
     <link from="M-006" to="M-026" />
     <link from="M-007" to="M-001" />
@@ -71,22 +73,53 @@
     <link from="M-012" to="M-030" />
     <link from="M-017" to="M-007" />
     <link from="M-017" to="M-012" />
+    <link from="M-018" to="M-001" />
     <link from="M-018" to="M-002" />
     <link from="M-018" to="M-004" />
     <link from="M-018" to="M-003" />
+    <link from="M-019" to="M-001" />
+    <link from="M-019" to="M-002" />
     <link from="M-019" to="M-018" />
     <link from="M-019" to="M-003" />
+    <link from="M-019" to="M-004" />
     <link from="M-019" to="M-012" />
+    <link from="M-020" to="M-001" />
+    <link from="M-020" to="M-002" />
+    <link from="M-020" to="M-003" />
     <link from="M-020" to="M-021" />
+    <link from="M-021" to="M-001" />
+    <link from="M-021" to="M-002" />
+    <link from="M-021" to="M-003" />
+    <link from="M-021" to="M-004" />
+    <link from="M-021" to="M-020" />
     <link from="M-021" to="M-022" />
     <link from="M-021" to="M-023" />
     <link from="M-021" to="M-025" />
+    <link from="M-022" to="M-001" />
+    <link from="M-022" to="M-002" />
     <link from="M-022" to="M-003" />
+    <link from="M-022" to="M-004" />
+    <link from="M-022" to="M-020" />
+    <link from="M-022" to="M-021" />
+    <link from="M-023" to="M-001" />
     <link from="M-023" to="M-003" />
+    <link from="M-023" to="M-007" />
+    <link from="M-023" to="M-020" />
+    <link from="M-023" to="M-021" />
     <link from="M-023" to="M-025" />
     <link from="M-023" to="M-031" />
+    <link from="M-024" to="M-001" />
+    <link from="M-024" to="M-003" />
+    <link from="M-024" to="M-006" />
+    <link from="M-024" to="M-020" />
+    <link from="M-024" to="M-021" />
+    <link from="M-024" to="M-023" />
     <link from="M-024" to="M-025" />
+    <link from="M-025" to="M-001" />
+    <link from="M-025" to="M-020" />
+    <link from="M-025" to="M-023" />
     <link from="M-026" to="M-001" />
+    <link from="M-026" to="M-006" />
     <link from="M-002" to="M-027" />
     <link from="M-027" to="M-001" />
     <link from="M-001" to="M-028" />

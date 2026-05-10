@@ -1,6 +1,6 @@
 # 🐀 KrotPN
 
-**Коммерческий VPN-сервис с обфускацией AmneziaWG и split-tunneling**
+**Коммерческий VPN-сервис с обфускацией AmneziaWG и двухузловым Full Tunnel**
 
 ![Version](https://img.shields.io/badge/version-2.8.2-blue)
 ![Python](https://img.shields.io/badge/python-3.11-green)
@@ -10,7 +10,7 @@
 ## 🌟 Особенности
 
 - **AmneziaWG** - обфусцированный WireGuard протокол для обхода DPI
-- **Split-Tunneling** - российские сайты открываются напрямую
+- **Full Tunnel** - весь клиентский трафик проходит через RU Entry Node к DE Exit Node
 - **HTTPS** - самоподписанные SSL сертификаты для безопасности
 - **Двухуровневая архитектура** - RU Entry Node + DE Exit Node
 - **Коммерческая модель** - подписки, триалы, реферальная программа
@@ -40,18 +40,22 @@
 
 ## 🤖 AI Development Handoff
 
-Проект ведётся в режиме `GRACE-lite` для работы с несколькими ИИ-агентами.
+Проект ведётся по `MyGRACE` для работы с несколькими ИИ-агентами через ленивую навигацию по индексам.
 
 Перед любыми изменениями новый агент должен прочитать файлы в таком порядке:
 
 1. `docs/current-status.xml`
-2. `docs/knowledge-graph.xml`
-3. `docs/development-plan.xml`
-4. `docs/verification-plan.xml`
-5. `AGENTS.md`
+2. `docs/graph-index.xml`
+3. `docs/modules/M-XXX.xml` — только модуль, который меняется
+4. `docs/plan-index.xml`
+5. `docs/plans/Phase-N.xml` — только релевантная фаза
+6. `docs/verification-index.xml`
+7. `docs/verification/V-M-XXX.xml` — только релевантная проверка
+8. `AGENTS.md`
 
 Это обязательный входной слой проекта: он фиксирует текущую стадию разработки,
 приоритеты, карту модулей и правила проверки изменений.
+Монолитные GRACE-файлы не являются активным входом; они лежат в `docs/archive/classic-grace/` только для редкой исторической справки.
 
 ## ⚡ Быстрый старт
 
