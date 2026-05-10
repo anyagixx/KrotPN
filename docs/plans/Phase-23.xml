@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Phase-23 NAME="Compact Mobile User Cabinet" STATUS="pending" MODULES="M-036,M-038,M-009,M-002,M-003,M-004,M-022" CREATED="2026-05-10" UPDATED="2026-05-10">
+<Phase-23 NAME="Compact Mobile User Cabinet" STATUS="done" MODULES="M-036,M-038,M-009,M-002,M-003,M-004,M-022" CREATED="2026-05-10" UPDATED="2026-05-10">
   <goal>
     Redesign the user personal cabinet into a compact mobile-first workflow focused on VPN access, subscription state,
     device-bound configs, QR/download actions, and payment entry points.
@@ -90,7 +90,7 @@
     </acceptance>
   </step-5>
 
-  <step-6 MODULE="M-036,M-038,M-009" RISK="HIGH" STATUS="pending">
+  <step-6 MODULE="M-036,M-038,M-009" RISK="HIGH" STATUS="done">
     Verify build and mobile smoke paths for login guard, dashboard, config QR/download/copy, subscription purchase entry, and device create/rotate/revoke controls.
     <verification-ref>V-M-036,V-M-038</verification-ref>
     <acceptance>
@@ -114,4 +114,11 @@
     <check-4>QR, .conf download, copy, create device, rotate device, revoke device, subscription renewal, and payment entry remain present.</check-4>
     <check-5>Existing backend API contracts remain unchanged unless explicitly approved later.</check-5>
   </verification>
+
+  <evidence>
+    <evidence-1>cd frontend &amp;&amp; npm run build passed after Phase-23 source changes.</evidence-1>
+    <evidence-2>Headless Chrome CDP mobile smoke passed for /, /config, and /subscription at 360x740, 390x844, and 430x932 with scrollWidth equal to viewport width.</evidence-2>
+    <evidence-3>Primary config, device, and payment actions were detected in mobile smoke without backend API shape changes.</evidence-3>
+    <evidence-4>npm run lint is not an active Phase-23 gate because frontend has no ESLint configuration file.</evidence-4>
+  </evidence>
 </Phase-23>

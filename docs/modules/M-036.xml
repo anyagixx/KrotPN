@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<M-036 NAME="mobile-user-cabinet" TYPE="UI_COMPONENT" STATUS="wip">
+<M-036 NAME="mobile-user-cabinet" TYPE="UI_COMPONENT" STATUS="done">
   <path>frontend docs/plans/Phase-23.xml</path>
   <owns>Compact mobile-first personal cabinet for VPN status, subscription state, device management, and config access</owns>
   <exports>

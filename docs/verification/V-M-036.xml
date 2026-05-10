@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<V-M-036 MODULE="M-036" PRIORITY="high" STATUS="wip">
+<V-M-036 MODULE="M-036" PRIORITY="high" STATUS="pass-local">
   <module>mobile-user-cabinet</module>
   <checks>User frontend must become compact, phone-friendly, and focused on VPN config, subscription, and device workflows.</checks>
   <test-files>frontend/src/components/Layout.tsx frontend/src/pages/Dashboard.tsx frontend/src/pages/Config.tsx frontend/src/pages/Subscription.tsx frontend/src/index.css</test-files>
@@ -66,6 +66,7 @@
     <evidence-2>Record viewport smoke result with scrollWidth not greater than innerWidth for the tested routes.</evidence-2>
     <evidence-3>Record action reachability for config QR/download/copy from mobile home.</evidence-3>
     <evidence-4>Record that device create/rotate/revoke controls and subscription payment entry are still present.</evidence-4>
+    <evidence-5>2026-05-10: npm run build passed; Chrome CDP smoke passed for /, /config, /subscription at 360x740, 390x844, 430x932 with no horizontal scroll and required actions present.</evidence-5>
   </evidence>
   <autonomous-execution-safety status="allowed-after-build-and-mobile-smoke">
     Autonomous execution may proceed inside Phase-23 user frontend files if each step preserves module contracts, keeps deploy/install out of scope, and records build plus viewport evidence before commit.
