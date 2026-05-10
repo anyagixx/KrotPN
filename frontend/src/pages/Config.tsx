@@ -1,22 +1,24 @@
 // FILE: frontend/src/pages/Config.tsx
-// VERSION: 1.0.0
+// VERSION: 1.1.0
 // ROLE: UI_COMPONENT
 // MAP_MODE: SUMMARY
 // START_MODULE_CONTRACT
-//   PURPOSE: VPN configuration management page -- device registry, config download/copy/QR, route topology display
-//   SCOPE: Device CRUD (create/rotate/revoke), config rendering, QR modal, route and node info cards
-//   DEPENDS: M-009 (frontend-user), M-003 (vpn config API), M-002 (auth API)
-//   LINKS: M-009 (frontend-user)
+//   PURPOSE: Compact VPN configuration page for device registry, config download/copy/QR, and raw-config fallback
+//   SCOPE: Device CRUD (create/rotate/revoke), selected config actions, QR modal, collapsed raw config, compact install guidance
+//   DEPENDS: M-009 (frontend-user), M-003 (vpn config API), M-002 (auth API), M-022 (device provisioning API), M-036 (mobile-user-cabinet)
+//   LINKS: M-009 (frontend-user), M-036 (mobile-user-cabinet)
 // END_MODULE_CONTRACT
 //
 // START_MODULE_MAP
-//   ConfigPage - Main config page component with device management, QR modal, config display
-//   BLOCK_CONFIG_PAGE - ConfigPage default export (545 lines)
+//   ConfigPage - Compact config page component with device management, QR modal, and collapsed raw config
+//   QRModal - Client-side QR modal with AmneziaWG and AmneziaVPN guidance
+//   BLOCK_CONFIG_PAGE - ConfigPage default export with compact device/config workflow
 // END_MODULE_MAP
 //
 // START_CHANGE_SUMMARY
 //   LAST_CHANGE: v2.8.0 - Added full GRACE MODULE_CONTRACT and MODULE_MAP per GRACE governance protocol
 //   LAST_CHANGE: v2.8.1 - Fixed QR code not showing: removed disabled={Boolean(managedBundle)} from QR button so device-bound configs can also display QR
+//   LAST_CHANGE: v2.9.0 - Reworked device/config management into compact mobile-first Phase-23 workflow
 // END_CHANGE_SUMMARY
 //
 // START_BLOCK_CONFIG_PAGE
@@ -38,6 +40,7 @@ export default function Config() {
   const [managedBundle, setManagedBundle] = useState<DeviceConfigBundle | null>(null)
   const [newDeviceName, setNewDeviceName] = useState('')
   const [newDevicePlatform, setNewDevicePlatform] = useState('')
+  const [showRawConfig, setShowRawConfig] = useState(false)
 
   const { data: configData, isLoading, error } = useQuery('vpn-config', () => vpnApi.getConfig())
   const { data: devicesData } = useQuery('device-list', () => deviceApi.list(), {
@@ -155,34 +158,30 @@ export default function Config() {
   const deviceList = devicesData?.data?.devices || []
   const consumedSlots = devicesData?.data?.consumed_slots || 0
   const deviceLimit = devicesData?.data?.device_limit || 0
+  const activeDeviceCount = deviceList.filter((device) => device.status === 'active').length
+  const selectedDeviceName = managedBundle?.device.name || 'Текущий конфиг'
+  const selectedDeviceKey = managedBundle?.device.device_key || null
 
   if (hasNoConfig || isForbidden) {
     return (
       <div className="content-section animate-in">
-        <div className="section-header">
-          <div>
-            <h1 className="section-title">{t('vpnConfig')}</h1>
-            <p className="section-subtitle">Конфигурация появится сразу после активации доступа и назначения VPN-клиента.</p>
-          </div>
-        </div>
-
-        <div className="glass p-6">
-          <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
-            <div>
-              <p className="text-xs font-bold uppercase tracking-[0.18em] text-cyan-100/70">Configuration unavailable</p>
-              <h2 className="mt-3 text-2xl font-extrabold">
+        <section className="panel p-4 sm:p-5">
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+            <div className="min-w-0">
+              <p className="text-xs font-bold uppercase text-cyan-100/70">{t('vpnConfig')}</p>
+              <h1 className="mt-1 text-2xl font-extrabold">
                 {isForbidden ? 'Доступ к VPN сейчас отключён' : 'Конфигурация ещё не выдана'}
-              </h2>
-              <p className="mt-2 max-w-2xl text-sm muted">
+              </h1>
+              <p className="mt-2 text-sm muted">
                 {errorMessage || 'Сначала нужен активный доступ, после этого кабинет сможет выдать конфиг и QR-код.'}
               </p>
             </div>
-            <Link to="/subscription" className="btn-primary">
+            <Link to="/subscription" className="btn-primary min-h-11 shrink-0 rounded-xl px-3 py-2.5">
               <Download className="h-5 w-5" />
               Открыть подписку
             </Link>
           </div>
-        </div>
+        </section>
       </div>
     )
   }
@@ -201,37 +200,68 @@ export default function Config() {
 
   return (
     <div className="content-section animate-in">
-      <div className="section-header">
-        <div>
-          <h1 className="section-title">{t('vpnConfig')}</h1>
-          <p className="section-subtitle">Управляйте устройствами, перевыпускайте конфиги и держите лимит слотов под контролем.</p>
-        </div>
-      </div>
-
-      <section className="panel p-6">
-        <div className="flex flex-col gap-5 xl:flex-row xl:items-start xl:justify-between">
-          <div>
-            <p className="text-xs font-bold uppercase tracking-[0.18em] text-cyan-100/70">Device registry</p>
-            <h2 className="mt-3 text-2xl font-extrabold">Устройства и лимит доступа</h2>
-            <p className="mt-2 max-w-2xl text-sm muted">
-              Каждый слот теперь соответствует отдельному peer и отдельному конфигу. Отзывайте старые устройства и перевыпускайте конфиг только для нужного устройства.
-            </p>
+      <section className="grid gap-3 lg:grid-cols-[minmax(0,1fr)_minmax(260px,0.75fr)]">
+        <article className="panel p-4 sm:p-5">
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+            <div className="min-w-0">
+              <p className="text-xs font-bold uppercase text-cyan-100/70">{t('vpnConfig')}</p>
+              <h1 className="mt-1 truncate text-2xl font-extrabold">{selectedDeviceName}</h1>
+              <p className="mt-2 text-sm muted">
+                QR, `.conf`, copy и device-bound действия доступны без перехода в desktop layout.
+              </p>
+              {selectedDeviceKey ? (
+                <p className="mt-2 break-all text-xs muted">key: {selectedDeviceKey}</p>
+              ) : null}
+            </div>
+            <span className="status-badge-success w-fit shrink-0">config ready</span>
           </div>
 
-          <div className="grid min-w-[240px] gap-3 sm:grid-cols-2">
-            <div className="panel-soft px-4 py-4">
-              <p className="text-xs uppercase tracking-[0.18em] muted">Занято слотов</p>
-              <p className="mt-2 text-2xl font-bold">{consumedSlots}</p>
+          <div className="mt-4 grid gap-2 sm:grid-cols-3">
+            <button onClick={() => setShowQR(true)} disabled={!config?.config} className="btn-primary min-h-11 rounded-xl px-3 py-2.5">
+              <QrCode className="h-5 w-5" />
+              QR
+            </button>
+            <button onClick={handleDownload} className="btn-secondary min-h-11 rounded-xl px-3 py-2.5">
+              <Download className="h-5 w-5" />
+              .conf
+            </button>
+            <button onClick={handleCopy} className="btn-secondary min-h-11 rounded-xl px-3 py-2.5">
+              {copied ? <Check className="h-5 w-5 text-emerald-200" /> : <Copy className="h-5 w-5" />}
+              {copied ? t('copied') : t('copyConfig')}
+            </button>
+          </div>
+        </article>
+
+        <article className="panel p-4 sm:p-5">
+          <p className="text-xs font-bold uppercase text-cyan-100/70">Устройства</p>
+          <div className="mt-3 grid grid-cols-3 gap-2 text-sm">
+            <div>
+              <p className="muted">Активные</p>
+              <p className="mt-1 text-xl font-bold">{activeDeviceCount}</p>
             </div>
-            <div className="panel-soft px-4 py-4">
-              <p className="text-xs uppercase tracking-[0.18em] muted">Лимит тарифа</p>
-              <p className="mt-2 text-2xl font-bold">{deviceLimit}</p>
+            <div>
+              <p className="muted">Занято</p>
+              <p className="mt-1 text-xl font-bold">{consumedSlots}</p>
+            </div>
+            <div>
+              <p className="muted">Лимит</p>
+              <p className="mt-1 text-xl font-bold">{deviceLimit || '∞'}</p>
             </div>
           </div>
-        </div>
+        </article>
+      </section>
 
-        <div className="mt-6 grid gap-4 xl:grid-cols-[minmax(0,1.2fr)_minmax(320px,0.8fr)]">
-          <div className="grid gap-3">
+      <section className="grid gap-3 xl:grid-cols-[minmax(0,1.15fr)_minmax(260px,0.85fr)]">
+        <article className="panel p-4 sm:p-5">
+          <div className="flex items-start justify-between gap-3">
+            <div className="min-w-0">
+              <h2 className="text-lg font-bold">Device-bound список</h2>
+              <p className="mt-1 text-sm muted">Перевыпускайте или удаляйте только нужное устройство.</p>
+            </div>
+            <Laptop2 className="h-5 w-5 shrink-0 text-cyan-100" />
+          </div>
+
+          <div className="mt-4 grid gap-2">
             {deviceList.length ? (
               deviceList.map((device) => {
                 const isBusy =
@@ -239,44 +269,37 @@ export default function Config() {
                   || revokeDeviceMutation.isLoading && revokeDeviceMutation.variables === device.id
 
                 return (
-                  <div key={device.id} className="panel-soft px-4 py-4">
-                    <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
-                      <div className="flex items-start gap-3">
-                        <div className="rounded-2xl bg-white/8 p-3 text-cyan-100">
-                          <Laptop2 className="h-5 w-5" />
+                  <div key={device.id} className="rounded-xl border border-white/10 bg-white/[0.03] p-3">
+                    <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                      <div className="min-w-0">
+                        <div className="flex flex-wrap items-center gap-2">
+                          <p className="max-w-full truncate font-bold">{device.name}</p>
+                          <span className={device.status === 'active' ? 'status-badge-success' : 'status-badge-warning'}>
+                            {device.status}
+                          </span>
                         </div>
-                        <div>
-                          <div className="flex flex-wrap items-center gap-2">
-                            <p className="font-bold">{device.name}</p>
-                            <span className={device.status === 'active' ? 'status-badge-success' : 'status-badge-warning'}>
-                              {device.status}
-                            </span>
-                          </div>
-                          <p className="mt-1 text-sm muted">
-                            {device.platform || 'platform not set'} · version {device.config_version}
-                          </p>
-                          <p className="mt-2 text-xs muted">
-                            key: {device.device_key}
-                          </p>
-                          {device.block_reason ? (
-                            <p className="mt-2 text-xs text-amber-200">Причина ограничения: {device.block_reason}</p>
-                          ) : null}
-                        </div>
+                        <p className="mt-1 text-sm muted">
+                          {device.platform || 'platform not set'} · v{device.config_version}
+                        </p>
+                        <p className="mt-1 break-all text-xs muted">key: {device.device_key}</p>
+                        {device.block_reason ? (
+                          <p className="mt-2 text-xs text-amber-200">Причина ограничения: {device.block_reason}</p>
+                        ) : null}
                       </div>
 
-                      <div className="flex flex-col gap-3 sm:flex-row">
+                      <div className="grid grid-cols-2 gap-2 sm:flex sm:shrink-0">
                         <button
                           onClick={() => rotateDeviceMutation.mutate(device.id)}
                           disabled={device.status !== 'active' || isBusy}
-                          className="btn-secondary"
+                          className="btn-secondary min-h-10 rounded-xl px-3 py-2 text-sm"
                         >
                           <RotateCw className="h-4 w-4" />
-                          Перевыпустить
+                          Обновить
                         </button>
                         <button
                           onClick={() => revokeDeviceMutation.mutate(device.id)}
                           disabled={device.status !== 'active' || isBusy}
-                          className="btn-secondary"
+                          className="btn-danger min-h-10 rounded-xl px-3 py-2 text-sm"
                         >
                           <Trash2 className="h-4 w-4" />
                           Удалить
@@ -296,18 +319,24 @@ export default function Config() {
               </div>
             )}
           </div>
+        </article>
 
-          <div className="glass p-5">
-            <p className="text-xs font-bold uppercase tracking-[0.18em] text-cyan-100/70">Add device</p>
-            <h3 className="mt-3 text-xl font-bold">Новый конфиг под устройство</h3>
-            <div className="mt-5 grid gap-3">
+        <article className="panel p-4 sm:p-5">
+          <div className="flex items-start gap-3">
+            <Plus className="mt-1 h-5 w-5 shrink-0 text-emerald-200" />
+            <div className="min-w-0">
+              <h2 className="text-lg font-bold">Новый конфиг</h2>
+              <p className="mt-1 text-sm muted">Создайте отдельный peer под телефон, ноутбук или планшет.</p>
+            </div>
+          </div>
+          <div className="mt-4 grid gap-3">
               <label className="grid gap-2">
                 <span className="text-sm muted">Название</span>
                 <input
                   value={newDeviceName}
                   onChange={(event) => setNewDeviceName(event.target.value)}
                   placeholder="Например: iPhone 16 Pro"
-                  className="rounded-2xl border border-white/10 bg-slate-950/45 px-4 py-3 text-sm text-slate-100 outline-none transition focus:border-cyan-200/40"
+                  className="input"
                 />
               </label>
               <label className="grid gap-2">
@@ -316,68 +345,63 @@ export default function Config() {
                   value={newDevicePlatform}
                   onChange={(event) => setNewDevicePlatform(event.target.value)}
                   placeholder="ios, android, macos, windows"
-                  className="rounded-2xl border border-white/10 bg-slate-950/45 px-4 py-3 text-sm text-slate-100 outline-none transition focus:border-cyan-200/40"
+                  className="input"
                 />
               </label>
-            </div>
-            <button
-              onClick={handleCreateDevice}
-              disabled={createDeviceMutation.isLoading}
-              className="btn-primary mt-5 w-full"
-            >
-              <Plus className="h-5 w-5" />
-              Создать устройство
-            </button>
           </div>
-        </div>
+          <button
+            onClick={handleCreateDevice}
+            disabled={createDeviceMutation.isLoading}
+            className="btn-primary mt-4 min-h-11 w-full rounded-xl px-3 py-2.5"
+          >
+            <Plus className="h-5 w-5" />
+            Создать устройство
+          </button>
+        </article>
       </section>
 
-      <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
-        <div className="panel p-6">
-          <div className="mb-5 flex items-center gap-3">
-            <div className="rounded-2xl bg-emerald-300/12 p-3 text-emerald-200">
-              <Smartphone className="h-6 w-6" />
-            </div>
-            <div>
+      <section className="grid gap-3 lg:grid-cols-2">
+        <article className="panel p-4 sm:p-5">
+          <div className="flex items-start gap-3">
+            <Smartphone className="mt-1 h-5 w-5 shrink-0 text-emerald-200" />
+            <div className="min-w-0">
               <h2 className="text-lg font-bold">Телефон и планшет</h2>
-              <p className="text-sm muted">Android и iPhone через QR или импорт файла</p>
+              <p className="mt-1 text-sm muted">Android и iPhone через QR или импорт файла.</p>
             </div>
           </div>
-          <ol className="space-y-3 text-sm text-slate-200">
+          <ol className="mt-4 space-y-2 text-sm text-slate-200">
             <li>1. Установите клиент AmneziaWG.</li>
             <li>2. Откройте QR-код или импортируйте конфигурационный файл.</li>
             <li>3. Активируйте профиль и включите туннель.</li>
           </ol>
           <button
             onClick={() => setShowQR(true)}
-            className="btn-secondary mt-5 w-full"
+            className="btn-secondary mt-4 min-h-11 w-full rounded-xl px-3 py-2.5"
           >
             <QrCode className="h-5 w-5" />
             Показать QR-код
           </button>
-        </div>
+        </article>
 
-        <div className="panel p-6">
-          <div className="mb-5 flex items-center gap-3">
-            <div className="rounded-2xl bg-cyan-300/12 p-3 text-cyan-100">
-              <Monitor className="h-6 w-6" />
-            </div>
-            <div>
+        <article className="panel p-4 sm:p-5">
+          <div className="flex items-start gap-3">
+            <Monitor className="mt-1 h-5 w-5 shrink-0 text-cyan-100" />
+            <div className="min-w-0">
               <h2 className="text-lg font-bold">Компьютер</h2>
-              <p className="text-sm muted">Windows, macOS и Linux через `.conf`</p>
+              <p className="mt-1 text-sm muted">Windows, macOS и Linux через `.conf`.</p>
             </div>
           </div>
-          <ol className="space-y-3 text-sm text-slate-200">
+          <ol className="mt-4 space-y-2 text-sm text-slate-200">
             <li>1. Скачайте AmneziaVPN или совместимый клиент.</li>
             <li>2. Импортируйте выданный конфиг.</li>
             <li>3. Сохраните профиль и нажмите подключение.</li>
           </ol>
-          <button onClick={handleDownload} className="btn-primary mt-5 w-full">
+          <button onClick={handleDownload} className="btn-primary mt-4 min-h-11 w-full rounded-xl px-3 py-2.5">
             <Download className="h-5 w-5" />
             {t('downloadConfig')}
           </button>
-        </div>
-      </div>
+        </article>
+      </section>
 
       {showQR ? (
         <QRModal
@@ -386,50 +410,40 @@ export default function Config() {
         />
       ) : null}
 
-      <div className="panel p-6">
-        <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-          <div className="flex items-center gap-3">
-            <div className="rounded-2xl bg-white/8 p-3 text-cyan-100">
-              <FileCode2 className="h-5 w-5" />
-            </div>
-            <div>
-              <h2 className="text-lg font-bold">Конфигурационный файл</h2>
-              <p className="text-sm muted">Готовый конфиг для ручного импорта и резервного копирования.</p>
-            </div>
+      <section className="panel p-4 sm:p-5">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+          <div className="min-w-0">
+            <h2 className="text-lg font-bold">Raw config fallback</h2>
+            <p className="mt-1 text-sm muted">Текст скрыт по умолчанию, чтобы не ломать мобильную ширину.</p>
           </div>
-
-          <div className="flex flex-col gap-3 sm:flex-row">
-            <button onClick={handleCopy} className="btn-secondary">
-              {copied ? <Check className="h-5 w-5 text-emerald-200" /> : <Copy className="h-5 w-5" />}
-              {copied ? t('copied') : t('copyConfig')}
-            </button>
-            <button onClick={handleDownload} className="btn-primary">
-              <Download className="h-5 w-5" />
-              {t('downloadConfig')}
-            </button>
-          </div>
+          <button onClick={() => setShowRawConfig((value) => !value)} className="btn-secondary min-h-11 shrink-0 rounded-xl px-3 py-2.5">
+            <FileCode2 className="h-5 w-5" />
+            {showRawConfig ? 'Скрыть' : 'Показать'}
+          </button>
         </div>
 
-        <pre className="mt-6 overflow-x-auto rounded-[24px] bg-slate-950/55 p-5 text-sm text-cyan-100">
-          {config?.config || 'Конфигурация недоступна'}
-        </pre>
-      </div>
+        {showRawConfig ? (
+          <pre className="mt-4 max-h-72 overflow-y-auto whitespace-pre-wrap break-all rounded-xl bg-slate-950/55 p-3 text-xs text-cyan-100">
+            {config?.config || 'Конфигурация недоступна'}
+          </pre>
+        ) : null}
+      </section>
 
       {config ? (
-        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+        <section className="grid gap-3 md:grid-cols-3">
           <div className="metric-card">
             <p className="metric-label">Статус</p>
-            <p className="metric-value text-2xl">Connected to Server</p>
+            <p className="mt-1 truncate font-bold">Connected to Server</p>
           </div>
           <div className="metric-card">
             <p className="metric-label">VPN IP</p>
-            <p className="metric-value text-2xl">{config.address}</p>
+            <p className="mt-1 break-all font-bold">{config.address}</p>
           </div>
           <div className="metric-card">
             <p className="metric-label">Создан</p>
-            <p className="metric-value text-2xl">{new Date(config.created_at).toLocaleDateString('ru-RU')}</p>
+            <p className="mt-1 font-bold">{new Date(config.created_at).toLocaleDateString('ru-RU')}</p>
           </div>
-        </div>
+        </section>
       ) : null}
     </div>
   )

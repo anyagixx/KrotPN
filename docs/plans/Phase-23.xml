@@ -72,7 +72,7 @@
     </acceptance>
   </step-3>
 
-  <step-4 MODULE="M-036,M-022,M-003" RISK="HIGH" STATUS="pending">
+  <step-4 MODULE="M-036,M-022,M-003" RISK="HIGH" STATUS="done">
     Redesign device-bound config management for create, rotate, revoke, QR, copy, and download without wide tables or raw config overflow.
     <acceptance>
       <accept-1>Device rows fit phone width and keep destructive actions visually secondary.</accept-1>
