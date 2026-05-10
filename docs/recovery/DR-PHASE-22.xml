@@ -12,12 +12,14 @@
   <module-map>
     <section-incident-modes>Classifies recovery mode before any action is taken.</section-incident-modes>
     <section-decision-points>Defines operator go/no-go choices and required evidence.</section-decision-points>
+    <section-replacement-server-runbook>Defines replacement RU/DE deployment checkpoint using existing approved scripts unchanged.</section-replacement-server-runbook>
     <section-live-boundaries>Separates local dry-run evidence from live VPS evidence.</section-live-boundaries>
   </module-map>
 
   <change-summary>
     <change-1>v1.0.0 - Phase-22 step-1 created incident modes and operator decision points.</change-1>
     <change-2>v1.1.0 - Phase-22 step-2 added maintenance/freeze sequence and backup evidence handoff.</change-2>
+    <change-3>v1.2.0 - Phase-22 step-5 added replacement-server runbook and restore checkpoint.</change-3>
   </change-summary>
 
   <incident-modes>
@@ -81,6 +83,29 @@
     <handoff-2>Do not start replacement deployment until pre-backup evidence names app version, old RU/DE addresses, table counts, migration state, and rollback candidate status.</handoff-2>
     <handoff-3>If old servers are unavailable, record why fresh backup capture is impossible and use the latest trusted backup bundle only after operator accepts data-loss risk.</handoff-3>
   </maintenance-freeze-handoff>
+
+  <replacement-server-runbook>
+    <stage-1 name="target-preflight">
+      <operator-action>Confirm replacement RU and DE hosts, OS baseline, SSH access, DNS/IP plan, and whether old servers remain rollback candidates.</operator-action>
+      <required-evidence>target_hosts.md with RU/DE addresses, provider names, access owner, and rollback status.</required-evidence>
+      <blocked-if>Target hosts require unplanned changes to deploy/, install.sh, nginx, or docker-compose.yml before restore.</blocked-if>
+    </stage-1>
+    <stage-2 name="fresh-deploy">
+      <operator-action>Run the existing operator-approved install/deploy flow exactly as currently documented for a fresh RU/DE deployment.</operator-action>
+      <required-evidence>deploy_notes.md states which existing script entrypoint was used and records only success/failure, timestamps, hostnames, and non-secret fingerprints.</required-evidence>
+      <blocked-if>Any recovery step requires editing deploy scripts or changing the approved password-based deployment flow.</blocked-if>
+    </stage-2>
+    <stage-3 name="restore-checkpoint-stop">
+      <operator-action>After replacement deployment boots, stop at restore checkpoint before public cutover or user traffic is accepted.</operator-action>
+      <required-evidence>restore_checkpoint.md confirms backend/database services are ready for restore, public cutover has not happened, and secrets were not printed.</required-evidence>
+      <blocked-if>Replacement deployment is already serving production traffic before database/runtime/VPN restore validation.</blocked-if>
+    </stage-3>
+    <stage-4 name="handoff-to-restore">
+      <operator-action>Hand off to restore sequence only after the backup manifest, checksums, and target-host evidence are available.</operator-action>
+      <required-evidence>manifest.json, checksums.sha256, target_hosts.md, and restore_checkpoint.md.</required-evidence>
+      <blocked-if>Backup bundle is missing or restore target cannot be isolated from users during restore.</blocked-if>
+    </stage-4>
+  </replacement-server-runbook>
 
   <live-boundaries>
     <local-only>XML parse, MyGRACE lint, manifest schema review, and non-production dry-run can prove document and procedure consistency.</local-only>

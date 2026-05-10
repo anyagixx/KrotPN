@@ -16,6 +16,10 @@
     <file>install.sh</file>
     <file>docker-compose.yml</file>
   </files>
+  <disaster-recovery-role>
+    <role-1>Phase-22 uses the existing deploy/install surface as an operator-approved black box for replacement-server provisioning.</role-1>
+    <role-2>Phase-22 recovery planning must not redesign, edit, or bypass deploy/ or install.sh.</role-2>
+  </disaster-recovery-role>
   <hotspot>H-015: Deploy idempotency must preserve WG keys, SSL certs, .env across repeated runs</hotspot>
   <hotspot>H-017: Fresh deploys may generate obfuscation profiles, but upgrades must preserve profiles unless rotation is explicit</hotspot>
 </M-012>
