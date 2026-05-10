@@ -21,6 +21,7 @@
     <change-1>v1.0.0 - Phase-22 step-2 created maintenance/freeze and pre-backup evidence contract.</change-1>
     <change-2>v1.1.0 - Phase-22 step-3 defined full backup bundle, manifest, and checksum contract.</change-2>
     <change-3>v1.2.0 - Phase-22 step-4 defined restore integrity gates, row invariants, and no-secret-log evidence.</change-3>
+    <change-4>v1.3.0 - Phase-22 step-6 linked restore sequence evidence to bundle validation outputs.</change-4>
   </change-summary>
 
   <maintenance-freeze>
@@ -119,6 +120,13 @@
     <invariant-4>Payment records retain provider identifiers and subscription linkage without duplicate successful webhook effects.</invariant-4>
     <invariant-5>Migration state after restore is not older than the source migration state.</invariant-5>
   </row-invariants>
+
+  <restore-sequence-evidence>
+    <evidence-1>restore_notes.md records bundle verification, runtime env restore, database restore, VPN state restore, migration-state comparison, and service-start decision.</evidence-1>
+    <evidence-2>table_counts.after.json is produced after PostgreSQL restore and before application cutover.</evidence-2>
+    <evidence-3>vpn_fingerprints.after.json is produced after VPN/AWG restore and before client compatibility validation.</evidence-3>
+    <evidence-4>service_start_notes.md records whether services were started only after integrity gates passed.</evidence-4>
+  </restore-sequence-evidence>
 
   <secret-redaction-policy>
     <rule-1>Never print raw .env, JWT secret, data encryption key, database password, Telegram token, YooKassa secret, AWG private key, or preshared key.</rule-1>

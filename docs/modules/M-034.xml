@@ -35,6 +35,7 @@
     <note-1>Phase-22 step-1 created docs/recovery/DR-PHASE-22.xml with incident modes, operator decision points, rollback eligibility, and local/live evidence boundaries.</note-1>
     <note-2>Phase-22 step-2 added maintenance/freeze sequencing and pre-backup evidence linkage to the recovery artifacts.</note-2>
     <note-3>Phase-22 step-5 added replacement-server provisioning stages that use the existing approved deploy/install flow unchanged and stop at a restore checkpoint.</note-3>
+    <note-4>Phase-22 step-6 added ordered restore sequence for bundle verification, runtime env, PostgreSQL, VPN/AWG state, migration checks, and service startup.</note-4>
   </execution-notes>
   <hotspot>H-021: Disaster recovery must use existing operator-approved deploy/install scripts as a black-box deployment surface</hotspot>
 </M-034>

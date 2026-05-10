@@ -36,7 +36,7 @@
     Write the replacement-server runbook: provision fresh RU/DE hosts through the existing approved deploy/install scripts, then stop services at the restore checkpoint.
   </step-5>
 
-  <step-6 MODULE="M-034,M-035,M-028" RISK="CRITICAL" STATUS="pending">
+  <step-6 MODULE="M-034,M-035,M-028" RISK="CRITICAL" STATUS="done">
     Define restore sequence: load database dump, restore protected runtime env, restore VPN/AWG artifacts, verify migration state, then start services.
   </step-6>
 
@@ -90,5 +90,6 @@
     <artifact-3 module="M-035">docs/recovery/BACKUP-PHASE-22.xml defines the portable bundle layout, manifest fields, required artifacts, and checksum rules.</artifact-3>
     <artifact-4 module="M-035,M-028">docs/recovery/BACKUP-PHASE-22.xml defines restore integrity gates for schema/migration state, checksums, table counts, row invariants, and no-secret-log review.</artifact-4>
     <artifact-5 module="M-034,M-012">docs/recovery/DR-PHASE-22.xml defines replacement-server provisioning through the existing approved deploy/install flow and a restore checkpoint before public cutover.</artifact-5>
+    <artifact-6 module="M-034,M-035,M-028">docs/recovery/DR-PHASE-22.xml and docs/recovery/BACKUP-PHASE-22.xml define the ordered restore sequence and evidence outputs before service startup.</artifact-6>
   </execution-artifacts>
 </Phase-22>

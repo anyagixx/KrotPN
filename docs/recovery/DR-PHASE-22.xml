@@ -13,6 +13,7 @@
     <section-incident-modes>Classifies recovery mode before any action is taken.</section-incident-modes>
     <section-decision-points>Defines operator go/no-go choices and required evidence.</section-decision-points>
     <section-replacement-server-runbook>Defines replacement RU/DE deployment checkpoint using existing approved scripts unchanged.</section-replacement-server-runbook>
+    <section-restore-sequence>Defines ordered database, runtime, VPN, migration, and service-start restore sequence.</section-restore-sequence>
     <section-live-boundaries>Separates local dry-run evidence from live VPS evidence.</section-live-boundaries>
   </module-map>
 
@@ -20,6 +21,7 @@
     <change-1>v1.0.0 - Phase-22 step-1 created incident modes and operator decision points.</change-1>
     <change-2>v1.1.0 - Phase-22 step-2 added maintenance/freeze sequence and backup evidence handoff.</change-2>
     <change-3>v1.2.0 - Phase-22 step-5 added replacement-server runbook and restore checkpoint.</change-3>
+    <change-4>v1.3.0 - Phase-22 step-6 added ordered restore sequence and service-start gate.</change-4>
   </change-summary>
 
   <incident-modes>
@@ -106,6 +108,39 @@
       <blocked-if>Backup bundle is missing or restore target cannot be isolated from users during restore.</blocked-if>
     </stage-4>
   </replacement-server-runbook>
+
+  <restore-sequence>
+    <restore-1 order="1" name="verify-bundle-before-restore">
+      <operator-action>Verify manifest and checksums before loading any data into the replacement environment.</operator-action>
+      <required-evidence>checksums.sha256 pass, manifest.json present, and restore_notes.md started.</required-evidence>
+      <blocked-if>Any required bundle artifact is missing or checksum verification fails.</blocked-if>
+    </restore-1>
+    <restore-2 order="2" name="restore-runtime-env">
+      <operator-action>Restore protected runtime environment material to the replacement deployment without printing secret values.</operator-action>
+      <required-evidence>runtime env keys present as booleans/fingerprints only; no raw secret output.</required-evidence>
+      <blocked-if>Backend, database, Redis, billing, Telegram, JWT, or encryption keys are missing.</blocked-if>
+    </restore-2>
+    <restore-3 order="3" name="restore-postgres">
+      <operator-action>Restore postgres.dump into the replacement PostgreSQL target while public traffic remains blocked.</operator-action>
+      <required-evidence>restore_notes.md records dump file name, restore status, table_counts.after.json, and no secret output.</required-evidence>
+      <blocked-if>Database restore exits with errors or critical table counts cannot be captured.</blocked-if>
+    </restore-3>
+    <restore-4 order="4" name="restore-vpn-state">
+      <operator-action>Restore AWG profiles, subnet settings, server key material, peer state, and device-client linkage from vpn-state.tar.enc.</operator-action>
+      <required-evidence>vpn_fingerprints.after.json matches expected profile fingerprints and peer counts within explicit tolerance.</required-evidence>
+      <blocked-if>Restored VPN state would silently invalidate existing client configs.</blocked-if>
+    </restore-4>
+    <restore-5 order="5" name="verify-migration-state">
+      <operator-action>Compare source and restored migration state, then run compatibility checks before application startup.</operator-action>
+      <required-evidence>migration_state.after.txt is present and matches or supersedes the source state.</required-evidence>
+      <blocked-if>Migration state is older than source or incompatible with restored database contents.</blocked-if>
+    </restore-5>
+    <restore-6 order="6" name="start-services-after-validation">
+      <operator-action>Start services only after restore integrity gates pass; keep cutover blocked until application and VPN validation complete.</operator-action>
+      <required-evidence>service_start_notes.md with startup status and link to validation checklist.</required-evidence>
+      <blocked-if>Restore integrity gates are incomplete, waived without operator note, or failed.</blocked-if>
+    </restore-6>
+  </restore-sequence>
 
   <live-boundaries>
     <local-only>XML parse, MyGRACE lint, manifest schema review, and non-production dry-run can prove document and procedure consistency.</local-only>

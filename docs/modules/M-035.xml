@@ -34,6 +34,7 @@
     <note-1>Phase-22 step-2 created docs/recovery/BACKUP-PHASE-22.xml with maintenance/freeze sequence, pre-backup evidence, and secret-redaction policy.</note-1>
     <note-2>Phase-22 step-3 expanded docs/recovery/BACKUP-PHASE-22.xml with required bundle artifacts, manifest fields, and checksum rules.</note-2>
     <note-3>Phase-22 step-4 added restore integrity gates for schema/migration state, checksums, table counts, selected row invariants, and no-secret-log evidence.</note-3>
+    <note-4>Phase-22 step-6 linked restore sequence evidence outputs to bundle validation, after-restore counts, VPN fingerprints, and service-start notes.</note-4>
   </execution-notes>
   <hotspot>H-022: Backup bundles can expose secrets or fail restore if they omit AWG profiles, runtime env, or device/client linkage</hotspot>
 </M-035>
