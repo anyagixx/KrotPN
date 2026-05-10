@@ -5,9 +5,24 @@
   <test-files>backend/tests/test_admin_device_control.py</test-files>
   <commands>cd backend &amp;&amp; SECRET_KEY=test-secret-key-with-enough-length DATA_ENCRYPTION_KEY=dpFmfSVqfdAK3yx5MQV6Tcv35RZuw5MzaH0yhxJ01q0= PYTHONPATH=. ../.venv/bin/python -m pytest -o addopts='' tests/test_admin_device_control.py -v</commands>
   <anchors>VPN_DEVICE_BLOCKED VPN_DEVICE_UNBLOCKED VPN_DEVICE_REVOKED recent_anti_abuse_event_types</anchors>
+  <phase-24-contract-guard>
+    <guard-1>Frontend device actions must keep one-device targeting for block, unblock, rotate, and revoke.</guard-1>
+    <guard-2>UI confirmation text must identify the target device/user before mutation and must not imply whole-account disablement.</guard-2>
+    <guard-3>If backend device-control files or frontend endpoint bindings change during Phase-24, rerun this verification before marking V-M-037 pass-local.</guard-3>
+  </phase-24-contract-guard>
+  <levels>
+    <module-local>Run backend device admin tests if M-024 files or frontend-admin device API bindings change.</module-local>
+    <wave-level>During Phase-24 UI waves, static review confirms action buttons call confirmation logic before existing M-024 endpoint bindings.</wave-level>
+    <phase-level>Final Phase-24 evidence records confirmation-safe UI plus either no backend/device-control diff or a passing V-M-024 rerun.</phase-level>
+  </levels>
   <scenarios>
     <scenario kind="success" trace="VPN_DEVICE_BLOCKED">Admin blocks specific device peer without affecting other devices</scenario>
     <scenario kind="success" trace="recent_anti_abuse_event_types">Admin device payload exposes recent anti-abuse event context for operator triage</scenario>
     <scenario kind="failure" trace="VPN_DEVICE_BLOCKED">Enforcement bypasses auth or disables whole user account instead of targeted device</scenario>
+    <scenario kind="failure" trace="PHASE24_DIRECT_MUTATION">Frontend row controls execute block, unblock, rotate, or revoke without an explicit confirmation surface</scenario>
   </scenarios>
+  <observability>
+    <telemetry-1>Device-control evidence records device id surrogate, action name, confirmation state, result status, and refreshed list behavior.</telemetry-1>
+    <telemetry-2>Evidence must not contain peer private keys, full VPN configs, bearer tokens, or raw endpoint IPs when screenshots/text logs are saved.</telemetry-2>
+  </observability>
 </V-M-024>

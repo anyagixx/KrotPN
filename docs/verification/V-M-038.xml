@@ -3,7 +3,7 @@
   <module>compact-ui-system</module>
   <checks>Shared UI rules must make user and admin surfaces compact, consistent, and readable on mobile screens.</checks>
   <test-files>frontend/src/components/Layout.tsx frontend/src/pages/Dashboard.tsx frontend/src/pages/Config.tsx frontend/src/pages/Subscription.tsx frontend/src/index.css frontend-admin/src/components/Layout.tsx frontend-admin/src/pages/Dashboard.tsx frontend-admin/src/pages/Users.tsx frontend-admin/src/pages/Devices.tsx frontend-admin/src/pages/Analytics.tsx frontend-admin/src/components/StatCard.tsx frontend-admin/src/index.css</test-files>
-  <commands>cd frontend &amp;&amp; npm run build; Phase-23 compact UI static review and mobile viewport smoke; cd ../frontend-admin &amp;&amp; npm run build; Phase-24 admin compact UI static review and mobile viewport smoke before full M-038 closure</commands>
+  <commands>cd frontend &amp;&amp; npm run build; Phase-23 compact UI static review and mobile viewport smoke; cd ../frontend-admin &amp;&amp; npm run build; Phase-24 admin compact UI static review and Chrome/CDP mobile viewport smoke before full M-038 closure</commands>
   <levels>
     <module-local>User frontend build and static compact UI review run after each compact shell, dashboard, config, or subscription change.</module-local>
     <wave-level>Phase-23 wave smoke checks layout density, no nested cards, no decorative hero/orb basis, stable controls, and safe text on user routes.</wave-level>
@@ -17,6 +17,7 @@
     <check-5>Operational screens do not start with marketing hero sections or repeated status panels.</check-5>
     <check-6>Text wraps or truncates intentionally for long emails, device keys, plan names, and status labels.</check-6>
     <check-7>Admin device actions use confirmation-safe mobile patterns and do not mutate directly from table-row buttons.</check-7>
+    <check-8>Compact UI execution records route/viewport/no-scroll evidence for both user and admin surfaces before M-038 can move from partial-local.</check-8>
   </module-checks>
   <verification-matrix>
     <rule-layout>Mobile shell uses concise navigation instead of a desktop-width sidebar and repeated identity/status panels.</rule-layout>
@@ -25,7 +26,13 @@
     <rule-text>Long emails, device names, device keys, plan names, prices, and status labels wrap or truncate intentionally without overlap.</rule-text>
     <rule-background>Operational surfaces do not rely on decorative radial-gradient/orb backgrounds or marketing hero composition.</rule-background>
     <rule-admin-actions>Admin destructive/disruptive actions stay visible but require confirmation that identifies the target device/peer.</rule-admin-actions>
+    <rule-evidence>Every compact UI closure records deterministic build first, visual/mobile smoke second, and static design review third.</rule-evidence>
   </verification-matrix>
+  <evidence-types>
+    <type-1 priority="deterministic">Build result, XML parse, MyGRACE lint, and git no-diff checks for excluded surfaces.</type-1>
+    <type-2 priority="trace">Route/viewport smoke logs with scrollWidth, innerWidth, visible controls, and confirmation state.</type-2>
+    <type-3 priority="integration">Optional local backend or mocked API route render checks for admin stats, users, devices, billing, and health states.</type-3>
+  </evidence-types>
   <scenarios>
     <scenario-1 kind="success">User cabinet uses compact layout rules while preserving VPN, billing, and device workflows.</scenario-1>
     <scenario-2 kind="success">Admin console adopts the same rules in Phase-24 without changing the Phase-23 user scope.</scenario-2>
@@ -49,11 +56,13 @@
     <review-5>Admin layout does not preserve the 320px desktop sidebar as the primary phone navigation.</review-5>
     <review-6>Admin users and devices do not depend on wide tables as the only usable mobile workflow.</review-6>
     <review-7>Admin analytics keeps charts secondary to concise payment/subscription KPI summaries on phones.</review-7>
+    <review-8>Admin device action controls open a confirmation surface before calling block/unblock/rotate/revoke mutations.</review-8>
   </static-review>
   <observability>
     <telemetry-1>Compact UI evidence records route, viewport, scrollWidth, innerWidth, and checked layout rule.</telemetry-1>
     <telemetry-2>UI evidence must not contain tokens, private keys, full VPN config text, payment secrets, or raw .env values.</telemetry-2>
     <telemetry-3>Phase-23 evidence covers user frontend only; Phase-24 must add admin evidence before full M-038 closure.</telemetry-3>
+    <telemetry-4>Admin compact UI evidence must include confirmation-state checks for block, unblock, rotate, and revoke controls.</telemetry-4>
   </observability>
   <required-log-markers>
     <marker-1>[CompactUI][Phase23][BUILD_PASS]</marker-1>
@@ -76,4 +85,7 @@
   <phase-24-safety status="planned">
     Phase-24 execution is safe only for frontend-admin compact UI files and related MyGRACE docs. Backend business rules, deploy/install scripts, docker, nginx, and Phase-25 session security remain out of scope.
   </phase-24-safety>
+  <closure-gate status="pending-admin-evidence">
+    M-038 can move to done only after Phase-24 admin build, mobile smoke, no horizontal scroll, no text overlap, confirmation-safe device actions, and no excluded-surface diff are recorded.
+  </closure-gate>
 </V-M-038>

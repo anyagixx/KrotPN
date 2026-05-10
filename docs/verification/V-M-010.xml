@@ -4,9 +4,26 @@
   <checks>Admin frontend builds and reflects current admin, Full Tunnel, system, analytics, and device-control surfaces without auth regression.</checks>
   <test-files>frontend-admin/src/main.tsx frontend-admin/src/components/Layout.tsx frontend-admin/src/pages/Login.tsx frontend-admin/src/pages/Dashboard.tsx frontend-admin/src/pages/Users.tsx frontend-admin/src/pages/Devices.tsx frontend-admin/src/pages/Analytics.tsx frontend-admin/src/pages/Servers.tsx frontend-admin/src/pages/Plans.tsx frontend-admin/src/lib/api.ts frontend-admin/src/types/index.ts frontend-admin/src/index.css</test-files>
   <commands>cd frontend-admin &amp;&amp; npm run build</commands>
+  <levels>
+    <module-local>Run npm build after frontend-admin route, component, API binding, or type changes.</module-local>
+    <wave-level>During Phase-24, pair the build with V-M-037 mobile smoke for /, /users, /devices, and /analytics.</wave-level>
+    <phase-level>Frontend-admin remains pass only if auth guard, route registration, and admin API bindings compile after compact UI changes.</phase-level>
+  </levels>
+  <module-checks>
+    <check-1>Routes /login, /, /users, /devices, /servers, /plans, and /analytics remain registered.</check-1>
+    <check-2>Layout, Dashboard, Users, Devices, Analytics, Servers, and Plans compile against current types.</check-2>
+    <check-3>adminApi base path remains /api/v1 unless a separate backend/API migration is approved.</check-3>
+    <check-4>Device API binding names remain getDevices, blockDevice, unblockDevice, rotateDevice, and revokeDevice.</check-4>
+    <check-5>Phase-24 does not change auth/session storage behavior; M-039 owns that in Phase-25.</check-5>
+  </module-checks>
   <scenarios>
     <scenario-1 kind="success">Admin login route and protected layout still build after compact UI changes.</scenario-1>
     <scenario-2 kind="success">Dashboard, users, devices, servers, plans, and analytics routes compile against existing admin API bindings.</scenario-2>
     <scenario-3 kind="failure">A frontend-admin UI simplification changes auth, admin API base path, or backend endpoint shape without approval.</scenario-3>
+    <scenario-4 kind="failure">A compact navigation change drops /devices, /users, or /analytics from the registered protected route surface.</scenario-4>
   </scenarios>
+  <observability>
+    <telemetry-1>Build evidence records command, exit code, and failing TypeScript/Vite output if any.</telemetry-1>
+    <telemetry-2>Do not record real admin tokens, refresh tokens, Authorization headers, or cookies in frontend-admin evidence.</telemetry-2>
+  </observability>
 </V-M-010>

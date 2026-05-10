@@ -5,9 +5,23 @@
   <test-files>backend/tests/test_auth_rejection.py backend/tests/test_admin_device_control.py</test-files>
   <commands>cd backend &amp;&amp; SECRET_KEY=test-secret-key-with-enough-length DATA_ENCRYPTION_KEY=dpFmfSVqfdAK3yx5MQV6Tcv35RZuw5MzaH0yhxJ01q0= PYTHONPATH=. ../.venv/bin/python -m pytest -o addopts='' tests/test_auth_rejection.py tests/test_admin_device_control.py -v</commands>
   <anchors>AUTH_ADMIN_ENDPOINT_REQUIRES_TOKEN DEVICE_ADMIN_CONTROL_TARGETS_ONE_PEER</anchors>
+  <phase-24-contract-guard>
+    <guard-1>Phase-24 frontend execution should consume existing admin stats, analytics, users, billing, health, and device endpoints without backend API shape changes.</guard-1>
+    <guard-2>If backend/app/admin or frontend-admin/src/lib/api.ts endpoint paths change during Phase-24, rerun this verification before marking V-M-037 pass-local.</guard-2>
+    <guard-3>Admin audit middleware must not start logging tokens, request bodies with secrets, or payment-sensitive payloads as a side effect of UI work.</guard-3>
+  </phase-24-contract-guard>
+  <levels>
+    <module-local>Run backend admin auth/device tests if M-006 files or admin API bindings change.</module-local>
+    <wave-level>During Phase-24 UI-only waves, static review should confirm M-006 backend files are unchanged.</wave-level>
+    <phase-level>Final Phase-24 evidence records either no backend/admin diff or a passing V-M-006 rerun.</phase-level>
+  </levels>
   <scenarios>
     <scenario kind="success" trace="AUTH_ADMIN_ENDPOINT_REQUIRES_TOKEN">Admin endpoint returns 401 without token</scenario>
     <scenario kind="success" trace="DEVICE_ADMIN_CONTROL_TARGETS_ONE_PEER">Admin device controls list, block, unblock, rotate, and revoke a single device without disabling the whole account</scenario>
     <scenario kind="failure" trace="REMOVED_ROUTE_POLICY_SURFACE">Verification imports deleted route-policy modules or expects policy_dns_observer on the admin router</scenario>
+    <scenario kind="failure" trace="PHASE24_BACKEND_DRIFT">Compact admin UI execution silently changes admin endpoint paths, auth requirements, audit logging, or payload shape</scenario>
   </scenarios>
+  <redaction>
+    <redact-1>Admin API verification logs must not include bearer tokens, refresh tokens, cookies, raw request bodies containing secrets, or payment provider secrets.</redact-1>
+  </redaction>
 </V-M-006>
