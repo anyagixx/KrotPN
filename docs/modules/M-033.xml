@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<M-033 NAME="mygrace-integrity-cleanup" TYPE="UTILITY" STATUS="pending">
+<M-033 NAME="mygrace-integrity-cleanup" TYPE="UTILITY" STATUS="wip">
   <path>docs/graph-index.xml docs/plan-index.xml docs/verification-index.xml docs/plans/Phase-21.xml</path>
   <owns>MyGRACE index consistency, stale Full Tunnel cleanup references, active verification surface correctness, and AI handoff accuracy</owns>
   <exports>
@@ -19,5 +19,8 @@
     <constraint-1>Do not change runtime behavior while cleaning documentation and verification references.</constraint-1>
     <constraint-2>Historical references may remain only when explicitly archived or superseded.</constraint-2>
   </constraints>
+  <execution-notes>
+    <note-1>Phase-21 step-1 audit classified stale routing references as active cleanup targets, historical/superseded references, or valid Full Tunnel regression assertions.</note-1>
+  </execution-notes>
   <hotspot>H-020: Stale split-tunnel tests and phase references can break verification even when runtime Full Tunnel code is correct</hotspot>
 </M-033>

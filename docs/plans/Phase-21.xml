@@ -10,7 +10,22 @@
     <excluded>Runtime feature changes, deployment script changes, install script changes, and VPN topology changes.</excluded>
   </scope>
 
-  <step-1 MODULE="M-033" RISK="CRITICAL" STATUS="pending">
+  <obsolete-routing-audit updated="2026-05-10">
+    <active-cleanup>
+      <item-1>backend/tests/test_route_decision_api.py still verifies deleted route-policy endpoints and imports removed routing models.</item-1>
+      <item-2>backend/tests/test_admin_stats.py still expects policy_dns_observer on the admin router.</item-2>
+      <item-3>backend/tests/test_dns_observer.py, test_domain_rule_store.py, test_route_policy_resolver.py, test_routing_policy_compat.py, and test_ru_ipset_updater.py target removed split-tunnel support modules.</item-3>
+      <item-4>V-M-006 still points at deleted route-policy behavior and must be replaced with current admin/system/device verification.</item-4>
+      <item-5>README and AGENTS project summary still use split-tunneling wording that can mislead handoff agents.</item-5>
+    </active-cleanup>
+    <historical-or-superseded>
+      <item-1>Phase-1, Phase-2, Phase-3, Phase-4, Phase-15, Phase-16, and Phase-17 may retain historical references only when explicitly archived or superseded.</item-1>
+      <item-2>V-M-007 and V-M-017 references to ipset/split-tunnel are valid only as regression assertions that removed artifacts do not return.</item-2>
+      <item-3>Graph hotspots H-003 and H-004 are valid regression warnings for Full Tunnel cleanup.</item-3>
+    </historical-or-superseded>
+  </obsolete-routing-audit>
+
+  <step-1 MODULE="M-033" RISK="CRITICAL" STATUS="done">
     Audit active docs for stale M-013 through M-016 references and classify each as active, archived, or superseded.
   </step-1>
 
