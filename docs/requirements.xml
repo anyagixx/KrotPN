@@ -114,6 +114,50 @@
       <Priority>critical</Priority>
       <RelatedFlows>DF-P20-FRESH-DEPLOY, DF-P20-CAPACITY</RelatedFlows>
     </UC-009>
+
+    <UC-010>
+      <Name>Emergency server relocation and data restore</Name>
+      <Actor>Administrator</Actor>
+      <Action>Restores KrotPN on fresh RU/DE servers using the existing deployment process and a verified backup bundle</Action>
+      <Goal>Recover service after server loss, provider incident, or planned migration with minimal data loss and clear operator steps</Goal>
+      <Preconditions>Administrator has access to a recent backup bundle, target servers, and existing deployment scripts</Preconditions>
+      <AcceptanceCriteria>PostgreSQL data, runtime secrets, VPN node/client state, and operational configuration are restored with checksum evidence. Existing users, subscriptions, devices, and VPN clients remain consistent after restore. Existing deploy/install scripts are not redesigned as part of this recovery capability.</AcceptanceCriteria>
+      <Priority>critical</Priority>
+      <RelatedFlows>DF-DR-BACKUP, DF-DR-RESTORE, DF-DR-CUTOVER</RelatedFlows>
+    </UC-010>
+
+    <UC-011>
+      <Name>Compact mobile user cabinet</Name>
+      <Actor>User</Actor>
+      <Action>Uses the personal cabinet from a mobile phone to view VPN status, subscription state, devices, and config download actions</Action>
+      <Goal>Make the user dashboard compact, obvious, and comfortable on a phone</Goal>
+      <Preconditions>User is authenticated; frontend is reachable from a mobile browser</Preconditions>
+      <AcceptanceCriteria>Primary VPN actions are available within one or two taps. The page avoids wide tables, decorative clutter, nested cards, and horizontal scrolling. Subscription and device status are readable on small screens.</AcceptanceCriteria>
+      <Priority>high</Priority>
+      <RelatedFlows>DF-UI-USER-MOBILE</RelatedFlows>
+    </UC-011>
+
+    <UC-012>
+      <Name>Compact mobile admin console</Name>
+      <Actor>Administrator</Actor>
+      <Action>Uses the admin panel from a mobile phone to inspect health, users, devices, payments, and key operator actions</Action>
+      <Goal>Give the operator a fast mobile control surface without desktop-only dashboards</Goal>
+      <Preconditions>Admin is authenticated; admin frontend and API are operational</Preconditions>
+      <AcceptanceCriteria>Core admin workflows work on mobile: service overview, user search, device block/unblock/rotate/revoke, recent payments, and system health. The UI uses dense lists and concise controls instead of large dashboard cards.</AcceptanceCriteria>
+      <Priority>high</Priority>
+      <RelatedFlows>DF-UI-ADMIN-MOBILE</RelatedFlows>
+    </UC-012>
+
+    <UC-013>
+      <Name>MyGRACE verification and documentation cleanup</Name>
+      <Actor>System</Actor>
+      <Action>Keeps active MyGRACE indexes, phase files, module files, and verification files aligned with the Full Tunnel architecture</Action>
+      <Goal>Prevent future agents from following stale split-tunneling or removed module references</Goal>
+      <Preconditions>MyGRACE index files exist; old routing-policy artifacts may remain in historical files or obsolete tests</Preconditions>
+      <AcceptanceCriteria>Active indexes reference real modules and verification files. Obsolete M-013 through M-016 references are archived or explicitly superseded. Backend test collection is clean before feature work resumes.</AcceptanceCriteria>
+      <Priority>critical</Priority>
+      <RelatedFlows>DF-MYGRACE-REFRESH, DF-VERIFY-COLLECT</RelatedFlows>
+    </UC-013>
   </UseCases>
 
   <NonGoals>
@@ -122,6 +166,7 @@
     <item-3>Deep packet inspection or payload-level traffic inspection</item-3>
     <item-4>Enterprise-grade observability stack and autoscaling in current phase</item-4>
     <item-5>Multi-region deployment beyond RU/DE two-node topology</item-5>
+    <item-6>Changing the current deploy/install scripts or removing the operator-approved password-based deployment flow</item-6>
   </NonGoals>
 
   <Constraints>
@@ -130,6 +175,8 @@
     <constraint-3>VPN and routing code is host-coupled (not purely containerized) — iptables, ipset, AWG require host-level access</constraint-3>
     <constraint-4>Single PostgreSQL database, single Redis instance per deployment</constraint-4>
     <constraint-5>Migration from legacy VPNServer to VPNNode/VPNRoute must be backward-compatible</constraint-5>
+    <constraint-6>Existing deploy and install scripts are treated as operator-approved deployment surface and must not be redesigned by the recovery or UI cleanup phases</constraint-6>
+    <constraint-7>Emergency recovery artifacts must protect secrets at rest and avoid printing credentials, tokens, private keys, or raw .env content into logs</constraint-7>
   </Constraints>
 
   <Risks>
@@ -139,6 +186,8 @@
     <risk-4>Webhook delivery failures from YooKassa may leave subscriptions in inconsistent state</risk-4>
     <risk-5>Host-coupled routing code makes testing and local development environment-dependent</risk-5>
     <risk-6>Referral bonus processing edge cases (self-referral, circular chains, duplicate bonuses)</risk-6>
+    <risk-7>Disaster recovery can fail silently if backup manifests omit VPN client state, AWG profile data, or runtime secrets</risk-7>
+    <risk-8>Mobile UI simplification can hide critical admin/user actions unless workflows are verified on small viewports</risk-8>
   </Risks>
 
   <OpenQuestions>

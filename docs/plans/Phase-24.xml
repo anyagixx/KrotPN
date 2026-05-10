@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Phase-24 NAME="Compact Mobile Admin Console" STATUS="pending" MODULES="M-037,M-038,M-006,M-010,M-024" CREATED="2026-05-10">
+  <goal>
+    Redesign the admin panel into a compact mobile-capable operator console for service status, users, devices,
+    payments, and emergency actions.
+  </goal>
+
+  <scope>
+    <included>Admin overview, user search, device controls, payment status, system health, responsive navigation, and confirmation flows.</included>
+    <excluded>Deploy/install script changes, backend business rule changes, billing provider changes, and user frontend redesign.</excluded>
+  </scope>
+
+  <step-1 MODULE="M-037,M-038" RISK="MEDIUM" STATUS="pending">
+    Inventory admin screens and identify desktop-only tables, oversized dashboards, duplicated controls, and low-value clutter.
+  </step-1>
+
+  <step-2 MODULE="M-037,M-006" RISK="HIGH" STATUS="pending">
+    Design mobile operator overview: service health, active users, subscriptions, revenue, RU/DE/VPN status, and latest alerts.
+  </step-2>
+
+  <step-3 MODULE="M-037,M-006" RISK="HIGH" STATUS="pending">
+    Design mobile user search and detail flow with subscription, payment, device, and audit summary.
+  </step-3>
+
+  <step-4 MODULE="M-037,M-024" RISK="CRITICAL" STATUS="pending">
+    Design mobile device action flow with block, unblock, rotate, revoke, confirmation, and audit visibility.
+  </step-4>
+
+  <step-5 MODULE="M-038,M-010" RISK="MEDIUM" STATUS="pending">
+    Apply compact admin UI rules: dense lists, tabs/segmented controls, fixed action bars, and no nested card layouts.
+  </step-5>
+
+  <step-6 MODULE="M-037,M-010" RISK="HIGH" STATUS="pending">
+    Verify build and mobile smoke paths for overview, user search, device actions, payments, and system health.
+  </step-6>
+
+  <verification>
+    <check-1>Admin frontend build passes.</check-1>
+    <check-2>Mobile viewport supports emergency device actions without desktop-only layout.</check-2>
+    <check-3>Critical actions require confirmation and preserve audit visibility.</check-3>
+    <check-4>No deploy/install scripts are modified by this phase.</check-4>
+  </verification>
+</Phase-24>

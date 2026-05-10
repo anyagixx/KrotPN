@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Phase-23 NAME="Compact Mobile User Cabinet" STATUS="pending" MODULES="M-036,M-038,M-009,M-002,M-003,M-004,M-022" CREATED="2026-05-10">
+  <goal>
+    Redesign the user personal cabinet into a compact mobile-first workflow focused on VPN access, subscription state,
+    devices, and config delivery.
+  </goal>
+
+  <scope>
+    <included>User dashboard layout, device/config actions, subscription summary, payment entry points, responsive navigation, and mobile polish.</included>
+    <excluded>Backend API redesign, deployment changes, billing provider changes, and admin console redesign.</excluded>
+  </scope>
+
+  <step-1 MODULE="M-036,M-038" RISK="MEDIUM" STATUS="pending">
+    Inventory current user frontend screens and classify content as primary, secondary, or removable from mobile first view.
+  </step-1>
+
+  <step-2 MODULE="M-036,M-003,M-022" RISK="HIGH" STATUS="pending">
+    Design the mobile home screen with VPN status, primary config action, QR/download action, and active device summary.
+  </step-2>
+
+  <step-3 MODULE="M-036,M-004" RISK="HIGH" STATUS="pending">
+    Design compact subscription and payment surfaces with clear status, expiry, plan, and renewal action.
+  </step-3>
+
+  <step-4 MODULE="M-036,M-022" RISK="HIGH" STATUS="pending">
+    Design the mobile device management flow for create, rotate, revoke, and config retrieval without wide tables.
+  </step-4>
+
+  <step-5 MODULE="M-038,M-009" RISK="MEDIUM" STATUS="pending">
+    Apply compact UI system rules: no nested cards, no decorative clutter, stable button/list sizing, and phone-safe text.
+  </step-5>
+
+  <step-6 MODULE="M-036,M-009" RISK="HIGH" STATUS="pending">
+    Verify build and mobile smoke paths for login, dashboard, config download/QR, subscription, and devices.
+  </step-6>
+
+  <verification>
+    <check-1>User frontend build passes.</check-1>
+    <check-2>Mobile viewport has no horizontal scroll or overlapping text.</check-2>
+    <check-3>Primary VPN config action is reachable within one or two taps.</check-3>
+    <check-4>Existing backend API contracts remain unchanged unless explicitly approved later.</check-4>
+  </verification>
+</Phase-23>

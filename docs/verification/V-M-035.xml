@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<V-M-035 MODULE="M-035" PRIORITY="critical" STATUS="pending">
+  <module>portable-data-backup</module>
+  <checks>Backup and restore contract must preserve PostgreSQL data, runtime secrets, AWG state, and VPN device/client linkage.</checks>
+  <test-files></test-files>
+  <commands>planned restore dry-run: pg_dump/pg_restore validation plus checksum manifest verification</commands>
+  <module-checks>
+    <check-1>Backup manifest names every required artifact without exposing secret values.</check-1>
+    <check-2>Restore validation compares table counts and selected integrity invariants.</check-2>
+    <check-3>AWG profile, subnet settings, and existing client compatibility are included in restore checks.</check-3>
+  </module-checks>
+  <scenarios>
+    <scenario-1 kind="success">Restored database contains matching users, subscriptions, payments, devices, VPN clients, and migration state.</scenario-1>
+    <scenario-2 kind="failure">Backup bundle lacks .env/runtime secret material needed to boot replacement servers.</scenario-2>
+    <scenario-3 kind="failure">Backup bundle lacks AWG profile or device-client state needed to preserve client connectivity.</scenario-3>
+  </scenarios>
+  <required-log-markers>
+    <marker-1>[PortableBackup][manifest][CHECKSUMS_READY]</marker-1>
+    <marker-2>[PortableBackup][restore][COUNTS_MATCH]</marker-2>
+  </required-log-markers>
+</V-M-035>

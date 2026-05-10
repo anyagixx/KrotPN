@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<V-M-033 MODULE="M-033" PRIORITY="critical" STATUS="pending">
+  <module>mygrace-integrity-cleanup</module>
+  <checks>Active MyGRACE indexes, per-entity files, README handoff, and verification surfaces must match the current Full Tunnel architecture.</checks>
+  <test-files></test-files>
+  <commands>python3 -m xml.etree.ElementTree docs/graph-index.xml docs/plan-index.xml docs/verification-index.xml</commands>
+  <module-checks>
+    <check-1>All active XML files parse successfully.</check-1>
+    <check-2>graph-index entries have matching docs/modules files.</check-2>
+    <check-3>verification-index entries have matching docs/verification files.</check-3>
+    <check-4>Active phase steps do not route agents to removed modules unless marked archived or superseded.</check-4>
+  </module-checks>
+  <scenarios>
+    <scenario-1 kind="success">Backend pytest collection is clean after obsolete routing tests are archived or rewritten.</scenario-1>
+    <scenario-2 kind="failure">An active V-M entry points to tests that import removed split-tunnel modules.</scenario-2>
+    <scenario-3 kind="failure">README or handoff docs require non-existent monolithic GRACE files.</scenario-3>
+  </scenarios>
+  <required-log-markers>
+    <marker-1>[MyGRACE][refresh][INDEX_SYNC]</marker-1>
+    <marker-2>[MyGRACE][verification][COLLECT_CLEAN]</marker-2>
+  </required-log-markers>
+</V-M-033>

@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<M-035 NAME="portable-data-backup" TYPE="DATA_LAYER" STATUS="pending">
+  <path>backend/app/core docs/plans/Phase-22.xml docs/modules/M-035.xml</path>
+  <owns>Portable backup/restore contract for PostgreSQL data, runtime secrets, AWG state, device-client linkage, and integrity manifests</owns>
+  <exports>
+    <artifact-postgres-dump>Durable dump of users, subscriptions, payments, devices, VPN clients, audit events, and migrations state</artifact-postgres-dump>
+    <artifact-runtime-secrets>Protected copy of .env and required deployment secrets without log exposure</artifact-runtime-secrets>
+    <artifact-vpn-state>AWG profile, server keys, peer state, subnet settings, and client linkage needed for restore</artifact-vpn-state>
+    <artifact-restore-manifest>Checksums, creation timestamp, schema version, and item counts for restore verification</artifact-restore-manifest>
+  </exports>
+  <depends>M-001, M-003, M-020, M-028, M-030</depends>
+  <verification-ref>V-M-035</verification-ref>
+  <files>
+    <file>docs/plans/Phase-22.xml</file>
+    <file>docs/modules/M-035.xml</file>
+  </files>
+  <constraints>
+    <constraint-1>Secrets, tokens, passwords, and private keys must not be printed in command output or logs.</constraint-1>
+    <constraint-2>Restore validation must compare counts and checksums before cutover.</constraint-2>
+    <constraint-3>Existing client configs must not be silently invalidated unless operator explicitly chooses rotation.</constraint-3>
+  </constraints>
+  <hotspot>H-022: Backup bundles can expose secrets or fail restore if they omit AWG profiles, runtime env, or device/client linkage</hotspot>
+</M-035>

@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<V-M-034 MODULE="M-034" PRIORITY="critical" STATUS="pending">
+  <module>disaster-recovery-runbook</module>
+  <checks>Emergency relocation runbook must restore service on replacement RU/DE servers using existing deploy/install scripts unchanged.</checks>
+  <test-files></test-files>
+  <commands>manual DR walkthrough using existing deploy/install scripts plus restore manifest checklist</commands>
+  <module-checks>
+    <check-1>Runbook defines freeze, backup, fresh deployment, restore, validation, cutover, and rollback steps.</check-1>
+    <check-2>Runbook explicitly forbids modifying deploy/ and install.sh as part of recovery planning.</check-2>
+    <check-3>Runbook separates local dry-run checks from live VPS checks.</check-3>
+  </module-checks>
+  <scenarios>
+    <scenario-1 kind="success">Operator can follow the runbook from a backup bundle to a validated replacement deployment.</scenario-1>
+    <scenario-2 kind="failure">Restore procedure loses device-client linkage or invalidates existing configs without explicit rotation.</scenario-2>
+    <scenario-3 kind="failure">Recovery steps print secrets, tokens, passwords, private keys, or raw .env content into logs.</scenario-3>
+  </scenarios>
+  <required-log-markers>
+    <marker-1>[DisasterRecovery][backup][BUNDLE_CREATED]</marker-1>
+    <marker-2>[DisasterRecovery][restore][VALIDATION_PASSED]</marker-2>
+    <marker-3>[DisasterRecovery][cutover][ROLLBACK_POINT]</marker-3>
+  </required-log-markers>
+</V-M-034>

@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<M-036 NAME="mobile-user-cabinet" TYPE="UI_COMPONENT" STATUS="pending">
+  <path>frontend docs/plans/Phase-23.xml</path>
+  <owns>Compact mobile-first personal cabinet for VPN status, subscription state, device management, and config access</owns>
+  <exports>
+    <view-mobile-home>Single compact home surface with VPN status, subscription state, and primary config action</view-mobile-home>
+    <view-mobile-devices>Small-screen device list with create, rotate, revoke, and QR/download actions</view-mobile-devices>
+    <view-mobile-billing>Compact subscription and payment action surface</view-mobile-billing>
+  </exports>
+  <depends>M-002, M-003, M-004, M-005, M-022, M-038</depends>
+  <verification-ref>V-M-036</verification-ref>
+  <files>
+    <file>frontend</file>
+    <file>docs/plans/Phase-23.xml</file>
+  </files>
+  <constraints>
+    <constraint-1>Primary VPN config and subscription actions must be reachable within one or two taps on a phone.</constraint-1>
+    <constraint-2>Avoid wide tables, nested cards, decorative hero blocks, and horizontal scrolling.</constraint-2>
+    <constraint-3>Keep existing backend API contracts unless a separate contract change is approved.</constraint-3>
+  </constraints>
+  <hotspot>H-023: Mobile user cabinet must keep config download, QR, subscription and device actions reachable without clutter</hotspot>
+</M-036>

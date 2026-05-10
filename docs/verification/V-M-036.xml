@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<V-M-036 MODULE="M-036" PRIORITY="high" STATUS="pending">
+  <module>mobile-user-cabinet</module>
+  <checks>User frontend must become compact, phone-friendly, and focused on VPN config, subscription, and device workflows.</checks>
+  <test-files></test-files>
+  <commands>cd frontend &amp;&amp; npm run build; mobile viewport smoke review</commands>
+  <module-checks>
+    <check-1>Frontend build passes.</check-1>
+    <check-2>Mobile dashboard has no horizontal scroll or overlapping text.</check-2>
+    <check-3>Config download/QR action is reachable within one or two taps.</check-3>
+    <check-4>Subscription and device state remain visible without oversized decorative sections.</check-4>
+  </module-checks>
+  <scenarios>
+    <scenario-1 kind="success">User opens cabinet on phone and immediately sees VPN status, config action, subscription state, and devices.</scenario-1>
+    <scenario-2 kind="failure">Primary VPN action is buried behind desktop-only navigation or a large decorative layout.</scenario-2>
+    <scenario-3 kind="failure">A mobile viewport introduces horizontal scroll, hidden controls, or overlapping text.</scenario-3>
+  </scenarios>
+  <required-log-markers>
+    <marker-1>[FrontendUser][mobile][PRIMARY_ACTION_VISIBLE]</marker-1>
+  </required-log-markers>
+</V-M-036>

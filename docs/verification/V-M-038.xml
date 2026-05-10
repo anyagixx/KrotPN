@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<V-M-038 MODULE="M-038" PRIORITY="high" STATUS="pending">
+  <module>compact-ui-system</module>
+  <checks>Shared UI rules must make user and admin surfaces compact, consistent, and readable on mobile screens.</checks>
+  <test-files></test-files>
+  <commands>cd frontend &amp;&amp; npm run build; cd ../frontend-admin &amp;&amp; npm run build</commands>
+  <module-checks>
+    <check-1>User frontend build passes.</check-1>
+    <check-2>Admin frontend build passes.</check-2>
+    <check-3>Compact UI rules avoid nested cards, oversized dashboard sections, decorative clutter, and horizontal scroll.</check-3>
+    <check-4>Buttons, lists, tabs, dialogs, and confirmations have stable mobile dimensions.</check-4>
+  </module-checks>
+  <scenarios>
+    <scenario-1 kind="success">Both frontends share compact layout rules while preserving domain-specific workflows.</scenario-1>
+    <scenario-2 kind="failure">A redesigned screen remains card-heavy, desktop-first, or text-overlapping on phones.</scenario-2>
+  </scenarios>
+  <required-log-markers>
+    <marker-1>[CompactUI][verification][MOBILE_SAFE]</marker-1>
+  </required-log-markers>
+</V-M-038>

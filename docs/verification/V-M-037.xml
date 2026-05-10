@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<V-M-037 MODULE="M-037" PRIORITY="high" STATUS="pending">
+  <module>mobile-admin-console</module>
+  <checks>Admin frontend must become compact and usable from a phone for operational status, user search, devices, payments, and system health.</checks>
+  <test-files></test-files>
+  <commands>cd frontend-admin &amp;&amp; npm run build; mobile admin viewport smoke review</commands>
+  <module-checks>
+    <check-1>Admin frontend build passes.</check-1>
+    <check-2>Mobile overview surfaces service health and urgent counts without desktop-only tables.</check-2>
+    <check-3>Device block, unblock, rotate, and revoke are reachable and require confirmation.</check-3>
+    <check-4>Audit-sensitive admin actions preserve current backend audit expectations.</check-4>
+  </module-checks>
+  <scenarios>
+    <scenario-1 kind="success">Admin can inspect system state and manage a device from a phone without switching to desktop layout.</scenario-1>
+    <scenario-2 kind="failure">Critical device actions are hidden in a wide table or unavailable on mobile.</scenario-2>
+    <scenario-3 kind="failure">An admin action lacks confirmation or loses audit visibility.</scenario-3>
+  </scenarios>
+  <required-log-markers>
+    <marker-1>[FrontendAdmin][mobile][DEVICE_ACTION_CONFIRM]</marker-1>
+  </required-log-markers>
+</V-M-037>

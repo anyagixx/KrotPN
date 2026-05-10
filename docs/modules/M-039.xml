@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<M-039 NAME="session-security-hardening" TYPE="CORE_LOGIC" STATUS="pending">
+  <path>backend/app/users frontend frontend-admin docs/plans/Phase-25.xml</path>
+  <owns>Safe auth/session hardening for user and admin frontends after UI cleanup, with compatibility-first migration away from fragile client token storage</owns>
+  <exports>
+    <flow-user-session-smoke>User login, refresh, logout, and 401 recovery smoke path</flow-user-session-smoke>
+    <flow-admin-session-smoke>Admin login, refresh, logout, and role-gate smoke path</flow-admin-session-smoke>
+    <compat-auth-transition>Rollback-aware transition contract for frontend auth storage behavior</compat-auth-transition>
+  </exports>
+  <depends>M-002, M-006, M-009, M-010, M-027</depends>
+  <verification-ref>V-M-039</verification-ref>
+  <files>
+    <file>backend/app/users</file>
+    <file>frontend</file>
+    <file>frontend-admin</file>
+    <file>docs/plans/Phase-25.xml</file>
+  </files>
+  <constraints>
+    <constraint-1>Do not break login, register, refresh, logout, Telegram auth, or admin role checks.</constraint-1>
+    <constraint-2>Any auth storage change must include rollback and explicit browser storage verification.</constraint-2>
+    <constraint-3>This phase must run after compact UI flows are stable enough to test real auth behavior.</constraint-3>
+  </constraints>
+  <hotspot>H-025: Session hardening must not break login/register/refresh/logout compatibility during frontend simplification</hotspot>
+</M-039>

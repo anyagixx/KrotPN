@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Phase-22 NAME="Emergency Server Relocation and Data Restore" STATUS="pending" MODULES="M-034,M-035,M-001,M-003,M-012,M-028,M-032" CREATED="2026-05-10">
+  <goal>
+    Define and verify an operator-safe disaster recovery path for moving KrotPN to replacement RU/DE servers with
+    PostgreSQL data, secrets, VPN state, and client/device linkage preserved.
+  </goal>
+
+  <scope>
+    <included>Runbook, backup manifest contract, restore checklist, validation gates, rollback checkpoints, and data integrity evidence.</included>
+    <excluded>Changing deploy scripts, changing install.sh, replacing the operator-approved deployment method, and redesigning infrastructure automation.</excluded>
+  </scope>
+
+  <step-1 MODULE="M-034,M-035" RISK="CRITICAL" STATUS="pending">
+    Define the backup bundle contract: PostgreSQL dump, .env/runtime secrets, AWG keys/profiles, subnet settings, and device-client linkage.
+  </step-1>
+
+  <step-2 MODULE="M-035,M-028" RISK="CRITICAL" STATUS="pending">
+    Define restore integrity checks: schema version, table counts, checksum manifest, and migration compatibility evidence.
+  </step-2>
+
+  <step-3 MODULE="M-034,M-012" RISK="CRITICAL" STATUS="pending">
+    Write the operator runbook that starts with fresh servers deployed through the existing scripts exactly as approved by the operator.
+  </step-3>
+
+  <step-4 MODULE="M-034,M-003,M-032" RISK="CRITICAL" STATUS="pending">
+    Define VPN-specific restore checks: RU/DE tunnel health, AWG profile parity, client address pool compatibility, and existing config preservation.
+  </step-4>
+
+  <step-5 MODULE="M-034,M-001" RISK="HIGH" STATUS="pending">
+    Define application health checks after restore: backend health, frontend/admin reachability, DB connection, Redis, auth, and billing read paths.
+  </step-5>
+
+  <step-6 MODULE="M-034,M-035" RISK="HIGH" STATUS="pending">
+    Define cutover and rollback procedure: DNS/IP switch, maintenance-window notes, old-server rollback, and post-cutover monitoring.
+  </step-6>
+
+  <step-7 MODULE="M-034,M-035" RISK="CRITICAL" STATUS="pending">
+    Perform a dry-run restore plan in a non-production environment before relying on the procedure for a real incident.
+  </step-7>
+
+  <verification>
+    <check-1>Backup manifest includes all required artifacts and explicitly redacts secrets from logs.</check-1>
+    <check-2>Restore dry-run compares users, subscriptions, payments, devices, and VPN clients before cutover.</check-2>
+    <check-3>Existing deploy/install scripts are invoked as-is and are not edited by this phase.</check-3>
+    <check-4>Recovery checklist includes abort and rollback steps.</check-4>
+  </verification>
+</Phase-22>

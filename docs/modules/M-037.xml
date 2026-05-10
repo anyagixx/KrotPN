@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<M-037 NAME="mobile-admin-console" TYPE="UI_COMPONENT" STATUS="pending">
+  <path>frontend-admin docs/plans/Phase-24.xml</path>
+  <owns>Compact mobile-first admin console for operational status, users, devices, payments, and emergency device actions</owns>
+  <exports>
+    <view-admin-mobile-overview>Dense service overview with health, users, subscriptions, revenue, and VPN status</view-admin-mobile-overview>
+    <view-admin-mobile-users>Searchable mobile user list with subscription and device summary</view-admin-mobile-users>
+    <view-admin-mobile-device-actions>Block, unblock, rotate, and revoke device controls optimized for phone use</view-admin-mobile-device-actions>
+  </exports>
+  <depends>M-006, M-010, M-024, M-038</depends>
+  <verification-ref>V-M-037</verification-ref>
+  <files>
+    <file>frontend-admin</file>
+    <file>docs/plans/Phase-24.xml</file>
+  </files>
+  <constraints>
+    <constraint-1>Admin emergency actions must remain visible and require clear confirmation.</constraint-1>
+    <constraint-2>Mobile admin UI must avoid desktop-only tables and oversized dashboard cards.</constraint-2>
+    <constraint-3>Audit-sensitive actions must preserve existing backend audit behavior.</constraint-3>
+  </constraints>
+  <hotspot>H-024: Mobile admin console must keep emergency operator actions visible without desktop-only dashboards</hotspot>
+</M-037>

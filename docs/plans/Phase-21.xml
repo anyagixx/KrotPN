@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Phase-21 NAME="MyGRACE Verification and Documentation Cleanup" STATUS="pending" MODULES="M-033,M-006,M-007,M-017" CREATED="2026-05-10">
+  <goal>
+    Bring active MyGRACE documents and verification surfaces back in sync with the current Full Tunnel architecture
+    without changing runtime behavior.
+  </goal>
+
+  <scope>
+    <included>Indexes, per-module docs, per-verification docs, README handoff, obsolete test references, and active phase references.</included>
+    <excluded>Runtime feature changes, deployment script changes, install script changes, and VPN topology changes.</excluded>
+  </scope>
+
+  <step-1 MODULE="M-033" RISK="CRITICAL" STATUS="pending">
+    Audit active docs for stale M-013 through M-016 references and classify each as active, archived, or superseded.
+  </step-1>
+
+  <step-2 MODULE="M-033,M-017" RISK="CRITICAL" STATUS="pending">
+    Replace active split-tunnel/ipset/policy verification expectations with current Full Tunnel expectations.
+  </step-2>
+
+  <step-3 MODULE="M-006,M-033" RISK="HIGH" STATUS="pending">
+    Update admin verification so V-M-006 checks current admin/system/device behavior instead of deleted route-policy surfaces.
+  </step-3>
+
+  <step-4 MODULE="M-033" RISK="HIGH" STATUS="pending">
+    Make backend test collection clean by archiving or rewriting obsolete tests for removed routing modules.
+  </step-4>
+
+  <step-5 MODULE="M-033" RISK="MEDIUM" STATUS="pending">
+    Synchronize graph CrossLinks, plan-index, verification-index, README handoff, and per-entity files.
+  </step-5>
+
+  <step-6 MODULE="M-033" RISK="HIGH" STATUS="pending">
+    Run MyGRACE integrity verification and record which checks are local-only versus requiring live VPS evidence.
+  </step-6>
+
+  <verification>
+    <check-1>All active XML files parse successfully.</check-1>
+    <check-2>Every graph-index entry has a matching docs/modules file and verification ref.</check-2>
+    <check-3>Backend pytest collection succeeds before feature work resumes.</check-3>
+    <check-4>No runtime files are changed unless a later approved execution phase requires it.</check-4>
+  </verification>
+</Phase-21>

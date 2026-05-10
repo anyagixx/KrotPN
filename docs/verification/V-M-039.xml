@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<V-M-039 MODULE="M-039" PRIORITY="critical" STATUS="pending">
+  <module>session-security-hardening</module>
+  <checks>Session hardening must preserve login, refresh, logout, role gates, and rollback while reducing fragile client-side token exposure.</checks>
+  <test-files></test-files>
+  <commands>planned auth smoke: user/admin login, refresh, logout, 401 retry behavior</commands>
+  <module-checks>
+    <check-1>User login, register, refresh, logout, and 401 retry paths are tested.</check-1>
+    <check-2>Admin login, refresh, logout, and role-gate paths are tested.</check-2>
+    <check-3>Browser storage behavior is explicitly verified before and after migration.</check-3>
+    <check-4>Rollback path is documented before execution.</check-4>
+  </module-checks>
+  <scenarios>
+    <scenario-1 kind="success">User and admin sessions survive normal refresh behavior and fail safely after logout.</scenario-1>
+    <scenario-2 kind="failure">Session migration breaks Telegram auth, admin role checks, refresh retry, or logout cleanup.</scenario-2>
+    <scenario-3 kind="failure">Tokens remain exposed in browser storage after the hardening phase claims completion.</scenario-3>
+  </scenarios>
+  <required-log-markers>
+    <marker-1>[SessionSecurity][auth][USER_SMOKE_PASS]</marker-1>
+    <marker-2>[SessionSecurity][auth][ADMIN_SMOKE_PASS]</marker-2>
+  </required-log-markers>
+</V-M-039>

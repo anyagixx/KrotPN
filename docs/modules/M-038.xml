@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<M-038 NAME="compact-ui-system" TYPE="UI_COMPONENT" STATUS="pending">
+  <path>frontend frontend-admin docs/plans/Phase-23.xml docs/plans/Phase-24.xml</path>
+  <owns>Shared compact UI rules for user and admin frontends: mobile-first layout, dense information surfaces, simple navigation, and readable controls</owns>
+  <exports>
+    <rule-mobile-layout>Responsive layout rules for phone-first screens without horizontal scroll</rule-mobile-layout>
+    <rule-compact-controls>Standard sizes and interaction patterns for buttons, lists, tabs, dialogs, and confirmations</rule-compact-controls>
+    <rule-content-priority>Priority order for visible information on user and admin mobile surfaces</rule-content-priority>
+  </exports>
+  <depends>M-009, M-010</depends>
+  <verification-ref>V-M-038</verification-ref>
+  <files>
+    <file>frontend</file>
+    <file>frontend-admin</file>
+    <file>docs/plans/Phase-23.xml</file>
+    <file>docs/plans/Phase-24.xml</file>
+  </files>
+  <constraints>
+    <constraint-1>No new marketing-style landing pages for operational surfaces.</constraint-1>
+    <constraint-2>Use compact lists, segmented views, and clear action buttons instead of heavy decorative card grids.</constraint-2>
+    <constraint-3>Text must fit on mobile without overlap, truncation of critical values, or horizontal scroll.</constraint-3>
+  </constraints>
+</M-038>

@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<M-034 NAME="disaster-recovery-runbook" TYPE="INTEGRATION" STATUS="pending">
+  <path>docs/plans/Phase-22.xml docs/modules/M-034.xml</path>
+  <owns>Operator runbook for emergency relocation to fresh RU/DE servers using the existing approved deployment process</owns>
+  <exports>
+    <flow-backup-freeze>Defines maintenance-window freeze and backup capture order</flow-backup-freeze>
+    <flow-restore-new-servers>Defines restore sequence after fresh deployment on replacement servers</flow-restore-new-servers>
+    <flow-cutover-validation>Defines health, handshake, admin, billing, and DNS/IP cutover checks</flow-cutover-validation>
+  </exports>
+  <depends>M-001, M-003, M-012, M-028, M-032, M-035</depends>
+  <verification-ref>V-M-034</verification-ref>
+  <files>
+    <file>docs/plans/Phase-22.xml</file>
+    <file>docs/modules/M-034.xml</file>
+  </files>
+  <constraints>
+    <constraint-1>Existing deploy and install scripts are treated as operator-approved black-box deployment tools.</constraint-1>
+    <constraint-2>The runbook must not require changing deploy/, install.sh, or the current password-based deploy flow.</constraint-2>
+    <constraint-3>Recovery must be possible with explicit operator steps and rollback checkpoints.</constraint-3>
+  </constraints>
+  <hotspot>H-021: Disaster recovery must use existing operator-approved deploy/install scripts as a black-box deployment surface</hotspot>
+</M-034>

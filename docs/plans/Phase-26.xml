@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Phase-26 NAME="Stabilization Gates and Operator Handoff" STATUS="pending" MODULES="M-033,M-034,M-035,M-036,M-037,M-038,M-039" CREATED="2026-05-10">
+  <goal>
+    Close the improvement wave with explicit verification gates, operator handoff, and a clear record of local versus live
+    evidence.
+  </goal>
+
+  <scope>
+    <included>Verification matrix, MyGRACE refresh, UI/mobile smoke reports, DR dry-run status, and operator handoff notes.</included>
+    <excluded>New product features beyond the planned cleanup, recovery, UI, and session hardening work.</excluded>
+  </scope>
+
+  <step-1 MODULE="M-033" RISK="CRITICAL" STATUS="pending">
+    Run MyGRACE integrity review and ensure indexes, per-module files, per-phase files, and verification files are synchronized.
+  </step-1>
+
+  <step-2 MODULE="M-034,M-035" RISK="CRITICAL" STATUS="pending">
+    Record disaster recovery dry-run status, blocked live checks, backup manifest shape, and restore evidence expectations.
+  </step-2>
+
+  <step-3 MODULE="M-036,M-037,M-038" RISK="HIGH" STATUS="pending">
+    Record mobile UI verification evidence for user and admin frontends, including viewport coverage and unresolved UX issues.
+  </step-3>
+
+  <step-4 MODULE="M-039" RISK="CRITICAL" STATUS="pending">
+    Record auth/session smoke evidence and any remaining compatibility risks.
+  </step-4>
+
+  <step-5 MODULE="M-033,M-034" RISK="HIGH" STATUS="pending">
+    Produce final operator handoff: what changed, how to verify, how to recover, and what must not be touched without approval.
+  </step-5>
+
+  <verification>
+    <check-1>All planned verification entries have pass, pending, blocked, or live-required evidence status.</check-1>
+    <check-2>Operator handoff states that deploy/install scripts were not modified by this wave.</check-2>
+    <check-3>Known residual risks are documented with next recommended phase.</check-3>
+  </verification>
+</Phase-26>
