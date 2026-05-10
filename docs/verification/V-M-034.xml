@@ -8,15 +8,20 @@
     <check-1>Runbook defines freeze, backup, fresh deployment, restore, validation, cutover, and rollback steps.</check-1>
     <check-2>Runbook explicitly forbids modifying deploy/ and install.sh as part of recovery planning.</check-2>
     <check-3>Runbook separates local dry-run checks from live VPS checks.</check-3>
+    <check-4>Runbook includes go/no-go gates before DNS/IP/operator cutover.</check-4>
+    <check-5>Runbook includes explicit rollback checkpoints before and after cutover.</check-5>
   </module-checks>
   <scenarios>
     <scenario-1 kind="success">Operator can follow the runbook from a backup bundle to a validated replacement deployment.</scenario-1>
     <scenario-2 kind="failure">Restore procedure loses device-client linkage or invalidates existing configs without explicit rotation.</scenario-2>
     <scenario-3 kind="failure">Recovery steps print secrets, tokens, passwords, private keys, or raw .env content into logs.</scenario-3>
+    <scenario-4 kind="failure">Runbook requires editing deploy/ or install.sh instead of using the existing approved deployment flow.</scenario-4>
+    <scenario-5 kind="failure">Cutover proceeds without backend, frontend, admin, auth, billing read, and VPN handshake evidence.</scenario-5>
   </scenarios>
   <required-log-markers>
     <marker-1>[DisasterRecovery][backup][BUNDLE_CREATED]</marker-1>
     <marker-2>[DisasterRecovery][restore][VALIDATION_PASSED]</marker-2>
     <marker-3>[DisasterRecovery][cutover][ROLLBACK_POINT]</marker-3>
+    <marker-4>[DisasterRecovery][cutover][GO_NO_GO]</marker-4>
   </required-log-markers>
 </V-M-034>

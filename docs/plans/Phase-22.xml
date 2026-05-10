@@ -10,33 +10,72 @@
     <excluded>Changing deploy scripts, changing install.sh, replacing the operator-approved deployment method, and redesigning infrastructure automation.</excluded>
   </scope>
 
-  <step-1 MODULE="M-034,M-035" RISK="CRITICAL" STATUS="pending">
-    Define the backup bundle contract: PostgreSQL dump, .env/runtime secrets, AWG keys/profiles, subnet settings, and device-client linkage.
+  <data-flows>
+    <DF-DR-BACKUP>Old RU/DE servers and database enter a maintenance/freeze window, then produce a protected backup bundle with manifest and checksums.</DF-DR-BACKUP>
+    <DF-DR-RESTORE>Fresh RU/DE servers are deployed with the existing approved scripts, then PostgreSQL, runtime secrets, and VPN state are restored.</DF-DR-RESTORE>
+    <DF-DR-CUTOVER>Validated replacement servers pass health, auth, billing, and VPN handshake checks before DNS/IP/operator cutover.</DF-DR-CUTOVER>
+  </data-flows>
+
+  <step-1 MODULE="M-034" RISK="CRITICAL" STATUS="pending">
+    Define incident modes and operator decision points: total server loss, planned provider migration, partial RU failure, partial DE failure, and rollback eligibility.
   </step-1>
 
-  <step-2 MODULE="M-035,M-028" RISK="CRITICAL" STATUS="pending">
-    Define restore integrity checks: schema version, table counts, checksum manifest, and migration compatibility evidence.
+  <step-2 MODULE="M-034,M-035" RISK="CRITICAL" STATUS="pending">
+    Define the maintenance/freeze sequence: pause risky admin actions, capture current app version, record RU/DE addresses, and capture table counts before backup.
   </step-2>
 
-  <step-3 MODULE="M-034,M-012" RISK="CRITICAL" STATUS="pending">
-    Write the operator runbook that starts with fresh servers deployed through the existing scripts exactly as approved by the operator.
+  <step-3 MODULE="M-035" RISK="CRITICAL" STATUS="pending">
+    Define the backup bundle contract: PostgreSQL dump, protected .env/runtime secrets, AWG profiles, server keys, subnet settings, peer state, device-client linkage, and manifest.
   </step-3>
 
-  <step-4 MODULE="M-034,M-003,M-032" RISK="CRITICAL" STATUS="pending">
-    Define VPN-specific restore checks: RU/DE tunnel health, AWG profile parity, client address pool compatibility, and existing config preservation.
+  <step-4 MODULE="M-035,M-028" RISK="CRITICAL" STATUS="pending">
+    Define restore integrity checks: schema version, migration state, checksums, table counts, selected row invariants, and no-secret-log evidence.
   </step-4>
 
-  <step-5 MODULE="M-034,M-001" RISK="HIGH" STATUS="pending">
-    Define application health checks after restore: backend health, frontend/admin reachability, DB connection, Redis, auth, and billing read paths.
+  <step-5 MODULE="M-034,M-012" RISK="CRITICAL" STATUS="pending">
+    Write the replacement-server runbook: provision fresh RU/DE hosts through the existing approved deploy/install scripts, then stop services at the restore checkpoint.
   </step-5>
 
-  <step-6 MODULE="M-034,M-035" RISK="HIGH" STATUS="pending">
-    Define cutover and rollback procedure: DNS/IP switch, maintenance-window notes, old-server rollback, and post-cutover monitoring.
+  <step-6 MODULE="M-034,M-035,M-028" RISK="CRITICAL" STATUS="pending">
+    Define restore sequence: load database dump, restore protected runtime env, restore VPN/AWG artifacts, verify migration state, then start services.
   </step-6>
 
-  <step-7 MODULE="M-034,M-035" RISK="CRITICAL" STATUS="pending">
-    Perform a dry-run restore plan in a non-production environment before relying on the procedure for a real incident.
+  <step-7 MODULE="M-034,M-003,M-032" RISK="CRITICAL" STATUS="pending">
+    Define VPN-specific validation: RU/DE tunnel health, AWG profile parity, address-pool compatibility, existing client config behavior, and explicit rotation guard.
   </step-7>
+
+  <step-8 MODULE="M-034,M-001" RISK="HIGH" STATUS="pending">
+    Define application validation: backend health, frontend/admin reachability, database connection, Redis, user/admin auth smoke, billing read path, and device listing.
+  </step-8>
+
+  <step-9 MODULE="M-034,M-035" RISK="HIGH" STATUS="pending">
+    Define cutover and rollback procedure: DNS/IP/operator switch, go/no-go gate, old-server rollback, post-cutover monitoring, and incident handoff notes.
+  </step-9>
+
+  <step-10 MODULE="M-034,M-035" RISK="CRITICAL" STATUS="pending">
+    Perform a non-production dry-run restore before relying on the procedure for a real incident; record blocked live checks separately.
+  </step-10>
+
+  <backup-bundle>
+    <item-manifest>manifest.json with app version, schema version, created_at, artifact list, checksums, and table counts.</item-manifest>
+    <item-postgres>postgres.dump containing users, subscriptions, payments, devices, VPN clients, audit events, plans, and migration state.</item-postgres>
+    <item-runtime-env>Protected runtime env material needed to boot the replacement deployment; secret values must not be printed in logs.</item-runtime-env>
+    <item-vpn-state>AWG profiles, server keys, peer state, subnet settings, and device-client linkage needed to preserve existing configs.</item-vpn-state>
+    <item-evidence>table_counts.before.json, table_counts.after.json, checksums.sha256, migration_state.txt, and restore_notes.md.</item-evidence>
+  </backup-bundle>
+
+  <cutover-gates>
+    <gate-1>All restore checks pass and counts match expected tolerances.</gate-1>
+    <gate-2>Backend, frontend, admin, database, Redis, billing read path, and auth smoke checks pass.</gate-2>
+    <gate-3>RU/DE tunnel health and at least one existing user/device config path are validated.</gate-3>
+    <gate-4>Rollback target is still available or an explicit no-rollback decision is recorded.</gate-4>
+  </cutover-gates>
+
+  <rollback-gates>
+    <gate-1>Abort cutover if checksums or table counts do not match.</gate-1>
+    <gate-2>Abort cutover if existing client configs would be invalidated without explicit operator-approved rotation.</gate-2>
+    <gate-3>Rollback to old servers if post-cutover health, auth, or VPN handshake checks fail.</gate-3>
+  </rollback-gates>
 
   <verification>
     <check-1>Backup manifest includes all required artifacts and explicitly redacts secrets from logs.</check-1>

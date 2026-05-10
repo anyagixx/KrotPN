@@ -6,6 +6,8 @@
     <flow-backup-freeze>Defines maintenance-window freeze and backup capture order</flow-backup-freeze>
     <flow-restore-new-servers>Defines restore sequence after fresh deployment on replacement servers</flow-restore-new-servers>
     <flow-cutover-validation>Defines health, handshake, admin, billing, and DNS/IP cutover checks</flow-cutover-validation>
+    <flow-rollback-decision>Defines go/no-go and rollback points before and after cutover</flow-rollback-decision>
+    <flow-dry-run-rehearsal>Defines non-production restore rehearsal and blocked live-evidence reporting</flow-dry-run-rehearsal>
   </exports>
   <depends>M-001, M-003, M-012, M-028, M-032, M-035</depends>
   <verification-ref>V-M-034</verification-ref>
@@ -17,6 +19,16 @@
     <constraint-1>Existing deploy and install scripts are treated as operator-approved black-box deployment tools.</constraint-1>
     <constraint-2>The runbook must not require changing deploy/, install.sh, or the current password-based deploy flow.</constraint-2>
     <constraint-3>Recovery must be possible with explicit operator steps and rollback checkpoints.</constraint-3>
+    <constraint-4>Runbook steps must separate old-server backup, new-server deployment, restore, validation, cutover, and rollback.</constraint-4>
+    <constraint-5>Any step requiring live VPS access must be marked as live-required and must not be implied by local dry-run evidence.</constraint-5>
   </constraints>
+  <runbook-stages>
+    <stage-1>Incident classification and operator decision to recover or migrate.</stage-1>
+    <stage-2>Maintenance/freeze window and old-server backup bundle creation.</stage-2>
+    <stage-3>Fresh RU/DE deployment through existing approved scripts.</stage-3>
+    <stage-4>Database, runtime secret, and VPN state restore.</stage-4>
+    <stage-5>Application, billing, admin, user, and VPN validation.</stage-5>
+    <stage-6>Cutover, monitoring, and rollback decision.</stage-6>
+  </runbook-stages>
   <hotspot>H-021: Disaster recovery must use existing operator-approved deploy/install scripts as a black-box deployment surface</hotspot>
 </M-034>
