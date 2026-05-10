@@ -13,6 +13,10 @@
     <file>backend/alembic/env.py</file>
     <file>backend/app/core/migrations.py</file>
   </files>
+  <disaster-recovery-role>
+    <role-1>Phase-22 restore validation must compare source and restored migration state before cutover.</role-1>
+    <role-2>Schema or migration-state mismatch blocks emergency relocation until the operator resolves or explicitly waives the risk.</role-2>
+  </disaster-recovery-role>
   <hotspot>H-012: Alembic migrations must be backward compatible with existing SQLModel.create_all behavior during transition period</hotspot>
   <hotspot>H-017: Preshared-key schema must be nullable for legacy peers and mandatory only for new rotations</hotspot>
 </M-028>

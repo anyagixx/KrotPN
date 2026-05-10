@@ -22,6 +22,7 @@
     <evidence-3 type="trace">Backup and restore logs show artifact names and validation decisions but no secret values.</evidence-3>
     <evidence-4 type="integration">Non-production pg_dump/pg_restore proves table counts and invariants before live use.</evidence-4>
     <evidence-5 type="live-required">Real incident recovery still requires live target validation and operator cutover approval.</evidence-5>
+    <evidence-6 type="deterministic">Restore integrity gates compare schema/migration state, checksums, table counts, selected row invariants, and no-secret-log review.</evidence-6>
   </evidence-matrix>
   <scenarios>
     <scenario-1 kind="success">Restored database contains matching users, subscriptions, payments, devices, VPN clients, and migration state.</scenario-1>

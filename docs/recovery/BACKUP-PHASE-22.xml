@@ -13,12 +13,14 @@
     <section-maintenance-freeze>Defines the operator freeze sequence before backup capture.</section-maintenance-freeze>
     <section-pre-backup-evidence>Defines version, node, table count, and migration evidence captured before backup.</section-pre-backup-evidence>
     <section-backup-bundle>Defines required portable backup artifacts and manifest fields.</section-backup-bundle>
+    <section-restore-integrity>Defines restore validation gates for schema, counts, checksums, invariants, and no-secret logs.</section-restore-integrity>
     <section-secret-redaction>Defines evidence rules that prevent raw secrets from entering logs.</section-secret-redaction>
   </module-map>
 
   <change-summary>
     <change-1>v1.0.0 - Phase-22 step-2 created maintenance/freeze and pre-backup evidence contract.</change-1>
     <change-2>v1.1.0 - Phase-22 step-3 defined full backup bundle, manifest, and checksum contract.</change-2>
+    <change-3>v1.2.0 - Phase-22 step-4 defined restore integrity gates, row invariants, and no-secret-log evidence.</change-3>
   </change-summary>
 
   <maintenance-freeze>
@@ -86,6 +88,37 @@
     <rule-2>Do not pass restore validation if postgres.dump, runtime-env.enc, vpn-state.tar.enc, or manifest.json checksum is missing.</rule-2>
     <rule-3>Record checksum verification output as pass/fail and artifact name only; do not print artifact contents.</rule-3>
   </checksum-rules>
+
+  <restore-integrity-gates>
+    <gate-1 name="schema-version" blocks-cutover="true">
+      <required-evidence>schema_version_or_migration_state from manifest matches migration_state.after.txt after restore.</required-evidence>
+      <failure-action>Stop restore validation and inspect M-028 migration state before starting public traffic.</failure-action>
+    </gate-1>
+    <gate-2 name="checksum-verification" blocks-cutover="true">
+      <required-evidence>checksums.sha256 verifies manifest.json, postgres.dump, runtime-env.enc, vpn-state.tar.enc, and evidence files.</required-evidence>
+      <failure-action>Reject the bundle unless operator records a signed incident waiver and alternate integrity proof.</failure-action>
+    </gate-2>
+    <gate-3 name="critical-table-counts" blocks-cutover="true">
+      <required-evidence>table_counts.after.json matches table_counts.before.json for users, subscriptions, payments, devices, vpn clients, plans, audit events, and migration rows within explicit tolerance.</required-evidence>
+      <failure-action>Do not cut over until discrepancy is explained and accepted.</failure-action>
+    </gate-3>
+    <gate-4 name="selected-row-invariants" blocks-cutover="true">
+      <required-evidence>Sampled active users retain subscription status, device rows retain user linkage, VPN clients retain device/client linkage, and billing records retain payment/subscription linkage.</required-evidence>
+      <failure-action>Block cutover because relational integrity may be corrupted.</failure-action>
+    </gate-4>
+    <gate-5 name="no-secret-log-evidence" blocks-cutover="true">
+      <required-evidence>restore_notes.md confirms restore output was reviewed for secret exposure and contains artifact names, pass/fail checks, and fingerprints only.</required-evidence>
+      <failure-action>Stop and rotate exposed material or record an explicit incident decision.</failure-action>
+    </gate-5>
+  </restore-integrity-gates>
+
+  <row-invariants>
+    <invariant-1>Every active subscription references an existing user.</invariant-1>
+    <invariant-2>Every device row references an existing user and preserves revoked/blocked state.</invariant-2>
+    <invariant-3>Every active VPN client references an existing user and, when present, the expected device identifier.</invariant-3>
+    <invariant-4>Payment records retain provider identifiers and subscription linkage without duplicate successful webhook effects.</invariant-4>
+    <invariant-5>Migration state after restore is not older than the source migration state.</invariant-5>
+  </row-invariants>
 
   <secret-redaction-policy>
     <rule-1>Never print raw .env, JWT secret, data encryption key, database password, Telegram token, YooKassa secret, AWG private key, or preshared key.</rule-1>

@@ -28,7 +28,7 @@
     Define the backup bundle contract: PostgreSQL dump, protected .env/runtime secrets, AWG profiles, server keys, subnet settings, peer state, device-client linkage, and manifest.
   </step-3>
 
-  <step-4 MODULE="M-035,M-028" RISK="CRITICAL" STATUS="pending">
+  <step-4 MODULE="M-035,M-028" RISK="CRITICAL" STATUS="done">
     Define restore integrity checks: schema version, migration state, checksums, table counts, selected row invariants, and no-secret-log evidence.
   </step-4>
 
@@ -88,5 +88,6 @@
     <artifact-1 module="M-034">docs/recovery/DR-PHASE-22.xml records incident modes, operator decision points, rollback eligibility, and local/live evidence boundaries.</artifact-1>
     <artifact-2 module="M-034,M-035">docs/recovery/BACKUP-PHASE-22.xml records maintenance/freeze sequence, pre-backup evidence, table-count capture, and secret-redaction policy.</artifact-2>
     <artifact-3 module="M-035">docs/recovery/BACKUP-PHASE-22.xml defines the portable bundle layout, manifest fields, required artifacts, and checksum rules.</artifact-3>
+    <artifact-4 module="M-035,M-028">docs/recovery/BACKUP-PHASE-22.xml defines restore integrity gates for schema/migration state, checksums, table counts, row invariants, and no-secret-log review.</artifact-4>
   </execution-artifacts>
 </Phase-22>
