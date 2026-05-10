@@ -2,20 +2,32 @@
 <V-M-036 MODULE="M-036" PRIORITY="high" STATUS="pending">
   <module>mobile-user-cabinet</module>
   <checks>User frontend must become compact, phone-friendly, and focused on VPN config, subscription, and device workflows.</checks>
-  <test-files></test-files>
-  <commands>cd frontend &amp;&amp; npm run build; mobile viewport smoke review</commands>
+  <test-files>frontend/src/components/Layout.tsx frontend/src/pages/Dashboard.tsx frontend/src/pages/Config.tsx frontend/src/pages/Subscription.tsx frontend/src/index.css</test-files>
+  <commands>cd frontend &amp;&amp; npm run build; mobile viewport smoke review at 360x740, 390x844, and 430x932</commands>
   <module-checks>
     <check-1>Frontend build passes.</check-1>
-    <check-2>Mobile dashboard has no horizontal scroll or overlapping text.</check-2>
+    <check-2>Mobile dashboard, config, devices, and subscription paths have no document-level horizontal scroll or overlapping text.</check-2>
     <check-3>Config download/QR action is reachable within one or two taps.</check-3>
     <check-4>Subscription and device state remain visible without oversized decorative sections.</check-4>
+    <check-5>Create device, rotate device, revoke device, QR, copy, and .conf download controls remain present.</check-5>
+    <check-6>Existing backend API request/response shapes are unchanged in Phase-23.</check-6>
   </module-checks>
   <scenarios>
-    <scenario-1 kind="success">User opens cabinet on phone and immediately sees VPN status, config action, subscription state, and devices.</scenario-1>
-    <scenario-2 kind="failure">Primary VPN action is buried behind desktop-only navigation or a large decorative layout.</scenario-2>
-    <scenario-3 kind="failure">A mobile viewport introduces horizontal scroll, hidden controls, or overlapping text.</scenario-3>
+    <scenario-1 kind="success">Authenticated user opens the cabinet on a phone and immediately sees VPN status, config action, subscription state, and active device summary.</scenario-1>
+    <scenario-2 kind="success">User opens config flow, selects or creates a device, then reaches QR, copy, and .conf download without desktop-only layout.</scenario-2>
+    <scenario-3 kind="success">User with expired or missing subscription sees a clear renewal/payment action instead of dead config controls.</scenario-3>
+    <scenario-4 kind="failure">Primary VPN action is buried behind desktop-only navigation or a large decorative layout.</scenario-4>
+    <scenario-5 kind="failure">A mobile viewport introduces horizontal scroll, hidden controls, clipped critical text, or overlapping action buttons.</scenario-5>
+    <scenario-6 kind="failure">Simplification removes device-bound rotate/revoke/config retrieval behavior.</scenario-6>
   </scenarios>
-  <required-log-markers>
-    <marker-1>[FrontendUser][mobile][PRIMARY_ACTION_VISIBLE]</marker-1>
-  </required-log-markers>
+  <viewport-gates>
+    <viewport-1 width="360" height="740">Home, config, subscription, and device controls visible without horizontal scroll.</viewport-1>
+    <viewport-2 width="390" height="844">Primary VPN config path is reachable within one or two taps.</viewport-2>
+    <viewport-3 width="430" height="932">Long user email, device name, device key, plan name, and status labels do not overlap controls.</viewport-3>
+  </viewport-gates>
+  <evidence>
+    <evidence-1>Record frontend build result.</evidence-1>
+    <evidence-2>Record viewport smoke result with scrollWidth not greater than innerWidth for the tested routes.</evidence-2>
+    <evidence-3>Record action reachability for config QR/download/copy from mobile home.</evidence-3>
+  </evidence>
 </V-M-036>

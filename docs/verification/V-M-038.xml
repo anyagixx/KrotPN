@@ -2,19 +2,31 @@
 <V-M-038 MODULE="M-038" PRIORITY="high" STATUS="pending">
   <module>compact-ui-system</module>
   <checks>Shared UI rules must make user and admin surfaces compact, consistent, and readable on mobile screens.</checks>
-  <test-files></test-files>
-  <commands>cd frontend &amp;&amp; npm run build; cd ../frontend-admin &amp;&amp; npm run build</commands>
+  <test-files>frontend/src/components/Layout.tsx frontend/src/pages/Dashboard.tsx frontend/src/pages/Config.tsx frontend/src/pages/Subscription.tsx frontend/src/index.css frontend-admin</test-files>
+  <commands>cd frontend &amp;&amp; npm run build; Phase-23 mobile compact UI smoke; cd ../frontend-admin &amp;&amp; npm run build during Phase-24 or full M-038 closure</commands>
   <module-checks>
-    <check-1>User frontend build passes.</check-1>
-    <check-2>Admin frontend build passes.</check-2>
+    <check-1>User frontend build passes for Phase-23.</check-1>
+    <check-2>Admin frontend build passes during Phase-24 or full M-038 closure.</check-2>
     <check-3>Compact UI rules avoid nested cards, oversized dashboard sections, decorative clutter, and horizontal scroll.</check-3>
     <check-4>Buttons, lists, tabs, dialogs, and confirmations have stable mobile dimensions.</check-4>
+    <check-5>Operational screens do not start with marketing hero sections or repeated status panels.</check-5>
+    <check-6>Text wraps or truncates intentionally for long emails, device keys, plan names, and status labels.</check-6>
   </module-checks>
   <scenarios>
-    <scenario-1 kind="success">Both frontends share compact layout rules while preserving domain-specific workflows.</scenario-1>
-    <scenario-2 kind="failure">A redesigned screen remains card-heavy, desktop-first, or text-overlapping on phones.</scenario-2>
+    <scenario-1 kind="success">User cabinet uses compact layout rules while preserving VPN, billing, and device workflows.</scenario-1>
+    <scenario-2 kind="success">Admin console can later adopt the same rules in Phase-24 without changing the Phase-23 user scope.</scenario-2>
+    <scenario-3 kind="failure">A redesigned screen remains card-heavy, desktop-first, decorative, or text-overlapping on phones.</scenario-3>
+    <scenario-4 kind="failure">The compact system hides destructive actions without clear secondary placement or confirmation-safe affordance.</scenario-4>
   </scenarios>
-  <required-log-markers>
-    <marker-1>[CompactUI][verification][MOBILE_SAFE]</marker-1>
-  </required-log-markers>
+  <ui-rules>
+    <rule-1>No nested cards inside cards.</rule-1>
+    <rule-2>No decorative radial-gradient/orb backgrounds as the basis of operational screens.</rule-2>
+    <rule-3>No wide tables or raw pre blocks causing page-level horizontal scroll.</rule-3>
+    <rule-4>Use lucide icons in action buttons where an icon exists.</rule-4>
+    <rule-5>Use stable touch targets and row heights across loading, empty, success, and error states.</rule-5>
+  </ui-rules>
+  <evidence>
+    <evidence-1>Record Phase-23 user frontend build and mobile viewport smoke result.</evidence-1>
+    <evidence-2>Record Phase-24 admin frontend build and mobile viewport smoke result before marking M-038 complete.</evidence-2>
+  </evidence>
 </V-M-038>

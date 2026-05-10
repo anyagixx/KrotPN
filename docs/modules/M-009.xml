@@ -6,5 +6,19 @@
   <verification-ref>V-M-009</verification-ref>
   <files>
     <file>frontend/src/main.tsx</file>
+    <file>frontend/src/App.tsx</file>
+    <file>frontend/src/components/Layout.tsx</file>
+    <file>frontend/src/pages/Dashboard.tsx</file>
+    <file>frontend/src/pages/Config.tsx</file>
+    <file>frontend/src/pages/Subscription.tsx</file>
+    <file>frontend/src/pages/Referrals.tsx</file>
+    <file>frontend/src/pages/Settings.tsx</file>
+    <file>frontend/src/lib/api.ts</file>
+    <file>frontend/src/index.css</file>
   </files>
+  <phase-23-scope>
+    <primary-files>Layout.tsx, Dashboard.tsx, Config.tsx, Subscription.tsx, index.css</primary-files>
+    <primary-behaviors>mobile navigation, VPN status, config QR/download/copy, device create/rotate/revoke, subscription renewal/payment entry</primary-behaviors>
+    <unchanged-contracts>auth, VPN, device, billing, referral API shapes remain unchanged in Phase-23 unless a separate contract update is approved</unchanged-contracts>
+  </phase-23-scope>
 </M-009>

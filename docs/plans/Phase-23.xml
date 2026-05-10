@@ -1,43 +1,117 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Phase-23 NAME="Compact Mobile User Cabinet" STATUS="pending" MODULES="M-036,M-038,M-009,M-002,M-003,M-004,M-022" CREATED="2026-05-10">
+<Phase-23 NAME="Compact Mobile User Cabinet" STATUS="pending" MODULES="M-036,M-038,M-009,M-002,M-003,M-004,M-022" CREATED="2026-05-10" UPDATED="2026-05-10">
   <goal>
     Redesign the user personal cabinet into a compact mobile-first workflow focused on VPN access, subscription state,
-    devices, and config delivery.
+    device-bound configs, QR/download actions, and payment entry points.
   </goal>
 
   <scope>
-    <included>User dashboard layout, device/config actions, subscription summary, payment entry points, responsive navigation, and mobile polish.</included>
-    <excluded>Backend API redesign, deployment changes, billing provider changes, and admin console redesign.</excluded>
+    <included>User dashboard layout, mobile navigation, device/config actions, subscription summary, payment entry points, and compact UI rules inside the user frontend.</included>
+    <excluded>Backend API redesign, deployment changes, install scripts, billing provider changes, admin console implementation, and session-storage hardening.</excluded>
+    <phase-boundary>Admin mobile console is Phase-24. Session security hardening is Phase-25. Existing deploy/install scripts remain untouched.</phase-boundary>
   </scope>
 
-  <step-1 MODULE="M-036,M-038" RISK="MEDIUM" STATUS="pending">
-    Inventory current user frontend screens and classify content as primary, secondary, or removable from mobile first view.
+  <current-inventory>
+    <screen-layout file="frontend/src/components/Layout.tsx">
+      Desktop-first 320px sidebar, large status panel, large header copy, and repeated user/account cards. Mobile execution should replace this with a compact shell, concise identity/status line, and phone-safe navigation.
+    </screen-layout>
+    <screen-dashboard file="frontend/src/pages/Dashboard.tsx">
+      Current page uses a decorative hero, four metric cards, extra server cards, and a quick-action panel. Primary mobile content is VPN status, config action, subscription state, and active device summary; traffic and referral actions are secondary.
+    </screen-dashboard>
+    <screen-config file="frontend/src/pages/Config.tsx">
+      Current page owns create/rotate/revoke, QR, copy, download, and raw config display. Mobile execution must turn this into a compact device/config workflow and avoid wide raw config overflow on small screens.
+    </screen-config>
+    <screen-subscription file="frontend/src/pages/Subscription.tsx">
+      Current page uses large status and plan cards. Mobile execution must keep active status, days left, plan price, duration, and payment button readable without oversized cards.
+    </screen-subscription>
+    <screen-secondary files="frontend/src/pages/Referrals.tsx frontend/src/pages/Settings.tsx">
+      Referral and settings surfaces stay available but must not displace VPN config, subscription, or device controls from the primary phone workflow.
+    </screen-secondary>
+  </current-inventory>
+
+  <data-flows>
+    <DF-UI-USER-HOME>
+      Authenticated user opens the cabinet, frontend reads current user, VPN stats, user stats, subscription, and device list, then renders a compact home with VPN state, subscription state, config CTA, and device summary.
+    </DF-UI-USER-HOME>
+    <DF-UI-CONFIG-ACTION>
+      User taps primary config action, selects existing or newly created device when needed, then can open QR, download .conf, or copy config without visiting a wide desktop layout.
+    </DF-UI-CONFIG-ACTION>
+    <DF-UI-DEVICE-MANAGEMENT>
+      User views device slots, creates a named device, rotates an active device config, or revokes one device through compact rows and confirmation-safe controls.
+    </DF-UI-DEVICE-MANAGEMENT>
+    <DF-UI-BILLING>
+      User sees active/expired subscription status and reaches plan purchase or renewal from the mobile dashboard and subscription page without backend API changes.
+    </DF-UI-BILLING>
+    <DF-UI-MOBILE-VERIFY>
+      Phase verification checks 360x740, 390x844, and 430x932 viewports for no horizontal scroll, no overlapping text, and primary VPN config access within one or two taps.
+    </DF-UI-MOBILE-VERIFY>
+  </data-flows>
+
+  <step-1 MODULE="M-036,M-038,M-009" RISK="MEDIUM" STATUS="pending">
+    Convert the current inventory into an execution map: primary mobile surfaces are home, config/device, and subscription; secondary surfaces are referrals, settings, traffic detail, and raw config text.
+    <outputs>
+      <output-1>Updated frontend-user module map if source ownership changes during execution.</output-1>
+      <output-2>Documented primary/secondary/removable content priority in M-036 and M-038.</output-2>
+    </outputs>
   </step-1>
 
-  <step-2 MODULE="M-036,M-003,M-022" RISK="HIGH" STATUS="pending">
-    Design the mobile home screen with VPN status, primary config action, QR/download action, and active device summary.
+  <step-2 MODULE="M-036,M-003,M-004,M-022" RISK="HIGH" STATUS="pending">
+    Build the compact mobile home workflow with VPN status, primary config action, QR/download entry, subscription state, and active device summary.
+    <acceptance>
+      <accept-1>Config action is visible on first screen or reachable after one navigation tap.</accept-1>
+      <accept-2>Expired or missing subscription shows a payment CTA instead of dead config controls.</accept-2>
+      <accept-3>Long email, device, and status text wraps or truncates safely without horizontal page scroll.</accept-3>
+    </acceptance>
   </step-2>
 
   <step-3 MODULE="M-036,M-004" RISK="HIGH" STATUS="pending">
-    Design compact subscription and payment surfaces with clear status, expiry, plan, and renewal action.
+    Redesign subscription and payment surfaces into compact plan rows or concise cards with clear current status, expiry, price, duration, and renewal action.
+    <acceptance>
+      <accept-1>Plan purchase still calls the existing billing API contract.</accept-1>
+      <accept-2>Current subscription state remains visible above plan selection on phones.</accept-2>
+    </acceptance>
   </step-3>
 
-  <step-4 MODULE="M-036,M-022" RISK="HIGH" STATUS="pending">
-    Design the mobile device management flow for create, rotate, revoke, and config retrieval without wide tables.
+  <step-4 MODULE="M-036,M-022,M-003" RISK="HIGH" STATUS="pending">
+    Redesign device-bound config management for create, rotate, revoke, QR, copy, and download without wide tables or raw config overflow.
+    <acceptance>
+      <accept-1>Device rows fit phone width and keep destructive actions visually secondary.</accept-1>
+      <accept-2>QR and .conf download remain available for the selected or newly created device.</accept-2>
+      <accept-3>Raw config text is collapsed, wrapped, or placed behind a deliberate action on mobile.</accept-3>
+    </acceptance>
   </step-4>
 
   <step-5 MODULE="M-038,M-009" RISK="MEDIUM" STATUS="pending">
-    Apply compact UI system rules: no nested cards, no decorative clutter, stable button/list sizing, and phone-safe text.
+    Apply compact UI system rules to the user frontend: no nested cards, no decorative hero/glass clutter, stable button/list sizing, concise navigation, and phone-safe text.
+    <acceptance>
+      <accept-1>Cards and panels are used only where they frame repeated items, modals, or concrete tools.</accept-1>
+      <accept-2>Buttons use existing lucide icons where available and have stable touch-friendly dimensions.</accept-2>
+      <accept-3>Background styling does not rely on decorative radial gradients or oversized hero composition.</accept-3>
+    </acceptance>
   </step-5>
 
-  <step-6 MODULE="M-036,M-009" RISK="HIGH" STATUS="pending">
-    Verify build and mobile smoke paths for login, dashboard, config download/QR, subscription, and devices.
+  <step-6 MODULE="M-036,M-038,M-009" RISK="HIGH" STATUS="pending">
+    Verify build and mobile smoke paths for login guard, dashboard, config QR/download/copy, subscription purchase entry, and device create/rotate/revoke controls.
+    <verification-ref>V-M-036,V-M-038</verification-ref>
+    <acceptance>
+      <accept-1>cd frontend &amp;&amp; npm run build passes.</accept-1>
+      <accept-2>Viewport smoke evidence records no horizontal document scroll at 360x740, 390x844, and 430x932.</accept-2>
+      <accept-3>No backend API shape changes are introduced in Phase-23.</accept-3>
+    </acceptance>
   </step-6>
+
+  <risk-controls>
+    <risk-1>Do not hide QR/download behind a desktop-only route or a low-priority menu.</risk-1>
+    <risk-2>Do not mix Phase-25 token/localStorage hardening into this UI phase.</risk-2>
+    <risk-3>Do not touch deploy, install, docker, nginx, or remote-server automation in this phase.</risk-3>
+    <risk-4>Do not remove device-bound create/rotate/revoke flows while simplifying layout.</risk-4>
+  </risk-controls>
 
   <verification>
     <check-1>User frontend build passes.</check-1>
-    <check-2>Mobile viewport has no horizontal scroll or overlapping text.</check-2>
+    <check-2>Mobile viewport has no horizontal scroll or overlapping text at 360x740, 390x844, and 430x932.</check-2>
     <check-3>Primary VPN config action is reachable within one or two taps.</check-3>
-    <check-4>Existing backend API contracts remain unchanged unless explicitly approved later.</check-4>
+    <check-4>QR, .conf download, copy, create device, rotate device, revoke device, subscription renewal, and payment entry remain present.</check-4>
+    <check-5>Existing backend API contracts remain unchanged unless explicitly approved later.</check-5>
   </verification>
 </Phase-23>

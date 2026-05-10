@@ -6,18 +6,48 @@
     <rule-mobile-layout>Responsive layout rules for phone-first screens without horizontal scroll</rule-mobile-layout>
     <rule-compact-controls>Standard sizes and interaction patterns for buttons, lists, tabs, dialogs, and confirmations</rule-compact-controls>
     <rule-content-priority>Priority order for visible information on user and admin mobile surfaces</rule-content-priority>
+    <rule-visual-density>Reduced spacing, restrained panels, and non-decorative backgrounds for operational screens</rule-visual-density>
+    <rule-safe-text>Wrapping, truncation, and stable sizing rules for long emails, device keys, status labels, and payment text</rule-safe-text>
   </exports>
   <depends>M-009, M-010</depends>
   <verification-ref>V-M-038</verification-ref>
   <files>
-    <file>frontend</file>
+    <file>frontend/src/components/Layout.tsx</file>
+    <file>frontend/src/pages/Dashboard.tsx</file>
+    <file>frontend/src/pages/Config.tsx</file>
+    <file>frontend/src/pages/Subscription.tsx</file>
+    <file>frontend/src/index.css</file>
     <file>frontend-admin</file>
     <file>docs/plans/Phase-23.xml</file>
     <file>docs/plans/Phase-24.xml</file>
   </files>
+  <rules>
+    <rule-1>Operational pages start with the usable product surface, not a marketing hero or explanatory landing section.</rule-1>
+    <rule-2>Cards must not be nested inside other cards; page sections should be flat, dense, and scan-friendly.</rule-2>
+    <rule-3>Use compact list rows, segmented controls, tabs, icon buttons, and concise labels instead of large decorative card grids.</rule-3>
+    <rule-4>Phone navigation must keep primary actions reachable without a 320px desktop sidebar or repeated identity/status panels.</rule-4>
+    <rule-5>Text must not overlap adjacent content; critical values must wrap or truncate intentionally within stable containers.</rule-5>
+    <rule-6>Prefer lucide icons in action buttons where an icon exists; do not replace familiar icons with text-only controls.</rule-6>
+    <rule-7>Reduce large border radii and glass styling during execution; target compact operational panels rather than oversized rounded sections.</rule-7>
+    <rule-8>Do not use decorative radial-gradient/orb backgrounds as the visual basis for the cabinet or admin work surfaces.</rule-8>
+  </rules>
+  <phase-boundaries>
+    <phase-23>User frontend adopts compact UI rules for the personal cabinet.</phase-23>
+    <phase-24>Admin frontend adopts the same compact UI rules for operator workflows.</phase-24>
+    <phase-25>Session security changes are separate and must not be bundled into UI simplification.</phase-25>
+  </phase-boundaries>
   <constraints>
     <constraint-1>No new marketing-style landing pages for operational surfaces.</constraint-1>
     <constraint-2>Use compact lists, segmented views, and clear action buttons instead of heavy decorative card grids.</constraint-2>
     <constraint-3>Text must fit on mobile without overlap, truncation of critical values, or horizontal scroll.</constraint-3>
+    <constraint-4>Do not touch deploy/install scripts while applying UI rules.</constraint-4>
   </constraints>
+  <verification>
+    <viewport-1>360x740 phone viewport</viewport-1>
+    <viewport-2>390x844 phone viewport</viewport-2>
+    <viewport-3>430x932 phone viewport</viewport-3>
+    <check-1>No document-level horizontal scroll.</check-1>
+    <check-2>No text overlap in nav, buttons, rows, modals, or status areas.</check-2>
+    <check-3>Primary action buttons have stable dimensions across loading, empty, success, and error states.</check-3>
+  </verification>
 </M-038>
