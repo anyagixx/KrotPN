@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<V-M-037 MODULE="M-037" PRIORITY="high" STATUS="pending">
+<V-M-037 MODULE="M-037" PRIORITY="high" STATUS="pass-local">
   <module>mobile-admin-console</module>
   <checks>Admin frontend must become compact and usable from a phone for operational status, user search, devices, payments/analytics, and system health.</checks>
   <test-files>frontend-admin/src/components/Layout.tsx frontend-admin/src/pages/Dashboard.tsx frontend-admin/src/pages/Users.tsx frontend-admin/src/pages/Devices.tsx frontend-admin/src/pages/Analytics.tsx frontend-admin/src/components/StatCard.tsx frontend-admin/src/index.css frontend-admin/src/lib/api.ts frontend-admin/src/types/index.ts</test-files>
@@ -71,10 +71,10 @@
     Autonomous execution is allowed only for frontend-admin UI files and matching MyGRACE docs. Backend business rules, billing provider behavior, Phase-25 auth/session changes, deploy scripts, install scripts, docker, and nginx files are excluded.
   </autonomous-execution-safety>
   <planned-evidence>
-    <evidence-1>Record npm build result after source changes.</evidence-1>
-    <evidence-2>Record Chrome/CDP or equivalent viewport smoke for /, /users, /devices, and /analytics.</evidence-2>
-    <evidence-3>Record static review that block, unblock, rotate, and revoke cannot execute without confirmation.</evidence-3>
-    <evidence-4>Record git diff check for deploy, install.sh, docker, and nginx surfaces.</evidence-4>
-    <evidence-5>Record M-006/M-024 backend contract guard only if frontend execution changes admin API calls or backend/admin files.</evidence-5>
+    <evidence-1>2026-05-10: npm run build passed in frontend-admin.</evidence-1>
+    <evidence-2>2026-05-10: Chrome/CDP mobile smoke passed for /, /users, /devices, and /analytics at 360x740, 390x844, and 430x932; every route reported scrollWidth equal to innerWidth and mobile nav present.</evidence-2>
+    <evidence-3>2026-05-10: Device action smoke clicked Block, opened confirmation text containing the target device/user/scope, and observed 0 mutation requests before confirm.</evidence-3>
+    <evidence-4>2026-05-10: Static review found no direct Mutation.mutate calls from device row buttons.</evidence-4>
+    <evidence-5>2026-05-10: deploy/install/docker/nginx/frontend-admin deployment surfaces had no diff.</evidence-5>
   </planned-evidence>
 </V-M-037>

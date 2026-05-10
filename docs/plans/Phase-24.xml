@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Phase-24 NAME="Compact Mobile Admin Console" STATUS="pending" MODULES="M-037,M-038,M-006,M-010,M-024" CREATED="2026-05-10" UPDATED="2026-05-10">
+<Phase-24 NAME="Compact Mobile Admin Console" STATUS="done" MODULES="M-037,M-038,M-006,M-010,M-024" CREATED="2026-05-10" UPDATED="2026-05-10">
   <goal>
     Redesign the admin panel into a compact mobile-capable operator console for service status, users, devices,
     payments, system health, and emergency device actions.
@@ -50,7 +50,7 @@
     </DF-UI-ADMIN-MOBILE-VERIFY>
   </data-flows>
 
-  <step-1 MODULE="M-037,M-038,M-010" RISK="MEDIUM" STATUS="pending">
+  <step-1 MODULE="M-037,M-038,M-010" RISK="MEDIUM" STATUS="done">
     Convert the current admin inventory into an execution map: primary mobile surfaces are overview, users, devices, payments/analytics summary, and system health; secondary surfaces are servers/routes, plans, and detailed charts.
     <outputs>
       <output-1>Updated frontend-admin module map if source ownership changes during execution.</output-1>
@@ -58,7 +58,7 @@
     </outputs>
   </step-1>
 
-  <step-2 MODULE="M-037,M-006,M-010" RISK="HIGH" STATUS="pending">
+  <step-2 MODULE="M-037,M-006,M-010" RISK="HIGH" STATUS="done">
     Build the compact mobile operator overview with service health, active users, active subscriptions, month revenue, VPN/system status, and urgent entry points for users and devices.
     <acceptance>
       <accept-1>Overview starts with operational status instead of a large hero or decorative dashboard block.</accept-1>
@@ -67,7 +67,7 @@
     </acceptance>
   </step-2>
 
-  <step-3 MODULE="M-037,M-006,M-010" RISK="HIGH" STATUS="pending">
+  <step-3 MODULE="M-037,M-006,M-010" RISK="HIGH" STATUS="done">
     Redesign user search and account summary into compact mobile rows with role, status, identity, last login, and a path for subscription/payment/device context.
     <acceptance>
       <accept-1>User search still calls the existing admin users API contract.</accept-1>
@@ -76,7 +76,7 @@
     </acceptance>
   </step-3>
 
-  <step-4 MODULE="M-037,M-024,M-010" RISK="CRITICAL" STATUS="pending">
+  <step-4 MODULE="M-037,M-024,M-010" RISK="CRITICAL" STATUS="done">
     Redesign device management for compact rows and confirmation-safe block, unblock, rotate, and revoke actions scoped to one device/peer.
     <acceptance>
       <accept-1>Every device action names the target device/user before mutation.</accept-1>
@@ -86,7 +86,7 @@
     </acceptance>
   </step-4>
 
-  <step-5 MODULE="M-038,M-010" RISK="MEDIUM" STATUS="pending">
+  <step-5 MODULE="M-038,M-010" RISK="MEDIUM" STATUS="done">
     Apply compact admin UI rules: dense rows, tabs or segmented controls where useful, fixed action areas for confirmations, restrained panels, reduced radius/glass styling, and no nested cards.
     <acceptance>
       <accept-1>Phone navigation does not preserve the 320px desktop sidebar as the main mobile path.</accept-1>
@@ -96,7 +96,7 @@
     </acceptance>
   </step-5>
 
-  <step-6 MODULE="M-037,M-038,M-010" RISK="HIGH" STATUS="pending">
+  <step-6 MODULE="M-037,M-038,M-010" RISK="HIGH" STATUS="done">
     Verify build and mobile smoke paths for admin overview, users, devices, analytics/payment status, and system health.
     <verification-ref>V-M-037,V-M-038,V-M-010</verification-ref>
     <acceptance>
@@ -124,10 +124,11 @@
     <check-6>No deploy/install scripts are modified by this phase.</check-6>
   </verification>
 
-  <planned-evidence>
-    <evidence-1>Record cd frontend-admin &amp;&amp; npm run build result after Phase-24 source changes.</evidence-1>
-    <evidence-2>Record mobile smoke result for /, /users, /devices, and /analytics at 360x740, 390x844, and 430x932.</evidence-2>
-    <evidence-3>Record confirmation-path evidence for block, unblock, rotate, and revoke before marking V-M-037 pass-local.</evidence-3>
-    <evidence-4>Record git diff check proving deploy/install surfaces stayed unchanged.</evidence-4>
-  </planned-evidence>
+  <evidence>
+    <evidence-1>2026-05-10: cd frontend-admin &amp;&amp; npm run build passed after Phase-24 source changes.</evidence-1>
+    <evidence-2>2026-05-10: Chrome/CDP mobile smoke passed for /, /users, /devices, and /analytics at 360x740, 390x844, and 430x932; scrollWidth matched innerWidth for every route/viewport.</evidence-2>
+    <evidence-3>2026-05-10: Device action smoke opened a confirmation surface naming device/user/scope before mutation; mutation count stayed 0 before confirm.</evidence-3>
+    <evidence-4>2026-05-10: Static review found no direct block/unblock/rotate/revoke Mutation.mutate calls from device row buttons.</evidence-4>
+    <evidence-5>2026-05-10: git diff --name-only -- deploy install.sh nginx docker-compose.yml frontend-admin/Dockerfile frontend-admin/nginx.conf returned empty.</evidence-5>
+  </evidence>
 </Phase-24>

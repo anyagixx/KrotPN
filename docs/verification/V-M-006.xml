@@ -24,4 +24,8 @@
   <redaction>
     <redact-1>Admin API verification logs must not include bearer tokens, refresh tokens, cookies, raw request bodies containing secrets, or payment provider secrets.</redact-1>
   </redaction>
+  <phase-24-evidence>
+    <evidence-1>2026-05-10: Phase-24 did not modify backend/app/admin or admin API endpoint bindings in frontend-admin/src/lib/api.ts.</evidence-1>
+    <evidence-2>2026-05-10: Frontend-admin build and mobile smoke consumed existing M-006 endpoints through mocked /api/v1 responses without API shape changes.</evidence-2>
+  </phase-24-evidence>
 </V-M-006>

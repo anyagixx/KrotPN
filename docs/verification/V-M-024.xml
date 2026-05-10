@@ -25,4 +25,8 @@
     <telemetry-1>Device-control evidence records device id surrogate, action name, confirmation state, result status, and refreshed list behavior.</telemetry-1>
     <telemetry-2>Evidence must not contain peer private keys, full VPN configs, bearer tokens, or raw endpoint IPs when screenshots/text logs are saved.</telemetry-2>
   </observability>
+  <phase-24-evidence>
+    <evidence-1>2026-05-10: Phase-24 did not modify backend/app/admin/router.py or M-024 backend enforcement logic.</evidence-1>
+    <evidence-2>2026-05-10: Device UI action smoke confirmed a one-device confirmation surface before mutation and observed no mutation request before confirm.</evidence-2>
+  </phase-24-evidence>
 </V-M-024>

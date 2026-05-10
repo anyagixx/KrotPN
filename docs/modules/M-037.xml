@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<M-037 NAME="mobile-admin-console" TYPE="UI_COMPONENT" STATUS="pending">
+<M-037 NAME="mobile-admin-console" TYPE="UI_COMPONENT" STATUS="done">
   <path>frontend-admin docs/plans/Phase-24.xml</path>
   <owns>Compact mobile-first admin console for operational status, users, devices, payments, analytics summary, system health, and emergency device actions</owns>
   <exports>
@@ -36,5 +36,10 @@
     <constraint-4>Device actions must target one peer/device and must not imply or trigger whole-account disablement.</constraint-4>
     <constraint-5>Deploy/install scripts, backend business rules, and Phase-25 session handling are out of scope.</constraint-5>
   </constraints>
+  <execution-notes>
+    <note-1>Phase-24 implemented compact admin shell, dashboard, users, devices, analytics, compact stat tiles, and compact admin CSS in frontend-admin.</note-1>
+    <note-2>Device actions now open an explicit confirmation surface before block, unblock, rotate, or revoke calls.</note-2>
+    <note-3>No backend API, deploy, install, docker, nginx, or billing provider changes were made.</note-3>
+  </execution-notes>
   <hotspot>H-024: Mobile admin console must keep emergency operator actions visible without desktop-only dashboards</hotspot>
 </M-037>

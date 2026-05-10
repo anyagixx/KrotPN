@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<M-038 NAME="compact-ui-system" TYPE="UI_COMPONENT" STATUS="wip">
+<M-038 NAME="compact-ui-system" TYPE="UI_COMPONENT" STATUS="done">
   <path>frontend frontend-admin docs/plans/Phase-23.xml docs/plans/Phase-24.xml</path>
   <owns>Shared compact UI rules for user and admin frontends: mobile-first layout, dense information surfaces, simple navigation, and readable controls</owns>
   <exports>
@@ -41,7 +41,7 @@
   </rules>
   <phase-boundaries>
     <phase-23>User frontend adopts compact UI rules for the personal cabinet.</phase-23>
-    <phase-24>Admin frontend adopts the same compact UI rules for operator overview, users, devices, payments, analytics, and system health workflows.</phase-24>
+    <phase-24>Admin frontend adopted the same compact UI rules for operator overview, users, devices, payments, analytics, and system health workflows.</phase-24>
     <phase-25>Session security changes are separate and must not be bundled into UI simplification.</phase-25>
   </phase-boundaries>
   <constraints>
@@ -60,4 +60,9 @@
     <check-3>Primary action buttons have stable dimensions across loading, empty, success, and error states.</check-3>
     <check-4>Admin device confirmations stay usable at 360x740, 390x844, and 430x932.</check-4>
   </verification>
+  <execution-notes>
+    <note-1>Phase-23 user frontend compact UI passed local build and mobile smoke.</note-1>
+    <note-2>Phase-24 admin frontend compact UI passed local build and Chrome/CDP mobile smoke.</note-2>
+    <note-3>M-038 is done locally for the planned user/admin compact UI scope; Phase-25 session security remains separate.</note-3>
+  </execution-notes>
 </M-038>

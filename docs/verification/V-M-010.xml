@@ -26,4 +26,8 @@
     <telemetry-1>Build evidence records command, exit code, and failing TypeScript/Vite output if any.</telemetry-1>
     <telemetry-2>Do not record real admin tokens, refresh tokens, Authorization headers, or cookies in frontend-admin evidence.</telemetry-2>
   </observability>
+  <evidence>
+    <evidence-1>2026-05-10: cd frontend-admin &amp;&amp; npm run build passed after Phase-24 compact admin UI changes.</evidence-1>
+    <evidence-2>2026-05-10: Route/API binding static guard confirmed /users, /devices, /analytics, /api/v1, and existing device endpoint names.</evidence-2>
+  </evidence>
 </V-M-010>

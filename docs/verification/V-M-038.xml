@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<V-M-038 MODULE="M-038" PRIORITY="high" STATUS="partial-local">
+<V-M-038 MODULE="M-038" PRIORITY="high" STATUS="pass-local">
   <module>compact-ui-system</module>
   <checks>Shared UI rules must make user and admin surfaces compact, consistent, and readable on mobile screens.</checks>
   <test-files>frontend/src/components/Layout.tsx frontend/src/pages/Dashboard.tsx frontend/src/pages/Config.tsx frontend/src/pages/Subscription.tsx frontend/src/index.css frontend-admin/src/components/Layout.tsx frontend-admin/src/pages/Dashboard.tsx frontend-admin/src/pages/Users.tsx frontend-admin/src/pages/Devices.tsx frontend-admin/src/pages/Analytics.tsx frontend-admin/src/components/StatCard.tsx frontend-admin/src/index.css</test-files>
@@ -7,7 +7,7 @@
   <levels>
     <module-local>User frontend build and static compact UI review run after each compact shell, dashboard, config, or subscription change.</module-local>
     <wave-level>Phase-23 wave smoke checks layout density, no nested cards, no decorative hero/orb basis, stable controls, and safe text on user routes.</wave-level>
-    <phase-level>Full M-038 closure additionally requires Phase-24 admin build and mobile admin smoke before status can move from partial-local.</phase-level>
+    <phase-level>Full M-038 compact UI closure passed locally after Phase-24 admin build and mobile admin smoke.</phase-level>
   </levels>
   <module-checks>
     <check-1>User frontend build passes for Phase-23.</check-1>
@@ -77,7 +77,9 @@
     <evidence-1>Record Phase-23 user frontend build and mobile viewport smoke result.</evidence-1>
     <evidence-2>Record Phase-24 admin frontend build and mobile viewport smoke result before marking M-038 complete.</evidence-2>
     <evidence-3>Record static review result for nested cards, decorative background basis, wide raw config blocks, and stable control sizing.</evidence-3>
-    <evidence-4>2026-05-10: Phase-23 user frontend passed build and Chrome CDP smoke; M-038 remains partial until Phase-24 admin frontend adopts the compact rules.</evidence-4>
+    <evidence-4>2026-05-10: Phase-23 user frontend passed build and Chrome CDP smoke.</evidence-4>
+    <evidence-5>2026-05-10: Phase-24 admin frontend passed build and Chrome/CDP smoke for /, /users, /devices, and /analytics at 360x740, 390x844, and 430x932.</evidence-5>
+    <evidence-6>2026-05-10: Admin device confirmation guard passed and deploy/install surfaces stayed unchanged.</evidence-6>
   </evidence>
   <autonomous-execution-safety status="phase-23-user-only">
     Autonomous Phase-23 execution is complete for user frontend compact UI files. Admin frontend remains Phase-24 scope and deploy/install surfaces remain out of scope.
@@ -85,7 +87,7 @@
   <phase-24-safety status="planned">
     Phase-24 execution is safe only for frontend-admin compact UI files and related MyGRACE docs. Backend business rules, deploy/install scripts, docker, nginx, and Phase-25 session security remain out of scope.
   </phase-24-safety>
-  <closure-gate status="pending-admin-evidence">
-    M-038 can move to done only after Phase-24 admin build, mobile smoke, no horizontal scroll, no text overlap, confirmation-safe device actions, and no excluded-surface diff are recorded.
+  <closure-gate status="pass-local">
+    M-038 moved to done after Phase-24 admin build, mobile smoke, no horizontal scroll, confirmation-safe device actions, and no excluded-surface diff were recorded.
   </closure-gate>
 </V-M-038>
