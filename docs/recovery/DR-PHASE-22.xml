@@ -14,6 +14,7 @@
     <section-decision-points>Defines operator go/no-go choices and required evidence.</section-decision-points>
     <section-replacement-server-runbook>Defines replacement RU/DE deployment checkpoint using existing approved scripts unchanged.</section-replacement-server-runbook>
     <section-restore-sequence>Defines ordered database, runtime, VPN, migration, and service-start restore sequence.</section-restore-sequence>
+    <section-vpn-validation>Defines tunnel, profile, address-pool, client compatibility, and rotation-guard checks.</section-vpn-validation>
     <section-live-boundaries>Separates local dry-run evidence from live VPS evidence.</section-live-boundaries>
   </module-map>
 
@@ -22,6 +23,7 @@
     <change-2>v1.1.0 - Phase-22 step-2 added maintenance/freeze sequence and backup evidence handoff.</change-2>
     <change-3>v1.2.0 - Phase-22 step-5 added replacement-server runbook and restore checkpoint.</change-3>
     <change-4>v1.3.0 - Phase-22 step-6 added ordered restore sequence and service-start gate.</change-4>
+    <change-5>v1.4.0 - Phase-22 step-7 added VPN-specific validation and rotation guard.</change-5>
   </change-summary>
 
   <incident-modes>
@@ -141,6 +143,29 @@
       <blocked-if>Restore integrity gates are incomplete, waived without operator note, or failed.</blocked-if>
     </restore-6>
   </restore-sequence>
+
+  <vpn-validation>
+    <vpn-check-1 name="ru-de-tunnel-health" live-required="true" blocks-cutover="true">
+      <required-evidence>RU and DE AWG interfaces are up, relay addresses are reachable, and tunnel handshake is fresh enough for operator-defined tolerance.</required-evidence>
+      <failure-action>Do not cut over; inspect host-level AWG/routing state on replacement RU/DE.</failure-action>
+    </vpn-check-1>
+    <vpn-check-2 name="awg-profile-parity" live-required="true" blocks-cutover="true">
+      <required-evidence>Restored CLIENT_PROFILE and RELAY_PROFILE fingerprints match the expected bundle fingerprints; raw keys are not printed.</required-evidence>
+      <failure-action>Stop validation because client and relay handshakes may fail after cutover.</failure-action>
+    </vpn-check-2>
+    <vpn-check-3 name="address-pool-compatibility" live-required="false" blocks-cutover="true">
+      <required-evidence>Restored VPN_CLIENT_SUBNET, VPN_RELAY_SUBNET, VPN_CAPACITY_PROFILE, and stored VPNClient addresses match M-032 capacity and no-silent-migration rules.</required-evidence>
+      <failure-action>Abort cutover unless operator explicitly approves address-pool rotation and client reprovisioning.</failure-action>
+    </vpn-check-3>
+    <vpn-check-4 name="existing-client-config-behavior" live-required="true" blocks-cutover="true">
+      <required-evidence>At least one existing user/device config path is validated without forced rotation; generated config still uses the restored address and profile values.</required-evidence>
+      <failure-action>Do not cut over because existing users may lose connectivity.</failure-action>
+    </vpn-check-4>
+    <vpn-check-5 name="explicit-rotation-guard" live-required="false" blocks-cutover="true">
+      <required-evidence>restore_notes.md records VPN_NETWORK_ROTATE state. If rotation is needed, operator approval and client communication plan are attached.</required-evidence>
+      <failure-action>Block any silent client address/profile rewrite.</failure-action>
+    </vpn-check-5>
+  </vpn-validation>
 
   <live-boundaries>
     <local-only>XML parse, MyGRACE lint, manifest schema review, and non-production dry-run can prove document and procedure consistency.</local-only>

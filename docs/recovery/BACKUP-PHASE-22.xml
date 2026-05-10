@@ -128,6 +128,12 @@
     <evidence-4>service_start_notes.md records whether services were started only after integrity gates passed.</evidence-4>
   </restore-sequence-evidence>
 
+  <vpn-restore-evidence>
+    <evidence-1>vpn_fingerprints.before.json and vpn_fingerprints.after.json compare AWG profile fingerprints without raw key output.</evidence-1>
+    <evidence-2>vpn_network_after.json records VPN_CLIENT_SUBNET, VPN_RELAY_SUBNET, VPN_CAPACITY_PROFILE, and VPN_NETWORK_ROTATE state.</evidence-2>
+    <evidence-3>client_compatibility_after.json records sampled existing client/device config compatibility and whether rotation was required.</evidence-3>
+  </vpn-restore-evidence>
+
   <secret-redaction-policy>
     <rule-1>Never print raw .env, JWT secret, data encryption key, database password, Telegram token, YooKassa secret, AWG private key, or preshared key.</rule-1>
     <rule-2>Evidence may include artifact names, byte sizes, checksums, key presence booleans, and non-secret fingerprints.</rule-2>

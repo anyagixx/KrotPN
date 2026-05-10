@@ -47,5 +47,9 @@
     <verification>V-M-032 passed on 2026-04-20: 25 passed, 9 warnings; bash syntax gate passed for install.sh, deploy scripts and deploy/lib/vpn-network.sh.</verification>
     <live-verification>Operator-confirmed VPS deployment test passed for release v2.13.0-vpn-network-capacity-stable on 2026-04-20.</live-verification>
   </implementation-status>
+  <disaster-recovery-role>
+    <role-1>Phase-22 restore validation must compare restored VPN_CLIENT_SUBNET, VPN_RELAY_SUBNET, VPN_CAPACITY_PROFILE, and stored VPNClient addresses against the backup manifest.</role-1>
+    <role-2>VPN_NETWORK_ROTATE must remain an explicit operator gate for any restore path that would invalidate existing client configs.</role-2>
+  </disaster-recovery-role>
   <hotspot>H-019: Address-pool changes must be explicit because existing clients need rotated/reprovisioned configs.</hotspot>
 </M-032>

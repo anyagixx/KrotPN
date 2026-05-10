@@ -40,7 +40,7 @@
     Define restore sequence: load database dump, restore protected runtime env, restore VPN/AWG artifacts, verify migration state, then start services.
   </step-6>
 
-  <step-7 MODULE="M-034,M-003,M-032" RISK="CRITICAL" STATUS="pending">
+  <step-7 MODULE="M-034,M-003,M-032" RISK="CRITICAL" STATUS="done">
     Define VPN-specific validation: RU/DE tunnel health, AWG profile parity, address-pool compatibility, existing client config behavior, and explicit rotation guard.
   </step-7>
 
@@ -91,5 +91,6 @@
     <artifact-4 module="M-035,M-028">docs/recovery/BACKUP-PHASE-22.xml defines restore integrity gates for schema/migration state, checksums, table counts, row invariants, and no-secret-log review.</artifact-4>
     <artifact-5 module="M-034,M-012">docs/recovery/DR-PHASE-22.xml defines replacement-server provisioning through the existing approved deploy/install flow and a restore checkpoint before public cutover.</artifact-5>
     <artifact-6 module="M-034,M-035,M-028">docs/recovery/DR-PHASE-22.xml and docs/recovery/BACKUP-PHASE-22.xml define the ordered restore sequence and evidence outputs before service startup.</artifact-6>
+    <artifact-7 module="M-034,M-003,M-032">docs/recovery/DR-PHASE-22.xml defines VPN validation gates for RU/DE tunnel health, AWG profile parity, address-pool compatibility, existing client behavior, and explicit rotation guard.</artifact-7>
   </execution-artifacts>
 </Phase-22>

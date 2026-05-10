@@ -36,6 +36,7 @@
     <note-2>Phase-22 step-2 added maintenance/freeze sequencing and pre-backup evidence linkage to the recovery artifacts.</note-2>
     <note-3>Phase-22 step-5 added replacement-server provisioning stages that use the existing approved deploy/install flow unchanged and stop at a restore checkpoint.</note-3>
     <note-4>Phase-22 step-6 added ordered restore sequence for bundle verification, runtime env, PostgreSQL, VPN/AWG state, migration checks, and service startup.</note-4>
+    <note-5>Phase-22 step-7 added VPN-specific validation for RU/DE tunnel health, AWG profile parity, address-pool compatibility, existing client behavior, and explicit rotation guard.</note-5>
   </execution-notes>
   <hotspot>H-021: Disaster recovery must use existing operator-approved deploy/install scripts as a black-box deployment surface</hotspot>
 </M-034>

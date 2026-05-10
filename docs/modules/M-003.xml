@@ -24,6 +24,10 @@
     <file>backend/app/vpn/handshake_monitor.py</file>
     <file>backend/app/vpn/__init__.py</file>
   </files>
+  <disaster-recovery-role>
+    <role-1>Phase-22 recovery validation must prove restored VPN configs, device-bound clients, and AWG profile rendering remain compatible with existing users.</role-1>
+    <role-2>Existing client configs must not be silently invalidated; rotation requires explicit operator approval.</role-2>
+  </disaster-recovery-role>
   <hotspot>H-001: Topology migration carries legacy VPNServer compatibility</hotspot>
   <hotspot>H-013: VPN service split into 4 files — import paths must remain stable</hotspot>
   <hotspot>H-017: Client configs must match RU awg0 CLIENT_PROFILE exactly or handshakes fail</hotspot>
