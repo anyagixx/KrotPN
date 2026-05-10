@@ -3,9 +3,14 @@
   <module>token-blacklist</module>
   <checks>Token blacklist correctly rejects revoked tokens. Graceful degradation when Redis is unavailable (auth still works). Blacklist TTL matches token expiry.</checks>
   <test-files>backend/tests/test_security.py</test-files>
-  <commands>pytest tests/test_security.py -v -k blacklist</commands>
+  <commands>cd backend &amp;&amp; SECRET_KEY=test-secret-key-with-enough-length DATA_ENCRYPTION_KEY=dpFmfSVqfdAK3yx5MQV6Tcv35RZuw5MzaH0yhxJ01q0= PYTHONPATH=. ../.venv/bin/python -m pytest -o addopts='' tests/test_security.py -v -k blacklist</commands>
   <anchors>TOKEN_BLACKLISTED TOKEN_REJECTED</anchors>
   <scenarios>
     <scenario kind="success" trace="TOKEN_BLACKLISTED">Blacklisted token is rejected by verify_token_with_blacklist</scenario>
+    <scenario kind="success" trace="REDIS_UNAVAILABLE">Redis outage degrades open and does not break normal token verification</scenario>
   </scenarios>
+  <evidence>
+    <evidence-1>2026-05-10: Added tests for verify_token_with_blacklist rejection and Redis-unavailable graceful degradation.</evidence-1>
+    <evidence-2>2026-05-10: cd backend &amp;&amp; ... tests/test_security.py -v -k blacklist passed, 2 selected tests.</evidence-2>
+  </evidence>
 </V-M-027>

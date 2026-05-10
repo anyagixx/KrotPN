@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<STABILIZATION-PHASE-26 MODULE="M-033" STATUS="done-local" CREATED="2026-05-10">
+  <purpose>Final local stabilization handoff for the recovery, compact UI, and session-security improvement wave.</purpose>
+  <scope>
+    <included>Verification status matrix, local evidence, live-required blockers, operator handoff, recovery references, and protected surfaces.</included>
+    <excluded>New product features, deploy/install script edits, live cutover, secret movement, cookie-only auth migration, and production data restore.</excluded>
+  </scope>
+  <verification-matrix>
+    <phase-22 status="blocked-live" modules="M-034,M-035">
+      <summary>Emergency relocation and portable backup runbooks are locally documented, but non-production restore rehearsal still requires a trusted backup bundle and isolated restore target.</summary>
+      <evidence>V-M-034 and V-M-035 are partial-local with live-required restore, VPN, app, and cutover evidence.</evidence>
+    </phase-22>
+    <phase-23 status="done" modules="M-036,M-038">
+      <summary>User cabinet compact mobile UI passed local build and mobile viewport smoke.</summary>
+      <evidence>V-M-036 and V-M-038 are pass-local for user frontend compact scope.</evidence>
+    </phase-23>
+    <phase-24 status="done" modules="M-037,M-038">
+      <summary>Admin console compact mobile UI passed local build, Chrome/CDP smoke, device confirmation guard, and excluded-surface no-diff checks.</summary>
+      <evidence>V-M-037 and V-M-038 are pass-local for admin frontend compact scope.</evidence>
+    </phase-24>
+    <phase-25 status="done-local" modules="M-039,M-010,M-027">
+      <summary>Session-security gates, rollback plan, admin refresh-token lifecycle fix, and token blacklist tests passed locally.</summary>
+      <evidence>V-M-039 is pass-local; V-M-027 blacklist command now selects and passes real tests.</evidence>
+    </phase-25>
+    <phase-26 status="done-local" modules="M-033,M-034,M-035,M-036,M-037,M-038,M-039">
+      <summary>This handoff records the final local state and operator-required follow-up gates.</summary>
+      <evidence>XML parse, MyGRACE index sync, local builds, security tests, and no deploy/install diff are required before commit.</evidence>
+    </phase-26>
+  </verification-matrix>
+  <operator-handoff>
+    <changed-1>Frontend user cabinet was made compact and mobile-first in Phase-23.</changed-1>
+    <changed-2>Frontend admin console was made compact and mobile-first in Phase-24, including confirmation-safe device actions.</changed-2>
+    <changed-3>Phase-25 added session-security static gates and fixed admin refresh-token persistence/cleanup.</changed-3>
+    <changed-4>Phase-25 added real unit coverage for token blacklist rejection and Redis-unavailable graceful degradation.</changed-4>
+    <changed-5>Phase-22 recovery/backup runbooks exist, but live restore rehearsal is still blocked by missing external evidence.</changed-5>
+  </operator-handoff>
+  <how-to-verify>
+    <command-1>node scripts/session-security-smoke.mjs</command-1>
+    <command-2>cd frontend &amp;&amp; npm run build</command-2>
+    <command-3>cd frontend-admin &amp;&amp; npm run build</command-3>
+    <command-4>cd backend &amp;&amp; SECRET_KEY=test-secret-key-with-enough-length DATA_ENCRYPTION_KEY=dpFmfSVqfdAK3yx5MQV6Tcv35RZuw5MzaH0yhxJ01q0= PYTHONPATH=. ../.venv/bin/python -m pytest -o addopts='' tests/test_security.py -v</command-4>
+    <command-5>python3 -m xml.etree.ElementTree docs/graph-index.xml docs/plan-index.xml docs/verification-index.xml docs/current-status.xml docs/handoff/STABILIZATION-PHASE-26.xml</command-5>
+    <command-6>mygrace lint</command-6>
+  </how-to-verify>
+  <recovery-references>
+    <reference-1>docs/recovery/DR-PHASE-22.xml: emergency relocation runbook.</reference-1>
+    <reference-2>docs/recovery/BACKUP-PHASE-22.xml: backup bundle and restore manifest contract.</reference-2>
+    <reference-3>docs/recovery/DRY-RUN-PHASE-22.xml: live-required dry-run evidence ledger.</reference-3>
+    <reference-4>docs/security/SESSION-PHASE-25.xml: auth/session migration and rollback contract.</reference-4>
+  </recovery-references>
+  <protected-surfaces>
+    <surface-1>deploy/ must remain unchanged unless the operator explicitly requests deployment-script work.</surface-1>
+    <surface-2>install.sh must remain unchanged unless the operator explicitly requests installer work.</surface-2>
+    <surface-3>nginx, docker-compose.yml, Dockerfiles, and server automation should not be changed as part of UI/session/handoff closure.</surface-3>
+    <surface-4>Live secrets, raw .env values, admin/user tokens, private keys, and full VPN configs must not be printed into evidence.</surface-4>
+  </protected-surfaces>
+  <remaining-operator-required>
+    <item-1>Phase-22 live dry-run needs a trusted backup bundle and isolated restore target.</item-1>
+    <item-2>Phase-22 cutover readiness needs restored backend, frontend, admin, auth, billing read path, Redis, RU/DE VPN, AWG profile, and client compatibility evidence.</item-2>
+    <item-3>Cookie-only auth migration needs explicit approval and HTTPS or production-like smoke evidence because Secure cookies are not proven by plain local HTTP.</item-3>
+    <item-4>Any live server relocation, DNS/IP cutover, client config rotation, or secret movement must stay operator-controlled.</item-4>
+  </remaining-operator-required>
+</STABILIZATION-PHASE-26>

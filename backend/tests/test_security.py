@@ -13,12 +13,15 @@ MODULE_MAP
 - test_decode_token_returns_none_for_expired_token: Verifies expired token rejection.
 - test_verify_token_returns_user_id_for_valid_access: Verifies access token verification.
 - test_verify_token_returns_none_for_refresh_when_expecting_access: Verifies type mismatch.
+- test_verify_token_with_blacklist_rejects_revoked_token: Verifies revoked access tokens are rejected.
+- test_token_blacklist_gracefully_degrades_without_redis: Verifies Redis outage does not break token verification.
 - test_hash_password_and_verify_password: Verifies password roundtrip.
 - test_encrypt_data_and_decrypt_data_roundtrip: Verifies encryption roundtrip.
 - test_get_fernet_raises_without_data_encryption_key: Verifies missing key error.
 
 CHANGE_SUMMARY
 - 2026-04-05: Added security unit tests for Phase 5.
+- 2026-05-10: Added Phase-25 token blacklist tests for revocation and Redis-unavailable behavior.
 """
 
 from datetime import datetime, timedelta, timezone
@@ -32,6 +35,9 @@ from app.core.security import (
     create_refresh_token,
     decode_token,
     verify_token,
+    verify_token_with_blacklist,
+    blacklist_token,
+    is_token_blacklisted,
     hash_password,
     verify_password,
     encrypt_data,
@@ -95,6 +101,47 @@ def test_verify_token_returns_none_for_refresh_when_expecting_access(monkeypatch
     token = create_refresh_token(subject=5)
     result = verify_token(token, expected_type="access")
     assert result is None
+
+
+# START_BLOCK_TOKEN_BLACKLIST_TESTS
+class _FakeRedis:
+    def __init__(self):
+        self.store: dict[str, tuple[int, str]] = {}
+
+    async def setex(self, key: str, ttl: int, value: str) -> None:
+        self.store[key] = (ttl, value)
+
+    async def exists(self, key: str) -> int:
+        return 1 if key in self.store else 0
+
+
+@pytest.mark.asyncio
+async def test_verify_token_with_blacklist_rejects_revoked_token(monkeypatch):
+    monkeypatch.setattr(sec_module.settings, "secret_key", "test-secret-key-for-jwt-tests")
+    fake_redis = _FakeRedis()
+    monkeypatch.setattr(sec_module, "_get_redis", lambda: fake_redis)
+
+    token = create_access_token(subject="revoked-user")
+
+    assert await verify_token_with_blacklist(token, expected_type="access") == "revoked-user"
+    await blacklist_token(token)
+
+    assert await is_token_blacklisted(token) is True
+    assert await verify_token_with_blacklist(token, expected_type="access") is None
+
+
+@pytest.mark.asyncio
+async def test_token_blacklist_gracefully_degrades_without_redis(monkeypatch):
+    monkeypatch.setattr(sec_module.settings, "secret_key", "test-secret-key-for-jwt-tests")
+    monkeypatch.setattr(sec_module, "_get_redis", lambda: None)
+
+    token = create_access_token(subject="redis-down-user")
+
+    await blacklist_token(token)
+
+    assert await is_token_blacklisted(token) is False
+    assert await verify_token_with_blacklist(token, expected_type="access") == "redis-down-user"
+# END_BLOCK_TOKEN_BLACKLIST_TESTS
 
 
 def test_hash_password_and_verify_password():

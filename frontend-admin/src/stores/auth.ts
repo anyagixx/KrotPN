@@ -13,10 +13,12 @@
 //   AdminUser - Admin user profile interface
 //   AuthState - Auth store state interface (user, token, isAuthenticated, isAdmin)
 //   useAuthStore - Zustand auth store with login, logout, persist middleware
+//   clearAdminSessionStorage - Local helper that removes admin access and refresh tokens together
 // END_MODULE_MAP
 //
 // START_CHANGE_SUMMARY
 //   LAST_CHANGE: v2.8.0 - Converted to full GRACE MODULE_CONTRACT/MAP format with START/END blocks
+//   LAST_CHANGE: v2.8.1 - Phase-25 admin session cleanup now removes refresh token with access token
 // END_CHANGE_SUMMARY
 //
 //   LINKS: M-010
@@ -48,6 +50,13 @@ interface AuthState {
 }
 // END_BLOCK: AuthState interface
 
+// START_BLOCK: admin session storage helpers
+const clearAdminSessionStorage = () => {
+  localStorage.removeItem('admin_token')
+  localStorage.removeItem('admin_refresh_token')
+}
+// END_BLOCK: admin session storage helpers
+
 // START_BLOCK: useAuthStore
 export const useAuthStore = create<AuthState>()(
   persist(
@@ -65,12 +74,12 @@ export const useAuthStore = create<AuthState>()(
 
       setToken: (token) => {
         if (token) localStorage.setItem('admin_token', token)
-        else localStorage.removeItem('admin_token')
+        else clearAdminSessionStorage()
         set({ token, isAuthenticated: !!token })
       },
 
       logout: () => {
-        localStorage.removeItem('admin_token')
+        clearAdminSessionStorage()
         set({ user: null, token: null, isAuthenticated: false, isAdmin: false })
       },
     }),

@@ -16,6 +16,7 @@
 //
 // START_CHANGE_SUMMARY
 //   LAST_CHANGE: v2.8.0 - Added full GRACE MODULE_CONTRACT and MODULE_MAP per GRACE governance protocol
+//   LAST_CHANGE: v2.8.1 - Phase-25 stores admin refresh token so existing 401 refresh retry can operate
 // END_CHANGE_SUMMARY
 
 import { useState } from 'react'
@@ -45,6 +46,11 @@ export default function Login() {
     try {
       const { data } = await adminApi.login(email, password)
       setToken(data.access_token)
+      if (data.refresh_token) {
+        localStorage.setItem('admin_refresh_token', data.refresh_token)
+      } else {
+        localStorage.removeItem('admin_refresh_token')
+      }
 
       const userResponse = await adminApi.getCurrentUser()
       const user = userResponse.data

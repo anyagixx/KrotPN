@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Phase-25 NAME="Session Security Hardening" STATUS="pending" MODULES="M-039,M-002,M-006,M-009,M-010,M-027" CREATED="2026-05-10">
+<Phase-25 NAME="Session Security Hardening" STATUS="done-local" MODULES="M-039,M-002,M-006,M-009,M-010,M-027" CREATED="2026-05-10" UPDATED="2026-05-10">
   <goal>
     Harden user and admin session handling after UI flows are simplified, with rollback-aware migration away from fragile
     browser token storage.
@@ -10,23 +10,23 @@
     <excluded>Deploy/install script changes, password-based server deployment changes, and unrelated UI redesign work.</excluded>
   </scope>
 
-  <step-1 MODULE="M-039,M-002,M-006" RISK="CRITICAL" STATUS="pending">
+  <step-1 MODULE="M-039,M-002,M-006" RISK="CRITICAL" STATUS="done-local">
     Audit current auth responses, cookies, bearer token compatibility, refresh flow, logout behavior, and admin role gates.
   </step-1>
 
-  <step-2 MODULE="M-039,M-009" RISK="HIGH" STATUS="pending">
+  <step-2 MODULE="M-039,M-009" RISK="HIGH" STATUS="done-local">
     Plan user frontend session migration with rollback and explicit tests for login, register, refresh, logout, and 401 retry.
   </step-2>
 
-  <step-3 MODULE="M-039,M-010" RISK="HIGH" STATUS="pending">
+  <step-3 MODULE="M-039,M-010" RISK="HIGH" STATUS="done-local">
     Plan admin frontend session migration with rollback and explicit tests for admin login, refresh, logout, and role rejection.
   </step-3>
 
-  <step-4 MODULE="M-039,M-027" RISK="HIGH" STATUS="pending">
+  <step-4 MODULE="M-039,M-027" RISK="HIGH" STATUS="done-local">
     Verify token blacklist expectations and graceful degradation when Redis is unavailable.
   </step-4>
 
-  <step-5 MODULE="M-039" RISK="CRITICAL" STATUS="pending">
+  <step-5 MODULE="M-039" RISK="CRITICAL" STATUS="done-local">
     Add browser storage and auth smoke gates before any session storage behavior changes are merged.
   </step-5>
 
@@ -36,4 +36,13 @@
     <check-3>Browser storage check confirms expected token/session behavior.</check-3>
     <check-4>Rollback path is documented before execution.</check-4>
   </verification>
+  <outcome>
+    <result-1>Created docs/security/SESSION-PHASE-25.xml with auth audit, migration order, rollback path, and operator-required gates.</result-1>
+    <result-2>Added scripts/session-security-smoke.mjs to guard current cookies, browser storage, refresh, logout, and blacklist expectations.</result-2>
+    <result-3>Fixed admin frontend refresh compatibility by persisting admin_refresh_token at login and clearing it on logout/setToken(null).</result-3>
+  </outcome>
+  <residual-risk>
+    <risk-1>Cookie-only session migration is intentionally not executed in this phase because it changes live auth behavior and needs an HTTPS or production-like smoke target.</risk-1>
+    <risk-2>Current user and admin frontends still use rollback-compatible localStorage token storage until cookie-auth migration is explicitly approved.</risk-2>
+  </residual-risk>
 </Phase-25>

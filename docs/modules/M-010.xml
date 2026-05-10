@@ -16,9 +16,14 @@
     <file>frontend-admin/src/pages/Servers.tsx</file>
     <file>frontend-admin/src/pages/Plans.tsx</file>
     <file>frontend-admin/src/lib/api.ts</file>
+    <file>frontend-admin/src/stores/auth.ts</file>
     <file>frontend-admin/src/types/index.ts</file>
     <file>frontend-admin/src/index.css</file>
   </files>
+  <phase-25-scope>
+    <surface-1>Admin login persists admin_refresh_token so the existing 401 refresh interceptor can operate.</surface-1>
+    <surface-2>Admin logout and setToken(null) clear admin_refresh_token together with admin_token.</surface-2>
+  </phase-25-scope>
   <phase-24-scope>
     <surface-1>Compact mobile admin shell and overview.</surface-1>
     <surface-2>Mobile-safe users and devices pages without table-only primary workflows.</surface-2>

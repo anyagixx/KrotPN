@@ -3,7 +3,7 @@
 <current-status>
   <meta>
     <project-name>KrotPN</project-name>
-    <updated>2026-04-20</updated>
+    <updated>2026-05-10</updated>
     <status>active-development</status>
   </meta>
 
@@ -32,6 +32,10 @@
     <item>Release v2.11.0-awg-obfuscation-stable was deployed from GitHub main and operator-validated on RU/DE VPS with AWG stealth obfuscation, profile parity, RU-DE handshake, new client handshake, DE egress, and upgrade preservation.</item>
     <item>Phase-19 anti-ping-pong abuse detection is implemented locally: observe-mode roaming tolerance, Redis-backed endpoint history, soft auto-rotation path, admin anti-abuse context, and V-M-031 verification passed on 2026-04-20.</item>
     <item>Phase-20 configurable VPN subnets and 1000-device capacity is live-tested: release v2.13.0-vpn-network-capacity-stable deployed successfully on VPS, fresh deploy defaults use 172.29.0.0/22 for clients and 172.29.255.0/30 for RU/DE relay, capacity validation rejects /24 for 1000 devices, and address-pool migration requires VPN_NETWORK_ROTATE=1.</item>
+    <item>Phase-23 compact mobile user cabinet passed local build and Chrome CDP mobile smoke for dashboard, config, and subscription routes.</item>
+    <item>Phase-24 compact mobile admin console passed local build and Chrome/CDP mobile smoke for overview, users, devices, and analytics with confirmation-safe device actions.</item>
+    <item>Phase-25 session-security gates passed locally: static auth guard, admin refresh-token lifecycle cleanup, and token blacklist unit tests.</item>
+    <item>Phase-26 stabilization handoff records local evidence, protected deploy/install surfaces, and live-required recovery blockers.</item>
   </what-is-working>
 
   <what-is-fragile>
@@ -40,6 +44,8 @@
     <item>Legacy VPNServer compatibility during topology migration.</item>
     <item>Remote credentials handled through temporary operator materialization remain a deployment risk.</item>
     <item>Verification reproducibility across environments.</item>
+    <item>Emergency relocation is documented but still blocked until a trusted backup bundle and isolated restore target exist for dry-run evidence.</item>
+    <item>Cookie-only auth migration is planned but not executed because it requires explicit approval and HTTPS or production-like smoke evidence.</item>
   </what-is-fragile>
 
   <rollout-gates>
@@ -61,13 +67,28 @@
     <gate id="phase-20-vpn-network-addressing-capacity" status="passed-live">
       <summary>Local target verification passed and operator-confirmed VPS deployment test passed for release v2.13.0-vpn-network-capacity-stable on 2026-04-20.</summary>
     </gate>
+    <gate id="phase-22-emergency-relocation" status="blocked-live">
+      <summary>Runbooks and backup manifest contract exist, but restore dry-run requires a trusted backup bundle and isolated restore target.</summary>
+    </gate>
+    <gate id="phase-23-compact-user-cabinet" status="passed-local">
+      <summary>User mobile UI local build and viewport smoke passed on 2026-05-10.</summary>
+    </gate>
+    <gate id="phase-24-compact-admin-console" status="passed-local">
+      <summary>Admin mobile UI local build, viewport smoke, and device confirmation guard passed on 2026-05-10.</summary>
+    </gate>
+    <gate id="phase-25-session-security" status="passed-local">
+      <summary>Session security static gate, admin refresh-token cleanup, and blacklist tests passed locally on 2026-05-10; cookie-only migration still requires explicit approval.</summary>
+    </gate>
+    <gate id="phase-26-stabilization-handoff" status="passed-local">
+      <summary>Operator handoff and verification matrix created without touching deploy/install scripts.</summary>
+    </gate>
   </rollout-gates>
 
   <immediate-priorities>
-    <priority rank="1">Make AI handoff docs accurate and mandatory for new agents.</priority>
-    <priority rank="2">Remove unsafe deploy defaults and tighten secrets handling.</priority>
-    <priority rank="3">Stabilize VPN topology model and related analytics.</priority>
-    <priority rank="4">Improve repeatable local verification for backend and admin frontend.</priority>
+    <priority rank="1">Run Phase-22 non-production restore rehearsal with a trusted backup bundle and isolated restore target.</priority>
+    <priority rank="2">Decide whether to approve cookie-only auth migration and provide HTTPS or production-like auth smoke target.</priority>
+    <priority rank="3">Keep deploy/install scripts unchanged unless the operator explicitly requests deployment-surface work.</priority>
+    <priority rank="4">Improve repeatable local verification for backend, user frontend, and admin frontend.</priority>
     <priority rank="5">Tune false-positive thresholds before enabling any automatic anti-sharing block policy beyond admin-reviewed detect-first mode.</priority>
   </immediate-priorities>
 
@@ -77,6 +98,7 @@
     <risk severity="high">Tokens stored in localStorage in frontends.</risk>
     <risk severity="high">Runtime DB compatibility migrations instead of disciplined migration workflow.</risk>
     <risk severity="high">Strong dependence on host filesystem and host tools for VPN behavior.</risk>
+    <risk severity="high">Disaster recovery cannot be considered incident-ready until live or non-production restore rehearsal evidence exists.</risk>
   </known-risks>
 
   <handoff-instructions>

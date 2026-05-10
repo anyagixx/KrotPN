@@ -1,11 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <M-033 NAME="mygrace-integrity-cleanup" TYPE="UTILITY" STATUS="done">
-  <path>docs/graph-index.xml docs/plan-index.xml docs/verification-index.xml docs/plans/Phase-21.xml README.md AGENTS.md</path>
-  <owns>MyGRACE index consistency, stale Full Tunnel cleanup references, active verification surface correctness, and AI handoff accuracy</owns>
+  <path>docs/graph-index.xml docs/plan-index.xml docs/verification-index.xml docs/current-status.xml docs/plans/Phase-21.xml docs/plans/Phase-26.xml docs/handoff/STABILIZATION-PHASE-26.xml README.md AGENTS.md</path>
+  <owns>MyGRACE index consistency, stale Full Tunnel cleanup references, active verification surface correctness, and AI/operator handoff accuracy</owns>
   <exports>
     <check-index-sync>Verifies graph, plan, and verification indexes match per-entity files</check-index-sync>
     <check-obsolete-routing-artifacts>Identifies active tests or docs that still require removed split-tunnel modules</check-obsolete-routing-artifacts>
     <check-handoff-read-order>Ensures README and project docs point agents to MyGRACE indexes, not monolithic GRACE files</check-handoff-read-order>
+    <artifact-stabilization-handoff>Final local stabilization handoff for Phase-26</artifact-stabilization-handoff>
   </exports>
   <depends>M-006, M-007, M-017</depends>
   <verification-ref>V-M-033</verification-ref>
@@ -13,7 +14,10 @@
     <file>docs/graph-index.xml</file>
     <file>docs/plan-index.xml</file>
     <file>docs/verification-index.xml</file>
+    <file>docs/current-status.xml</file>
     <file>docs/plans/Phase-21.xml</file>
+    <file>docs/plans/Phase-26.xml</file>
+    <file>docs/handoff/STABILIZATION-PHASE-26.xml</file>
     <file>README.md</file>
     <file>AGENTS.md</file>
   </files>
@@ -26,6 +30,7 @@
     <note-2>Phase-21 step-4 archived obsolete routing-policy/ipset tests under backend/tests/archive/phase17_removed_routing with non-test filenames to keep pytest collection aligned with Full Tunnel runtime.</note-2>
     <note-3>Phase-21 step-5 synchronized index comments, dependency CrossLinks, AI handoff text, and active frontend-admin per-entity wording with MyGRACE and Full Tunnel reality.</note-3>
     <note-4>Phase-21 step-6 recorded local MyGRACE integrity evidence and classified live VPS evidence as not required for this documentation-only cleanup phase.</note-4>
+    <note-5>Phase-26 created final operator handoff and verification matrix for recovery, compact UI, and session-security work without changing deploy/install scripts.</note-5>
   </execution-notes>
   <hotspot>H-020: Stale split-tunnel tests and phase references can break verification even when runtime Full Tunnel code is correct</hotspot>
 </M-033>

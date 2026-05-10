@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<SESSION-PHASE-25 MODULE="M-039" STATUS="done-local" CREATED="2026-05-10">
+  <purpose>Phase-25 local session-security audit, rollback plan, and static auth smoke gates.</purpose>
+  <scope>
+    <included>Current auth response audit, user/admin refresh and logout behavior, browser storage inventory, Redis blacklist expectation, and rollback path.</included>
+    <excluded>Cookie-only session migration, deploy/install scripts, live credential testing, and backend endpoint shape changes.</excluded>
+  </scope>
+  <audit>
+    <finding-1>Backend auth responses issue access_token and refresh_token in JSON and also set httpOnly Secure SameSite=strict cookies.</finding-1>
+    <finding-2>User frontend keeps the current rollback-compatible localStorage access_token and refresh_token flow.</finding-2>
+    <finding-3>Admin frontend had refresh retry support in api.ts but login did not persist admin_refresh_token before Phase-25 local fix.</finding-3>
+    <finding-4>Admin logout and setToken(null) now remove admin_refresh_token together with admin_token.</finding-4>
+    <finding-5>M-027 token blacklist helpers degrade open when Redis is unavailable, so Redis outage must not break auth verification.</finding-5>
+  </audit>
+  <migration-plan>
+    <step-1>Introduce a cookie-auth backend dependency that accepts httpOnly access_token cookie when Authorization bearer is absent.</step-1>
+    <step-2>Allow refresh endpoint to use the httpOnly refresh_token cookie while preserving JSON body refresh_token rollback compatibility.</step-2>
+    <step-3>Switch user and admin frontends to withCredentials and remove localStorage token persistence behind a short rollback flag.</step-3>
+    <step-4>Run real login, refresh, logout, 401 retry, Telegram auth, and admin role-gate smoke tests before removing bearer fallback.</step-4>
+  </migration-plan>
+  <rollback>
+    <path-1>Keep JSON token response and bearer Authorization support until cookie-only smoke evidence passes on the target environment.</path-1>
+    <path-2>Rollback frontend storage by restoring localStorage token writes and existing Authorization interceptors.</path-2>
+    <path-3>Rollback backend dependency by keeping bearer-first token resolution and cookie fallback disabled.</path-3>
+  </rollback>
+  <local-gates>
+    <gate-1>node scripts/session-security-smoke.mjs</gate-1>
+    <gate-2>cd frontend &amp;&amp; npm run build</gate-2>
+    <gate-3>cd frontend-admin &amp;&amp; npm run build</gate-3>
+    <gate-4>cd backend &amp;&amp; SECRET_KEY=test-secret-key-with-enough-length DATA_ENCRYPTION_KEY=dpFmfSVqfdAK3yx5MQV6Tcv35RZuw5MzaH0yhxJ01q0= PYTHONPATH=. ../.venv/bin/python -m pytest -o addopts='' tests/test_security.py -v -k blacklist</gate-4>
+  </local-gates>
+  <operator-required>
+    <item-1>Approve cookie-only session migration timing because it changes how browsers authenticate after login.</item-1>
+    <item-2>Provide non-production user and admin credentials for real auth smoke tests, or approve a seeded smoke fixture.</item-2>
+    <item-3>Run HTTPS or production-like domain smoke because Secure cookies do not behave the same on plain local HTTP.</item-3>
+  </operator-required>
+</SESSION-PHASE-25>
