@@ -176,7 +176,7 @@ export default function Config() {
                 {errorMessage || 'Сначала нужен активный доступ, после этого кабинет сможет выдать конфиг и QR-код.'}
               </p>
             </div>
-            <Link to="/subscription" className="btn-primary min-h-11 shrink-0 rounded-xl px-3 py-2.5">
+            <Link to="/subscription" className="btn-primary min-h-11 shrink-0 rounded-lg px-3 py-2.5">
               <Download className="h-5 w-5" />
               Открыть подписку
             </Link>
@@ -217,15 +217,15 @@ export default function Config() {
           </div>
 
           <div className="mt-4 grid gap-2 sm:grid-cols-3">
-            <button onClick={() => setShowQR(true)} disabled={!config?.config} className="btn-primary min-h-11 rounded-xl px-3 py-2.5">
+            <button onClick={() => setShowQR(true)} disabled={!config?.config} className="btn-primary min-h-11 rounded-lg px-3 py-2.5">
               <QrCode className="h-5 w-5" />
               QR
             </button>
-            <button onClick={handleDownload} className="btn-secondary min-h-11 rounded-xl px-3 py-2.5">
+            <button onClick={handleDownload} className="btn-secondary min-h-11 rounded-lg px-3 py-2.5">
               <Download className="h-5 w-5" />
               .conf
             </button>
-            <button onClick={handleCopy} className="btn-secondary min-h-11 rounded-xl px-3 py-2.5">
+            <button onClick={handleCopy} className="btn-secondary min-h-11 rounded-lg px-3 py-2.5">
               {copied ? <Check className="h-5 w-5 text-emerald-200" /> : <Copy className="h-5 w-5" />}
               {copied ? t('copied') : t('copyConfig')}
             </button>
@@ -269,7 +269,7 @@ export default function Config() {
                   || revokeDeviceMutation.isLoading && revokeDeviceMutation.variables === device.id
 
                 return (
-                  <div key={device.id} className="rounded-xl border border-white/10 bg-white/[0.03] p-3">
+                  <div key={device.id} className="rounded-lg border border-white/10 bg-white/[0.03] p-3">
                     <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                       <div className="min-w-0">
                         <div className="flex flex-wrap items-center gap-2">
@@ -291,7 +291,7 @@ export default function Config() {
                         <button
                           onClick={() => rotateDeviceMutation.mutate(device.id)}
                           disabled={device.status !== 'active' || isBusy}
-                          className="btn-secondary min-h-10 rounded-xl px-3 py-2 text-sm"
+                          className="btn-secondary min-h-10 rounded-lg px-3 py-2 text-sm"
                         >
                           <RotateCw className="h-4 w-4" />
                           Обновить
@@ -299,7 +299,7 @@ export default function Config() {
                         <button
                           onClick={() => revokeDeviceMutation.mutate(device.id)}
                           disabled={device.status !== 'active' || isBusy}
-                          className="btn-danger min-h-10 rounded-xl px-3 py-2 text-sm"
+                          className="btn-danger min-h-10 rounded-lg px-3 py-2 text-sm"
                         >
                           <Trash2 className="h-4 w-4" />
                           Удалить
@@ -352,7 +352,7 @@ export default function Config() {
           <button
             onClick={handleCreateDevice}
             disabled={createDeviceMutation.isLoading}
-            className="btn-primary mt-4 min-h-11 w-full rounded-xl px-3 py-2.5"
+            className="btn-primary mt-4 min-h-11 w-full rounded-lg px-3 py-2.5"
           >
             <Plus className="h-5 w-5" />
             Создать устройство
@@ -376,7 +376,7 @@ export default function Config() {
           </ol>
           <button
             onClick={() => setShowQR(true)}
-            className="btn-secondary mt-4 min-h-11 w-full rounded-xl px-3 py-2.5"
+            className="btn-secondary mt-4 min-h-11 w-full rounded-lg px-3 py-2.5"
           >
             <QrCode className="h-5 w-5" />
             Показать QR-код
@@ -396,7 +396,7 @@ export default function Config() {
             <li>2. Импортируйте выданный конфиг.</li>
             <li>3. Сохраните профиль и нажмите подключение.</li>
           </ol>
-          <button onClick={handleDownload} className="btn-primary mt-4 min-h-11 w-full rounded-xl px-3 py-2.5">
+          <button onClick={handleDownload} className="btn-primary mt-4 min-h-11 w-full rounded-lg px-3 py-2.5">
             <Download className="h-5 w-5" />
             {t('downloadConfig')}
           </button>
@@ -416,14 +416,14 @@ export default function Config() {
             <h2 className="text-lg font-bold">Raw config fallback</h2>
             <p className="mt-1 text-sm muted">Текст скрыт по умолчанию, чтобы не ломать мобильную ширину.</p>
           </div>
-          <button onClick={() => setShowRawConfig((value) => !value)} className="btn-secondary min-h-11 shrink-0 rounded-xl px-3 py-2.5">
+          <button onClick={() => setShowRawConfig((value) => !value)} className="btn-secondary min-h-11 shrink-0 rounded-lg px-3 py-2.5">
             <FileCode2 className="h-5 w-5" />
             {showRawConfig ? 'Скрыть' : 'Показать'}
           </button>
         </div>
 
         {showRawConfig ? (
-          <pre className="mt-4 max-h-72 overflow-y-auto whitespace-pre-wrap break-all rounded-xl bg-slate-950/55 p-3 text-xs text-cyan-100">
+          <pre className="mt-4 max-h-72 overflow-y-auto whitespace-pre-wrap break-all rounded-lg bg-slate-950/55 p-3 text-xs text-cyan-100">
             {config?.config || 'Конфигурация недоступна'}
           </pre>
         ) : null}
@@ -483,7 +483,7 @@ function QRModal({
         </div>
 
         {/* Tab switcher */}
-        <div className="mt-4 flex rounded-xl border border-slate-700/50 p-1">
+        <div className="mt-4 flex rounded-lg border border-slate-700/50 p-1">
           <button
             onClick={() => setQrType('amneziawg')}
             className={`flex-1 rounded-lg py-2 text-sm font-semibold transition-colors ${
@@ -506,7 +506,7 @@ function QRModal({
           </button>
         </div>
 
-        <div className="mt-6 flex justify-center rounded-[24px] bg-white p-5">
+        <div className="mt-6 flex justify-center rounded-lg bg-white p-5">
           {showQR ? (
             <QRCodeCanvas
               value={configText}

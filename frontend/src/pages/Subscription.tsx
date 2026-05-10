@@ -120,7 +120,7 @@ export default function Subscription() {
             <article key={plan.id} className={`panel p-4 sm:p-5 ${isPopular ? 'ring-1 ring-emerald-200/16' : ''}`}>
               <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
                 <div className="flex min-w-0 items-start gap-3">
-                  <div className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-xl ${isPopular ? 'gradient-bg text-slate-950' : 'bg-white/8 text-cyan-100'}`}>
+                  <div className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-lg ${isPopular ? 'gradient-bg text-slate-950' : 'bg-white/8 text-cyan-100'}`}>
                     <Icon className="h-5 w-5" />
                   </div>
                   <div className="min-w-0">
@@ -139,7 +139,7 @@ export default function Subscription() {
 
                 <button
                   onClick={() => handleSubscribe(plan.id)}
-                  className={`min-h-11 w-full rounded-xl px-3 py-2.5 md:w-auto ${isPopular ? 'btn-primary' : 'btn-secondary'}`}
+                  className={`min-h-11 w-full rounded-lg px-3 py-2.5 md:w-auto ${isPopular ? 'btn-primary' : 'btn-secondary'}`}
                 >
                   <CreditCard className="h-5 w-5" />
                   {subscription?.has_subscription ? t('extend') : t('buy')}

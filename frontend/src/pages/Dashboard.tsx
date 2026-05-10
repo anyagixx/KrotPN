@@ -102,11 +102,11 @@ export default function Dashboard() {
           </div>
 
           <div className="mt-4 grid gap-2 sm:grid-cols-2">
-            <Link to={hasSubscription ? '/config' : '/subscription'} className="btn-primary min-h-12 justify-start rounded-xl px-3 py-3">
+            <Link to={hasSubscription ? '/config' : '/subscription'} className="btn-primary min-h-12 justify-start rounded-lg px-3 py-3">
               {hasSubscription ? <QrCode className="h-5 w-5" /> : <Zap className="h-5 w-5" />}
               {hasSubscription ? 'QR и .conf' : 'Активировать'}
             </Link>
-            <Link to="/config" className="btn-secondary min-h-12 justify-start rounded-xl px-3 py-3">
+            <Link to="/config" className="btn-secondary min-h-12 justify-start rounded-lg px-3 py-3">
               <FileCode2 className="h-5 w-5" />
               Устройства
             </Link>
@@ -123,7 +123,7 @@ export default function Dashboard() {
             </div>
             <Calendar className="h-5 w-5 shrink-0 text-cyan-100" />
           </div>
-          <Link to="/subscription" className={hasSubscription ? 'btn-secondary mt-4 min-h-11 w-full rounded-xl px-3 py-2.5' : 'btn-primary mt-4 min-h-11 w-full rounded-xl px-3 py-2.5'}>
+          <Link to="/subscription" className={hasSubscription ? 'btn-secondary mt-4 min-h-11 w-full rounded-lg px-3 py-2.5' : 'btn-primary mt-4 min-h-11 w-full rounded-lg px-3 py-2.5'}>
             {hasSubscription ? 'Продлить' : 'Выбрать тариф'}
           </Link>
         </article>
@@ -200,7 +200,7 @@ export default function Dashboard() {
                     ? `${activeDevices} активных устройств. QR и .conf открываются в разделе конфигурации.`
                     : 'Создайте первое устройство, чтобы получить отдельный peer и конфиг.'}
               </p>
-              <Link to="/config" className="btn-secondary mt-4 min-h-11 w-full justify-start rounded-xl px-3 py-2.5">
+              <Link to="/config" className="btn-secondary mt-4 min-h-11 w-full justify-start rounded-lg px-3 py-2.5">
                 <FileCode2 className="h-5 w-5" />
                 Открыть конфигурацию
               </Link>
@@ -216,7 +216,7 @@ export default function Dashboard() {
               <h2 className="text-lg font-bold">Подписка нужна для рабочего конфига</h2>
               <p className="mt-1 text-sm muted">После оплаты появятся QR-код, `.conf` и управление устройствами.</p>
             </div>
-            <Link to="/subscription" className="btn-primary min-h-11 shrink-0 rounded-xl px-3 py-2.5">
+            <Link to="/subscription" className="btn-primary min-h-11 shrink-0 rounded-lg px-3 py-2.5">
               <Zap className="h-5 w-5" />
               Выбрать тариф
             </Link>

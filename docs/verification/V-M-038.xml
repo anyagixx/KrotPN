@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<V-M-038 MODULE="M-038" PRIORITY="high" STATUS="pending">
+<V-M-038 MODULE="M-038" PRIORITY="high" STATUS="wip">
   <module>compact-ui-system</module>
   <checks>Shared UI rules must make user and admin surfaces compact, consistent, and readable on mobile screens.</checks>
   <test-files>frontend/src/components/Layout.tsx frontend/src/pages/Dashboard.tsx frontend/src/pages/Config.tsx frontend/src/pages/Subscription.tsx frontend/src/index.css frontend-admin</test-files>

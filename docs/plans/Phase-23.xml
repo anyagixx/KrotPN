@@ -81,7 +81,7 @@
     </acceptance>
   </step-4>
 
-  <step-5 MODULE="M-038,M-009" RISK="MEDIUM" STATUS="pending">
+  <step-5 MODULE="M-038,M-009" RISK="MEDIUM" STATUS="done">
     Apply compact UI system rules to the user frontend: no nested cards, no decorative hero/glass clutter, stable button/list sizing, concise navigation, and phone-safe text.
     <acceptance>
       <accept-1>Cards and panels are used only where they frame repeated items, modals, or concrete tools.</accept-1>

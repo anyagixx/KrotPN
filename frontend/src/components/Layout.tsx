@@ -60,7 +60,7 @@ export default function Layout() {
       <div className="mx-auto flex min-h-[calc(100vh-1rem)] max-w-[1180px] gap-3 lg:min-h-[calc(100vh-2rem)]">
         <aside className="panel hidden w-64 shrink-0 flex-col overflow-hidden lg:flex">
           <div className="flex items-center gap-3 border-b border-white/5 px-4 py-4">
-            <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-emerald-300/12 text-emerald-200 ring-1 ring-emerald-200/12">
+            <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg bg-emerald-300/12 text-emerald-200 ring-1 ring-emerald-200/12">
               <Shield className="h-5 w-5" />
             </div>
             <div className="min-w-0">
@@ -82,7 +82,7 @@ export default function Layout() {
                 end={item.to === '/'}
                 className={({ isActive }) =>
                   [
-                    'group flex min-h-11 items-center gap-3 rounded-xl px-3 py-2.5 text-sm transition',
+                    'group flex min-h-11 items-center gap-3 rounded-lg px-3 py-2.5 text-sm transition',
                     isActive
                       ? 'bg-emerald-300/12 text-emerald-100 ring-1 ring-emerald-200/12'
                       : 'text-slate-300 hover:bg-white/5 hover:text-white',
@@ -96,7 +96,7 @@ export default function Layout() {
           </nav>
 
           <div className="mt-auto border-t border-white/5 p-3">
-            <button onClick={handleLogout} className="btn-secondary min-h-11 w-full justify-start rounded-xl px-3 py-2.5 text-sm">
+            <button onClick={handleLogout} className="btn-secondary min-h-11 w-full justify-start rounded-lg px-3 py-2.5 text-sm">
               <LogOut className="h-4 w-4" />
               {t('logout')}
             </button>
@@ -106,7 +106,7 @@ export default function Layout() {
         <div className="flex min-w-0 flex-1 flex-col">
           <header className="panel mb-3 flex items-center justify-between gap-3 px-3 py-3 lg:hidden">
             <div className="flex min-w-0 items-center gap-3">
-              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-emerald-300/12 text-emerald-200">
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-emerald-300/12 text-emerald-200">
                 <Shield className="h-5 w-5" />
               </div>
               <div className="min-w-0">
@@ -114,7 +114,7 @@ export default function Layout() {
                 <p className="truncate text-xs muted">{accountLabel}</p>
               </div>
             </div>
-            <button onClick={handleLogout} className="btn-secondary h-10 w-10 shrink-0 rounded-xl p-0" aria-label={t('logout')}>
+            <button onClick={handleLogout} className="btn-secondary h-10 w-10 shrink-0 rounded-lg p-0" aria-label={t('logout')}>
               <LogOut className="h-4 w-4" />
             </button>
           </header>
@@ -126,7 +126,7 @@ export default function Layout() {
           </main>
         </div>
 
-        <nav className="fixed inset-x-3 bottom-3 z-40 grid grid-cols-5 rounded-2xl border border-white/10 bg-slate-950/95 p-1.5 shadow-[0_16px_40px_rgba(2,10,14,0.4)] backdrop-blur lg:hidden">
+        <nav className="fixed inset-x-3 bottom-3 z-40 grid grid-cols-5 rounded-lg border border-white/10 bg-slate-950/95 p-1.5 shadow-[0_12px_28px_rgba(2,10,14,0.35)] backdrop-blur lg:hidden">
           {navItems.map((item) => (
             <NavLink
               key={item.to}
@@ -134,7 +134,7 @@ export default function Layout() {
               end={item.to === '/'}
               className={({ isActive }) =>
                 [
-                  'flex min-h-12 min-w-0 flex-col items-center justify-center gap-1 rounded-xl px-1 text-[10px] font-semibold transition',
+                  'flex min-h-12 min-w-0 flex-col items-center justify-center gap-1 rounded-lg px-1 text-[10px] font-semibold transition',
                   isActive ? 'bg-emerald-300/10 text-emerald-100' : 'text-slate-400 hover:text-white',
                 ].join(' ')
               }

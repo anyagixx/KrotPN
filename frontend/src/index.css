@@ -1,3 +1,25 @@
+/* FILE: frontend/src/index.css
+ * VERSION: 1.0.0
+ * ROLE: UI_COMPONENT
+ * MAP_MODE: SUMMARY
+ * START_MODULE_CONTRACT
+ *   PURPOSE: Shared user-frontend styling tokens and compact component utility classes
+ *   SCOPE: Base typography, background, panel/button/input/status/metric/empty-state classes, compact motion
+ *   DEPENDS: M-009 (frontend-user), M-036 (mobile-user-cabinet), M-038 (compact-ui-system)
+ *   LINKS: M-009 (frontend-user), M-036 (mobile-user-cabinet), M-038 (compact-ui-system)
+ * END_MODULE_CONTRACT
+ *
+ * START_MODULE_MAP
+ *   base - Root color tokens, body typography, document background
+ *   components - App shell, panel, button, input, status, metric, empty-state classes
+ *   utilities - text-balance and animate-in utility
+ * END_MODULE_MAP
+ *
+ * START_CHANGE_SUMMARY
+ *   LAST_CHANGE: v2.9.0 - Added compact Phase-23 UI tokens with reduced radii, shadows, spacing, and non-decorative background
+ * END_CHANGE_SUMMARY
+ */
+
 @import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap');
 
 @tailwind base;
@@ -9,16 +31,16 @@
     color-scheme: dark;
     --bg: #05131b;
     --bg-soft: #0a1c25;
-    --panel: rgba(12, 30, 39, 0.84);
-    --panel-strong: rgba(13, 34, 44, 0.94);
-    --border: rgba(157, 203, 216, 0.14);
+    --panel: rgba(12, 30, 39, 0.88);
+    --panel-strong: rgba(13, 34, 44, 0.96);
+    --border: rgba(157, 203, 216, 0.16);
     --text: #f0f8fb;
     --muted: #8da6b0;
     --accent: #5cd5b6;
     --accent-2: #75c7ff;
     --danger: #ff8f88;
     --warning: #ffd77d;
-    --shadow: 0 30px 90px rgba(2, 10, 14, 0.42);
+    --shadow: 0 12px 32px rgba(2, 10, 14, 0.28);
   }
 
   * {
@@ -28,10 +50,7 @@
 
   html {
     min-height: 100%;
-    background:
-      radial-gradient(circle at top left, rgba(92, 213, 182, 0.12), transparent 28%),
-      radial-gradient(circle at top right, rgba(117, 199, 255, 0.18), transparent 24%),
-      linear-gradient(180deg, #07131a 0%, #091922 46%, #061117 100%);
+    background: linear-gradient(180deg, #07131a 0%, #091922 48%, #061117 100%);
   }
 
   body {
@@ -66,31 +85,31 @@
 
 @layer components {
   .app-shell {
-    @apply min-h-screen px-4 py-4 md:px-6 md:py-6;
+    @apply min-h-screen px-2 py-2 sm:px-3 sm:py-3 lg:px-4 lg:py-4;
   }
 
   .glass {
-    background: linear-gradient(180deg, rgba(13, 34, 44, 0.94) 0%, rgba(8, 22, 29, 0.9) 100%);
+    background: var(--panel-strong);
     border: 1px solid var(--border);
-    border-radius: 28px;
+    border-radius: 8px;
     box-shadow: var(--shadow);
   }
 
   .panel {
     background: var(--panel);
     border: 1px solid var(--border);
-    border-radius: 24px;
+    border-radius: 8px;
     box-shadow: var(--shadow);
   }
 
   .panel-soft {
     background: rgba(12, 31, 39, 0.7);
     border: 1px solid rgba(157, 203, 216, 0.1);
-    border-radius: 22px;
+    border-radius: 8px;
   }
 
   .content-section {
-    @apply space-y-6;
+    @apply space-y-3;
   }
 
   .section-header {
@@ -98,7 +117,7 @@
   }
 
   .section-title {
-    @apply text-3xl font-extrabold tracking-tight text-white md:text-4xl;
+    @apply text-2xl font-extrabold tracking-tight text-white md:text-3xl;
   }
 
   .section-subtitle {
@@ -117,18 +136,17 @@
   }
 
   .btn {
-    @apply inline-flex items-center justify-center gap-2 rounded-2xl px-4 py-3 font-semibold transition;
+    @apply inline-flex items-center justify-center gap-2 rounded-lg px-3 py-2.5 font-semibold transition;
   }
 
   .btn-primary {
     @apply btn text-slate-950;
     background: linear-gradient(135deg, var(--accent) 0%, var(--accent-2) 100%);
-    box-shadow: 0 14px 34px rgba(92, 213, 182, 0.24);
+    box-shadow: 0 8px 18px rgba(92, 213, 182, 0.18);
   }
 
   .btn-primary:hover {
-    transform: translateY(-1px);
-    box-shadow: 0 18px 40px rgba(92, 213, 182, 0.3);
+    box-shadow: 0 10px 22px rgba(92, 213, 182, 0.22);
   }
 
   .btn-secondary {
@@ -148,7 +166,7 @@
   }
 
   .input {
-    @apply w-full rounded-2xl px-4 py-3 text-sm text-slate-50 outline-none transition;
+    @apply w-full rounded-lg px-3 py-2.5 text-sm text-slate-50 outline-none transition;
     background: rgba(7, 20, 26, 0.86);
     border: 1px solid rgba(157, 203, 216, 0.16);
   }
@@ -198,7 +216,7 @@
   }
 
   .metric-card {
-    @apply panel p-5;
+    @apply panel p-4;
   }
 
   .metric-label {
@@ -207,7 +225,7 @@
   }
 
   .metric-value {
-    @apply mt-4 text-3xl font-extrabold tracking-tight text-white;
+    @apply mt-2 text-2xl font-extrabold tracking-tight text-white;
   }
 
   .progress-bar {
@@ -221,7 +239,7 @@
   }
 
   .empty-state {
-    @apply flex min-h-[220px] flex-col items-center justify-center gap-3 rounded-[24px] border border-dashed p-8 text-center;
+    @apply flex min-h-[180px] flex-col items-center justify-center gap-3 rounded-lg border border-dashed p-5 text-center;
     border-color: rgba(157, 203, 216, 0.14);
     background: rgba(7, 21, 28, 0.46);
   }
