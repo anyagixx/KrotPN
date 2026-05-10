@@ -1,10 +1,33 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <M-010 NAME="frontend-admin" TYPE="UI_COMPONENT" STATUS="stable">
   <path>frontend-admin</path>
-  <owns>admin login, dashboard, users, servers, plans, analytics, settings, Full Tunnel status, and device anomaly review controls</owns>
+  <owns>admin login, mobile-capable dashboard, users, devices, servers, plans, analytics, settings, Full Tunnel status, and device anomaly review controls</owns>
   <depends>M-006, M-024</depends>
   <verification-ref>V-M-010</verification-ref>
   <files>
     <file>frontend-admin/src/main.tsx</file>
+    <file>frontend-admin/src/components/Layout.tsx</file>
+    <file>frontend-admin/src/components/StatCard.tsx</file>
+    <file>frontend-admin/src/pages/Login.tsx</file>
+    <file>frontend-admin/src/pages/Dashboard.tsx</file>
+    <file>frontend-admin/src/pages/Users.tsx</file>
+    <file>frontend-admin/src/pages/Devices.tsx</file>
+    <file>frontend-admin/src/pages/Analytics.tsx</file>
+    <file>frontend-admin/src/pages/Servers.tsx</file>
+    <file>frontend-admin/src/pages/Plans.tsx</file>
+    <file>frontend-admin/src/lib/api.ts</file>
+    <file>frontend-admin/src/types/index.ts</file>
+    <file>frontend-admin/src/index.css</file>
   </files>
+  <phase-24-scope>
+    <surface-1>Compact mobile admin shell and overview.</surface-1>
+    <surface-2>Mobile-safe users and devices pages without table-only primary workflows.</surface-2>
+    <surface-3>Confirmation-safe device actions using existing M-024 admin endpoints.</surface-3>
+    <surface-4>Analytics/payment/system summaries that remain readable on phone viewports.</surface-4>
+  </phase-24-scope>
+  <constraints>
+    <constraint-1>Frontend-admin must continue to call existing M-006 and M-024 API contracts unless an API change is separately approved.</constraint-1>
+    <constraint-2>Admin auth/session hardening belongs to Phase-25 and must not be bundled into Phase-24 UI simplification.</constraint-2>
+    <constraint-3>Deployment and install scripts are out of scope for this UI module phase.</constraint-3>
+  </constraints>
 </M-010>

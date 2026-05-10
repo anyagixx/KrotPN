@@ -1,7 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <V-M-010 MODULE="M-010" PRIORITY="high" STATUS="pass">
   <module>frontend-admin</module>
-  <checks>Admin frontend builds and reflects current admin, Full Tunnel, system, and device-control surfaces without auth regression.</checks>
+  <checks>Admin frontend builds and reflects current admin, Full Tunnel, system, analytics, and device-control surfaces without auth regression.</checks>
+  <test-files>frontend-admin/src/main.tsx frontend-admin/src/components/Layout.tsx frontend-admin/src/pages/Login.tsx frontend-admin/src/pages/Dashboard.tsx frontend-admin/src/pages/Users.tsx frontend-admin/src/pages/Devices.tsx frontend-admin/src/pages/Analytics.tsx frontend-admin/src/pages/Servers.tsx frontend-admin/src/pages/Plans.tsx frontend-admin/src/lib/api.ts frontend-admin/src/types/index.ts frontend-admin/src/index.css</test-files>
   <commands>cd frontend-admin &amp;&amp; npm run build</commands>
-  <scenarios />
+  <scenarios>
+    <scenario-1 kind="success">Admin login route and protected layout still build after compact UI changes.</scenario-1>
+    <scenario-2 kind="success">Dashboard, users, devices, servers, plans, and analytics routes compile against existing admin API bindings.</scenario-2>
+    <scenario-3 kind="failure">A frontend-admin UI simplification changes auth, admin API base path, or backend endpoint shape without approval.</scenario-3>
+  </scenarios>
 </V-M-010>

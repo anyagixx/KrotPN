@@ -1,21 +1,41 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <V-M-037 MODULE="M-037" PRIORITY="high" STATUS="pending">
   <module>mobile-admin-console</module>
-  <checks>Admin frontend must become compact and usable from a phone for operational status, user search, devices, payments, and system health.</checks>
-  <test-files></test-files>
-  <commands>cd frontend-admin &amp;&amp; npm run build; mobile admin viewport smoke review</commands>
+  <checks>Admin frontend must become compact and usable from a phone for operational status, user search, devices, payments/analytics, and system health.</checks>
+  <test-files>frontend-admin/src/components/Layout.tsx frontend-admin/src/pages/Dashboard.tsx frontend-admin/src/pages/Users.tsx frontend-admin/src/pages/Devices.tsx frontend-admin/src/pages/Analytics.tsx frontend-admin/src/components/StatCard.tsx frontend-admin/src/index.css frontend-admin/src/lib/api.ts frontend-admin/src/types/index.ts</test-files>
+  <commands>cd frontend-admin &amp;&amp; npm run build; Phase-24 mobile admin smoke for /, /users, /devices, and /analytics at 360x740, 390x844, and 430x932; assert scrollWidth &lt;= innerWidth and device actions require confirmation</commands>
   <module-checks>
     <check-1>Admin frontend build passes.</check-1>
-    <check-2>Mobile overview surfaces service health and urgent counts without desktop-only tables.</check-2>
-    <check-3>Device block, unblock, rotate, and revoke are reachable and require confirmation.</check-3>
-    <check-4>Audit-sensitive admin actions preserve current backend audit expectations.</check-4>
+    <check-2>Mobile overview surfaces service health, users, subscriptions, revenue, VPN/system status, and urgent counts without desktop-only layout.</check-2>
+    <check-3>User search and device registry are readable on phone viewports without table-only primary workflows.</check-3>
+    <check-4>Device block, unblock, rotate, and revoke are reachable and require confirmation.</check-4>
+    <check-5>Audit-sensitive admin actions preserve current backend audit expectations and show refreshed success/error feedback.</check-5>
+    <check-6>No deploy/install scripts are modified during Phase-24 execution.</check-6>
   </module-checks>
+  <viewport-matrix>
+    <viewport-1 route="/" size="360x740">Overview loads without horizontal document scroll and exposes system health plus urgent user/device navigation.</viewport-1>
+    <viewport-2 route="/users" size="390x844">Search, counters, role/status, identity, and pagination fit without a desktop-only table dependency.</viewport-2>
+    <viewport-3 route="/devices" size="430x932">Device rows, signals, and block/unblock/rotate/revoke confirmation paths fit within the viewport.</viewport-3>
+    <viewport-4 route="/analytics" size="390x844">Payment and analytics status remains readable without charts dominating the first phone viewport.</viewport-4>
+  </viewport-matrix>
   <scenarios>
     <scenario-1 kind="success">Admin can inspect system state and manage a device from a phone without switching to desktop layout.</scenario-1>
-    <scenario-2 kind="failure">Critical device actions are hidden in a wide table or unavailable on mobile.</scenario-2>
-    <scenario-3 kind="failure">An admin action lacks confirmation or loses audit visibility.</scenario-3>
+    <scenario-2 kind="success">Admin can search a user and read role/status/account context from compact rows at 360px width.</scenario-2>
+    <scenario-3 kind="success">Admin can open a device action confirmation that names the target peer before mutation.</scenario-3>
+    <scenario-4 kind="failure">Critical device actions are hidden in a wide table or unavailable on mobile.</scenario-4>
+    <scenario-5 kind="failure">An admin action lacks confirmation or loses audit visibility.</scenario-5>
+    <scenario-6 kind="failure">A compact UI change modifies deploy/install scripts, backend business rules, or billing provider behavior.</scenario-6>
   </scenarios>
   <required-log-markers>
-    <marker-1>[FrontendAdmin][mobile][DEVICE_ACTION_CONFIRM]</marker-1>
+    <marker-1>[FrontendAdmin][Phase24][BUILD_PASS]</marker-1>
+    <marker-2>[FrontendAdmin][Phase24][NO_HORIZONTAL_SCROLL]</marker-2>
+    <marker-3>[FrontendAdmin][Phase24][DEVICE_ACTION_CONFIRM]</marker-3>
+    <marker-4>[FrontendAdmin][Phase24][NO_DEPLOY_INSTALL_DIFF]</marker-4>
   </required-log-markers>
+  <planned-evidence>
+    <evidence-1>Record npm build result after source changes.</evidence-1>
+    <evidence-2>Record Chrome/CDP or equivalent viewport smoke for /, /users, /devices, and /analytics.</evidence-2>
+    <evidence-3>Record static review that block, unblock, rotate, and revoke cannot execute without confirmation.</evidence-3>
+    <evidence-4>Record git diff check for deploy, install.sh, docker, and nginx surfaces.</evidence-4>
+  </planned-evidence>
 </V-M-037>

@@ -1,43 +1,133 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Phase-24 NAME="Compact Mobile Admin Console" STATUS="pending" MODULES="M-037,M-038,M-006,M-010,M-024" CREATED="2026-05-10">
+<Phase-24 NAME="Compact Mobile Admin Console" STATUS="pending" MODULES="M-037,M-038,M-006,M-010,M-024" CREATED="2026-05-10" UPDATED="2026-05-10">
   <goal>
     Redesign the admin panel into a compact mobile-capable operator console for service status, users, devices,
-    payments, and emergency actions.
+    payments, system health, and emergency device actions.
   </goal>
 
   <scope>
-    <included>Admin overview, user search, device controls, payment status, system health, responsive navigation, and confirmation flows.</included>
-    <excluded>Deploy/install script changes, backend business rule changes, billing provider changes, and user frontend redesign.</excluded>
+    <included>Admin overview, user search, device controls, payment status, analytics summary, system health, responsive navigation, and confirmation flows.</included>
+    <excluded>Deploy/install script changes, backend business rule changes, billing provider changes, user frontend redesign, and Phase-25 session security work.</excluded>
+    <phase-boundary>Phase-24 is frontend-admin UI execution only; existing admin API/device-control contracts are consumed as-is unless a later approved fix explicitly changes them.</phase-boundary>
   </scope>
 
-  <step-1 MODULE="M-037,M-038" RISK="MEDIUM" STATUS="pending">
-    Inventory admin screens and identify desktop-only tables, oversized dashboards, duplicated controls, and low-value clutter.
+  <current-inventory>
+    <screen-layout file="frontend-admin/src/components/Layout.tsx">
+      Current shell is desktop-first: 320px sidebar, large brand block, repeated status/user cards, wide header metadata, and nested panel/glass surfaces. Mobile execution should replace this with a compact operator shell and phone-safe navigation.
+    </screen-layout>
+    <screen-dashboard file="frontend-admin/src/pages/Dashboard.tsx">
+      Current dashboard starts with a large hero-style operational slice and oversized metric panels. Primary mobile content is service health, active users, active subscriptions, month revenue, VPN/system status, and urgent alerts.
+    </screen-dashboard>
+    <screen-users file="frontend-admin/src/pages/Users.tsx">
+      Current users page depends on a wide table for profile, email, role, status, last login, and created date. Mobile execution must convert the primary view to compact rows with search, counters, status, role, and a detail path.
+    </screen-users>
+    <screen-devices file="frontend-admin/src/pages/Devices.tsx">
+      Current devices page depends on a wide table and runs block, unblock, rotate, and revoke directly from row buttons. Mobile execution must use compact device rows plus explicit confirmation before every destructive or disruptive action.
+    </screen-devices>
+    <screen-analytics file="frontend-admin/src/pages/Analytics.tsx">
+      Current analytics page uses charts and large KPI panels. Mobile execution should keep period selection and the essential revenue, subscription, referral, and conversion numbers readable without forcing charts to dominate the phone layout.
+    </screen-analytics>
+    <screen-secondary files="frontend-admin/src/pages/Servers.tsx frontend-admin/src/pages/Plans.tsx">
+      Servers/routes and plans remain available but must not displace overview, users, devices, payments, or system health from the primary mobile operator workflow.
+    </screen-secondary>
+  </current-inventory>
+
+  <data-flows>
+    <DF-UI-ADMIN-OVERVIEW>
+      Admin opens the console, frontend reads admin stats and system health, then renders a compact overview with users, subscriptions, revenue, health, VPN/system status, and urgent navigation to users/devices.
+    </DF-UI-ADMIN-OVERVIEW>
+    <DF-UI-ADMIN-USER-SEARCH>
+      Admin searches users, scans compact result rows, opens a user-focused summary path, and sees role/status/login/account context without requiring a desktop-width table.
+    </DF-UI-ADMIN-USER-SEARCH>
+    <DF-UI-ADMIN-DEVICE-ACTION>
+      Admin searches or scans devices, selects block, unblock, rotate, or revoke, confirms the target device and effect, then the existing admin API call runs and the list refreshes with visible feedback.
+    </DF-UI-ADMIN-DEVICE-ACTION>
+    <DF-UI-ADMIN-PAYMENT-STATUS>
+      Admin reaches billing/analytics status from the mobile overview and analytics surfaces, seeing current subscription, revenue, and conversion numbers without backend or provider changes.
+    </DF-UI-ADMIN-PAYMENT-STATUS>
+    <DF-UI-ADMIN-MOBILE-VERIFY>
+      Phase verification checks 360x740, 390x844, and 430x932 viewports for no horizontal document scroll, no overlapping text, and reachable emergency device action confirmation.
+    </DF-UI-ADMIN-MOBILE-VERIFY>
+  </data-flows>
+
+  <step-1 MODULE="M-037,M-038,M-010" RISK="MEDIUM" STATUS="pending">
+    Convert the current admin inventory into an execution map: primary mobile surfaces are overview, users, devices, payments/analytics summary, and system health; secondary surfaces are servers/routes, plans, and detailed charts.
+    <outputs>
+      <output-1>Updated frontend-admin module map if source ownership changes during execution.</output-1>
+      <output-2>Documented primary/secondary/removable content priority in M-037 and M-038.</output-2>
+    </outputs>
   </step-1>
 
-  <step-2 MODULE="M-037,M-006" RISK="HIGH" STATUS="pending">
-    Design mobile operator overview: service health, active users, subscriptions, revenue, RU/DE/VPN status, and latest alerts.
+  <step-2 MODULE="M-037,M-006,M-010" RISK="HIGH" STATUS="pending">
+    Build the compact mobile operator overview with service health, active users, active subscriptions, month revenue, VPN/system status, and urgent entry points for users and devices.
+    <acceptance>
+      <accept-1>Overview starts with operational status instead of a large hero or decorative dashboard block.</accept-1>
+      <accept-2>System health and urgent device/user paths are visible on a phone without opening the desktop sidebar.</accept-2>
+      <accept-3>Long admin labels and metric values fit without document-level horizontal scroll.</accept-3>
+    </acceptance>
   </step-2>
 
-  <step-3 MODULE="M-037,M-006" RISK="HIGH" STATUS="pending">
-    Design mobile user search and detail flow with subscription, payment, device, and audit summary.
+  <step-3 MODULE="M-037,M-006,M-010" RISK="HIGH" STATUS="pending">
+    Redesign user search and account summary into compact mobile rows with role, status, identity, last login, and a path for subscription/payment/device context.
+    <acceptance>
+      <accept-1>User search still calls the existing admin users API contract.</accept-1>
+      <accept-2>Primary user data is readable at 360px width without a table-only dependency.</accept-2>
+      <accept-3>Admin/superadmin and blocked states remain visually distinct.</accept-3>
+    </acceptance>
   </step-3>
 
-  <step-4 MODULE="M-037,M-024" RISK="CRITICAL" STATUS="pending">
-    Design mobile device action flow with block, unblock, rotate, revoke, confirmation, and audit visibility.
+  <step-4 MODULE="M-037,M-024,M-010" RISK="CRITICAL" STATUS="pending">
+    Redesign device management for compact rows and confirmation-safe block, unblock, rotate, and revoke actions scoped to one device/peer.
+    <acceptance>
+      <accept-1>Every device action names the target device/user before mutation.</accept-1>
+      <accept-2>Block, unblock, rotate, and revoke require an explicit confirmation step.</accept-2>
+      <accept-3>UI wording and API calls preserve device-level targeting and do not imply whole-account disablement.</accept-3>
+      <accept-4>Existing audit-sensitive backend behavior remains visible through refreshed status or feedback.</accept-4>
+    </acceptance>
   </step-4>
 
   <step-5 MODULE="M-038,M-010" RISK="MEDIUM" STATUS="pending">
-    Apply compact admin UI rules: dense lists, tabs/segmented controls, fixed action bars, and no nested card layouts.
+    Apply compact admin UI rules: dense rows, tabs or segmented controls where useful, fixed action areas for confirmations, restrained panels, reduced radius/glass styling, and no nested cards.
+    <acceptance>
+      <accept-1>Phone navigation does not preserve the 320px desktop sidebar as the main mobile path.</accept-1>
+      <accept-2>Charts and secondary panels do not dominate the first phone viewport.</accept-2>
+      <accept-3>Buttons use existing lucide icons where available and have stable touch-friendly dimensions.</accept-3>
+      <accept-4>Background styling does not rely on decorative radial gradients or orb-like visual clutter.</accept-4>
+    </acceptance>
   </step-5>
 
-  <step-6 MODULE="M-037,M-010" RISK="HIGH" STATUS="pending">
-    Verify build and mobile smoke paths for overview, user search, device actions, payments, and system health.
+  <step-6 MODULE="M-037,M-038,M-010" RISK="HIGH" STATUS="pending">
+    Verify build and mobile smoke paths for admin overview, users, devices, analytics/payment status, and system health.
+    <verification-ref>V-M-037,V-M-038,V-M-010</verification-ref>
+    <acceptance>
+      <accept-1>cd frontend-admin &amp;&amp; npm run build passes.</accept-1>
+      <accept-2>Viewport smoke evidence records no horizontal document scroll at 360x740, 390x844, and 430x932.</accept-2>
+      <accept-3>Device action confirmation is detected before block, unblock, rotate, and revoke mutations.</accept-3>
+      <accept-4>No backend API shape changes are introduced in Phase-24 unless separately approved.</accept-4>
+    </acceptance>
   </step-6>
+
+  <risk-controls>
+    <risk-1>Do not hide emergency device actions behind a desktop-only table, hover-only control, or secondary route with poor phone reachability.</risk-1>
+    <risk-2>Do not run block, unblock, rotate, or revoke directly from a row without confirmation.</risk-2>
+    <risk-3>Do not change backend device/admin business rules while simplifying the frontend.</risk-3>
+    <risk-4>Do not mix Phase-25 token/localStorage hardening into this UI phase.</risk-4>
+    <risk-5>Do not touch deploy, install, docker, nginx, or remote-server automation in this phase.</risk-5>
+  </risk-controls>
 
   <verification>
     <check-1>Admin frontend build passes.</check-1>
-    <check-2>Mobile viewport supports emergency device actions without desktop-only layout.</check-2>
-    <check-3>Critical actions require confirmation and preserve audit visibility.</check-3>
-    <check-4>No deploy/install scripts are modified by this phase.</check-4>
+    <check-2>Mobile viewport has no horizontal scroll or overlapping text at 360x740, 390x844, and 430x932.</check-2>
+    <check-3>Overview, users, devices, analytics/payment status, and system health remain reachable from phone navigation.</check-3>
+    <check-4>Device block, unblock, rotate, and revoke require confirmation and remain scoped to one device/peer.</check-4>
+    <check-5>Existing backend API contracts remain unchanged unless explicitly approved later.</check-5>
+    <check-6>No deploy/install scripts are modified by this phase.</check-6>
   </verification>
+
+  <planned-evidence>
+    <evidence-1>Record cd frontend-admin &amp;&amp; npm run build result after Phase-24 source changes.</evidence-1>
+    <evidence-2>Record mobile smoke result for /, /users, /devices, and /analytics at 360x740, 390x844, and 430x932.</evidence-2>
+    <evidence-3>Record confirmation-path evidence for block, unblock, rotate, and revoke before marking V-M-037 pass-local.</evidence-3>
+    <evidence-4>Record git diff check proving deploy/install surfaces stayed unchanged.</evidence-4>
+  </planned-evidence>
 </Phase-24>

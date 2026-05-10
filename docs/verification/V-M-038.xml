@@ -2,12 +2,12 @@
 <V-M-038 MODULE="M-038" PRIORITY="high" STATUS="partial-local">
   <module>compact-ui-system</module>
   <checks>Shared UI rules must make user and admin surfaces compact, consistent, and readable on mobile screens.</checks>
-  <test-files>frontend/src/components/Layout.tsx frontend/src/pages/Dashboard.tsx frontend/src/pages/Config.tsx frontend/src/pages/Subscription.tsx frontend/src/index.css frontend-admin</test-files>
-  <commands>cd frontend &amp;&amp; npm run build; Phase-23 compact UI static review and mobile viewport smoke; cd ../frontend-admin &amp;&amp; npm run build during Phase-24 or full M-038 closure</commands>
+  <test-files>frontend/src/components/Layout.tsx frontend/src/pages/Dashboard.tsx frontend/src/pages/Config.tsx frontend/src/pages/Subscription.tsx frontend/src/index.css frontend-admin/src/components/Layout.tsx frontend-admin/src/pages/Dashboard.tsx frontend-admin/src/pages/Users.tsx frontend-admin/src/pages/Devices.tsx frontend-admin/src/pages/Analytics.tsx frontend-admin/src/components/StatCard.tsx frontend-admin/src/index.css</test-files>
+  <commands>cd frontend &amp;&amp; npm run build; Phase-23 compact UI static review and mobile viewport smoke; cd ../frontend-admin &amp;&amp; npm run build; Phase-24 admin compact UI static review and mobile viewport smoke before full M-038 closure</commands>
   <levels>
     <module-local>User frontend build and static compact UI review run after each compact shell, dashboard, config, or subscription change.</module-local>
     <wave-level>Phase-23 wave smoke checks layout density, no nested cards, no decorative hero/orb basis, stable controls, and safe text on user routes.</wave-level>
-    <phase-level>Full M-038 closure additionally requires Phase-24 admin build and mobile admin smoke before status can move from pending.</phase-level>
+    <phase-level>Full M-038 closure additionally requires Phase-24 admin build and mobile admin smoke before status can move from partial-local.</phase-level>
   </levels>
   <module-checks>
     <check-1>User frontend build passes for Phase-23.</check-1>
@@ -16,6 +16,7 @@
     <check-4>Buttons, lists, tabs, dialogs, and confirmations have stable mobile dimensions.</check-4>
     <check-5>Operational screens do not start with marketing hero sections or repeated status panels.</check-5>
     <check-6>Text wraps or truncates intentionally for long emails, device keys, plan names, and status labels.</check-6>
+    <check-7>Admin device actions use confirmation-safe mobile patterns and do not mutate directly from table-row buttons.</check-7>
   </module-checks>
   <verification-matrix>
     <rule-layout>Mobile shell uses concise navigation instead of a desktop-width sidebar and repeated identity/status panels.</rule-layout>
@@ -23,10 +24,11 @@
     <rule-controls>Action buttons keep icon plus short label, stable touch target size, disabled state, and no layout shift while loading.</rule-controls>
     <rule-text>Long emails, device names, device keys, plan names, prices, and status labels wrap or truncate intentionally without overlap.</rule-text>
     <rule-background>Operational surfaces do not rely on decorative radial-gradient/orb backgrounds or marketing hero composition.</rule-background>
+    <rule-admin-actions>Admin destructive/disruptive actions stay visible but require confirmation that identifies the target device/peer.</rule-admin-actions>
   </verification-matrix>
   <scenarios>
     <scenario-1 kind="success">User cabinet uses compact layout rules while preserving VPN, billing, and device workflows.</scenario-1>
-    <scenario-2 kind="success">Admin console can later adopt the same rules in Phase-24 without changing the Phase-23 user scope.</scenario-2>
+    <scenario-2 kind="success">Admin console adopts the same rules in Phase-24 without changing the Phase-23 user scope.</scenario-2>
     <scenario-3 kind="failure">A redesigned screen remains card-heavy, desktop-first, decorative, or text-overlapping on phones.</scenario-3>
     <scenario-4 kind="failure">The compact system hides destructive actions without clear secondary placement or confirmation-safe affordance.</scenario-4>
     <scenario-5 kind="failure">CSS simplification makes loading, empty, error, modal, or disabled states resize the surrounding layout.</scenario-5>
@@ -37,12 +39,16 @@
     <rule-3>No wide tables or raw pre blocks causing page-level horizontal scroll.</rule-3>
     <rule-4>Use lucide icons in action buttons where an icon exists.</rule-4>
     <rule-5>Use stable touch targets and row heights across loading, empty, success, and error states.</rule-5>
+    <rule-6>Use confirmation-safe mobile action surfaces for admin block, unblock, rotate, and revoke flows.</rule-6>
   </ui-rules>
   <static-review>
     <review-1>Layout does not preserve the 320px desktop sidebar as the primary phone navigation.</review-1>
     <review-2>Dashboard does not keep decorative hero copy as the dominant first-screen element.</review-2>
     <review-3>Config page does not expose raw preformatted config text in a way that creates page-level horizontal scroll.</review-3>
     <review-4>Subscription page does not depend on oversized plan cards for basic purchase and renewal actions.</review-4>
+    <review-5>Admin layout does not preserve the 320px desktop sidebar as the primary phone navigation.</review-5>
+    <review-6>Admin users and devices do not depend on wide tables as the only usable mobile workflow.</review-6>
+    <review-7>Admin analytics keeps charts secondary to concise payment/subscription KPI summaries on phones.</review-7>
   </static-review>
   <observability>
     <telemetry-1>Compact UI evidence records route, viewport, scrollWidth, innerWidth, and checked layout rule.</telemetry-1>
@@ -54,6 +60,9 @@
     <marker-2>[CompactUI][Phase23][COMPACT_RULES_PASS]</marker-2>
     <marker-3>[CompactUI][Phase23][NO_HORIZONTAL_SCROLL]</marker-3>
     <marker-4>[CompactUI][Phase23][TEXT_SAFE]</marker-4>
+    <marker-5>[CompactUI][Phase24][ADMIN_BUILD_PASS]</marker-5>
+    <marker-6>[CompactUI][Phase24][ADMIN_NO_HORIZONTAL_SCROLL]</marker-6>
+    <marker-7>[CompactUI][Phase24][ADMIN_CONFIRMATION_SAFE]</marker-7>
   </required-log-markers>
   <evidence>
     <evidence-1>Record Phase-23 user frontend build and mobile viewport smoke result.</evidence-1>
@@ -62,6 +71,9 @@
     <evidence-4>2026-05-10: Phase-23 user frontend passed build and Chrome CDP smoke; M-038 remains partial until Phase-24 admin frontend adopts the compact rules.</evidence-4>
   </evidence>
   <autonomous-execution-safety status="phase-23-user-only">
-    Autonomous Phase-23 execution is safe only for user frontend compact UI files. Admin frontend remains Phase-24 scope and deploy/install surfaces remain out of scope.
+    Autonomous Phase-23 execution is complete for user frontend compact UI files. Admin frontend remains Phase-24 scope and deploy/install surfaces remain out of scope.
   </autonomous-execution-safety>
+  <phase-24-safety status="planned">
+    Phase-24 execution is safe only for frontend-admin compact UI files and related MyGRACE docs. Backend business rules, deploy/install scripts, docker, nginx, and Phase-25 session security remain out of scope.
+  </phase-24-safety>
 </V-M-038>

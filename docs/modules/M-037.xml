@@ -1,22 +1,40 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <M-037 NAME="mobile-admin-console" TYPE="UI_COMPONENT" STATUS="pending">
   <path>frontend-admin docs/plans/Phase-24.xml</path>
-  <owns>Compact mobile-first admin console for operational status, users, devices, payments, and emergency device actions</owns>
+  <owns>Compact mobile-first admin console for operational status, users, devices, payments, analytics summary, system health, and emergency device actions</owns>
   <exports>
-    <view-admin-mobile-overview>Dense service overview with health, users, subscriptions, revenue, and VPN status</view-admin-mobile-overview>
-    <view-admin-mobile-users>Searchable mobile user list with subscription and device summary</view-admin-mobile-users>
-    <view-admin-mobile-device-actions>Block, unblock, rotate, and revoke device controls optimized for phone use</view-admin-mobile-device-actions>
+    <view-admin-mobile-overview>Dense service overview with health, users, subscriptions, revenue, VPN/system status, and urgent navigation</view-admin-mobile-overview>
+    <view-admin-mobile-users>Searchable mobile user list with role, status, identity, last-login, subscription/payment, and device summary paths</view-admin-mobile-users>
+    <view-admin-mobile-devices>Compact device registry with user/device/status/signals fields optimized for phone scanning</view-admin-mobile-devices>
+    <view-admin-mobile-device-actions>Block, unblock, rotate, and revoke device controls with explicit confirmation and feedback</view-admin-mobile-device-actions>
+    <view-admin-mobile-payments>Compact payment/analytics status for revenue, subscriptions, referrals, and conversion signals</view-admin-mobile-payments>
   </exports>
   <depends>M-006, M-010, M-024, M-038</depends>
   <verification-ref>V-M-037</verification-ref>
   <files>
-    <file>frontend-admin</file>
+    <file>frontend-admin/src/components/Layout.tsx</file>
+    <file>frontend-admin/src/pages/Dashboard.tsx</file>
+    <file>frontend-admin/src/pages/Users.tsx</file>
+    <file>frontend-admin/src/pages/Devices.tsx</file>
+    <file>frontend-admin/src/pages/Analytics.tsx</file>
+    <file>frontend-admin/src/components/StatCard.tsx</file>
+    <file>frontend-admin/src/index.css</file>
+    <file>frontend-admin/src/lib/api.ts</file>
+    <file>frontend-admin/src/types/index.ts</file>
     <file>docs/plans/Phase-24.xml</file>
   </files>
+  <data-flows>
+    <DF-UI-ADMIN-OVERVIEW>Stats and system health render as a compact first-screen operator status surface.</DF-UI-ADMIN-OVERVIEW>
+    <DF-UI-ADMIN-USER-SEARCH>Admin searches users and reads compact account rows without table-only mobile dependency.</DF-UI-ADMIN-USER-SEARCH>
+    <DF-UI-ADMIN-DEVICE-ACTION>Admin selects one device action, confirms the exact peer target, calls the existing endpoint, then sees refreshed status and feedback.</DF-UI-ADMIN-DEVICE-ACTION>
+    <DF-UI-ADMIN-PAYMENT-STATUS>Billing and analytics status stays reachable from mobile navigation without backend/provider changes.</DF-UI-ADMIN-PAYMENT-STATUS>
+  </data-flows>
   <constraints>
-    <constraint-1>Admin emergency actions must remain visible and require clear confirmation.</constraint-1>
-    <constraint-2>Mobile admin UI must avoid desktop-only tables and oversized dashboard cards.</constraint-2>
-    <constraint-3>Audit-sensitive actions must preserve existing backend audit behavior.</constraint-3>
+    <constraint-1>Admin emergency actions must remain visible from phone navigation and require clear confirmation.</constraint-1>
+    <constraint-2>Mobile admin UI must avoid desktop-only tables, oversized dashboard cards, nested card layouts, and decorative hero sections.</constraint-2>
+    <constraint-3>Audit-sensitive actions must preserve existing backend audit behavior and show success/error feedback after mutation.</constraint-3>
+    <constraint-4>Device actions must target one peer/device and must not imply or trigger whole-account disablement.</constraint-4>
+    <constraint-5>Deploy/install scripts, backend business rules, and Phase-25 session handling are out of scope.</constraint-5>
   </constraints>
   <hotspot>H-024: Mobile admin console must keep emergency operator actions visible without desktop-only dashboards</hotspot>
 </M-037>
