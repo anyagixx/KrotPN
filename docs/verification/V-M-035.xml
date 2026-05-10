@@ -2,25 +2,43 @@
 <V-M-035 MODULE="M-035" PRIORITY="critical" STATUS="pending">
   <module>portable-data-backup</module>
   <checks>Backup and restore contract must preserve PostgreSQL data, runtime secrets, AWG state, and VPN device/client linkage.</checks>
-  <test-files></test-files>
-  <commands>planned restore dry-run: pg_dump/pg_restore validation plus checksum manifest verification</commands>
+  <test-files>
+    <file>docs/plans/Phase-22.xml</file>
+    <file>docs/modules/M-035.xml</file>
+    <file>docs/verification/V-M-035.xml</file>
+  </test-files>
+  <commands>python3 -m xml.etree.ElementTree docs/plans/Phase-22.xml docs/modules/M-035.xml docs/verification/V-M-035.xml &amp;&amp; mygrace lint; planned non-production pg_dump/pg_restore dry-run plus checksum and secret-redaction evidence</commands>
   <module-checks>
-    <check-1>Backup manifest names every required artifact without exposing secret values.</check-1>
-    <check-2>Restore validation compares table counts and selected integrity invariants.</check-2>
-    <check-3>AWG profile, subnet settings, and existing client compatibility are included in restore checks.</check-3>
-    <check-4>Checksums are generated before transfer and verified before restore validation passes.</check-4>
-    <check-5>Migration state is captured before backup and compared after restore.</check-5>
+    <check-1 level="module-local">Backup manifest names every required artifact without exposing secret values.</check-1>
+    <check-2 level="module-local">Restore validation compares table counts, migration state, and selected integrity invariants.</check-2>
+    <check-3 level="wave">AWG profile, subnet settings, and existing client compatibility feed M-034 cutover gates.</check-3>
+    <check-4 level="wave">Checksums are generated before transfer and verified before restore validation passes.</check-4>
+    <check-5 level="phase">Non-production pg_dump/pg_restore dry-run evidence is captured before Phase-22 is trusted for incidents.</check-5>
   </module-checks>
+  <evidence-matrix>
+    <evidence-1 type="deterministic">XML parse and mygrace lint pass for Phase-22, M-035, and V-M-035.</evidence-1>
+    <evidence-2 type="deterministic">Manifest lists PostgreSQL dump, protected runtime env, AWG/VPN state, checksums, counts, migration state, and restore notes.</evidence-2>
+    <evidence-3 type="trace">Backup and restore logs show artifact names and validation decisions but no secret values.</evidence-3>
+    <evidence-4 type="integration">Non-production pg_dump/pg_restore proves table counts and invariants before live use.</evidence-4>
+    <evidence-5 type="live-required">Real incident recovery still requires live target validation and operator cutover approval.</evidence-5>
+  </evidence-matrix>
   <scenarios>
     <scenario-1 kind="success">Restored database contains matching users, subscriptions, payments, devices, VPN clients, and migration state.</scenario-1>
     <scenario-2 kind="failure">Backup bundle lacks .env/runtime secret material needed to boot replacement servers.</scenario-2>
     <scenario-3 kind="failure">Backup bundle lacks AWG profile or device-client state needed to preserve client connectivity.</scenario-3>
     <scenario-4 kind="failure">Checksum or critical table-count mismatch is ignored and cutover proceeds.</scenario-4>
     <scenario-5 kind="failure">Backup or restore logs expose secret values, tokens, passwords, private keys, or raw .env content.</scenario-5>
+    <scenario-6 kind="failure">Existing client configs are invalidated without explicit operator-approved rotation.</scenario-6>
   </scenarios>
   <required-log-markers>
     <marker-1>[PortableBackup][manifest][CHECKSUMS_READY]</marker-1>
     <marker-2>[PortableBackup][restore][COUNTS_MATCH]</marker-2>
     <marker-3>[PortableBackup][restore][MIGRATION_STATE_MATCH]</marker-3>
+    <marker-4>[PortableBackup][restore][SECRETS_REDACTED]</marker-4>
+    <marker-5>[PortableBackup][restore][CLIENT_COMPATIBILITY_OK]</marker-5>
   </required-log-markers>
+  <autonomy-safety>
+    <safe-local>Agents may design manifest schemas, redaction checks, and non-production dry-run validation artifacts.</safe-local>
+    <requires-operator>Agents must not move live secrets, run incident cutover, or rotate VPN/client material without explicit operator control.</requires-operator>
+  </autonomy-safety>
 </V-M-035>

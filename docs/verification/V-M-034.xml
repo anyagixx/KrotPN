@@ -2,26 +2,42 @@
 <V-M-034 MODULE="M-034" PRIORITY="critical" STATUS="pending">
   <module>disaster-recovery-runbook</module>
   <checks>Emergency relocation runbook must restore service on replacement RU/DE servers using existing deploy/install scripts unchanged.</checks>
-  <test-files></test-files>
-  <commands>manual DR walkthrough using existing deploy/install scripts plus restore manifest checklist</commands>
+  <test-files>
+    <file>docs/plans/Phase-22.xml</file>
+    <file>docs/modules/M-034.xml</file>
+    <file>docs/verification/V-M-034.xml</file>
+  </test-files>
+  <commands>python3 -m xml.etree.ElementTree docs/plans/Phase-22.xml docs/modules/M-034.xml docs/verification/V-M-034.xml &amp;&amp; mygrace lint; manual live-required DR walkthrough using existing deploy/install scripts unchanged</commands>
   <module-checks>
-    <check-1>Runbook defines freeze, backup, fresh deployment, restore, validation, cutover, and rollback steps.</check-1>
-    <check-2>Runbook explicitly forbids modifying deploy/ and install.sh as part of recovery planning.</check-2>
-    <check-3>Runbook separates local dry-run checks from live VPS checks.</check-3>
-    <check-4>Runbook includes go/no-go gates before DNS/IP/operator cutover.</check-4>
-    <check-5>Runbook includes explicit rollback checkpoints before and after cutover.</check-5>
+    <check-1 level="module-local">Runbook defines freeze, backup, fresh deployment, restore, validation, cutover, and rollback steps.</check-1>
+    <check-2 level="module-local">Runbook explicitly forbids modifying deploy/ and install.sh as part of recovery planning.</check-2>
+    <check-3 level="module-local">Runbook separates local dry-run checks from live VPS checks and labels blocked evidence.</check-3>
+    <check-4 level="wave">Runbook consumes M-035 manifest/checksum evidence before any cutover gate can pass.</check-4>
+    <check-5 level="phase">Go/no-go, rollback target, post-cutover monitoring, and incident handoff notes are required before Phase-22 can close.</check-5>
   </module-checks>
+  <evidence-matrix>
+    <evidence-1 type="deterministic">XML parse and mygrace lint pass for Phase-22, M-034, and V-M-034.</evidence-1>
+    <evidence-2 type="trace">Restore walkthrough records each operator decision point without printing secrets.</evidence-2>
+    <evidence-3 type="integration">Live RU/DE replacement walkthrough proves backend, frontend, admin, auth, billing read path, Redis, and VPN handshake checks.</evidence-3>
+    <evidence-4 type="live-required">DNS/IP/operator cutover is not considered verified by local documentation checks.</evidence-4>
+  </evidence-matrix>
   <scenarios>
     <scenario-1 kind="success">Operator can follow the runbook from a backup bundle to a validated replacement deployment.</scenario-1>
     <scenario-2 kind="failure">Restore procedure loses device-client linkage or invalidates existing configs without explicit rotation.</scenario-2>
     <scenario-3 kind="failure">Recovery steps print secrets, tokens, passwords, private keys, or raw .env content into logs.</scenario-3>
     <scenario-4 kind="failure">Runbook requires editing deploy/ or install.sh instead of using the existing approved deployment flow.</scenario-4>
     <scenario-5 kind="failure">Cutover proceeds without backend, frontend, admin, auth, billing read, and VPN handshake evidence.</scenario-5>
+    <scenario-6 kind="failure">Local dry-run evidence is recorded as if it proves live VPS recovery readiness.</scenario-6>
   </scenarios>
   <required-log-markers>
     <marker-1>[DisasterRecovery][backup][BUNDLE_CREATED]</marker-1>
     <marker-2>[DisasterRecovery][restore][VALIDATION_PASSED]</marker-2>
     <marker-3>[DisasterRecovery][cutover][ROLLBACK_POINT]</marker-3>
     <marker-4>[DisasterRecovery][cutover][GO_NO_GO]</marker-4>
+    <marker-5>[DisasterRecovery][evidence][LIVE_REQUIRED]</marker-5>
   </required-log-markers>
+  <autonomy-safety>
+    <safe-local>Agents may update runbook text, checklists, verification metadata, and dry-run evidence labels.</safe-local>
+    <requires-operator>Agents must not perform live cutover, rotate client configs, expose secrets, or change deploy/install scripts without explicit operator control.</requires-operator>
+  </autonomy-safety>
 </V-M-034>
