@@ -29,7 +29,7 @@
     Audit active docs for stale M-013 through M-016 references and classify each as active, archived, or superseded.
   </step-1>
 
-  <step-2 MODULE="M-033,M-017" RISK="CRITICAL" STATUS="pending">
+  <step-2 MODULE="M-033,M-017" RISK="CRITICAL" STATUS="done">
     Replace active split-tunnel/ipset/policy verification expectations with current Full Tunnel expectations.
   </step-2>
 

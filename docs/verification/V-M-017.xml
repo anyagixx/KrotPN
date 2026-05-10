@@ -2,9 +2,9 @@
 <V-M-017 MODULE="M-017" PRIORITY="critical" STATUS="pass-local">
   <module>route-sync-runtime (Simplified to Full Tunnel)</module>
   <checks>
-    Verify that routing is simplified to full tunnel via DE.
-    Verify split-tunneling artifacts (ipset, mangle, resolver) are removed.
-    Verify all traffic routes through DE server.
+    Verify that routing is simplified to Full Tunnel via DE.
+    Treat split-tunneling, ipset, mangle, DNS observer, and policy resolver references only as regression guards for removed behavior.
+    Verify all client traffic routes through DE server in live gates.
   </checks>
   <test-files></test-files>
   <commands>python -m py_compile backend/app/routing/manager.py backend/app/routing/router.py &amp;&amp; bash -n deploy/deploy-on-server.sh</commands>
@@ -14,19 +14,24 @@
     static review: app/routing imports only manager/router and deploy does not recreate ipset/mangle setup
   </module-checks>
 
+  <classification>
+    References to ipset, split-tunneling, mangle, resolver, and policy modules are not active requirements.
+    They are allowed here only to assert that removed artifacts do not return to runtime or deploy surfaces.
+  </classification>
+
   <!-- Phase-17 Scenarios -->
   <scenarios>
     <scenario kind="success" trace="FULL_TUNNEL_ACTIVE">
       Client connects, all traffic (including RU domains) goes via DE server.
     </scenario>
     <scenario kind="success" trace="NO_SPLIT_TUNNELING">
-      No ipset rules or iptables mangle rules found on RU server.
+      Removed split-tunnel artifacts are absent from active routing runtime and live RU host checks.
     </scenario>
     <scenario kind="success" trace="YOUTUBE_ACCESSIBLE">
       YouTube and Google are accessible via VPN (previously failing).
     </scenario>
     <scenario kind="success" trace="DEPLOY_SIMPLIFIED">
-      Deploy scripts run without setting up ipset/cron/resolver.
+      Existing deploy scripts remain operator-approved and do not reintroduce removed resolver or route-policy runtime dependencies.
     </scenario>
     <scenario kind="failure" trace="RESOLVER_REMNANTS">
       Imports of deleted modules (policy, domain_rules) found in source.

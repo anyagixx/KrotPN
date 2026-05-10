@@ -16,4 +16,7 @@
   </files>
   <hotspot>H-005: Full Tunnel cleanup is simpler than route sync but stale host-routing artifacts can break verification</hotspot>
   <hotspot>H-016: Removed RU IP auto-update references must stay absent from deploy and verification surfaces</hotspot>
+  <execution-notes>
+    <note-1>Phase-21 step-2 clarified that ipset/split-tunnel references in verification are regression guards for removed behavior, not active architecture requirements.</note-1>
+  </execution-notes>
 </M-017>
