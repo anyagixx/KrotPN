@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<V-M-033 MODULE="M-033" PRIORITY="critical" STATUS="pending">
+<V-M-033 MODULE="M-033" PRIORITY="critical" STATUS="pass-local">
   <module>mygrace-integrity-cleanup</module>
   <checks>Active MyGRACE indexes, per-entity files, README handoff, and verification surfaces must match the current Full Tunnel architecture.</checks>
   <test-files></test-files>
-  <commands>python3 -m xml.etree.ElementTree docs/graph-index.xml docs/plan-index.xml docs/verification-index.xml</commands>
+  <commands>python3 -m xml.etree.ElementTree docs/graph-index.xml docs/plan-index.xml docs/verification-index.xml; mygrace lint; cd backend &amp;&amp; SECRET_KEY=test-secret-key-with-enough-length DATA_ENCRYPTION_KEY=dpFmfSVqfdAK3yx5MQV6Tcv35RZuw5MzaH0yhxJ01q0= PYTHONPATH=. ../.venv/bin/python -m pytest -o addopts='' --collect-only -q</commands>
   <module-checks>
     <check-1>All active XML files parse successfully.</check-1>
     <check-2>graph-index entries have matching docs/modules files.</check-2>
@@ -19,4 +19,13 @@
     <marker-1>[MyGRACE][refresh][INDEX_SYNC]</marker-1>
     <marker-2>[MyGRACE][verification][COLLECT_CLEAN]</marker-2>
   </required-log-markers>
+  <execution-evidence updated="2026-05-10">
+    <local-check-1>Active XML parse: 103 files parsed, 0 failures.</local-check-1>
+    <local-check-2>Dependency CrossLink audit: 0 missing DEPENDS CrossLinks.</local-check-2>
+    <local-check-3>Index count/file audit: 0 errors across graph modules, plan phases, and verification entries.</local-check-3>
+    <local-check-4>mygrace lint: 0 errors, 0 warnings.</local-check-4>
+    <local-check-5>Backend pytest collection: 106 tests collected, 0 collection errors.</local-check-5>
+    <live-vps-check-1>No live VPS evidence required for Phase-21 because no runtime, deployment, install, or topology files changed.</live-vps-check-1>
+    <live-vps-check-2>Future Phase-22 and Phase-26 gates must add live VPS or restore-target evidence for backup, restore, and emergency relocation readiness.</live-vps-check-2>
+  </execution-evidence>
 </V-M-033>
