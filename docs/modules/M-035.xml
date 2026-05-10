@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<M-035 NAME="portable-data-backup" TYPE="DATA_LAYER" STATUS="wip">
-  <path>backend/app/core docs/plans/Phase-22.xml docs/modules/M-035.xml docs/recovery/BACKUP-PHASE-22.xml</path>
+<M-035 NAME="portable-data-backup" TYPE="DATA_LAYER" STATUS="blocked-live">
+  <path>backend/app/core docs/plans/Phase-22.xml docs/modules/M-035.xml docs/recovery/BACKUP-PHASE-22.xml docs/recovery/DRY-RUN-PHASE-22.xml</path>
   <owns>Portable backup/restore contract for PostgreSQL data, runtime secrets, AWG state, device-client linkage, and integrity manifests</owns>
   <exports>
     <artifact-postgres-dump>Durable dump of users, subscriptions, payments, devices, VPN clients, audit events, and migrations state</artifact-postgres-dump>
@@ -15,6 +15,7 @@
     <file>docs/plans/Phase-22.xml</file>
     <file>docs/modules/M-035.xml</file>
     <file>docs/recovery/BACKUP-PHASE-22.xml</file>
+    <file>docs/recovery/DRY-RUN-PHASE-22.xml</file>
   </files>
   <constraints>
     <constraint-1>Secrets, tokens, passwords, and private keys must not be printed in command output or logs.</constraint-1>
@@ -36,6 +37,7 @@
     <note-3>Phase-22 step-4 added restore integrity gates for schema/migration state, checksums, table counts, selected row invariants, and no-secret-log evidence.</note-3>
     <note-4>Phase-22 step-6 linked restore sequence evidence outputs to bundle validation, after-restore counts, VPN fingerprints, and service-start notes.</note-4>
     <note-5>Phase-22 step-9 added cutover evidence retention requirements for rollback and incident handoff.</note-5>
+    <note-6>Phase-22 step-10 recorded required dry-run restore evidence and blocked-live checks because no backup bundle or restore target was available locally.</note-6>
   </execution-notes>
   <hotspot>H-022: Backup bundles can expose secrets or fail restore if they omit AWG profiles, runtime env, or device/client linkage</hotspot>
 </M-035>

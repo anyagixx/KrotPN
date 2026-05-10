@@ -52,7 +52,7 @@
     Define cutover and rollback procedure: DNS/IP/operator switch, go/no-go gate, old-server rollback, post-cutover monitoring, and incident handoff notes.
   </step-9>
 
-  <step-10 MODULE="M-034,M-035" RISK="CRITICAL" STATUS="pending">
+  <step-10 MODULE="M-034,M-035" RISK="CRITICAL" STATUS="blocked-live">
     Perform a non-production dry-run restore before relying on the procedure for a real incident; record blocked live checks separately.
   </step-10>
 
@@ -94,5 +94,12 @@
     <artifact-7 module="M-034,M-003,M-032">docs/recovery/DR-PHASE-22.xml defines VPN validation gates for RU/DE tunnel health, AWG profile parity, address-pool compatibility, existing client behavior, and explicit rotation guard.</artifact-7>
     <artifact-8 module="M-034,M-001">docs/recovery/DR-PHASE-22.xml defines application validation gates for backend health, database, Redis, auth smoke, billing read path, device listing, and frontend/admin reachability.</artifact-8>
     <artifact-9 module="M-034,M-035">docs/recovery/DR-PHASE-22.xml defines go/no-go cutover, rollback checkpoints, and post-cutover monitoring while docs/recovery/BACKUP-PHASE-22.xml defines evidence retention.</artifact-9>
+    <artifact-10 module="M-034,M-035">docs/recovery/DRY-RUN-PHASE-22.xml records local evidence and blocked-live dry-run checks that require a backup bundle and restore target.</artifact-10>
   </execution-artifacts>
+
+  <blocked-live-evidence updated="2026-05-10">
+    <blocked-1>Non-production pg_dump/pg_restore rehearsal requires a trusted backup bundle and isolated restore target.</blocked-1>
+    <blocked-2>Replacement RU/DE VPS validation requires operator-provided restore hosts or credentials.</blocked-2>
+    <blocked-3>DNS/IP/operator cutover remains live-required and was not attempted.</blocked-3>
+  </blocked-live-evidence>
 </Phase-22>

@@ -1,14 +1,15 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<V-M-035 MODULE="M-035" PRIORITY="critical" STATUS="pending">
+<V-M-035 MODULE="M-035" PRIORITY="critical" STATUS="partial-local">
   <module>portable-data-backup</module>
   <checks>Backup and restore contract must preserve PostgreSQL data, runtime secrets, AWG state, and VPN device/client linkage.</checks>
   <test-files>
     <file>docs/plans/Phase-22.xml</file>
     <file>docs/modules/M-035.xml</file>
     <file>docs/recovery/BACKUP-PHASE-22.xml</file>
+    <file>docs/recovery/DRY-RUN-PHASE-22.xml</file>
     <file>docs/verification/V-M-035.xml</file>
   </test-files>
-  <commands>python3 -m xml.etree.ElementTree docs/plans/Phase-22.xml docs/modules/M-035.xml docs/recovery/BACKUP-PHASE-22.xml docs/verification/V-M-035.xml &amp;&amp; mygrace lint; planned non-production pg_dump/pg_restore dry-run plus checksum and secret-redaction evidence</commands>
+  <commands>python3 -m xml.etree.ElementTree docs/plans/Phase-22.xml docs/modules/M-035.xml docs/recovery/BACKUP-PHASE-22.xml docs/recovery/DRY-RUN-PHASE-22.xml docs/verification/V-M-035.xml &amp;&amp; mygrace lint; planned non-production pg_dump/pg_restore dry-run plus checksum and secret-redaction evidence</commands>
   <module-checks>
     <check-1 level="module-local">Backup manifest names every required artifact without exposing secret values.</check-1>
     <check-2 level="module-local">Restore validation compares table counts, migration state, and selected integrity invariants.</check-2>
@@ -23,6 +24,7 @@
     <evidence-4 type="integration">Non-production pg_dump/pg_restore proves table counts and invariants before live use.</evidence-4>
     <evidence-5 type="live-required">Real incident recovery still requires live target validation and operator cutover approval.</evidence-5>
     <evidence-6 type="deterministic">Restore integrity gates compare schema/migration state, checksums, table counts, selected row invariants, and no-secret-log review.</evidence-6>
+    <evidence-7 type="blocked-live">Non-production pg_dump/pg_restore rehearsal is blocked until a trusted bundle and isolated restore target are available.</evidence-7>
   </evidence-matrix>
   <scenarios>
     <scenario-1 kind="success">Restored database contains matching users, subscriptions, payments, devices, VPN clients, and migration state.</scenario-1>

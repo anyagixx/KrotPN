@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<DRY-RUN-PHASE-22 NAME="Phase-22 Restore Dry-Run Evidence" STATUS="blocked-live" MODULES="M-034,M-035" CREATED="2026-05-10">
+  <contract>
+    <purpose>Record local verification and blocked live/non-production restore checks for Phase-22.</purpose>
+    <scope>Local XML/MyGRACE verification, dry-run prerequisites, missing operator inputs, blocked live evidence, and required evidence template for the future restore rehearsal.</scope>
+    <depends>M-034, M-035</depends>
+    <links>docs/recovery/DR-PHASE-22.xml docs/recovery/BACKUP-PHASE-22.xml docs/verification/V-M-034.xml docs/verification/V-M-035.xml</links>
+    <role>VERIFICATION_EVIDENCE</role>
+    <map-mode>SUMMARY</map-mode>
+  </contract>
+
+  <module-map>
+    <section-local-evidence>Records local documentation and MyGRACE checks that can be run without a backup bundle.</section-local-evidence>
+    <section-blocked-live-checks>Records checks that require a restore target, backup bundle, or operator cutover approval.</section-blocked-live-checks>
+    <section-required-dry-run-evidence>Defines evidence needed before Phase-22 can be trusted for a real incident.</section-required-dry-run-evidence>
+  </module-map>
+
+  <change-summary>
+    <change-1>v1.0.0 - Phase-22 step-10 recorded blocked non-production dry-run evidence boundaries.</change-1>
+  </change-summary>
+
+  <local-evidence status="passed">
+    <check-1>Phase-22 XML artifacts parse locally.</check-1>
+    <check-2>mygrace lint passes locally.</check-2>
+    <check-3>Runbook, backup contract, validation gates, cutover gates, and rollback gates are documented.</check-3>
+    <check-4>No deploy/, install.sh, runtime source, or live server state was changed by Phase-22 local execution.</check-4>
+  </local-evidence>
+
+  <blocked-live-checks status="blocked-live">
+    <blocked-1>Non-production pg_dump/pg_restore rehearsal was not performed because no backup bundle was available in the local workspace.</blocked-1>
+    <blocked-2>Restore-target VPS validation was not performed because no separate RU/DE restore target credentials or hosts were provided.</blocked-2>
+    <blocked-3>RU/DE live tunnel health, AWG profile parity, and existing client/device connectivity were not validated on replacement servers.</blocked-3>
+    <blocked-4>DNS/IP/operator cutover was not attempted and must remain operator-controlled.</blocked-4>
+  </blocked-live-checks>
+
+  <required-dry-run-evidence>
+    <required-1>Trusted backup bundle with manifest.json, postgres.dump, runtime-env.enc, vpn-state.tar.enc, checksums.sha256, and evidence directory.</required-1>
+    <required-2>Isolated non-production PostgreSQL restore target or replacement RU/DE rehearsal environment.</required-2>
+    <required-3>table_counts.before.json and table_counts.after.json comparison.</required-3>
+    <required-4>migration_state.before.txt and migration_state.after.txt comparison.</required-4>
+    <required-5>restore_notes.md with no-secret-log review.</required-5>
+    <required-6>vpn_fingerprints.after.json, vpn_network_after.json, and client_compatibility_after.json.</required-6>
+    <required-7>Application validation notes for backend health, DB, Redis, auth smoke, billing read path, device listing, frontend, and admin.</required-7>
+    <required-8>Operator go/no-go and rollback target decision before any production cutover.</required-8>
+  </required-dry-run-evidence>
+
+  <phase-closure-policy>
+    <policy-1>Phase-22 may be considered locally prepared but not live-verified until non-production restore evidence is attached.</policy-1>
+    <policy-2>Do not rely on Phase-22 for a real incident without completing the blocked dry-run and live-required evidence gates.</policy-2>
+  </phase-closure-policy>
+</DRY-RUN-PHASE-22>

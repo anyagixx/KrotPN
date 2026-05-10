@@ -1,14 +1,15 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<V-M-034 MODULE="M-034" PRIORITY="critical" STATUS="pending">
+<V-M-034 MODULE="M-034" PRIORITY="critical" STATUS="partial-local">
   <module>disaster-recovery-runbook</module>
   <checks>Emergency relocation runbook must restore service on replacement RU/DE servers using existing deploy/install scripts unchanged.</checks>
   <test-files>
     <file>docs/plans/Phase-22.xml</file>
     <file>docs/modules/M-034.xml</file>
     <file>docs/recovery/DR-PHASE-22.xml</file>
+    <file>docs/recovery/DRY-RUN-PHASE-22.xml</file>
     <file>docs/verification/V-M-034.xml</file>
   </test-files>
-  <commands>python3 -m xml.etree.ElementTree docs/plans/Phase-22.xml docs/modules/M-034.xml docs/recovery/DR-PHASE-22.xml docs/verification/V-M-034.xml &amp;&amp; mygrace lint; manual live-required DR walkthrough using existing deploy/install scripts unchanged</commands>
+  <commands>python3 -m xml.etree.ElementTree docs/plans/Phase-22.xml docs/modules/M-034.xml docs/recovery/DR-PHASE-22.xml docs/recovery/DRY-RUN-PHASE-22.xml docs/verification/V-M-034.xml &amp;&amp; mygrace lint; manual live-required DR walkthrough using existing deploy/install scripts unchanged</commands>
   <module-checks>
     <check-1 level="module-local">Runbook defines freeze, backup, fresh deployment, restore, validation, cutover, and rollback steps.</check-1>
     <check-2 level="module-local">Runbook explicitly forbids modifying deploy/ and install.sh as part of recovery planning.</check-2>
@@ -24,6 +25,7 @@
     <evidence-5 type="live-required">VPN validation proves RU/DE tunnel health, AWG profile parity, existing client config behavior, and explicit rotation guard on the restore target.</evidence-5>
     <evidence-6 type="live-required">Application validation proves backend health, database, Redis, user/admin auth, billing read path, device listing, and frontend/admin reachability on the restore target.</evidence-6>
     <evidence-7 type="trace">Cutover evidence records go/no-go decision, rollback target, post-cutover smoke checks, and monitoring window.</evidence-7>
+    <evidence-8 type="blocked-live">Non-production restore dry-run is blocked until a trusted backup bundle and isolated restore target are available.</evidence-8>
   </evidence-matrix>
   <scenarios>
     <scenario-1 kind="success">Operator can follow the runbook from a backup bundle to a validated replacement deployment.</scenario-1>

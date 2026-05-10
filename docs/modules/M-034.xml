@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<M-034 NAME="disaster-recovery-runbook" TYPE="INTEGRATION" STATUS="wip">
-  <path>docs/plans/Phase-22.xml docs/modules/M-034.xml docs/recovery/DR-PHASE-22.xml</path>
+<M-034 NAME="disaster-recovery-runbook" TYPE="INTEGRATION" STATUS="blocked-live">
+  <path>docs/plans/Phase-22.xml docs/modules/M-034.xml docs/recovery/DR-PHASE-22.xml docs/recovery/DRY-RUN-PHASE-22.xml</path>
   <owns>Operator runbook for emergency relocation to fresh RU/DE servers using the existing approved deployment process</owns>
   <exports>
     <flow-backup-freeze>Defines maintenance-window freeze and backup capture order</flow-backup-freeze>
@@ -15,6 +15,7 @@
     <file>docs/plans/Phase-22.xml</file>
     <file>docs/modules/M-034.xml</file>
     <file>docs/recovery/DR-PHASE-22.xml</file>
+    <file>docs/recovery/DRY-RUN-PHASE-22.xml</file>
   </files>
   <constraints>
     <constraint-1>Existing deploy and install scripts are treated as operator-approved black-box deployment tools.</constraint-1>
@@ -39,6 +40,7 @@
     <note-5>Phase-22 step-7 added VPN-specific validation for RU/DE tunnel health, AWG profile parity, address-pool compatibility, existing client behavior, and explicit rotation guard.</note-5>
     <note-6>Phase-22 step-8 added application validation for backend health, database, Redis, auth smoke, billing read path, device listing, and frontend/admin reachability.</note-6>
     <note-7>Phase-22 step-9 added go/no-go cutover, rollback checkpoints, and post-cutover monitoring procedure.</note-7>
+    <note-8>Phase-22 step-10 recorded non-production restore dry-run as blocked-live because no backup bundle or restore target was available in the local workspace.</note-8>
   </execution-notes>
   <hotspot>H-021: Disaster recovery must use existing operator-approved deploy/install scripts as a black-box deployment surface</hotspot>
 </M-034>
