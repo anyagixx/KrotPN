@@ -12,11 +12,13 @@
   <module-map>
     <section-maintenance-freeze>Defines the operator freeze sequence before backup capture.</section-maintenance-freeze>
     <section-pre-backup-evidence>Defines version, node, table count, and migration evidence captured before backup.</section-pre-backup-evidence>
+    <section-backup-bundle>Defines required portable backup artifacts and manifest fields.</section-backup-bundle>
     <section-secret-redaction>Defines evidence rules that prevent raw secrets from entering logs.</section-secret-redaction>
   </module-map>
 
   <change-summary>
     <change-1>v1.0.0 - Phase-22 step-2 created maintenance/freeze and pre-backup evidence contract.</change-1>
+    <change-2>v1.1.0 - Phase-22 step-3 defined full backup bundle, manifest, and checksum contract.</change-2>
   </change-summary>
 
   <maintenance-freeze>
@@ -35,6 +37,55 @@
     <evidence-migration-state>migration_state.before.txt with Alembic/current schema state or explicit create_all compatibility note.</evidence-migration-state>
     <evidence-vpn-fingerprints>AWG profile and peer fingerprints only; raw private keys and preshared keys are prohibited in evidence logs.</evidence-vpn-fingerprints>
   </pre-backup-evidence>
+
+  <backup-bundle-contract>
+    <bundle-root>krotpn-dr-bundle-YYYYMMDD-HHMMSS/</bundle-root>
+    <artifact-1 name="manifest.json" required="true">
+      <contains>bundle_id, created_at, source_ru, source_de, app_version, schema_version, artifact list, sha256 checksums, table counts, and redaction confirmation.</contains>
+      <secret-policy>Manifest may record key names and fingerprints but must not contain secret values.</secret-policy>
+    </artifact-1>
+    <artifact-2 name="postgres.dump" required="true">
+      <contains>PostgreSQL custom-format dump or operator-approved equivalent covering users, subscriptions, payments, devices, vpn clients, plans, audit events, and migration state.</contains>
+      <restore-role>Primary data source for replacement database restore.</restore-role>
+    </artifact-2>
+    <artifact-3 name="runtime-env.enc" required="true">
+      <contains>Protected runtime environment material needed for backend, database, Redis, billing, Telegram, admin bootstrap, encryption, and JWT validation.</contains>
+      <restore-role>Bootstraps replacement deployment without guessing secrets.</restore-role>
+    </artifact-3>
+    <artifact-4 name="vpn-state.tar.enc" required="true">
+      <contains>AWG profiles, server public/private key material, preshared-key material when present, subnet settings, relay profile, peer state, and device-client linkage export.</contains>
+      <restore-role>Preserves existing client config compatibility unless explicit rotation is approved.</restore-role>
+    </artifact-4>
+    <artifact-5 name="checksums.sha256" required="true">
+      <contains>SHA-256 checksum for each bundle artifact after encryption/protection.</contains>
+      <restore-role>Blocks restore validation when any artifact changes unexpectedly.</restore-role>
+    </artifact-5>
+    <artifact-6 name="evidence/" required="true">
+      <contains>table_counts.before.json, migration_state.before.txt, service_inventory.before.json, vpn_fingerprints.before.json, and restore_notes.md placeholder.</contains>
+      <restore-role>Supports before/after comparison and operator handoff.</restore-role>
+    </artifact-6>
+  </backup-bundle-contract>
+
+  <manifest-required-fields>
+    <field-1>bundle_id</field-1>
+    <field-2>created_at_utc</field-2>
+    <field-3>source_app_version</field-3>
+    <field-4>source_ru_address</field-4>
+    <field-5>source_de_address</field-5>
+    <field-6>schema_version_or_migration_state</field-6>
+    <field-7>vpn_client_subnet</field-7>
+    <field-8>vpn_relay_subnet</field-8>
+    <field-9>artifact_checksums</field-9>
+    <field-10>table_counts_before</field-10>
+    <field-11>secret_redaction_confirmed</field-11>
+    <field-12>operator_notes</field-12>
+  </manifest-required-fields>
+
+  <checksum-rules>
+    <rule-1>Generate checksums after artifact protection/encryption so restore validates the transferred bundle exactly.</rule-1>
+    <rule-2>Do not pass restore validation if postgres.dump, runtime-env.enc, vpn-state.tar.enc, or manifest.json checksum is missing.</rule-2>
+    <rule-3>Record checksum verification output as pass/fail and artifact name only; do not print artifact contents.</rule-3>
+  </checksum-rules>
 
   <secret-redaction-policy>
     <rule-1>Never print raw .env, JWT secret, data encryption key, database password, Telegram token, YooKassa secret, AWG private key, or preshared key.</rule-1>

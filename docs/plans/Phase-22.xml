@@ -24,7 +24,7 @@
     Define the maintenance/freeze sequence: pause risky admin actions, capture current app version, record RU/DE addresses, and capture table counts before backup.
   </step-2>
 
-  <step-3 MODULE="M-035" RISK="CRITICAL" STATUS="pending">
+  <step-3 MODULE="M-035" RISK="CRITICAL" STATUS="done">
     Define the backup bundle contract: PostgreSQL dump, protected .env/runtime secrets, AWG profiles, server keys, subnet settings, peer state, device-client linkage, and manifest.
   </step-3>
 
@@ -87,5 +87,6 @@
   <execution-artifacts>
     <artifact-1 module="M-034">docs/recovery/DR-PHASE-22.xml records incident modes, operator decision points, rollback eligibility, and local/live evidence boundaries.</artifact-1>
     <artifact-2 module="M-034,M-035">docs/recovery/BACKUP-PHASE-22.xml records maintenance/freeze sequence, pre-backup evidence, table-count capture, and secret-redaction policy.</artifact-2>
+    <artifact-3 module="M-035">docs/recovery/BACKUP-PHASE-22.xml defines the portable bundle layout, manifest fields, required artifacts, and checksum rules.</artifact-3>
   </execution-artifacts>
 </Phase-22>
