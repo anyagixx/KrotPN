@@ -17,6 +17,7 @@
 
   <change-summary>
     <change-1>v1.0.0 - Phase-22 step-1 created incident modes and operator decision points.</change-1>
+    <change-2>v1.1.0 - Phase-22 step-2 added maintenance/freeze sequence and backup evidence handoff.</change-2>
   </change-summary>
 
   <incident-modes>
@@ -74,6 +75,12 @@
       <abort-condition>Any critical health, auth, payment-read, or VPN handshake gate is missing.</abort-condition>
     </decision-5>
   </decision-points>
+
+  <maintenance-freeze-handoff>
+    <handoff-1>Before backup capture, follow docs/recovery/BACKUP-PHASE-22.xml maintenance-freeze steps in order.</handoff-1>
+    <handoff-2>Do not start replacement deployment until pre-backup evidence names app version, old RU/DE addresses, table counts, migration state, and rollback candidate status.</handoff-2>
+    <handoff-3>If old servers are unavailable, record why fresh backup capture is impossible and use the latest trusted backup bundle only after operator accepts data-loss risk.</handoff-3>
+  </maintenance-freeze-handoff>
 
   <live-boundaries>
     <local-only>XML parse, MyGRACE lint, manifest schema review, and non-production dry-run can prove document and procedure consistency.</local-only>

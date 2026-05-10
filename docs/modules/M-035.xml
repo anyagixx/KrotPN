@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<M-035 NAME="portable-data-backup" TYPE="DATA_LAYER" STATUS="pending">
-  <path>backend/app/core docs/plans/Phase-22.xml docs/modules/M-035.xml</path>
+<M-035 NAME="portable-data-backup" TYPE="DATA_LAYER" STATUS="wip">
+  <path>backend/app/core docs/plans/Phase-22.xml docs/modules/M-035.xml docs/recovery/BACKUP-PHASE-22.xml</path>
   <owns>Portable backup/restore contract for PostgreSQL data, runtime secrets, AWG state, device-client linkage, and integrity manifests</owns>
   <exports>
     <artifact-postgres-dump>Durable dump of users, subscriptions, payments, devices, VPN clients, audit events, and migrations state</artifact-postgres-dump>
@@ -14,6 +14,7 @@
   <files>
     <file>docs/plans/Phase-22.xml</file>
     <file>docs/modules/M-035.xml</file>
+    <file>docs/recovery/BACKUP-PHASE-22.xml</file>
   </files>
   <constraints>
     <constraint-1>Secrets, tokens, passwords, and private keys must not be printed in command output or logs.</constraint-1>
@@ -29,5 +30,8 @@
     <item-vpn-state>AWG profiles, server keys, peer state, subnet settings, and device-client linkage.</item-vpn-state>
     <item-evidence>table_counts.before.json, table_counts.after.json, checksums.sha256, migration_state.txt, and restore_notes.md.</item-evidence>
   </backup-bundle-contract>
+  <execution-notes>
+    <note-1>Phase-22 step-2 created docs/recovery/BACKUP-PHASE-22.xml with maintenance/freeze sequence, pre-backup evidence, and secret-redaction policy.</note-1>
+  </execution-notes>
   <hotspot>H-022: Backup bundles can expose secrets or fail restore if they omit AWG profiles, runtime env, or device/client linkage</hotspot>
 </M-035>

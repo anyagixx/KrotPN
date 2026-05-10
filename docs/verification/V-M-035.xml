@@ -5,9 +5,10 @@
   <test-files>
     <file>docs/plans/Phase-22.xml</file>
     <file>docs/modules/M-035.xml</file>
+    <file>docs/recovery/BACKUP-PHASE-22.xml</file>
     <file>docs/verification/V-M-035.xml</file>
   </test-files>
-  <commands>python3 -m xml.etree.ElementTree docs/plans/Phase-22.xml docs/modules/M-035.xml docs/verification/V-M-035.xml &amp;&amp; mygrace lint; planned non-production pg_dump/pg_restore dry-run plus checksum and secret-redaction evidence</commands>
+  <commands>python3 -m xml.etree.ElementTree docs/plans/Phase-22.xml docs/modules/M-035.xml docs/recovery/BACKUP-PHASE-22.xml docs/verification/V-M-035.xml &amp;&amp; mygrace lint; planned non-production pg_dump/pg_restore dry-run plus checksum and secret-redaction evidence</commands>
   <module-checks>
     <check-1 level="module-local">Backup manifest names every required artifact without exposing secret values.</check-1>
     <check-2 level="module-local">Restore validation compares table counts, migration state, and selected integrity invariants.</check-2>

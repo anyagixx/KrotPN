@@ -33,6 +33,7 @@
   </runbook-stages>
   <execution-notes>
     <note-1>Phase-22 step-1 created docs/recovery/DR-PHASE-22.xml with incident modes, operator decision points, rollback eligibility, and local/live evidence boundaries.</note-1>
+    <note-2>Phase-22 step-2 added maintenance/freeze sequencing and pre-backup evidence linkage to the recovery artifacts.</note-2>
   </execution-notes>
   <hotspot>H-021: Disaster recovery must use existing operator-approved deploy/install scripts as a black-box deployment surface</hotspot>
 </M-034>

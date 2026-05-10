@@ -20,7 +20,7 @@
     Define incident modes and operator decision points: total server loss, planned provider migration, partial RU failure, partial DE failure, and rollback eligibility.
   </step-1>
 
-  <step-2 MODULE="M-034,M-035" RISK="CRITICAL" STATUS="pending">
+  <step-2 MODULE="M-034,M-035" RISK="CRITICAL" STATUS="done">
     Define the maintenance/freeze sequence: pause risky admin actions, capture current app version, record RU/DE addresses, and capture table counts before backup.
   </step-2>
 
@@ -86,5 +86,6 @@
 
   <execution-artifacts>
     <artifact-1 module="M-034">docs/recovery/DR-PHASE-22.xml records incident modes, operator decision points, rollback eligibility, and local/live evidence boundaries.</artifact-1>
+    <artifact-2 module="M-034,M-035">docs/recovery/BACKUP-PHASE-22.xml records maintenance/freeze sequence, pre-backup evidence, table-count capture, and secret-redaction policy.</artifact-2>
   </execution-artifacts>
 </Phase-22>

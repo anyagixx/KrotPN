@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<BACKUP-PHASE-22 NAME="Portable Data Backup Contract" STATUS="wip" MODULE="M-035" CREATED="2026-05-10">
+  <contract>
+    <purpose>Define a portable backup and restore evidence contract for KrotPN emergency relocation.</purpose>
+    <scope>Maintenance freeze, pre-backup evidence, bundle manifest, checksums, restore validation, and secret-redaction rules.</scope>
+    <depends>M-035, M-034, M-001, M-003, M-020, M-028, M-030</depends>
+    <links>docs/modules/M-035.xml docs/plans/Phase-22.xml docs/verification/V-M-035.xml</links>
+    <role>DATA_RECOVERY_CONTRACT</role>
+    <map-mode>SUMMARY</map-mode>
+  </contract>
+
+  <module-map>
+    <section-maintenance-freeze>Defines the operator freeze sequence before backup capture.</section-maintenance-freeze>
+    <section-pre-backup-evidence>Defines version, node, table count, and migration evidence captured before backup.</section-pre-backup-evidence>
+    <section-secret-redaction>Defines evidence rules that prevent raw secrets from entering logs.</section-secret-redaction>
+  </module-map>
+
+  <change-summary>
+    <change-1>v1.0.0 - Phase-22 step-2 created maintenance/freeze and pre-backup evidence contract.</change-1>
+  </change-summary>
+
+  <maintenance-freeze>
+    <freeze-1 order="1">Announce maintenance window and stop non-essential operator actions that mutate users, plans, subscriptions, devices, or VPN clients.</freeze-1>
+    <freeze-2 order="2">Record incident mode, operator identity, current app version or git commit, old RU/DE addresses, and expected data-loss tolerance.</freeze-2>
+    <freeze-3 order="3">Capture service inventory: backend, frontend, admin, PostgreSQL, Redis, RU AWG, DE AWG, and reverse proxy status.</freeze-3>
+    <freeze-4 order="4">Capture pre-backup table counts before database dump: users, subscriptions, payments, devices, vpn clients, plans, audit events, and migration state.</freeze-4>
+    <freeze-5 order="5">Capture VPN topology metadata: client subnet, relay subnet, RU endpoint, DE endpoint, AWG profile fingerprints, and peer count without exposing private keys.</freeze-5>
+    <freeze-6 order="6">Confirm whether old servers remain rollback candidates before deploying replacement servers.</freeze-6>
+  </maintenance-freeze>
+
+  <pre-backup-evidence>
+    <evidence-app-version>Application version, release tag, or git commit used by the old deployment.</evidence-app-version>
+    <evidence-node-addresses>Old RU and DE public addresses, internal relay addresses, and planned replacement addresses when known.</evidence-node-addresses>
+    <evidence-table-counts>table_counts.before.json with critical table counts and timestamp.</evidence-table-counts>
+    <evidence-migration-state>migration_state.before.txt with Alembic/current schema state or explicit create_all compatibility note.</evidence-migration-state>
+    <evidence-vpn-fingerprints>AWG profile and peer fingerprints only; raw private keys and preshared keys are prohibited in evidence logs.</evidence-vpn-fingerprints>
+  </pre-backup-evidence>
+
+  <secret-redaction-policy>
+    <rule-1>Never print raw .env, JWT secret, data encryption key, database password, Telegram token, YooKassa secret, AWG private key, or preshared key.</rule-1>
+    <rule-2>Evidence may include artifact names, byte sizes, checksums, key presence booleans, and non-secret fingerprints.</rule-2>
+    <rule-3>Any accidental secret exposure blocks Phase-22 evidence until the value is rotated or the operator records an incident waiver.</rule-3>
+  </secret-redaction-policy>
+</BACKUP-PHASE-22>
