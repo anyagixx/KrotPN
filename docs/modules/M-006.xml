@@ -17,5 +17,8 @@
     <file>backend/app/admin/audit.py</file>
     <file>backend/app/admin/__init__.py</file>
   </files>
+  <execution-notes>
+    <note-1>Phase-21 step-3 moved V-M-006 away from deleted route-policy tests and toward current admin auth plus device-control verification.</note-1>
+  </execution-notes>
   <hotspot>H-014: Admin audit middleware must not log sensitive request bodies or tokens</hotspot>
 </M-006>

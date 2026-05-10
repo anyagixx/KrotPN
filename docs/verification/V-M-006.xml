@@ -1,11 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<V-M-006 MODULE="M-006" PRIORITY="high" STATUS="pending">
+<V-M-006 MODULE="M-006" PRIORITY="high" STATUS="pass">
   <module>admin-api</module>
-  <checks>Admin routing inspection and analytics endpoints enforce admin auth and reflect current policy state.</checks>
-  <test-files>backend/tests/test_route_decision_api.py backend/tests/test_admin_stats.py</test-files>
-  <commands>pytest tests/test_route_decision_api.py tests/test_admin_stats.py -v</commands>
-  <anchors>AUTH_ADMIN_ENDPOINT_REQUIRES_TOKEN</anchors>
+  <checks>Admin endpoints enforce authentication and current device/operator controls without relying on removed route-policy surfaces.</checks>
+  <test-files>backend/tests/test_auth_rejection.py backend/tests/test_admin_device_control.py</test-files>
+  <commands>cd backend &amp;&amp; SECRET_KEY=test-secret-key-with-enough-length DATA_ENCRYPTION_KEY=dpFmfSVqfdAK3yx5MQV6Tcv35RZuw5MzaH0yhxJ01q0= PYTHONPATH=. ../.venv/bin/python -m pytest -o addopts='' tests/test_auth_rejection.py tests/test_admin_device_control.py -v</commands>
+  <anchors>AUTH_ADMIN_ENDPOINT_REQUIRES_TOKEN DEVICE_ADMIN_CONTROL_TARGETS_ONE_PEER</anchors>
   <scenarios>
     <scenario kind="success" trace="AUTH_ADMIN_ENDPOINT_REQUIRES_TOKEN">Admin endpoint returns 401 without token</scenario>
+    <scenario kind="success" trace="DEVICE_ADMIN_CONTROL_TARGETS_ONE_PEER">Admin device controls list, block, unblock, rotate, and revoke a single device without disabling the whole account</scenario>
+    <scenario kind="failure" trace="REMOVED_ROUTE_POLICY_SURFACE">Verification imports deleted route-policy modules or expects policy_dns_observer on the admin router</scenario>
   </scenarios>
 </V-M-006>

@@ -33,7 +33,7 @@
     Replace active split-tunnel/ipset/policy verification expectations with current Full Tunnel expectations.
   </step-2>
 
-  <step-3 MODULE="M-006,M-033" RISK="HIGH" STATUS="pending">
+  <step-3 MODULE="M-006,M-033" RISK="HIGH" STATUS="done">
     Update admin verification so V-M-006 checks current admin/system/device behavior instead of deleted route-policy surfaces.
   </step-3>
 
