@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<DR-PHASE-22 NAME="Emergency Server Relocation Runbook" STATUS="wip" MODULE="M-034" CREATED="2026-05-10">
+  <contract>
+    <purpose>Guide the operator through emergency or planned relocation of KrotPN to replacement RU/DE servers.</purpose>
+    <scope>Incident classification, decision points, freeze, backup, replacement deployment checkpoint, restore, validation, cutover, rollback, and evidence capture.</scope>
+    <depends>M-034, M-035, M-001, M-003, M-012, M-028, M-032</depends>
+    <links>docs/modules/M-034.xml docs/plans/Phase-22.xml docs/verification/V-M-034.xml</links>
+    <role>OPERATOR_RUNBOOK</role>
+    <map-mode>SUMMARY</map-mode>
+  </contract>
+
+  <module-map>
+    <section-incident-modes>Classifies recovery mode before any action is taken.</section-incident-modes>
+    <section-decision-points>Defines operator go/no-go choices and required evidence.</section-decision-points>
+    <section-live-boundaries>Separates local dry-run evidence from live VPS evidence.</section-live-boundaries>
+  </module-map>
+
+  <change-summary>
+    <change-1>v1.0.0 - Phase-22 step-1 created incident modes and operator decision points.</change-1>
+  </change-summary>
+
+  <incident-modes>
+    <mode-1 id="TOTAL_SERVER_LOSS" severity="critical">
+      <trigger>RU and/or DE server is unavailable and old-server rollback may be impossible.</trigger>
+      <operator-decision>Start emergency restore from the latest verified backup bundle; record backup age and expected data loss window.</operator-decision>
+      <rollback-eligibility>Rollback is unavailable unless the old provider or snapshots recover before cutover.</rollback-eligibility>
+    </mode-1>
+    <mode-2 id="PLANNED_PROVIDER_MIGRATION" severity="high">
+      <trigger>Operator intentionally moves service to replacement RU/DE servers.</trigger>
+      <operator-decision>Schedule maintenance, freeze risky writes, capture fresh backup, deploy replacement servers, then cut over only after validation.</operator-decision>
+      <rollback-eligibility>Rollback remains available while old servers and DNS/IP target are still controlled by the operator.</rollback-eligibility>
+    </mode-2>
+    <mode-3 id="PARTIAL_RU_FAILURE" severity="critical">
+      <trigger>RU entry node or RU-hosted application stack fails while DE exit may still be healthy.</trigger>
+      <operator-decision>Prioritize RU replacement because user/API/admin surfaces and entry tunnel terminate there.</operator-decision>
+      <rollback-eligibility>Rollback depends on RU host recoverability and preservation of database/runtime state.</rollback-eligibility>
+    </mode-3>
+    <mode-4 id="PARTIAL_DE_FAILURE" severity="high">
+      <trigger>DE exit node fails while RU application stack is still reachable.</trigger>
+      <operator-decision>Replace DE, validate RU-DE tunnel and exit egress, and avoid client rotation unless compatibility checks fail.</operator-decision>
+      <rollback-eligibility>Rollback is possible if old DE recovers and tunnel profile parity is preserved.</rollback-eligibility>
+    </mode-4>
+    <mode-5 id="SECURITY_INCIDENT_RELOCATION" severity="critical">
+      <trigger>Operator suspects server compromise, leaked secret material, or untrusted host access.</trigger>
+      <operator-decision>Relocate with explicit secret rotation decision; preserve data only after assessing backup trust.</operator-decision>
+      <rollback-eligibility>Rollback to old servers is blocked unless compromise is disproven.</rollback-eligibility>
+    </mode-5>
+  </incident-modes>
+
+  <decision-points>
+    <decision-1 name="enter-maintenance">
+      <required-evidence>Incident mode, operator identity, latest backup age, old-server availability, and user-impact note.</required-evidence>
+      <go-condition>Operator confirms recovery or migration is safer than waiting.</go-condition>
+      <abort-condition>Incident is transient and old servers can be safely restored without relocation.</abort-condition>
+    </decision-1>
+    <decision-2 name="backup-or-use-existing-bundle">
+      <required-evidence>Fresh backup availability or explicit reason why only an existing bundle can be used.</required-evidence>
+      <go-condition>Backup bundle exists and its manifest can be checked before restore.</go-condition>
+      <abort-condition>No trusted backup exists and operator has not accepted data-loss risk.</abort-condition>
+    </decision-2>
+    <decision-3 name="deploy-replacement">
+      <required-evidence>Target RU/DE IPs, OS readiness, SSH access, and confirmation that existing deploy/install scripts will be used unchanged.</required-evidence>
+      <go-condition>Replacement hosts are ready and no script redesign is required.</go-condition>
+      <abort-condition>Deployment would require unplanned changes to deploy/ or install.sh.</abort-condition>
+    </decision-3>
+    <decision-4 name="restore-validation">
+      <required-evidence>Manifest checksums, table counts, migration state, AWG profile parity, and no-secret-log review.</required-evidence>
+      <go-condition>All restore checks pass or operator records an explicit risk waiver.</go-condition>
+      <abort-condition>Critical counts, checksums, or client-compatibility checks fail.</abort-condition>
+    </decision-4>
+    <decision-5 name="cutover">
+      <required-evidence>Backend, frontend, admin, auth, billing read path, Redis, RU-DE tunnel, and existing client/device validation.</required-evidence>
+      <go-condition>Replacement deployment is healthier than the old target and rollback status is known.</go-condition>
+      <abort-condition>Any critical health, auth, payment-read, or VPN handshake gate is missing.</abort-condition>
+    </decision-5>
+  </decision-points>
+
+  <live-boundaries>
+    <local-only>XML parse, MyGRACE lint, manifest schema review, and non-production dry-run can prove document and procedure consistency.</local-only>
+    <live-required>Replacement VPS deployment, RU-DE tunnel health, DNS/IP cutover, and existing user config connectivity require live or restore-target evidence.</live-required>
+  </live-boundaries>
+</DR-PHASE-22>

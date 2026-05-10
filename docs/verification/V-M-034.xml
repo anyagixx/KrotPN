@@ -5,9 +5,10 @@
   <test-files>
     <file>docs/plans/Phase-22.xml</file>
     <file>docs/modules/M-034.xml</file>
+    <file>docs/recovery/DR-PHASE-22.xml</file>
     <file>docs/verification/V-M-034.xml</file>
   </test-files>
-  <commands>python3 -m xml.etree.ElementTree docs/plans/Phase-22.xml docs/modules/M-034.xml docs/verification/V-M-034.xml &amp;&amp; mygrace lint; manual live-required DR walkthrough using existing deploy/install scripts unchanged</commands>
+  <commands>python3 -m xml.etree.ElementTree docs/plans/Phase-22.xml docs/modules/M-034.xml docs/recovery/DR-PHASE-22.xml docs/verification/V-M-034.xml &amp;&amp; mygrace lint; manual live-required DR walkthrough using existing deploy/install scripts unchanged</commands>
   <module-checks>
     <check-1 level="module-local">Runbook defines freeze, backup, fresh deployment, restore, validation, cutover, and rollback steps.</check-1>
     <check-2 level="module-local">Runbook explicitly forbids modifying deploy/ and install.sh as part of recovery planning.</check-2>

@@ -16,7 +16,7 @@
     <DF-DR-CUTOVER>Validated replacement servers pass health, auth, billing, and VPN handshake checks before DNS/IP/operator cutover.</DF-DR-CUTOVER>
   </data-flows>
 
-  <step-1 MODULE="M-034" RISK="CRITICAL" STATUS="pending">
+  <step-1 MODULE="M-034" RISK="CRITICAL" STATUS="done">
     Define incident modes and operator decision points: total server loss, planned provider migration, partial RU failure, partial DE failure, and rollback eligibility.
   </step-1>
 
@@ -83,4 +83,8 @@
     <check-3>Existing deploy/install scripts are invoked as-is and are not edited by this phase.</check-3>
     <check-4>Recovery checklist includes abort and rollback steps.</check-4>
   </verification>
+
+  <execution-artifacts>
+    <artifact-1 module="M-034">docs/recovery/DR-PHASE-22.xml records incident modes, operator decision points, rollback eligibility, and local/live evidence boundaries.</artifact-1>
+  </execution-artifacts>
 </Phase-22>
