@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<DR-PHASE-22 NAME="Emergency Server Relocation Runbook" STATUS="wip" MODULE="M-034" CREATED="2026-05-10">
+<DR-PHASE-22 NAME="Emergency Server Relocation Runbook" STATUS="blocked-live" MODULE="M-034" CREATED="2026-05-10">
   <contract>
     <purpose>Guide the operator through emergency or planned relocation of KrotPN to replacement RU/DE servers.</purpose>
     <scope>Incident classification, decision points, freeze, backup, replacement deployment checkpoint, restore, validation, cutover, rollback, and evidence capture.</scope>
@@ -28,6 +28,7 @@
     <change-5>v1.4.0 - Phase-22 step-7 added VPN-specific validation and rotation guard.</change-5>
     <change-6>v1.5.0 - Phase-22 step-8 added application validation gates.</change-6>
     <change-7>v1.6.0 - Phase-22 step-9 added cutover, rollback, and monitoring procedure.</change-7>
+    <change-8>v1.7.0 - Phase-22 marked blocked-live until non-production restore rehearsal is performed.</change-8>
   </change-summary>
 
   <incident-modes>

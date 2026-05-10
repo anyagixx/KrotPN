@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Phase-22 NAME="Emergency Server Relocation and Data Restore" STATUS="pending" MODULES="M-034,M-035,M-001,M-003,M-012,M-028,M-032" CREATED="2026-05-10">
+<Phase-22 NAME="Emergency Server Relocation and Data Restore" STATUS="blocked-live" MODULES="M-034,M-035,M-001,M-003,M-012,M-028,M-032" CREATED="2026-05-10">
   <goal>
     Define and verify an operator-safe disaster recovery path for moving KrotPN to replacement RU/DE servers with
     PostgreSQL data, secrets, VPN state, and client/device linkage preserved.
@@ -102,4 +102,12 @@
     <blocked-2>Replacement RU/DE VPS validation requires operator-provided restore hosts or credentials.</blocked-2>
     <blocked-3>DNS/IP/operator cutover remains live-required and was not attempted.</blocked-3>
   </blocked-live-evidence>
+
+  <execution-evidence updated="2026-05-10">
+    <local-check-1>Phase-22 XML artifacts parse locally.</local-check-1>
+    <local-check-2>mygrace lint passes with 0 errors and 0 warnings.</local-check-2>
+    <local-check-3>Runbook, backup contract, restore gates, VPN gates, app gates, cutover gates, rollback gates, and blocked-live evidence are documented.</local-check-3>
+    <local-check-4>No deploy/, install.sh, runtime source, or live server state was changed during Phase-22 local execution.</local-check-4>
+    <phase-status>blocked-live until a trusted backup bundle and isolated restore target are provided for non-production dry-run restore.</phase-status>
+  </execution-evidence>
 </Phase-22>

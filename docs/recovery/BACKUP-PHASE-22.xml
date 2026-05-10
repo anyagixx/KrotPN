@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<BACKUP-PHASE-22 NAME="Portable Data Backup Contract" STATUS="wip" MODULE="M-035" CREATED="2026-05-10">
+<BACKUP-PHASE-22 NAME="Portable Data Backup Contract" STATUS="blocked-live" MODULE="M-035" CREATED="2026-05-10">
   <contract>
     <purpose>Define a portable backup and restore evidence contract for KrotPN emergency relocation.</purpose>
     <scope>Maintenance freeze, pre-backup evidence, bundle manifest, checksums, restore validation, and secret-redaction rules.</scope>
@@ -22,6 +22,7 @@
     <change-2>v1.1.0 - Phase-22 step-3 defined full backup bundle, manifest, and checksum contract.</change-2>
     <change-3>v1.2.0 - Phase-22 step-4 defined restore integrity gates, row invariants, and no-secret-log evidence.</change-3>
     <change-4>v1.3.0 - Phase-22 step-6 linked restore sequence evidence to bundle validation outputs.</change-4>
+    <change-5>v1.4.0 - Phase-22 marked blocked-live until trusted bundle restore dry-run evidence exists.</change-5>
   </change-summary>
 
   <maintenance-freeze>
