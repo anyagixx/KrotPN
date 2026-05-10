@@ -1,30 +1,31 @@
 // FILE: frontend-admin/src/components/StatCard.tsx
-// VERSION: 1.0.0
+// VERSION: 1.1.0
 // ROLE: UI_COMPONENT
 // MAP_MODE: SUMMARY
 // START_MODULE_CONTRACT
-//   PURPOSE: Reusable metric display card with icon, value, label, and optional trend indicator
+//   PURPOSE: Reusable compact metric tile with icon, value, label, and optional trend indicator
 //   SCOPE: Props interface, StatCard presentational component
-//   DEPENDS: M-010 (frontend-admin), React
-//   LINKS: M-010
+//   DEPENDS: M-010 (frontend-admin), M-038 (compact-ui-system), React
+//   LINKS: M-010, M-038
 // END_MODULE_CONTRACT
 //
 // START_MODULE_MAP
 //   Props - Interface: icon, label, value, suffix?, trend?
-//   StatCard - Default export: metric card with trend pill (green/red)
+//   StatCard - Default export: compact metric tile with optional trend pill
 //   default - React component (default export)
 // END_MODULE_MAP
 //
 // START_CHANGE_SUMMARY
 //   LAST_CHANGE: v2.8.0 - Added full GRACE MODULE_CONTRACT and MODULE_MAP per GRACE governance protocol
+//   LAST_CHANGE: v2.9.0 - Phase-24 compact metric tile with reduced spacing and stable mobile sizing
 // END_CHANGE_SUMMARY
 
 import { ReactNode } from 'react'
 
 // START_BLOCK: Props
 // Props interface for StatCard component
-// icon: Lucide or custom ReactNode rendered in top-left badge
-// label: Descriptive text shown below the value
+// icon: Lucide or custom ReactNode rendered in compact badge
+// label: Descriptive text shown above the value
 // value: Primary metric number or string
 // suffix: Optional unit/label appended to value (e.g. "%", "руб")
 // trend: Optional { value, positive } for trend pill display
@@ -38,14 +39,13 @@ interface Props {
 // END_BLOCK: Props
 
 // START_BLOCK: StatCard
-// Presentational metric card component for dashboard stat display
-// Renders icon badge, primary value with optional suffix, label, and trend pill
-// DEPENDS: React, Tailwind utility classes (panel, metric-pill, danger-pill, muted)
+// Presentational compact metric tile component for dashboard stat display
+// DEPENDS: React, compact CSS classes (metric-tile, metric-pill, danger-pill, muted)
 export default function StatCard({ icon, label, value, suffix, trend }: Props) {
   return (
-    <div className="panel p-5">
-      <div className="mb-5 flex items-start justify-between gap-4">
-        <div className="rounded-2xl bg-emerald-300/10 p-3 text-emerald-200 ring-1 ring-emerald-200/10">
+    <div className="metric-tile">
+      <div className="mb-2 flex items-center justify-between gap-2">
+        <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-emerald-300/10 text-emerald-200">
           {icon}
         </div>
         {trend ? (
@@ -56,11 +56,11 @@ export default function StatCard({ icon, label, value, suffix, trend }: Props) {
         ) : null}
       </div>
 
-      <div className="text-3xl font-extrabold tracking-tight text-white">
+      <div className="metric-label">{label}</div>
+      <div className="metric-value">
         {value}
-        {suffix ? <span className="ml-1 text-lg text-cyan-100">{suffix}</span> : null}
+        {suffix ? <span className="ml-1 text-sm text-cyan-100">{suffix}</span> : null}
       </div>
-      <div className="mt-2 text-sm muted">{label}</div>
     </div>
   )
 }

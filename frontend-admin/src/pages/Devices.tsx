@@ -1,28 +1,69 @@
 // FILE: frontend-admin/src/pages/Devices.tsx
-// VERSION: 1.0.0
+// VERSION: 1.1.0
 // ROLE: UI_COMPONENT
 // MAP_MODE: SUMMARY
 // START_MODULE_CONTRACT
-//   PURPOSE: Admin page for device management (block/unblock, rotate config, revoke)
-//   SCOPE: List devices with search, anti-sharing signals, device-level actions
-//   DEPENDS: M-010 (frontend-admin), M-006 (admin API)
-//   LINKS: M-010
+//   PURPOSE: Compact admin page for device management with confirmation-safe block/unblock, rotate config, and revoke actions
+//   SCOPE: List devices with search, anti-sharing signals, device-level actions, confirmation surface, and feedback
+//   DEPENDS: M-010 (frontend-admin), M-006 (admin API), M-024 (device-admin-control), M-037 (mobile-admin-console), M-038 (compact-ui-system)
+//   LINKS: M-010, M-024, M-037, M-038
 // END_MODULE_CONTRACT
 //
 // START_MODULE_MAP
-//   DevicesPage - Main admin devices page component
+//   DevicesPage - Main compact admin devices page component
 //   formatDate - Helper: format date to ru-RU locale string
+//   actionCopy - Labels and descriptions for confirmation-safe device actions
+//   default - React component (default export)
 // END_MODULE_MAP
 //
 // START_CHANGE_SUMMARY
 //   LAST_CHANGE: v2.8.0 - Added full GRACE MODULE_CONTRACT and MODULE_MAP per GRACE governance protocol
+//   LAST_CHANGE: v2.9.0 - Phase-24 compact mobile device rows with explicit one-peer action confirmation
 // END_CHANGE_SUMMARY
 
 import { useMemo, useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from 'react-query'
-import { Ban, RotateCw, Search, ShieldAlert, ShieldCheck, Trash2 } from 'lucide-react'
+import { Ban, RotateCw, Search, ShieldAlert, ShieldCheck, Trash2, X } from 'lucide-react'
 import { adminApi } from '../lib/api'
 import type { AdminDevice } from '../types'
+
+type DeviceAction = 'block' | 'unblock' | 'rotate' | 'revoke'
+
+interface PendingAction {
+  type: DeviceAction
+  device: AdminDevice
+}
+
+// START_BLOCK: actionCopy
+// Action labels and confirmation copy for one-device peer mutations
+// DEPENDS: DeviceAction union
+const actionCopy: Record<DeviceAction, { label: string; title: string; description: string; tone: 'danger' | 'normal' }> = {
+  block: {
+    label: 'Block',
+    title: 'Заблокировать устройство',
+    description: 'Будет заблокирован только этот peer. Аккаунт пользователя и другие устройства не отключаются.',
+    tone: 'danger',
+  },
+  unblock: {
+    label: 'Unblock',
+    title: 'Снять блокировку',
+    description: 'Доступ возвращается только выбранному устройству.',
+    tone: 'normal',
+  },
+  rotate: {
+    label: 'Rotate',
+    title: 'Перевыпустить конфиг',
+    description: 'Текущий конфиг выбранного устройства станет неактуальным после ротации.',
+    tone: 'normal',
+  },
+  revoke: {
+    label: 'Revoke',
+    title: 'Отозвать устройство',
+    description: 'Будет отозван только выбранный device-bound peer. Остальные устройства пользователя не меняются.',
+    tone: 'danger',
+  },
+}
+// END_BLOCK: actionCopy
 
 // START_BLOCK: formatDate
 // Formats ISO date string to ru-RU locale or returns 'Нет данных'
@@ -40,13 +81,14 @@ function formatDate(value?: string | null) {
 // END_BLOCK: formatDate
 
 // START_BLOCK: Devices
-// Main admin devices page: device registry, block/unblock, rotate config, revoke
-// DEPENDS: M-010 (frontend-admin), M-006 (admin API via adminApi)
+// Compact admin devices page: device registry, confirmation-safe block/unblock, rotate config, revoke
+// DEPENDS: M-010 (frontend-admin), M-006/M-024 (admin API via adminApi)
 //   - adminApi.getDevices, adminApi.blockDevice, adminApi.unblockDevice
 //   - adminApi.rotateDevice, adminApi.revokeDevice
 export default function Devices() {
   const [search, setSearch] = useState('')
   const [feedback, setFeedback] = useState<{ tone: 'success' | 'error'; text: string } | null>(null)
+  const [pendingAction, setPendingAction] = useState<PendingAction | null>(null)
   const queryClient = useQueryClient()
   const { data, isLoading } = useQuery(['admin-devices', search], () => adminApi.getDevices(search))
 
@@ -54,6 +96,7 @@ export default function Devices() {
     onSuccess: () => {
       void queryClient.invalidateQueries('admin-devices')
       setFeedback({ tone: 'success', text: message })
+      setPendingAction(null)
     },
     onError: (error: unknown) => {
       setFeedback({
@@ -67,6 +110,7 @@ export default function Devices() {
   const unblockMutation = useMutation((id: number) => adminApi.unblockDevice(id), mutateAndRefresh('Блокировка снята'))
   const rotateMutation = useMutation((id: number) => adminApi.rotateDevice(id), mutateAndRefresh('Конфиг перевыпущен'))
   const revokeMutation = useMutation((id: number) => adminApi.revokeDevice(id), mutateAndRefresh('Устройство отозвано'))
+  const isMutating = blockMutation.isLoading || unblockMutation.isLoading || rotateMutation.isLoading || revokeMutation.isLoading
 
   const items = data?.data?.items || []
 
@@ -84,35 +128,50 @@ export default function Devices() {
     )
   }, [items])
 
+  const openAction = (type: DeviceAction, device: AdminDevice) => {
+    setFeedback(null)
+    setPendingAction({ type, device })
+  }
+
+  const runConfirmedAction = () => {
+    if (!pendingAction) return
+    const id = pendingAction.device.id
+
+    if (pendingAction.type === 'block') blockMutation.mutate(id)
+    if (pendingAction.type === 'unblock') unblockMutation.mutate(id)
+    if (pendingAction.type === 'rotate') rotateMutation.mutate(id)
+    if (pendingAction.type === 'revoke') revokeMutation.mutate(id)
+  }
+
   return (
     <div className="page-shell">
       <div className="page-header">
         <div>
           <h1 className="page-title">Устройства</h1>
-          <p className="page-subtitle">Device-bound peer inventory, свежие сигналы anti-sharing и быстрые санкции на уровне одного устройства.</p>
+          <p className="page-subtitle">Device-bound peer inventory, anti-sharing сигналы и санкции строго на уровне одного устройства.</p>
         </div>
 
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
-          <div className="panel-soft grid grid-cols-3 gap-3 px-4 py-3 text-sm">
-            <div>
-              <p className="muted">Активные</p>
-              <p className="mt-1 font-bold">{counters.active}</p>
+        <div className="grid gap-2 sm:min-w-[420px]">
+          <div className="metric-strip">
+            <div className="metric-strip-item">
+              <span className="metric-label">Активные</span>
+              <span className="block text-base font-bold">{counters.active}</span>
             </div>
-            <div>
-              <p className="muted">Блок</p>
-              <p className="mt-1 font-bold">{counters.blocked}</p>
+            <div className="metric-strip-item">
+              <span className="metric-label">Блок</span>
+              <span className="block text-base font-bold">{counters.blocked}</span>
             </div>
-            <div>
-              <p className="muted">Сигналы</p>
-              <p className="mt-1 font-bold">{counters.suspicious}</p>
+            <div className="metric-strip-item">
+              <span className="metric-label">Сигналы</span>
+              <span className="block text-base font-bold">{counters.suspicious}</span>
             </div>
           </div>
 
-          <div className="relative w-full sm:w-80">
-            <Search className="absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-500" />
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500" />
             <input
               type="text"
-              className="input pl-12"
+              className="input pl-10"
               placeholder="Поиск по email, имени, платформе"
               value={search}
               onChange={(event) => setSearch(event.target.value)}
@@ -122,112 +181,147 @@ export default function Devices() {
       </div>
 
       {feedback ? (
-        <div className={feedback.tone === 'success' ? 'panel-soft mb-4 px-4 py-3 text-sm text-emerald-100' : 'panel-soft mb-4 px-4 py-3 text-sm text-amber-100'}>
+        <div className={feedback.tone === 'success' ? 'surface px-3 py-2 text-sm text-emerald-100' : 'surface px-3 py-2 text-sm text-amber-100'}>
           {feedback.text}
         </div>
       ) : null}
 
-      <div className="panel overflow-hidden">
-        {isLoading ? (
-          <div className="empty-state m-6">
-            <ShieldAlert className="h-10 w-10 text-cyan-200" />
-            <div>
-              <p className="text-lg font-semibold">Загружаем устройство и сигналы</p>
-              <p className="mt-1 text-sm muted">Тянем device registry и свежие security events из admin API.</p>
+      {isLoading ? (
+        <div className="empty-state">
+          <ShieldAlert className="h-9 w-9 text-cyan-200" />
+          <div>
+            <p className="text-base font-semibold">Загружаем устройства и сигналы</p>
+            <p className="mt-1 text-sm muted">Тянем device registry и свежие security events из admin API.</p>
+          </div>
+        </div>
+      ) : items.length === 0 ? (
+        <div className="empty-state">
+          <Search className="h-9 w-9 text-cyan-200" />
+          <div>
+            <p className="text-base font-semibold">Устройства не найдены</p>
+            <p className="mt-1 text-sm muted">Измени запрос или дождись первой device-bound выдачи.</p>
+          </div>
+        </div>
+      ) : (
+        <div className="compact-list">
+          {items.map((item: AdminDevice) => (
+            <article key={item.id} className="list-row">
+              <div className="row-main">
+                <div className="min-w-0">
+                  <h2 className="row-title">{item.name}</h2>
+                  <p className="row-subtitle">{item.user_display_name || item.user_email || `User #${item.user_id}`}</p>
+                </div>
+
+                <span className={item.status === 'blocked' ? 'danger-pill shrink-0' : 'metric-pill shrink-0'}>
+                  {item.status === 'blocked' ? <Ban className="h-3.5 w-3.5" /> : <ShieldCheck className="h-3.5 w-3.5" />}
+                  {item.status}
+                </span>
+              </div>
+
+              <div className="row-meta">
+                <div className="meta-cell">
+                  <span className="meta-label">Пользователь</span>
+                  <span className="meta-value">{item.user_email || `ID #${item.user_id}`}</span>
+                </div>
+                <div className="meta-cell">
+                  <span className="meta-label">Платформа</span>
+                  <span className="meta-value">{item.platform || 'platform not set'} · v{item.config_version}</span>
+                </div>
+                <div className="meta-cell">
+                  <span className="meta-label">Endpoint</span>
+                  <span className="meta-value">{item.last_endpoint || 'Нет endpoint'}</span>
+                </div>
+                <div className="meta-cell">
+                  <span className="meta-label">Handshake</span>
+                  <span className="meta-value">{formatDate(item.last_handshake_at)}</span>
+                </div>
+              </div>
+
+              {item.block_reason ? <p className="mt-2 text-xs text-amber-100">reason: {item.block_reason}</p> : null}
+
+              <div className="mt-3 flex flex-wrap gap-2">
+                {(item.recent_event_types ?? []).length ? (
+                  (item.recent_event_types ?? []).map((event: string) => (
+                    <span key={`${item.id}-${event}`} className="warning-pill">
+                      {event}
+                    </span>
+                  ))
+                ) : (
+                  <span className="neutral-pill">Нет сигналов</span>
+                )}
+              </div>
+
+              <div className="action-row">
+                {item.status === 'blocked' ? (
+                  <button onClick={() => openAction('unblock', item)} className="btn-secondary">
+                    <ShieldCheck className="h-4 w-4" />
+                    Unblock
+                  </button>
+                ) : (
+                  <button onClick={() => openAction('block', item)} className="btn-secondary">
+                    <Ban className="h-4 w-4" />
+                    Block
+                  </button>
+                )}
+                <button onClick={() => openAction('rotate', item)} className="btn-secondary">
+                  <RotateCw className="h-4 w-4" />
+                  Rotate
+                </button>
+                <button onClick={() => openAction('revoke', item)} className="btn-danger">
+                  <Trash2 className="h-4 w-4" />
+                  Revoke
+                </button>
+              </div>
+            </article>
+          ))}
+        </div>
+      )}
+
+      {pendingAction ? (
+        <div className="confirm-backdrop" role="dialog" aria-modal="true" aria-labelledby="device-action-title">
+          <div className="confirm-sheet">
+            <div className="flex items-start justify-between gap-3">
+              <div className="min-w-0">
+                <p id="device-action-title" className="text-lg font-bold text-white">
+                  {actionCopy[pendingAction.type].title}
+                </p>
+                <p className="mt-2 text-sm muted">{actionCopy[pendingAction.type].description}</p>
+              </div>
+              <button onClick={() => setPendingAction(null)} className="btn-secondary px-2" aria-label="Закрыть подтверждение">
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+
+            <div className="mt-4 grid gap-2 rounded-lg border border-white/10 bg-white/5 p-3 text-sm">
+              <div>
+                <span className="meta-label">Device</span>
+                <span className="meta-value">{pendingAction.device.name}</span>
+              </div>
+              <div>
+                <span className="meta-label">User</span>
+                <span className="meta-value">{pendingAction.device.user_email || `ID #${pendingAction.device.user_id}`}</span>
+              </div>
+              <div>
+                <span className="meta-label">Peer scope</span>
+                <span className="meta-value">Только device #{pendingAction.device.id}</span>
+              </div>
+            </div>
+
+            <div className="mt-4 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
+              <button onClick={() => setPendingAction(null)} disabled={isMutating} className="btn-secondary">
+                Отмена
+              </button>
+              <button
+                onClick={runConfirmedAction}
+                disabled={isMutating}
+                className={actionCopy[pendingAction.type].tone === 'danger' ? 'btn-danger' : 'btn-primary'}
+              >
+                {isMutating ? 'Выполняю...' : `Подтвердить ${actionCopy[pendingAction.type].label}`}
+              </button>
             </div>
           </div>
-        ) : items.length === 0 ? (
-          <div className="empty-state m-6">
-            <Search className="h-10 w-10 text-cyan-200" />
-            <div>
-              <p className="text-lg font-semibold">Устройства не найдены</p>
-              <p className="mt-1 text-sm muted">Измени запрос или дождись первой device-bound выдачи.</p>
-            </div>
-          </div>
-        ) : (
-          <div className="overflow-x-auto">
-            <table className="data-table">
-              <thead>
-                <tr>
-                  <th>Пользователь</th>
-                  <th>Устройство</th>
-                  <th>Статус</th>
-                  <th>Endpoint / Handshake</th>
-                  <th>Сигналы</th>
-                  <th>Действия</th>
-                </tr>
-              </thead>
-              <tbody>
-                {items.map((item: AdminDevice) => (
-                  <tr key={item.id}>
-                    <td>
-                      <div>
-                        <p className="font-semibold">{item.user_display_name || item.user_email || `User #${item.user_id}`}</p>
-                        <p className="text-xs muted">{item.user_email || `ID #${item.user_id}`}</p>
-                      </div>
-                    </td>
-                    <td>
-                      <div>
-                        <p className="font-semibold">{item.name}</p>
-                        <p className="text-xs muted">{item.platform || 'platform not set'} · v{item.config_version}</p>
-                      </div>
-                    </td>
-                    <td>
-                      <span className={item.status === 'blocked' ? 'danger-pill' : 'metric-pill'}>
-                        {item.status === 'blocked' ? <Ban className="h-3.5 w-3.5" /> : <ShieldCheck className="h-3.5 w-3.5" />}
-                        {item.status}
-                      </span>
-                      {item.block_reason ? (
-                        <p className="mt-2 text-xs muted">reason: {item.block_reason}</p>
-                      ) : null}
-                    </td>
-                    <td>
-                      <p className="text-sm">{item.last_endpoint || 'Нет endpoint'}</p>
-                      <p className="mt-1 text-xs muted">{formatDate(item.last_handshake_at)}</p>
-                    </td>
-                    <td>
-                      <div className="flex flex-wrap gap-2">
-                        {(item.recent_event_types ?? []).length ? (
-                          (item.recent_event_types ?? []).map((event: string) => (
-                            <span key={`${item.id}-${event}`} className="inline-flex rounded-full bg-white/5 px-3 py-1 text-xs font-semibold text-slate-300">
-                              {event}
-                            </span>
-                          ))
-                        ) : (
-                          <span className="text-xs muted">Нет сигналов</span>
-                        )}
-                      </div>
-                    </td>
-                    <td>
-                      <div className="flex flex-wrap gap-2">
-                        {item.status === 'blocked' ? (
-                          <button onClick={() => unblockMutation.mutate(item.id)} className="btn-secondary">
-                            <ShieldCheck className="h-4 w-4" />
-                            Unblock
-                          </button>
-                        ) : (
-                          <button onClick={() => blockMutation.mutate(item.id)} className="btn-secondary">
-                            <Ban className="h-4 w-4" />
-                            Block
-                          </button>
-                        )}
-                        <button onClick={() => rotateMutation.mutate(item.id)} className="btn-secondary">
-                          <RotateCw className="h-4 w-4" />
-                          Rotate
-                        </button>
-                        <button onClick={() => revokeMutation.mutate(item.id)} className="btn-secondary">
-                          <Trash2 className="h-4 w-4" />
-                          Revoke
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
-      </div>
+        </div>
+      ) : null}
     </div>
   )
 }

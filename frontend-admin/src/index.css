@@ -6,18 +6,18 @@
 
 :root {
   color-scheme: dark;
-  --bg: #05131b;
-  --bg-soft: #0a1c25;
-  --panel: rgba(12, 30, 39, 0.84);
-  --panel-strong: rgba(13, 34, 44, 0.94);
-  --border: rgba(157, 203, 216, 0.14);
-  --text: #f0f8fb;
-  --muted: #8da6b0;
+  --bg: #071015;
+  --bg-soft: #0b171d;
+  --panel: rgba(13, 24, 30, 0.9);
+  --panel-strong: rgba(15, 29, 36, 0.98);
+  --border: rgba(154, 188, 198, 0.16);
+  --text: #f3f8fa;
+  --muted: #8fa3ac;
   --accent: #5cd5b6;
   --accent-2: #75c7ff;
   --danger: #ff8f88;
   --warning: #ffd77d;
-  --shadow: 0 30px 90px rgba(2, 10, 14, 0.42);
+  --shadow: 0 18px 44px rgba(0, 0, 0, 0.28);
 }
 
 * {
@@ -26,19 +26,17 @@
 }
 
 html {
-  background:
-    radial-gradient(circle at top left, rgba(83, 210, 178, 0.12), transparent 28%),
-    radial-gradient(circle at top right, rgba(70, 148, 255, 0.18), transparent 26%),
-    linear-gradient(180deg, #07131a 0%, #091a23 44%, #061117 100%);
   min-height: 100%;
+  background: var(--bg);
 }
 
 body {
   margin: 0;
   min-height: 100vh;
+  overflow-x: hidden;
   font-family: 'Manrope', system-ui, sans-serif;
   color: var(--text);
-  background: transparent;
+  background: linear-gradient(180deg, #071015 0%, #0b171d 100%);
   font-feature-settings: "cv02", "cv03", "cv04", "cv11";
 }
 
@@ -53,126 +51,286 @@ textarea {
   font: inherit;
 }
 
+button {
+  touch-action: manipulation;
+}
+
 .app-shell {
-  @apply min-h-screen px-4 py-4 md:px-6 md:py-6;
+  @apply min-h-screen pb-24 lg:grid lg:grid-cols-[168px_minmax(0,1fr)] lg:pb-0;
 }
 
-.glass {
-  background: linear-gradient(180deg, rgba(13, 34, 44, 0.94) 0%, rgba(8, 22, 29, 0.9) 100%);
-  border: 1px solid var(--border);
-  border-radius: 28px;
-  box-shadow: var(--shadow);
+.admin-rail {
+  @apply sticky top-0 hidden h-screen flex-col gap-4 border-r px-3 py-4 lg:flex;
+  background: rgba(7, 16, 21, 0.96);
+  border-color: var(--border);
 }
 
+.brand-mark {
+  @apply flex h-10 w-10 items-center justify-center text-emerald-200;
+  border: 1px solid rgba(92, 213, 182, 0.28);
+  border-radius: 8px;
+  background: rgba(92, 213, 182, 0.1);
+}
+
+.rail-nav {
+  @apply flex flex-1 flex-col gap-1;
+}
+
+.rail-link {
+  @apply flex min-h-11 items-center gap-2 px-3 py-2 text-sm font-semibold text-slate-300 transition;
+  border-radius: 8px;
+}
+
+.rail-link:hover,
+.rail-link-active {
+  background: rgba(92, 213, 182, 0.12);
+  color: #ddfff5;
+}
+
+.rail-logout {
+  @apply w-full text-left text-slate-400;
+}
+
+.admin-content {
+  @apply min-w-0;
+}
+
+.topbar {
+  @apply sticky top-0 z-20 flex min-h-[84px] items-center justify-between gap-3 border-b px-4 py-3 backdrop-blur md:px-6;
+  background: rgba(7, 16, 21, 0.92);
+  border-color: var(--border);
+}
+
+.operator-chip {
+  @apply flex min-w-0 shrink-0 items-center gap-2;
+}
+
+.operator-avatar {
+  @apply flex h-9 w-9 items-center justify-center text-sm font-bold text-white;
+  border: 1px solid rgba(154, 188, 198, 0.18);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.admin-main {
+  @apply mx-auto w-full max-w-[1320px] px-4 py-4 md:px-6 md:py-5;
+}
+
+.mobile-tabbar {
+  @apply fixed inset-x-0 bottom-0 z-30 flex gap-1 overflow-x-auto border-t px-2 py-2 lg:hidden;
+  background: rgba(7, 16, 21, 0.98);
+  border-color: var(--border);
+}
+
+.mobile-tab {
+  @apply flex min-h-12 min-w-[78px] flex-1 flex-col items-center justify-center gap-1 px-2 text-[11px] font-semibold text-slate-400;
+  border-radius: 8px;
+}
+
+.mobile-tab-active {
+  background: rgba(92, 213, 182, 0.14);
+  color: #dffff6;
+}
+
+.glass,
 .panel {
   background: var(--panel);
   border: 1px solid var(--border);
-  border-radius: 24px;
+  border-radius: 8px;
   box-shadow: var(--shadow);
 }
 
-.panel-soft {
-  background: rgba(12, 31, 39, 0.7);
-  border: 1px solid rgba(157, 203, 216, 0.1);
-  border-radius: 22px;
+.panel-soft,
+.surface {
+  background: rgba(18, 33, 41, 0.72);
+  border: 1px solid rgba(154, 188, 198, 0.12);
+  border-radius: 8px;
+}
+
+.btn-primary,
+.btn-secondary,
+.btn-danger {
+  @apply inline-flex min-h-10 items-center justify-center gap-2 px-3 py-2 text-sm font-semibold transition disabled:cursor-not-allowed disabled:opacity-45;
+  border-radius: 8px;
 }
 
 .btn-primary {
-  @apply inline-flex items-center justify-center gap-2 rounded-2xl px-4 py-3 font-semibold text-slate-950 transition;
+  color: #06120f;
   background: linear-gradient(135deg, var(--accent) 0%, var(--accent-2) 100%);
-  box-shadow: 0 14px 34px rgba(92, 213, 182, 0.24);
 }
 
 .btn-primary:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 18px 40px rgba(92, 213, 182, 0.3);
+  filter: brightness(1.05);
 }
 
 .btn-secondary {
-  @apply inline-flex items-center justify-center gap-2 rounded-2xl px-4 py-3 font-semibold text-slate-100 transition;
-  background: rgba(15, 35, 44, 0.8);
-  border: 1px solid rgba(157, 203, 216, 0.14);
+  color: #ecf6f8;
+  background: rgba(17, 33, 41, 0.88);
+  border: 1px solid rgba(154, 188, 198, 0.16);
 }
 
 .btn-secondary:hover {
-  background: rgba(19, 43, 54, 0.95);
+  background: rgba(24, 45, 55, 0.95);
 }
 
 .btn-danger {
-  @apply inline-flex items-center justify-center gap-2 rounded-2xl px-4 py-3 font-semibold text-white transition;
-  background: rgba(255, 125, 125, 0.14);
-  border: 1px solid rgba(255, 143, 136, 0.22);
+  color: #fff2f2;
+  background: rgba(255, 143, 136, 0.14);
+  border: 1px solid rgba(255, 143, 136, 0.24);
 }
 
 .btn-danger:hover {
-  background: rgba(255, 143, 136, 0.2);
+  background: rgba(255, 143, 136, 0.21);
 }
 
 .input {
-  @apply w-full rounded-2xl py-3 text-sm text-slate-50 outline-none transition;
-  background: rgba(7, 20, 26, 0.86);
-  border: 1px solid rgba(157, 203, 216, 0.16);
+  @apply w-full min-h-10 px-3 py-2 text-sm text-slate-50 outline-none transition;
+  background: rgba(6, 15, 20, 0.9);
+  border: 1px solid rgba(154, 188, 198, 0.18);
+  border-radius: 8px;
 }
 
 .input::placeholder {
-  color: #6b8791;
+  color: #718790;
 }
 
 .input:focus {
   border-color: rgba(117, 199, 255, 0.55);
-  box-shadow: 0 0 0 4px rgba(117, 199, 255, 0.1);
+  box-shadow: 0 0 0 3px rgba(117, 199, 255, 0.1);
 }
 
 .page-shell {
-  @apply space-y-6;
+  @apply space-y-4;
 }
 
 .page-header {
-  @apply flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between;
+  @apply flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between;
 }
 
 .page-title {
-  @apply text-3xl font-extrabold tracking-tight text-slate-50 md:text-4xl;
+  @apply text-xl font-bold text-slate-50 sm:text-2xl;
 }
 
 .page-subtitle {
+  @apply mt-1 max-w-3xl text-sm;
   color: var(--muted);
 }
 
-.data-table {
-  @apply min-w-full border-separate border-spacing-0;
+.metric-grid {
+  @apply grid grid-cols-2 gap-2 md:grid-cols-4;
 }
 
-.data-table thead th {
-  @apply px-5 py-4 text-left text-xs font-semibold uppercase tracking-[0.14em];
-  color: #82a0aa;
+.metric-tile {
+  @apply min-w-0 p-3;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 8px;
 }
 
-.data-table tbody td {
-  @apply px-5 py-4 text-sm text-slate-100;
-  border-top: 1px solid rgba(157, 203, 216, 0.08);
+.metric-label {
+  @apply text-xs font-semibold uppercase text-slate-400;
 }
 
-.data-table tbody tr:hover {
-  background: rgba(20, 46, 56, 0.4);
+.metric-value {
+  @apply mt-1 truncate text-xl font-bold text-white;
+}
+
+.metric-strip {
+  @apply grid grid-cols-3 gap-2;
+}
+
+.metric-strip-item {
+  @apply min-w-0 px-3 py-2 text-sm;
+  background: rgba(18, 33, 41, 0.72);
+  border: 1px solid rgba(154, 188, 198, 0.12);
+  border-radius: 8px;
+}
+
+.compact-grid {
+  @apply grid gap-3;
+}
+
+.compact-list {
+  @apply divide-y overflow-hidden;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+}
+
+.compact-list > :not([hidden]) ~ :not([hidden]) {
+  border-color: rgba(154, 188, 198, 0.08);
+}
+
+.list-row {
+  @apply min-w-0 p-3 transition;
+}
+
+.list-row:hover {
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.row-main {
+  @apply flex min-w-0 items-start justify-between gap-3;
+}
+
+.row-title {
+  @apply min-w-0 truncate text-sm font-semibold text-white;
+}
+
+.row-subtitle {
+  @apply mt-1 min-w-0 break-words text-xs;
+  color: var(--muted);
+}
+
+.row-meta {
+  @apply mt-3 grid gap-2 text-xs text-slate-300 sm:grid-cols-2 lg:grid-cols-4;
+}
+
+.meta-cell {
+  @apply min-w-0;
+}
+
+.meta-label {
+  @apply block text-[11px] font-semibold uppercase text-slate-500;
+}
+
+.meta-value {
+  @apply mt-0.5 block min-w-0 break-words text-slate-200;
+}
+
+.action-row {
+  @apply mt-3 flex flex-wrap gap-2;
+}
+
+.status-row {
+  @apply flex flex-col gap-2 md:flex-row md:items-center md:justify-between;
+}
+
+.metric-pill,
+.danger-pill,
+.warning-pill,
+.neutral-pill {
+  @apply inline-flex max-w-full items-center gap-1.5 rounded-full px-2 py-1 text-xs font-semibold;
 }
 
 .metric-pill {
-  @apply inline-flex items-center gap-2 rounded-full px-3 py-1 text-xs font-semibold;
   background: rgba(92, 213, 182, 0.12);
   color: #9ff0dc;
 }
 
 .danger-pill {
-  @apply inline-flex items-center gap-2 rounded-full px-3 py-1 text-xs font-semibold;
   background: rgba(255, 143, 136, 0.12);
   color: #ffb2b2;
 }
 
 .warning-pill {
-  @apply inline-flex items-center gap-2 rounded-full px-3 py-1 text-xs font-semibold;
   background: rgba(255, 215, 125, 0.12);
   color: #ffe2a0;
+}
+
+.neutral-pill {
+  background: rgba(154, 188, 198, 0.1);
+  color: #cbd9dd;
 }
 
 .muted {
@@ -181,7 +339,7 @@ textarea {
 
 .progress-track {
   @apply h-2 overflow-hidden rounded-full;
-  background: rgba(157, 203, 216, 0.12);
+  background: rgba(154, 188, 198, 0.12);
 }
 
 .progress-fill {
@@ -190,9 +348,35 @@ textarea {
 }
 
 .empty-state {
-  @apply flex min-h-[220px] flex-col items-center justify-center gap-3 rounded-[24px] border border-dashed p-8 text-center;
-  border-color: rgba(157, 203, 216, 0.14);
-  background: rgba(7, 21, 28, 0.45);
+  @apply flex min-h-[180px] flex-col items-center justify-center gap-3 border border-dashed p-5 text-center;
+  border-color: rgba(154, 188, 198, 0.16);
+  border-radius: 8px;
+  background: rgba(8, 18, 24, 0.5);
+}
+
+.data-table {
+  @apply min-w-full border-separate border-spacing-0;
+}
+
+.data-table thead th {
+  @apply px-4 py-3 text-left text-xs font-semibold uppercase text-slate-400;
+}
+
+.data-table tbody td {
+  @apply px-4 py-3 text-sm text-slate-100;
+  border-top: 1px solid rgba(154, 188, 198, 0.08);
+}
+
+.confirm-backdrop {
+  @apply fixed inset-0 z-40 flex items-end justify-center bg-black/55 p-3 sm:items-center;
+}
+
+.confirm-sheet {
+  @apply w-full max-w-lg p-4;
+  background: var(--panel-strong);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  box-shadow: var(--shadow);
 }
 
 ::-webkit-scrollbar {
