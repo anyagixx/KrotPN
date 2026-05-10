@@ -64,7 +64,7 @@
     </acceptance>
   </step-2>
 
-  <step-3 MODULE="M-036,M-004" RISK="HIGH" STATUS="pending">
+  <step-3 MODULE="M-036,M-004" RISK="HIGH" STATUS="done">
     Redesign subscription and payment surfaces into compact plan rows or concise cards with clear current status, expiry, price, duration, and renewal action.
     <acceptance>
       <accept-1>Plan purchase still calls the existing billing API contract.</accept-1>

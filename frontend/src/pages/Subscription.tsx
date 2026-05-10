@@ -1,28 +1,30 @@
 // FILE: frontend/src/pages/Subscription.tsx
-// VERSION: 1.0.0
+// VERSION: 1.1.0
 // ROLE: UI_COMPONENT
 // MAP_MODE: SUMMARY
 // START_MODULE_CONTRACT
-//   PURPOSE: Subscription/plans page -- display available plans, current subscription status, and payment initiation
-//   SCOPE: Plan cards with icons, subscription status banner, payment creation and redirect to payment URL
-//   DEPENDS: M-009 (frontend-user), M-004 (billing API)
-//   LINKS: M-009 (frontend-user)
+//   PURPOSE: Compact subscription page with current status, readable plan rows, and payment initiation
+//   SCOPE: Subscription status summary, compact plan list, payment creation and redirect to payment URL
+//   DEPENDS: M-009 (frontend-user), M-004 (billing API), M-036 (mobile-user-cabinet), M-038 (compact-ui-system)
+//   LINKS: M-009 (frontend-user), M-036 (mobile-user-cabinet), M-038 (compact-ui-system)
 // END_MODULE_CONTRACT
 //
 // START_MODULE_MAP
-//   SubscriptionPage - Plans listing and subscription status component
-//   BLOCK_SUBSCRIPTION_PAGE - SubscriptionPage default export (148 lines)
+//   SubscriptionPage - Compact plans listing and subscription status component
+//   planIcons - Icon mapping for plan rows
+//   BLOCK_SUBSCRIPTION_PAGE - SubscriptionPage default export with compact billing workflow
 //   default - React component (default export)
 // END_MODULE_MAP
 //
 // START_CHANGE_SUMMARY
 //   LAST_CHANGE: v2.8.0 - Added full GRACE MODULE_CONTRACT and MODULE_MAP per GRACE governance protocol
+//   LAST_CHANGE: v2.9.0 - Reworked billing surface into compact mobile-first plan rows for Phase-23
 // END_CHANGE_SUMMARY
 //
 // START_BLOCK_SUBSCRIPTION_PAGE
 import { useQuery } from 'react-query'
 import { useTranslation } from 'react-i18next'
-import { AlertTriangle, Check, Crown, Rocket, ShieldCheck, Zap } from 'lucide-react'
+import { AlertTriangle, Calendar, Check, CreditCard, Crown, Rocket, ShieldCheck, Zap } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { billingApi } from '../lib/api'
 import Loading from '../components/Loading'
@@ -71,80 +73,90 @@ export default function Subscription() {
 
   return (
     <div className="content-section animate-in">
-      <div className="section-header">
-        <div>
-          <h1 className="section-title">{t('plans')}</h1>
-          <p className="section-subtitle">Выберите план, который подходит по длительности и уровню использования.</p>
-        </div>
-      </div>
-
-      <section className="grid gap-4 xl:grid-cols-[minmax(0,1.15fr)_minmax(320px,0.85fr)]">
-        <div className="glass p-6">
-          <p className="text-xs font-bold uppercase tracking-[0.2em] text-cyan-100/70">Текущий статус</p>
-          <h2 className="mt-3 text-2xl font-extrabold">
-            {subscription?.has_subscription ? subscription.plan_name || 'Активная подписка' : 'Подписка ещё не активирована'}
-          </h2>
-          <p className="mt-2 text-sm muted">
-            {subscription?.has_subscription
-              ? `До окончания осталось ${subscription.days_left} дней.`
-              : 'После покупки вы сразу попадёте на оплату и получите доступ к конфигурации.'}
-          </p>
-        </div>
-
-        <div className="panel p-6">
-          <div className="flex items-center gap-3">
-            <div className="rounded-2xl bg-emerald-300/12 p-3 text-emerald-200">
-              <ShieldCheck className="h-6 w-6" />
+      <section className="grid gap-3 lg:grid-cols-[minmax(0,1fr)_minmax(260px,0.75fr)]">
+        <article className="panel p-4 sm:p-5">
+          <div className="flex items-start justify-between gap-3">
+            <div className="min-w-0">
+              <p className="text-xs font-bold uppercase text-cyan-100/70">Текущая подписка</p>
+              <h1 className="mt-1 truncate text-2xl font-extrabold">
+                {subscription?.has_subscription ? subscription.plan_name || 'Активная подписка' : 'Нет активного доступа'}
+              </h1>
+              <p className="mt-2 text-sm muted">
+                {subscription?.has_subscription
+                  ? `До окончания осталось ${subscription.days_left} дней.`
+                  : 'Выберите тариф, оплатите и сразу откройте конфиг.'}
+              </p>
             </div>
-            <div>
-              <h3 className="text-lg font-bold">Что включено</h3>
-              <p className="text-sm muted">Все планы дают доступ к защищённому туннелю и личному кабинету.</p>
+            <span className={subscription?.has_subscription ? 'status-badge-success shrink-0' : 'status-badge-warning shrink-0'}>
+              {subscription?.has_subscription ? 'active' : 'inactive'}
+            </span>
+          </div>
+        </article>
+
+        <article className="panel p-4 sm:p-5">
+          <div className="flex items-start gap-3">
+            <ShieldCheck className="mt-1 h-5 w-5 shrink-0 text-emerald-200" />
+            <div className="min-w-0">
+              <h2 className="text-lg font-bold">Что включено</h2>
+              <p className="mt-1 text-sm muted">VPN-туннель, личный кабинет, QR, `.conf` и device-bound конфиги.</p>
             </div>
           </div>
-        </div>
+        </article>
       </section>
 
-      <section className="grid grid-cols-1 gap-4 xl:grid-cols-3">
+      <section className="grid gap-3">
+        <div className="flex items-end justify-between gap-3">
+          <div className="min-w-0">
+            <h2 className="text-xl font-extrabold">{t('plans')}</h2>
+            <p className="mt-1 text-sm muted">Компактный список тарифов для оплаты или продления.</p>
+          </div>
+        </div>
+
         {plans.map((plan, index) => {
           const Icon = planIcons[plan.name.toLowerCase() as keyof typeof planIcons] || Zap
           const isPopular = index === 1
 
           return (
-            <div key={plan.id} className={`panel relative p-6 ${isPopular ? 'ring-1 ring-emerald-200/16' : ''}`}>
-              {isPopular ? (
-                <div className="absolute right-5 top-5 status-badge-success">
-                  Популярный
+            <article key={plan.id} className={`panel p-4 sm:p-5 ${isPopular ? 'ring-1 ring-emerald-200/16' : ''}`}>
+              <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+                <div className="flex min-w-0 items-start gap-3">
+                  <div className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-xl ${isPopular ? 'gradient-bg text-slate-950' : 'bg-white/8 text-cyan-100'}`}>
+                    <Icon className="h-5 w-5" />
+                  </div>
+                  <div className="min-w-0">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <h3 className="truncate text-xl font-extrabold">{plan.name}</h3>
+                      {isPopular ? <span className="status-badge-success">Популярный</span> : null}
+                    </div>
+                    <div className="mt-1 flex flex-wrap items-end gap-x-2 gap-y-1">
+                      <span className="text-2xl font-extrabold">{plan.price}₽</span>
+                      <span className="text-sm muted">
+                        / {plan.duration_days} {t('days')}
+                      </span>
+                    </div>
+                  </div>
                 </div>
-              ) : null}
 
-              <div className="rounded-3xl bg-white/5 p-4">
-                <div className={`inline-flex rounded-2xl p-3 ${isPopular ? 'gradient-bg text-slate-950' : 'bg-white/8 text-cyan-100'}`}>
-                  <Icon className="h-7 w-7" />
-                </div>
-                <h3 className="mt-5 text-2xl font-extrabold">{plan.name}</h3>
-                <div className="mt-3 flex items-end gap-2">
-                  <span className="text-4xl font-extrabold">{plan.price}₽</span>
-                  <span className="pb-1 text-sm muted">
-                    / {plan.duration_days} {t('days')}
-                  </span>
-                </div>
+                <button
+                  onClick={() => handleSubscribe(plan.id)}
+                  className={`min-h-11 w-full rounded-xl px-3 py-2.5 md:w-auto ${isPopular ? 'btn-primary' : 'btn-secondary'}`}
+                >
+                  <CreditCard className="h-5 w-5" />
+                  {subscription?.has_subscription ? t('extend') : t('buy')}
+                </button>
               </div>
 
-              <ul className="mt-6 space-y-3">
-                {plan.features?.map((feature: string, i: number) => (
-                  <li key={i} className="flex items-start gap-3 text-sm text-slate-100">
-                    <div className="mt-0.5 rounded-full bg-emerald-300/12 p-1 text-emerald-200">
-                      <Check className="h-3.5 w-3.5" />
-                    </div>
-                    <span>{feature}</span>
-                  </li>
-                ))}
-              </ul>
-
-              <button onClick={() => handleSubscribe(plan.id)} className={`mt-6 w-full ${isPopular ? 'btn-primary' : 'btn-secondary'}`}>
-                {subscription?.has_subscription ? t('extend') : t('buy')}
-              </button>
-            </div>
+              {plan.features?.length ? (
+                <ul className="mt-4 grid gap-2 sm:grid-cols-2">
+                  {plan.features.map((feature: string, i: number) => (
+                    <li key={i} className="flex min-w-0 items-start gap-2 text-sm text-slate-100">
+                      <Check className="mt-0.5 h-4 w-4 shrink-0 text-emerald-200" />
+                      <span className="min-w-0 break-words">{feature}</span>
+                    </li>
+                  ))}
+                </ul>
+              ) : null}
+            </article>
           )
         })}
       </section>
@@ -160,9 +172,14 @@ export default function Subscription() {
       ) : null}
 
       {!subscription?.has_subscription ? (
-        <section className="glass p-6 text-center">
-          <h3 className="text-2xl font-extrabold">{t('trial')}</h3>
-          <p className="mt-2 text-sm text-slate-100">{t('trialDays', { days: 3 })} и быстрый вход в личный кабинет.</p>
+        <section className="panel p-4 sm:p-5">
+          <div className="flex items-start gap-3">
+            <Calendar className="mt-1 h-5 w-5 shrink-0 text-cyan-100" />
+            <div className="min-w-0">
+              <h3 className="text-lg font-bold">{t('trial')}</h3>
+              <p className="mt-1 text-sm muted">{t('trialDays', { days: 3 })} и быстрый вход в личный кабинет.</p>
+            </div>
+          </div>
         </section>
       ) : null}
     </div>
