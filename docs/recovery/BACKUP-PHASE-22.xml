@@ -128,6 +128,12 @@
     <evidence-4>service_start_notes.md records whether services were started only after integrity gates passed.</evidence-4>
   </restore-sequence-evidence>
 
+  <cutover-evidence-retention>
+    <item-1>Keep the source backup bundle immutable until post-cutover monitoring is complete.</item-1>
+    <item-2>Keep table_counts.before.json and table_counts.after.json available for rollback decisions.</item-2>
+    <item-3>Keep restore_notes.md, service_start_notes.md, vpn_fingerprints.after.json, and client_compatibility_after.json attached to incident handoff notes.</item-3>
+  </cutover-evidence-retention>
+
   <vpn-restore-evidence>
     <evidence-1>vpn_fingerprints.before.json and vpn_fingerprints.after.json compare AWG profile fingerprints without raw key output.</evidence-1>
     <evidence-2>vpn_network_after.json records VPN_CLIENT_SUBNET, VPN_RELAY_SUBNET, VPN_CAPACITY_PROFILE, and VPN_NETWORK_ROTATE state.</evidence-2>

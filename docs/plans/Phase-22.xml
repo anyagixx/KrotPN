@@ -48,7 +48,7 @@
     Define application validation: backend health, frontend/admin reachability, database connection, Redis, user/admin auth smoke, billing read path, and device listing.
   </step-8>
 
-  <step-9 MODULE="M-034,M-035" RISK="HIGH" STATUS="pending">
+  <step-9 MODULE="M-034,M-035" RISK="HIGH" STATUS="done">
     Define cutover and rollback procedure: DNS/IP/operator switch, go/no-go gate, old-server rollback, post-cutover monitoring, and incident handoff notes.
   </step-9>
 
@@ -93,5 +93,6 @@
     <artifact-6 module="M-034,M-035,M-028">docs/recovery/DR-PHASE-22.xml and docs/recovery/BACKUP-PHASE-22.xml define the ordered restore sequence and evidence outputs before service startup.</artifact-6>
     <artifact-7 module="M-034,M-003,M-032">docs/recovery/DR-PHASE-22.xml defines VPN validation gates for RU/DE tunnel health, AWG profile parity, address-pool compatibility, existing client behavior, and explicit rotation guard.</artifact-7>
     <artifact-8 module="M-034,M-001">docs/recovery/DR-PHASE-22.xml defines application validation gates for backend health, database, Redis, auth smoke, billing read path, device listing, and frontend/admin reachability.</artifact-8>
+    <artifact-9 module="M-034,M-035">docs/recovery/DR-PHASE-22.xml defines go/no-go cutover, rollback checkpoints, and post-cutover monitoring while docs/recovery/BACKUP-PHASE-22.xml defines evidence retention.</artifact-9>
   </execution-artifacts>
 </Phase-22>

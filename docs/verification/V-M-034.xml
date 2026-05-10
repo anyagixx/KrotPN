@@ -23,6 +23,7 @@
     <evidence-4 type="live-required">DNS/IP/operator cutover is not considered verified by local documentation checks.</evidence-4>
     <evidence-5 type="live-required">VPN validation proves RU/DE tunnel health, AWG profile parity, existing client config behavior, and explicit rotation guard on the restore target.</evidence-5>
     <evidence-6 type="live-required">Application validation proves backend health, database, Redis, user/admin auth, billing read path, device listing, and frontend/admin reachability on the restore target.</evidence-6>
+    <evidence-7 type="trace">Cutover evidence records go/no-go decision, rollback target, post-cutover smoke checks, and monitoring window.</evidence-7>
   </evidence-matrix>
   <scenarios>
     <scenario-1 kind="success">Operator can follow the runbook from a backup bundle to a validated replacement deployment.</scenario-1>

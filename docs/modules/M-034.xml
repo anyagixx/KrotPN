@@ -38,6 +38,7 @@
     <note-4>Phase-22 step-6 added ordered restore sequence for bundle verification, runtime env, PostgreSQL, VPN/AWG state, migration checks, and service startup.</note-4>
     <note-5>Phase-22 step-7 added VPN-specific validation for RU/DE tunnel health, AWG profile parity, address-pool compatibility, existing client behavior, and explicit rotation guard.</note-5>
     <note-6>Phase-22 step-8 added application validation for backend health, database, Redis, auth smoke, billing read path, device listing, and frontend/admin reachability.</note-6>
+    <note-7>Phase-22 step-9 added go/no-go cutover, rollback checkpoints, and post-cutover monitoring procedure.</note-7>
   </execution-notes>
   <hotspot>H-021: Disaster recovery must use existing operator-approved deploy/install scripts as a black-box deployment surface</hotspot>
 </M-034>

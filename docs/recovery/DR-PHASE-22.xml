@@ -16,6 +16,7 @@
     <section-restore-sequence>Defines ordered database, runtime, VPN, migration, and service-start restore sequence.</section-restore-sequence>
     <section-vpn-validation>Defines tunnel, profile, address-pool, client compatibility, and rotation-guard checks.</section-vpn-validation>
     <section-application-validation>Defines application, auth, billing, device, database, Redis, frontend, and admin checks.</section-application-validation>
+    <section-cutover-rollback>Defines go/no-go, cutover, rollback, and post-cutover monitoring procedure.</section-cutover-rollback>
     <section-live-boundaries>Separates local dry-run evidence from live VPS evidence.</section-live-boundaries>
   </module-map>
 
@@ -26,6 +27,7 @@
     <change-4>v1.3.0 - Phase-22 step-6 added ordered restore sequence and service-start gate.</change-4>
     <change-5>v1.4.0 - Phase-22 step-7 added VPN-specific validation and rotation guard.</change-5>
     <change-6>v1.5.0 - Phase-22 step-8 added application validation gates.</change-6>
+    <change-7>v1.6.0 - Phase-22 step-9 added cutover, rollback, and monitoring procedure.</change-7>
   </change-summary>
 
   <incident-modes>
@@ -195,6 +197,32 @@
       <failure-action>Block cutover because config provisioning and anti-sharing controls may be inconsistent.</failure-action>
     </app-check-6>
   </application-validation>
+
+  <cutover-rollback-procedure>
+    <go-no-go-gate>
+      <required-evidence>Restore integrity gates pass, VPN validation passes, application validation passes, backup bundle is preserved, and rollback status is known.</required-evidence>
+      <go-condition>Operator signs off that replacement RU/DE is healthier than the old target and that rollback path is available or explicitly waived.</go-condition>
+      <no-go-condition>Any critical checksum, table count, migration, auth, billing, frontend/admin, Redis, device, or VPN gate is missing or failed.</no-go-condition>
+    </go-no-go-gate>
+    <cutover-steps>
+      <step-1>Record final pre-cutover timestamp, operator identity, replacement RU/DE addresses, old target status, and rollback target.</step-1>
+      <step-2>Switch DNS/IP/operator traffic target only after go/no-go gate is passed.</step-2>
+      <step-3>Immediately rerun backend, frontend, admin, auth, billing read, device listing, RU/DE tunnel, and existing client config smoke checks.</step-3>
+      <step-4>Record post-cutover monitoring start time and expected observation window.</step-4>
+    </cutover-steps>
+    <rollback-checkpoints>
+      <checkpoint-1 name="pre-cutover">Abort before switching traffic if any validation gate fails.</checkpoint-1>
+      <checkpoint-2 name="immediate-post-cutover">Rollback to old target if health, auth, admin access, billing read, or VPN handshake fails after switching.</checkpoint-2>
+      <checkpoint-3 name="monitoring-window">Rollback or pause user onboarding if error rate, failed auth, failed config downloads, or VPN handshake failures exceed operator tolerance.</checkpoint-3>
+      <checkpoint-4 name="no-rollback">If old servers are unavailable, record explicit no-rollback decision and increase monitoring/evidence requirements.</checkpoint-4>
+    </rollback-checkpoints>
+    <post-cutover-monitoring>
+      <monitor-1>Backend and admin health responses.</monitor-1>
+      <monitor-2>User login, admin login, billing read, and config download smoke checks.</monitor-2>
+      <monitor-3>RU/DE tunnel freshness and at least one existing client/device config path.</monitor-3>
+      <monitor-4>New errors that may indicate missing runtime env, Redis, database, or VPN state.</monitor-4>
+    </post-cutover-monitoring>
+  </cutover-rollback-procedure>
 
   <live-boundaries>
     <local-only>XML parse, MyGRACE lint, manifest schema review, and non-production dry-run can prove document and procedure consistency.</local-only>
