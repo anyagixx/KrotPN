@@ -47,7 +47,7 @@
     </DF-UI-MOBILE-VERIFY>
   </data-flows>
 
-  <step-1 MODULE="M-036,M-038,M-009" RISK="MEDIUM" STATUS="pending">
+  <step-1 MODULE="M-036,M-038,M-009" RISK="MEDIUM" STATUS="done">
     Convert the current inventory into an execution map: primary mobile surfaces are home, config/device, and subscription; secondary surfaces are referrals, settings, traffic detail, and raw config text.
     <outputs>
       <output-1>Updated frontend-user module map if source ownership changes during execution.</output-1>

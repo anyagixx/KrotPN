@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<M-038 NAME="compact-ui-system" TYPE="UI_COMPONENT" STATUS="pending">
+<M-038 NAME="compact-ui-system" TYPE="UI_COMPONENT" STATUS="wip">
   <path>frontend frontend-admin docs/plans/Phase-23.xml docs/plans/Phase-24.xml</path>
   <owns>Shared compact UI rules for user and admin frontends: mobile-first layout, dense information surfaces, simple navigation, and readable controls</owns>
   <exports>
