@@ -3,7 +3,26 @@
   <module>mobile-user-cabinet</module>
   <checks>User frontend must become compact, phone-friendly, and focused on VPN config, subscription, and device workflows.</checks>
   <test-files>frontend/src/components/Layout.tsx frontend/src/pages/Dashboard.tsx frontend/src/pages/Config.tsx frontend/src/pages/Subscription.tsx frontend/src/index.css</test-files>
-  <commands>cd frontend &amp;&amp; npm run build; mobile viewport smoke review at 360x740, 390x844, and 430x932</commands>
+  <commands>cd frontend &amp;&amp; npm run build; Phase-23 mobile smoke for /, /config, and /subscription at 360x740, 390x844, and 430x932; assert documentElement.scrollWidth &lt;= innerWidth and primary config path &lt;= 2 taps</commands>
+  <levels>
+    <module-local>TypeScript/Vite build must pass for the user frontend after each execution step that changes Phase-23 files.</module-local>
+    <wave-level>Authenticated mobile route smoke must cover dashboard, config/device, and subscription workflows after UI shell and page changes are merged.</wave-level>
+    <phase-level>Final Phase-23 evidence must record viewport results, config action reachability, and unchanged backend API shapes.</phase-level>
+  </levels>
+  <verification-matrix>
+    <route-home path="/">
+      Check VPN status, subscription state, primary config CTA, and active device summary appear on first mobile screen or after one navigation tap.
+    </route-home>
+    <route-config path="/config">
+      Check create device, rotate device, revoke device, QR, copy, and .conf download controls remain present without wide table or raw-config page overflow.
+    </route-config>
+    <route-subscription path="/subscription">
+      Check current subscription state, days left, plan price, duration, and renewal/payment button remain readable on all mobile viewports.
+    </route-subscription>
+    <route-empty-states path="/,/config,/subscription">
+      Check loading, forbidden/no-config, no-devices, no-plans, expired-subscription, and request-error states keep an actionable next step.
+    </route-empty-states>
+  </verification-matrix>
   <module-checks>
     <check-1>Frontend build passes.</check-1>
     <check-2>Mobile dashboard, config, devices, and subscription paths have no document-level horizontal scroll or overlapping text.</check-2>
@@ -20,14 +39,35 @@
     <scenario-5 kind="failure">A mobile viewport introduces horizontal scroll, hidden controls, clipped critical text, or overlapping action buttons.</scenario-5>
     <scenario-6 kind="failure">Simplification removes device-bound rotate/revoke/config retrieval behavior.</scenario-6>
   </scenarios>
+  <critical-invariants>
+    <invariant-1>No backend API endpoint, request body, or response shape changes are introduced by Phase-23.</invariant-1>
+    <invariant-2>Destructive device actions remain visually secondary and confirmation-safe when implemented.</invariant-2>
+    <invariant-3>Expired or missing subscription never leaves the user without a visible payment/renewal path.</invariant-3>
+    <invariant-4>Deploy, install, Docker, nginx, and remote-server automation files remain out of scope.</invariant-4>
+  </critical-invariants>
   <viewport-gates>
     <viewport-1 width="360" height="740">Home, config, subscription, and device controls visible without horizontal scroll.</viewport-1>
     <viewport-2 width="390" height="844">Primary VPN config path is reachable within one or two taps.</viewport-2>
     <viewport-3 width="430" height="932">Long user email, device name, device key, plan name, and status labels do not overlap controls.</viewport-3>
   </viewport-gates>
+  <observability>
+    <telemetry-1>Viewport smoke evidence must include route, viewport, scrollWidth, innerWidth, and checked primary action.</telemetry-1>
+    <telemetry-2>Evidence must not include access tokens, refresh tokens, raw VPN private keys, raw .env values, or full config contents.</telemetry-2>
+    <telemetry-3>When browser automation is unavailable, manual evidence must still record the same route and viewport fields.</telemetry-3>
+  </observability>
+  <required-log-markers>
+    <marker-1>[FrontendUser][Phase23][BUILD_PASS]</marker-1>
+    <marker-2>[FrontendUser][Phase23][MOBILE_VIEWPORT_SAFE]</marker-2>
+    <marker-3>[FrontendUser][Phase23][PRIMARY_CONFIG_REACHABLE]</marker-3>
+    <marker-4>[FrontendUser][Phase23][API_SHAPE_UNCHANGED]</marker-4>
+  </required-log-markers>
   <evidence>
     <evidence-1>Record frontend build result.</evidence-1>
     <evidence-2>Record viewport smoke result with scrollWidth not greater than innerWidth for the tested routes.</evidence-2>
     <evidence-3>Record action reachability for config QR/download/copy from mobile home.</evidence-3>
+    <evidence-4>Record that device create/rotate/revoke controls and subscription payment entry are still present.</evidence-4>
   </evidence>
+  <autonomous-execution-safety status="allowed-after-build-and-mobile-smoke">
+    Autonomous execution may proceed inside Phase-23 user frontend files if each step preserves module contracts, keeps deploy/install out of scope, and records build plus viewport evidence before commit.
+  </autonomous-execution-safety>
 </V-M-036>
