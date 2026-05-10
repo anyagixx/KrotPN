@@ -15,6 +15,7 @@
     <section-replacement-server-runbook>Defines replacement RU/DE deployment checkpoint using existing approved scripts unchanged.</section-replacement-server-runbook>
     <section-restore-sequence>Defines ordered database, runtime, VPN, migration, and service-start restore sequence.</section-restore-sequence>
     <section-vpn-validation>Defines tunnel, profile, address-pool, client compatibility, and rotation-guard checks.</section-vpn-validation>
+    <section-application-validation>Defines application, auth, billing, device, database, Redis, frontend, and admin checks.</section-application-validation>
     <section-live-boundaries>Separates local dry-run evidence from live VPS evidence.</section-live-boundaries>
   </module-map>
 
@@ -24,6 +25,7 @@
     <change-3>v1.2.0 - Phase-22 step-5 added replacement-server runbook and restore checkpoint.</change-3>
     <change-4>v1.3.0 - Phase-22 step-6 added ordered restore sequence and service-start gate.</change-4>
     <change-5>v1.4.0 - Phase-22 step-7 added VPN-specific validation and rotation guard.</change-5>
+    <change-6>v1.5.0 - Phase-22 step-8 added application validation gates.</change-6>
   </change-summary>
 
   <incident-modes>
@@ -166,6 +168,33 @@
       <failure-action>Block any silent client address/profile rewrite.</failure-action>
     </vpn-check-5>
   </vpn-validation>
+
+  <application-validation>
+    <app-check-1 name="backend-health" live-required="true" blocks-cutover="true">
+      <required-evidence>Backend health endpoint responds on replacement RU and reports service readiness without leaking env values.</required-evidence>
+      <failure-action>Do not cut over; inspect backend startup, env, and database connectivity.</failure-action>
+    </app-check-1>
+    <app-check-2 name="database-and-redis" live-required="true" blocks-cutover="true">
+      <required-evidence>Database session opens successfully, restored critical counts are visible to the app, and Redis/token-blacklist dependency is reachable or documented as degraded but safe.</required-evidence>
+      <failure-action>Stop validation if auth/session behavior could be inconsistent.</failure-action>
+    </app-check-2>
+    <app-check-3 name="user-admin-auth-smoke" live-required="true" blocks-cutover="true">
+      <required-evidence>User login/session path and admin login/session path succeed or fail only for expected credential reasons; 401/403 behavior remains intact.</required-evidence>
+      <failure-action>Block cutover because operators or users may be locked out.</failure-action>
+    </app-check-3>
+    <app-check-4 name="frontend-admin-reachability" live-required="true" blocks-cutover="true">
+      <required-evidence>User frontend and admin frontend load over the intended replacement endpoint with no mixed-target or old-host dependency.</required-evidence>
+      <failure-action>Do not switch DNS/IP until web surfaces point at the replacement stack.</failure-action>
+    </app-check-4>
+    <app-check-5 name="billing-read-path" live-required="true" blocks-cutover="true">
+      <required-evidence>Plans, active subscriptions, payment records, and subscription status read paths return restored data without creating new payments.</required-evidence>
+      <failure-action>Block cutover until billing state is readable and side-effect-free.</failure-action>
+    </app-check-5>
+    <app-check-6 name="device-listing" live-required="true" blocks-cutover="true">
+      <required-evidence>User/admin device listing returns restored devices, blocked/revoked state, and device-client linkage.</required-evidence>
+      <failure-action>Block cutover because config provisioning and anti-sharing controls may be inconsistent.</failure-action>
+    </app-check-6>
+  </application-validation>
 
   <live-boundaries>
     <local-only>XML parse, MyGRACE lint, manifest schema review, and non-production dry-run can prove document and procedure consistency.</local-only>

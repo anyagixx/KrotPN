@@ -24,6 +24,10 @@
     <file>backend/app/core/migrations_legacy.py</file>
     <file>backend/app/core/__init__.py</file>
   </files>
+  <disaster-recovery-role>
+    <role-1>Phase-22 application validation must prove settings, database sessions, Redis/token-blacklist behavior, admin bootstrap assumptions, and encryption keys are restored before cutover.</role-1>
+    <role-2>Health/auth smoke evidence must not print secrets or raw environment values.</role-2>
+  </disaster-recovery-role>
   <hotspot>H-011: Token blacklist depends on Redis — graceful degradation must not break auth</hotspot>
   <hotspot>H-014: Admin audit middleware must not log sensitive bodies or tokens</hotspot>
 </M-001>
