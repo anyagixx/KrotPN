@@ -37,7 +37,7 @@
     Update admin verification so V-M-006 checks current admin/system/device behavior instead of deleted route-policy surfaces.
   </step-3>
 
-  <step-4 MODULE="M-033" RISK="HIGH" STATUS="pending">
+  <step-4 MODULE="M-033" RISK="HIGH" STATUS="done">
     Make backend test collection clean by archiving or rewriting obsolete tests for removed routing modules.
   </step-4>
 
