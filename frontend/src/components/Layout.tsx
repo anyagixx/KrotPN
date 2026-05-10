@@ -1,22 +1,24 @@
 // FILE: frontend/src/components/Layout.tsx
-// VERSION: 1.0.0
+// VERSION: 1.1.0
 // ROLE: UI_COMPONENT
 // MAP_MODE: SUMMARY
 // START_MODULE_CONTRACT
-//   PURPOSE: Main application layout with sidebar navigation, user status panel, and header
-//   SCOPE: Sidebar with nav links, user avatar/identity section, logout, header status badges, Outlet for routed pages
-//   DEPENDS: M-009 (frontend-user), M-002 (auth API)
-//   LINKS: M-009 (frontend-user)
+//   PURPOSE: Compact application layout with phone-safe navigation, user identity, logout, and routed page outlet
+//   SCOPE: Desktop compact sidebar, mobile top bar, mobile bottom navigation, logout action, Outlet for routed pages
+//   DEPENDS: M-009 (frontend-user), M-002 (auth API), M-036 (mobile-user-cabinet), M-038 (compact-ui-system)
+//   LINKS: M-009 (frontend-user), M-036 (mobile-user-cabinet), M-038 (compact-ui-system)
 // END_MODULE_CONTRACT
 //
 // START_MODULE_MAP
-//   Layout - Main layout component with sidebar, nav items, and header
-//   BLOCK_LAYOUT - Layout default export (136 lines)
+//   Layout - Compact responsive layout component with desktop sidebar and mobile bars
+//   navItems - Route metadata for the compact user cabinet
+//   BLOCK_LAYOUT - Layout default export with responsive shell and navigation
 //   default - React component (default export)
 // END_MODULE_MAP
 //
 // START_CHANGE_SUMMARY
 //   LAST_CHANGE: v2.8.0 - Added full GRACE MODULE_CONTRACT and MODULE_MAP per GRACE governance protocol
+//   LAST_CHANGE: v2.9.0 - Reworked user cabinet shell into compact mobile-first navigation for Phase-23
 // END_CHANGE_SUMMARY
 //
 // START_BLOCK_LAYOUT
@@ -34,17 +36,19 @@ import {
 import { useAuthStore } from '../stores/auth'
 
 const navItems = [
-  { to: '/', icon: LayoutDashboard, labelKey: 'dashboard', caption: 'Состояние подключения' },
-  { to: '/config', icon: FileCode, labelKey: 'config', caption: 'Файл, QR и инструкции' },
-  { to: '/subscription', icon: CreditCard, labelKey: 'subscription', caption: 'Тариф и продление' },
-  { to: '/referrals', icon: Gift, labelKey: 'referrals', caption: 'Бонусы и приглашения' },
-  { to: '/settings', icon: Settings, labelKey: 'settings', caption: 'Профиль и безопасность' },
+  { to: '/', icon: LayoutDashboard, labelKey: 'dashboard' },
+  { to: '/config', icon: FileCode, labelKey: 'config' },
+  { to: '/subscription', icon: CreditCard, labelKey: 'subscription' },
+  { to: '/referrals', icon: Gift, labelKey: 'referrals' },
+  { to: '/settings', icon: Settings, labelKey: 'settings' },
 ]
 
 export default function Layout() {
   const { t } = useTranslation()
   const { user, logout } = useAuthStore()
   const navigate = useNavigate()
+  const displayName = user?.display_name || user?.email || 'Пользователь'
+  const accountLabel = user?.email || 'Private account'
 
   const handleLogout = () => {
     logout()
@@ -53,30 +57,24 @@ export default function Layout() {
 
   return (
     <div className="app-shell">
-      <div className="mx-auto grid min-h-[calc(100vh-2rem)] max-w-[1560px] grid-cols-1 gap-4 xl:grid-cols-[320px_minmax(0,1fr)]">
-        <aside className="glass overflow-hidden">
-          <div className="border-b border-white/5 px-6 py-6">
-            <div className="flex items-center gap-4">
-              <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-emerald-300/12 text-emerald-200 ring-1 ring-emerald-200/12">
-                <Shield className="h-7 w-7" />
-              </div>
-              <div>
-                <p className="text-xs font-bold uppercase tracking-[0.22em] text-cyan-100/70">Secure Access</p>
-                <h1 className="mt-1 text-2xl font-extrabold">{t('appName')}</h1>
-                <p className="mt-1 text-sm muted">Личный кабинет VPN-сервиса</p>
-              </div>
+      <div className="mx-auto flex min-h-[calc(100vh-1rem)] max-w-[1180px] gap-3 lg:min-h-[calc(100vh-2rem)]">
+        <aside className="panel hidden w-64 shrink-0 flex-col overflow-hidden lg:flex">
+          <div className="flex items-center gap-3 border-b border-white/5 px-4 py-4">
+            <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-emerald-300/12 text-emerald-200 ring-1 ring-emerald-200/12">
+              <Shield className="h-5 w-5" />
+            </div>
+            <div className="min-w-0">
+              <h1 className="truncate text-lg font-extrabold">{t('appName')}</h1>
+              <p className="truncate text-xs muted">Личный кабинет</p>
             </div>
           </div>
 
-          <div className="px-4 py-4">
-            <div className="panel-soft px-4 py-4">
-              <p className="text-xs uppercase tracking-[0.18em] muted">Ваш статус</p>
-              <p className="mt-2 text-lg font-bold text-white">{user?.display_name || user?.email || 'Пользователь'}</p>
-              <p className="mt-1 text-sm muted">Управляйте доступом, тарифом и конфигурацией из одного места.</p>
-            </div>
+          <div className="border-b border-white/5 px-4 py-3">
+            <p className="truncate text-sm font-semibold">{displayName}</p>
+            <p className="mt-0.5 truncate text-xs muted">{accountLabel}</p>
           </div>
 
-          <nav className="grid gap-2 px-4 pb-4">
+          <nav className="grid gap-1.5 px-3 py-3">
             {navItems.map((item) => (
               <NavLink
                 key={item.to}
@@ -84,74 +82,68 @@ export default function Layout() {
                 end={item.to === '/'}
                 className={({ isActive }) =>
                   [
-                    'group flex items-center gap-3 rounded-2xl px-4 py-3 transition',
+                    'group flex min-h-11 items-center gap-3 rounded-xl px-3 py-2.5 text-sm transition',
                     isActive
                       ? 'bg-emerald-300/12 text-emerald-100 ring-1 ring-emerald-200/12'
                       : 'text-slate-300 hover:bg-white/5 hover:text-white',
                   ].join(' ')
                 }
               >
-                <div className="rounded-xl bg-white/5 p-2 transition group-hover:bg-white/10">
-                  <item.icon className="h-5 w-5" />
-                </div>
-                <div className="min-w-0">
-                  <p className="font-semibold">{t(item.labelKey)}</p>
-                  <p className="truncate text-xs muted">{item.caption}</p>
-                </div>
+                <item.icon className="h-4 w-4 shrink-0" />
+                <span className="min-w-0 truncate font-semibold">{t(item.labelKey)}</span>
               </NavLink>
             ))}
           </nav>
 
-          <div className="border-t border-white/5 px-4 py-4">
-            <div className="panel-soft mb-3 flex items-center gap-3 px-4 py-3">
-              <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-white/10 text-lg font-bold">
-                {user?.display_name?.[0]?.toUpperCase() || user?.email?.[0]?.toUpperCase() || '?'}
-              </div>
-              <div className="min-w-0">
-                <p className="truncate font-semibold">{user?.display_name || 'Без имени'}</p>
-                <p className="truncate text-xs muted">{user?.email || 'Аккаунт без email'}</p>
-              </div>
-            </div>
-
-            <button onClick={handleLogout} className="btn-secondary w-full justify-start">
-              <LogOut className="h-5 w-5" />
+          <div className="mt-auto border-t border-white/5 p-3">
+            <button onClick={handleLogout} className="btn-secondary min-h-11 w-full justify-start rounded-xl px-3 py-2.5 text-sm">
+              <LogOut className="h-4 w-4" />
               {t('logout')}
             </button>
           </div>
         </aside>
 
-        <main className="panel overflow-hidden">
-          <header className="border-b border-white/5 px-6 py-6 md:px-8">
-            <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
-              <div>
-                <p className="text-xs font-bold uppercase tracking-[0.2em] text-cyan-100/70">Private Area</p>
-                <h2 className="mt-2 text-3xl font-extrabold tracking-tight">Управление вашим VPN без лишнего шума</h2>
-                <p className="mt-2 max-w-2xl text-sm muted">
-                  Конфигурация, подписка, трафик и безопасность собраны в одном аккуратном интерфейсе.
-                </p>
+        <div className="flex min-w-0 flex-1 flex-col">
+          <header className="panel mb-3 flex items-center justify-between gap-3 px-3 py-3 lg:hidden">
+            <div className="flex min-w-0 items-center gap-3">
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-emerald-300/12 text-emerald-200">
+                <Shield className="h-5 w-5" />
               </div>
-
-              <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
-                <div className="panel-soft px-4 py-3">
-                  <p className="text-xs uppercase tracking-[0.18em] muted">Защита</p>
-                  <p className="mt-2 font-semibold text-emerald-200">AmneziaWG enabled</p>
-                </div>
-                <div className="panel-soft px-4 py-3">
-                  <p className="text-xs uppercase tracking-[0.18em] muted">Аккаунт</p>
-                  <p className="mt-2 font-semibold">{user?.email || 'Private account'}</p>
-                </div>
-                <div className="panel-soft px-4 py-3">
-                  <p className="text-xs uppercase tracking-[0.18em] muted">Доступ</p>
-                  <p className="mt-2 font-semibold">{user?.is_active ? 'Активен' : 'Ограничен'}</p>
-                </div>
+              <div className="min-w-0">
+                <p className="truncate text-sm font-bold">{t('appName')}</p>
+                <p className="truncate text-xs muted">{accountLabel}</p>
               </div>
             </div>
+            <button onClick={handleLogout} className="btn-secondary h-10 w-10 shrink-0 rounded-xl p-0" aria-label={t('logout')}>
+              <LogOut className="h-4 w-4" />
+            </button>
           </header>
 
-          <div className="p-6 md:p-8">
-            <Outlet />
-          </div>
-        </main>
+          <main className="panel min-w-0 flex-1 overflow-hidden">
+            <div className="p-3 pb-24 sm:p-4 lg:p-5 lg:pb-5">
+              <Outlet />
+            </div>
+          </main>
+        </div>
+
+        <nav className="fixed inset-x-3 bottom-3 z-40 grid grid-cols-5 rounded-2xl border border-white/10 bg-slate-950/95 p-1.5 shadow-[0_16px_40px_rgba(2,10,14,0.4)] backdrop-blur lg:hidden">
+          {navItems.map((item) => (
+            <NavLink
+              key={item.to}
+              to={item.to}
+              end={item.to === '/'}
+              className={({ isActive }) =>
+                [
+                  'flex min-h-12 min-w-0 flex-col items-center justify-center gap-1 rounded-xl px-1 text-[10px] font-semibold transition',
+                  isActive ? 'bg-emerald-300/10 text-emerald-100' : 'text-slate-400 hover:text-white',
+                ].join(' ')
+              }
+            >
+              <item.icon className="h-4 w-4 shrink-0" />
+              <span className="max-w-full truncate">{t(item.labelKey)}</span>
+            </NavLink>
+          ))}
+        </nav>
       </div>
     </div>
   )

@@ -55,7 +55,7 @@
     </outputs>
   </step-1>
 
-  <step-2 MODULE="M-036,M-003,M-004,M-022" RISK="HIGH" STATUS="pending">
+  <step-2 MODULE="M-036,M-003,M-004,M-022" RISK="HIGH" STATUS="done">
     Build the compact mobile home workflow with VPN status, primary config action, QR/download entry, subscription state, and active device summary.
     <acceptance>
       <accept-1>Config action is visible on first screen or reachable after one navigation tap.</accept-1>
