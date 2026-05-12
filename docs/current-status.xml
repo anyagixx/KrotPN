@@ -3,7 +3,7 @@
 <current-status>
   <meta>
     <project-name>KrotPN</project-name>
-    <updated>2026-05-10</updated>
+    <updated>2026-05-12</updated>
     <status>active-development</status>
   </meta>
 
@@ -36,6 +36,7 @@
     <item>Phase-24 compact mobile admin console passed local build and Chrome/CDP mobile smoke for overview, users, devices, and analytics with confirmation-safe device actions.</item>
     <item>Phase-25 session-security gates passed locally: static auth guard, admin refresh-token lifecycle cleanup, and token blacklist unit tests.</item>
     <item>Phase-26 stabilization handoff records local evidence, protected deploy/install surfaces, and live-required recovery blockers.</item>
+    <item>Release v2.14.0-stabilization-stable was operator-deployed from local PC to clean VPS servers and manually validated as working on 2026-05-12.</item>
   </what-is-working>
 
   <what-is-fragile>
@@ -81,6 +82,9 @@
     </gate>
     <gate id="phase-26-stabilization-handoff" status="passed-local">
       <summary>Operator handoff and verification matrix created without touching deploy/install scripts.</summary>
+    </gate>
+    <gate id="release-v2.14.0-stabilization-stable" status="passed-live">
+      <summary>Operator-confirmed clean VPS deployment passed on 2026-05-12; release promoted from local-stabilization prerelease to stable.</summary>
     </gate>
   </rollout-gates>
 

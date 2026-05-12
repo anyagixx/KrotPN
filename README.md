@@ -2,7 +2,7 @@
 
 **Коммерческий VPN-сервис с обфускацией AmneziaWG и двухузловым Full Tunnel**
 
-![Version](https://img.shields.io/badge/version-2.8.2-blue)
+![Version](https://img.shields.io/badge/version-2.14.0-blue)
 ![Python](https://img.shields.io/badge/python-3.11-green)
 ![React](https://img.shields.io/badge/react-18-blue)
 ![License](https://img.shields.io/badge/license-MIT-green)
