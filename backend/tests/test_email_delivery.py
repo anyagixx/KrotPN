@@ -1,0 +1,104 @@
+"""
+MODULE_CONTRACT
+- PURPOSE: Verify Phase-27 email delivery foundation.
+- SCOPE: Unit tests for verification templates, fake-provider dispatch, provider-disabled guard, and typed provider error mapping.
+- DEPENDS: app.email.service, app.email.provider, app.core.config.
+- LINKS: V-M-040.
+
+MODULE_MAP
+- test_send_verification_email_uses_template_and_redacts_token_from_logs: Verifies fake-provider dispatch and token redaction.
+- test_send_verification_email_blocks_when_provider_disabled: Verifies disabled provider fails before a network call.
+- test_map_email_provider_error_returns_stable_safe_codes: Verifies HTTP status mapping.
+
+CHANGE_SUMMARY
+- 2026-05-13: Added Phase-27 email delivery tests.
+"""
+
+import pytest
+from loguru import logger
+
+from app.core.config import Settings
+from app.email.provider import (
+    EmailDeliveryError,
+    EmailDeliveryErrorCode,
+    EmailDeliveryReceipt,
+    EmailMessageRequest,
+    map_email_provider_error,
+)
+from app.email.service import send_verification_email
+
+
+class RecordingProvider:
+    def __init__(self) -> None:
+        self.requests: list[EmailMessageRequest] = []
+
+    async def send(self, request: EmailMessageRequest) -> EmailDeliveryReceipt:
+        self.requests.append(request)
+        return EmailDeliveryReceipt(
+            provider="fake",
+            message_id="msg_test",
+            status="sent",
+        )
+
+
+def _settings(**overrides) -> Settings:
+    data = {
+        "secret_key": "test-secret-key-with-enough-length",
+        "app_name": "KrotPN",
+        "frontend_url": "https://krotpn.xyz",
+        "email_provider": "disabled",
+        **overrides,
+    }
+    return Settings(**data)
+
+
+# START_BLOCK_EMAIL_DELIVERY_TESTS
+@pytest.mark.asyncio
+async def test_send_verification_email_uses_template_and_redacts_token_from_logs():
+    provider = RecordingProvider()
+    token = "secret-token-that-must-not-be-logged"
+    log_lines: list[str] = []
+    sink_id = logger.add(lambda message: log_lines.append(str(message)), format="{message}")
+
+    try:
+        receipt = await send_verification_email(
+            "friend@example.com",
+            token,
+            provider=provider,
+            app_settings=_settings(email_provider="resend"),
+        )
+    finally:
+        logger.remove(sink_id)
+
+    assert receipt.provider == "fake"
+    assert len(provider.requests) == 1
+    request = provider.requests[0]
+    assert request.to_email == "friend@example.com"
+    assert "KrotPN" in request.subject
+    assert "https://krotpn.xyz/verify-email?token=secret-token-that-must-not-be-logged" in request.text
+
+    joined_logs = "\n".join(log_lines)
+    assert "[M-040][send_verification_email][BUILD_REQUEST]" in joined_logs
+    assert "[M-040][send_verification_email][POST_PROVIDER]" in joined_logs
+    assert token not in joined_logs
+
+
+@pytest.mark.asyncio
+async def test_send_verification_email_blocks_when_provider_disabled():
+    with pytest.raises(EmailDeliveryError) as exc_info:
+        await send_verification_email(
+            "friend@example.com",
+            "secret-token",
+            app_settings=_settings(email_provider="disabled"),
+        )
+
+    assert exc_info.value.code == EmailDeliveryErrorCode.PROVIDER_DISABLED
+    assert "secret-token" not in str(exc_info.value)
+
+
+def test_map_email_provider_error_returns_stable_safe_codes():
+    assert map_email_provider_error(status_code=401).code == EmailDeliveryErrorCode.PROVIDER_AUTH
+    assert map_email_provider_error(status_code=429).code == EmailDeliveryErrorCode.PROVIDER_RATE_LIMITED
+    assert map_email_provider_error(status_code=500).code == EmailDeliveryErrorCode.PROVIDER_UNAVAILABLE
+    assert map_email_provider_error(status_code=400).code == EmailDeliveryErrorCode.PROVIDER_INVALID_REQUEST
+# END_BLOCK_EMAIL_DELIVERY_TESTS

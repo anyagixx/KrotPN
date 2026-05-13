@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<V-M-041 MODULE="M-041" PRIORITY="critical" STATUS="pending" VERSION="1.1.0">
+<V-M-041 MODULE="M-041" PRIORITY="critical" STATUS="pass-local" VERSION="1.2.0">
   <phase-scope>
     <phase-27>Foundation only: pending registration primitives, token hashing, TTL/replay protection, email risk checks, and compatibility evidence while active /register stays unchanged.</phase-27>
     <phase-28 status="planned-next">Cutover: /register must return pending verification state and must not create active KrotPN access before email ownership is proven.</phase-28>
@@ -48,4 +48,7 @@
     <level>safe-with-boundary</level>
     <reason>Phase-27 is safe for local execution if tests prove no /register cutover, no deploy/install edits, no live email provider calls, and no VPN/MTProto side effects.</reason>
   </autonomous-execution-safety>
+  <evidence>
+    <evidence-1>2026-05-13: backend/tests/test_email_verification_guard.py passed locally, covering disposable-domain blocking before email send, allowlist override, env domain parsing, HMAC token storage, one-time consume, expiry, zero user side effects, and active /register compatibility boundary.</evidence-1>
+  </evidence>
 </V-M-041>

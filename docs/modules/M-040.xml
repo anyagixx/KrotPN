@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<M-040 NAME="email-delivery" TYPE="INTEGRATION" STATUS="planned">
+<M-040 NAME="email-delivery" TYPE="INTEGRATION" STATUS="done-local">
   <path>backend/app/email</path>
   <owns>Email provider adapter, verification email templates, provider error mapping, and safe operator evidence for email delivery.</owns>
   <purpose>Provide a KrotPN-native email delivery surface for verified registration without exposing tokens or provider secrets.</purpose>
@@ -17,6 +17,10 @@
     <file>backend/app/email/__init__.py</file>
     <file>backend/tests/test_email_delivery.py</file>
   </files>
+  <implementation-state>
+    <state-1>Phase-27 implemented provider-neutral requests, Resend and SMTP adapters, disabled-provider guard, templates, safe log markers, and fake-provider test coverage.</state-1>
+    <state-2>Live provider smoke remains operator-run only after EMAIL_PROVIDER and provider secrets are configured outside tests.</state-2>
+  </implementation-state>
   <source-transfer>
     <from-project>KPprotoN</from-project>
     <reuse>Resend request payload shape, readable UTF-8 templates, provider error normalization.</reuse>

@@ -3,7 +3,7 @@
 <current-status>
   <meta>
     <project-name>KrotPN</project-name>
-    <updated>2026-05-12</updated>
+    <updated>2026-05-13</updated>
     <status>active-development</status>
   </meta>
 
@@ -37,6 +37,7 @@
     <item>Phase-25 session-security gates passed locally: static auth guard, admin refresh-token lifecycle cleanup, and token blacklist unit tests.</item>
     <item>Phase-26 stabilization handoff records local evidence, protected deploy/install surfaces, and live-required recovery blockers.</item>
     <item>Release v2.14.0-stabilization-stable was operator-deployed from local PC to clean VPS servers and manually validated as working on 2026-05-12.</item>
+    <item>Phase-27 email verification foundation passed local verification on 2026-05-13: provider-neutral email delivery, pending registration, HMAC token storage, domain guards, replay/expiry checks, and no /register cutover.</item>
   </what-is-working>
 
   <what-is-fragile>
@@ -85,6 +86,9 @@
     </gate>
     <gate id="release-v2.14.0-stabilization-stable" status="passed-live">
       <summary>Operator-confirmed clean VPS deployment passed on 2026-05-12; release promoted from local-stabilization prerelease to stable.</summary>
+    </gate>
+    <gate id="phase-27-email-verification-foundation" status="passed-local">
+      <summary>Local Phase-27 backend tests passed for email delivery and pending verified-registration foundation; active /register remains unchanged until Phase-28.</summary>
     </gate>
   </rollout-gates>
 

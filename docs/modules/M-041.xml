@@ -1,30 +1,37 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<M-041 NAME="verified-email-registration" TYPE="CORE_LOGIC" STATUS="planned">
+<M-041 NAME="verified-email-registration" TYPE="CORE_LOGIC" STATUS="wip">
   <path>backend/app/users backend/app/email</path>
-  <owns>Pending email registration, email ownership verification, disposable-domain guard, and post-verification onboarding orchestration.</owns>
-  <purpose>Ensure KrotPN only creates user access, trial subscription, VPN config, referral effects, and MTProto proxy after email ownership is proven.</purpose>
+  <owns>Pending email registration, email ownership verification, disposable-domain guard, and Phase-28 post-verification onboarding orchestration.</owns>
+  <purpose>Build the verified-registration foundation so KrotPN can create user access, trial subscription, VPN config, referral effects, and MTProto proxy only after email ownership is proven.</purpose>
   <exports>
     <fn-request-registration>Validate email/password/referral input and send a one-time verification email without creating active access.</fn-request-registration>
-    <fn-verify-registration>Consume verification token and create the user plus onboarding resources exactly once.</fn-verify-registration>
+    <fn-verify-registration>Consume verification token once and mark the pending registration verified; Phase-28 will attach user and onboarding activation.</fn-verify-registration>
     <fn-email-risk-check>Evaluate syntax, domain, MX/DNS, disposable-domain, and configured deny/allow policies.</fn-email-risk-check>
     <fn-registration-status>Return safe pending, verified, expired, or rejected registration state for the frontend.</fn-registration-status>
   </exports>
   <depends>M-001,M-002,M-004,M-005,M-022,M-027,M-040</depends>
   <verification-ref>V-M-041</verification-ref>
   <files>
+    <file>backend/app/users/models.py</file>
+    <file>backend/app/email/verification.py</file>
+    <file>backend/tests/test_email_verification_guard.py</file>
+  </files>
+  <future-files>
     <file>backend/app/users/router.py</file>
     <file>backend/app/users/service.py</file>
     <file>backend/app/users/schemas.py</file>
-    <file>backend/app/users/models.py</file>
-    <file>backend/app/email/verification.py</file>
     <file>backend/tests/test_verified_registration.py</file>
-    <file>backend/tests/test_email_verification_guard.py</file>
-  </files>
+  </future-files>
   <registration-policy>
-    <policy-1>Plain /register no longer creates active user access before email verification.</policy-1>
-    <policy-2>Trial subscription remains 3 days but starts only after verified activation.</policy-2>
-    <policy-3>Telegram auth remains a separate verified identity path unless explicitly merged later.</policy-3>
+    <policy-1>Phase-27 keeps active /register behavior unchanged while pending-registration primitives are verified.</policy-1>
+    <policy-2>Phase-28 will change plain /register so active user access is not created before email verification.</policy-2>
+    <policy-3>Trial subscription remains 3 days but starts only after verified activation.</policy-3>
+    <policy-4>Telegram auth remains a separate verified identity path unless explicitly merged later.</policy-4>
   </registration-policy>
+  <implementation-state>
+    <state-1>Phase-27 implemented PendingEmailRegistration, HMAC token hashing, TTL/replay-safe token consumption, email normalization, allow/deny/disposable-domain policy, and optional DNS guard.</state-1>
+    <state-2>Phase-28 remains open for /register cutover and post-verification activation of trial, VPN, referrals, and MTProto assignment.</state-2>
+  </implementation-state>
   <constraints>
     <constraint-1>Do not issue trial, VPN device, referral bonus, or MTProto proxy for unverified email.</constraint-1>
     <constraint-2>Verification token consumption must be one-time, TTL-bound, and replay-safe.</constraint-2>

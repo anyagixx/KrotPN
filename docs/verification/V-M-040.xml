@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<V-M-040 MODULE="M-040" PRIORITY="critical" STATUS="pending" VERSION="1.1.0">
+<V-M-040 MODULE="M-040" PRIORITY="critical" STATUS="pass-local" VERSION="1.2.0">
   <phase-scope>
     <phase-27>Email delivery foundation only: fake-provider tests must prove request shaping, template rendering, provider error mapping, and redaction before live provider use.</phase-27>
   </phase-scope>
@@ -38,4 +38,7 @@
     <level>safe</level>
     <reason>Phase-27 tests are deterministic and fake-provider-only; no deploy, install, DNS, TLS, or live email provider changes are allowed.</reason>
   </autonomous-execution-safety>
+  <evidence>
+    <evidence-1>2026-05-13: backend/tests/test_email_delivery.py passed locally, covering template rendering, fake-provider dispatch, provider-disabled guard, redaction, and safe error mapping.</evidence-1>
+  </evidence>
 </V-M-040>

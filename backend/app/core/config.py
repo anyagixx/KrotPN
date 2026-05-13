@@ -4,7 +4,7 @@
 # MAP_MODE: EXPORTS
 # START_MODULE_CONTRACT
 #   PURPOSE: Application configuration and environment variable parsing with validation
-#   SCOPE: Settings model, environment parsing, secret validation, VPN network settings, AmneziaWG obfuscation params, anti-abuse thresholds
+#   SCOPE: Settings model, environment parsing, secret validation, VPN network settings, AmneziaWG obfuscation params, anti-abuse thresholds, email verification provider and domain guard knobs
 #   DEPENDS: M-032 (vpn-network-addressing-capacity)
 #   LINKS: M-001 (backend-core), M-032, V-M-001, V-M-032
 # END_MODULE_CONTRACT
@@ -15,11 +15,13 @@
 #   Settings.awg_client_obfuscation_params - Validated deploy-time CLIENT_PROFILE mapping when AWG_CLIENT_* is present
 #   Settings.awg_relay_obfuscation_params - Validated deploy-time RELAY_PROFILE mapping when AWG_RELAY_* is present
 #   Settings.anti_abuse_* - Observe/auto-rotate mode and endpoint-history thresholds for shared-config detection
+#   Settings.email_verification_* - Provider, TTL, URL and domain guard settings for verified registration foundation
 #   get_settings - lru_cache factory returning validated Settings singleton
 #   settings - Module-level cached Settings instance
 # END_MODULE_MAP
 #
 # START_CHANGE_SUMMARY
+#   LAST_CHANGE: v3.3.0 - Added Phase-27 email verification provider, TTL and domain guard settings
 #   LAST_CHANGE: v3.2.0 - Added configurable VPN client/relay subnet and capacity profile settings
 #   LAST_CHANGE: v3.1.0 - Added anti-abuse mode, scan interval, history, ping-pong and cooldown settings
 #   LAST_CHANGE: v3.0.0 - Added AWG_CLIENT_*/AWG_RELAY_* profile settings while preserving legacy AWG_* compatibility
@@ -39,10 +41,11 @@ GRACE-lite module contract:
 # <!-- GRACE: module="M-001" contract="config-loading" -->
 
 from functools import lru_cache
-from typing import Literal
+import json
+from typing import Annotated, Literal
 
 from pydantic import Field, field_validator
-from pydantic_settings import BaseSettings, SettingsConfigDict
+from pydantic_settings import BaseSettings, NoDecode, SettingsConfigDict
 
 from app.core.vpn_network import (
     DEFAULT_VPN_CLIENT_SUBNET,
@@ -206,7 +209,29 @@ class Settings(BaseSettings):
     telegram_bot_token: str | None = None
     telegram_webhook_url: str | None = None
 
-    # Email (reserved for future use — no email module currently)
+    # Email verification
+    email_provider: Literal["disabled", "resend", "smtp"] = "disabled"
+    email_verification_token_ttl_minutes: int = Field(default=30, ge=5, le=1440)
+    email_verification_url_base: str | None = None
+    email_provider_timeout_seconds: float = Field(default=10.0, ge=1.0, le=60.0)
+    email_allowed_domains: Annotated[list[str], NoDecode] = Field(default_factory=list)
+    email_blocked_domains: Annotated[list[str], NoDecode] = Field(default_factory=list)
+    email_disposable_domain_guard_enabled: bool = True
+    email_disposable_domains: Annotated[list[str], NoDecode] = Field(
+        default_factory=lambda: [
+            "10minutemail.com",
+            "guerrillamail.com",
+            "mailinator.com",
+            "sharklasers.com",
+            "temp-mail.org",
+            "tempmail.com",
+            "throwawaymail.com",
+            "yopmail.com",
+        ]
+    )
+    email_dns_check_enabled: bool = True
+    resend_api_key: str | None = None
+    resend_api_url: str = "https://api.resend.com/emails"
     smtp_host: str = "smtp.gmail.com"
     smtp_port: int = 587
     smtp_user: str | None = None
@@ -242,6 +267,38 @@ class Settings(BaseSettings):
         elif v.startswith("sqlite://"):
             v = v.replace("sqlite://", "sqlite+aiosqlite://")
         return v
+
+    @field_validator(
+        "email_allowed_domains",
+        "email_blocked_domains",
+        "email_disposable_domains",
+        mode="before",
+    )
+    @classmethod
+    def parse_email_domain_list(cls, v: object) -> list[str]:
+        """Parse comma-separated domain settings into normalized lower-case domains."""
+        if v is None:
+            return []
+        if isinstance(v, str):
+            stripped = v.strip()
+            if stripped.startswith("["):
+                try:
+                    decoded = json.loads(stripped)
+                    raw_items = decoded if isinstance(decoded, list) else [decoded]
+                except json.JSONDecodeError:
+                    raw_items = v.replace("\n", ",").split(",")
+            else:
+                raw_items = v.replace("\n", ",").split(",")
+        else:
+            raw_items = list(v) if isinstance(v, (list, tuple, set)) else [v]
+
+        domains: list[str] = []
+        for item in raw_items:
+            domain = str(item).strip().lower().lstrip("@")
+            if not domain:
+                continue
+            domains.append(domain.rstrip("."))
+        return domains
 
     @property
     def is_production(self) -> bool:

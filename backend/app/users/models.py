@@ -7,7 +7,7 @@ User models for authentication and profile management.
 # MAP_MODE: EXPORTS
 # START_MODULE_CONTRACT
 #   PURPOSE: User, auth and profile database models
-#   SCOPE: User model with roles, Telegram linkage, email/password fields; UserProfile and UserStats response models
+#   SCOPE: User model with roles, Telegram linkage, email/password fields; pending email registration; UserProfile and UserStats response models
 #   DEPENDS: M-001 (core database, SQLModel), SQLAlchemy Column types
 #   LINKS: M-002 (users), M-004 (billing.Subscription), M-005 (vpn.VPNClient), M-006 (referrals)
 # END_MODULE_CONTRACT
@@ -15,11 +15,14 @@ User models for authentication and profile management.
 # START_MODULE_MAP
 #   UserRole - Enum for user roles (USER, ADMIN, SUPERADMIN)
 #   User - Main user table model with auth, Telegram, profile, referral, and relationship fields
+#   PendingEmailRegistrationStatus - Lifecycle state for email verification records
+#   PendingEmailRegistration - Pending verified-registration table storing hashed tokens and password hashes
 #   UserProfile - User profile data for responses (non-table SQLModel)
 #   UserStats - User statistics for dashboard (non-table SQLModel)
 # END_MODULE_MAP
 #
 # START_CHANGE_SUMMARY
+#   LAST_CHANGE: 2026-05-13 - Added Phase-27 pending email registration model with hashed token storage
 #   LAST_CHANGE: 2026-04-06 - Added full GRACE MODULE_CONTRACT, MODULE_MAP, BLOCK markers per GRACE governance protocol
 # END_CHANGE_SUMMARY
 """
@@ -46,6 +49,17 @@ class UserRole(str, Enum):
     ADMIN = "admin"
     SUPERADMIN = "superadmin"
 # END_BLOCK_USERROLE
+
+
+# START_BLOCK_PENDING_EMAIL_REGISTRATION_STATUS
+class PendingEmailRegistrationStatus(str, Enum):
+    """Pending email registration lifecycle states."""
+
+    PENDING = "pending"
+    VERIFIED = "verified"
+    EXPIRED = "expired"
+    REJECTED = "rejected"
+# END_BLOCK_PENDING_EMAIL_REGISTRATION_STATUS
 
 
 # START_BLOCK_USER
@@ -116,6 +130,31 @@ class User(SQLModel, table=True):
         """Check if user has admin role."""
         return self.role in (UserRole.ADMIN, UserRole.SUPERADMIN)
 # END_BLOCK_USER
+
+
+# START_BLOCK_PENDING_EMAIL_REGISTRATION
+class PendingEmailRegistration(SQLModel, table=True):
+    """Pending verified-registration record."""
+
+    __tablename__ = "pending_email_registrations"
+
+    id: int | None = Field(default=None, primary_key=True)
+    email: str = Field(index=True, max_length=255)
+    token_hash: str = Field(unique=True, index=True, max_length=128)
+    password_hash: str = Field(max_length=255)
+    name: str | None = Field(default=None, max_length=100)
+    language: str = Field(default="ru", max_length=5)
+    referral_code: str | None = Field(default=None, max_length=20)
+    status: PendingEmailRegistrationStatus = Field(
+        default=PendingEmailRegistrationStatus.PENDING,
+        index=True,
+    )
+    risk_reason: str | None = Field(default=None, max_length=100)
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc), sa_column=Column(DateTime(timezone=True)))
+    updated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc), sa_column=Column(DateTime(timezone=True)))
+    expires_at: datetime = Field(sa_column=Column(DateTime(timezone=True), nullable=False))
+    consumed_at: datetime | None = Field(default=None, sa_column=Column(DateTime(timezone=True)))
+# END_BLOCK_PENDING_EMAIL_REGISTRATION
 
 
 # START_BLOCK_USERPROFILE
