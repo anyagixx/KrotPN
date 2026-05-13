@@ -1,27 +1,51 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<V-M-041 MODULE="M-041" PRIORITY="critical" STATUS="planned" VERSION="1.0.0">
+<V-M-041 MODULE="M-041" PRIORITY="critical" STATUS="pending" VERSION="1.1.0">
+  <phase-scope>
+    <phase-27>Foundation only: pending registration primitives, token hashing, TTL/replay protection, email risk checks, and compatibility evidence while active /register stays unchanged.</phase-27>
+    <phase-28 status="planned-next">Cutover: /register must return pending verification state and must not create active KrotPN access before email ownership is proven.</phase-28>
+  </phase-scope>
   <test-files>
-    <file>backend/tests/test_verified_registration.py</file>
-    <file>backend/tests/test_email_verification_guard.py</file>
+    <file phase="27">backend/tests/test_email_verification_guard.py</file>
+    <file phase="28">backend/tests/test_verified_registration.py</file>
   </test-files>
+  <verification-levels>
+    <module-local>Risk-check and pending-token tests run without live email provider, DNS mutability, VPN provisioning, or MTProto runtime.</module-local>
+    <wave-level>Phase-27 must be verified together with M-040 email delivery fake-provider tests.</wave-level>
+    <phase-level>Existing active /register behavior is a protected compatibility boundary until Phase-28.</phase-level>
+  </verification-levels>
   <module-checks>
-    <check-1 evidence="deterministic">Unverified registration does not create active user access or JWT tokens.</check-1>
-    <check-2 evidence="deterministic">Verified activation creates user, trial, VPN device, VPN client, and referral effects once.</check-2>
+    <check-1 evidence="deterministic">Allowed email input normalizes consistently and creates a pending verification record without issuing JWT, trial, VPN, referral, or MTProto side effects.</check-1>
+    <check-2 evidence="deterministic">Verification tokens are stored hashed or otherwise non-recoverable; plaintext tokens never persist.</check-2>
     <check-3 evidence="deterministic">Expired, replayed, malformed, duplicate, and blocked-domain paths are rejected safely.</check-3>
+    <check-4 evidence="deterministic">Temporary/disposable and configured blocked domains are rejected before M-040 email sending is called.</check-4>
+    <check-5 evidence="deterministic">Allowlist policy can override broad deny rules for operator-approved domains.</check-5>
+    <check-6 evidence="compatibility">Phase-27 does not wire the new pending-registration flow into active /register yet.</check-6>
   </module-checks>
+  <phase-28-cutover-gates>
+    <gate-1>Unverified /register no longer creates active user access or JWT tokens.</gate-1>
+    <gate-2>Verified activation creates user, trial, VPN device, VPN client, referral effects, and later MTProto assignment exactly once.</gate-2>
+    <gate-3>Verification token replay cannot duplicate trial, referral, VPN, or MTProto side effects.</gate-3>
+  </phase-28-cutover-gates>
   <scenarios>
-    <scenario-1 kind="success">User submits allowed email and receives pending check-email state.</scenario-1>
-    <scenario-2 kind="success">User opens valid verification link and receives normal KrotPN onboarding resources.</scenario-2>
-    <scenario-3 kind="failure">Temporary email domain is blocked before verification email is sent.</scenario-3>
-    <scenario-4 kind="failure">Verification token replay cannot duplicate trial, referral, VPN, or MTProto side effects.</scenario-4>
+    <scenario-1 kind="success">User submits allowed email to the pending registration service and receives safe check-email state.</scenario-1>
+    <scenario-2 kind="failure">Temporary email domain is blocked before verification email is sent.</scenario-2>
+    <scenario-3 kind="failure">Malformed, expired, replayed, and duplicate pending-registration tokens fail with safe reasons.</scenario-3>
+    <scenario-4 kind="failure">Pending registration path cannot emit JWT tokens or provision KrotPN resources in Phase-27.</scenario-4>
   </scenarios>
   <required-log-markers>
     <marker-1>[M-041][request_registration][EMAIL_RISK_CHECK]</marker-1>
     <marker-2>[M-041][request_registration][STORE_PENDING]</marker-2>
-    <marker-3>[M-041][verify_registration][CONSUME_TOKEN]</marker-3>
-    <marker-4>[M-041][verify_registration][ACTIVATE_USER]</marker-4>
+    <marker-3>[M-041][email_risk_check][BLOCK_DOMAIN]</marker-3>
+    <marker-4>[M-041][verify_registration][CONSUME_TOKEN]</marker-4>
+    <marker-5>[M-041][verify_registration][TOKEN_REPLAYED]</marker-5>
+    <marker-6 phase="28">[M-041][verify_registration][ACTIVATE_USER]</marker-6>
   </required-log-markers>
   <redaction-rules>
-    <rule-1>Mask email local parts in logs and never log verification tokens.</rule-1>
+    <rule-1>Mask email local parts in logs and never log verification tokens, token hashes, password values, or raw risk-provider payloads.</rule-1>
+    <rule-2>Failure reasons may be operator-readable but must not expose whether an unrelated account exists.</rule-2>
   </redaction-rules>
+  <autonomous-execution-safety>
+    <level>safe-with-boundary</level>
+    <reason>Phase-27 is safe for local execution if tests prove no /register cutover, no deploy/install edits, no live email provider calls, and no VPN/MTProto side effects.</reason>
+  </autonomous-execution-safety>
 </V-M-041>

@@ -16,7 +16,9 @@
   </Steps>
   <Verification>
     <command>cd backend &amp;&amp; PYTHONPATH=. ../.venv/bin/python -m pytest -o addopts='' tests/test_email_delivery.py tests/test_email_verification_guard.py -v</command>
-    <command>python3 -m xml.etree.ElementTree docs/modules/M-040.xml docs/modules/M-041.xml docs/verification/V-M-040.xml docs/verification/V-M-041.xml</command>
+    <command>cd backend &amp;&amp; SECRET_KEY=test-secret-key-with-enough-length DATA_ENCRYPTION_KEY=dpFmfSVqfdAK3yx5MQV6Tcv35RZuw5MzaH0yhxJ01q0= PYTHONPATH=. ../.venv/bin/python -m pytest -o addopts='' tests/test_security.py -v -k blacklist</command>
+    <command>python3 -m xml.etree.ElementTree docs/verification-index.xml docs/modules/M-040.xml docs/modules/M-041.xml docs/verification/V-M-040.xml docs/verification/V-M-041.xml</command>
+    <command>mygrace lint</command>
   </Verification>
   <AcceptanceCriteria>
     <item-1>Email provider failures are typed and do not create user access.</item-1>
