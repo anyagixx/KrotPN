@@ -1,25 +1,47 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<V-M-042 MODULE="M-042" PRIORITY="critical" STATUS="planned" VERSION="1.0.0">
+<V-M-042 MODULE="M-042" PRIORITY="critical" STATUS="pending" VERSION="1.1.0">
+  <module>mtproto-assignment-registry</module>
+  <phase-scope>
+    <phase-29 status="pending">Design the Postgres-backed MTProto assignment registry gate before implementation.</phase-29>
+  </phase-scope>
   <test-files>
     <file>backend/tests/test_mtproto_assignment_registry.py</file>
     <file>backend/tests/test_db_migrations.py</file>
   </test-files>
+  <commands>cd backend &amp;&amp; PYTHONPATH=. ../.venv/bin/python -m pytest -o addopts='' tests/test_mtproto_assignment_registry.py tests/test_db_migrations.py -v</commands>
+  <verification-levels>
+    <module-local>Repository and model tests use isolated DB sessions and deterministic fixtures; no live Telegram, DNS, or host mutation.</module-local>
+    <wave-level>Runs with V-M-043 and migration tests so provisioning cannot persist data the registry cannot restore.</wave-level>
+    <phase-level>Phase-29 cannot pass unless assignment persistence is enough to rebuild owner-safe MTProto payloads after backup/restore.</phase-level>
+  </verification-levels>
   <module-checks>
     <check-1 evidence="deterministic">Assignment table enforces one canonical active assignment per user.</check-1>
     <check-2 evidence="deterministic">SNI uniqueness and lifecycle status transitions are deterministic.</check-2>
     <check-3 evidence="deterministic">Alembic migration is compatible with SQLModel metadata and existing DB tests.</check-3>
+    <check-4 evidence="deterministic">Persisted state excludes raw tg://proxy links, raw base secret, raw salt, and derived secret unless encrypted storage is explicitly approved.</check-4>
+    <check-5 evidence="restore-fixture">A restore-like fixture can rebuild the public response from user_id, SNI, credential mode, assignment status, and rotation marker.</check-5>
   </module-checks>
   <scenarios>
     <scenario-1 kind="success">Assignment is saved and read back by user id.</scenario-1>
     <scenario-2 kind="success">Restore-like fixture preserves user linkage, SNI, credential mode, and status.</scenario-2>
-    <scenario-3 kind="failure">Duplicate SNI or duplicate active user assignment is rejected.</scenario-3>
+    <scenario-3 kind="success">Idempotent save for the same verified user returns the existing canonical assignment without changing SNI.</scenario-3>
+    <scenario-4 kind="failure">Duplicate SNI or duplicate active user assignment is rejected or converted into an explicit superseded state.</scenario-4>
+    <scenario-5 kind="failure">Unverified, inactive, missing, or deleted users cannot receive active assignments.</scenario-5>
+    <scenario-6 kind="failure">Migration drift between SQLModel metadata and Alembic revision fails the gate.</scenario-6>
   </scenarios>
   <required-log-markers>
     <marker-1>[M-042][save_assignment][WRITE_ASSIGNMENT]</marker-1>
     <marker-2>[M-042][get_user_assignment][LOOKUP_USER]</marker-2>
     <marker-3>[M-042][list_assignments][REDACT_ADMIN_LIST]</marker-3>
+    <marker-4>[M-042][save_assignment][UNIQUENESS_CONFLICT]</marker-4>
+    <marker-5>[M-042][migration][MTPROTO_ASSIGNMENT_SCHEMA]</marker-5>
   </required-log-markers>
   <redaction-rules>
     <rule-1>Admin list and repository logs do not contain full tg://proxy links or raw secrets.</rule-1>
+    <rule-2>Uniqueness and migration errors may include assignment id and user id, but not SNI-derived secret material.</rule-2>
   </redaction-rules>
+  <autonomous-execution-safety>
+    <level>safe-local-db-only</level>
+    <reason>Phase-29 M-042 can be executed autonomously only against local test databases and Alembic metadata checks; production migration apply remains operator-controlled.</reason>
+  </autonomous-execution-safety>
 </V-M-042>

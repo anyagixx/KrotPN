@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Phase-29 NAME="MTProto Provisioning Core" STATUS="planned" VERSION="1.0.0">
+<Phase-29 NAME="MTProto Provisioning Core" STATUS="planned" VERSION="1.1.0" UPDATED="2026-05-14">
   <Goal>Port the required KPprotoN provisioning logic into KrotPN with Postgres-backed assignment state.</Goal>
   <Modules>M-042,M-043,M-001,M-002,M-028</Modules>
   <NonGoals>
@@ -17,7 +17,19 @@
   </Steps>
   <Verification>
     <command>cd backend &amp;&amp; PYTHONPATH=. ../.venv/bin/python -m pytest -o addopts='' tests/test_mtproto_assignment_registry.py tests/test_mtproto_provisioning.py tests/test_db_migrations.py -v</command>
+    <command>python3 -m xml.etree.ElementTree docs/plans/Phase-29.xml docs/verification/V-M-042.xml docs/verification/V-M-043.xml docs/verification-index.xml; mygrace lint</command>
   </Verification>
+  <VerificationMatrix>
+    <matrix-1 module="M-042" level="module-local">Assignment model, repository idempotency, uniqueness constraints, restore-safe fields, migration compatibility, and secret/link redaction.</matrix-1>
+    <matrix-2 module="M-043" level="module-local">Deterministic wildcard-safe SNI, derived fake-TLS secret vectors, tg://proxy assembly, idempotent issue/reissue, and safe failure paths.</matrix-2>
+    <matrix-3 module="M-001,M-002,M-028" level="wave-level">Settings validation, verified-user precondition, Alembic coverage, and no regressions in existing auth/migration contracts.</matrix-3>
+    <matrix-4 module="M-041" level="phase-level">No MTProto proxy is issued before verified-email activation; automatic issuance remains deferred until later integration phases unless explicitly added to Phase-29 execution.</matrix-4>
+  </VerificationMatrix>
+  <PreflightGates>
+    <gate-1>Execution may stay module-local, but release-level closure must acknowledge Phase-28 partial-local V-M-004 and V-M-022 debt until those route/API gates pass.</gate-1>
+    <gate-2>Automated tests must not call live Telegram, mutate host VPN state, or touch deploy/install scripts.</gate-2>
+    <gate-3>All logs and admin-safe responses must redact base secret, salt, derived secret, token material, and full tg://proxy links.</gate-3>
+  </PreflightGates>
   <AcceptanceCriteria>
     <item-1>One verified user maps to one canonical MTProto assignment unless explicit rotation is requested.</item-1>
     <item-2>Derived secret differs from raw base secret and is bound to the assigned SNI.</item-2>

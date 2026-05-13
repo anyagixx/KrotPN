@@ -1,24 +1,49 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<V-M-043 MODULE="M-043" PRIORITY="critical" STATUS="planned" VERSION="1.0.0">
+<V-M-043 MODULE="M-043" PRIORITY="critical" STATUS="pending" VERSION="1.1.0">
+  <module>mtproto-provisioning</module>
+  <phase-scope>
+    <phase-29 status="pending">Design the deterministic MTProto provisioning gate before implementation.</phase-29>
+  </phase-scope>
   <test-files>
     <file>backend/tests/test_mtproto_provisioning.py</file>
   </test-files>
+  <commands>cd backend &amp;&amp; PYTHONPATH=. ../.venv/bin/python -m pytest -o addopts='' tests/test_mtproto_provisioning.py -v</commands>
+  <verification-levels>
+    <module-local>Pure deterministic SNI, secret derivation, tg://proxy assembly, validation, and idempotency tests use fixed vectors and fake repository/session adapters.</module-local>
+    <wave-level>Runs with V-M-042 so issue/reissue persists only restore-safe assignment data and can rebuild owner-safe payloads.</wave-level>
+    <phase-level>Phase-29 cannot pass if unverified users can get a proxy, raw secrets are logged, or fake-TLS vectors are only shape-tested without golden assertions.</phase-level>
+  </verification-levels>
   <module-checks>
     <check-1 evidence="deterministic">SNI generation is stable and wildcard-safe for krotpn.xyz.</check-1>
     <check-2 evidence="deterministic">Derived fake-TLS credential differs from raw base secret and matches golden vectors.</check-2>
     <check-3 evidence="deterministic">Repeated issuance is idempotent and returns the same canonical assignment.</check-3>
+    <check-4 evidence="failure-path">Missing, malformed, or rotated base secret/salt returns explicit reissue-required or config-error states without partial persistence.</check-4>
+    <check-5 evidence="security">The generated tg://proxy payload is returned only to the owner-safe service response and is not persisted or logged raw.</check-5>
+    <check-6 evidence="cross-module">Pending email registration and unverified users cannot trigger MTProto assignment issuance.</check-6>
   </module-checks>
   <scenarios>
     <scenario-1 kind="success">Verified user receives a personal tg://proxy link with derived per-SNI credential.</scenario-1>
     <scenario-2 kind="success">Reopening the account dashboard rebuilds the same owner-safe payload from assignment state.</scenario-2>
-    <scenario-3 kind="failure">Missing base secret, missing salt, or invalid secret format blocks issuance safely.</scenario-3>
+    <scenario-3 kind="success">Explicit reissue after rotation creates a new assignment state or rotation marker according to M-042 policy.</scenario-3>
+    <scenario-4 kind="failure">Missing base secret, missing salt, or invalid secret format blocks issuance safely.</scenario-4>
+    <scenario-5 kind="failure">Unsafe SNI characters, wrong domain, duplicate SNI collision, or invalid port fail deterministically.</scenario-5>
+    <scenario-6 kind="failure">Unverified, inactive, or missing users do not receive assignment rows or tg://proxy payloads.</scenario-6>
   </scenarios>
   <required-log-markers>
     <marker-1>[M-043][issue_user_proxy][GENERATE_SNI]</marker-1>
     <marker-2>[M-043][issue_user_proxy][DERIVE_SECRET]</marker-2>
     <marker-3>[M-043][issue_user_proxy][PERSIST_ASSIGNMENT]</marker-3>
+    <marker-4>[M-043][issue_user_proxy][REUSE_ASSIGNMENT]</marker-4>
+    <marker-5>[M-043][derive_fake_tls_secret][GOLDEN_VECTOR]</marker-5>
+    <marker-6>[M-043][issue_user_proxy][REISSUE_REQUIRED]</marker-6>
+    <marker-7>[M-043][issue_user_proxy][REJECT_UNVERIFIED_USER]</marker-7>
   </required-log-markers>
   <redaction-rules>
     <rule-1>Never log full tg://proxy links, derived secret, base secret, or salt.</rule-1>
+    <rule-2>Logs may include user id, assignment id, masked SNI, credential mode, and rotation marker only.</rule-2>
   </redaction-rules>
+  <autonomous-execution-safety>
+    <level>safe-local-deterministic-only</level>
+    <reason>Phase-29 M-043 can be executed autonomously with fake repository adapters and local DB tests; no live Telegram connectivity, DNS mutation, runtime edge changes, or deploy/install edits are allowed.</reason>
+  </autonomous-execution-safety>
 </V-M-043>
