@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<M-043 NAME="mtproto-provisioning" TYPE="CORE_LOGIC" STATUS="planned">
+<M-043 NAME="mtproto-provisioning" TYPE="CORE_LOGIC" STATUS="done-local">
   <path>backend/app/mtproto</path>
   <owns>Deterministic SNI generation, derived fake-TLS secret generation, tg://proxy assembly, and idempotent reissue policy.</owns>
   <purpose>Port the useful KPprotoN provisioning logic into KrotPN as Python/FastAPI domain code backed by Postgres assignments.</purpose>
@@ -27,5 +27,8 @@
     <constraint-2>Base secret or salt rotation invalidates old links and must require explicit reissue messaging.</constraint-2>
     <constraint-3>Provisioning must be idempotent for repeated verified-registration retries.</constraint-3>
   </constraints>
+  <evidence>
+    <evidence-1>2026-05-14: Phase-29 target pytest passed for deterministic SNI, KPprotoN fake-TLS vector, verified-user guard, idempotency, reissue, and config failure paths.</evidence-1>
+  </evidence>
   <hotspot>H-029: Changing MTProto base secret or salt invalidates issued Telegram proxy links unless reissue is explicit</hotspot>
 </M-043>

@@ -1,11 +1,15 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<V-M-028 MODULE="M-028" PRIORITY="critical" STATUS="pass">
+<V-M-028 MODULE="M-028" PRIORITY="critical" STATUS="pass-local">
   <module>alembic-migrations</module>
-  <checks>Alembic migrations apply all migrations on clean database and produce schema consistent with models. Backward compatible with existing SQLModel.create_all behavior during transition period.</checks>
+  <checks>Alembic migrations apply all migrations on clean database and produce schema consistent with models. Backward compatible with existing SQLModel.create_all behavior during transition period. Phase-29 MTProto assignment migration is registered after baseline with user/SNI uniqueness indexes.</checks>
   <test-files>backend/tests/test_db_migrations.py</test-files>
-  <commands>pytest tests/test_db_migrations.py -v</commands>
+  <commands>cd backend &amp;&amp; SECRET_KEY=test-secret-key-with-enough-length PYTHONPATH=. ../.venv/bin/python -m pytest -o addopts='' tests/test_db_migrations.py -v</commands>
   <anchors>ALEMBIC_MIGRATION_APPLIED</anchors>
   <scenarios>
     <scenario kind="success" trace="ALEMBIC_MIGRATION_APPLIED">alembic upgrade head applies all migrations on clean database</scenario>
+    <scenario kind="success" trace="MTPROTO_ASSIGNMENT_SCHEMA">MTProto assignment migration follows baseline and contains registry schema markers</scenario>
   </scenarios>
+  <evidence>
+    <evidence-1>2026-05-14: tests/test_db_migrations.py passed as part of Phase-29 target pytest gate.</evidence-1>
+  </evidence>
 </V-M-028>

@@ -1,14 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<V-M-042 MODULE="M-042" PRIORITY="critical" STATUS="pending" VERSION="1.1.0">
+<V-M-042 MODULE="M-042" PRIORITY="critical" STATUS="pass-local" VERSION="1.2.0">
   <module>mtproto-assignment-registry</module>
   <phase-scope>
-    <phase-29 status="pending">Design the Postgres-backed MTProto assignment registry gate before implementation.</phase-29>
+    <phase-29 status="pass-local">Postgres-backed MTProto assignment registry implemented and verified locally.</phase-29>
   </phase-scope>
   <test-files>
     <file>backend/tests/test_mtproto_assignment_registry.py</file>
     <file>backend/tests/test_db_migrations.py</file>
   </test-files>
-  <commands>cd backend &amp;&amp; PYTHONPATH=. ../.venv/bin/python -m pytest -o addopts='' tests/test_mtproto_assignment_registry.py tests/test_db_migrations.py -v</commands>
+  <commands>cd backend &amp;&amp; SECRET_KEY=test-secret-key-with-enough-length PYTHONPATH=. ../.venv/bin/python -m pytest -o addopts='' tests/test_mtproto_assignment_registry.py tests/test_db_migrations.py -v</commands>
   <verification-levels>
     <module-local>Repository and model tests use isolated DB sessions and deterministic fixtures; no live Telegram, DNS, or host mutation.</module-local>
     <wave-level>Runs with V-M-043 and migration tests so provisioning cannot persist data the registry cannot restore.</wave-level>
@@ -44,4 +44,7 @@
     <level>safe-local-db-only</level>
     <reason>Phase-29 M-042 can be executed autonomously only against local test databases and Alembic metadata checks; production migration apply remains operator-controlled.</reason>
   </autonomous-execution-safety>
+  <evidence>
+    <evidence-1>2026-05-14: V-M-042 target tests passed locally inside the combined Phase-29 pytest run.</evidence-1>
+  </evidence>
 </V-M-042>

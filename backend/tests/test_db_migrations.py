@@ -1,3 +1,29 @@
+"""Database migration helper tests.
+
+# FILE: backend/tests/test_db_migrations.py
+# VERSION: 1.0.0
+# ROLE: TEST
+# MAP_MODE: LOCALS
+# START_MODULE_CONTRACT
+#   PURPOSE: Verify database migration helper behavior and migration metadata guardrails
+#   SCOPE: VPN client compatibility helpers and Phase-29 MTProto migration evidence
+#   DEPENDS: M-028, M-042
+#   LINKS: V-M-028, V-M-042
+# END_MODULE_CONTRACT
+#
+# START_MODULE_MAP
+#   test_partition_vpn_client_rows_keeps_active_latest_row_per_user - Covers partitioning
+#   test_ensure_vpn_client_preshared_key_column_adds_nullable_column - Covers add path
+#   test_ensure_vpn_client_preshared_key_column_is_idempotent - Covers no-op path
+#   test_mtproto_assignment_migration_is_registered_after_baseline - Covers MTProto metadata
+# END_MODULE_MAP
+#
+# START_CHANGE_SUMMARY
+#   LAST_CHANGE: v1.1.0 - Added MyGRACE contract and Phase-29 migration scope
+# END_CHANGE_SUMMARY
+"""
+
+from pathlib import Path
 from types import SimpleNamespace
 
 import pytest
@@ -89,3 +115,17 @@ async def test_ensure_vpn_client_preshared_key_column_is_idempotent():
     await _ensure_vpn_client_preshared_key_column(conn)
 
     assert conn.statements == []
+
+
+def test_mtproto_assignment_migration_is_registered_after_baseline():
+    migration_path = (
+        Path(__file__).parents[1]
+        / "alembic"
+        / "versions"
+        / "b3f1e0d2c9a4_add_mtproto_assignments.py"
+    )
+    migration_text = migration_path.read_text(encoding="utf-8")
+
+    assert 'revision: str = "b3f1e0d2c9a4"' in migration_text
+    assert 'down_revision: Union[str, Sequence[str], None] = "2699e47c4e1b"' in migration_text
+    assert "[M-042][migration][MTPROTO_ASSIGNMENT_SCHEMA]" in migration_text

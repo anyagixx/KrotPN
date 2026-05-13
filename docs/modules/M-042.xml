@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<M-042 NAME="mtproto-assignment-registry" TYPE="DATA_LAYER" STATUS="planned">
+<M-042 NAME="mtproto-assignment-registry" TYPE="DATA_LAYER" STATUS="done-local">
   <path>backend/app/mtproto backend/alembic</path>
   <owns>PostgreSQL-backed MTProto proxy assignment records, uniqueness constraints, lifecycle status, and restore-safe metadata.</owns>
   <purpose>Store each user's personal Telegram MTProto proxy assignment inside KrotPN's primary database instead of KPprotoN DETS.</purpose>
@@ -14,7 +14,7 @@
   <files>
     <file>backend/app/mtproto/models.py</file>
     <file>backend/app/mtproto/repository.py</file>
-    <file>backend/alembic/versions/</file>
+    <file>backend/alembic/versions/b3f1e0d2c9a4_add_mtproto_assignments.py</file>
     <file>backend/tests/test_mtproto_assignment_registry.py</file>
     <file>backend/tests/test_db_migrations.py</file>
   </files>
@@ -27,5 +27,8 @@
     <constraint-1>Backup/restore must preserve assignment linkage with users and migration state.</constraint-1>
     <constraint-2>Schema changes require Alembic coverage and SQLModel compatibility.</constraint-2>
   </constraints>
+  <evidence>
+    <evidence-1>2026-05-14: Phase-29 target pytest passed for assignment registry, SNI uniqueness, redacted listing, and migration metadata.</evidence-1>
+  </evidence>
   <hotspot>H-028: MTProto assignment backup/restore must preserve SNI, credential mode, and user linkage without storing unnecessary raw secrets</hotspot>
 </M-042>

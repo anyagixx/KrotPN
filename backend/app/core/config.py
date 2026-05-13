@@ -4,7 +4,8 @@
 # MAP_MODE: EXPORTS
 # START_MODULE_CONTRACT
 #   PURPOSE: Application configuration and environment variable parsing with validation
-#   SCOPE: Settings model, environment parsing, secret validation, VPN network settings, AmneziaWG obfuscation params, anti-abuse thresholds, email verification provider and domain guard knobs
+#   SCOPE: Settings model, environment parsing, secret validation, VPN network settings,
+#          AmneziaWG params, anti-abuse, email verification, and MTProto knobs
 #   DEPENDS: M-032 (vpn-network-addressing-capacity)
 #   LINKS: M-001 (backend-core), M-032, V-M-001, V-M-032
 # END_MODULE_CONTRACT
@@ -12,15 +13,17 @@
 # START_MODULE_MAP
 #   Settings - Pydantic BaseSettings model with all environment variables and validators
 #   Settings.vpn_network - Resolved client/relay subnet configuration with capacity validation
-#   Settings.awg_client_obfuscation_params - Validated deploy-time CLIENT_PROFILE mapping when AWG_CLIENT_* is present
-#   Settings.awg_relay_obfuscation_params - Validated deploy-time RELAY_PROFILE mapping when AWG_RELAY_* is present
-#   Settings.anti_abuse_* - Observe/auto-rotate mode and endpoint-history thresholds for shared-config detection
-#   Settings.email_verification_* - Provider, TTL, URL and domain guard settings for verified registration foundation
+#   Settings.awg_client_obfuscation_params - CLIENT_PROFILE mapping
+#   Settings.awg_relay_obfuscation_params - RELAY_PROFILE mapping
+#   Settings.anti_abuse_* - Observe/auto-rotate and endpoint-history thresholds
+#   Settings.email_verification_* - Provider, TTL, URL and domain guard settings
+#   Settings.mtproto_* - Personal MTProto proxy provisioning settings
 #   get_settings - lru_cache factory returning validated Settings singleton
 #   settings - Module-level cached Settings instance
 # END_MODULE_MAP
 #
 # START_CHANGE_SUMMARY
+#   LAST_CHANGE: v3.4.0 - Added Phase-29 MTProto provisioning settings
 #   LAST_CHANGE: v3.3.0 - Added Phase-27 email verification provider, TTL and domain guard settings
 #   LAST_CHANGE: v3.2.0 - Added configurable VPN client/relay subnet and capacity profile settings
 #   LAST_CHANGE: v3.1.0 - Added anti-abuse mode, scan interval, history, ping-pong and cooldown settings
@@ -42,6 +45,7 @@ GRACE-lite module contract:
 
 from functools import lru_cache
 import json
+import re
 from typing import Annotated, Literal
 
 from pydantic import Field, field_validator
@@ -238,6 +242,14 @@ class Settings(BaseSettings):
     smtp_password: str | None = None
     email_from: str | None = None
 
+    # MTProto personal proxy provisioning
+    mtproto_base_domain: str = "krotpn.xyz"
+    mtproto_proxy_port: int = Field(default=443, ge=1, le=65535)
+    mtproto_base_secret_hex: str | None = None
+    mtproto_secret_salt: str | None = None
+    mtproto_sni_prefix: str = Field(default="u", min_length=1, max_length=24)
+    mtproto_rotation_marker: str = Field(default="v1", min_length=1, max_length=64)
+
     # Referral
     referral_bonus_days: int = 7
     referral_min_payment: float = 100.0
@@ -299,6 +311,54 @@ class Settings(BaseSettings):
                 continue
             domains.append(domain.rstrip("."))
         return domains
+
+    @field_validator("mtproto_base_domain")
+    @classmethod
+    def validate_mtproto_base_domain(cls, v: str) -> str:
+        normalized = v.strip().lower().removeprefix("https://").removeprefix("http://")
+        normalized = normalized.lstrip("*.").rstrip(".")
+        if not normalized or "/" in normalized or ":" in normalized:
+            raise ValueError("MTPROTO_BASE_DOMAIN must be a bare DNS domain")
+        labels = normalized.split(".")
+        if len(labels) < 2 or any(not label for label in labels):
+            raise ValueError("MTPROTO_BASE_DOMAIN must contain at least two DNS labels")
+        return normalized
+
+    @field_validator("mtproto_base_secret_hex")
+    @classmethod
+    def validate_mtproto_base_secret_hex(cls, v: str | None) -> str | None:
+        if v is None:
+            return None
+        normalized = v.strip().lower()
+        if not re.fullmatch(r"[0-9a-f]{32}", normalized):
+            raise ValueError("MTPROTO_BASE_SECRET_HEX must be exactly 32 hex characters")
+        return normalized
+
+    @field_validator("mtproto_secret_salt")
+    @classmethod
+    def validate_mtproto_secret_salt(cls, v: str | None) -> str | None:
+        if v is None:
+            return None
+        normalized = v.strip().lower()
+        if not re.fullmatch(r"[0-9a-f]{32}", normalized):
+            raise ValueError("MTPROTO_SECRET_SALT must be exactly 32 hex characters")
+        return normalized
+
+    @field_validator("mtproto_sni_prefix")
+    @classmethod
+    def validate_mtproto_sni_prefix(cls, v: str) -> str:
+        normalized = v.strip().lower().strip("-")
+        if not re.fullmatch(r"[a-z0-9-]{1,24}", normalized):
+            raise ValueError("MTPROTO_SNI_PREFIX must be a DNS label fragment")
+        return normalized
+
+    @field_validator("mtproto_rotation_marker")
+    @classmethod
+    def validate_mtproto_rotation_marker(cls, v: str) -> str:
+        normalized = v.strip()
+        if not re.fullmatch(r"[A-Za-z0-9._-]{1,64}", normalized):
+            raise ValueError("MTPROTO_ROTATION_MARKER must be a safe opaque marker")
+        return normalized
 
     @property
     def is_production(self) -> bool:

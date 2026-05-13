@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <M-001 NAME="backend-core" TYPE="UTILITY" STATUS="stable">
   <path>backend/app/core</path>
-  <owns>settings, security (JWT, password hashing, Fernet encryption, token blacklist), DB sessions, dependency injection, admin bootstrap, topology bootstrap, database migrations, AWG stealth profile settings, anti-abuse runtime settings, and verified-registration email settings</owns>
+  <owns>settings, security (JWT, password hashing, Fernet encryption, token blacklist), DB sessions, dependency injection, admin bootstrap, topology bootstrap, database migrations, AWG stealth profile settings, anti-abuse runtime settings, verified-registration email settings, and MTProto provisioning settings</owns>
   <exports>
     <fn-settings>Runtime configuration values and environment parsing</fn-settings>
     <fn-init-db>Database initialization and session lifecycle</fn-init-db>
@@ -11,6 +11,7 @@
     <fn-awg-profile-settings>Validated environment settings for CLIENT_PROFILE and RELAY_PROFILE obfuscation values</fn-awg-profile-settings>
     <fn-anti-abuse-settings>Validated ANTI_ABUSE_* mode, scan interval, history window, ping-pong window and cooldown values</fn-anti-abuse-settings>
     <fn-email-verification-settings>EMAIL_PROVIDER, verification TTL, provider timeout, Resend/SMTP credentials, verification URL base, allow/deny/disposable domain knobs, and DNS guard toggle</fn-email-verification-settings>
+    <fn-mtproto-settings>MTPROTO_BASE_DOMAIN, MTPROTO_PROXY_PORT, MTPROTO_BASE_SECRET_HEX, MTPROTO_SECRET_SALT, MTPROTO_SNI_PREFIX, and MTPROTO_ROTATION_MARKER validation</fn-mtproto-settings>
   </exports>
   <depends>M-028</depends>
   <verification-ref>V-M-001</verification-ref>
@@ -32,4 +33,5 @@
   <hotspot>H-011: Token blacklist depends on Redis — graceful degradation must not break auth</hotspot>
   <hotspot>H-014: Admin audit middleware must not log sensitive bodies or tokens</hotspot>
   <hotspot>H-026: Email provider secrets and verification tokens must never leak through settings-driven logs or errors</hotspot>
+  <hotspot>H-030: MTProto base secret and salt must stay runtime-only and never appear in logs or persisted assignment rows</hotspot>
 </M-001>

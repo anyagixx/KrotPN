@@ -15,9 +15,11 @@
 #   init_db - SQLModel.create_all + compatibility migrations + admin/user bootstrap
 #   get_db - FastAPI async_generator dependency for DB session with auto-commit
 #   get_session - AsyncSession context manager for non-request scopes
+#   import_all_models - Registers all SQLModel table classes, including MTProto assignments
 # END_MODULE_MAP
 #
 # START_CHANGE_SUMMARY
+#   LAST_CHANGE: v2.9.0 - Registered Phase-29 MTProto assignment models in SQLModel metadata
 #   LAST_CHANGE: v2.8.0 - Added full GRACE MODULE_CONTRACT and MODULE_MAP per GRACE governance protocol
 # END_CHANGE_SUMMARY
 #
@@ -73,6 +75,7 @@ def import_all_models() -> None:
     """Import all SQLModel models so relationship targets are registered."""
     import app.billing.models  # noqa: F401
     import app.devices.models  # noqa: F401
+    import app.mtproto.models  # noqa: F401
     import app.referrals.models  # noqa: F401
     import app.users.models  # noqa: F401
     import app.vpn.models  # noqa: F401
