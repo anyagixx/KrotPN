@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Phase-30 NAME="KPprotoN Runtime Bridge" STATUS="planned" VERSION="1.0.0">
+  <Goal>Connect KrotPN MTProto assignments to a runtime policy bridge that can activate issued SNI domains safely.</Goal>
+  <Modules>M-044,M-042,M-043,M-008,M-012</Modules>
+  <NonGoals>
+    <item-1>No shared 443 edge cutover yet.</item-1>
+    <item-2>No user dashboard UI work yet.</item-2>
+    <item-3>No deploy/install script redesign.</item-3>
+  </NonGoals>
+  <Steps>
+    <step-1>Define the bridge interface for apply-domain-policy, runtime health, startup replay, and reconciliation.</step-1>
+    <step-2>Choose integration shape for KPprotoN/mtproto_proxy runtime with pinned dependency or isolated service boundary.</step-2>
+    <step-3>Implement startup replay from M-042 assignments into runtime policy state with idempotent retries.</step-3>
+    <step-4>Implement degraded-mode semantics when the runtime bridge is unavailable during verified onboarding.</step-4>
+    <step-5>Wire a scheduler reconciliation task without impacting existing anti-abuse scheduler jobs.</step-5>
+    <step-6>Add tests for policy apply success, bridge unavailable, replay after restart, and no-secret logging.</step-6>
+  </Steps>
+  <Verification>
+    <command>cd backend &amp;&amp; PYTHONPATH=. ../.venv/bin/python -m pytest -o addopts='' tests/test_kpproton_runtime_bridge.py tests/test_scheduler.py -v</command>
+  </Verification>
+  <AcceptanceCriteria>
+    <item-1>Active assignments replay into policy state after backend or bridge restart.</item-1>
+    <item-2>Bridge failure does not break normal KrotPN login or VPN config access.</item-2>
+    <item-3>Verified users see an explicit pending/degraded proxy state if runtime activation is delayed.</item-3>
+    <item-4>Runtime logs include stable markers but no full proxy link, token, or secret.</item-4>
+  </AcceptanceCriteria>
+  <Risks>
+    <risk-1>KPprotoN Erlang dependency drift can make runtime behavior non-reproducible unless pinned.</risk-1>
+    <risk-2>Policy state can drift from Postgres unless reconciliation is designed early.</risk-2>
+  </Risks>
+</Phase-30>

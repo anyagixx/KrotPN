@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<M-045 NAME="mtproto-user-cabinet" TYPE="UI_COMPONENT" STATUS="planned">
+  <path>frontend backend/app/mtproto</path>
+  <owns>User-facing API and compact dashboard UI for personal free Telegram MTProto proxy access.</owns>
+  <purpose>Show every verified user their free indefinite MTProto proxy alongside KrotPN trial and VPN actions in the mobile cabinet.</purpose>
+  <exports>
+    <api-get-my-mtproto-proxy>Authenticated endpoint returning server, port, secret, tg link, status, and reissue guidance.</api-get-my-mtproto-proxy>
+    <view-mtproto-card>Dashboard card with open-in-Telegram, copy link, copy server, copy port, and copy secret actions.</view-mtproto-card>
+    <view-mtproto-empty-state>Compact unavailable, pending, degraded, and reissue-required states.</view-mtproto-empty-state>
+  </exports>
+  <depends>M-002,M-009,M-036,M-042,M-043</depends>
+  <verification-ref>V-M-045</verification-ref>
+  <files>
+    <file>backend/app/mtproto/router.py</file>
+    <file>backend/app/mtproto/schemas.py</file>
+    <file>frontend/src/lib/api.ts</file>
+    <file>frontend/src/pages/Dashboard.tsx</file>
+    <file>frontend/src/index.css</file>
+    <file>backend/tests/test_mtproto_api.py</file>
+  </files>
+  <ui-contract>
+    <primary>MTProto proxy status and copy/open actions fit the first mobile dashboard screen without hiding VPN trial state.</primary>
+    <secondary>Manual Telegram fields remain available for desktop and mobile copy workflows.</secondary>
+  </ui-contract>
+  <constraints>
+    <constraint-1>The MTProto card must not create horizontal scroll at 360x740, 390x844, or 430x932.</constraint-1>
+    <constraint-2>Full proxy links are shown only to the authenticated owner and never in admin summary lists.</constraint-2>
+  </constraints>
+  <hotspot>H-031: User dashboard must show MTProto access compactly without hiding VPN trial status or config actions</hotspot>
+</M-045>

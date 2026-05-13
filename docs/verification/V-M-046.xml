@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<V-M-046 MODULE="M-046" PRIORITY="critical" STATUS="planned" VERSION="1.0.0">
+  <test-files>
+    <file>backend/tests/test_domain_tls_edge_static.py</file>
+    <file>nginx/nginx.conf</file>
+    <file>docker-compose.yml</file>
+  </test-files>
+  <module-checks>
+    <check-1 evidence="deterministic">Static edge config forces HTTP to HTTPS for krotpn.xyz.</check-1>
+    <check-2 evidence="deterministic">Wildcard TLS paths and canonical domain settings are present.</check-2>
+    <check-3 evidence="integration">Production-like smoke proves HTTPS frontend/backend/admin and one MTProto SNI path.</check-3>
+  </module-checks>
+  <scenarios>
+    <scenario-1 kind="success">http://krotpn.xyz redirects to https://krotpn.xyz.</scenario-1>
+    <scenario-2 kind="success">Normal HTTPS traffic reaches KrotPN frontend/API/admin through fallback route.</scenario-2>
+    <scenario-3 kind="success">Telegram fake-TLS traffic for issued SNI reaches MTProto runtime.</scenario-3>
+    <scenario-4 kind="failure">Shared 443 rollback restores previous nginx-only public behavior.</scenario-4>
+  </scenarios>
+  <required-log-markers>
+    <marker-1>[M-046][edge][HTTP_TO_HTTPS_REDIRECT]</marker-1>
+    <marker-2>[M-046][edge][SHARED_443_ROUTE]</marker-2>
+    <marker-3>[M-046][edge][HTTPS_FALLBACK]</marker-3>
+  </required-log-markers>
+  <redaction-rules>
+    <rule-1>Certificate private keys and .env content must never be printed during edge verification.</rule-1>
+  </redaction-rules>
+</V-M-046>

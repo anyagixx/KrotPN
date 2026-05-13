@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<V-M-045 MODULE="M-045" PRIORITY="high" STATUS="planned" VERSION="1.0.0">
+  <test-files>
+    <file>backend/tests/test_mtproto_api.py</file>
+    <file>frontend/src/lib/api.ts</file>
+    <file>frontend/src/pages/Dashboard.tsx</file>
+  </test-files>
+  <module-checks>
+    <check-1 evidence="deterministic">Authenticated owner can retrieve full MTProto proxy payload.</check-1>
+    <check-2 evidence="deterministic">Non-owner or unauthenticated requests cannot retrieve proxy secret.</check-2>
+    <check-3 evidence="deterministic">Frontend build passes after adding MTProto card and API types.</check-3>
+  </module-checks>
+  <scenarios>
+    <scenario-1 kind="success">Verified user sees Telegram proxy card on dashboard.</scenario-1>
+    <scenario-2 kind="success">Copy/open actions expose link, server, port, and secret only to owner UI.</scenario-2>
+    <scenario-3 kind="failure">Pending or degraded bridge state renders actionable empty state.</scenario-3>
+  </scenarios>
+  <required-log-markers>
+    <marker-1>[M-045][get_my_mtproto_proxy][OWNER_LOOKUP]</marker-1>
+    <marker-2>[M-045][get_my_mtproto_proxy][RENDER_PAYLOAD]</marker-2>
+  </required-log-markers>
+  <redaction-rules>
+    <rule-1>HTTP logs and frontend console logs must not print full tg://proxy links or secrets.</rule-1>
+  </redaction-rules>
+</V-M-045>

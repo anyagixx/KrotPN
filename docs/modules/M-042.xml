@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<M-042 NAME="mtproto-assignment-registry" TYPE="DATA_LAYER" STATUS="planned">
+  <path>backend/app/mtproto backend/alembic</path>
+  <owns>PostgreSQL-backed MTProto proxy assignment records, uniqueness constraints, lifecycle status, and restore-safe metadata.</owns>
+  <purpose>Store each user's personal Telegram MTProto proxy assignment inside KrotPN's primary database instead of KPprotoN DETS.</purpose>
+  <exports>
+    <model-MTProtoAssignment>User-linked assignment table with SNI, credential mode, status, timestamps, and rotation metadata.</model-MTProtoAssignment>
+    <fn-get-user-assignment>Return the current active or latest assignment for one user.</fn-get-user-assignment>
+    <fn-save-assignment>Create or update an idempotent user assignment.</fn-save-assignment>
+    <fn-list-assignments>Admin-safe paginated lookup without exposing raw secrets by default.</fn-list-assignments>
+  </exports>
+  <depends>M-001,M-002,M-028</depends>
+  <verification-ref>V-M-042</verification-ref>
+  <files>
+    <file>backend/app/mtproto/models.py</file>
+    <file>backend/app/mtproto/repository.py</file>
+    <file>backend/alembic/versions/</file>
+    <file>backend/tests/test_mtproto_assignment_registry.py</file>
+    <file>backend/tests/test_db_migrations.py</file>
+  </files>
+  <data-contract>
+    <field-1>user_id has a uniqueness guard for one canonical active personal proxy per user.</field-1>
+    <field-2>sni is unique and remains stable across idempotent reissue unless rotation is explicit.</field-2>
+    <field-3>secret material is derived on demand or encrypted if persisted; raw proxy links are not logged.</field-3>
+  </data-contract>
+  <constraints>
+    <constraint-1>Backup/restore must preserve assignment linkage with users and migration state.</constraint-1>
+    <constraint-2>Schema changes require Alembic coverage and SQLModel compatibility.</constraint-2>
+  </constraints>
+  <hotspot>H-028: MTProto assignment backup/restore must preserve SNI, credential mode, and user linkage without storing unnecessary raw secrets</hotspot>
+</M-042>

@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<M-047 NAME="mtproto-admin-ops" TYPE="ENTRY_POINT" STATUS="planned">
+  <path>backend/app/admin frontend-admin</path>
+  <owns>Admin inspection and controlled operations for MTProto assignments, runtime bridge health, reissue, revoke, and audit-safe diagnostics.</owns>
+  <purpose>Give the operator visibility and controlled recovery actions for user MTProto proxy assignments without exposing secrets broadly.</purpose>
+  <exports>
+    <api-admin-list-mtproto>List assignments by user, SNI, status, and timestamps with redacted sensitive fields.</api-admin-list-mtproto>
+    <api-admin-reissue-mtproto>Force explicit reissue after secret rotation or runtime repair.</api-admin-reissue-mtproto>
+    <api-admin-revoke-mtproto>Disable one user's MTProto assignment without disabling VPN account access.</api-admin-revoke-mtproto>
+    <view-admin-mtproto>Admin UI surface for health, assignment search, reissue, revoke, and recent failures.</view-admin-mtproto>
+  </exports>
+  <depends>M-006,M-010,M-024,M-042,M-043,M-044</depends>
+  <verification-ref>V-M-047</verification-ref>
+  <files>
+    <file>backend/app/admin/router.py</file>
+    <file>backend/app/admin/audit.py</file>
+    <file>frontend-admin/src/lib/api.ts</file>
+    <file>frontend-admin/src/pages/</file>
+    <file>backend/tests/test_mtproto_admin_ops.py</file>
+  </files>
+  <admin-policy>
+    <policy-1>Admin list views show redacted or derived-safe assignment fields by default.</policy-1>
+    <policy-2>Reissue and revoke are explicit audited actions with confirmation in the frontend.</policy-2>
+    <policy-3>MTProto revoke does not implicitly cancel KrotPN subscription or VPN device access.</policy-3>
+  </admin-policy>
+  <constraints>
+    <constraint-1>Audit events must not store full tg://proxy links, verification tokens, or raw secrets.</constraint-1>
+    <constraint-2>Admin mobile UX must preserve confirmation-safe destructive actions.</constraint-2>
+  </constraints>
+  <hotspot>H-033: Admin MTProto operations must never expose full secrets or proxy links in logs, tables, or audit payloads</hotspot>
+</M-047>

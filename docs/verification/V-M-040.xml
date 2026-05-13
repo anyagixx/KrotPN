@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<V-M-040 MODULE="M-040" PRIORITY="critical" STATUS="planned" VERSION="1.0.0">
+  <test-files>
+    <file>backend/tests/test_email_delivery.py</file>
+  </test-files>
+  <module-checks>
+    <check-1 evidence="deterministic">Email template renders readable UTF-8 subject, HTML, and text fallback.</check-1>
+    <check-2 evidence="deterministic">Provider success and typed failures are mapped without leaking tokens.</check-2>
+    <check-3 evidence="deterministic">Missing provider config blocks send with operator-safe error.</check-3>
+  </module-checks>
+  <scenarios>
+    <scenario-1 kind="success">Verification email is sent to a normalized allowed email address.</scenario-1>
+    <scenario-2 kind="failure">Provider 401, 429, 5xx, timeout, and transport errors map to safe internal codes.</scenario-2>
+    <scenario-3 kind="failure">Logs never contain verification token, API key, or raw provider response body.</scenario-3>
+  </scenarios>
+  <required-log-markers>
+    <marker-1>[M-040][send_verification_email][BUILD_REQUEST]</marker-1>
+    <marker-2>[M-040][send_verification_email][POST_PROVIDER]</marker-2>
+    <marker-3>[M-040][send_verification_email][MAP_PROVIDER_ERROR]</marker-3>
+  </required-log-markers>
+  <redaction-rules>
+    <rule-1>Never log verification links, tokens, provider API keys, or full provider response bodies.</rule-1>
+  </redaction-rules>
+</V-M-040>

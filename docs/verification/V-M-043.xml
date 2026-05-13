@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<V-M-043 MODULE="M-043" PRIORITY="critical" STATUS="planned" VERSION="1.0.0">
+  <test-files>
+    <file>backend/tests/test_mtproto_provisioning.py</file>
+  </test-files>
+  <module-checks>
+    <check-1 evidence="deterministic">SNI generation is stable and wildcard-safe for krotpn.xyz.</check-1>
+    <check-2 evidence="deterministic">Derived fake-TLS credential differs from raw base secret and matches golden vectors.</check-2>
+    <check-3 evidence="deterministic">Repeated issuance is idempotent and returns the same canonical assignment.</check-3>
+  </module-checks>
+  <scenarios>
+    <scenario-1 kind="success">Verified user receives a personal tg://proxy link with derived per-SNI credential.</scenario-1>
+    <scenario-2 kind="success">Reopening the account dashboard rebuilds the same owner-safe payload from assignment state.</scenario-2>
+    <scenario-3 kind="failure">Missing base secret, missing salt, or invalid secret format blocks issuance safely.</scenario-3>
+  </scenarios>
+  <required-log-markers>
+    <marker-1>[M-043][issue_user_proxy][GENERATE_SNI]</marker-1>
+    <marker-2>[M-043][issue_user_proxy][DERIVE_SECRET]</marker-2>
+    <marker-3>[M-043][issue_user_proxy][PERSIST_ASSIGNMENT]</marker-3>
+  </required-log-markers>
+  <redaction-rules>
+    <rule-1>Never log full tg://proxy links, derived secret, base secret, or salt.</rule-1>
+  </redaction-rules>
+</V-M-043>

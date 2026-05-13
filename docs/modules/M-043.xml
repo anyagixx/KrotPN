@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<M-043 NAME="mtproto-provisioning" TYPE="CORE_LOGIC" STATUS="planned">
+  <path>backend/app/mtproto</path>
+  <owns>Deterministic SNI generation, derived fake-TLS secret generation, tg://proxy assembly, and idempotent reissue policy.</owns>
+  <purpose>Port the useful KPprotoN provisioning logic into KrotPN as Python/FastAPI domain code backed by Postgres assignments.</purpose>
+  <exports>
+    <fn-generate-sni>Generate a stable user-bound wildcard-safe SNI under krotpn.xyz.</fn-generate-sni>
+    <fn-derive-fake-tls-secret>Build a per-SNI Telegram fake-TLS secret from configured base secret and private salt.</fn-derive-fake-tls-secret>
+    <fn-issue-user-proxy>Create or reuse a user's canonical MTProto assignment and return a safe response payload.</fn-issue-user-proxy>
+    <fn-build-tg-link>Assemble tg://proxy from server, port, and derived secret for the authenticated user.</fn-build-tg-link>
+  </exports>
+  <depends>M-001,M-002,M-040,M-042</depends>
+  <verification-ref>V-M-043</verification-ref>
+  <files>
+    <file>backend/app/mtproto/provisioning.py</file>
+    <file>backend/app/mtproto/schemas.py</file>
+    <file>backend/app/mtproto/service.py</file>
+    <file>backend/tests/test_mtproto_provisioning.py</file>
+  </files>
+  <source-transfer>
+    <from-project>KPprotoN</from-project>
+    <reuse>Stable SNI derivation, per-SNI derived credentials, supersession warning semantics.</reuse>
+    <rewrite>Implement in Python with deterministic test vectors and KrotPN settings.</rewrite>
+  </source-transfer>
+  <constraints>
+    <constraint-1>Knowing base domain, port, and base secret must not be enough to authenticate without issued derived credential.</constraint-1>
+    <constraint-2>Base secret or salt rotation invalidates old links and must require explicit reissue messaging.</constraint-2>
+    <constraint-3>Provisioning must be idempotent for repeated verified-registration retries.</constraint-3>
+  </constraints>
+  <hotspot>H-029: Changing MTProto base secret or salt invalidates issued Telegram proxy links unless reissue is explicit</hotspot>
+</M-043>

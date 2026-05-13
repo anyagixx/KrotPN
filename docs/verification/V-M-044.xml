@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<V-M-044 MODULE="M-044" PRIORITY="critical" STATUS="planned" VERSION="1.0.0">
+  <test-files>
+    <file>backend/tests/test_kpproton_runtime_bridge.py</file>
+    <file>backend/tests/test_scheduler.py</file>
+  </test-files>
+  <module-checks>
+    <check-1 evidence="deterministic">apply-domain-policy succeeds for one issued SNI and records runtime state.</check-1>
+    <check-2 evidence="deterministic">Startup replay loads active assignments idempotently.</check-2>
+    <check-3 evidence="deterministic">Bridge unavailable path returns degraded status without breaking login/VPN APIs.</check-3>
+  </module-checks>
+  <scenarios>
+    <scenario-1 kind="success">New assignment is applied to MTProto policy runtime.</scenario-1>
+    <scenario-2 kind="success">Backend restart replays active SNI assignments.</scenario-2>
+    <scenario-3 kind="failure">Runtime bridge failure marks assignment pending/degraded and emits safe operator evidence.</scenario-3>
+  </scenarios>
+  <required-log-markers>
+    <marker-1>[M-044][apply_domain_policy][LOAD_POLICY]</marker-1>
+    <marker-2>[M-044][replay_active_assignments][REPLAY_POLICY]</marker-2>
+    <marker-3>[M-044][runtime_health][BRIDGE_DEGRADED]</marker-3>
+  </required-log-markers>
+  <redaction-rules>
+    <rule-1>Policy logs can include SNI but never include secret, token, or full proxy URL.</rule-1>
+  </redaction-rules>
+</V-M-044>

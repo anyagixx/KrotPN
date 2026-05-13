@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!-- MyGRACE Graph Index — lazy-loading entry point for module navigation -->
 <!-- MyGRACE index generated from per-module contracts; archived monoliths are reference-only -->
-<GraphIndex VERSION="1.0.0" PROJECT="KrotPN" MODULE-COUNT="34">
+<GraphIndex VERSION="1.0.0" PROJECT="KrotPN" MODULE-COUNT="42">
   <M-001 NAME="backend-core" TYPE="UTILITY" STATUS="stable" PATH="backend/app/core" DEPENDS="M-028" VERIFICATION-REF="V-M-001" />
   <M-002 NAME="users" TYPE="CORE_LOGIC" STATUS="stable" PATH="backend/app/users" DEPENDS="M-001,M-027" VERIFICATION-REF="V-M-002" />
   <M-003 NAME="vpn" TYPE="CORE_LOGIC" STATUS="stable" PATH="backend/app/vpn" DEPENDS="M-001,M-002,M-007,M-020,M-030" VERIFICATION-REF="V-M-003" />
@@ -36,6 +36,14 @@
   <M-037 NAME="mobile-admin-console" TYPE="UI_COMPONENT" STATUS="done" PATH="frontend-admin docs/plans/Phase-24.xml" DEPENDS="M-006,M-010,M-024,M-038" VERIFICATION-REF="V-M-037" />
   <M-038 NAME="compact-ui-system" TYPE="UI_COMPONENT" STATUS="done" PATH="frontend frontend-admin docs/plans/Phase-23.xml docs/plans/Phase-24.xml" DEPENDS="M-009,M-010" VERIFICATION-REF="V-M-038" />
   <M-039 NAME="session-security-hardening" TYPE="CORE_LOGIC" STATUS="done-local" PATH="backend/app/users frontend frontend-admin docs/plans/Phase-25.xml docs/security/SESSION-PHASE-25.xml scripts/session-security-smoke.mjs" DEPENDS="M-002,M-006,M-009,M-010,M-027" VERIFICATION-REF="V-M-039" />
+  <M-040 NAME="email-delivery" TYPE="INTEGRATION" STATUS="planned" PATH="backend/app/email docs/plans/Phase-27.xml" DEPENDS="M-001" VERIFICATION-REF="V-M-040" />
+  <M-041 NAME="verified-email-registration" TYPE="CORE_LOGIC" STATUS="planned" PATH="backend/app/users backend/app/email docs/plans/Phase-27.xml docs/plans/Phase-28.xml" DEPENDS="M-001,M-002,M-004,M-005,M-022,M-027,M-040" VERIFICATION-REF="V-M-041" />
+  <M-042 NAME="mtproto-assignment-registry" TYPE="DATA_LAYER" STATUS="planned" PATH="backend/app/mtproto backend/alembic docs/plans/Phase-29.xml" DEPENDS="M-001,M-002,M-028" VERIFICATION-REF="V-M-042" />
+  <M-043 NAME="mtproto-provisioning" TYPE="CORE_LOGIC" STATUS="planned" PATH="backend/app/mtproto docs/plans/Phase-29.xml" DEPENDS="M-001,M-002,M-040,M-042" VERIFICATION-REF="V-M-043" />
+  <M-044 NAME="kpproton-runtime-bridge" TYPE="INTEGRATION" STATUS="planned" PATH="backend/app/mtproto kpproton docs/plans/Phase-30.xml" DEPENDS="M-001,M-008,M-012,M-042,M-043" VERIFICATION-REF="V-M-044" />
+  <M-045 NAME="mtproto-user-cabinet" TYPE="UI_COMPONENT" STATUS="planned" PATH="frontend backend/app/mtproto docs/plans/Phase-31.xml" DEPENDS="M-002,M-009,M-036,M-042,M-043" VERIFICATION-REF="V-M-045" />
+  <M-046 NAME="krotpn-domain-tls-edge" TYPE="ENTRY_POINT" STATUS="planned" PATH="nginx docker-compose.yml docs/plans/Phase-32.xml" DEPENDS="M-001,M-012,M-044" VERIFICATION-REF="V-M-046" />
+  <M-047 NAME="mtproto-admin-ops" TYPE="ENTRY_POINT" STATUS="planned" PATH="backend/app/admin frontend-admin docs/plans/Phase-33.xml" DEPENDS="M-006,M-010,M-024,M-042,M-043,M-044" VERIFICATION-REF="V-M-047" />
 
   <CrossLinks>
     <link from="M-002" to="M-001" />
@@ -174,6 +182,40 @@
     <link from="M-039" to="M-009" />
     <link from="M-039" to="M-010" />
     <link from="M-039" to="M-027" />
+    <link from="M-040" to="M-001" />
+    <link from="M-041" to="M-001" />
+    <link from="M-041" to="M-002" />
+    <link from="M-041" to="M-004" />
+    <link from="M-041" to="M-005" />
+    <link from="M-041" to="M-022" />
+    <link from="M-041" to="M-027" />
+    <link from="M-041" to="M-040" />
+    <link from="M-042" to="M-001" />
+    <link from="M-042" to="M-002" />
+    <link from="M-042" to="M-028" />
+    <link from="M-043" to="M-001" />
+    <link from="M-043" to="M-002" />
+    <link from="M-043" to="M-040" />
+    <link from="M-043" to="M-042" />
+    <link from="M-044" to="M-001" />
+    <link from="M-044" to="M-008" />
+    <link from="M-044" to="M-012" />
+    <link from="M-044" to="M-042" />
+    <link from="M-044" to="M-043" />
+    <link from="M-045" to="M-002" />
+    <link from="M-045" to="M-009" />
+    <link from="M-045" to="M-036" />
+    <link from="M-045" to="M-042" />
+    <link from="M-045" to="M-043" />
+    <link from="M-046" to="M-001" />
+    <link from="M-046" to="M-012" />
+    <link from="M-046" to="M-044" />
+    <link from="M-047" to="M-006" />
+    <link from="M-047" to="M-010" />
+    <link from="M-047" to="M-024" />
+    <link from="M-047" to="M-042" />
+    <link from="M-047" to="M-043" />
+    <link from="M-047" to="M-044" />
   </CrossLinks>
 
   <Hotspots>
@@ -202,5 +244,13 @@
     <H-023 module="M-036" text="Mobile user cabinet must keep config download, QR, subscription and device actions reachable without clutter" />
     <H-024 module="M-037" text="Mobile admin console must keep emergency operator actions visible without desktop-only dashboards" />
     <H-025 module="M-039" text="Session hardening must not break login/register/refresh/logout compatibility during frontend simplification" />
+    <H-026 module="M-040" text="Email delivery must not leak verification tokens, API keys, or raw provider responses" />
+    <H-027 module="M-041" text="Trial, VPN provisioning, referral effects, and MTProto issuance must not happen before email ownership is verified" />
+    <H-028 module="M-042" text="MTProto assignment backup/restore must preserve SNI, credential mode, and user linkage without storing unnecessary raw secrets" />
+    <H-029 module="M-043" text="Changing MTProto base secret or salt invalidates issued Telegram proxy links unless reissue is explicit" />
+    <H-030 module="M-044" text="MTProto runtime bridge must degrade safely when policy loading fails and must not block normal KrotPN login" />
+    <H-031 module="M-045" text="User dashboard must show MTProto access compactly without hiding VPN trial status or config actions" />
+    <H-032 module="M-046" text="Shared 443 edge can break both HTTPS and Telegram proxy if fallback routing or wildcard TLS is misconfigured" />
+    <H-033 module="M-047" text="Admin MTProto operations must never expose full secrets or proxy links in logs, tables, or audit payloads" />
   </Hotspots>
 </GraphIndex>

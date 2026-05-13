@@ -13,6 +13,8 @@
     <actor-System>Automated backend services for auth, billing, webhook processing, DNS refresh, route sync</actor-System>
     <actor-TelegramBot>Telegram bot client that mediates auth, config delivery, and subscription status for users</actor-TelegramBot>
     <actor-PaymentProvider>External YooKassa payment system processing subscriptions</actor-PaymentProvider>
+    <actor-EmailProvider>External email delivery provider used for verification messages</actor-EmailProvider>
+    <actor-MTProtoRuntime>KPprotoN-derived MTProto runtime responsible for Telegram proxy policy activation</actor-MTProtoRuntime>
   </Actors>
 
   <UseCases>
@@ -61,12 +63,12 @@
     </UC-004>
 
     <UC-005>
-      <Name>Email registration and trial provisioning</Name>
+      <Name>Verified email registration and trial provisioning</Name>
       <Actor>User</Actor>
-      <Action>Registers by email, receives trial subscription and VPN client</Action>
-      <Goal>User gets VPN access with minimal steps: register, trial, config, connect</Goal>
-      <Preconditions>Email is valid; system can send confirmation or skip verification</Preconditions>
-      <AcceptanceCriteria>User receives trial subscription, VPN client config (text/file/QR), and can connect successfully.</AcceptanceCriteria>
+      <Action>Registers by email, confirms ownership through a one-time verification email, then receives trial subscription and VPN client</Action>
+      <Goal>User gets VPN access with minimal safe steps: request registration, verify email, receive trial, config, connect</Goal>
+      <Preconditions>Email syntax and domain risk checks pass; system can send verification email; verification token is valid and unused</Preconditions>
+      <AcceptanceCriteria>No trial, VPN config, referral effect, JWT session, or MTProto proxy is issued before email ownership is verified. After verification, user receives 3-day trial subscription, VPN client config (text/file/QR), and can connect successfully.</AcceptanceCriteria>
       <Priority>critical</Priority>
       <RelatedFlows>DF-001</RelatedFlows>
     </UC-005>
@@ -158,6 +160,17 @@
       <Priority>critical</Priority>
       <RelatedFlows>DF-MYGRACE-REFRESH, DF-VERIFY-COLLECT</RelatedFlows>
     </UC-013>
+
+    <UC-014>
+      <Name>Free personal Telegram MTProto proxy after verified registration</Name>
+      <Actor>User</Actor>
+      <Action>Receives an individual indefinite Telegram MTProto proxy in the KrotPN personal cabinet after email verification</Action>
+      <Goal>Give every verified KrotPN account a free personal Telegram proxy while preserving KrotPN trial subscription semantics</Goal>
+      <Preconditions>Email ownership is verified; MTProto provisioning settings are valid; wildcard TLS for krotpn.xyz and *.krotpn.xyz is ready before production links are advertised</Preconditions>
+      <AcceptanceCriteria>Each verified user has one canonical personal MTProto assignment with stable SNI, derived per-SNI fake-TLS secret, owner-only tg://proxy visibility, and admin-safe redacted operations. The user dashboard shows proxy details compactly on mobile. HTTP traffic to krotpn.xyz redirects to HTTPS.</AcceptanceCriteria>
+      <Priority>critical</Priority>
+      <RelatedFlows>DF-MTPROTO-ISSUE, DF-MTPROTO-DASHBOARD, DF-MTPROTO-EDGE</RelatedFlows>
+    </UC-014>
   </UseCases>
 
   <NonGoals>
@@ -177,6 +190,8 @@
     <constraint-5>Migration from legacy VPNServer to VPNNode/VPNRoute must be backward-compatible</constraint-5>
     <constraint-6>Existing deploy and install scripts are treated as operator-approved deployment surface and must not be redesigned by the recovery or UI cleanup phases</constraint-6>
     <constraint-7>Emergency recovery artifacts must protect secrets at rest and avoid printing credentials, tokens, private keys, or raw .env content into logs</constraint-7>
+    <constraint-8>Email ownership verification is mandatory before issuing trial, VPN, referral, JWT session, or MTProto proxy access</constraint-8>
+    <constraint-9>MTProto fake-TLS and normal HTTPS must share the krotpn.xyz edge safely through wildcard TLS and explicit 443 routing</constraint-9>
   </Constraints>
 
   <Risks>
@@ -188,6 +203,8 @@
     <risk-6>Referral bonus processing edge cases (self-referral, circular chains, duplicate bonuses)</risk-6>
     <risk-7>Disaster recovery can fail silently if backup manifests omit VPN client state, AWG profile data, or runtime secrets</risk-7>
     <risk-8>Mobile UI simplification can hide critical admin/user actions unless workflows are verified on small viewports</risk-8>
+    <risk-9>Disposable-email filtering can block real users or miss new temporary domains; email ownership proof remains the decisive control</risk-9>
+    <risk-10>Shared 443 routing for HTTPS and MTProto can break both website access and Telegram proxy if wildcard TLS or fallback routing is misconfigured</risk-10>
   </Risks>
 
   <OpenQuestions>

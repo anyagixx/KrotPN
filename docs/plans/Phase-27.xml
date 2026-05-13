@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Phase-27 NAME="Email Verification Foundation" STATUS="planned" VERSION="1.0.0">
+  <Goal>Create the foundation for verified email registration so no KrotPN access is issued before email ownership is proven.</Goal>
+  <Modules>M-040,M-041,M-001,M-002,M-027</Modules>
+  <NonGoals>
+    <item-1>No MTProto provisioning in this phase.</item-1>
+    <item-2>No deploy/install script changes.</item-2>
+    <item-3>No cookie-only session migration.</item-3>
+  </NonGoals>
+  <Steps>
+    <step-1>Extend M-001 settings contract with email provider, verification TTL, allowed/blocked domains, and disposable-domain guard knobs.</step-1>
+    <step-2>Create M-040 email delivery adapter and verification templates using KPprotoN template lessons but KrotPN branding.</step-2>
+    <step-3>Create M-041 pending registration model/service with token hashing, TTL, replay protection, and normalized email storage.</step-3>
+    <step-4>Add email-risk checks: syntax, domain normalization, MX/DNS availability, configured disposable-domain denylist, and safe failure reasons.</step-4>
+    <step-5>Add focused backend tests and log markers without changing existing active /register behavior yet.</step-5>
+  </Steps>
+  <Verification>
+    <command>cd backend &amp;&amp; PYTHONPATH=. ../.venv/bin/python -m pytest -o addopts='' tests/test_email_delivery.py tests/test_email_verification_guard.py -v</command>
+    <command>python3 -m xml.etree.ElementTree docs/modules/M-040.xml docs/modules/M-041.xml docs/verification/V-M-040.xml docs/verification/V-M-041.xml</command>
+  </Verification>
+  <AcceptanceCriteria>
+    <item-1>Email provider failures are typed and do not create user access.</item-1>
+    <item-2>Verification token values are stored hashed or otherwise non-recoverable from logs.</item-2>
+    <item-3>Temporary or configured blocked domains are rejected before sending verification email.</item-3>
+    <item-4>The existing live registration behavior remains untouched until Phase-28 cutover.</item-4>
+  </AcceptanceCriteria>
+  <Risks>
+    <risk-1>Over-aggressive temp-mail checks can block real users; allowlist override must exist.</risk-1>
+    <risk-2>SMTP existence probing is intentionally avoided because it is unreliable and privacy-hostile.</risk-2>
+  </Risks>
+</Phase-27>

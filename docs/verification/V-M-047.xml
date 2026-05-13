@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<V-M-047 MODULE="M-047" PRIORITY="high" STATUS="planned" VERSION="1.0.0">
+  <test-files>
+    <file>backend/tests/test_mtproto_admin_ops.py</file>
+    <file>frontend-admin/src/lib/api.ts</file>
+    <file>frontend-admin/src/pages/</file>
+  </test-files>
+  <module-checks>
+    <check-1 evidence="deterministic">Admin assignment list returns redacted fields by default.</check-1>
+    <check-2 evidence="deterministic">Reissue and revoke require admin role and emit audit events.</check-2>
+    <check-3 evidence="deterministic">Frontend-admin build passes with confirmation-safe operations.</check-3>
+  </module-checks>
+  <scenarios>
+    <scenario-1 kind="success">Admin can inspect bridge health and assignment status.</scenario-1>
+    <scenario-2 kind="success">Admin can reissue one user's proxy after explicit confirmation.</scenario-2>
+    <scenario-3 kind="success">Admin can revoke MTProto access without canceling VPN subscription.</scenario-3>
+    <scenario-4 kind="failure">Non-admin and missing confirmation paths are rejected.</scenario-4>
+  </scenarios>
+  <required-log-markers>
+    <marker-1>[M-047][admin_list_mtproto][REDACT_LIST]</marker-1>
+    <marker-2>[M-047][admin_reissue_mtproto][AUDIT_REISSUE]</marker-2>
+    <marker-3>[M-047][admin_revoke_mtproto][AUDIT_REVOKE]</marker-3>
+  </required-log-markers>
+  <redaction-rules>
+    <rule-1>Admin logs and audit records never include full tg://proxy links or raw secrets.</rule-1>
+  </redaction-rules>
+</V-M-047>

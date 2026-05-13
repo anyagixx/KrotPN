@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<M-044 NAME="kpproton-runtime-bridge" TYPE="INTEGRATION" STATUS="planned">
+  <path>backend/app/mtproto kpproton</path>
+  <owns>Runtime bridge from KrotPN assignments to the KPprotoN/mtproto_proxy policy layer and startup policy replay.</owns>
+  <purpose>Keep Telegram MTProto access active by loading issued SNI assignments into the runtime edge without blocking normal KrotPN auth.</purpose>
+  <exports>
+    <fn-apply-domain-policy>Apply one issued SNI to the MTProto policy runtime.</fn-apply-domain-policy>
+    <fn-replay-active-assignments>Load active assignments after process or container restart.</fn-replay-active-assignments>
+    <fn-runtime-health>Expose bridge health for user-safe and admin-safe status checks.</fn-runtime-health>
+    <task-mtproto-policy-sync>Scheduled reconciliation between Postgres assignments and edge policy state.</task-mtproto-policy-sync>
+  </exports>
+  <depends>M-001,M-008,M-012,M-042,M-043</depends>
+  <verification-ref>V-M-044</verification-ref>
+  <files>
+    <file>backend/app/mtproto/runtime_bridge.py</file>
+    <file>backend/app/mtproto/health.py</file>
+    <file>backend/app/tasks/scheduler.py</file>
+    <file>backend/tests/test_kpproton_runtime_bridge.py</file>
+  </files>
+  <runtime-policy>
+    <policy-1>Bridge failures mark MTProto provisioning degraded but do not prevent normal KrotPN login.</policy-1>
+    <policy-2>Verified registration may complete with a pending proxy status only if user messaging is explicit.</policy-2>
+    <policy-3>Startup replay must be idempotent and safe after backup restore.</policy-3>
+  </runtime-policy>
+  <constraints>
+    <constraint-1>Do not rely on KPprotoN DETS registry as the source of truth.</constraint-1>
+    <constraint-2>Do not expose raw tg://proxy links or secrets in runtime logs.</constraint-2>
+  </constraints>
+  <hotspot>H-030: MTProto runtime bridge must degrade safely when policy loading fails and must not block normal KrotPN login</hotspot>
+</M-044>

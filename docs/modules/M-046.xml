@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<M-046 NAME="krotpn-domain-tls-edge" TYPE="ENTRY_POINT" STATUS="planned">
+  <path>nginx docker-compose.yml</path>
+  <owns>krotpn.xyz domain edge, HTTP to HTTPS redirect, wildcard TLS expectations, and shared 443 routing contract for HTTPS plus MTProto.</owns>
+  <purpose>Define the production edge model needed for https://krotpn.xyz and Telegram fake-TLS MTProto proxy to coexist safely.</purpose>
+  <exports>
+    <edge-http-redirect>Force http://krotpn.xyz and http://www.krotpn.xyz to https://krotpn.xyz.</edge-http-redirect>
+    <edge-wildcard-tls>Use trusted certificates covering krotpn.xyz and *.krotpn.xyz.</edge-wildcard-tls>
+    <edge-shared-443>Route MTProto fake-TLS by issued SNI and forward normal HTTPS to KrotPN frontend/backend/admin.</edge-shared-443>
+    <edge-static-guard>Static checks proving deploy/install scripts are not redesigned in this phase.</edge-static-guard>
+  </exports>
+  <depends>M-001,M-012,M-044</depends>
+  <verification-ref>V-M-046</verification-ref>
+  <files>
+    <file>nginx/nginx.conf</file>
+    <file>docker-compose.yml</file>
+    <file>.env.example</file>
+    <file>.env.production</file>
+    <file>backend/tests/test_domain_tls_edge_static.py</file>
+  </files>
+  <edge-policy>
+    <policy-1>Shared 443 design must be verified before replacing direct nginx ownership of 443.</policy-1>
+    <policy-2>Wildcard certificate issuance may remain operator-driven; this module defines runtime expectations first.</policy-2>
+    <policy-3>Existing deploy/install scripts are protected unless the operator explicitly approves edge deployment changes.</policy-3>
+  </edge-policy>
+  <constraints>
+    <constraint-1>Misrouting 443 can break both website and Telegram proxy, so rollout requires a rollback plan.</constraint-1>
+    <constraint-2>Self-signed certificates are unacceptable for production Telegram fake-TLS links.</constraint-2>
+  </constraints>
+  <hotspot>H-032: Shared 443 edge can break both HTTPS and Telegram proxy if fallback routing or wildcard TLS is misconfigured</hotspot>
+</M-046>

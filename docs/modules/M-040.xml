@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<M-040 NAME="email-delivery" TYPE="INTEGRATION" STATUS="planned">
+  <path>backend/app/email</path>
+  <owns>Email provider adapter, verification email templates, provider error mapping, and safe operator evidence for email delivery.</owns>
+  <purpose>Provide a KrotPN-native email delivery surface for verified registration without exposing tokens or provider secrets.</purpose>
+  <exports>
+    <fn-send-verification-email>Send a one-time registration verification link or code to a normalized email address.</fn-send-verification-email>
+    <fn-build-verification-template>Render Russian and English subject, HTML, and text fallback content.</fn-build-verification-template>
+    <fn-map-email-provider-error>Map provider HTTP or transport failures to typed application errors.</fn-map-email-provider-error>
+  </exports>
+  <depends>M-001</depends>
+  <verification-ref>V-M-040</verification-ref>
+  <files>
+    <file>backend/app/email/service.py</file>
+    <file>backend/app/email/templates.py</file>
+    <file>backend/app/email/provider.py</file>
+    <file>backend/app/email/__init__.py</file>
+    <file>backend/tests/test_email_delivery.py</file>
+  </files>
+  <source-transfer>
+    <from-project>KPprotoN</from-project>
+    <reuse>Resend request payload shape, readable UTF-8 templates, provider error normalization.</reuse>
+    <do-not-reuse>Standalone KPprotoN portal registration endpoint or DETS token storage.</do-not-reuse>
+  </source-transfer>
+  <constraints>
+    <constraint-1>Verification tokens must never appear in logs, traces, or provider error payloads.</constraint-1>
+    <constraint-2>Email sending failures block registration activation but do not create user, trial, VPN, or MTProto records.</constraint-2>
+    <constraint-3>Provider configuration remains env-backed through M-001 settings.</constraint-3>
+  </constraints>
+  <hotspot>H-026: Email delivery must not leak verification tokens, API keys, or raw provider responses</hotspot>
+</M-040>

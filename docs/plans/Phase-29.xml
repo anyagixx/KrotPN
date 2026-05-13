@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Phase-29 NAME="MTProto Provisioning Core" STATUS="planned" VERSION="1.0.0">
+  <Goal>Port the required KPprotoN provisioning logic into KrotPN with Postgres-backed assignment state.</Goal>
+  <Modules>M-042,M-043,M-001,M-002,M-028</Modules>
+  <NonGoals>
+    <item-1>No public MTProto runtime edge changes yet.</item-1>
+    <item-2>No user dashboard work yet.</item-2>
+    <item-3>No deploy/install script changes.</item-3>
+  </NonGoals>
+  <Steps>
+    <step-1>Add MTProto settings: base domain, proxy port, base secret, private salt, SNI prefix strategy, and rotation marker.</step-1>
+    <step-2>Create Postgres assignment model and Alembic migration for M-042 with unique user and SNI constraints.</step-2>
+    <step-3>Implement deterministic SNI generation under krotpn.xyz and collision-safe fallback policy.</step-3>
+    <step-4>Implement derived fake-TLS secret generation and tg://proxy assembly using KPprotoN-compatible test vectors.</step-4>
+    <step-5>Add idempotent issue/reissue service that stores assignment metadata and returns owner-safe proxy payload.</step-5>
+    <step-6>Add backend tests for assignment persistence, derived credential behavior, rotation warning, and migration compatibility.</step-6>
+  </Steps>
+  <Verification>
+    <command>cd backend &amp;&amp; PYTHONPATH=. ../.venv/bin/python -m pytest -o addopts='' tests/test_mtproto_assignment_registry.py tests/test_mtproto_provisioning.py tests/test_db_migrations.py -v</command>
+  </Verification>
+  <AcceptanceCriteria>
+    <item-1>One verified user maps to one canonical MTProto assignment unless explicit rotation is requested.</item-1>
+    <item-2>Derived secret differs from raw base secret and is bound to the assigned SNI.</item-2>
+    <item-3>Assignment restore from Postgres is sufficient to rebuild user-safe response payloads.</item-3>
+    <item-4>Base secret or salt rotation is represented as a reissue-required condition.</item-4>
+  </AcceptanceCriteria>
+  <Risks>
+    <risk-1>Wrong fake-TLS secret format will produce links Telegram rejects even if backend tests pass superficially.</risk-1>
+    <risk-2>Storing full proxy links unnecessarily increases breach impact.</risk-2>
+  </Risks>
+</Phase-29>

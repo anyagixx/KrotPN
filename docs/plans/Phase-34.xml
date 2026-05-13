@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Phase-34 NAME="MTProto Integration Stabilization Gates" STATUS="planned" VERSION="1.0.0">
+  <Goal>Close the end-to-end stabilization gates for verified registration, free MTProto proxy issuance, dashboard UX, admin ops, and production edge readiness.</Goal>
+  <Modules>M-040,M-041,M-042,M-043,M-044,M-045,M-046,M-047</Modules>
+  <NonGoals>
+    <item-1>No new functional scope beyond stabilization and release readiness.</item-1>
+    <item-2>No deploy/install redesign outside the approved edge work.</item-2>
+  </NonGoals>
+  <Steps>
+    <step-1>Run full backend targeted suite for email, registration, MTProto provisioning, runtime bridge, admin ops, and migrations.</step-1>
+    <step-2>Run user frontend and admin frontend builds plus mobile viewport smoke for registration, dashboard, and admin MTProto pages.</step-2>
+    <step-3>Run security/redaction review for email tokens, tg://proxy links, derived secrets, admin audit payloads, and logs.</step-3>
+    <step-4>Run backup/restore planning update so MTProto assignments and secret rotation metadata are covered by Phase-22 artifacts.</step-4>
+    <step-5>Run production-like smoke after krotpn.xyz DNS and wildcard certificate are ready.</step-5>
+    <step-6>Prepare release handoff with known risks, rollback notes, and operator acceptance checklist.</step-6>
+  </Steps>
+  <Verification>
+    <command>cd backend &amp;&amp; PYTHONPATH=. ../.venv/bin/python -m pytest -o addopts='' tests/test_email_delivery.py tests/test_verified_registration.py tests/test_mtproto_assignment_registry.py tests/test_mtproto_provisioning.py tests/test_kpproton_runtime_bridge.py tests/test_mtproto_api.py tests/test_mtproto_admin_ops.py -v</command>
+    <command>cd frontend &amp;&amp; npm run build</command>
+    <command>cd frontend-admin &amp;&amp; npm run build</command>
+    <command>python3 -m xml.etree.ElementTree docs/graph-index.xml docs/plan-index.xml docs/verification-index.xml docs/modules/M-040.xml docs/modules/M-041.xml docs/modules/M-042.xml docs/modules/M-043.xml docs/modules/M-044.xml docs/modules/M-045.xml docs/modules/M-046.xml docs/modules/M-047.xml</command>
+  </Verification>
+  <AcceptanceCriteria>
+    <item-1>Unverified registration cannot create trial, VPN, referral, or MTProto access.</item-1>
+    <item-2>Verified registration creates KrotPN trial and free indefinite Telegram MTProto proxy without duplicate side effects.</item-2>
+    <item-3>Owner dashboard, admin ops, runtime bridge, and edge smoke all have evidence.</item-3>
+    <item-4>Release handoff clearly states remaining live-only assumptions.</item-4>
+  </AcceptanceCriteria>
+  <Risks>
+    <risk-1>Live Telegram acceptance cannot be fully proven without production wildcard TLS and real client smoke.</risk-1>
+    <risk-2>Large behavior change in registration requires staged release and rollback clarity.</risk-2>
+  </Risks>
+</Phase-34>
