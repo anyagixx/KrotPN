@@ -11,17 +11,19 @@
 #
 # START_MODULE_MAP
 #   EmailVerificationErrorCode, EmailVerificationError - Typed safe verification failures
-#   EmailRiskResult, PendingRegistrationResult, VerificationConsumeResult, RegistrationStatusResult - Result contracts
+#   EmailRiskResult, PendingRegistrationResult, VerificationConsumeResult, RegistrationActivationResult, RegistrationStatusResult - Result contracts
 #   DefaultEmailDomainResolver - Optional MX/DNS resolver with stdlib fallback
 #   normalize_email_address - Canonical lower-case email normalization
 #   hash_verification_token, generate_verification_token - Token primitives
 #   email_risk_check - Syntax/domain/disposable/DNS guard
 #   request_registration - Create pending registration and send verification email without active access
-#   verify_registration - Consume a token once without Phase-28 user activation
+#   verify_registration - Consume a token once without account activation
+#   activate_registration - Consume a token once and create the verified user account
 #   registration_status - Return safe pending-registration status
 # END_MODULE_MAP
 #
 # START_CHANGE_SUMMARY
+#   LAST_CHANGE: v1.1.0 - Added Phase-28 account activation helper and pending-record reuse
 #   LAST_CHANGE: v1.0.0 - Added Phase-27 pending verified-registration foundation without /register cutover
 # END_CHANGE_SUMMARY
 
@@ -50,6 +52,7 @@ from app.users.models import (
     PendingEmailRegistration,
     PendingEmailRegistrationStatus,
     User,
+    UserRole,
 )
 from app.users.schemas import UserCreate
 
@@ -111,6 +114,17 @@ class VerificationConsumeResult:
     email: str
     status: PendingEmailRegistrationStatus
     consumed_at: datetime
+
+
+@dataclass(frozen=True)
+class RegistrationActivationResult:
+    """Verified registration activation result."""
+
+    email: str
+    user: User
+    pending_id: int
+    consumed_at: datetime
+    referred_by_id: int | None
 
 
 @dataclass(frozen=True)
@@ -361,19 +375,41 @@ async def request_registration(
     token = generate_verification_token()
     token_hash = hash_verification_token(token, app_settings=app_settings)
 
-    pending = PendingEmailRegistration(
-        email=risk.normalized_email,
-        token_hash=token_hash,
-        password_hash=hash_password(data.password),
-        name=data.name,
-        language=data.language,
-        referral_code=data.referral_code,
-        status=PendingEmailRegistrationStatus.PENDING,
-        expires_at=expires_at,
-        created_at=issued_at,
-        updated_at=issued_at,
+    pending_result = await session.execute(
+        select(PendingEmailRegistration)
+        .where(PendingEmailRegistration.email == risk.normalized_email)
+        .order_by(
+            PendingEmailRegistration.created_at.desc(),
+            PendingEmailRegistration.id.desc(),
+        )
     )
-    session.add(pending)
+    pending = pending_result.scalars().first()
+    password_hash = hash_password(data.password)
+    if pending is None:
+        pending = PendingEmailRegistration(
+            email=risk.normalized_email,
+            token_hash=token_hash,
+            password_hash=password_hash,
+            name=data.name,
+            language=data.language,
+            referral_code=data.referral_code,
+            status=PendingEmailRegistrationStatus.PENDING,
+            expires_at=expires_at,
+            created_at=issued_at,
+            updated_at=issued_at,
+        )
+        session.add(pending)
+    else:
+        pending.token_hash = token_hash
+        pending.password_hash = password_hash
+        pending.name = data.name
+        pending.language = data.language
+        pending.referral_code = data.referral_code
+        pending.status = PendingEmailRegistrationStatus.PENDING
+        pending.risk_reason = None
+        pending.expires_at = expires_at
+        pending.consumed_at = None
+        pending.updated_at = issued_at
     await session.flush()
 
     logger.info(
@@ -386,6 +422,11 @@ async def request_registration(
         token,
         language=data.language,
         app_settings=app_settings,
+    )
+    logger.info(
+        "[M-041][request_registration][PENDING_RESPONSE] "
+        f"email={mask_email_for_logs(risk.normalized_email)} pending_id={pending.id} "
+        f"delivery_status={delivery.status}"
     )
     return PendingRegistrationResult(
         email=risk.normalized_email,
@@ -460,6 +501,114 @@ async def verify_registration(
         consumed_at=checked_at,
     )
 # END_BLOCK_VERIFY_REGISTRATION
+
+
+# START_CONTRACT: activate_registration
+#   PURPOSE: Consume a verification token and create the canonical verified user account once
+#   INPUTS: session: AsyncSession; token: str; app_settings: Settings; now: datetime | None
+#   OUTPUTS: RegistrationActivationResult
+#   SIDE_EFFECTS: creates User row, marks pending registration verified, sets referred_by_id when referral code is valid
+#   LINKS: M-041, M-002, M-005, V-M-041
+# END_CONTRACT: activate_registration
+# START_BLOCK_ACTIVATE_REGISTRATION
+async def activate_registration(
+    session: AsyncSession,
+    token: str,
+    *,
+    app_settings: Settings = settings,
+    now: datetime | None = None,
+) -> RegistrationActivationResult:
+    """Activate a pending registration after email ownership is proven."""
+    token_hash = hash_verification_token(token, app_settings=app_settings)
+    result = await session.execute(
+        select(PendingEmailRegistration).where(
+            PendingEmailRegistration.token_hash == token_hash
+        )
+    )
+    pending = result.scalar_one_or_none()
+    if pending is None:
+        raise EmailVerificationError(
+            EmailVerificationErrorCode.TOKEN_INVALID,
+            "Verification token is invalid",
+        )
+
+    checked_at = now or datetime.now(timezone.utc)
+    expires_at = _as_aware_utc(pending.expires_at)
+    if pending.status != PendingEmailRegistrationStatus.PENDING or pending.consumed_at:
+        logger.warning(
+            "[M-041][verify_registration][TOKEN_REPLAYED] "
+            f"email={mask_email_for_logs(pending.email)} pending_id={pending.id}"
+        )
+        raise EmailVerificationError(
+            EmailVerificationErrorCode.TOKEN_REPLAYED,
+            "Verification token was already used",
+        )
+    if expires_at <= checked_at:
+        pending.status = PendingEmailRegistrationStatus.EXPIRED
+        pending.updated_at = checked_at
+        await session.flush()
+        raise EmailVerificationError(
+            EmailVerificationErrorCode.TOKEN_EXPIRED,
+            "Verification token has expired",
+        )
+
+    existing_user_result = await session.execute(
+        select(User).where(User.email == pending.email)
+    )
+    if existing_user_result.scalar_one_or_none() is not None:
+        raise EmailVerificationError(
+            EmailVerificationErrorCode.EMAIL_UNAVAILABLE,
+            "Registration cannot be completed",
+        )
+
+    referred_by_id: int | None = None
+    if pending.referral_code:
+        from app.referrals.models import ReferralCode
+
+        referral_result = await session.execute(
+            select(ReferralCode).where(ReferralCode.code == pending.referral_code.upper())
+        )
+        referral_code = referral_result.scalar_one_or_none()
+        if referral_code is not None:
+            referred_by_id = int(referral_code.user_id)
+
+    user = User(
+        email=pending.email,
+        email_verified=True,
+        password_hash=pending.password_hash,
+        name=pending.name,
+        language=pending.language,
+        role=UserRole.USER,
+        is_active=True,
+        referred_by_id=referred_by_id,
+        created_at=checked_at,
+        updated_at=checked_at,
+    )
+    session.add(user)
+    await session.flush()
+    await session.refresh(user)
+
+    pending.status = PendingEmailRegistrationStatus.VERIFIED
+    pending.consumed_at = checked_at
+    pending.updated_at = checked_at
+    await session.flush()
+
+    logger.info(
+        "[M-041][verify_registration][CONSUME_TOKEN] "
+        f"email={mask_email_for_logs(pending.email)} pending_id={pending.id}"
+    )
+    logger.info(
+        "[M-041][verify_registration][ACTIVATE_USER] "
+        f"email={mask_email_for_logs(pending.email)} user_id={user.id} pending_id={pending.id}"
+    )
+    return RegistrationActivationResult(
+        email=pending.email,
+        user=user,
+        pending_id=int(pending.id),
+        consumed_at=checked_at,
+        referred_by_id=referred_by_id,
+    )
+# END_BLOCK_ACTIVATE_REGISTRATION
 
 
 # START_CONTRACT: registration_status

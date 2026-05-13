@@ -11,7 +11,7 @@
 //
 // START_MODULE_MAP
 //   api - Axios instance with interceptors
-//   User, TokenResponse, VPNConfig, UserDevice, DeviceList, DeviceConfigBundle - Types
+//   User, TokenResponse, PendingRegistrationResponse, VPNConfig, UserDevice, DeviceList, DeviceConfigBundle - Types
 //   VPNStats, VPNNodeStatus, VPNRouteStatus, UserStats - Types
 //   Plan, SubscriptionStatus, ReferralStats, ReferralListItem - Types
 //   authApi - Login, register, telegram auth, refresh
@@ -23,6 +23,7 @@
 // END_MODULE_MAP
 //
 // START_CHANGE_SUMMARY
+//   LAST_CHANGE: 2026-05-13 - Added Phase-28 pending registration and verify-email auth API contracts
 //   LAST_CHANGE: v2.8.0 - Added full GRACE MODULE_CONTRACT and MODULE_MAP per GRACE governance protocol
 // END_CHANGE_SUMMARY
 //
@@ -109,6 +110,14 @@ export interface TokenResponse {
   refresh_token: string
   token_type: string
   expires_in: number
+}
+
+export interface PendingRegistrationResponse {
+  email: string
+  status: string
+  expires_at: string
+  delivery_status: string
+  message: string
 }
 
 export interface VPNConfig {
@@ -248,7 +257,10 @@ export const authApi = {
     api.post<TokenResponse>('/auth/login', { email, password }),
 
   register: (email: string, password: string, referral_code?: string) =>
-    api.post<TokenResponse>('/auth/register', { email, password, referral_code }),
+    api.post<PendingRegistrationResponse>('/auth/register', { email, password, referral_code }),
+
+  verifyEmail: (token: string) =>
+    api.post<TokenResponse>('/auth/verify-email', { token }),
 
   telegramAuth: (telegram_id: number, telegram_username?: string, referral_code?: string) =>
     api.post<TokenResponse>('/auth/telegram', { telegram_id, telegram_username, referral_code }),

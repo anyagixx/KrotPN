@@ -1,10 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <M-002 NAME="users" TYPE="CORE_LOGIC" STATUS="stable">
   <path>backend/app/users</path>
-  <owns>email auth, Telegram auth, profile and admin user operations, internal user resolution</owns>
+  <owns>email auth, verified-email activation endpoint, Telegram auth, profile and admin user operations, internal user resolution</owns>
   <exports>
     <fn-authenticate_user>Validate credentials and return user + tokens</fn-authenticate_user>
-    <fn-register_user>Create new user with email/password and trial subscription</fn-register_user>
+    <fn-register_user>Create pending email registration for email/password users; canonical user creation happens after verify-email.</fn-register_user>
+    <fn-verify_email>Consume verified-registration token and return the normal token response contract.</fn-verify_email>
     <fn-telegram_auth>Authenticate user via Telegram widget or bot-mediated flow</fn-telegram_auth>
     <fn-get_current_user>Dependency injection for authenticated user from JWT</fn-get_current_user>
     <fn-resolve-internal-user>Finds or creates canonical internal user identity</fn-resolve-internal-user>

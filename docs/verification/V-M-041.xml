@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<V-M-041 MODULE="M-041" PRIORITY="critical" STATUS="pending" VERSION="1.3.0">
+<V-M-041 MODULE="M-041" PRIORITY="critical" STATUS="pass-local" VERSION="1.4.0">
   <phase-scope>
     <phase-27 status="pass-local">Foundation evidence exists for pending-registration primitives, token hashing, TTL/replay protection, email risk checks, fake-provider email delivery, and unchanged active /register behavior.</phase-27>
-    <phase-28 status="pending">Cutover verification must prove that /register becomes a pending-email flow and that active KrotPN access exists only after verified email activation.</phase-28>
+    <phase-28 status="pass-local">Cutover verification proves that /register is a pending-email flow and that active KrotPN access exists only after verified email activation.</phase-28>
   </phase-scope>
   <test-files>
     <file phase="27-regression">backend/tests/test_email_verification_guard.py</file>
@@ -58,6 +58,6 @@
   </autonomous-execution-safety>
   <evidence>
     <evidence-1>2026-05-13: Phase-27 backend/tests/test_email_verification_guard.py passed locally, covering disposable-domain blocking before email send, allowlist override, env domain parsing, HMAC token storage, one-time consume, expiry, zero user side effects, and old active /register compatibility boundary.</evidence-1>
-    <evidence-2 status="pending">Phase-28 requires new backend/tests/test_verified_registration.py evidence before execution can be considered complete.</evidence-2>
+    <evidence-2>2026-05-13: Phase-28 backend suite passed locally: tests/test_verified_registration.py, tests/test_email_verification_guard.py, tests/test_manual_access_policy.py, tests/test_device_api.py, tests/test_referrals.py, tests/test_telegram_auth.py, and tests/test_security.py; 44 passed.</evidence-2>
   </evidence>
 </V-M-041>

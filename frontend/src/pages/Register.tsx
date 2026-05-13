@@ -1,49 +1,62 @@
 // FILE: frontend/src/pages/Register.tsx
-// VERSION: 1.0.0
+// VERSION: 1.1.0
 // ROLE: UI_COMPONENT
 // MAP_MODE: SUMMARY
 // START_MODULE_CONTRACT
-//   PURPOSE: User registration page with email/password form, referral code support, and onboarding info panel
-//   SCOPE: Form validation (password match), registration API call, token storage, navigation to dashboard
+//   PURPOSE: User registration page with verified-email pending state, referral code support, and compact onboarding context
+//   SCOPE: Form validation, pending registration API call, check-email/resend state, no token storage before email verification
 //   DEPENDS: M-009 (frontend-user), M-002 (auth API), M-005 (referrals)
-//   LINKS: M-009 (frontend-user)
+//   LINKS: M-009 (frontend-user), V-M-009
 // END_MODULE_CONTRACT
 //
 // START_MODULE_MAP
-//   RegisterPage - Registration component with form, referral code handling, and marketing panel
-//   BLOCK_REGISTER_PAGE - RegisterPage default export (157 lines)
+//   RegisterPage - Registration component with form, pending check-email state, resend handling, and referral display
+//   BLOCK_REGISTER_PAGE - RegisterPage default export
 //   default - React component (default export)
 // END_MODULE_MAP
 //
 // START_CHANGE_SUMMARY
+//   LAST_CHANGE: 2026-05-13 - Switched registration UX to pending email verification without token storage
 //   LAST_CHANGE: v2.8.0 - Added full GRACE MODULE_CONTRACT and MODULE_MAP per GRACE governance protocol
 // END_CHANGE_SUMMARY
 //
 // START_BLOCK_REGISTER_PAGE
 import { useState } from 'react'
-import { Link, useNavigate, useSearchParams } from 'react-router-dom'
+import { Link, useSearchParams } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
-import { Loader2, Lock, Mail, Shield, Sparkles } from 'lucide-react'
+import { ArrowLeft, Loader2, Lock, Mail, MailCheck, RefreshCw, Shield, Sparkles } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { authApi } from '../lib/api'
-import { useAuthStore } from '../stores/auth'
+
+type RegistrationPhase = 'form' | 'pending'
+
+function readApiError(error: unknown, fallback: string): string {
+  const response = (error as { response?: { data?: { detail?: unknown } } }).response
+  const detail = response?.data?.detail
+  if (typeof detail === 'string') {
+    return detail
+  }
+  if (detail && typeof detail === 'object' && 'message' in detail) {
+    return String((detail as { message?: unknown }).message || fallback)
+  }
+  return fallback
+}
 
 export default function Register() {
   const { t } = useTranslation()
-  const navigate = useNavigate()
-  const { fetchUser } = useAuthStore()
   const [searchParams] = useSearchParams()
 
   const referralCode = searchParams.get('ref')
 
   const [email, setEmail] = useState('')
+  const [pendingEmail, setPendingEmail] = useState('')
   const [password, setPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
+  const [expiresAt, setExpiresAt] = useState<string | null>(null)
+  const [phase, setPhase] = useState<RegistrationPhase>('form')
   const [loading, setLoading] = useState(false)
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-
+  const submitRegistration = async (isResend = false) => {
     if (password !== confirmPassword) {
       toast.error('Пароли не совпадают')
       return
@@ -53,94 +66,145 @@ export default function Register() {
 
     try {
       const { data } = await authApi.register(email, password, referralCode || undefined)
-
-      localStorage.setItem('access_token', data.access_token)
-      localStorage.setItem('refresh_token', data.refresh_token)
-
-      await fetchUser()
-      toast.success(t('registrationSuccess'))
-      navigate('/')
-    } catch (error: any) {
-      toast.error(error.response?.data?.detail || t('error'))
+      setPendingEmail(data.email)
+      setExpiresAt(data.expires_at)
+      setPhase('pending')
+      toast.success(isResend ? 'Письмо отправлено повторно' : 'Письмо для подтверждения отправлено')
+    } catch (error: unknown) {
+      toast.error(readApiError(error, t('error')))
     } finally {
       setLoading(false)
     }
   }
 
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault()
+    void submitRegistration(false)
+  }
+
+  const formattedExpiry = expiresAt
+    ? new Date(expiresAt).toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' })
+    : null
+
   return (
-    <div className="min-h-screen px-4 py-8">
-      <div className="mx-auto grid min-h-[calc(100vh-4rem)] max-w-6xl grid-cols-1 overflow-hidden rounded-[32px] border border-white/10 bg-slate-950/35 shadow-[0_36px_120px_rgba(2,10,14,0.55)] backdrop-blur-sm lg:grid-cols-[0.96fr_1.04fr]">
-        <section className="flex items-center justify-center p-6 md:p-10">
+    <div className="min-h-screen px-3 py-4 sm:px-4 sm:py-6">
+      <div className="mx-auto grid min-h-[calc(100vh-2rem)] max-w-5xl grid-cols-1 overflow-hidden rounded-lg border border-white/10 bg-slate-950/35 shadow-[0_22px_70px_rgba(2,10,14,0.45)] backdrop-blur-sm lg:grid-cols-[0.92fr_1.08fr]">
+        <section className="flex items-center justify-center p-4 sm:p-6 md:p-8">
           <div className="w-full max-w-md">
-            <div className="mb-8 text-center lg:text-left">
-              <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-[24px] bg-emerald-300/12 text-emerald-200 lg:mx-0">
-                <Shield className="h-8 w-8" />
+            <div className="mb-6 text-center lg:text-left">
+              <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-lg bg-emerald-300/12 text-emerald-200 lg:mx-0">
+                <Shield className="h-7 w-7" />
               </div>
-              <h1 className="mt-5 text-3xl font-extrabold">{t('registerTitle')}</h1>
-              <p className="mt-2 text-sm muted">Создайте аккаунт и получите тестовый доступ без сложной настройки.</p>
+              <h1 className="mt-4 text-2xl font-extrabold sm:text-3xl">{t('registerTitle')}</h1>
+              <p className="mt-2 text-sm muted">Подтвердите email, затем trial и VPN-конфигурация появятся в кабинете.</p>
             </div>
 
-            <form onSubmit={handleSubmit} className="glass space-y-4 p-6">
-              <label className="block">
-                <span className="mb-2 block text-sm muted">{t('email')}</span>
-                <div className="input-group">
-                  <Mail className="icon h-5 w-5" />
-                  <input
-                    type="email"
-                    className="input"
-                    placeholder="you@example.com"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    required
-                  />
+            {phase === 'pending' ? (
+              <div className="glass space-y-4 p-5 sm:p-6">
+                {/* REGISTER_PENDING_STATE */}
+                <div className="flex items-start gap-3">
+                  <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg bg-emerald-300/12 text-emerald-100">
+                    <MailCheck className="h-6 w-6" />
+                  </div>
+                  <div>
+                    <h2 className="text-xl font-extrabold text-white">Проверьте почту</h2>
+                    <p className="mt-1 text-sm leading-6 muted">
+                      Мы отправили ссылку на <span className="font-semibold text-cyan-100">{pendingEmail}</span>.
+                      После подтверждения откроется кабинет, trial на 3 дня и VPN-доступ.
+                    </p>
+                  </div>
                 </div>
-              </label>
 
-              <label className="block">
-                <span className="mb-2 block text-sm muted">{t('password')}</span>
-                <div className="input-group">
-                  <Lock className="icon h-5 w-5" />
-                  <input
-                    type="password"
-                    className="input"
-                    placeholder="Минимум 8 символов"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    required
-                    minLength={8}
-                  />
+                {formattedExpiry ? (
+                  <div className="panel-soft px-4 py-3 text-sm text-slate-200">
+                    Ссылка активна до <span className="font-semibold text-white">{formattedExpiry}</span>.
+                  </div>
+                ) : null}
+
+                <div className="grid gap-2 sm:grid-cols-2">
+                  {/* REGISTER_RESEND_AVAILABLE */}
+                  <button
+                    type="button"
+                    className="btn-secondary w-full"
+                    disabled={loading}
+                    onClick={() => void submitRegistration(true)}
+                  >
+                    {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <RefreshCw className="h-4 w-4" />}
+                    Отправить ещё раз
+                  </button>
+                  <button
+                    type="button"
+                    className="btn-secondary w-full"
+                    onClick={() => setPhase('form')}
+                  >
+                    <ArrowLeft className="h-4 w-4" />
+                    Изменить email
+                  </button>
                 </div>
-              </label>
+              </div>
+            ) : (
+              <form onSubmit={handleSubmit} className="glass space-y-4 p-5 sm:p-6">
+                <label className="block">
+                  <span className="mb-2 block text-sm muted">{t('email')}</span>
+                  <div className="input-group">
+                    <Mail className="icon h-5 w-5" />
+                    <input
+                      type="email"
+                      className="input"
+                      placeholder="you@example.com"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      required
+                    />
+                  </div>
+                </label>
 
-              <label className="block">
-                <span className="mb-2 block text-sm muted">{t('confirmPassword')}</span>
-                <div className="input-group">
-                  <Lock className="icon h-5 w-5" />
-                  <input
-                    type="password"
-                    className="input"
-                    placeholder={t('confirmPassword')}
-                    value={confirmPassword}
-                    onChange={(e) => setConfirmPassword(e.target.value)}
-                    required
-                  />
-                </div>
-              </label>
+                <label className="block">
+                  <span className="mb-2 block text-sm muted">{t('password')}</span>
+                  <div className="input-group">
+                    <Lock className="icon h-5 w-5" />
+                    <input
+                      type="password"
+                      className="input"
+                      placeholder="Минимум 8 символов"
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      required
+                      minLength={8}
+                    />
+                  </div>
+                </label>
 
-              {referralCode ? (
-                <div className="panel-soft flex items-center gap-3 px-4 py-3 text-sm">
-                  <Sparkles className="h-4 w-4 text-emerald-200" />
-                  Реферальный код применён: <span className="font-bold text-cyan-100">{referralCode}</span>
-                </div>
-              ) : null}
+                <label className="block">
+                  <span className="mb-2 block text-sm muted">{t('confirmPassword')}</span>
+                  <div className="input-group">
+                    <Lock className="icon h-5 w-5" />
+                    <input
+                      type="password"
+                      className="input"
+                      placeholder={t('confirmPassword')}
+                      value={confirmPassword}
+                      onChange={(e) => setConfirmPassword(e.target.value)}
+                      required
+                    />
+                  </div>
+                </label>
 
-              <button type="submit" className="btn-primary w-full py-3.5" disabled={loading}>
-                {loading ? <Loader2 className="h-5 w-5 animate-spin" /> : null}
-                {loading ? 'Создаём аккаунт' : t('registerButton')}
-              </button>
-            </form>
+                {referralCode ? (
+                  <div className="panel-soft flex items-center gap-3 px-4 py-3 text-sm">
+                    <Sparkles className="h-4 w-4 text-emerald-200" />
+                    Реферальный код применён: <span className="font-bold text-cyan-100">{referralCode}</span>
+                  </div>
+                ) : null}
 
-            <div className="mt-6 text-center text-sm muted">
+                <button type="submit" className="btn-primary w-full py-3" disabled={loading}>
+                  {loading ? <Loader2 className="h-5 w-5 animate-spin" /> : null}
+                  {loading ? 'Отправляем письмо' : t('registerButton')}
+                </button>
+              </form>
+            )}
+
+            <div className="mt-5 text-center text-sm muted">
               {t('hasAccount')}{' '}
               <Link to="/login" className="font-semibold text-cyan-100 hover:text-emerald-100">
                 {t('login')}
@@ -149,26 +213,29 @@ export default function Register() {
           </div>
         </section>
 
-        <section className="hidden border-l border-white/5 p-10 lg:flex lg:flex-col lg:justify-between">
+        <section className="hidden border-l border-white/5 p-8 lg:flex lg:flex-col lg:justify-between">
           <div>
-            <div className="inline-flex items-center gap-3 rounded-full border border-cyan-200/12 bg-cyan-300/10 px-4 py-2 text-sm font-semibold text-cyan-100">
+            <div className="inline-flex items-center gap-3 rounded-lg border border-cyan-200/12 bg-cyan-300/10 px-3 py-2 text-sm font-semibold text-cyan-100">
               <Sparkles className="h-4 w-4" />
-              Trial onboarding
+              Verified onboarding
             </div>
-            <h2 className="mt-8 max-w-xl text-5xl font-extrabold tracking-tight text-white">
-              Начните с бесплатного периода и переходите на платный доступ только когда убедитесь в качестве
+            <h2 className="mt-6 max-w-xl text-4xl font-extrabold tracking-tight text-white">
+              Доступ включается после подтверждения email
             </h2>
+            <p className="mt-4 max-w-xl text-sm leading-6 text-slate-300">
+              Это защищает кабинет от временных почт и не запускает trial, VPN-конфиг или реферальные начисления до проверки владельца адреса.
+            </p>
           </div>
 
-          <div className="grid gap-4">
+          <div className="grid gap-3">
             {[
-              ['3 дня trial', 'Первичное знакомство без привязки карты.'],
-              ['Быстрая выдача конфигурации', 'После регистрации кабинет готов к работе.'],
-              ['Реферальный бонус', 'Приглашения продлевают доступ бонусными днями.'],
+              ['Email сначала', 'Аккаунт активируется только по ссылке из письма.'],
+              ['3 дня trial', 'Пробный период стартует после подтверждения.'],
+              ['VPN в кабинете', 'Основное устройство и конфигурация появятся автоматически.'],
             ].map(([title, description]) => (
-              <div key={title} className="panel-soft p-5">
-                <p className="text-lg font-bold">{title}</p>
-                <p className="mt-2 text-sm muted">{description}</p>
+              <div key={title} className="panel-soft p-4">
+                <p className="font-bold">{title}</p>
+                <p className="mt-1 text-sm muted">{description}</p>
               </div>
             ))}
           </div>

@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Phase-28 NAME="Verified Registration Cutover" STATUS="planned" VERSION="1.1.0">
+<Phase-28 NAME="Verified Registration Cutover" STATUS="done-local" VERSION="1.2.0">
   <Goal>Switch KrotPN registration to verified-email activation while preserving trial, VPN provisioning, referrals, and frontend onboarding.</Goal>
   <Modules>M-041,M-002,M-004,M-005,M-022,M-009</Modules>
   <NonGoals>
@@ -27,6 +27,12 @@
     <item-3>Token replay, expired token, duplicate email, and blocked domain paths are deterministic.</item-3>
     <item-4>Frontend registration remains mobile-safe and avoids confusing users about trial availability.</item-4>
   </AcceptanceCriteria>
+  <Completion>
+    <item-1>/api/v1/auth/register now returns pending/check-email response without JWT or onboarding side effects.</item-1>
+    <item-2>/api/v1/auth/verify-email consumes one-time token, creates verified user, then activates trial, primary device path, VPN provisioning call, and referral linkage once.</item-2>
+    <item-3>User frontend now has Register pending/resend state and VerifyEmail success/expired/error route.</item-3>
+    <item-4>Session smoke was updated so token storage starts at VerifyEmail success, not Register submit.</item-4>
+  </Completion>
   <Risks>
     <risk-1>Changing /register response shape can break frontend and external clients if not staged carefully.</risk-1>
     <risk-2>Partially completed activation can duplicate trial/referral side effects unless idempotency is explicit.</risk-2>

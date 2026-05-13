@@ -1,15 +1,16 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <V-M-039 MODULE="M-039" PRIORITY="critical" STATUS="pass-local">
   <module>session-security-hardening</module>
-  <checks>Session hardening gates must preserve login, refresh, logout, role gates, and rollback while documenting the safe path to reduce fragile client-side token exposure.</checks>
-  <test-files>scripts/session-security-smoke.mjs docs/security/SESSION-PHASE-25.xml frontend/src/pages/Login.tsx frontend/src/pages/Register.tsx frontend/src/stores/auth.ts frontend/src/lib/api.ts frontend-admin/src/pages/Login.tsx frontend-admin/src/stores/auth.ts frontend-admin/src/lib/api.ts backend/app/users/router.py backend/app/core/security.py</test-files>
+  <checks>Session hardening gates must preserve login, verify-email activation, refresh, logout, role gates, and rollback while documenting the safe path to reduce fragile client-side token exposure.</checks>
+  <test-files>scripts/session-security-smoke.mjs docs/security/SESSION-PHASE-25.xml frontend/src/pages/Login.tsx frontend/src/pages/Register.tsx frontend/src/pages/VerifyEmail.tsx frontend/src/stores/auth.ts frontend/src/lib/api.ts frontend-admin/src/pages/Login.tsx frontend-admin/src/stores/auth.ts frontend-admin/src/lib/api.ts backend/app/users/router.py backend/app/core/security.py</test-files>
   <commands>node scripts/session-security-smoke.mjs; cd frontend &amp;&amp; npm run build; cd ../frontend-admin &amp;&amp; npm run build; cd ../backend &amp;&amp; SECRET_KEY=test-secret-key-with-enough-length DATA_ENCRYPTION_KEY=dpFmfSVqfdAK3yx5MQV6Tcv35RZuw5MzaH0yhxJ01q0= PYTHONPATH=. ../.venv/bin/python -m pytest -o addopts='' tests/test_security.py -v -k blacklist</commands>
   <module-checks>
-    <check-1>User login, register, refresh, logout, and 401 retry paths are tested.</check-1>
+    <check-1>User login, pending register, verify-email token storage, refresh, logout, and 401 retry paths are tested.</check-1>
     <check-2>Admin login, refresh, logout, and role-gate paths are tested.</check-2>
     <check-3>Browser storage behavior is explicitly verified before migration and documented as rollback-compatible residual risk.</check-3>
     <check-4>Rollback path is documented before execution.</check-4>
     <check-5>Admin refresh token is persisted at login and removed on logout/setToken(null) so existing 401 retry behavior is not dead code.</check-5>
+    <check-6>Pending register does not store access or refresh tokens before verified email activation.</check-6>
   </module-checks>
   <scenarios>
     <scenario-1 kind="success">User and admin sessions survive normal refresh behavior and fail safely after logout.</scenario-1>
@@ -28,5 +29,6 @@
     <evidence-4>2026-05-10: node scripts/session-security-smoke.mjs passed with USER_SMOKE_PASS and ADMIN_SMOKE_PASS markers.</evidence-4>
     <evidence-5>2026-05-10: cd frontend &amp;&amp; npm run build passed; cd frontend-admin &amp;&amp; npm run build passed.</evidence-5>
     <evidence-6>2026-05-10: cd backend &amp;&amp; ... tests/test_security.py -v -k blacklist passed, 2 selected tests.</evidence-6>
+    <evidence-7>2026-05-13: node scripts/session-security-smoke.mjs passed after Phase-28 update requiring Register to avoid token storage and VerifyEmail to store tokens only after ownership proof.</evidence-7>
   </evidence>
 </V-M-039>

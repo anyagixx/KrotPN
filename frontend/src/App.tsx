@@ -4,7 +4,7 @@
 // MAP_MODE: SUMMARY
 // START_MODULE_CONTRACT
 //   PURPOSE: Root application component with routing setup, auth guard, and toaster configuration
-//   SCOPE: BrowserRouter, route definitions (login, register, protected layout + child routes), PrivateRoute HOC, Toaster config
+//   SCOPE: BrowserRouter, route definitions (login, register, verify-email, protected layout + child routes), PrivateRoute HOC, Toaster config
 //   DEPENDS: M-009 (frontend-user), M-002 (auth API)
 //   LINKS: M-009 (frontend-user)
 // END_MODULE_CONTRACT
@@ -17,6 +17,7 @@
 // END_MODULE_MAP
 //
 // START_CHANGE_SUMMARY
+//   LAST_CHANGE: 2026-05-13 - Added Phase-28 verify-email route for pending registration activation
 //   LAST_CHANGE: v2.8.0 - Added full GRACE MODULE_CONTRACT and MODULE_MAP per GRACE governance protocol
 // END_CHANGE_SUMMARY
 //
@@ -28,6 +29,7 @@ import { useAuthStore } from './stores/auth'
 import Layout from './components/Layout'
 import Login from './pages/Login'
 import Register from './pages/Register'
+import VerifyEmail from './pages/VerifyEmail'
 import Dashboard from './pages/Dashboard'
 import Config from './pages/Config'
 import Subscription from './pages/Subscription'
@@ -61,6 +63,7 @@ function App() {
         <Routes>
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
+          <Route path="/verify-email" element={<VerifyEmail />} />
           <Route
             path="/"
             element={

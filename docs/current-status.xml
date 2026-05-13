@@ -38,6 +38,7 @@
     <item>Phase-26 stabilization handoff records local evidence, protected deploy/install surfaces, and live-required recovery blockers.</item>
     <item>Release v2.14.0-stabilization-stable was operator-deployed from local PC to clean VPS servers and manually validated as working on 2026-05-12.</item>
     <item>Phase-27 email verification foundation passed local verification on 2026-05-13: provider-neutral email delivery, pending registration, HMAC token storage, domain guards, replay/expiry checks, and no /register cutover.</item>
+    <item>Phase-28 verified registration cutover passed local verification on 2026-05-13: /register is pending-only, /verify-email activates user access once, trial/VPN/referral side effects are delayed until email proof, and frontend check-email/verify states build.</item>
   </what-is-working>
 
   <what-is-fragile>
@@ -89,6 +90,9 @@
     </gate>
     <gate id="phase-27-email-verification-foundation" status="passed-local">
       <summary>Local Phase-27 backend tests passed for email delivery and pending verified-registration foundation; active /register remains unchanged until Phase-28.</summary>
+    </gate>
+    <gate id="phase-28-verified-registration-cutover" status="passed-local">
+      <summary>Local Phase-28 backend, frontend, session smoke, and MyGRACE gates passed for verified email registration cutover.</summary>
     </gate>
   </rollout-gates>
 

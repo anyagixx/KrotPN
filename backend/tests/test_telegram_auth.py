@@ -36,7 +36,7 @@ def test_telegram_auth_rejects_unsigned_requests(build_client, monkeypatch):
     client = build_client(users_router_module.router, users_router_module.limiter)
 
     response = client.post(
-        "/api/auth/telegram",
+        "/api/v1/auth/telegram",
         json={
             "telegram_id": 42,
             "telegram_username": "intruder",
@@ -69,7 +69,7 @@ def test_telegram_auth_accepts_valid_signed_payload(build_client, monkeypatch):
     auth_hash = _make_telegram_hash(users_router_module.settings.telegram_bot_token, auth_payload)
 
     response = client.post(
-        "/api/auth/telegram",
+        "/api/v1/auth/telegram",
         json={
             "telegram_id": 42,
             "telegram_username": "valid_user",

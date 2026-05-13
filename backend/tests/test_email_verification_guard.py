@@ -12,9 +12,10 @@ MODULE_MAP
 - test_request_registration_stores_hashed_token_without_user_side_effects: Verifies pending-only registration.
 - test_verify_registration_consumes_token_once: Verifies one-time token consumption.
 - test_email_domain_settings_accept_comma_env: Verifies operator-friendly comma env parsing.
-- test_phase_27_does_not_wire_active_register_to_pending_flow: Verifies active /register remains untouched until Phase-28.
+- test_phase_28_register_is_wired_to_pending_flow: Verifies active /register now uses pending email verification.
 
 CHANGE_SUMMARY
+- 2026-05-13: Updated /register compatibility guard for Phase-28 cutover.
 - 2026-05-13: Added Phase-27 email verification guard tests.
 """
 
@@ -207,12 +208,12 @@ async def test_verify_registration_marks_expired_token(db_session):
     assert pending.status == PendingEmailRegistrationStatus.EXPIRED
 
 
-def test_phase_27_does_not_wire_active_register_to_pending_flow():
+def test_phase_28_register_is_wired_to_pending_flow():
     from app.users.router import register
 
     source = inspect.getsource(register)
-    assert "request_registration" not in source
-    assert "create_user(" in source
+    assert "request_registration" in source
+    assert "create_user(" not in source
 
 
 def test_build_verification_url_encodes_token():

@@ -1,12 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <M-009 NAME="frontend-user" TYPE="UI_COMPONENT" STATUS="stable">
   <path>frontend</path>
-  <owns>login, register, dashboard, config delivery, subscription management, referrals and settings UI with per-device config awareness</owns>
+  <owns>login, verified registration, verify-email activation, dashboard, config delivery, subscription management, referrals and settings UI with per-device config awareness</owns>
   <depends>M-002, M-003, M-004, M-005, M-022</depends>
   <verification-ref>V-M-009</verification-ref>
   <files>
     <file>frontend/src/main.tsx</file>
     <file>frontend/src/App.tsx</file>
+    <file>frontend/src/pages/Register.tsx</file>
+    <file>frontend/src/pages/VerifyEmail.tsx</file>
     <file>frontend/src/components/Layout.tsx</file>
     <file>frontend/src/pages/Dashboard.tsx</file>
     <file>frontend/src/pages/Config.tsx</file>
@@ -21,4 +23,8 @@
     <primary-behaviors>mobile navigation, VPN status, config QR/download/copy, device create/rotate/revoke, subscription renewal/payment entry</primary-behaviors>
     <unchanged-contracts>auth, VPN, device, billing, referral API shapes remain unchanged in Phase-23 unless a separate contract update is approved</unchanged-contracts>
   </phase-23-scope>
+  <phase-28-scope>
+    <primary-files>App.tsx, Register.tsx, VerifyEmail.tsx, lib/api.ts, scripts/phase28-register-flow-smoke.mjs</primary-files>
+    <primary-behaviors>pending check-email response, no token storage before verification, verify-email success/expired/replay states, resend path, compact mobile-safe registration</primary-behaviors>
+  </phase-28-scope>
 </M-009>

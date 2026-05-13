@@ -14,6 +14,7 @@ User API router.
 #
 # START_MODULE_MAP
 #   router - Auth endpoints: /register, /login, /telegram, /refresh
+#   verify_email - Verified registration activation endpoint
 #   users_router - User endpoints: /me, /me (PUT), /me/stats, /me/change-password
 #   admin_users_router - Admin endpoints: list, get, activate, deactivate users
 #   _initialize_new_user_resources - Post-registration orchestrator (trial, VPN, referral)
@@ -21,21 +22,21 @@ User API router.
 # END_MODULE_MAP
 #
 # START_CHANGE_SUMMARY
+#   LAST_CHANGE: 2026-05-13 - Switched email registration to pending verification and added verify-email activation
 #   LAST_CHANGE: 2026-04-06 - Added full GRACE MODULE_CONTRACT, MODULE_MAP, BLOCK markers per GRACE governance protocol
 # END_CHANGE_SUMMARY
 
 GRACE-lite module contract:
 - Exposes auth, current-user and admin user-management endpoints.
-- Registration is intentionally side-effectful: it may create trial subscription,
-  VPN access and referral linkage in the same request path.
+- Email registration is pending-only until verify-email proves ownership; trial,
+  VPN access and referral linkage are activated after verification.
 - Telegram auth accepts either a valid Telegram-signed payload or an internal bot call header.
 """
 # <!-- GRACE: module="M-002" api-group="Auth API, User API" -->
 
-from datetime import timedelta
-
-from fastapi import APIRouter, Depends, Header, HTTPException, Request, status
+from fastapi import APIRouter, Header, HTTPException, Request, status
 from fastapi.responses import JSONResponse
+from loguru import logger
 from slowapi import Limiter
 from slowapi.util import get_remote_address
 
@@ -48,9 +49,18 @@ from app.core import (
     settings,
     verify_token,
 )
+from app.email.provider import EmailDeliveryError
+from app.email.verification import (
+    EmailVerificationError,
+    EmailVerificationErrorCode,
+    activate_registration,
+    request_registration,
+)
 from app.users.telegram_auth import verify_telegram_auth
 from app.users.models import User, UserRole
 from app.users.schemas import (
+    EmailVerificationRequest,
+    PendingRegistrationResponse,
     Token,
     TokenRefresh,
     UserAdminResponse,
@@ -126,6 +136,7 @@ def _make_token_response(access_token: str, refresh_token: str) -> JSONResponse:
         content={
             "access_token": access_token,
             "refresh_token": refresh_token,
+            "token_type": "bearer",
             "expires_in": settings.access_token_expire_minutes * 60,
         }
     )
@@ -154,7 +165,7 @@ def _make_token_response(access_token: str, refresh_token: str) -> JSONResponse:
 # ==================== Auth Endpoints ====================
 
 # START_BLOCK_REGISTER
-@router.post("/register", response_model=Token, status_code=status.HTTP_201_CREATED)
+@router.post("/register", response_model=PendingRegistrationResponse, status_code=status.HTTP_202_ACCEPTED)
 @limiter.limit("5/minute")
 async def register(
     request: Request,
@@ -162,26 +173,71 @@ async def register(
     session: DBSession,
 ):
     """
-    Register a new user with email and password.
-    Returns JWT tokens.
+    Create a pending email registration.
+    Returns a safe check-email response, not JWT tokens.
     """
-    service = UserService(session)
-
     try:
-        user = await service.create_user(data, referral_code=data.referral_code)
-        await _initialize_new_user_resources(user.id, user.referred_by_id, session)
-    except ValueError as e:
+        pending = await request_registration(session, data)
+    except EmailVerificationError as e:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail=str(e),
-        )
+            detail={"code": e.code.value, "message": e.safe_message},
+        ) from e
+    except EmailDeliveryError as e:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail={"code": e.code.value, "message": e.safe_message},
+        ) from e
 
-    # Create tokens
-    access_token = create_access_token(subject=user.id)
-    refresh_token = create_refresh_token(subject=user.id)
-
-    return _make_token_response(access_token, refresh_token)
+    return PendingRegistrationResponse(
+        email=pending.email,
+        status=pending.status.value,
+        expires_at=pending.expires_at,
+        delivery_status=pending.delivery.status,
+    )
 # END_BLOCK_REGISTER
+
+
+# START_BLOCK_VERIFY_EMAIL
+@router.post("/verify-email", response_model=Token)
+@limiter.limit("10/minute")
+async def verify_email(
+    request: Request,
+    data: EmailVerificationRequest,
+    session: DBSession,
+):
+    """Activate a pending email registration and return normal auth tokens."""
+    try:
+        activation = await activate_registration(session, data.token)
+        await _initialize_new_user_resources(
+            int(activation.user.id),
+            activation.referred_by_id,
+            session,
+        )
+    except EmailVerificationError as e:
+        status_code = status.HTTP_400_BAD_REQUEST
+        if e.code == EmailVerificationErrorCode.TOKEN_EXPIRED:
+            status_code = status.HTTP_410_GONE
+        elif e.code == EmailVerificationErrorCode.TOKEN_REPLAYED:
+            status_code = status.HTTP_409_CONFLICT
+        raise HTTPException(
+            status_code=status_code,
+            detail={"code": e.code.value, "message": e.safe_message},
+        ) from e
+    except ValueError as e:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail=str(e),
+        ) from e
+
+    logger.info(
+        "[M-041][verify_registration][ACTIVATE_SIDE_EFFECTS] "
+        f"user_id={activation.user.id} pending_id={activation.pending_id}"
+    )
+    access_token = create_access_token(subject=activation.user.id)
+    refresh_token = create_refresh_token(subject=activation.user.id)
+    return _make_token_response(access_token, refresh_token)
+# END_BLOCK_VERIFY_EMAIL
 
 
 # START_BLOCK_LOGIN

@@ -1,9 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<V-M-009 MODULE="M-009" PRIORITY="high" STATUS="pending" VERSION="1.1.0">
+<V-M-009 MODULE="M-009" PRIORITY="high" STATUS="pass-local" VERSION="1.2.0">
   <module>frontend-user</module>
   <checks>User frontend still builds, matches the Phase-28 auth API response shape, and makes registration mobile-safe without implying active KrotPN trial before email verification.</checks>
   <test-files>
     <file>frontend/src/pages/Register.tsx</file>
+    <file>frontend/src/pages/VerifyEmail.tsx</file>
+    <file>frontend/src/App.tsx</file>
     <file>frontend/src/lib/api.ts</file>
     <file>frontend/src/stores/auth.ts</file>
     <file>scripts/phase28-register-flow-smoke.mjs</file>
@@ -27,4 +29,5 @@
     <scenario-3 kind="failure" trace="REGISTER_EXPIRED_LINK">Expired or replayed token state remains understandable and offers resend.</scenario-3>
     <scenario-4 kind="success" trace="TYPESCRIPT_NO_ERRORS">Frontend builds with zero TypeScript errors.</scenario-4>
   </scenarios>
+  <evidence>2026-05-13: node scripts/phase28-register-flow-smoke.mjs, node scripts/session-security-smoke.mjs, and cd frontend &amp;&amp; npm run build passed locally.</evidence>
 </V-M-009>

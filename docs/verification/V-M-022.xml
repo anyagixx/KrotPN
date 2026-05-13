@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<V-M-022 MODULE="M-022" PRIORITY="critical" STATUS="pending" VERSION="1.1.0">
+<V-M-022 MODULE="M-022" PRIORITY="critical" STATUS="pass-local" VERSION="1.2.0">
   <module>device-provisioning-api</module>
   <checks>User-facing device APIs expose only the caller's devices, allow deterministic create or revoke or rotate flows, keep one peer per logical device, and Phase-28 cannot provision VPN resources before email verification.</checks>
   <test-files>
@@ -21,4 +21,5 @@
     <scenario-3 kind="success" trace="VPN_DEVICE_CONFIG_ROTATED">Same logical device after rotate, old peer invalidated.</scenario-3>
     <scenario-4 kind="failure" trace="VPN_DEVICE_SKIPPED_UNVERIFIED">Unverified registration does not provision VPN resources.</scenario-4>
   </scenarios>
+  <evidence>2026-05-13: Phase-28 backend suite passed locally and proved pending registration creates no user device while verified activation creates one primary device path and does not duplicate it on replay.</evidence>
 </V-M-022>

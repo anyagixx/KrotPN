@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<V-M-005 MODULE="M-005" PRIORITY="high" STATUS="pending" VERSION="1.1.0">
+<V-M-005 MODULE="M-005" PRIORITY="high" STATUS="pass-local" VERSION="1.2.0">
   <module>referrals</module>
   <checks>Referral logic remains excluded from manual internal clients issuance, and Phase-28 referral linkage is delayed until the referred user verifies email ownership.</checks>
   <test-files>
@@ -20,4 +20,5 @@
     <scenario-3 kind="success" trace="REFERRAL_BONUS_APPLIED">Bonus credited after first payment.</scenario-3>
     <scenario-4 kind="failure" trace="REFERRAL_LINK_SKIPPED_UNVERIFIED">Unverified registration does not link referral effects.</scenario-4>
   </scenarios>
+  <evidence>2026-05-13: Phase-28 backend suite passed locally and proved pending registration creates no referral linkage while verified activation links the referral once.</evidence>
 </V-M-005>

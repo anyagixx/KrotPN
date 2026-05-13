@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <M-039 NAME="session-security-hardening" TYPE="CORE_LOGIC" STATUS="done-local">
   <path>backend/app/users frontend frontend-admin docs/plans/Phase-25.xml docs/security/SESSION-PHASE-25.xml scripts/session-security-smoke.mjs</path>
-  <owns>Safe auth/session hardening gates for user and admin frontends after UI cleanup, with compatibility-first migration plan away from fragile client token storage</owns>
+  <owns>Safe auth/session hardening gates for user and admin frontends after UI cleanup, with verified-registration token storage boundaries and compatibility-first migration plan away from fragile client token storage</owns>
   <exports>
-    <flow-user-session-smoke>User login, refresh, logout, and 401 recovery smoke path</flow-user-session-smoke>
+    <flow-user-session-smoke>User login, verify-email activation, refresh, logout, and 401 recovery smoke path</flow-user-session-smoke>
     <flow-admin-session-smoke>Admin login, refresh, logout, and role-gate smoke path</flow-admin-session-smoke>
     <compat-auth-transition>Rollback-aware transition contract for frontend auth storage behavior</compat-auth-transition>
     <static-session-security-gate>Local static smoke gate for cookies, storage, refresh retry, logout cleanup, and blacklist expectations</static-session-security-gate>
@@ -23,6 +23,7 @@
     <constraint-2>Any auth storage change must include rollback and explicit browser storage verification.</constraint-2>
     <constraint-3>This phase must run after compact UI flows are stable enough to test real auth behavior.</constraint-3>
     <constraint-4>Cookie-only behavior changes require explicit operator approval and HTTPS or production-like smoke evidence.</constraint-4>
+    <constraint-5>Phase-28 register must not store tokens before email ownership proof; token storage starts only after verify-email success.</constraint-5>
   </constraints>
   <hotspot>H-025: Session hardening must not break login/register/refresh/logout compatibility during frontend simplification</hotspot>
 </M-039>
