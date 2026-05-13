@@ -1,13 +1,23 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<V-M-005 MODULE="M-005" PRIORITY="high" STATUS="pass">
+<V-M-005 MODULE="M-005" PRIORITY="high" STATUS="pending" VERSION="1.1.0">
   <module>referrals</module>
-  <checks>Referral logic remains excluded from manual internal clients issuance. Referral code generation is unique, self-referral is rejected, first payment bonus works correctly, and stats aggregation is accurate.</checks>
-  <test-files>backend/tests/test_referrals.py</test-files>
-  <commands>pytest tests/test_referrals.py -v</commands>
-  <anchors>REFERRAL_CODE_CREATED REFERRAL_LINKED REFERRAL_BONUS_APPLIED</anchors>
+  <checks>Referral logic remains excluded from manual internal clients issuance, and Phase-28 referral linkage is delayed until the referred user verifies email ownership.</checks>
+  <test-files>
+    <file>backend/tests/test_verified_registration.py</file>
+    <file>backend/tests/test_referrals.py</file>
+  </test-files>
+  <commands>cd backend &amp;&amp; SECRET_KEY=test-secret-key-with-enough-length DATA_ENCRYPTION_KEY=dpFmfSVqfdAK3yx5MQV6Tcv35RZuw5MzaH0yhxJ01q0= PYTHONPATH=. ../.venv/bin/python -m pytest -o addopts='' tests/test_verified_registration.py tests/test_referrals.py -v</commands>
+  <anchors>REFERRAL_CODE_CREATED REFERRAL_LINKED REFERRAL_BONUS_APPLIED REFERRAL_LINK_SKIPPED_UNVERIFIED</anchors>
+  <phase-28-referral-gates>
+    <gate-1>Pending email registration with referral code cannot create referral linkage, referral stats, or bonus-eligible side effects.</gate-1>
+    <gate-2>Verified activation links the referred user exactly once when the referral code is valid and not self-referral.</gate-2>
+    <gate-3>Verify token replay cannot duplicate referral linkage or bonus eligibility.</gate-3>
+    <gate-4>Existing referral code uniqueness, self-referral rejection, first-payment bonus, and stats aggregation remain green.</gate-4>
+  </phase-28-referral-gates>
   <scenarios>
-    <scenario kind="success" trace="REFERRAL_CODE_CREATED">Unique referral code created for user</scenario>
-    <scenario kind="success" trace="REFERRAL_LINKED">Referred user linked to referrer</scenario>
-    <scenario kind="success" trace="REFERRAL_BONUS_APPLIED">Bonus credited after first payment</scenario>
+    <scenario-1 kind="success" trace="REFERRAL_CODE_CREATED">Unique referral code created for user.</scenario-1>
+    <scenario-2 kind="success" trace="REFERRAL_LINKED">Verified referred user linked to referrer once.</scenario-2>
+    <scenario-3 kind="success" trace="REFERRAL_BONUS_APPLIED">Bonus credited after first payment.</scenario-3>
+    <scenario-4 kind="failure" trace="REFERRAL_LINK_SKIPPED_UNVERIFIED">Unverified registration does not link referral effects.</scenario-4>
   </scenarios>
 </V-M-005>

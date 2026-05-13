@@ -1,12 +1,24 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<V-M-022 MODULE="M-022" PRIORITY="critical" STATUS="pass">
+<V-M-022 MODULE="M-022" PRIORITY="critical" STATUS="pending" VERSION="1.1.0">
   <module>device-provisioning-api</module>
-  <checks>User-facing device APIs expose only the caller's devices, allow deterministic create or revoke or rotate flows, and keep one peer per logical device.</checks>
-  <test-files>backend/tests/test_device_api.py backend/tests/test_vpn_router_compat.py</test-files>
-  <commands>pytest tests/test_device_api.py tests/test_vpn_router_compat.py -v</commands>
-  <anchors>VPN_DEVICE_CREATED VPN_DEVICE_REVOKED VPN_DEVICE_CONFIG_ROTATED VPN_CONFIG_RENDERED</anchors>
+  <checks>User-facing device APIs expose only the caller's devices, allow deterministic create or revoke or rotate flows, keep one peer per logical device, and Phase-28 cannot provision VPN resources before email verification.</checks>
+  <test-files>
+    <file>backend/tests/test_verified_registration.py</file>
+    <file>backend/tests/test_device_api.py</file>
+    <file>backend/tests/test_vpn_router_compat.py</file>
+  </test-files>
+  <commands>cd backend &amp;&amp; SECRET_KEY=test-secret-key-with-enough-length DATA_ENCRYPTION_KEY=dpFmfSVqfdAK3yx5MQV6Tcv35RZuw5MzaH0yhxJ01q0= PYTHONPATH=. ../.venv/bin/python -m pytest -o addopts='' tests/test_verified_registration.py tests/test_device_api.py tests/test_vpn_router_compat.py -v</commands>
+  <anchors>VPN_DEVICE_CREATED VPN_DEVICE_REVOKED VPN_DEVICE_CONFIG_ROTATED VPN_CONFIG_RENDERED VPN_DEVICE_SKIPPED_UNVERIFIED</anchors>
+  <phase-28-device-gates>
+    <gate-1>Pending email registration cannot create device rows, VPN clients, WireGuard peers, or downloadable config material.</gate-1>
+    <gate-2>Verified activation creates exactly one primary device path or makes the existing primary-device creation explicitly idempotent.</gate-2>
+    <gate-3>Verify token replay cannot create duplicate primary devices or duplicate peers.</gate-3>
+    <gate-4>Authenticated device create, revoke, rotate, and config-render flows remain green after registration cutover.</gate-4>
+  </phase-28-device-gates>
   <scenarios>
-    <scenario kind="success" trace="VPN_DEVICE_REVOKED">Old peer disabled after revoke, new device works</scenario>
-    <scenario kind="success" trace="VPN_DEVICE_CONFIG_ROTATED">Same logical device after rotate, old peer invalidated</scenario>
+    <scenario-1 kind="success" trace="VPN_DEVICE_CREATED">Primary device created after verified activation.</scenario-1>
+    <scenario-2 kind="success" trace="VPN_DEVICE_REVOKED">Old peer disabled after revoke, new device works.</scenario-2>
+    <scenario-3 kind="success" trace="VPN_DEVICE_CONFIG_ROTATED">Same logical device after rotate, old peer invalidated.</scenario-3>
+    <scenario-4 kind="failure" trace="VPN_DEVICE_SKIPPED_UNVERIFIED">Unverified registration does not provision VPN resources.</scenario-4>
   </scenarios>
 </V-M-022>

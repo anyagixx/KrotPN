@@ -1,12 +1,25 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<V-M-004 MODULE="M-004" PRIORITY="critical" STATUS="pass">
+<V-M-004 MODULE="M-004" PRIORITY="critical" STATUS="pending" VERSION="1.1.0">
   <module>billing</module>
-  <checks>Payment and webhook flows remain isolated from routing migration, complimentary internal access can be granted without entering payment-provider logic, and plan device_limit remains visible and mutable through the admin API.</checks>
-  <test-files>backend/tests/test_billing_security.py backend/tests/test_manual_access_policy.py backend/tests/test_billing_plan_api.py</test-files>
-  <commands>pytest tests/test_billing_security.py tests/test_billing_plan_api.py -v</commands>
-  <anchors>BILLING_WEBHOOK_ACCEPTED BILLING_SUBSCRIPTION_UPDATED</anchors>
+  <checks>Payment and webhook flows remain isolated from registration cutover, complimentary internal access stays outside payment-provider logic, and Phase-28 trial creation is delayed until verified email activation.</checks>
+  <test-files>
+    <file>backend/tests/test_verified_registration.py</file>
+    <file>backend/tests/test_billing_security.py</file>
+    <file>backend/tests/test_manual_access_policy.py</file>
+    <file>backend/tests/test_billing_plan_api.py</file>
+  </test-files>
+  <commands>cd backend &amp;&amp; SECRET_KEY=test-secret-key-with-enough-length DATA_ENCRYPTION_KEY=dpFmfSVqfdAK3yx5MQV6Tcv35RZuw5MzaH0yhxJ01q0= PYTHONPATH=. ../.venv/bin/python -m pytest -o addopts='' tests/test_verified_registration.py tests/test_billing_security.py tests/test_manual_access_policy.py tests/test_billing_plan_api.py -v</commands>
+  <anchors>BILLING_WEBHOOK_ACCEPTED BILLING_SUBSCRIPTION_UPDATED TRIAL_CREATED TRIAL_SKIPPED_EXISTING_HISTORY</anchors>
+  <phase-28-trial-gates>
+    <gate-1>Pending email registration cannot create trial subscription, payment, or billing history rows.</gate-1>
+    <gate-2>Verified activation creates exactly one trial only when no previous trial or active subscription history blocks eligibility.</gate-2>
+    <gate-3>Verify token replay and duplicate activation retries cannot create a second trial.</gate-3>
+    <gate-4>Existing YooKassa webhook, payment confirmation, and plan admin behavior remains green.</gate-4>
+  </phase-28-trial-gates>
   <scenarios>
-    <scenario kind="success" trace="BILLING_WEBHOOK_ACCEPTED">YooKassa webhook accepted with valid signature</scenario>
-    <scenario kind="success" trace="BILLING_SUBSCRIPTION_UPDATED">Subscription state updated after payment confirmation</scenario>
+    <scenario-1 kind="success" trace="TRIAL_CREATED">Eligible verified user receives one trial after activation.</scenario-1>
+    <scenario-2 kind="success" trace="TRIAL_SKIPPED_EXISTING_HISTORY">Ineligible verified user does not receive a duplicate trial.</scenario-2>
+    <scenario-3 kind="success" trace="BILLING_WEBHOOK_ACCEPTED">YooKassa webhook accepted with valid signature.</scenario-3>
+    <scenario-4 kind="success" trace="BILLING_SUBSCRIPTION_UPDATED">Subscription state updated after payment confirmation.</scenario-4>
   </scenarios>
 </V-M-004>

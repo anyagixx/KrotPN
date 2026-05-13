@@ -1,11 +1,26 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<V-M-002 MODULE="M-002" PRIORITY="critical" STATUS="pass">
+<V-M-002 MODULE="M-002" PRIORITY="critical" STATUS="pending" VERSION="1.1.0">
   <module>users</module>
-  <checks>Identity creation stays deterministic for both normal and internal users, and manual internal-user resolution cannot create duplicate user rows for the same logical client.</checks>
-  <test-files>backend/tests/test_telegram_auth.py backend/tests/test_manual_access_policy.py backend/tests/test_manual_client_cli.py</test-files>
-  <commands>pytest tests/test_telegram_auth.py tests/test_manual_access_policy.py tests/test_manual_client_cli.py -v</commands>
-  <anchors>VPN_INTERNAL_USER_RESOLVED</anchors>
+  <checks>Identity creation stays deterministic for normal, verified-email, Telegram, and internal users, and Phase-28 registration cutover cannot create duplicate user rows or bypass email ownership proof.</checks>
+  <test-files>
+    <file>backend/tests/test_verified_registration.py</file>
+    <file>backend/tests/test_telegram_auth.py</file>
+    <file>backend/tests/test_manual_access_policy.py</file>
+    <file>backend/tests/test_manual_client_cli.py</file>
+    <file>backend/tests/test_security.py</file>
+  </test-files>
+  <commands>cd backend &amp;&amp; SECRET_KEY=test-secret-key-with-enough-length DATA_ENCRYPTION_KEY=dpFmfSVqfdAK3yx5MQV6Tcv35RZuw5MzaH0yhxJ01q0= PYTHONPATH=. ../.venv/bin/python -m pytest -o addopts='' tests/test_verified_registration.py tests/test_telegram_auth.py tests/test_manual_access_policy.py tests/test_manual_client_cli.py tests/test_security.py -v</commands>
+  <anchors>VPN_INTERNAL_USER_RESOLVED AUTH_LOGIN_SUCCESS AUTH_REFRESH_SUCCESS EMAIL_VERIFIED_USER_CREATED</anchors>
+  <phase-28-auth-cutover>
+    <gate-1>/api/v1/auth/register creates pending registration state only and does not return authenticated user/session material.</gate-1>
+    <gate-2>Verified-email activation creates exactly one canonical user and reuses the existing login token response contract.</gate-2>
+    <gate-3>Existing login, refresh, logout, Telegram auth, and internal-user resolution behavior remains compatible after the registration response shape changes.</gate-3>
+    <gate-4>Duplicate pending requests for the same email cannot create duplicate active users.</gate-4>
+  </phase-28-auth-cutover>
   <scenarios>
-    <scenario kind="success" trace="VPN_INTERNAL_USER_RESOLVED">Internal user resolved without creating duplicate rows</scenario>
+    <scenario-1 kind="success" trace="EMAIL_VERIFIED_USER_CREATED">Verified email activation creates the active user once.</scenario-1>
+    <scenario-2 kind="success" trace="VPN_INTERNAL_USER_RESOLVED">Internal user resolved without creating duplicate rows.</scenario-2>
+    <scenario-3 kind="success" trace="AUTH_REFRESH_SUCCESS">Refresh and logout contracts remain compatible with M-039 session-security assumptions.</scenario-3>
+    <scenario-4 kind="failure">Unverified registration cannot authenticate or access protected user profile endpoints.</scenario-4>
   </scenarios>
 </V-M-002>
