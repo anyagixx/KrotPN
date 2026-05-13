@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<V-M-004 MODULE="M-004" PRIORITY="critical" STATUS="pass-local" VERSION="1.2.0">
+<V-M-004 MODULE="M-004" PRIORITY="critical" STATUS="partial-local" VERSION="1.2.1">
   <module>billing</module>
   <checks>Payment and webhook flows remain isolated from registration cutover, complimentary internal access stays outside payment-provider logic, and Phase-28 trial creation is delayed until verified email activation.</checks>
   <test-files>
@@ -22,5 +22,8 @@
     <scenario-3 kind="success" trace="BILLING_WEBHOOK_ACCEPTED">YooKassa webhook accepted with valid signature.</scenario-3>
     <scenario-4 kind="success" trace="BILLING_SUBSCRIPTION_UPDATED">Subscription state updated after payment confirmation.</scenario-4>
   </scenarios>
-  <evidence>2026-05-13: Phase-28 backend suite passed locally and proved pending registration creates no trial while verified activation creates one eligible trial once.</evidence>
+  <refresh-findings>
+    <finding-1 severity="critical" date="2026-05-14">Full V-M-004 command failed locally with 404 responses in billing webhook and billing plan API route tests. Phase-28 trial cutover subset remains green, but the complete billing verification gate is partial until route/API binding is fixed.</finding-1>
+  </refresh-findings>
+  <evidence>2026-05-13: Phase-28 backend suite passed locally and proved pending registration creates no trial while verified activation creates one eligible trial once. 2026-05-14: MyGRACE refresh downgraded this gate to partial-local because the full V-M-004 command failed.</evidence>
 </V-M-004>

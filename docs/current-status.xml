@@ -3,7 +3,7 @@
 <current-status>
   <meta>
     <project-name>KrotPN</project-name>
-    <updated>2026-05-13</updated>
+    <updated>2026-05-14</updated>
     <status>active-development</status>
   </meta>
 
@@ -38,7 +38,7 @@
     <item>Phase-26 stabilization handoff records local evidence, protected deploy/install surfaces, and live-required recovery blockers.</item>
     <item>Release v2.14.0-stabilization-stable was operator-deployed from local PC to clean VPS servers and manually validated as working on 2026-05-12.</item>
     <item>Phase-27 email verification foundation passed local verification on 2026-05-13: provider-neutral email delivery, pending registration, HMAC token storage, domain guards, replay/expiry checks, and no /register cutover.</item>
-    <item>Phase-28 verified registration cutover passed local verification on 2026-05-13: /register is pending-only, /verify-email activates user access once, trial/VPN/referral side effects are delayed until email proof, and frontend check-email/verify states build.</item>
+    <item>Phase-28 verified registration cutover primary gates passed local verification on 2026-05-13: /register is pending-only, /verify-email activates user access once, trial/VPN/referral side effects are delayed until email proof, and frontend check-email/verify states build. Full wave status is partial-local after 2026-05-14 refresh because V-M-004 and V-M-022 cross-module route/API gates currently fail.</item>
   </what-is-working>
 
   <what-is-fragile>
@@ -91,17 +91,18 @@
     <gate id="phase-27-email-verification-foundation" status="passed-local">
       <summary>Local Phase-27 backend tests passed for email delivery and pending verified-registration foundation; active /register remains unchanged until Phase-28.</summary>
     </gate>
-    <gate id="phase-28-verified-registration-cutover" status="passed-local">
-      <summary>Local Phase-28 backend, frontend, session smoke, and MyGRACE gates passed for verified email registration cutover.</summary>
+    <gate id="phase-28-verified-registration-cutover" status="partial-local">
+      <summary>Primary Phase-28 backend, frontend, session smoke, and MyGRACE gates passed, but full wave closure is partial until V-M-004 billing route/API tests and V-M-022 VPN compatibility route tests pass.</summary>
     </gate>
   </rollout-gates>
 
   <immediate-priorities>
-    <priority rank="1">Run Phase-22 non-production restore rehearsal with a trusted backup bundle and isolated restore target.</priority>
-    <priority rank="2">Decide whether to approve cookie-only auth migration and provide HTTPS or production-like auth smoke target.</priority>
-    <priority rank="3">Keep deploy/install scripts unchanged unless the operator explicitly requests deployment-surface work.</priority>
-    <priority rank="4">Improve repeatable local verification for backend, user frontend, and admin frontend.</priority>
-    <priority rank="5">Tune false-positive thresholds before enabling any automatic anti-sharing block policy beyond admin-reviewed detect-first mode.</priority>
+    <priority rank="1">Fix Phase-28 refresh findings: V-M-004 billing route/API tests and V-M-022 VPN compatibility route tests currently return 404 in their full per-module gates.</priority>
+    <priority rank="2">Run Phase-22 non-production restore rehearsal with a trusted backup bundle and isolated restore target.</priority>
+    <priority rank="3">Decide whether to approve cookie-only auth migration and provide HTTPS or production-like auth smoke target.</priority>
+    <priority rank="4">Keep deploy/install scripts unchanged unless the operator explicitly requests deployment-surface work.</priority>
+    <priority rank="5">Improve repeatable local verification for backend, user frontend, and admin frontend.</priority>
+    <priority rank="6">Tune false-positive thresholds before enabling any automatic anti-sharing block policy beyond admin-reviewed detect-first mode.</priority>
   </immediate-priorities>
 
   <known-risks>

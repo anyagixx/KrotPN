@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Phase-28 NAME="Verified Registration Cutover" STATUS="done-local" VERSION="1.2.0">
+<Phase-28 NAME="Verified Registration Cutover" STATUS="partial-local" VERSION="1.2.1" UPDATED="2026-05-14">
   <Goal>Switch KrotPN registration to verified-email activation while preserving trial, VPN provisioning, referrals, and frontend onboarding.</Goal>
   <Modules>M-041,M-002,M-004,M-005,M-022,M-009</Modules>
   <NonGoals>
@@ -8,12 +8,12 @@
     <item-3>No deploy/install script changes.</item-3>
   </NonGoals>
   <Steps>
-    <step-1>Change /api/v1/auth/register contract to create a pending registration and send verification email instead of issuing tokens immediately.</step-1>
-    <step-2>Add /api/v1/auth/verify-email or equivalent endpoint that consumes the one-time token and creates the canonical user row.</step-2>
-    <step-3>Move existing post-registration side effects behind successful verification: trial subscription, primary VPN device, VPN client provisioning, and referral linkage.</step-3>
-    <step-4>Update frontend Register flow to show check-email, expired-link, resend, and verified-success states.</step-4>
-    <step-5>Preserve session-security assumptions from M-039 and ensure login/refresh/logout compatibility remains green.</step-5>
-    <step-6>Add regression tests proving unverified users do not get trial, VPN config, referral bonus, or JWT tokens.</step-6>
+    <step-1 STATUS="done-local">Change /api/v1/auth/register contract to create a pending registration and send verification email instead of issuing tokens immediately.</step-1>
+    <step-2 STATUS="done-local">Add /api/v1/auth/verify-email or equivalent endpoint that consumes the one-time token and creates the canonical user row.</step-2>
+    <step-3 STATUS="done-local">Move existing post-registration side effects behind successful verification: trial subscription, primary VPN device, VPN client provisioning, and referral linkage.</step-3>
+    <step-4 STATUS="done-local">Update frontend Register flow to show check-email, expired-link, resend, and verified-success states.</step-4>
+    <step-5 STATUS="done-local">Preserve session-security assumptions from M-039 and ensure login/refresh/logout compatibility remains green.</step-5>
+    <step-6 STATUS="done-local">Add regression tests proving unverified users do not get trial, VPN config, referral bonus, or JWT tokens.</step-6>
   </Steps>
   <Verification>
     <command>cd backend &amp;&amp; SECRET_KEY=test-secret-key-with-enough-length DATA_ENCRYPTION_KEY=dpFmfSVqfdAK3yx5MQV6Tcv35RZuw5MzaH0yhxJ01q0= PYTHONPATH=. ../.venv/bin/python -m pytest -o addopts='' tests/test_verified_registration.py tests/test_email_verification_guard.py tests/test_manual_access_policy.py tests/test_device_api.py tests/test_referrals.py tests/test_telegram_auth.py tests/test_security.py -v</command>
@@ -33,6 +33,9 @@
     <item-3>User frontend now has Register pending/resend state and VerifyEmail success/expired/error route.</item-3>
     <item-4>Session smoke was updated so token storage starts at VerifyEmail success, not Register submit.</item-4>
   </Completion>
+  <RefreshNotes>
+    <note-1>2026-05-14 MyGRACE reviewer/refresh kept primary cutover evidence, but downgraded full phase closure to partial-local because full V-M-004 and V-M-022 per-module commands currently fail on 404 route/API binding regressions.</note-1>
+  </RefreshNotes>
   <Risks>
     <risk-1>Changing /register response shape can break frontend and external clients if not staged carefully.</risk-1>
     <risk-2>Partially completed activation can duplicate trial/referral side effects unless idempotency is explicit.</risk-2>
