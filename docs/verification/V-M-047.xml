@@ -1,27 +1,99 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<V-M-047 MODULE="M-047" PRIORITY="high" STATUS="planned" VERSION="1.0.0">
+<V-M-047 MODULE="M-047" PRIORITY="high" STATUS="pending" VERSION="1.1.0">
+  <module>mtproto-admin-ops</module>
+  <phase-scope>
+    <phase-33 status="planned">Admin MTProto operations and observability must be implemented behind admin-only APIs and compact frontend-admin screens with strict secret redaction.</phase-33>
+  </phase-scope>
   <test-files>
+    <file>backend/app/admin/router.py</file>
+    <file>backend/app/admin/audit.py</file>
+    <file>backend/app/mtproto/repository.py</file>
+    <file>backend/app/mtproto/provisioning.py</file>
+    <file>backend/app/mtproto/runtime_bridge.py</file>
+    <file>backend/app/mtproto/health.py</file>
     <file>backend/tests/test_mtproto_admin_ops.py</file>
+    <file>backend/tests/test_admin_device_control.py</file>
+    <file>backend/tests/test_mtproto_assignment_registry.py</file>
+    <file>backend/tests/test_kpproton_runtime_bridge.py</file>
     <file>frontend-admin/src/lib/api.ts</file>
-    <file>frontend-admin/src/pages/</file>
+    <file>frontend-admin/src/types/index.ts</file>
+    <file>frontend-admin/src/main.tsx</file>
+    <file>frontend-admin/src/components/Layout.tsx</file>
+    <file>frontend-admin/src/pages/MTProto.tsx</file>
+    <file>scripts/phase33-mtproto-admin-smoke.mjs</file>
   </test-files>
+  <commands>
+    <command-1>cd backend &amp;&amp; SECRET_KEY=test-secret-key-with-enough-length DATA_ENCRYPTION_KEY=dpFmfSVqfdAK3yx5MQV6Tcv35RZuw5MzaH0yhxJ01q0= PYTHONPATH=. ../.venv/bin/python -m pytest -o addopts='' tests/test_mtproto_admin_ops.py tests/test_admin_device_control.py tests/test_mtproto_assignment_registry.py tests/test_kpproton_runtime_bridge.py -v</command-1>
+    <command-2>cd frontend-admin &amp;&amp; npm run build</command-2>
+    <command-3>node scripts/phase33-mtproto-admin-smoke.mjs</command-3>
+    <command-4>python3 -m xml.etree.ElementTree docs/plans/Phase-33.xml docs/modules/M-047.xml docs/verification/V-M-047.xml docs/verification-index.xml docs/graph-index.xml docs/plan-index.xml &amp;&amp; mygrace lint</command-4>
+  </commands>
+  <verification-levels>
+    <module-local>Backend tests prove admin-only MTProto list/detail/health/reissue/revoke behavior, audit writes, secret-free payloads, and failure mapping.</module-local>
+    <wave-level>M-042, M-043, M-044, and M-024 regression tests stay in the gate so admin operations preserve assignment persistence, provisioning reissue policy, runtime bridge health, and confirmation-safe admin mutation patterns.</wave-level>
+    <phase-level>Frontend-admin build and smoke prove the MTProto operator page is compact on mobile, exposes only redacted data, and requires explicit confirmation for destructive actions.</phase-level>
+  </verification-levels>
   <module-checks>
-    <check-1 evidence="deterministic">Admin assignment list returns redacted fields by default.</check-1>
-    <check-2 evidence="deterministic">Reissue and revoke require admin role and emit audit events.</check-2>
-    <check-3 evidence="deterministic">Frontend-admin build passes with confirmation-safe operations.</check-3>
+    <check-1 evidence="deterministic">Only authenticated admins can access MTProto admin endpoints; normal users and unauthenticated requests are rejected.</check-1>
+    <check-2 evidence="deterministic">Assignment list and detail endpoints filter by user, SNI, status, and timestamps while returning only redacted or derived-safe fields.</check-2>
+    <check-3 evidence="deterministic">Runtime health endpoint exposes aggregate bridge status, adapter name, safe failure codes, and timestamps without proxy credentials.</check-3>
+    <check-4 evidence="deterministic">Admin reissue requires explicit confirmation and returns a redacted assignment state instead of a full owner proxy link or derived secret.</check-4>
+    <check-5 evidence="deterministic">Admin revoke disables only the selected MTProto assignment and does not cancel KrotPN subscription, VPN devices, trial state, or the user account.</check-5>
+    <check-6 evidence="deterministic">Reissue and revoke create admin audit records whose details omit tg links, raw secrets, verification tokens, and session credentials.</check-6>
+    <check-7 evidence="log-trace">Backend log markers exist for list filtering, redaction, runtime health, explicit reissue, explicit revoke, and audited outcomes.</check-7>
+    <check-8 evidence="ui-smoke">Frontend-admin MTProto page renders a compact table/card hybrid with search, status filters, health summary, and confirmation-safe actions at mobile widths.</check-8>
+    <check-9 evidence="static-guard">Frontend API/types and UI never render, log, or persist full tg://proxy links, base secrets, derived secrets, or secret salts in admin surfaces.</check-9>
   </module-checks>
   <scenarios>
-    <scenario-1 kind="success">Admin can inspect bridge health and assignment status.</scenario-1>
-    <scenario-2 kind="success">Admin can reissue one user's proxy after explicit confirmation.</scenario-2>
-    <scenario-3 kind="success">Admin can revoke MTProto access without canceling VPN subscription.</scenario-3>
-    <scenario-4 kind="failure">Non-admin and missing confirmation paths are rejected.</scenario-4>
+    <scenario-1 kind="success">Admin opens the MTProto page, sees runtime bridge health and assignment counters, and searches by email, user id, SNI fragment, or status.</scenario-1>
+    <scenario-2 kind="success">Admin views one assignment detail with assignment id, user context, SNI, status, rotation marker, timestamps, and bridge-safe health only.</scenario-2>
+    <scenario-3 kind="success">Admin reissues one assignment after explicit confirmation and the response marks the new safe assignment state without exposing owner-only credentials.</scenario-3>
+    <scenario-4 kind="success">Admin revokes one MTProto assignment after explicit confirmation while the user's VPN subscription and devices remain active.</scenario-4>
+    <scenario-5 kind="failure">Non-admin, unauthenticated, missing-confirmation, unknown-assignment, and conflicting-SNI paths return stable safe errors.</scenario-5>
+    <scenario-6 kind="failure">Runtime bridge degraded or unavailable state is visible as a safe admin warning and does not block list/detail reads or leak runtime internals.</scenario-6>
+    <scenario-7 kind="failure">Secret rotation stale state prompts reissue-required handling and never shows stale tg links in admin output.</scenario-7>
   </scenarios>
   <required-log-markers>
-    <marker-1>[M-047][admin_list_mtproto][REDACT_LIST]</marker-1>
-    <marker-2>[M-047][admin_reissue_mtproto][AUDIT_REISSUE]</marker-2>
-    <marker-3>[M-047][admin_revoke_mtproto][AUDIT_REVOKE]</marker-3>
+    <marker-1>[M-047][admin_list_mtproto][FILTER_ASSIGNMENTS]</marker-1>
+    <marker-2>[M-047][admin_list_mtproto][REDACT_PAYLOAD]</marker-2>
+    <marker-3>[M-047][admin_get_mtproto][SAFE_DETAIL]</marker-3>
+    <marker-4>[M-047][admin_mtproto_health][RUNTIME_HEALTH]</marker-4>
+    <marker-5>[M-047][admin_reissue_mtproto][CONFIRM_REISSUE]</marker-5>
+    <marker-6>[M-047][admin_reissue_mtproto][AUDIT_REISSUE]</marker-6>
+    <marker-7>[M-047][admin_revoke_mtproto][CONFIRM_REVOKE]</marker-7>
+    <marker-8>[M-047][admin_revoke_mtproto][AUDIT_REVOKE]</marker-8>
+    <marker-9>[M-047][admin_mtproto_ui][REDACTED_RENDER]</marker-9>
+    <marker-10>[M-047][admin_mtproto_ui][CONFIRM_ACTION]</marker-10>
   </required-log-markers>
   <redaction-rules>
-    <rule-1>Admin logs and audit records never include full tg://proxy links or raw secrets.</rule-1>
+    <rule-1>Admin API responses may include assignment id, user id, redacted or explicit user email per existing admin policy, SNI, status, credential mode, rotation marker, timestamps, safe bridge status, and safe failure codes.</rule-1>
+    <rule-2>Admin API responses, audit records, backend logs, frontend console logs, smoke traces, and analytics labels must not include full tg://proxy links, derived fake-TLS secrets, MTPROTO_BASE_SECRET_HEX, MTPROTO_SECRET_SALT, email verification tokens, JWT/session tokens, or certificate private keys.</rule-2>
+    <rule-3>Owner-only MTProto secret and link payloads remain limited to the authenticated user cabinet contract in M-045; M-047 must not create an admin backdoor for reading those credentials.</rule-3>
+    <rule-4>Reissue/revoke audit details must use safe identifiers and action outcomes, not raw request bodies that could contain future secret-bearing fields.</rule-4>
   </redaction-rules>
+  <ui-smoke-gates>
+    <gate-1>MTProto admin page at 360x740, 390x844, and 430x932 has document scrollWidth &lt;= innerWidth.</gate-1>
+    <gate-2>Search, status filter, runtime health, assignment row actions, and confirmation modal remain reachable within the compact admin shell.</gate-2>
+    <gate-3>Reissue and revoke require an explicit confirmation surface with the selected assignment/user context visible before mutation.</gate-3>
+    <gate-4>Mobile layout avoids desktop-only wide tables, nested cards, hero blocks, and oversized explanatory text.</gate-4>
+    <gate-5>Secret-shaped values and tg://proxy strings are absent from rendered admin DOM snapshots and smoke output.</gate-5>
+  </ui-smoke-gates>
+  <telemetry-requirements>
+    <metric-1>admin_mtproto_list_count tagged by status/filter shape without user secrets.</metric-1>
+    <metric-2>admin_mtproto_health_count tagged by bridge status and safe failure code.</metric-2>
+    <metric-3>admin_mtproto_reissue_count tagged by result and safe failure code.</metric-3>
+    <metric-4>admin_mtproto_revoke_count tagged by result and safe failure code.</metric-4>
+    <metric-5>admin_mtproto_ui_action_count tagged by action and confirmation outcome without secret-bearing labels.</metric-5>
+  </telemetry-requirements>
+  <autonomous-execution-safety>
+    <level>safe-local-admin-api-ui-only</level>
+    <safe-local>Backend tests with local DB fixtures, frontend-admin build, XML parsing, MyGRACE lint, and the phase smoke script are safe to run locally.</safe-local>
+    <requires-operator>Live production reissue/revoke against real users, public edge runtime changes, DNS/TLS edits, deploy scripts, install scripts, nginx, and docker-compose remain out of scope unless the operator explicitly approves them.</requires-operator>
+  </autonomous-execution-safety>
+  <phase-33-acceptance-gates>
+    <gate-1>All commands in this verification file pass before Phase-33 can move from planned to pass-local.</gate-1>
+    <gate-2>No admin payload, log, audit row, frontend DOM snapshot, or smoke artifact contains tg://proxy, fake-TLS secrets, base secret, or salt.</gate-2>
+    <gate-3>Revoke and reissue are audited, confirmation-safe, and scoped to MTProto assignment state only.</gate-3>
+    <gate-4>Frontend-admin navigation includes a compact MTProto surface without regressing existing dashboard, users, devices, analytics, servers, or plans routes.</gate-4>
+  </phase-33-acceptance-gates>
 </V-M-047>
