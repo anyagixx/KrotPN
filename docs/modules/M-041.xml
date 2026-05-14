@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <M-041 NAME="verified-email-registration" TYPE="CORE_LOGIC" STATUS="done-local">
-  <path>backend/app/users backend/app/email</path>
+  <path>backend/app/users backend/app/email docs/plans/Phase-27.xml docs/plans/Phase-28.xml</path>
   <owns>Pending email registration, email ownership verification, disposable-domain guard, and Phase-28 post-verification onboarding orchestration.</owns>
   <purpose>Build the verified-registration foundation so KrotPN can create user access, trial subscription, VPN config, referral effects, and MTProto proxy only after email ownership is proven.</purpose>
   <exports>

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <M-042 NAME="mtproto-assignment-registry" TYPE="DATA_LAYER" STATUS="done-local">
-  <path>backend/app/mtproto backend/alembic</path>
+  <path>backend/app/mtproto backend/alembic docs/plans/Phase-29.xml</path>
   <owns>PostgreSQL-backed MTProto proxy assignment records, uniqueness constraints, lifecycle status, and restore-safe metadata.</owns>
   <purpose>Store each user's personal Telegram MTProto proxy assignment inside KrotPN's primary database instead of KPprotoN DETS.</purpose>
   <exports>

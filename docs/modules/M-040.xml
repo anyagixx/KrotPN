@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <M-040 NAME="email-delivery" TYPE="INTEGRATION" STATUS="done-local">
-  <path>backend/app/email</path>
+  <path>backend/app/email docs/plans/Phase-27.xml</path>
   <owns>Email provider adapter, verification email templates, provider error mapping, and safe operator evidence for email delivery.</owns>
   <purpose>Provide a KrotPN-native email delivery surface for verified registration without exposing tokens or provider secrets.</purpose>
   <exports>

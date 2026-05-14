@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <M-043 NAME="mtproto-provisioning" TYPE="CORE_LOGIC" STATUS="done-local">
-  <path>backend/app/mtproto</path>
+  <path>backend/app/mtproto docs/plans/Phase-29.xml</path>
   <owns>Deterministic SNI generation, derived fake-TLS secret generation, tg://proxy assembly, and idempotent reissue policy.</owns>
   <purpose>Port the useful KPprotoN provisioning logic into KrotPN as Python/FastAPI domain code backed by Postgres assignments.</purpose>
   <exports>

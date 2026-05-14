@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <M-046 NAME="krotpn-domain-tls-edge" TYPE="ENTRY_POINT" STATUS="planned">
-  <path>nginx docker-compose.yml</path>
+  <path>nginx docker-compose.yml docs/plans/Phase-32.xml</path>
   <owns>krotpn.xyz domain edge, HTTP to HTTPS redirect, wildcard TLS expectations, and shared 443 routing contract for HTTPS plus MTProto.</owns>
   <purpose>Define the production edge model needed for https://krotpn.xyz and Telegram fake-TLS MTProto proxy to coexist safely.</purpose>
   <exports>

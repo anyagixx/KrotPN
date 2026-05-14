@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <M-047 NAME="mtproto-admin-ops" TYPE="ENTRY_POINT" STATUS="planned">
-  <path>backend/app/admin frontend-admin</path>
+  <path>backend/app/admin frontend-admin docs/plans/Phase-33.xml</path>
   <owns>Admin inspection and controlled operations for MTProto assignments, runtime bridge health, reissue, revoke, and audit-safe diagnostics.</owns>
   <purpose>Give the operator visibility and controlled recovery actions for user MTProto proxy assignments without exposing secrets broadly.</purpose>
   <exports>

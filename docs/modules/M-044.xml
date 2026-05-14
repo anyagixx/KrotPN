@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <M-044 NAME="kpproton-runtime-bridge" TYPE="INTEGRATION" STATUS="done-local">
-  <path>backend/app/mtproto backend/app/tasks</path>
+  <path>backend/app/mtproto backend/app/tasks/scheduler.py docs/plans/Phase-30.xml</path>
   <owns>Runtime bridge from KrotPN assignments to the KPprotoN/mtproto_proxy policy layer and startup policy replay.</owns>
   <purpose>Keep Telegram MTProto access active by loading issued SNI assignments into the runtime edge without blocking normal KrotPN auth.</purpose>
   <exports>
