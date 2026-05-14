@@ -1,8 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<V-M-042 MODULE="M-042" PRIORITY="critical" STATUS="pass-local" VERSION="1.2.0">
+<V-M-042 MODULE="M-042" PRIORITY="critical" STATUS="pass-local" VERSION="1.3.0">
   <module>mtproto-assignment-registry</module>
   <phase-scope>
     <phase-29 status="pass-local">Postgres-backed MTProto assignment registry implemented and verified locally.</phase-29>
+    <phase-34 status="planned">Stabilization gate must prove verified-registration, owner dashboard, admin ops, and backup/restore notes all treat MTProto assignment state as restore-safe data.</phase-34>
   </phase-scope>
   <test-files>
     <file>backend/tests/test_mtproto_assignment_registry.py</file>
@@ -20,7 +21,12 @@
     <check-3 evidence="deterministic">Alembic migration is compatible with SQLModel metadata and existing DB tests.</check-3>
     <check-4 evidence="deterministic">Persisted state excludes raw tg://proxy links, raw base secret, raw salt, and derived secret unless encrypted storage is explicitly approved.</check-4>
     <check-5 evidence="restore-fixture">A restore-like fixture can rebuild the public response from user_id, SNI, credential mode, assignment status, and rotation marker.</check-5>
+    <check-6 evidence="phase-34-integration">Phase-34 integration verifies one canonical assignment per verified user across registration activation, owner API reuse, admin listing, and runtime replay.</check-6>
   </module-checks>
+  <phase-34-stabilization-gates>
+    <gate-1>Backup/restore handoff covers MTProtoAssignment user_id, SNI, credential_mode, status, rotation_marker, issued_at, superseded_at, and migration revision.</gate-1>
+    <gate-2>Redaction review confirms assignment persistence and admin list outputs never contain full tg://proxy links or derived fake-TLS secrets.</gate-2>
+  </phase-34-stabilization-gates>
   <scenarios>
     <scenario-1 kind="success">Assignment is saved and read back by user id.</scenario-1>
     <scenario-2 kind="success">Restore-like fixture preserves user linkage, SNI, credential mode, and status.</scenario-2>

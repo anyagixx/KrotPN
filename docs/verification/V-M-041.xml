@@ -1,8 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<V-M-041 MODULE="M-041" PRIORITY="critical" STATUS="partial-local" VERSION="1.4.1">
+<V-M-041 MODULE="M-041" PRIORITY="critical" STATUS="partial-local" VERSION="1.5.0">
   <phase-scope>
     <phase-27 status="pass-local">Foundation evidence exists for pending-registration primitives, token hashing, TTL/replay protection, email risk checks, fake-provider email delivery, and unchanged active /register behavior.</phase-27>
     <phase-28 status="partial-local">Primary cutover verification proves that /register is a pending-email flow and that active KrotPN access exists only after verified email activation; full wave closure is partial until V-M-004 and V-M-022 complete gates pass.</phase-28>
+    <phase-34 status="planned">Stabilization gate must prove verified-email activation and the free MTProto owner path are linked without issuing MTProto, trial, VPN, referral, or JWT side effects before email proof.</phase-34>
   </phase-scope>
   <test-files>
     <file phase="27-regression">backend/tests/test_email_verification_guard.py</file>
@@ -10,6 +11,7 @@
     <file phase="28-cross-module">backend/tests/test_manual_access_policy.py</file>
     <file phase="28-cross-module">backend/tests/test_device_api.py</file>
     <file phase="28-cross-module">backend/tests/test_referrals.py</file>
+    <file phase="34-integration-planned">backend/tests/test_phase34_mtproto_integration.py</file>
   </test-files>
   <verification-levels>
     <module-local>Risk checks, pending-token lifecycle, activation idempotency, and redaction run without live email provider, DNS mutability, VPN host mutation, or MTProto runtime.</module-local>
@@ -24,7 +26,14 @@
     <check-5 evidence="deterministic">Allowlist policy can override broad deny rules for operator-approved domains.</check-5>
     <check-6 evidence="deterministic">Successful verification consumes the token, creates the canonical user, marks email ownership verified, and returns the same authenticated session contract used by login.</check-6>
     <check-7 evidence="idempotency">Activation side effects are executed exactly once even if the verify endpoint is called repeatedly or a transaction is retried after partial failure.</check-7>
+    <check-8 evidence="phase-34-integration">Verified activation plus first owner MTProto access creates exactly one MTProto assignment; pending/unverified registration creates none.</check-8>
   </module-checks>
+  <phase-34-stabilization-gates>
+    <gate-1>Unverified registration returns pending/check-email and leaves User, Subscription, UserDevice, Referral, and MTProtoAssignment counts unchanged.</gate-1>
+    <gate-2>Verified-email activation creates normal KrotPN access once and allows the owner MTProto endpoint to create or reuse exactly one assignment.</gate-2>
+    <gate-3>Replay of the verification token cannot duplicate KrotPN onboarding side effects or MTProto assignments.</gate-3>
+    <gate-4>Phase-28 partial-local blockers in V-M-004 and V-M-022 must be resolved or explicitly recorded as a release risk before Phase-34 closure.</gate-4>
+  </phase-34-stabilization-gates>
   <phase-28-cutover-gates>
     <gate-1>/api/v1/auth/register returns a pending/check-email response and never returns access_token, refresh_token, user profile, or authenticated cookies.</gate-1>
     <gate-2>/api/v1/auth/verify-email or the chosen equivalent endpoint accepts a valid one-time token and creates active access only after email ownership is proven.</gate-2>

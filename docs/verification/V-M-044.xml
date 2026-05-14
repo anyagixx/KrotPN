@@ -1,8 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<V-M-044 MODULE="M-044" PRIORITY="critical" STATUS="pass-local" VERSION="1.3.0">
+<V-M-044 MODULE="M-044" PRIORITY="critical" STATUS="pass-local" VERSION="1.4.0">
   <module>kpproton-runtime-bridge</module>
   <phase-scope>
     <phase-30 status="pass-local">Runtime bridge implemented with fake/local adapter verification.</phase-30>
+    <phase-34 status="planned">Stabilization gate keeps runtime apply, replay, health, and revoke in the end-to-end MTProto release suite.</phase-34>
   </phase-scope>
   <test-files>
     <file>backend/tests/test_kpproton_runtime_bridge.py</file>
@@ -24,7 +25,12 @@
     <check-5 evidence="security">Runtime logs and health payloads expose no tg://proxy links, derived secrets, base secret, salt, tokens, or provider credentials.</check-5>
     <check-6 evidence="operational">Deploy/install surfaces remain unchanged; runtime bridge activation is configured inside backend/runtime service boundaries only.</check-6>
     <check-7 evidence="deterministic">revoke-domain-policy removes one SNI from runtime policy state idempotently even after the assignment is marked disabled.</check-7>
+    <check-8 evidence="phase-34-integration">Phase-34 full gate proves assignment issuance, owner access, admin revoke, runtime policy removal, and replay remain mutually consistent.</check-8>
   </module-checks>
+  <phase-34-stabilization-gates>
+    <gate-1>Startup replay after restore loads only active assignments and skips disabled, superseded, or revoked rows.</gate-1>
+    <gate-2>Runtime bridge degraded state is visible to owner/admin surfaces without blocking KrotPN login, trial, billing, or VPN APIs.</gate-2>
+  </phase-34-stabilization-gates>
   <scenarios>
     <scenario-1 kind="success">New active assignment is applied to MTProto policy runtime and returns activated status.</scenario-1>
     <scenario-2 kind="success">Backend or bridge restart replays active SNI assignments exactly once per reconciliation cycle.</scenario-2>

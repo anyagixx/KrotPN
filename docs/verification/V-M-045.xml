@@ -1,8 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<V-M-045 MODULE="M-045" PRIORITY="high" STATUS="pass-local" VERSION="1.2.0">
+<V-M-045 MODULE="M-045" PRIORITY="high" STATUS="pass-local" VERSION="1.3.0">
   <module>mtproto-user-cabinet</module>
   <phase-scope>
     <phase-31 status="pass-local">User-facing backend API and compact mobile dashboard UX for personal MTProto proxy access passed local verification.</phase-31>
+    <phase-34 status="planned">Stabilization gate must prove the owner dashboard still shows free MTProto access after verified registration without hiding KrotPN trial or VPN actions.</phase-34>
   </phase-scope>
   <test-files>
     <file>backend/app/mtproto/router.py</file>
@@ -14,6 +15,7 @@
     <file>frontend/src/pages/Dashboard.tsx</file>
     <file>frontend/src/index.css</file>
     <file>scripts/phase31-mtproto-cabinet-smoke.mjs</file>
+    <file phase="34-static-planned">scripts/phase34-mtproto-stabilization-smoke.mjs</file>
   </test-files>
   <commands>
     <command-1>cd backend &amp;&amp; SECRET_KEY=test-secret-key-with-enough-length DATA_ENCRYPTION_KEY=dpFmfSVqfdAK3yx5MQV6Tcv35RZuw5MzaH0yhxJ01q0= PYTHONPATH=. ../.venv/bin/python -m pytest -o addopts='' tests/test_mtproto_api.py tests/test_mtproto_assignment_registry.py tests/test_mtproto_provisioning.py -v</command-1>
@@ -33,7 +35,12 @@
     <check-4 evidence="deterministic">Frontend API types preserve the exact backend response shape and do not print secret-bearing payloads to console logs.</check-4>
     <check-5 evidence="ui-smoke">Dashboard MTProto card renders open Telegram, copy link, copy server, copy port, and copy secret actions without horizontal scroll.</check-5>
     <check-6 evidence="regression">VPN trial status, subscription CTA, and primary config action remain visible/reachable after adding MTProto dashboard content.</check-6>
+    <check-7 evidence="phase-34-integration">Phase-34 user flow verifies the post-verify session can open the dashboard and retrieve the same canonical MTProto assignment without duplicate rows.</check-7>
   </module-checks>
+  <phase-34-stabilization-gates>
+    <gate-1>Owner-only MTProto secret/link fields remain visible only in authenticated user dashboard/API, never admin or smoke output.</gate-1>
+    <gate-2>Mobile dashboard keeps MTProto, VPN trial, subscription, and config actions reachable at 360x740, 390x844, and 430x932.</gate-2>
+  </phase-34-stabilization-gates>
   <scenarios>
     <scenario-1 kind="success">Verified user with an active assignment sees activated MTProto status and can open the tg://proxy link.</scenario-1>
     <scenario-2 kind="success">Repeated dashboard loads reuse the canonical assignment and do not create duplicate MTProto rows.</scenario-2>

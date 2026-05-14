@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Phase-34 NAME="MTProto Integration Stabilization Gates" STATUS="planned" VERSION="1.0.0">
+<Phase-34 NAME="MTProto Integration Stabilization Gates" STATUS="planned" VERSION="1.1.0">
   <Goal>Close the end-to-end stabilization gates for verified registration, free MTProto proxy issuance, dashboard UX, admin ops, and production edge readiness.</Goal>
   <Modules>M-040,M-041,M-042,M-043,M-044,M-045,M-046,M-047</Modules>
   <NonGoals>
@@ -7,19 +7,44 @@
     <item-2>No deploy/install redesign outside the approved edge work.</item-2>
   </NonGoals>
   <Steps>
-    <step-1>Run full backend targeted suite for email, registration, MTProto provisioning, runtime bridge, admin ops, and migrations.</step-1>
-    <step-2>Run user frontend and admin frontend builds plus mobile viewport smoke for registration, dashboard, and admin MTProto pages.</step-2>
-    <step-3>Run security/redaction review for email tokens, tg://proxy links, derived secrets, admin audit payloads, and logs.</step-3>
-    <step-4>Run backup/restore planning update so MTProto assignments and secret rotation metadata are covered by Phase-22 artifacts.</step-4>
-    <step-5>Run production-like smoke after krotpn.xyz DNS and wildcard certificate are ready.</step-5>
-    <step-6>Prepare release handoff with known risks, rollback notes, and operator acceptance checklist.</step-6>
+    <step-1 STATUS="planned">Run full backend targeted suite for email, registration, MTProto provisioning, runtime bridge, admin ops, and migrations.</step-1>
+    <step-2 STATUS="planned">Run user frontend and admin frontend builds plus mobile viewport smoke for registration, dashboard, and admin MTProto pages.</step-2>
+    <step-3 STATUS="planned">Run security/redaction review for email tokens, tg://proxy links, derived secrets, admin audit payloads, and logs.</step-3>
+    <step-4 STATUS="planned">Run backup/restore planning update so MTProto assignments and secret rotation metadata are covered by Phase-22 artifacts.</step-4>
+    <step-5 STATUS="blocked-live">Run production-like smoke after krotpn.xyz DNS and wildcard certificate are ready.</step-5>
+    <step-6 STATUS="planned">Prepare release handoff with known risks, rollback notes, and operator acceptance checklist.</step-6>
   </Steps>
   <Verification>
-    <command>cd backend &amp;&amp; PYTHONPATH=. ../.venv/bin/python -m pytest -o addopts='' tests/test_email_delivery.py tests/test_verified_registration.py tests/test_mtproto_assignment_registry.py tests/test_mtproto_provisioning.py tests/test_kpproton_runtime_bridge.py tests/test_mtproto_api.py tests/test_mtproto_admin_ops.py -v</command>
-    <command>cd frontend &amp;&amp; npm run build</command>
-    <command>cd frontend-admin &amp;&amp; npm run build</command>
-    <command>python3 -m xml.etree.ElementTree docs/graph-index.xml docs/plan-index.xml docs/verification-index.xml docs/modules/M-040.xml docs/modules/M-041.xml docs/modules/M-042.xml docs/modules/M-043.xml docs/modules/M-044.xml docs/modules/M-045.xml docs/modules/M-046.xml docs/modules/M-047.xml</command>
+    <command-1>cd backend &amp;&amp; SECRET_KEY=test-secret-key-with-enough-length DATA_ENCRYPTION_KEY=dpFmfSVqfdAK3yx5MQV6Tcv35RZuw5MzaH0yhxJ01q0= PYTHONPATH=. ../.venv/bin/python -m pytest -o addopts='' tests/test_email_delivery.py tests/test_email_verification_guard.py tests/test_verified_registration.py tests/test_phase34_mtproto_integration.py tests/test_mtproto_assignment_registry.py tests/test_mtproto_provisioning.py tests/test_kpproton_runtime_bridge.py tests/test_mtproto_api.py tests/test_mtproto_admin_ops.py tests/test_db_migrations.py tests/test_scheduler.py -v</command-1>
+    <command-2>cd frontend &amp;&amp; npm run build &amp;&amp; cd .. &amp;&amp; node scripts/phase28-register-flow-smoke.mjs &amp;&amp; node scripts/phase31-mtproto-cabinet-smoke.mjs</command-2>
+    <command-3>cd frontend-admin &amp;&amp; npm run build &amp;&amp; cd .. &amp;&amp; node scripts/phase33-mtproto-admin-smoke.mjs</command-3>
+    <command-4>node scripts/phase34-mtproto-stabilization-smoke.mjs</command-4>
+    <command-5>python3 -m xml.etree.ElementTree docs/plans/Phase-34.xml docs/modules/M-040.xml docs/modules/M-041.xml docs/modules/M-042.xml docs/modules/M-043.xml docs/modules/M-044.xml docs/modules/M-045.xml docs/modules/M-046.xml docs/modules/M-047.xml docs/verification/V-M-040.xml docs/verification/V-M-041.xml docs/verification/V-M-042.xml docs/verification/V-M-043.xml docs/verification/V-M-044.xml docs/verification/V-M-045.xml docs/verification/V-M-046.xml docs/verification/V-M-047.xml docs/verification-index.xml docs/graph-index.xml docs/plan-index.xml &amp;&amp; mygrace lint</command-5>
+    <command-6>operator-live: after DNS and trusted wildcard TLS readiness, smoke https://krotpn.xyz, admin route, API health, one issued MTProto SNI, and rollback readiness.</command-6>
   </Verification>
+  <VerificationMatrix>
+    <gate-1 MODULES="M-040,M-041" EVIDENCE="deterministic">Pending registration sends email without tokens or active access; verified activation is one-time and side-effect safe.</gate-1>
+    <gate-2 MODULES="M-041,M-042,M-043" EVIDENCE="deterministic">Verified activation creates or exposes exactly one free indefinite MTProto assignment, while unverified registration creates none.</gate-2>
+    <gate-3 MODULES="M-044,M-045" EVIDENCE="deterministic+ui-smoke">Runtime bridge applies/replays/revokes policy safely and owner dashboard shows the compact proxy card without breaking VPN actions.</gate-3>
+    <gate-4 MODULES="M-047" EVIDENCE="deterministic+ui-smoke">Admin MTProto list/detail/health/reissue/revoke remain redacted, audited, and mobile-safe.</gate-4>
+    <gate-5 MODULES="M-046" EVIDENCE="static+live-required">krotpn.xyz HTTPS redirect, wildcard TLS, shared 443, and issued SNI routing are proven locally where possible and live-smoked only with operator readiness.</gate-5>
+    <gate-6 MODULES="M-042,M-046" EVIDENCE="documentation+restore-readiness">Phase-22 backup/restore coverage explicitly includes MTProto assignments, rotation marker, SNI, credential mode, and edge DNS/TLS assumptions.</gate-6>
+  </VerificationMatrix>
+  <ExpectedExecutionArtifacts>
+    <artifact-1>backend/tests/test_phase34_mtproto_integration.py verifies verified-email activation plus MTProto owner issuance/idempotency and unverified no-access invariants.</artifact-1>
+    <artifact-2>scripts/phase34-mtproto-stabilization-smoke.mjs verifies static redaction and route wiring across registration, dashboard MTProto, admin MTProto, and edge docs.</artifact-2>
+    <artifact-3>docs/handoff/PHASE-34-RELEASE-CHECKLIST.xml records local gates, live-only assumptions, rollback notes, and operator acceptance evidence.</artifact-3>
+  </ExpectedExecutionArtifacts>
+  <RedactionMatrix>
+    <item-1>Email verification tokens, token hashes, JWTs, refresh tokens, cookies, provider API keys, and SMTP credentials must not appear in logs, smoke output, audit rows, or docs evidence.</item-1>
+    <item-2>tg://proxy links and derived fake-TLS secrets may appear only in authenticated owner API/UI responses, never in admin payloads or audit records.</item-2>
+    <item-3>MTPROTO_BASE_SECRET_HEX, MTPROTO_SECRET_SALT, certificate private keys, and runtime env values must never appear in frontend bundles, admin surfaces, or smoke logs.</item-3>
+  </RedactionMatrix>
+  <AutonomousExecutionSafety>
+    <safe-local>Backend pytest with isolated DB fixtures, frontend builds, static smoke scripts, XML parsing, and MyGRACE lint are safe to execute autonomously.</safe-local>
+    <requires-operator>Live DNS changes, wildcard certificate issuance, shared 443 production route changes, public MTProto client smoke, and production reissue/revoke actions require explicit operator readiness and rollback window.</requires-operator>
+    <protected-surfaces>deploy/, install.sh, nginx, docker-compose.yml, and live servers remain unchanged unless a later execute packet explicitly scopes them.</protected-surfaces>
+  </AutonomousExecutionSafety>
   <AcceptanceCriteria>
     <item-1>Unverified registration cannot create trial, VPN, referral, or MTProto access.</item-1>
     <item-2>Verified registration creates KrotPN trial and free indefinite Telegram MTProto proxy without duplicate side effects.</item-2>
@@ -29,5 +54,6 @@
   <Risks>
     <risk-1>Live Telegram acceptance cannot be fully proven without production wildcard TLS and real client smoke.</risk-1>
     <risk-2>Large behavior change in registration requires staged release and rollback clarity.</risk-2>
+    <risk-3>Phase-28 remains partial-local until V-M-004 billing route/API and V-M-022 VPN compatibility route findings are closed or explicitly waived for Phase-34.</risk-3>
   </Risks>
 </Phase-34>
