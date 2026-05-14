@@ -1,25 +1,72 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<V-M-045 MODULE="M-045" PRIORITY="high" STATUS="planned" VERSION="1.0.0">
+<V-M-045 MODULE="M-045" PRIORITY="high" STATUS="planned" VERSION="1.1.0">
+  <module>mtproto-user-cabinet</module>
+  <phase-scope>
+    <phase-31 status="planned">User-facing backend API and compact mobile dashboard UX for personal MTProto proxy access.</phase-31>
+  </phase-scope>
   <test-files>
     <file>backend/tests/test_mtproto_api.py</file>
+    <file>backend/tests/test_mtproto_assignment_registry.py</file>
+    <file>backend/tests/test_mtproto_provisioning.py</file>
     <file>frontend/src/lib/api.ts</file>
     <file>frontend/src/pages/Dashboard.tsx</file>
+    <file>frontend/src/index.css</file>
+    <file>scripts/phase31-mtproto-cabinet-smoke.mjs</file>
   </test-files>
+  <commands>
+    <command-1>cd backend &amp;&amp; SECRET_KEY=test-secret-key-with-enough-length DATA_ENCRYPTION_KEY=dpFmfSVqfdAK3yx5MQV6Tcv35RZuw5MzaH0yhxJ01q0= PYTHONPATH=. ../.venv/bin/python -m pytest -o addopts='' tests/test_mtproto_api.py tests/test_mtproto_assignment_registry.py tests/test_mtproto_provisioning.py -v</command-1>
+    <command-2>cd frontend &amp;&amp; npm run build</command-2>
+    <command-3>node scripts/phase31-mtproto-cabinet-smoke.mjs</command-3>
+    <command-4>python3 -m xml.etree.ElementTree docs/plans/Phase-31.xml docs/modules/M-045.xml docs/verification/V-M-045.xml docs/verification-index.xml &amp;&amp; mygrace lint</command-4>
+  </commands>
+  <verification-levels>
+    <module-local>Backend API tests prove owner-only payload delivery, safe failure codes, and no unauthenticated or unverified proxy leakage.</module-local>
+    <wave-level>M-042 and M-043 tests remain in the gate so dashboard payloads follow assignment persistence, deterministic SNI, and reissue policy truth.</wave-level>
+    <phase-level>Frontend build and mobile smoke must prove the MTProto card fits the compact dashboard without hiding VPN trial/config actions.</phase-level>
+  </verification-levels>
   <module-checks>
-    <check-1 evidence="deterministic">Authenticated owner can retrieve full MTProto proxy payload.</check-1>
-    <check-2 evidence="deterministic">Non-owner or unauthenticated requests cannot retrieve proxy secret.</check-2>
-    <check-3 evidence="deterministic">Frontend build passes after adding MTProto card and API types.</check-3>
+    <check-1 evidence="deterministic">Authenticated verified owner can retrieve server, port, secret, tg link, status, and reissue guidance for their own assignment.</check-1>
+    <check-2 evidence="deterministic">Unauthenticated, unverified, or wrong-owner requests cannot retrieve proxy link or secret fields.</check-2>
+    <check-3 evidence="failure-path">Pending, degraded, config-incomplete, and reissue-required states return stable safe codes and user-actionable messages.</check-3>
+    <check-4 evidence="deterministic">Frontend API types preserve the exact backend response shape and do not print secret-bearing payloads to console logs.</check-4>
+    <check-5 evidence="ui-smoke">Dashboard MTProto card renders open Telegram, copy link, copy server, copy port, and copy secret actions without horizontal scroll.</check-5>
+    <check-6 evidence="regression">VPN trial status, subscription CTA, and primary config action remain visible/reachable after adding MTProto dashboard content.</check-6>
   </module-checks>
   <scenarios>
-    <scenario-1 kind="success">Verified user sees Telegram proxy card on dashboard.</scenario-1>
-    <scenario-2 kind="success">Copy/open actions expose link, server, port, and secret only to owner UI.</scenario-2>
-    <scenario-3 kind="failure">Pending or degraded bridge state renders actionable empty state.</scenario-3>
+    <scenario-1 kind="success">Verified user with an active assignment sees activated MTProto status and can open the tg://proxy link.</scenario-1>
+    <scenario-2 kind="success">Repeated dashboard loads reuse the canonical assignment and do not create duplicate MTProto rows.</scenario-2>
+    <scenario-3 kind="success">Clipboard fallback keeps server, port, and secret visible as selectable manual fields if browser clipboard fails.</scenario-3>
+    <scenario-4 kind="failure">Unverified user sees locked or pending verification state without trial/VPN/MTProto side effects.</scenario-4>
+    <scenario-5 kind="failure">Bridge degraded or runtime pending state renders a compact unavailable state and never blocks normal VPN dashboard actions.</scenario-5>
+    <scenario-6 kind="failure">Reissue-required assignment prompts explicit reissue guidance instead of silently showing stale proxy credentials.</scenario-6>
   </scenarios>
   <required-log-markers>
     <marker-1>[M-045][get_my_mtproto_proxy][OWNER_LOOKUP]</marker-1>
-    <marker-2>[M-045][get_my_mtproto_proxy][RENDER_PAYLOAD]</marker-2>
+    <marker-2>[M-045][get_my_mtproto_proxy][ISSUE_OR_REUSE]</marker-2>
+    <marker-3>[M-045][get_my_mtproto_proxy][RENDER_PAYLOAD]</marker-3>
+    <marker-4>[M-045][get_my_mtproto_proxy][SAFE_FAILURE]</marker-4>
+    <marker-5>[M-045][dashboard_mtproto_card][CARD_RENDER]</marker-5>
+    <marker-6>[M-045][dashboard_mtproto_card][COPY_ACTION]</marker-6>
   </required-log-markers>
   <redaction-rules>
-    <rule-1>HTTP logs and frontend console logs must not print full tg://proxy links or secrets.</rule-1>
+    <rule-1>Backend logs may include user id, assignment id, SNI, status, safe failure code, and correlation id.</rule-1>
+    <rule-2>Backend logs, frontend console logs, smoke traces, and admin summaries must not print full tg://proxy links, derived secrets, base secret, salt, JWT/session tokens, or email verification tokens.</rule-2>
+    <rule-3>Full link and secret fields may appear only in authenticated owner API responses and owner dashboard UI.</rule-3>
   </redaction-rules>
+  <ui-smoke-gates>
+    <gate-1>Dashboard at 360x740, 390x844, and 430x932 has document scrollWidth &lt;= innerWidth.</gate-1>
+    <gate-2>MTProto card appears on the main dashboard without pushing VPN subscription/config actions out of practical mobile reach.</gate-2>
+    <gate-3>All copy/open controls have stable accessible labels and do not resize the dashboard layout after success/error state changes.</gate-3>
+    <gate-4>No wide table, nested card, hero block, or desktop-only proxy detail layout is introduced.</gate-4>
+  </ui-smoke-gates>
+  <telemetry-requirements>
+    <metric-1>mtproto_owner_payload_success_count tagged by assignment status.</metric-1>
+    <metric-2>mtproto_owner_payload_failure_count tagged by safe failure code.</metric-2>
+    <metric-3>mtproto_dashboard_card_render_count tagged by UI state without secret-bearing labels.</metric-3>
+    <metric-4>mtproto_copy_action_count tagged by copied field name and browser support status.</metric-4>
+  </telemetry-requirements>
+  <autonomous-execution-safety>
+    <level>safe-local-ui-api-only</level>
+    <reason>Phase-31 can be executed locally with backend API tests, fake/local MTProto provisioning settings, frontend build, and mobile smoke. DNS, TLS, shared 443 edge, nginx, docker-compose, deploy scripts, and install scripts remain out of scope.</reason>
+  </autonomous-execution-safety>
 </V-M-045>

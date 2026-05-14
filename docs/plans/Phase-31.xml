@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Phase-31 NAME="User Cabinet MTProto UX" STATUS="planned" VERSION="1.0.0">
+<Phase-31 NAME="User Cabinet MTProto UX" STATUS="planned" VERSION="1.1.0" UPDATED="2026-05-14">
   <Goal>Expose the free indefinite Telegram MTProto proxy in the compact KrotPN user cabinet.</Goal>
   <Modules>M-045,M-009,M-036,M-042,M-043</Modules>
   <NonGoals>
@@ -14,10 +14,29 @@
     <step-5>Verify mobile viewports and frontend build while preserving VPN trial and config actions.</step-5>
   </Steps>
   <Verification>
-    <command>cd backend &amp;&amp; PYTHONPATH=. ../.venv/bin/python -m pytest -o addopts='' tests/test_mtproto_api.py -v</command>
+    <command>cd backend &amp;&amp; SECRET_KEY=test-secret-key-with-enough-length DATA_ENCRYPTION_KEY=dpFmfSVqfdAK3yx5MQV6Tcv35RZuw5MzaH0yhxJ01q0= PYTHONPATH=. ../.venv/bin/python -m pytest -o addopts='' tests/test_mtproto_api.py tests/test_mtproto_assignment_registry.py tests/test_mtproto_provisioning.py -v</command>
     <command>cd frontend &amp;&amp; npm run build</command>
-    <command>Phase-31 mobile smoke for dashboard at 360x740, 390x844, and 430x932</command>
+    <command>node scripts/phase31-mtproto-cabinet-smoke.mjs</command>
+    <command>python3 -m xml.etree.ElementTree docs/plans/Phase-31.xml docs/modules/M-045.xml docs/verification/V-M-045.xml docs/verification-index.xml &amp;&amp; mygrace lint</command>
   </Verification>
+  <VerificationMatrix>
+    <matrix-1 module="M-045" level="module-local">Backend owner-only MTProto API payload tests cover active, pending, degraded, unverified, unauthenticated, wrong-owner, and reissue-required states.</matrix-1>
+    <matrix-2 module="M-042,M-043" level="wave-level">Assignment registry and provisioning tests remain green so UI payloads follow restore-safe Postgres truth and deterministic proxy generation.</matrix-2>
+    <matrix-3 module="M-009,M-036" level="phase-level">Frontend build and mobile dashboard smoke preserve compact cabinet constraints, no horizontal scroll, and reachable VPN trial/config actions.</matrix-3>
+  </VerificationMatrix>
+  <Telemetry>
+    <marker-1>[M-045][get_my_mtproto_proxy][OWNER_LOOKUP]</marker-1>
+    <marker-2>[M-045][get_my_mtproto_proxy][ISSUE_OR_REUSE]</marker-2>
+    <marker-3>[M-045][get_my_mtproto_proxy][RENDER_PAYLOAD]</marker-3>
+    <marker-4>[M-045][get_my_mtproto_proxy][SAFE_FAILURE]</marker-4>
+    <marker-5>[M-045][dashboard_mtproto_card][CARD_RENDER]</marker-5>
+    <marker-6>[M-045][dashboard_mtproto_card][COPY_ACTION]</marker-6>
+  </Telemetry>
+  <PreflightGates>
+    <gate-1>No DNS, TLS, shared 443 edge, nginx, docker-compose, deploy script, or install script changes are allowed in Phase-31.</gate-1>
+    <gate-2>Full tg://proxy links and derived secrets are owner-only response fields and must not appear in logs, smoke traces, or admin summaries.</gate-2>
+    <gate-3>Dashboard mobile smoke must pass at 360x740, 390x844, and 430x932 before Phase-31 closure.</gate-3>
+  </PreflightGates>
   <AcceptanceCriteria>
     <item-1>Verified users can view and copy Telegram proxy details from the main dashboard.</item-1>
     <item-2>Unverified or degraded users receive safe, actionable states.</item-2>
