@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Phase-30 NAME="KPprotoN Runtime Bridge" STATUS="planned" VERSION="1.0.0">
+<Phase-30 NAME="KPprotoN Runtime Bridge" STATUS="planned" VERSION="1.1.0" UPDATED="2026-05-14">
   <Goal>Connect KrotPN MTProto assignments to a runtime policy bridge that can activate issued SNI domains safely.</Goal>
   <Modules>M-044,M-042,M-043,M-008,M-012</Modules>
   <NonGoals>
@@ -16,8 +16,29 @@
     <step-6>Add tests for policy apply success, bridge unavailable, replay after restart, and no-secret logging.</step-6>
   </Steps>
   <Verification>
-    <command>cd backend &amp;&amp; PYTHONPATH=. ../.venv/bin/python -m pytest -o addopts='' tests/test_kpproton_runtime_bridge.py tests/test_scheduler.py -v</command>
+    <command>cd backend &amp;&amp; SECRET_KEY=test-secret-key-with-enough-length DATA_ENCRYPTION_KEY=dpFmfSVqfdAK3yx5MQV6Tcv35RZuw5MzaH0yhxJ01q0= PYTHONPATH=. ../.venv/bin/python -m pytest -o addopts='' tests/test_kpproton_runtime_bridge.py tests/test_mtproto_assignment_registry.py tests/test_mtproto_provisioning.py tests/test_scheduler.py -v</command>
+    <command>python3 -m xml.etree.ElementTree docs/plans/Phase-30.xml docs/verification/V-M-044.xml docs/verification-index.xml; mygrace lint</command>
   </Verification>
+  <VerificationMatrix>
+    <matrix-1 module="M-044" level="module-local">Fake-adapter tests for apply-domain-policy, runtime health, startup replay, reconciliation, degraded mode, and secret redaction.</matrix-1>
+    <matrix-2 module="M-042,M-043" level="wave-level">Assignment registry and owner-safe provisioning tests remain green so bridge policy state follows Postgres assignment truth.</matrix-2>
+    <matrix-3 module="M-008" level="wave-level">Scheduler tests prove MTProto policy sync is registered once and does not regress existing recurring jobs.</matrix-3>
+    <matrix-4 module="M-012" level="phase-level">No deploy/install script changes are allowed in Phase-30; shared 443 edge and TLS/domain work are deferred to Phase-32.</matrix-4>
+  </VerificationMatrix>
+  <Telemetry>
+    <marker-1>[M-044][apply_domain_policy][LOAD_POLICY]</marker-1>
+    <marker-2>[M-044][apply_domain_policy][POLICY_APPLIED]</marker-2>
+    <marker-3>[M-044][apply_domain_policy][BRIDGE_UNAVAILABLE]</marker-3>
+    <marker-4>[M-044][replay_active_assignments][REPLAY_POLICY]</marker-4>
+    <marker-5>[M-044][sync_mtproto_policy][SCHEDULER_SYNC]</marker-5>
+    <marker-6>[M-044][runtime_health][BRIDGE_DEGRADED]</marker-6>
+  </Telemetry>
+  <PreflightGates>
+    <gate-1>Execution uses fake/local KPprotoN adapters only; no live Telegram, DNS, TLS, host networking, or shared 443 edge mutation.</gate-1>
+    <gate-2>Deploy/install scripts and nginx/docker-compose edge surfaces remain unchanged unless the operator explicitly opens Phase-32 work.</gate-2>
+    <gate-3>Bridge outage must produce explicit degraded MTProto state and must not block normal KrotPN login, verified onboarding, billing, or VPN config access.</gate-3>
+    <gate-4>Runtime logs, health payloads, and admin summaries must redact tg://proxy links, derived secrets, base secret, salt, tokens, and adapter credentials.</gate-4>
+  </PreflightGates>
   <AcceptanceCriteria>
     <item-1>Active assignments replay into policy state after backend or bridge restart.</item-1>
     <item-2>Bridge failure does not break normal KrotPN login or VPN config access.</item-2>

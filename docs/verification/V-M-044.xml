@@ -1,25 +1,60 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<V-M-044 MODULE="M-044" PRIORITY="critical" STATUS="planned" VERSION="1.0.0">
+<V-M-044 MODULE="M-044" PRIORITY="critical" STATUS="pending" VERSION="1.1.0">
+  <module>kpproton-runtime-bridge</module>
+  <phase-scope>
+    <phase-30 status="pending">Design the runtime bridge verification gate before implementation.</phase-30>
+  </phase-scope>
   <test-files>
     <file>backend/tests/test_kpproton_runtime_bridge.py</file>
+    <file>backend/tests/test_mtproto_assignment_registry.py</file>
+    <file>backend/tests/test_mtproto_provisioning.py</file>
     <file>backend/tests/test_scheduler.py</file>
   </test-files>
+  <commands>cd backend &amp;&amp; SECRET_KEY=test-secret-key-with-enough-length DATA_ENCRYPTION_KEY=dpFmfSVqfdAK3yx5MQV6Tcv35RZuw5MzaH0yhxJ01q0= PYTHONPATH=. ../.venv/bin/python -m pytest -o addopts='' tests/test_kpproton_runtime_bridge.py tests/test_mtproto_assignment_registry.py tests/test_mtproto_provisioning.py tests/test_scheduler.py -v</commands>
+  <verification-levels>
+    <module-local>Runtime bridge tests use fake KPprotoN adapters and local DB sessions; they must not call live Telegram, DNS, host tools, deploy scripts, or install scripts.</module-local>
+    <wave-level>Runs with M-042/M-043 tests so bridge policy state cannot drift from assignment persistence or owner-safe payload generation.</wave-level>
+    <phase-level>Phase-30 cannot pass unless bridge outage produces explicit degraded MTProto state while normal login, verified onboarding, and VPN config access remain non-blocked.</phase-level>
+  </verification-levels>
   <module-checks>
-    <check-1 evidence="deterministic">apply-domain-policy succeeds for one issued SNI and records runtime state.</check-1>
-    <check-2 evidence="deterministic">Startup replay loads active assignments idempotently.</check-2>
-    <check-3 evidence="deterministic">Bridge unavailable path returns degraded status without breaking login/VPN APIs.</check-3>
+    <check-1 evidence="deterministic">apply-domain-policy succeeds for one issued SNI and records runtime policy state without persisting secrets.</check-1>
+    <check-2 evidence="deterministic">Startup replay loads active assignments idempotently and skips disabled or superseded assignments.</check-2>
+    <check-3 evidence="failure-path">Bridge unavailable, timeout, malformed response, or adapter exception returns degraded status without breaking KrotPN auth/VPN APIs.</check-3>
+    <check-4 evidence="deterministic">Scheduler reconciliation job is registered once and does not disturb existing subscription, cleanup, or anti-abuse jobs.</check-4>
+    <check-5 evidence="security">Runtime logs and health payloads expose no tg://proxy links, derived secrets, base secret, salt, tokens, or provider credentials.</check-5>
+    <check-6 evidence="operational">Deploy/install surfaces remain unchanged; runtime bridge activation is configured inside backend/runtime service boundaries only.</check-6>
   </module-checks>
   <scenarios>
-    <scenario-1 kind="success">New assignment is applied to MTProto policy runtime.</scenario-1>
-    <scenario-2 kind="success">Backend restart replays active SNI assignments.</scenario-2>
-    <scenario-3 kind="failure">Runtime bridge failure marks assignment pending/degraded and emits safe operator evidence.</scenario-3>
+    <scenario-1 kind="success">New active assignment is applied to MTProto policy runtime and returns activated status.</scenario-1>
+    <scenario-2 kind="success">Backend or bridge restart replays active SNI assignments exactly once per reconciliation cycle.</scenario-2>
+    <scenario-3 kind="success">Scheduled reconciliation repairs missing runtime policy state after local adapter reports drift.</scenario-3>
+    <scenario-4 kind="failure">Runtime bridge failure marks MTProto proxy pending/degraded and emits safe operator evidence.</scenario-4>
+    <scenario-5 kind="failure">Invalid SNI, disabled assignment, superseded assignment, or missing assignment is rejected before adapter calls.</scenario-5>
+    <scenario-6 kind="failure">Policy apply failure does not prevent normal KrotPN login, verified-email activation, billing, or VPN config retrieval.</scenario-6>
   </scenarios>
   <required-log-markers>
     <marker-1>[M-044][apply_domain_policy][LOAD_POLICY]</marker-1>
-    <marker-2>[M-044][replay_active_assignments][REPLAY_POLICY]</marker-2>
-    <marker-3>[M-044][runtime_health][BRIDGE_DEGRADED]</marker-3>
+    <marker-2>[M-044][apply_domain_policy][POLICY_APPLIED]</marker-2>
+    <marker-3>[M-044][apply_domain_policy][BRIDGE_UNAVAILABLE]</marker-3>
+    <marker-4>[M-044][replay_active_assignments][REPLAY_START]</marker-4>
+    <marker-5>[M-044][replay_active_assignments][REPLAY_POLICY]</marker-5>
+    <marker-6>[M-044][replay_active_assignments][REPLAY_SUMMARY]</marker-6>
+    <marker-7>[M-044][runtime_health][BRIDGE_HEALTHY]</marker-7>
+    <marker-8>[M-044][runtime_health][BRIDGE_DEGRADED]</marker-8>
+    <marker-9>[M-044][sync_mtproto_policy][SCHEDULER_SYNC]</marker-9>
   </required-log-markers>
   <redaction-rules>
-    <rule-1>Policy logs can include SNI but never include secret, token, or full proxy URL.</rule-1>
+    <rule-1>Policy logs may include assignment id, user id, SNI, status, adapter name, retry count, and correlation id.</rule-1>
+    <rule-2>Never log or return full tg://proxy links, derived secret, base secret, salt, JWT/session tokens, email verification tokens, or raw adapter credentials.</rule-2>
+    <rule-3>Health endpoints and admin summaries must report aggregate bridge state, not per-user proxy credentials.</rule-3>
   </redaction-rules>
+  <telemetry-requirements>
+    <metric-1>policy_apply_success_count and policy_apply_failure_count, tagged by safe failure code.</metric-1>
+    <metric-2>policy_replay_processed_count, policy_replay_skipped_count, and policy_replay_failed_count.</metric-2>
+    <metric-3>bridge_health_status with last_success_at and last_failure_code without secret-bearing fields.</metric-3>
+  </telemetry-requirements>
+  <autonomous-execution-safety>
+    <level>safe-local-adapter-only</level>
+    <reason>Phase-30 may be executed autonomously only with fake/local KPprotoN adapters and isolated DB tests. Live runtime rollout, DNS/TLS edge mutation, host networking changes, and deploy/install script edits require explicit operator approval.</reason>
+  </autonomous-execution-safety>
 </V-M-044>
