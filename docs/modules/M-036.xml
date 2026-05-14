@@ -24,10 +24,11 @@
     <DF-UI-CONFIG-ACTION>Primary config action opens QR/download/copy for the current or newly created device without requiring a desktop layout.</DF-UI-CONFIG-ACTION>
     <DF-UI-DEVICE-MANAGEMENT>Device create, rotate, revoke, and config retrieval remain available through compact rows and confirmation-safe controls.</DF-UI-DEVICE-MANAGEMENT>
     <DF-UI-BILLING>Subscription page and dashboard renewal CTA preserve the existing billing API contract and payment redirect behavior.</DF-UI-BILLING>
+    <DF-UI-MTPROTO-PROXY>Dashboard shows the authenticated owner's Telegram MTProto proxy state and copy/open actions without hiding VPN trial or config actions.</DF-UI-MTPROTO-PROXY>
   </workflows>
   <content-priority>
     <primary>VPN status, config action, QR/download, subscription state, device slots, active device rows</primary>
-    <secondary>Traffic counters, last handshake, referral CTA, profile/settings shortcuts, raw config text</secondary>
+    <secondary>Telegram MTProto proxy state, traffic counters, last handshake, referral CTA, profile/settings shortcuts, raw config text</secondary>
     <removable-from-first-screen>Decorative hero copy, repeated identity panels, large status card grids, explanatory marketing text</removable-from-first-screen>
   </content-priority>
   <constraints>
@@ -42,6 +43,7 @@
     <metric-2>Config QR/download/copy path is reachable from the mobile home within one or two taps.</metric-2>
     <metric-3>Device create, rotate, revoke, and selected config retrieval remain present after simplification.</metric-3>
     <metric-4>cd frontend &amp;&amp; npm run build passes.</metric-4>
+    <metric-5>Phase-31 MTProto card renders without horizontal scroll and keeps VPN config/subscription actions reachable.</metric-5>
   </acceptance-metrics>
   <hotspot>H-023: Mobile user cabinet must keep config download, QR, subscription and device actions reachable without clutter</hotspot>
 </M-036>

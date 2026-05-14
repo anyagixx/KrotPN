@@ -3,24 +3,26 @@
 // ROLE: UI_COMPONENT
 // MAP_MODE: SUMMARY
 // START_MODULE_CONTRACT
-//   PURPOSE: Compact mobile-first dashboard showing VPN status, config action, subscription, traffic, and device summary
-//   SCOPE: Mobile home workflow, primary config/subscription CTA, active device summary, compact traffic and connection facts
-//   DEPENDS: M-009 (frontend-user), M-002 (auth API), M-003 (vpn stats API), M-004 (billing API), M-022 (device API), M-036 (mobile-user-cabinet)
-//   LINKS: M-009 (frontend-user), M-036 (mobile-user-cabinet)
+//   PURPOSE: Compact mobile-first dashboard showing VPN status, config action, subscription, MTProto proxy, traffic, and device summary
+//   SCOPE: Mobile home workflow, primary config/subscription CTA, MTProto owner actions, active device summary, compact traffic and connection facts
+//   DEPENDS: M-009 (frontend-user), M-002 (auth API), M-003 (vpn stats API), M-004 (billing API), M-022 (device API), M-036 (mobile-user-cabinet), M-045 (mtproto-user-cabinet)
+//   LINKS: M-009 (frontend-user), M-036 (mobile-user-cabinet), M-045
 // END_MODULE_CONTRACT
 //
 // START_MODULE_MAP
-//   DashboardPage - Compact dashboard component with mobile-first primary actions and device summary
-//   BLOCK_DASHBOARD_PAGE - DashboardPage default export with VPN, subscription, config, and device surfaces
+//   DashboardPage - Compact dashboard component with mobile-first primary actions, MTProto owner card, and device summary
+//   BLOCK_DASHBOARD_PAGE - DashboardPage default export with VPN, subscription, MTProto, config, and device surfaces
 //   default - React component (default export)
 // END_MODULE_MAP
 //
 // START_CHANGE_SUMMARY
+//   LAST_CHANGE: v3.0.0 - Added Phase-31 compact MTProto proxy owner card
 //   LAST_CHANGE: v2.8.0 - Added full GRACE MODULE_CONTRACT and MODULE_MAP per GRACE governance protocol
 //   LAST_CHANGE: v2.9.0 - Reworked dashboard into compact Phase-23 mobile home workflow
 // END_CHANGE_SUMMARY
 //
 // START_BLOCK_DASHBOARD_PAGE
+import { useEffect, useState } from 'react'
 import { useQuery } from 'react-query'
 import { useTranslation } from 'react-i18next'
 import {
@@ -28,8 +30,13 @@ import {
   ArrowDown,
   ArrowUp,
   Calendar,
+  Check,
   Clock,
+  Copy,
+  ExternalLink,
   FileCode2,
+  KeyRound,
+  Link2,
   QrCode,
   Server,
   Shield,
@@ -37,13 +44,47 @@ import {
   Zap,
 } from 'lucide-react'
 import { Link } from 'react-router-dom'
+import toast from 'react-hot-toast'
 import { useAuthStore } from '../stores/auth'
-import { deviceApi, userApi, vpnApi } from '../lib/api'
+import { deviceApi, mtprotoApi, MTProtoProxyResponse, userApi, vpnApi } from '../lib/api'
 import Loading from '../components/Loading'
+
+const MTPROTO_CARD_RENDER_MARKER = '[M-045][dashboard_mtproto_card][CARD_RENDER]'
+const MTPROTO_COPY_ACTION_MARKER = '[M-045][dashboard_mtproto_card][COPY_ACTION]'
+
+type MTProtoCopyField = 'link' | 'server' | 'port' | 'secret'
+
+function hasOwnerProxy(payload?: MTProtoProxyResponse): payload is MTProtoProxyResponse & {
+  server: string
+  port: number
+  secret: string
+  tg_link: string
+} {
+  return payload?.status === 'activated' && !!payload.server && !!payload.port && !!payload.secret && !!payload.tg_link
+}
+
+function mtprotoStatusLabel(payload?: MTProtoProxyResponse, isLoading?: boolean, isError?: boolean) {
+  if (isLoading) return 'Загрузка'
+  if (isError) return 'Недоступно'
+  if (!payload) return 'Ожидание'
+  if (payload.status === 'activated') return 'Готов'
+  if (payload.status === 'unverified') return 'Email'
+  if (payload.status === 'reissue_required') return 'Перевыпуск'
+  if (payload.status === 'pending') return 'Готовится'
+  return 'Сбой'
+}
+
+function mtprotoStatusClass(payload?: MTProtoProxyResponse, isLoading?: boolean, isError?: boolean) {
+  if (isLoading || payload?.status === 'pending') return 'status-badge-warning w-fit'
+  if (isError || payload?.status === 'degraded' || payload?.status === 'reissue_required') return 'status-badge-error w-fit'
+  if (payload?.status === 'activated') return 'status-badge-success w-fit'
+  return 'status-badge-warning w-fit'
+}
 
 export default function Dashboard() {
   const { t } = useTranslation()
   const { user } = useAuthStore()
+  const [copiedMtprotoField, setCopiedMtprotoField] = useState<MTProtoCopyField | null>(null)
 
   const { data: vpnStats, isLoading: statsLoading, isError: statsError } = useQuery('vpn-stats', () => vpnApi.getStats(), {
     refetchInterval: 10000,
@@ -53,6 +94,22 @@ export default function Dashboard() {
   const { data: devicesData, isLoading: devicesLoading, isError: devicesError } = useQuery('dashboard-devices', () => deviceApi.list(), {
     retry: false,
   })
+  const { data: mtprotoProxy, isLoading: mtprotoLoading, isError: mtprotoError } = useQuery(
+    'mtproto-proxy',
+    () => mtprotoApi.getProxy(),
+    {
+      retry: false,
+      refetchInterval: 30000,
+    }
+  )
+
+  const mtproto = mtprotoProxy?.data
+
+  useEffect(() => {
+    if (mtproto?.status) {
+      console.info(MTPROTO_CARD_RENDER_MARKER, { status: mtproto.status })
+    }
+  }, [mtproto?.status])
 
   if (statsLoading || userStatsLoading) {
     return <Loading text={t('loading')} />
@@ -79,6 +136,34 @@ export default function Dashboard() {
   const consumedSlots = devicesData?.data?.consumed_slots || activeDevices
   const deviceLimit = devicesData?.data?.device_limit || 0
   const lastHandshake = stats?.last_handshake_at ? new Date(stats.last_handshake_at).toLocaleString('ru-RU') : 'Нет данных'
+  const mtprotoReady = hasOwnerProxy(mtproto)
+
+  const handleMtprotoCopy = async (field: MTProtoCopyField, value?: string | number | null) => {
+    if (value === null || value === undefined || value === '') {
+      toast.error('Данные Telegram proxy пока недоступны')
+      return
+    }
+
+    await navigator.clipboard.writeText(String(value))
+    setCopiedMtprotoField(field)
+    console.info(MTPROTO_COPY_ACTION_MARKER, { field })
+    toast.success(t('copied'))
+    window.setTimeout(() => setCopiedMtprotoField(null), 1600)
+  }
+
+  const renderMtprotoCopyButton = (field: MTProtoCopyField, label: string, value?: string | number | null) => (
+    <button
+      type="button"
+      onClick={() => handleMtprotoCopy(field, value)}
+      className="btn-secondary min-h-10 min-w-0 rounded-lg px-2 py-2 text-sm"
+      aria-label={`Copy MTProto ${field}`}
+      title={`Copy MTProto ${field}`}
+      disabled={!value}
+    >
+      {copiedMtprotoField === field ? <Check className="h-4 w-4 text-emerald-200" /> : <Copy className="h-4 w-4" />}
+      <span className="truncate">{label}</span>
+    </button>
+  )
 
   return (
     <div className="content-section animate-in">
@@ -127,6 +212,79 @@ export default function Dashboard() {
             {hasSubscription ? 'Продлить' : 'Выбрать тариф'}
           </Link>
         </article>
+      </section>
+
+      <section
+        className="panel p-4 sm:p-5"
+        data-phase31-mtproto-card="true"
+        data-mtproto-status={mtproto?.status || (mtprotoError ? 'degraded' : 'pending')}
+      >
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+          <div className="min-w-0">
+            <p className="text-xs font-bold uppercase text-cyan-100/70">Telegram MTProto</p>
+            <h2 className="mt-1 text-xl font-extrabold text-white">Личный proxy</h2>
+            <p className="mt-1 text-sm muted">
+              {mtprotoLoading
+                ? 'Проверяем выданный proxy.'
+                : mtprotoError
+                  ? 'Telegram proxy временно недоступен, VPN действия остаются на месте.'
+                  : mtproto?.safe_message || 'Proxy будет доступен после подготовки.'}
+            </p>
+          </div>
+          <span className={mtprotoStatusClass(mtproto, mtprotoLoading, mtprotoError)}>
+            {mtprotoStatusLabel(mtproto, mtprotoLoading, mtprotoError)}
+          </span>
+        </div>
+
+        {mtprotoReady ? (
+          <>
+            <dl className="mt-3 grid gap-x-4 gap-y-2 text-sm sm:grid-cols-[minmax(0,1fr)_88px_minmax(0,1.2fr)]">
+              <div className="min-w-0">
+                <dt className="metric-label">Server</dt>
+                <dd className="mt-1 break-all font-semibold text-slate-50">{mtproto.server}</dd>
+              </div>
+              <div className="min-w-0">
+                <dt className="metric-label">Port</dt>
+                <dd className="mt-1 font-semibold text-slate-50">{mtproto.port}</dd>
+              </div>
+              <div className="min-w-0">
+                <dt className="metric-label">Secret</dt>
+                <dd className="mt-1 break-all font-mono text-xs font-semibold text-slate-50">{mtproto.secret}</dd>
+              </div>
+            </dl>
+
+            <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-5">
+              <a
+                href={mtproto.tg_link}
+                className="btn-primary min-h-10 min-w-0 rounded-lg px-2 py-2 text-sm"
+                aria-label="Open MTProto proxy in Telegram"
+                title="Open MTProto proxy in Telegram"
+              >
+                <ExternalLink className="h-4 w-4" />
+                <span className="truncate">Telegram</span>
+              </a>
+              {renderMtprotoCopyButton('link', 'Link', mtproto.tg_link)}
+              {renderMtprotoCopyButton('server', 'Server', mtproto.server)}
+              {renderMtprotoCopyButton('port', 'Port', mtproto.port)}
+              {renderMtprotoCopyButton('secret', 'Secret', mtproto.secret)}
+            </div>
+          </>
+        ) : (
+          <div className="mt-3 flex items-start gap-3 text-sm text-slate-100">
+            {mtproto?.status === 'unverified' ? (
+              <KeyRound className="mt-0.5 h-4 w-4 shrink-0 text-amber-100" />
+            ) : (
+              <Link2 className="mt-0.5 h-4 w-4 shrink-0 text-cyan-100" />
+            )}
+            <span className="min-w-0 break-words">
+              {mtprotoLoading
+                ? 'Состояние появится через несколько секунд.'
+                : mtprotoError
+                  ? 'Обновите страницу позже или продолжайте пользоваться VPN кабинетом.'
+                  : mtproto?.safe_message || 'Proxy пока не выдан.'}
+            </span>
+          </div>
+        )}
       </section>
 
       <section className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">

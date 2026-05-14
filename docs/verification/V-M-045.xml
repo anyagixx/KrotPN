@@ -1,10 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<V-M-045 MODULE="M-045" PRIORITY="high" STATUS="planned" VERSION="1.1.0">
+<V-M-045 MODULE="M-045" PRIORITY="high" STATUS="pass-local" VERSION="1.2.0">
   <module>mtproto-user-cabinet</module>
   <phase-scope>
-    <phase-31 status="planned">User-facing backend API and compact mobile dashboard UX for personal MTProto proxy access.</phase-31>
+    <phase-31 status="pass-local">User-facing backend API and compact mobile dashboard UX for personal MTProto proxy access passed local verification.</phase-31>
   </phase-scope>
   <test-files>
+    <file>backend/app/mtproto/router.py</file>
+    <file>backend/app/mtproto/schemas.py</file>
     <file>backend/tests/test_mtproto_api.py</file>
     <file>backend/tests/test_mtproto_assignment_registry.py</file>
     <file>backend/tests/test_mtproto_provisioning.py</file>
@@ -69,4 +71,9 @@
     <level>safe-local-ui-api-only</level>
     <reason>Phase-31 can be executed locally with backend API tests, fake/local MTProto provisioning settings, frontend build, and mobile smoke. DNS, TLS, shared 443 edge, nginx, docker-compose, deploy scripts, and install scripts remain out of scope.</reason>
   </autonomous-execution-safety>
+  <evidence>
+    <evidence-1>2026-05-14: Backend V-M-045/M-042/M-043 pytest gate passed locally with 15 tests.</evidence-1>
+    <evidence-2>2026-05-14: frontend npm run build passed and generated production assets without tracked dist changes.</evidence-2>
+    <evidence-3>2026-05-14: scripts/phase31-mtproto-cabinet-smoke.mjs passed, including deploy/install surface guard.</evidence-3>
+  </evidence>
 </V-M-045>

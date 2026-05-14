@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<M-045 NAME="mtproto-user-cabinet" TYPE="UI_COMPONENT" STATUS="planned">
-  <path>frontend backend/app/mtproto</path>
+<M-045 NAME="mtproto-user-cabinet" TYPE="UI_COMPONENT" STATUS="done-local">
+  <path>frontend backend/app/mtproto backend/app/main.py scripts docs/plans/Phase-31.xml</path>
   <owns>User-facing API and compact dashboard UI for personal free Telegram MTProto proxy access.</owns>
   <purpose>Show every verified user their free indefinite MTProto proxy alongside KrotPN trial and VPN actions in the mobile cabinet.</purpose>
   <exports>
@@ -13,10 +13,12 @@
   <files>
     <file>backend/app/mtproto/router.py</file>
     <file>backend/app/mtproto/schemas.py</file>
+    <file>backend/app/main.py</file>
     <file>frontend/src/lib/api.ts</file>
     <file>frontend/src/pages/Dashboard.tsx</file>
     <file>frontend/src/index.css</file>
     <file>backend/tests/test_mtproto_api.py</file>
+    <file>scripts/phase31-mtproto-cabinet-smoke.mjs</file>
   </files>
   <ui-contract>
     <primary>MTProto proxy status and copy/open actions fit the first mobile dashboard screen without hiding VPN trial state.</primary>
@@ -26,5 +28,8 @@
     <constraint-1>The MTProto card must not create horizontal scroll at 360x740, 390x844, or 430x932.</constraint-1>
     <constraint-2>Full proxy links are shown only to the authenticated owner and never in admin summary lists.</constraint-2>
   </constraints>
+  <evidence>
+    <evidence-1>2026-05-14: Phase-31 local backend tests, frontend build, static mobile/API smoke, XML parse, and MyGRACE lint passed.</evidence-1>
+  </evidence>
   <hotspot>H-031: User dashboard must show MTProto access compactly without hiding VPN trial status or config actions</hotspot>
 </M-045>

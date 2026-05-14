@@ -4,25 +4,27 @@
 // MAP_MODE: EXPORTS
 // START_MODULE_CONTRACT
 //   PURPOSE: Axios API client with auth interceptors, token refresh logic, and typed API service modules
-//   SCOPE: HTTP client setup, request/response interceptors, auto token refresh, API namespaces (auth, user, vpn, device, billing, referral)
-//   DEPENDS: M-002 (users auth), M-003 (vpn), M-004 (billing), M-005 (referrals)
-//   LINKS: M-009 (frontend-user)
+//   SCOPE: HTTP client setup, request/response interceptors, auto token refresh, API namespaces (auth, user, vpn, device, billing, referral, mtproto)
+//   DEPENDS: M-002 (users auth), M-003 (vpn), M-004 (billing), M-005 (referrals), M-045 (mtproto-user-cabinet)
+//   LINKS: M-009 (frontend-user), M-045
 // END_MODULE_CONTRACT
 //
 // START_MODULE_MAP
 //   api - Axios instance with interceptors
 //   User, TokenResponse, PendingRegistrationResponse, VPNConfig, UserDevice, DeviceList, DeviceConfigBundle - Types
 //   VPNStats, VPNNodeStatus, VPNRouteStatus, UserStats - Types
-//   Plan, SubscriptionStatus, ReferralStats, ReferralListItem - Types
+//   Plan, SubscriptionStatus, ReferralStats, ReferralListItem, MTProtoProxyResponse - Types
 //   authApi - Login, register, telegram auth, refresh
 //   userApi - Get me, stats, update profile, change password
 //   vpnApi - Config, download, QR, stats, nodes, routes
 //   deviceApi - List, create, rotate, revoke
 //   billingApi - Get plans, subscription, create payment
 //   referralApi - Get code, stats, list
+//   mtprotoApi - Get current user's owner-only Telegram proxy state
 // END_MODULE_MAP
 //
 // START_CHANGE_SUMMARY
+//   LAST_CHANGE: 2026-05-14 - Added Phase-31 MTProto owner proxy API contract
 //   LAST_CHANGE: 2026-05-13 - Added Phase-28 pending registration and verify-email auth API contracts
 //   LAST_CHANGE: v2.8.0 - Added full GRACE MODULE_CONTRACT and MODULE_MAP per GRACE governance protocol
 // END_CHANGE_SUMMARY
@@ -250,6 +252,23 @@ export interface ReferralListItem {
   first_payment_at: string | null
 }
 
+export type MTProtoProxyStatus = 'activated' | 'pending' | 'degraded' | 'unverified' | 'reissue_required'
+
+export interface MTProtoProxyResponse {
+  status: MTProtoProxyStatus
+  safe_message: string
+  action_required: string | null
+  assignment_id: number | null
+  server: string | null
+  port: number | null
+  secret: string | null
+  tg_link: string | null
+  sni: string | null
+  credential_mode: string | null
+  rotation_marker: string | null
+  reissue_required: boolean
+}
+
 // START_BLOCK_AUTH_API
 // Auth API
 export const authApi = {
@@ -356,3 +375,10 @@ export const referralApi = {
     api.get<{ items: ReferralListItem[]; total: number }>('/referrals/list'),
 }
 // END_BLOCK_REFERRAL_API
+
+// START_BLOCK_MTPROTO_API
+export const mtprotoApi = {
+  getProxy: () =>
+    api.get<MTProtoProxyResponse>('/mtproto/proxy'),
+}
+// END_BLOCK_MTPROTO_API

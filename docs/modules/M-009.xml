@@ -27,4 +27,8 @@
     <primary-files>App.tsx, Register.tsx, VerifyEmail.tsx, lib/api.ts, scripts/phase28-register-flow-smoke.mjs</primary-files>
     <primary-behaviors>pending check-email response, no token storage before verification, verify-email success/expired/replay states, resend path, compact mobile-safe registration</primary-behaviors>
   </phase-28-scope>
+  <phase-31-scope>
+    <primary-files>Dashboard.tsx, lib/api.ts, index.css, scripts/phase31-mtproto-cabinet-smoke.mjs</primary-files>
+    <primary-behaviors>owner-only MTProto proxy API binding, compact dashboard proxy card, copy/open Telegram actions, and no-secret console traces</primary-behaviors>
+  </phase-31-scope>
 </M-009>

@@ -41,7 +41,7 @@
   <M-042 NAME="mtproto-assignment-registry" TYPE="DATA_LAYER" STATUS="done-local" PATH="backend/app/mtproto backend/alembic docs/plans/Phase-29.xml" DEPENDS="M-001,M-002,M-028" VERIFICATION-REF="V-M-042" />
   <M-043 NAME="mtproto-provisioning" TYPE="CORE_LOGIC" STATUS="done-local" PATH="backend/app/mtproto docs/plans/Phase-29.xml" DEPENDS="M-001,M-002,M-040,M-042" VERIFICATION-REF="V-M-043" />
   <M-044 NAME="kpproton-runtime-bridge" TYPE="INTEGRATION" STATUS="done-local" PATH="backend/app/mtproto backend/app/tasks/scheduler.py docs/plans/Phase-30.xml" DEPENDS="M-001,M-008,M-012,M-042,M-043" VERIFICATION-REF="V-M-044" />
-  <M-045 NAME="mtproto-user-cabinet" TYPE="UI_COMPONENT" STATUS="planned" PATH="frontend backend/app/mtproto docs/plans/Phase-31.xml" DEPENDS="M-002,M-009,M-036,M-042,M-043" VERIFICATION-REF="V-M-045" />
+  <M-045 NAME="mtproto-user-cabinet" TYPE="UI_COMPONENT" STATUS="done-local" PATH="frontend backend/app/mtproto backend/app/main.py scripts docs/plans/Phase-31.xml" DEPENDS="M-002,M-009,M-036,M-042,M-043" VERIFICATION-REF="V-M-045" />
   <M-046 NAME="krotpn-domain-tls-edge" TYPE="ENTRY_POINT" STATUS="planned" PATH="nginx docker-compose.yml docs/plans/Phase-32.xml" DEPENDS="M-001,M-012,M-044" VERIFICATION-REF="V-M-046" />
   <M-047 NAME="mtproto-admin-ops" TYPE="ENTRY_POINT" STATUS="planned" PATH="backend/app/admin frontend-admin docs/plans/Phase-33.xml" DEPENDS="M-006,M-010,M-024,M-042,M-043,M-044" VERIFICATION-REF="V-M-047" />
 

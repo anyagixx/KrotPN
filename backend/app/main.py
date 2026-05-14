@@ -5,18 +5,19 @@
 # START_MODULE_CONTRACT
 #   PURPOSE: FastAPI application bootstrap, router assembly, lifespan management
 #   SCOPE: App lifecycle, CORS, middleware, rate limiting, DB/VPN/admin init, router mounting
-#   DEPENDS: M-001 (core), M-002 (users), M-003 (vpn), M-004 (billing), M-005 (referrals), M-006 (admin), M-007 (routing), M-008 (tasks)
-#   LINKS: EP-001, M-001 — M-008, V-M-001
+#   DEPENDS: M-001 (core), M-002 (users), M-003 (vpn), M-004 (billing), M-005 (referrals), M-006 (admin), M-007 (routing), M-008 (tasks), M-045 (mtproto-user-cabinet)
+#   LINKS: EP-001, M-001 — M-008, M-045, V-M-001, V-M-045
 # END_MODULE_CONTRACT
 #
 # START_MODULE_MAP
 #   app - FastAPI application instance with lifespan management
 #   lifespan - Async context manager for startup/shutdown (DB, VPN, admin, scheduler)
 #   CORS middleware, rate limiting middleware, request logging middleware
-#   Router mounting: users, vpn, billing, referrals, admin, routing, devices
+#   Router mounting: users, vpn, billing, referrals, admin, routing, devices, mtproto
 # END_MODULE_MAP
 #
 # START_CHANGE_SUMMARY
+#   LAST_CHANGE: v2.15.0 - Mounted Phase-31 MTProto owner API router
 #   LAST_CHANGE: v2.8.0 - Added full GRACE MODULE_CONTRACT and MODULE_MAP per GRACE governance protocol
 # END_CHANGE_SUMMARY
 #
@@ -67,6 +68,7 @@ from app.referrals.router import router as referral_router
 from app.referrals.router import admin_router as admin_referral_router
 from app.admin.router import router as admin_router
 from app.devices.router import router as devices_router
+from app.mtproto.router import router as mtproto_router
 
 # Configure logging
 try:
@@ -250,6 +252,9 @@ app.include_router(admin_billing_router)
 # Referrals
 app.include_router(referral_router)
 app.include_router(admin_referral_router)
+
+# MTProto owner cabinet
+app.include_router(mtproto_router)
 
 # Admin
 app.include_router(admin_router)
