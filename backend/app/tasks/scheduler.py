@@ -4,9 +4,10 @@
 # MAP_MODE: EXPORTS
 # START_MODULE_CONTRACT
 #   PURPOSE: Background task scheduler — recurring maintenance jobs started during FastAPI lifespan
-#   SCOPE: APScheduler-based job registration and execution: subscription expiry, VPN stats, anomaly detection, cleanup, reporting
-#   DEPENDS: M-001 (database), M-003 (vpn models/manager), M-004 (billing models), M-023 (handshake monitor)
-#   LINKS: M-008 (background-tasks), M-004 (billing), M-003 (vpn), V-M-008
+#   SCOPE: APScheduler-based job registration and execution: subscription expiry,
+#          VPN stats, anomaly detection, MTProto policy sync, cleanup, reporting
+#   DEPENDS: M-001, M-003, M-004, M-023, M-044
+#   LINKS: M-008, M-004, M-003, M-044, V-M-008, V-M-044
 # END_MODULE_CONTRACT
 #
 # START_MODULE_MAP
@@ -16,10 +17,12 @@
 #   update_vpn_stats - Every 5 min: update client stats from AmneziaWG
 #   daily_cleanup - Daily at 3AM: clean old failed payments
 #   detect_handshake_anomalies - Configurable interval: observe peer handshakes for anomaly signals
+#   sync_mtproto_policy - Reconcile MTProto assignments into runtime policy state
 #   weekly_report - Weekly on Monday 9AM: generate subscription stats (placeholder)
 # END_MODULE_MAP
 #
 # START_CHANGE_SUMMARY
+#   LAST_CHANGE: v3.2.0 - Added Phase-30 MTProto policy reconciliation job
 #   LAST_CHANGE: v3.1.0 - Made handshake anomaly scan interval configurable for anti-ping-pong detection
 #   LAST_CHANGE: v2.8.0 - Added full GRACE MODULE_CONTRACT and MODULE_MAP per GRACE governance protocol
 # END_CHANGE_SUMMARY
@@ -41,9 +44,11 @@ MODULE_MAP
 - update_vpn_stats: Updates VPN client statistics from AmneziaWG.
 - daily_cleanup: Cleans old failed payments and performs maintenance.
 - detect_handshake_anomalies: Observes live peer handshakes and records soft anomaly signals.
+- sync_mtproto_policy: Replays MTProto assignment state into the runtime policy bridge.
 - weekly_report: Generates weekly subscription stats (placeholder for notification delivery).
 
 CHANGE_SUMMARY
+- v3.2.0: Added Phase-30 MTProto runtime policy reconciliation job.
 - v2.8.0: Added GRACE-lite runtime markup with START_BLOCK/END_BLOCK for each class and task function.
 """
 # <!-- GRACE: module="M-008" contract="scheduler" role="RUNTIME" MAP_MODE="EXPORTS" -->
@@ -57,6 +62,9 @@ from loguru import logger
 
 from app.core.config import settings
 from app.core.database import async_session_maker
+
+
+MTPROTO_POLICY_SYNC_INTERVAL_SECONDS = 60
 
 
 # <!-- START_BLOCK: TaskScheduler -->
@@ -92,6 +100,13 @@ class TaskScheduler:
             detect_handshake_anomalies,
             IntervalTrigger(seconds=settings.anti_abuse_scan_interval_seconds),
             id="detect_handshake_anomalies",
+            replace_existing=True,
+        )
+
+        self.scheduler.add_job(
+            sync_mtproto_policy,
+            IntervalTrigger(seconds=MTPROTO_POLICY_SYNC_INTERVAL_SECONDS),
+            id="sync_mtproto_policy",
             replace_existing=True,
         )
 
@@ -274,6 +289,17 @@ async def detect_handshake_anomalies():
         if processed > 0:
             logger.debug(f"[TASKS] Observed handshake metadata for {processed} device-bound peers")
 # <!-- END_BLOCK: detect_handshake_anomalies -->
+
+
+# <!-- START_BLOCK: sync_mtproto_policy -->
+async def sync_mtproto_policy():
+    """
+    Reconcile MTProto assignments into runtime policy state.
+    """
+    from app.mtproto.runtime_bridge import sync_mtproto_policy as run_policy_sync
+
+    return await run_policy_sync()
+# <!-- END_BLOCK: sync_mtproto_policy -->
 
 
 # <!-- START_BLOCK: weekly_report -->

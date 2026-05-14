@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<M-044 NAME="kpproton-runtime-bridge" TYPE="INTEGRATION" STATUS="planned">
-  <path>backend/app/mtproto kpproton</path>
+<M-044 NAME="kpproton-runtime-bridge" TYPE="INTEGRATION" STATUS="done-local">
+  <path>backend/app/mtproto backend/app/tasks</path>
   <owns>Runtime bridge from KrotPN assignments to the KPprotoN/mtproto_proxy policy layer and startup policy replay.</owns>
   <purpose>Keep Telegram MTProto access active by loading issued SNI assignments into the runtime edge without blocking normal KrotPN auth.</purpose>
   <exports>
@@ -16,6 +16,7 @@
     <file>backend/app/mtproto/health.py</file>
     <file>backend/app/tasks/scheduler.py</file>
     <file>backend/tests/test_kpproton_runtime_bridge.py</file>
+    <file>backend/tests/test_scheduler.py</file>
   </files>
   <runtime-policy>
     <policy-1>Bridge failures mark MTProto provisioning degraded but do not prevent normal KrotPN login.</policy-1>
@@ -26,5 +27,8 @@
     <constraint-1>Do not rely on KPprotoN DETS registry as the source of truth.</constraint-1>
     <constraint-2>Do not expose raw tg://proxy links or secrets in runtime logs.</constraint-2>
   </constraints>
+  <evidence>
+    <evidence-1>2026-05-14: Phase-30 target pytest passed for fake/local adapter policy apply, replay idempotency, degraded mode, runtime health redaction, and scheduler registration.</evidence-1>
+  </evidence>
   <hotspot>H-030: MTProto runtime bridge must degrade safely when policy loading fails and must not block normal KrotPN login</hotspot>
 </M-044>

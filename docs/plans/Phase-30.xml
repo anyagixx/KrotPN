@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Phase-30 NAME="KPprotoN Runtime Bridge" STATUS="planned" VERSION="1.1.0" UPDATED="2026-05-14">
+<Phase-30 NAME="KPprotoN Runtime Bridge" STATUS="done-local" VERSION="1.2.0" UPDATED="2026-05-14">
   <Goal>Connect KrotPN MTProto assignments to a runtime policy bridge that can activate issued SNI domains safely.</Goal>
   <Modules>M-044,M-042,M-043,M-008,M-012</Modules>
   <NonGoals>
@@ -8,12 +8,12 @@
     <item-3>No deploy/install script redesign.</item-3>
   </NonGoals>
   <Steps>
-    <step-1>Define the bridge interface for apply-domain-policy, runtime health, startup replay, and reconciliation.</step-1>
-    <step-2>Choose integration shape for KPprotoN/mtproto_proxy runtime with pinned dependency or isolated service boundary.</step-2>
-    <step-3>Implement startup replay from M-042 assignments into runtime policy state with idempotent retries.</step-3>
-    <step-4>Implement degraded-mode semantics when the runtime bridge is unavailable during verified onboarding.</step-4>
-    <step-5>Wire a scheduler reconciliation task without impacting existing anti-abuse scheduler jobs.</step-5>
-    <step-6>Add tests for policy apply success, bridge unavailable, replay after restart, and no-secret logging.</step-6>
+    <step-1 STATUS="done-local">Define the bridge interface for apply-domain-policy, runtime health, startup replay, and reconciliation.</step-1>
+    <step-2 STATUS="done-local">Choose integration shape for KPprotoN/mtproto_proxy runtime with pinned dependency or isolated service boundary.</step-2>
+    <step-3 STATUS="done-local">Implement startup replay from M-042 assignments into runtime policy state with idempotent retries.</step-3>
+    <step-4 STATUS="done-local">Implement degraded-mode semantics when the runtime bridge is unavailable during verified onboarding.</step-4>
+    <step-5 STATUS="done-local">Wire a scheduler reconciliation task without impacting existing anti-abuse scheduler jobs.</step-5>
+    <step-6 STATUS="done-local">Add tests for policy apply success, bridge unavailable, replay after restart, and no-secret logging.</step-6>
   </Steps>
   <Verification>
     <command>cd backend &amp;&amp; SECRET_KEY=test-secret-key-with-enough-length DATA_ENCRYPTION_KEY=dpFmfSVqfdAK3yx5MQV6Tcv35RZuw5MzaH0yhxJ01q0= PYTHONPATH=. ../.venv/bin/python -m pytest -o addopts='' tests/test_kpproton_runtime_bridge.py tests/test_mtproto_assignment_registry.py tests/test_mtproto_provisioning.py tests/test_scheduler.py -v</command>
@@ -45,6 +45,12 @@
     <item-3>Verified users see an explicit pending/degraded proxy state if runtime activation is delayed.</item-3>
     <item-4>Runtime logs include stable markers but no full proxy link, token, or secret.</item-4>
   </AcceptanceCriteria>
+  <Completion>
+    <item-1>M-044 now exposes a secret-free runtime bridge boundary with apply-domain-policy, runtime health, startup replay, and scheduler reconciliation entry points.</item-1>
+    <item-2>The Phase-30 integration shape is an isolated backend service boundary using fake/local adapters only; live edge, DNS, TLS, and shared 443 work remain deferred.</item-2>
+    <item-3>Phase-30 backend verification passed locally: 21 targeted tests across runtime bridge, assignment registry, provisioning, and scheduler coverage.</item-3>
+    <item-4>No deploy/install/nginx/docker-compose files were changed.</item-4>
+  </Completion>
   <Risks>
     <risk-1>KPprotoN Erlang dependency drift can make runtime behavior non-reproducible unless pinned.</risk-1>
     <risk-2>Policy state can drift from Postgres unless reconciliation is designed early.</risk-2>

@@ -1,0 +1,464 @@
+"""MTProto runtime policy bridge.
+
+# FILE: backend/app/mtproto/runtime_bridge.py
+# VERSION: 1.0.0
+# ROLE: RUNTIME
+# MAP_MODE: EXPORTS
+# START_MODULE_CONTRACT
+#   PURPOSE: Apply KrotPN MTProto assignments to a runtime policy boundary safely
+#   SCOPE: Domain policy adapter contract, health, replay, reconciliation, degraded state
+#   DEPENDS: M-001 (DB session), M-042 (assignment registry), M-043 (provisioning)
+#   LINKS: M-044, V-M-044
+# END_MODULE_CONTRACT
+#
+# START_MODULE_MAP
+#   MTProtoBridgeStatus - Safe runtime bridge status values
+#   MTProtoBridgeFailureCode - Safe bridge failure codes
+#   MTProtoDomainPolicy - Secret-free policy payload sent to runtime adapter
+#   MTProtoPolicyApplyResult - Adapter apply result contract
+#   MTProtoRuntimeHealth - Safe health summary contract
+#   MTProtoReplayResult - Startup/reconciliation replay summary contract
+#   MTProtoPolicyAdapter - Adapter protocol for isolated KPprotoN runtime boundary
+#   InMemoryMTProtoPolicyAdapter - Local safe adapter used by tests and offline runtime
+#   MTProtoRuntimeBridge - Service for apply, replay and health operations
+#   sync_mtproto_policy - Scheduler-safe reconciliation entry point
+# END_MODULE_MAP
+#
+# START_CHANGE_SUMMARY
+#   LAST_CHANGE: v1.0.0 - Added Phase-30 safe runtime bridge boundary
+# END_CHANGE_SUMMARY
+"""
+
+from __future__ import annotations
+
+from dataclasses import dataclass, field
+from datetime import datetime, timezone
+from enum import Enum
+from typing import Protocol
+
+from loguru import logger
+from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from app.core.database import async_session_maker
+from app.mtproto.models import MTProtoAssignment, MTProtoAssignmentStatus
+
+
+MAX_REPLAY_ASSIGNMENTS = 1000
+
+
+# START_BLOCK_RUNTIME_BRIDGE_TYPES
+class MTProtoBridgeStatus(str, Enum):
+    """Safe runtime bridge states."""
+
+    ACTIVATED = "activated"
+    DEGRADED = "degraded"
+    HEALTHY = "healthy"
+    SKIPPED = "skipped"
+
+
+class MTProtoBridgeFailureCode(str, Enum):
+    """Stable safe failure codes for bridge operations."""
+
+    ADAPTER_REJECTED = "adapter_rejected"
+    BRIDGE_UNAVAILABLE = "bridge_unavailable"
+    INVALID_ASSIGNMENT = "invalid_assignment"
+    REPLAY_FAILED = "replay_failed"
+
+
+class MTProtoBridgeUnavailable(RuntimeError):
+    """Raised by adapters when the runtime boundary is temporarily unavailable."""
+
+
+@dataclass(frozen=True)
+class MTProtoDomainPolicy:
+    """Secret-free domain policy sent to the runtime adapter."""
+
+    assignment_id: int
+    user_id: int
+    sni: str
+    credential_mode: str
+    rotation_marker: str
+
+
+@dataclass(frozen=True)
+class MTProtoPolicyApplyResult:
+    """Safe result of one policy apply attempt."""
+
+    assignment_id: int | None
+    sni: str | None
+    status: MTProtoBridgeStatus
+    failure_code: MTProtoBridgeFailureCode | None = None
+    safe_message: str = ""
+    applied_at: datetime | None = None
+
+    def to_safe_dict(self) -> dict[str, object]:
+        """Return secret-free result data for tests, health, and admin summaries."""
+        return {
+            "assignment_id": self.assignment_id,
+            "sni": self.sni,
+            "status": self.status.value,
+            "failure_code": self.failure_code.value if self.failure_code else None,
+            "safe_message": self.safe_message,
+            "applied_at": self.applied_at.isoformat() if self.applied_at else None,
+        }
+
+
+@dataclass(frozen=True)
+class MTProtoRuntimeHealth:
+    """Safe aggregate runtime bridge health state."""
+
+    status: MTProtoBridgeStatus
+    adapter_name: str
+    last_success_at: datetime | None = None
+    last_failure_code: MTProtoBridgeFailureCode | None = None
+    last_checked_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+
+    def to_safe_dict(self) -> dict[str, object]:
+        """Return health data without proxy credentials or user-specific secrets."""
+        return {
+            "status": self.status.value,
+            "adapter_name": self.adapter_name,
+            "last_success_at": (
+                self.last_success_at.isoformat() if self.last_success_at else None
+            ),
+            "last_failure_code": (
+                self.last_failure_code.value if self.last_failure_code else None
+            ),
+            "last_checked_at": self.last_checked_at.isoformat(),
+        }
+
+
+@dataclass(frozen=True)
+class MTProtoReplayResult:
+    """Safe summary of startup/reconciliation replay."""
+
+    processed_count: int = 0
+    applied_count: int = 0
+    skipped_count: int = 0
+    degraded_count: int = 0
+    failed_count: int = 0
+
+    def to_safe_dict(self) -> dict[str, int]:
+        """Return aggregate replay counters only."""
+        return {
+            "processed_count": self.processed_count,
+            "applied_count": self.applied_count,
+            "skipped_count": self.skipped_count,
+            "degraded_count": self.degraded_count,
+            "failed_count": self.failed_count,
+        }
+
+
+class MTProtoPolicyAdapter(Protocol):
+    """Protocol for isolated MTProto runtime policy adapters."""
+
+    adapter_name: str
+
+    async def apply_domain_policy(self, policy: MTProtoDomainPolicy) -> None:
+        """Apply one secret-free domain policy to runtime state."""
+
+    async def health(self) -> MTProtoRuntimeHealth:
+        """Return adapter health without credentials."""
+# END_BLOCK_RUNTIME_BRIDGE_TYPES
+
+
+# START_BLOCK_IN_MEMORY_ADAPTER
+class InMemoryMTProtoPolicyAdapter:
+    """Local deterministic policy adapter used until a live edge is explicitly wired."""
+
+    adapter_name = "local-memory"
+
+    def __init__(
+        self,
+        *,
+        available: bool = True,
+        rejected_snis: set[str] | None = None,
+    ) -> None:
+        self.available = available
+        self.rejected_snis = rejected_snis or set()
+        self.policies: dict[str, MTProtoDomainPolicy] = {}
+
+    async def apply_domain_policy(self, policy: MTProtoDomainPolicy) -> None:
+        """Apply one policy to local memory, preserving idempotency by SNI."""
+        if not self.available:
+            raise MTProtoBridgeUnavailable("MTProto runtime bridge is unavailable")
+        if policy.sni in self.rejected_snis:
+            raise ValueError("MTProto runtime adapter rejected the SNI policy")
+        self.policies[policy.sni] = policy
+
+    async def health(self) -> MTProtoRuntimeHealth:
+        """Return local adapter health state."""
+        if not self.available:
+            return MTProtoRuntimeHealth(
+                status=MTProtoBridgeStatus.DEGRADED,
+                adapter_name=self.adapter_name,
+                last_failure_code=MTProtoBridgeFailureCode.BRIDGE_UNAVAILABLE,
+            )
+        return MTProtoRuntimeHealth(
+            status=MTProtoBridgeStatus.HEALTHY,
+            adapter_name=self.adapter_name,
+        )
+# END_BLOCK_IN_MEMORY_ADAPTER
+
+
+default_policy_adapter = InMemoryMTProtoPolicyAdapter()
+
+
+class MTProtoRuntimeBridge:
+    """Apply and replay KrotPN MTProto assignment policy into runtime state."""
+
+    def __init__(
+        self,
+        session: AsyncSession,
+        *,
+        adapter: MTProtoPolicyAdapter | None = None,
+    ) -> None:
+        self.session = session
+        self.adapter = adapter or default_policy_adapter
+        self._last_success_at: datetime | None = None
+        self._last_failure_code: MTProtoBridgeFailureCode | None = None
+
+    # START_CONTRACT: apply_domain_policy
+    #   PURPOSE: Apply one active assignment to the configured runtime adapter
+    #   INPUTS: assignment: MTProtoAssignment
+    #   OUTPUTS: MTProtoPolicyApplyResult
+    #   SIDE_EFFECTS: adapter call and redacted log markers, no DB writes
+    #   LINKS: M-044, V-M-044
+    # END_CONTRACT: apply_domain_policy
+    # START_BLOCK_LOAD_POLICY
+    async def apply_domain_policy(
+        self,
+        assignment: MTProtoAssignment,
+    ) -> MTProtoPolicyApplyResult:
+        """Apply one assignment without raising runtime outages into caller flows."""
+        policy_or_result = self._policy_from_assignment(assignment)
+        if isinstance(policy_or_result, MTProtoPolicyApplyResult):
+            return policy_or_result
+
+        policy = policy_or_result
+        logger.info(
+            "[M-044][apply_domain_policy][LOAD_POLICY] "
+            f"assignment_id={policy.assignment_id} user_id={policy.user_id} sni={policy.sni}"
+        )
+
+        try:
+            await self.adapter.apply_domain_policy(policy)
+        except MTProtoBridgeUnavailable:
+            return self._degraded_result(
+                policy,
+                failure_code=MTProtoBridgeFailureCode.BRIDGE_UNAVAILABLE,
+                safe_message="MTProto runtime bridge is unavailable",
+            )
+        except ValueError:
+            return self._degraded_result(
+                policy,
+                failure_code=MTProtoBridgeFailureCode.ADAPTER_REJECTED,
+                safe_message="MTProto runtime adapter rejected the policy",
+            )
+        except Exception:
+            return self._degraded_result(
+                policy,
+                failure_code=MTProtoBridgeFailureCode.REPLAY_FAILED,
+                safe_message="MTProto runtime policy apply failed",
+            )
+
+        applied_at = datetime.now(timezone.utc)
+        self._last_success_at = applied_at
+        self._last_failure_code = None
+        logger.info(
+            "[M-044][apply_domain_policy][POLICY_APPLIED] "
+            f"assignment_id={policy.assignment_id} user_id={policy.user_id} sni={policy.sni}"
+        )
+        return MTProtoPolicyApplyResult(
+            assignment_id=policy.assignment_id,
+            sni=policy.sni,
+            status=MTProtoBridgeStatus.ACTIVATED,
+            applied_at=applied_at,
+        )
+    # END_BLOCK_LOAD_POLICY
+
+    # START_CONTRACT: replay_active_assignments
+    #   PURPOSE: Replay assignment registry rows into runtime adapter policy state
+    #   INPUTS: limit: int
+    #   OUTPUTS: MTProtoReplayResult
+    #   SIDE_EFFECTS: adapter calls and aggregate logs, no secret persistence
+    #   LINKS: M-044, M-042, V-M-044
+    # END_CONTRACT: replay_active_assignments
+    # START_BLOCK_REPLAY_POLICY
+    async def replay_active_assignments(
+        self,
+        *,
+        limit: int = MAX_REPLAY_ASSIGNMENTS,
+    ) -> MTProtoReplayResult:
+        """Replay assignment rows idempotently after process or bridge restart."""
+        safe_limit = min(max(limit, 1), MAX_REPLAY_ASSIGNMENTS)
+        logger.info(
+            "[M-044][replay_active_assignments][REPLAY_START] "
+            f"limit={safe_limit}"
+        )
+        result = await self.session.execute(
+            select(MTProtoAssignment)
+            .order_by(MTProtoAssignment.id.asc())
+            .limit(safe_limit)
+        )
+        assignments = list(result.scalars().all())
+
+        applied_count = 0
+        skipped_count = 0
+        degraded_count = 0
+        failed_count = 0
+
+        for assignment in assignments:
+            if assignment.status != MTProtoAssignmentStatus.ACTIVE:
+                skipped_count += 1
+                continue
+
+            logger.info(
+                "[M-044][replay_active_assignments][REPLAY_POLICY] "
+                f"assignment_id={assignment.id} user_id={assignment.user_id} sni={assignment.sni}"
+            )
+            apply_result = await self.apply_domain_policy(assignment)
+            if apply_result.status == MTProtoBridgeStatus.ACTIVATED:
+                applied_count += 1
+            elif apply_result.status == MTProtoBridgeStatus.DEGRADED:
+                degraded_count += 1
+            else:
+                failed_count += 1
+
+        replay_result = MTProtoReplayResult(
+            processed_count=len(assignments),
+            applied_count=applied_count,
+            skipped_count=skipped_count,
+            degraded_count=degraded_count,
+            failed_count=failed_count,
+        )
+        logger.info(
+            "[M-044][replay_active_assignments][REPLAY_SUMMARY] "
+            f"processed={replay_result.processed_count} applied={applied_count} "
+            f"skipped={skipped_count} degraded={degraded_count} failed={failed_count}"
+        )
+        return replay_result
+    # END_BLOCK_REPLAY_POLICY
+
+    # START_CONTRACT: runtime_health
+    #   PURPOSE: Return aggregate bridge health without exposing proxy credentials
+    #   INPUTS: none
+    #   OUTPUTS: MTProtoRuntimeHealth
+    #   SIDE_EFFECTS: adapter health read and redacted log marker
+    #   LINKS: M-044, V-M-044
+    # END_CONTRACT: runtime_health
+    # START_BLOCK_BRIDGE_HEALTH
+    async def runtime_health(self) -> MTProtoRuntimeHealth:
+        """Return safe aggregate bridge health."""
+        try:
+            adapter_health = await self.adapter.health()
+        except Exception:
+            adapter_health = MTProtoRuntimeHealth(
+                status=MTProtoBridgeStatus.DEGRADED,
+                adapter_name=getattr(self.adapter, "adapter_name", "unknown"),
+                last_success_at=self._last_success_at,
+                last_failure_code=MTProtoBridgeFailureCode.BRIDGE_UNAVAILABLE,
+            )
+
+        if adapter_health.status == MTProtoBridgeStatus.HEALTHY:
+            logger.info("[M-044][runtime_health][BRIDGE_HEALTHY] adapter=ok")
+            return MTProtoRuntimeHealth(
+                status=MTProtoBridgeStatus.HEALTHY,
+                adapter_name=adapter_health.adapter_name,
+                last_success_at=self._last_success_at or adapter_health.last_success_at,
+                last_failure_code=self._last_failure_code,
+            )
+
+        logger.warning(
+            "[M-044][runtime_health][BRIDGE_DEGRADED] "
+            f"failure_code={adapter_health.last_failure_code}"
+        )
+        return MTProtoRuntimeHealth(
+            status=MTProtoBridgeStatus.DEGRADED,
+            adapter_name=adapter_health.adapter_name,
+            last_success_at=self._last_success_at or adapter_health.last_success_at,
+            last_failure_code=adapter_health.last_failure_code or self._last_failure_code,
+        )
+    # END_BLOCK_BRIDGE_HEALTH
+
+    # START_BLOCK_RUNTIME_BRIDGE_HELPERS
+    def _policy_from_assignment(
+        self,
+        assignment: MTProtoAssignment,
+    ) -> MTProtoDomainPolicy | MTProtoPolicyApplyResult:
+        if (
+            assignment.id is None
+            or assignment.user_id is None
+            or not assignment.sni
+            or assignment.status != MTProtoAssignmentStatus.ACTIVE
+        ):
+            self._last_failure_code = MTProtoBridgeFailureCode.INVALID_ASSIGNMENT
+            logger.warning(
+                "[M-044][apply_domain_policy][BRIDGE_UNAVAILABLE] "
+                "failure_code=invalid_assignment"
+            )
+            return MTProtoPolicyApplyResult(
+                assignment_id=assignment.id,
+                sni=assignment.sni,
+                status=MTProtoBridgeStatus.SKIPPED,
+                failure_code=MTProtoBridgeFailureCode.INVALID_ASSIGNMENT,
+                safe_message="MTProto assignment is not active",
+            )
+
+        return MTProtoDomainPolicy(
+            assignment_id=int(assignment.id),
+            user_id=int(assignment.user_id),
+            sni=assignment.sni,
+            credential_mode=assignment.credential_mode.value,
+            rotation_marker=assignment.rotation_marker,
+        )
+
+    def _degraded_result(
+        self,
+        policy: MTProtoDomainPolicy,
+        *,
+        failure_code: MTProtoBridgeFailureCode,
+        safe_message: str,
+    ) -> MTProtoPolicyApplyResult:
+        self._last_failure_code = failure_code
+        logger.warning(
+            "[M-044][apply_domain_policy][BRIDGE_UNAVAILABLE] "
+            f"assignment_id={policy.assignment_id} user_id={policy.user_id} "
+            f"sni={policy.sni} failure_code={failure_code.value}"
+        )
+        return MTProtoPolicyApplyResult(
+            assignment_id=policy.assignment_id,
+            sni=policy.sni,
+            status=MTProtoBridgeStatus.DEGRADED,
+            failure_code=failure_code,
+            safe_message=safe_message,
+        )
+    # END_BLOCK_RUNTIME_BRIDGE_HELPERS
+
+
+# START_CONTRACT: sync_mtproto_policy
+#   PURPOSE: Scheduler-safe reconciliation entry point for MTProto runtime policy
+#   INPUTS: adapter: MTProtoPolicyAdapter | None
+#   OUTPUTS: MTProtoReplayResult
+#   SIDE_EFFECTS: local DB read, adapter calls, session commit, redacted logs
+#   LINKS: M-044, M-008, V-M-044
+# END_CONTRACT: sync_mtproto_policy
+# START_BLOCK_SCHEDULER_SYNC
+async def sync_mtproto_policy(
+    *,
+    adapter: MTProtoPolicyAdapter | None = None,
+) -> MTProtoReplayResult:
+    """Run one scheduler reconciliation cycle without raising bridge outages."""
+    logger.info("[M-044][sync_mtproto_policy][SCHEDULER_SYNC] started")
+    async with async_session_maker() as session:
+        bridge = MTProtoRuntimeBridge(session, adapter=adapter)
+        result = await bridge.replay_active_assignments()
+        await session.commit()
+        logger.info(
+            "[M-044][sync_mtproto_policy][SCHEDULER_SYNC] "
+            f"processed={result.processed_count} applied={result.applied_count} "
+            f"degraded={result.degraded_count}"
+        )
+        return result
+# END_BLOCK_SCHEDULER_SYNC

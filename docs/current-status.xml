@@ -40,6 +40,7 @@
     <item>Phase-27 email verification foundation passed local verification on 2026-05-13: provider-neutral email delivery, pending registration, HMAC token storage, domain guards, replay/expiry checks, and no /register cutover.</item>
     <item>Phase-28 verified registration cutover primary gates passed local verification on 2026-05-13: /register is pending-only, /verify-email activates user access once, trial/VPN/referral side effects are delayed until email proof, and frontend check-email/verify states build. Full wave status is partial-local after 2026-05-14 refresh because V-M-004 and V-M-022 cross-module route/API gates currently fail.</item>
     <item>Phase-29 MTProto provisioning core passed local verification on 2026-05-14: restore-safe assignment registry, Alembic migration metadata, deterministic SNI, KPprotoN-compatible fake-TLS secret vector, tg://proxy assembly, verified-user guard, idempotent reuse, and explicit reissue policy.</item>
+    <item>Phase-30 KPprotoN runtime bridge passed local verification on 2026-05-14: fake/local adapter boundary, startup replay, degraded bridge semantics, secret-free runtime health, MTProto scheduler reconciliation, and no deploy/install changes.</item>
   </what-is-working>
 
   <what-is-fragile>
@@ -48,7 +49,7 @@
     <item>Legacy VPNServer compatibility during topology migration.</item>
     <item>Remote credentials handled through temporary operator materialization remain a deployment risk.</item>
     <item>Verification reproducibility across environments.</item>
-    <item>MTProto runtime bridge, public edge integration, user dashboard exposure, and admin operations are still planned for later phases; Phase-29 only created the local backend provisioning core.</item>
+    <item>MTProto public edge integration, user dashboard exposure, and admin operations are still planned for later phases; Phase-30 only created a safe backend runtime bridge boundary with local/fake adapter verification.</item>
     <item>Emergency relocation is documented but still blocked until a trusted backup bundle and isolated restore target exist for dry-run evidence.</item>
     <item>Cookie-only auth migration is planned but not executed because it requires explicit approval and HTTPS or production-like smoke evidence.</item>
   </what-is-fragile>
@@ -99,11 +100,14 @@
     <gate id="phase-29-mtproto-provisioning-core" status="passed-local">
       <summary>Local Phase-29 backend tests passed for assignment registry, migration metadata, deterministic provisioning, verified-user guard, idempotency, and reissue policy; no deploy/install scripts were changed.</summary>
     </gate>
+    <gate id="phase-30-kpproton-runtime-bridge" status="passed-local">
+      <summary>Local Phase-30 backend tests passed for runtime policy apply, startup replay, degraded bridge handling, safe health summaries, scheduler reconciliation, and M-042/M-043 regression coverage; no deploy/install scripts were changed.</summary>
+    </gate>
   </rollout-gates>
 
   <immediate-priorities>
     <priority rank="1">Fix Phase-28 refresh findings: V-M-004 billing route/API tests and V-M-022 VPN compatibility route tests currently return 404 in their full per-module gates.</priority>
-    <priority rank="2">Continue MTProto integration with Phase-30 KPprotoN runtime bridge after acknowledging Phase-28 partial-local release debt.</priority>
+    <priority rank="2">Continue MTProto integration with Phase-31 user cabinet UX after acknowledging Phase-28 partial-local release debt.</priority>
     <priority rank="3">Run Phase-22 non-production restore rehearsal with a trusted backup bundle and isolated restore target.</priority>
     <priority rank="4">Decide whether to approve cookie-only auth migration and provide HTTPS or production-like auth smoke target.</priority>
     <priority rank="5">Keep deploy/install scripts unchanged unless the operator explicitly requests deployment-surface work.</priority>

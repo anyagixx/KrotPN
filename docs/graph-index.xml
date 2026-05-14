@@ -9,7 +9,7 @@
   <M-005 NAME="referrals" TYPE="CORE_LOGIC" STATUS="stable" PATH="backend/app/referrals" DEPENDS="M-001" VERIFICATION-REF="V-M-005" />
   <M-006 NAME="admin-api" TYPE="ENTRY_POINT" STATUS="stable" PATH="backend/app/admin" DEPENDS="M-001,M-002,M-003,M-004,M-005,M-007,M-024,M-026" VERIFICATION-REF="V-M-006" />
   <M-007 NAME="routing" TYPE="UTILITY" STATUS="stable" PATH="backend/app/routing/manager.py" DEPENDS="M-001" VERIFICATION-REF="V-M-007" />
-  <M-008 NAME="tasks" TYPE="UTILITY" STATUS="stable" PATH="backend/app/tasks" DEPENDS="M-001" VERIFICATION-REF="V-M-008" />
+  <M-008 NAME="tasks" TYPE="UTILITY" STATUS="stable" PATH="backend/app/tasks" DEPENDS="M-001,M-044" VERIFICATION-REF="V-M-008" />
   <M-009 NAME="frontend-user" TYPE="UI_COMPONENT" STATUS="stable" PATH="frontend" DEPENDS="M-002,M-003,M-004,M-005,M-022" VERIFICATION-REF="V-M-009" />
   <M-010 NAME="frontend-admin" TYPE="UI_COMPONENT" STATUS="stable" PATH="frontend-admin" DEPENDS="M-006,M-024" VERIFICATION-REF="V-M-010" />
   <M-011 NAME="telegram-bot" TYPE="ENTRY_POINT" STATUS="stable" PATH="telegram-bot" DEPENDS="M-002,M-003,M-004" VERIFICATION-REF="V-M-011" />
@@ -40,7 +40,7 @@
   <M-041 NAME="verified-email-registration" TYPE="CORE_LOGIC" STATUS="done-local" PATH="backend/app/users backend/app/email docs/plans/Phase-27.xml docs/plans/Phase-28.xml" DEPENDS="M-001,M-002,M-004,M-005,M-022,M-027,M-040" VERIFICATION-REF="V-M-041" />
   <M-042 NAME="mtproto-assignment-registry" TYPE="DATA_LAYER" STATUS="done-local" PATH="backend/app/mtproto backend/alembic docs/plans/Phase-29.xml" DEPENDS="M-001,M-002,M-028" VERIFICATION-REF="V-M-042" />
   <M-043 NAME="mtproto-provisioning" TYPE="CORE_LOGIC" STATUS="done-local" PATH="backend/app/mtproto docs/plans/Phase-29.xml" DEPENDS="M-001,M-002,M-040,M-042" VERIFICATION-REF="V-M-043" />
-  <M-044 NAME="kpproton-runtime-bridge" TYPE="INTEGRATION" STATUS="planned" PATH="backend/app/mtproto kpproton docs/plans/Phase-30.xml" DEPENDS="M-001,M-008,M-012,M-042,M-043" VERIFICATION-REF="V-M-044" />
+  <M-044 NAME="kpproton-runtime-bridge" TYPE="INTEGRATION" STATUS="done-local" PATH="backend/app/mtproto backend/app/tasks/scheduler.py docs/plans/Phase-30.xml" DEPENDS="M-001,M-008,M-012,M-042,M-043" VERIFICATION-REF="V-M-044" />
   <M-045 NAME="mtproto-user-cabinet" TYPE="UI_COMPONENT" STATUS="planned" PATH="frontend backend/app/mtproto docs/plans/Phase-31.xml" DEPENDS="M-002,M-009,M-036,M-042,M-043" VERIFICATION-REF="V-M-045" />
   <M-046 NAME="krotpn-domain-tls-edge" TYPE="ENTRY_POINT" STATUS="planned" PATH="nginx docker-compose.yml docs/plans/Phase-32.xml" DEPENDS="M-001,M-012,M-044" VERIFICATION-REF="V-M-046" />
   <M-047 NAME="mtproto-admin-ops" TYPE="ENTRY_POINT" STATUS="planned" PATH="backend/app/admin frontend-admin docs/plans/Phase-33.xml" DEPENDS="M-006,M-010,M-024,M-042,M-043,M-044" VERIFICATION-REF="V-M-047" />
@@ -65,6 +65,7 @@
     <link from="M-006" to="M-026" />
     <link from="M-007" to="M-001" />
     <link from="M-008" to="M-001" />
+    <link from="M-008" to="M-044" />
     <link from="M-009" to="M-002" />
     <link from="M-009" to="M-003" />
     <link from="M-009" to="M-004" />

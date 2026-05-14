@@ -16,10 +16,13 @@
 #   repository - Assignment persistence helpers
 #   provisioning - Deterministic SNI, fake-TLS secret, and issue/reissue service
 #   service - Stable public re-export path for provisioning service
+#   runtime_bridge - Phase-30 runtime policy bridge boundary
+#   health - Secret-free runtime health summaries
 #   schemas - Owner-safe response contracts
 # END_MODULE_MAP
 #
 # START_CHANGE_SUMMARY
+#   LAST_CHANGE: v1.2.0 - Added Phase-30 runtime bridge and health boundaries
 #   LAST_CHANGE: v1.1.0 - Added service re-export path to the package map
 #   LAST_CHANGE: v1.0.0 - Created Phase-29 MTProto package boundary
 # END_CHANGE_SUMMARY
