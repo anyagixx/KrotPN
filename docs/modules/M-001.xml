@@ -12,6 +12,7 @@
     <fn-anti-abuse-settings>Validated ANTI_ABUSE_* mode, scan interval, history window, ping-pong window and cooldown values</fn-anti-abuse-settings>
     <fn-email-verification-settings>EMAIL_PROVIDER, verification TTL, provider timeout, Resend/SMTP credentials, verification URL base, allow/deny/disposable domain knobs, and DNS guard toggle</fn-email-verification-settings>
     <fn-mtproto-settings>MTPROTO_BASE_DOMAIN, MTPROTO_PROXY_PORT, MTPROTO_BASE_SECRET_HEX, MTPROTO_SECRET_SALT, MTPROTO_SNI_PREFIX, and MTPROTO_ROTATION_MARKER validation</fn-mtproto-settings>
+    <fn-edge-domain-settings>EDGE_PUBLIC_DOMAIN, EDGE_CANONICAL_HOST, EDGE_TLS_CERTIFICATE_PATH, EDGE_TLS_CERTIFICATE_KEY_PATH, EDGE_TLS_CERTIFICATE_MODE, and EDGE_SHARED_443_ENABLED validation</fn-edge-domain-settings>
   </exports>
   <depends>M-028</depends>
   <verification-ref>V-M-001</verification-ref>
@@ -34,4 +35,5 @@
   <hotspot>H-014: Admin audit middleware must not log sensitive bodies or tokens</hotspot>
   <hotspot>H-026: Email provider secrets and verification tokens must never leak through settings-driven logs or errors</hotspot>
   <hotspot>H-030: MTProto base secret and salt must stay runtime-only and never appear in logs or persisted assignment rows</hotspot>
+  <hotspot>H-032: krotpn.xyz domain TLS and shared 443 settings must not leak secrets or create unsafe production claims before trusted wildcard TLS is ready</hotspot>
 </M-001>

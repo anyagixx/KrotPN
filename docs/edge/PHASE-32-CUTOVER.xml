@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<PHASE-32-CUTOVER NAME="Domain TLS and Shared 443 Edge" STATUS="operator-live-required">
+  <scope>
+    <item-1>Prepare krotpn.xyz and *.krotpn.xyz public edge validation after DNS and wildcard TLS readiness.</item-1>
+    <item-2>Keep deploy/install scripts unchanged; Phase-32 local execution only defines nginx/config contracts and smoke gates.</item-2>
+  </scope>
+  <preflight>
+    <gate-1>DNS A or AAAA for krotpn.xyz points to the intended RU edge host.</gate-1>
+    <gate-2>Wildcard DNS for issued MTProto SNI names under *.krotpn.xyz resolves to the same edge host.</gate-2>
+    <gate-3>Trusted wildcard certificate material is installed at /etc/nginx/ssl/server.crt and /etc/nginx/ssl/server.key, or those paths are symlinks to the trusted certificate files.</gate-3>
+    <gate-4>Certificate validation must pass without curl -k, browser trust bypass, or self-signed production claims.</gate-4>
+  </preflight>
+  <operator-live-smoke>
+    <check-1 marker="[M-046][nginx_contract][HTTP_TO_HTTPS_REDIRECT]">http://krotpn.xyz and http://www.krotpn.xyz return a permanent redirect to https://krotpn.xyz.</check-1>
+    <check-2 marker="[M-046][edge_router][HTTPS_FALLBACK]">https://krotpn.xyz, https://krotpn.xyz/api health, and https://krotpn.xyz/admin remain reachable.</check-2>
+    <check-3 marker="[M-046][edge_router][MTPROTO_ROUTE]">One issued MTProto SNI under *.krotpn.xyz reaches the MTProto runtime route after shared-edge enablement.</check-3>
+    <check-4>Unknown SNI fails closed or falls back only according to the active edge policy and never logs secrets.</check-4>
+  </operator-live-smoke>
+  <rollback>
+    <step-1 marker="[M-046][edge_contract][ROLLBACK_READY]">Disable the shared 443 classifier or set EDGE_SHARED_443_ENABLED=false.</step-1>
+    <step-2>Restore nginx-only 443 ownership with the default HTTPS server blocks in nginx/nginx.conf.</step-2>
+    <step-3>Reload nginx and verify frontend, /api, and /admin are reachable through HTTPS.</step-3>
+    <step-4>Keep issued MTProto assignments in Postgres; do not rotate secrets unless the incident requires explicit reissue.</step-4>
+  </rollback>
+  <redaction>
+    <rule-1>Do not paste certificate private keys, .env values, MTPROTO_BASE_SECRET_HEX, MTPROTO_SECRET_SALT, derived secrets, tg://proxy links, JWTs, or email verification tokens into evidence.</rule-1>
+    <rule-2>Allowed evidence: hostnames, status codes, certificate issuer and expiry, redacted SNI suffixes, and safe route names.</rule-2>
+  </redaction>
+</PHASE-32-CUTOVER>

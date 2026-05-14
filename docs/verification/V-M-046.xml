@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<V-M-046 MODULE="M-046" PRIORITY="critical" STATUS="pending" VERSION="1.1.0">
+<V-M-046 MODULE="M-046" PRIORITY="critical" STATUS="partial-local" VERSION="1.2.0">
   <module>krotpn-domain-tls-edge</module>
   <phase-scope>
-    <phase-32 status="pending">Domain, HTTPS redirect, wildcard TLS, and shared 443 routing verification for krotpn.xyz before public MTProto edge cutover.</phase-32>
+    <phase-32 status="partial-local">Domain, HTTPS redirect, wildcard TLS, and shared 443 routing verification for krotpn.xyz passed local/static gates; live smoke remains operator-required.</phase-32>
   </phase-scope>
   <test-files>
     <file>backend/tests/test_domain_tls_edge_static.py</file>
@@ -11,12 +11,12 @@
     <file>nginx/nginx.conf</file>
     <file>docker-compose.yml</file>
     <file>.env.example</file>
-    <file>.env.production</file>
     <file>docs/plans/Phase-32.xml</file>
+    <file>docs/edge/PHASE-32-CUTOVER.xml</file>
   </test-files>
   <commands>
-    <command-1>cd backend &amp;&amp; PYTHONPATH=. ../.venv/bin/python -m pytest -o addopts='' tests/test_domain_tls_edge_static.py -v</command-1>
-    <command-2>docker compose config</command-2>
+    <command-1>cd backend &amp;&amp; SECRET_KEY=test-secret-key-with-enough-length PYTHONPATH=. ../.venv/bin/python -m pytest -o addopts='' tests/test_domain_tls_edge_static.py -v</command-1>
+    <command-2>sh -c 'if [ -e .env ]; then DB_PASSWORD=phase32-compose-check docker compose config; else ln -s .env.example .env &amp;&amp; trap "rm -f .env" EXIT &amp;&amp; DB_PASSWORD=phase32-compose-check docker compose config; fi'</command-2>
     <command-3>node scripts/phase32-edge-contract-smoke.mjs</command-3>
     <command-4>python3 -m xml.etree.ElementTree docs/plans/Phase-32.xml docs/modules/M-046.xml docs/verification/V-M-046.xml docs/verification-index.xml &amp;&amp; mygrace lint</command-4>
     <command-5>operator-live smoke after DNS and wildcard certificate readiness: HTTP redirect, HTTPS frontend/API/admin health, issued MTProto SNI route, rollback rehearsal notes.</command-5>
@@ -77,4 +77,11 @@
     <safe-local>Static tests, docker compose config, XML parsing, MyGRACE lint, and secret-redaction checks are safe to run locally.</safe-local>
     <requires-operator>Live DNS, wildcard certificate issuance, public 443 ownership changes, and production smoke require explicit operator readiness and rollback window.</requires-operator>
   </autonomous-execution-safety>
+  <evidence>
+    <evidence-1>2026-05-14: backend/tests/test_domain_tls_edge_static.py passed locally with 7 tests.</evidence-1>
+    <evidence-2>2026-05-14: docker compose config passed using a temporary .env symlink to .env.example and DB_PASSWORD=phase32-compose-check.</evidence-2>
+    <evidence-3>2026-05-14: scripts/phase32-edge-contract-smoke.mjs passed and protected deploy/install scripts were not changed.</evidence-3>
+    <evidence-4>2026-05-14: M-044/M-043/M-040 regression pytest passed locally with 29 tests for runtime bridge, scheduler, MTProto provisioning, email delivery, and email verification guards.</evidence-4>
+    <evidence-5>2026-05-14: XML parse, MyGRACE lint, and git diff whitespace checks passed.</evidence-5>
+  </evidence>
 </V-M-046>

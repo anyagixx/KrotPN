@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<M-046 NAME="krotpn-domain-tls-edge" TYPE="ENTRY_POINT" STATUS="planned">
-  <path>nginx docker-compose.yml docs/plans/Phase-32.xml</path>
+<M-046 NAME="krotpn-domain-tls-edge" TYPE="ENTRY_POINT" STATUS="partial-local">
+  <path>backend/app/core/config.py nginx docker-compose.yml .env.example scripts docs/edge/PHASE-32-CUTOVER.xml docs/plans/Phase-32.xml</path>
   <owns>krotpn.xyz domain edge, HTTP to HTTPS redirect, wildcard TLS expectations, and shared 443 routing contract for HTTPS plus MTProto.</owns>
   <purpose>Define the production edge model needed for https://krotpn.xyz and Telegram fake-TLS MTProto proxy to coexist safely.</purpose>
   <exports>
@@ -12,11 +12,13 @@
   <depends>M-001,M-012,M-044</depends>
   <verification-ref>V-M-046</verification-ref>
   <files>
+    <file>backend/app/core/config.py</file>
     <file>nginx/nginx.conf</file>
     <file>docker-compose.yml</file>
     <file>.env.example</file>
-    <file>.env.production</file>
     <file>backend/tests/test_domain_tls_edge_static.py</file>
+    <file>scripts/phase32-edge-contract-smoke.mjs</file>
+    <file>docs/edge/PHASE-32-CUTOVER.xml</file>
   </files>
   <edge-policy>
     <policy-1>Shared 443 design must be verified before replacing direct nginx ownership of 443.</policy-1>
@@ -27,5 +29,9 @@
     <constraint-1>Misrouting 443 can break both website and Telegram proxy, so rollout requires a rollback plan.</constraint-1>
     <constraint-2>Self-signed certificates are unacceptable for production Telegram fake-TLS links.</constraint-2>
   </constraints>
+  <evidence>
+    <evidence-1>2026-05-14: Phase-32 local static verification passed for settings, nginx redirect/fallback, compose config, protected deploy/install guard, cutover runbook, XML parse, and MyGRACE lint.</evidence-1>
+    <evidence-2>Production smoke remains blocked-live until operator-provided DNS, trusted wildcard certificate, and rollback window are available.</evidence-2>
+  </evidence>
   <hotspot>H-032: Shared 443 edge can break both HTTPS and Telegram proxy if fallback routing or wildcard TLS is misconfigured</hotspot>
 </M-046>

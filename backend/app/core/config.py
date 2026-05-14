@@ -5,7 +5,7 @@
 # START_MODULE_CONTRACT
 #   PURPOSE: Application configuration and environment variable parsing with validation
 #   SCOPE: Settings model, environment parsing, secret validation, VPN network settings,
-#          AmneziaWG params, anti-abuse, email verification, and MTProto knobs
+#          AmneziaWG params, anti-abuse, email verification, MTProto knobs, and edge domain/TLS settings
 #   DEPENDS: M-032 (vpn-network-addressing-capacity)
 #   LINKS: M-001 (backend-core), M-032, V-M-001, V-M-032
 # END_MODULE_CONTRACT
@@ -18,11 +18,13 @@
 #   Settings.anti_abuse_* - Observe/auto-rotate and endpoint-history thresholds
 #   Settings.email_verification_* - Provider, TTL, URL and domain guard settings
 #   Settings.mtproto_* - Personal MTProto proxy provisioning settings
+#   Settings.edge_* - krotpn.xyz canonical domain, TLS path, and shared 443 edge contract
 #   get_settings - lru_cache factory returning validated Settings singleton
 #   settings - Module-level cached Settings instance
 # END_MODULE_MAP
 #
 # START_CHANGE_SUMMARY
+#   LAST_CHANGE: v3.5.0 - Added Phase-32 krotpn.xyz domain TLS edge settings
 #   LAST_CHANGE: v3.4.0 - Added Phase-29 MTProto provisioning settings
 #   LAST_CHANGE: v3.3.0 - Added Phase-27 email verification provider, TTL and domain guard settings
 #   LAST_CHANGE: v3.2.0 - Added configurable VPN client/relay subnet and capacity profile settings
@@ -250,12 +252,22 @@ class Settings(BaseSettings):
     mtproto_sni_prefix: str = Field(default="u", min_length=1, max_length=24)
     mtproto_rotation_marker: str = Field(default="v1", min_length=1, max_length=64)
 
+    # Public domain/TLS edge contract
+    edge_public_domain: str = "krotpn.xyz"
+    edge_canonical_host: str = "krotpn.xyz"
+    edge_tls_certificate_path: str = "/etc/nginx/ssl/server.crt"
+    edge_tls_certificate_key_path: str = "/etc/nginx/ssl/server.key"
+    edge_tls_certificate_mode: Literal["operator-wildcard", "self-signed-dev"] = (
+        "operator-wildcard"
+    )
+    edge_shared_443_enabled: bool = False
+
     # Referral
     referral_bonus_days: int = 7
     referral_min_payment: float = 100.0
 
     # Frontend
-    frontend_url: str = "https://krotpn.com"
+    frontend_url: str = "https://krotpn.xyz"
 
     # Data Encryption
     data_encryption_key: str | None = None
@@ -360,9 +372,41 @@ class Settings(BaseSettings):
             raise ValueError("MTPROTO_ROTATION_MARKER must be a safe opaque marker")
         return normalized
 
+    @field_validator("edge_public_domain", "edge_canonical_host")
+    @classmethod
+    def validate_edge_domain(cls, v: str) -> str:
+        normalized = v.strip().lower().removeprefix("https://").removeprefix("http://")
+        normalized = normalized.lstrip("*.").rstrip(".")
+        if not normalized or "/" in normalized or ":" in normalized:
+            raise ValueError("EDGE domain values must be bare DNS names")
+        labels = normalized.split(".")
+        if len(labels) < 2 or any(not label for label in labels):
+            raise ValueError("EDGE domain values must contain at least two DNS labels")
+        if any(not re.fullmatch(r"[a-z0-9-]{1,63}", label) for label in labels):
+            raise ValueError("EDGE domain labels must be DNS-safe")
+        return normalized
+
+    @field_validator("edge_tls_certificate_path", "edge_tls_certificate_key_path")
+    @classmethod
+    def validate_edge_tls_path(cls, v: str) -> str:
+        normalized = v.strip()
+        if not normalized.startswith("/") or ".." in normalized or "\n" in normalized:
+            raise ValueError("EDGE TLS paths must be absolute safe paths")
+        return normalized
+
     @property
     def is_production(self) -> bool:
         return self.environment == "production"
+
+    @property
+    def edge_https_url(self) -> str:
+        """Return the canonical public HTTPS origin for the production edge."""
+        return f"https://{self.edge_canonical_host}"
+
+    @property
+    def edge_wildcard_domain(self) -> str:
+        """Return the wildcard DNS name expected in the trusted edge certificate."""
+        return f"*.{self.edge_public_domain}"
 
     @property
     def active_vpn_client_subnet(self) -> str:
