@@ -3,7 +3,7 @@
   <module>mtproto-user-cabinet</module>
   <phase-scope>
     <phase-31 status="pass-local">User-facing backend API and compact mobile dashboard UX for personal MTProto proxy access passed local verification.</phase-31>
-    <phase-34 status="planned">Stabilization gate must prove the owner dashboard still shows free MTProto access after verified registration without hiding KrotPN trial or VPN actions.</phase-34>
+    <phase-34 status="pass-local">Stabilization gate proves the owner dashboard still shows free MTProto access after verified registration without hiding KrotPN trial or VPN actions.</phase-34>
   </phase-scope>
   <test-files>
     <file>backend/app/mtproto/router.py</file>
@@ -15,13 +15,14 @@
     <file>frontend/src/pages/Dashboard.tsx</file>
     <file>frontend/src/index.css</file>
     <file>scripts/phase31-mtproto-cabinet-smoke.mjs</file>
-    <file phase="34-static-planned">scripts/phase34-mtproto-stabilization-smoke.mjs</file>
+    <file phase="34-static">scripts/phase34-mtproto-stabilization-smoke.mjs</file>
   </test-files>
   <commands>
     <command-1>cd backend &amp;&amp; SECRET_KEY=test-secret-key-with-enough-length DATA_ENCRYPTION_KEY=dpFmfSVqfdAK3yx5MQV6Tcv35RZuw5MzaH0yhxJ01q0= PYTHONPATH=. ../.venv/bin/python -m pytest -o addopts='' tests/test_mtproto_api.py tests/test_mtproto_assignment_registry.py tests/test_mtproto_provisioning.py -v</command-1>
     <command-2>cd frontend &amp;&amp; npm run build</command-2>
     <command-3>node scripts/phase31-mtproto-cabinet-smoke.mjs</command-3>
     <command-4>python3 -m xml.etree.ElementTree docs/plans/Phase-31.xml docs/modules/M-045.xml docs/verification/V-M-045.xml docs/verification-index.xml &amp;&amp; mygrace lint</command-4>
+    <command-5>node scripts/phase34-mtproto-stabilization-smoke.mjs</command-5>
   </commands>
   <verification-levels>
     <module-local>Backend API tests prove owner-only payload delivery, safe failure codes, and no unauthenticated or unverified proxy leakage.</module-local>
@@ -82,5 +83,6 @@
     <evidence-1>2026-05-14: Backend V-M-045/M-042/M-043 pytest gate passed locally with 15 tests.</evidence-1>
     <evidence-2>2026-05-14: frontend npm run build passed and generated production assets without tracked dist changes.</evidence-2>
     <evidence-3>2026-05-14: scripts/phase31-mtproto-cabinet-smoke.mjs passed, including deploy/install surface guard.</evidence-3>
+    <evidence-4>2026-05-14: Phase-34 integration/static smoke passed locally for verified-registration owner MTProto retrieval, dashboard anchors, and admin redaction boundaries.</evidence-4>
   </evidence>
 </V-M-045>

@@ -3,7 +3,7 @@
   <contract>
     <purpose>Define a portable backup and restore evidence contract for KrotPN emergency relocation.</purpose>
     <scope>Maintenance freeze, pre-backup evidence, bundle manifest, checksums, restore validation, and secret-redaction rules.</scope>
-    <depends>M-035, M-034, M-001, M-003, M-020, M-028, M-030</depends>
+    <depends>M-035, M-034, M-001, M-003, M-020, M-028, M-030, M-042, M-043</depends>
     <links>docs/modules/M-035.xml docs/plans/Phase-22.xml docs/verification/V-M-035.xml</links>
     <role>DATA_RECOVERY_CONTRACT</role>
     <map-mode>SUMMARY</map-mode>
@@ -23,13 +23,14 @@
     <change-3>v1.2.0 - Phase-22 step-4 defined restore integrity gates, row invariants, and no-secret-log evidence.</change-3>
     <change-4>v1.3.0 - Phase-22 step-6 linked restore sequence evidence to bundle validation outputs.</change-4>
     <change-5>v1.4.0 - Phase-22 marked blocked-live until trusted bundle restore dry-run evidence exists.</change-5>
+    <change-6>v1.5.0 - Phase-34 extended backup/restore coverage to MTProto assignments and rotation metadata.</change-6>
   </change-summary>
 
   <maintenance-freeze>
     <freeze-1 order="1">Announce maintenance window and stop non-essential operator actions that mutate users, plans, subscriptions, devices, or VPN clients.</freeze-1>
     <freeze-2 order="2">Record incident mode, operator identity, current app version or git commit, old RU/DE addresses, and expected data-loss tolerance.</freeze-2>
     <freeze-3 order="3">Capture service inventory: backend, frontend, admin, PostgreSQL, Redis, RU AWG, DE AWG, and reverse proxy status.</freeze-3>
-    <freeze-4 order="4">Capture pre-backup table counts before database dump: users, subscriptions, payments, devices, vpn clients, plans, audit events, and migration state.</freeze-4>
+    <freeze-4 order="4">Capture pre-backup table counts before database dump: users, subscriptions, payments, devices, vpn clients, MTProto assignments, plans, audit events, and migration state.</freeze-4>
     <freeze-5 order="5">Capture VPN topology metadata: client subnet, relay subnet, RU endpoint, DE endpoint, AWG profile fingerprints, and peer count without exposing private keys.</freeze-5>
     <freeze-6 order="6">Confirm whether old servers remain rollback candidates before deploying replacement servers.</freeze-6>
   </maintenance-freeze>
@@ -49,7 +50,7 @@
       <secret-policy>Manifest may record key names and fingerprints but must not contain secret values.</secret-policy>
     </artifact-1>
     <artifact-2 name="postgres.dump" required="true">
-      <contains>PostgreSQL custom-format dump or operator-approved equivalent covering users, subscriptions, payments, devices, vpn clients, plans, audit events, and migration state.</contains>
+      <contains>PostgreSQL custom-format dump or operator-approved equivalent covering users, subscriptions, payments, devices, vpn clients, MTProto assignments, plans, audit events, and migration state.</contains>
       <restore-role>Primary data source for replacement database restore.</restore-role>
     </artifact-2>
     <artifact-3 name="runtime-env.enc" required="true">
@@ -101,7 +102,7 @@
       <failure-action>Reject the bundle unless operator records a signed incident waiver and alternate integrity proof.</failure-action>
     </gate-2>
     <gate-3 name="critical-table-counts" blocks-cutover="true">
-      <required-evidence>table_counts.after.json matches table_counts.before.json for users, subscriptions, payments, devices, vpn clients, plans, audit events, and migration rows within explicit tolerance.</required-evidence>
+      <required-evidence>table_counts.after.json matches table_counts.before.json for users, subscriptions, payments, devices, vpn clients, MTProto assignments, plans, audit events, and migration rows within explicit tolerance.</required-evidence>
       <failure-action>Do not cut over until discrepancy is explained and accepted.</failure-action>
     </gate-3>
     <gate-4 name="selected-row-invariants" blocks-cutover="true">
@@ -120,6 +121,7 @@
     <invariant-3>Every active VPN client references an existing user and, when present, the expected device identifier.</invariant-3>
     <invariant-4>Payment records retain provider identifiers and subscription linkage without duplicate successful webhook effects.</invariant-4>
     <invariant-5>Migration state after restore is not older than the source migration state.</invariant-5>
+    <invariant-6>Every active MTProto assignment references an existing verified active user, preserves unique SNI, credential mode, status, and rotation marker, and never stores derived secrets or tg links.</invariant-6>
   </row-invariants>
 
   <restore-sequence-evidence>

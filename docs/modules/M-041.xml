@@ -19,6 +19,7 @@
     <file>backend/app/email/verification.py</file>
     <file>backend/tests/test_email_verification_guard.py</file>
     <file>backend/tests/test_verified_registration.py</file>
+    <file>backend/tests/test_phase34_mtproto_integration.py</file>
   </files>
   <registration-policy>
     <policy-1>Phase-27 kept active /register behavior unchanged while pending-registration primitives were verified.</policy-1>
@@ -30,6 +31,7 @@
     <state-1>Phase-27 implemented PendingEmailRegistration, HMAC token hashing, TTL/replay-safe token consumption, email normalization, allow/deny/disposable-domain policy, and optional DNS guard.</state-1>
     <state-2>Phase-28 implements /register pending response, /verify-email activation, post-verification trial/VPN/referral orchestration, replay-safe activation, and frontend onboarding states.</state-2>
     <state-3>MTProto assignment remains deferred to Phase-29+ and is not issued in Phase-28.</state-3>
+    <state-4>Phase-34 local integration verifies verified activation can expose one owner MTProto assignment while pending/unverified registration creates none.</state-4>
   </implementation-state>
   <constraints>
     <constraint-1>Do not issue trial, VPN device, referral bonus, or MTProto proxy for unverified email.</constraint-1>

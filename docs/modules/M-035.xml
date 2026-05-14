@@ -1,15 +1,15 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <M-035 NAME="portable-data-backup" TYPE="DATA_LAYER" STATUS="blocked-live">
   <path>backend/app/core docs/plans/Phase-22.xml docs/modules/M-035.xml docs/recovery/BACKUP-PHASE-22.xml docs/recovery/DRY-RUN-PHASE-22.xml</path>
-  <owns>Portable backup/restore contract for PostgreSQL data, runtime secrets, AWG state, device-client linkage, and integrity manifests</owns>
+  <owns>Portable backup/restore contract for PostgreSQL data, runtime secrets, AWG state, device-client linkage, MTProto assignments, and integrity manifests</owns>
   <exports>
-    <artifact-postgres-dump>Durable dump of users, subscriptions, payments, devices, VPN clients, audit events, and migrations state</artifact-postgres-dump>
+    <artifact-postgres-dump>Durable dump of users, subscriptions, payments, devices, VPN clients, MTProto assignments, audit events, and migrations state</artifact-postgres-dump>
     <artifact-runtime-secrets>Protected copy of .env and required deployment secrets without log exposure</artifact-runtime-secrets>
     <artifact-vpn-state>AWG profile, server keys, peer state, subnet settings, and client linkage needed for restore</artifact-vpn-state>
     <artifact-restore-manifest>Checksums, creation timestamp, schema version, and item counts for restore verification</artifact-restore-manifest>
     <artifact-restore-evidence>Before/after table counts, checksum verification, migration state, and restore notes</artifact-restore-evidence>
   </exports>
-  <depends>M-001, M-003, M-020, M-028, M-030</depends>
+  <depends>M-001, M-003, M-020, M-028, M-030, M-042, M-043</depends>
   <verification-ref>V-M-035</verification-ref>
   <files>
     <file>docs/plans/Phase-22.xml</file>
@@ -26,7 +26,7 @@
   </constraints>
   <backup-bundle-contract>
     <item-manifest>manifest.json with app version, schema version, created_at, artifact list, checksums, and table counts.</item-manifest>
-    <item-postgres>postgres.dump for users, subscriptions, payments, devices, VPN clients, plans, audit events, and migration state.</item-postgres>
+    <item-postgres>postgres.dump for users, subscriptions, payments, devices, VPN clients, MTProto assignments, plans, audit events, and migration state.</item-postgres>
     <item-runtime-env>Protected runtime env material required by backend, database, Redis, billing, Telegram, and admin bootstrap.</item-runtime-env>
     <item-vpn-state>AWG profiles, server keys, peer state, subnet settings, and device-client linkage.</item-vpn-state>
     <item-evidence>table_counts.before.json, table_counts.after.json, checksums.sha256, migration_state.txt, and restore_notes.md.</item-evidence>
@@ -38,6 +38,7 @@
     <note-4>Phase-22 step-6 linked restore sequence evidence outputs to bundle validation, after-restore counts, VPN fingerprints, and service-start notes.</note-4>
     <note-5>Phase-22 step-9 added cutover evidence retention requirements for rollback and incident handoff.</note-5>
     <note-6>Phase-22 step-10 recorded required dry-run restore evidence and blocked-live checks because no backup bundle or restore target was available locally.</note-6>
+    <note-7>Phase-34 added MTProto assignment and rotation-marker coverage to backup counts, restore invariants, and release handoff.</note-7>
   </execution-notes>
   <hotspot>H-022: Backup bundles can expose secrets or fail restore if they omit AWG profiles, runtime env, or device/client linkage</hotspot>
 </M-035>

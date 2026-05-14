@@ -20,6 +20,7 @@
     <file>frontend-admin/src/components/Layout.tsx</file>
     <file>frontend-admin/src/pages/MTProto.tsx</file>
     <file>scripts/phase33-mtproto-admin-smoke.mjs</file>
+    <file>scripts/phase34-mtproto-stabilization-smoke.mjs</file>
     <file>backend/tests/test_mtproto_admin_ops.py</file>
   </files>
   <admin-policy>
@@ -36,6 +37,7 @@
     <item-2>Reissue and revoke require confirmation, write safe audit events, remove runtime policy state on revoke, and do not return owner-only proxy links or derived secrets.</item-2>
     <item-3>Frontend-admin includes a compact /mtproto page with search, status filter, runtime health, and confirmation-safe actions.</item-3>
     <item-4>Local Phase-33 backend tests, frontend-admin build, static smoke, XML parse, and MyGRACE lint passed on 2026-05-14.</item-4>
+    <item-5>Phase-34 static smoke keeps admin MTProto pages free of owner-only tg links, derived secrets, and console secret traces.</item-5>
   </completion>
   <hotspot>H-033: Admin MTProto operations must never expose full secrets or proxy links in logs, tables, or audit payloads</hotspot>
 </M-047>

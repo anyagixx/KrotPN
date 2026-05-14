@@ -19,6 +19,7 @@
     <file>frontend/src/index.css</file>
     <file>backend/tests/test_mtproto_api.py</file>
     <file>scripts/phase31-mtproto-cabinet-smoke.mjs</file>
+    <file>scripts/phase34-mtproto-stabilization-smoke.mjs</file>
   </files>
   <ui-contract>
     <primary>MTProto proxy status and copy/open actions fit the first mobile dashboard screen without hiding VPN trial state.</primary>
@@ -30,6 +31,7 @@
   </constraints>
   <evidence>
     <evidence-1>2026-05-14: Phase-31 local backend tests, frontend build, static mobile/API smoke, XML parse, and MyGRACE lint passed.</evidence-1>
+    <evidence-2>2026-05-14: Phase-34 local integration confirms post-verify owner dashboard/API reuses exactly one canonical MTProto assignment and keeps pending/unverified users secret-free.</evidence-2>
   </evidence>
   <hotspot>H-031: User dashboard must show MTProto access compactly without hiding VPN trial status or config actions</hotspot>
 </M-045>

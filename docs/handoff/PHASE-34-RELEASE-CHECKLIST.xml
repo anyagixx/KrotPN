@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<PHASE-34-RELEASE-CHECKLIST NAME="MTProto Integration Stabilization Gates" STATUS="partial-local" CREATED="2026-05-14">
+  <purpose>Record Phase-34 local stabilization evidence, live-only edge assumptions, rollback notes, and operator acceptance requirements for the verified-registration plus free MTProto release.</purpose>
+  <scope>
+    <included>Verified email registration, delayed KrotPN onboarding, owner-only MTProto assignment issuance, compact user/admin MTProto surfaces, backup/restore coverage, redaction review, and release handoff.</included>
+    <excluded>Deploy/install script edits, live DNS changes, wildcard certificate issuance, shared 443 production mutation, and live Telegram client smoke without operator readiness.</excluded>
+  </scope>
+  <local-gates>
+    <gate-1 verification="V-M-041" status="pass-local">
+      <summary>Pending registration stays unauthenticated and creates no trial, VPN device, referral, or MTProto assignment before email proof.</summary>
+      <evidence>backend/tests/test_phase34_mtproto_integration.py covers pending, verified, replay, referral, device, subscription, and MTProtoAssignment counts.</evidence>
+    </gate-1>
+    <gate-2 verification="V-M-042,V-M-043,V-M-045" status="pass-local">
+      <summary>After verified email activation, the authenticated owner endpoint creates or reuses exactly one free personal MTProto assignment.</summary>
+      <evidence>Owner payload includes only owner-visible server, port, secret, and tg link; base secret and salt are not exposed.</evidence>
+    </gate-2>
+    <gate-3 verification="V-M-044,V-M-047" status="pass-local">
+      <summary>Runtime bridge and admin operations remain redacted and admin revoke stays scoped to MTProto assignment/runtime policy only.</summary>
+      <evidence>Phase-33 backend/admin tests and Phase-34 static smoke keep admin surfaces free of owner-only credentials.</evidence>
+    </gate-3>
+    <gate-4 verification="V-M-035" status="pass-local-docs">
+      <summary>Emergency backup/restore documentation now covers MTProto assignment rows and rotation metadata.</summary>
+      <evidence>docs/recovery/BACKUP-PHASE-22.xml includes mtproto_assignments counts and row invariants without exposing secret material.</evidence>
+    </gate-4>
+    <gate-5 verification="V-M-046" status="blocked-live">
+      <summary>krotpn.xyz DNS, trusted wildcard TLS, shared 443 route, issued SNI routing, and public Telegram client smoke remain operator-live.</summary>
+      <evidence>Local/static edge contract exists, but production proof requires DNS/TLS readiness and rollback window.</evidence>
+    </gate-5>
+  </local-gates>
+  <release-risk-ledger>
+    <risk-1 severity="high" owner="operator">
+      <summary>Phase-28 remains partial-local because V-M-004 billing route/API and V-M-022 VPN compatibility route full gates have known 404 findings.</summary>
+      <release-decision>Do not claim those legacy route gates closed unless they are fixed or explicitly waived outside Phase-34.</release-decision>
+    </risk-1>
+    <risk-2 severity="critical" owner="operator">
+      <summary>Production Telegram acceptance cannot be proven locally without real DNS, trusted wildcard TLS, and public edge routing.</summary>
+      <release-decision>Keep Phase-34 as partial-local until operator-live smoke passes.</release-decision>
+    </risk-2>
+    <risk-3 severity="high" owner="operator">
+      <summary>Emergency relocation remains blocked-live until a trusted backup bundle and isolated restore target prove pg_dump/pg_restore and runtime state recovery.</summary>
+      <release-decision>Use Phase-22 runbooks as procedure only, not as incident-ready evidence.</release-decision>
+    </risk-3>
+  </release-risk-ledger>
+  <backup-restore-coverage>
+    <database-scope>
+      <table-1 name="mtproto_assignments" marker="MTPROTO_ASSIGNMENT">Preserve user_id, sni, credential_mode, status, rotation_marker, issued_at, created_at, updated_at, and superseded_at.</table-1>
+      <table-2 name="pending_email_registrations">Preserve pending lifecycle state only when the operator intentionally accepts pending-registration carryover during relocation.</table-2>
+    </database-scope>
+    <restore-invariants>
+      <invariant-1>Every active MTProto assignment references an existing verified active user.</invariant-1>
+      <invariant-2>Every active assignment SNI stays under the configured public base domain and remains unique.</invariant-2>
+      <invariant-3>Rotation marker is preserved so restored owners either reuse the same derived credentials or enter explicit reissue-required state.</invariant-3>
+      <invariant-4>No backup, manifest, evidence, or restore log stores derived fake-TLS secrets or full tg links.</invariant-4>
+    </restore-invariants>
+  </backup-restore-coverage>
+  <operator-live>
+    <preflight-1>DNS for krotpn.xyz and issued wildcard SNI names points to the intended edge host.</preflight-1>
+    <preflight-2>Trusted wildcard certificate validates krotpn.xyz and *.krotpn.xyz without trust bypass.</preflight-2>
+    <preflight-3>Rollback window and operator access to reverse proxy/runtime controls are available before shared 443 smoke.</preflight-3>
+    <smoke-1>http://krotpn.xyz redirects permanently to https://krotpn.xyz.</smoke-1>
+    <smoke-2>https://krotpn.xyz, /api health, and /admin are reachable through HTTPS.</smoke-2>
+    <smoke-3>One issued MTProto SNI routes to the runtime edge, and unknown SNI fails safe or falls back only as designed.</smoke-3>
+    <smoke-4>One real Telegram client accepts the owner proxy link without exposing the link in shared evidence.</smoke-4>
+  </operator-live>
+  <rollback>
+    <step-1>Before public announcement, keep the previous stable release tag and database backup bundle available.</step-1>
+    <step-2>If verified-registration activation regresses, pause new registrations and revert to the prior release while preserving pending records for operator review.</step-2>
+    <step-3>If MTProto owner issuance regresses, disable or hide the user dashboard MTProto surface and keep KrotPN VPN trial/subscription flows online.</step-3>
+    <step-4>If shared 443 route breaks HTTPS or MTProto, follow docs/edge/PHASE-32-CUTOVER.xml rollback and restore HTTPS-first behavior before reattempting MTProto edge.</step-4>
+    <step-5>Do not rotate MTProto base material during rollback unless an incident explicitly requires reissue.</step-5>
+  </rollback>
+  <redaction>
+    <rule-1>Do not paste email verification tokens, JWTs, refresh tokens, cookies, SMTP/API credentials, derived MTProto secrets, full tg links, certificate private keys, or runtime env values into evidence.</rule-1>
+    <rule-2>Allowed evidence includes test names, pass/fail counts, status codes, safe hostnames, assignment counts, table-count keys, and redacted SNI suffixes.</rule-2>
+  </redaction>
+  <operator-acceptance>
+    <item-1 status="local-required">All Phase-34 local commands pass from docs/plans/Phase-34.xml.</item-1>
+    <item-2 status="live-required">V-M-046 operator-live smoke is attached or explicitly deferred with risk ownership.</item-2>
+    <item-3 status="risk-required">Phase-28 V-M-004 and V-M-022 partial-local findings are fixed, waived, or listed in release notes as residual risk.</item-3>
+    <item-4 status="release-required">Release tag, commit hash, and rollback target are recorded before pushing a stable release.</item-4>
+  </operator-acceptance>
+</PHASE-34-RELEASE-CHECKLIST>

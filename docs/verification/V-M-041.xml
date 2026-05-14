@@ -3,7 +3,7 @@
   <phase-scope>
     <phase-27 status="pass-local">Foundation evidence exists for pending-registration primitives, token hashing, TTL/replay protection, email risk checks, fake-provider email delivery, and unchanged active /register behavior.</phase-27>
     <phase-28 status="partial-local">Primary cutover verification proves that /register is a pending-email flow and that active KrotPN access exists only after verified email activation; full wave closure is partial until V-M-004 and V-M-022 complete gates pass.</phase-28>
-    <phase-34 status="planned">Stabilization gate must prove verified-email activation and the free MTProto owner path are linked without issuing MTProto, trial, VPN, referral, or JWT side effects before email proof.</phase-34>
+    <phase-34 status="pass-local">Stabilization gate proves verified-email activation and the free MTProto owner path are linked without issuing MTProto, trial, VPN, referral, or JWT side effects before email proof.</phase-34>
   </phase-scope>
   <test-files>
     <file phase="27-regression">backend/tests/test_email_verification_guard.py</file>
@@ -11,7 +11,7 @@
     <file phase="28-cross-module">backend/tests/test_manual_access_policy.py</file>
     <file phase="28-cross-module">backend/tests/test_device_api.py</file>
     <file phase="28-cross-module">backend/tests/test_referrals.py</file>
-    <file phase="34-integration-planned">backend/tests/test_phase34_mtproto_integration.py</file>
+    <file phase="34-integration">backend/tests/test_phase34_mtproto_integration.py</file>
   </test-files>
   <verification-levels>
     <module-local>Risk checks, pending-token lifecycle, activation idempotency, and redaction run without live email provider, DNS mutability, VPN host mutation, or MTProto runtime.</module-local>
@@ -69,5 +69,6 @@
     <evidence-1>2026-05-13: Phase-27 backend/tests/test_email_verification_guard.py passed locally, covering disposable-domain blocking before email send, allowlist override, env domain parsing, HMAC token storage, one-time consume, expiry, zero user side effects, and old active /register compatibility boundary.</evidence-1>
     <evidence-2>2026-05-13: Phase-28 backend suite passed locally: tests/test_verified_registration.py, tests/test_email_verification_guard.py, tests/test_manual_access_policy.py, tests/test_device_api.py, tests/test_referrals.py, tests/test_telegram_auth.py, and tests/test_security.py; 44 passed.</evidence-2>
     <evidence-3>2026-05-14: MyGRACE reviewer/refresh found full V-M-004 and V-M-022 per-module commands failing on 404 route/API binding tests, so V-M-041 is partial-local at wave level while module-local cutover tests remain green.</evidence-3>
+    <evidence-4>2026-05-14: Phase-34 backend/tests/test_phase34_mtproto_integration.py passed locally with 2 tests for pending no-access, verified activation, MTProto owner assignment idempotency, and token replay safety.</evidence-4>
   </evidence>
 </V-M-041>

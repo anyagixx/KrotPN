@@ -3,7 +3,7 @@
   <module>mtproto-admin-ops</module>
   <phase-scope>
     <phase-33 status="pass-local">Admin MTProto operations and observability are implemented behind admin-only APIs and compact frontend-admin screens with strict secret redaction.</phase-33>
-    <phase-34 status="planned">Stabilization gate keeps admin MTProto operations in the release-readiness suite and verifies they do not expose owner-only proxy secrets.</phase-34>
+    <phase-34 status="pass-local">Stabilization gate keeps admin MTProto operations in the release-readiness suite and verifies they do not expose owner-only proxy secrets.</phase-34>
   </phase-scope>
   <test-files>
     <file>backend/app/admin/router.py</file>
@@ -22,13 +22,14 @@
     <file>frontend-admin/src/components/Layout.tsx</file>
     <file>frontend-admin/src/pages/MTProto.tsx</file>
     <file>scripts/phase33-mtproto-admin-smoke.mjs</file>
-    <file phase="34-static-planned">scripts/phase34-mtproto-stabilization-smoke.mjs</file>
+    <file phase="34-static">scripts/phase34-mtproto-stabilization-smoke.mjs</file>
   </test-files>
   <commands>
     <command-1>cd backend &amp;&amp; SECRET_KEY=test-secret-key-with-enough-length DATA_ENCRYPTION_KEY=dpFmfSVqfdAK3yx5MQV6Tcv35RZuw5MzaH0yhxJ01q0= PYTHONPATH=. ../.venv/bin/python -m pytest -o addopts='' tests/test_mtproto_admin_ops.py tests/test_admin_device_control.py tests/test_mtproto_assignment_registry.py tests/test_kpproton_runtime_bridge.py -v</command-1>
     <command-2>cd frontend-admin &amp;&amp; npm run build</command-2>
     <command-3>node scripts/phase33-mtproto-admin-smoke.mjs</command-3>
     <command-4>python3 -m xml.etree.ElementTree docs/plans/Phase-33.xml docs/modules/M-047.xml docs/verification/V-M-047.xml docs/verification-index.xml docs/graph-index.xml docs/plan-index.xml &amp;&amp; mygrace lint</command-4>
+    <command-5>node scripts/phase34-mtproto-stabilization-smoke.mjs</command-5>
   </commands>
   <verification-levels>
     <module-local>Backend tests prove admin-only MTProto list/detail/health/reissue/revoke behavior, audit writes, secret-free payloads, and failure mapping.</module-local>
@@ -110,5 +111,6 @@
     <evidence-3>2026-05-14: frontend-admin npm run build passed and generated production assets without tracked dist changes.</evidence-3>
     <evidence-4>2026-05-14: scripts/phase33-mtproto-admin-smoke.mjs passed, including protected deploy/install/edge surface guard.</evidence-4>
     <evidence-5>2026-05-14: XML parse, MyGRACE lint, and git diff whitespace checks passed.</evidence-5>
+    <evidence-6>2026-05-14: Phase-34 static smoke passed locally and confirmed admin MTProto UI/API surfaces do not expose owner-only tg links or derived secrets.</evidence-6>
   </evidence>
 </V-M-047>

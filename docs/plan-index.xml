@@ -35,5 +35,5 @@
   <Phase-31 NAME="User Cabinet MTProto UX" STATUS="done-local" STEPS="5" MODULES="M-045,M-009,M-036,M-042,M-043" />
   <Phase-32 NAME="Domain TLS and Shared 443 Edge" STATUS="partial-local" STEPS="6" MODULES="M-046,M-012,M-044,M-001" />
   <Phase-33 NAME="MTProto Admin Ops and Observability" STATUS="done-local" STEPS="5" MODULES="M-047,M-006,M-010,M-024,M-042,M-044" />
-  <Phase-34 NAME="MTProto Integration Stabilization Gates" STATUS="planned" STEPS="6" MODULES="M-040,M-041,M-042,M-043,M-044,M-045,M-046,M-047" />
+  <Phase-34 NAME="MTProto Integration Stabilization Gates" STATUS="partial-local" STEPS="6" MODULES="M-040,M-041,M-042,M-043,M-044,M-045,M-046,M-047" />
 </PlanIndex>

@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Phase-34 NAME="MTProto Integration Stabilization Gates" STATUS="planned" VERSION="1.1.0">
+<Phase-34 NAME="MTProto Integration Stabilization Gates" STATUS="partial-local" VERSION="1.2.0">
   <Goal>Close the end-to-end stabilization gates for verified registration, free MTProto proxy issuance, dashboard UX, admin ops, and production edge readiness.</Goal>
   <Modules>M-040,M-041,M-042,M-043,M-044,M-045,M-046,M-047</Modules>
   <NonGoals>
@@ -7,19 +7,19 @@
     <item-2>No deploy/install redesign outside the approved edge work.</item-2>
   </NonGoals>
   <Steps>
-    <step-1 STATUS="planned">Run full backend targeted suite for email, registration, MTProto provisioning, runtime bridge, admin ops, and migrations.</step-1>
-    <step-2 STATUS="planned">Run user frontend and admin frontend builds plus mobile viewport smoke for registration, dashboard, and admin MTProto pages.</step-2>
-    <step-3 STATUS="planned">Run security/redaction review for email tokens, tg://proxy links, derived secrets, admin audit payloads, and logs.</step-3>
-    <step-4 STATUS="planned">Run backup/restore planning update so MTProto assignments and secret rotation metadata are covered by Phase-22 artifacts.</step-4>
+    <step-1 STATUS="pass-local">Run full backend targeted suite for email, registration, MTProto provisioning, runtime bridge, admin ops, and migrations.</step-1>
+    <step-2 STATUS="pass-local">Run user frontend and admin frontend builds plus mobile viewport smoke for registration, dashboard, and admin MTProto pages.</step-2>
+    <step-3 STATUS="pass-local">Run security/redaction review for email tokens, tg://proxy links, derived secrets, admin audit payloads, and logs.</step-3>
+    <step-4 STATUS="pass-local">Run backup/restore planning update so MTProto assignments and secret rotation metadata are covered by Phase-22 artifacts.</step-4>
     <step-5 STATUS="blocked-live">Run production-like smoke after krotpn.xyz DNS and wildcard certificate are ready.</step-5>
-    <step-6 STATUS="planned">Prepare release handoff with known risks, rollback notes, and operator acceptance checklist.</step-6>
+    <step-6 STATUS="pass-local">Prepare release handoff with known risks, rollback notes, and operator acceptance checklist.</step-6>
   </Steps>
   <Verification>
     <command-1>cd backend &amp;&amp; SECRET_KEY=test-secret-key-with-enough-length DATA_ENCRYPTION_KEY=dpFmfSVqfdAK3yx5MQV6Tcv35RZuw5MzaH0yhxJ01q0= PYTHONPATH=. ../.venv/bin/python -m pytest -o addopts='' tests/test_email_delivery.py tests/test_email_verification_guard.py tests/test_verified_registration.py tests/test_phase34_mtproto_integration.py tests/test_mtproto_assignment_registry.py tests/test_mtproto_provisioning.py tests/test_kpproton_runtime_bridge.py tests/test_mtproto_api.py tests/test_mtproto_admin_ops.py tests/test_db_migrations.py tests/test_scheduler.py -v</command-1>
     <command-2>cd frontend &amp;&amp; npm run build &amp;&amp; cd .. &amp;&amp; node scripts/phase28-register-flow-smoke.mjs &amp;&amp; node scripts/phase31-mtproto-cabinet-smoke.mjs</command-2>
     <command-3>cd frontend-admin &amp;&amp; npm run build &amp;&amp; cd .. &amp;&amp; node scripts/phase33-mtproto-admin-smoke.mjs</command-3>
     <command-4>node scripts/phase34-mtproto-stabilization-smoke.mjs</command-4>
-    <command-5>python3 -m xml.etree.ElementTree docs/plans/Phase-34.xml docs/modules/M-040.xml docs/modules/M-041.xml docs/modules/M-042.xml docs/modules/M-043.xml docs/modules/M-044.xml docs/modules/M-045.xml docs/modules/M-046.xml docs/modules/M-047.xml docs/verification/V-M-040.xml docs/verification/V-M-041.xml docs/verification/V-M-042.xml docs/verification/V-M-043.xml docs/verification/V-M-044.xml docs/verification/V-M-045.xml docs/verification/V-M-046.xml docs/verification/V-M-047.xml docs/verification-index.xml docs/graph-index.xml docs/plan-index.xml &amp;&amp; mygrace lint</command-5>
+    <command-5>python3 -m xml.etree.ElementTree docs/plans/Phase-34.xml docs/modules/M-035.xml docs/modules/M-040.xml docs/modules/M-041.xml docs/modules/M-042.xml docs/modules/M-043.xml docs/modules/M-044.xml docs/modules/M-045.xml docs/modules/M-046.xml docs/modules/M-047.xml docs/recovery/BACKUP-PHASE-22.xml docs/handoff/PHASE-34-RELEASE-CHECKLIST.xml docs/verification/V-M-035.xml docs/verification/V-M-040.xml docs/verification/V-M-041.xml docs/verification/V-M-042.xml docs/verification/V-M-043.xml docs/verification/V-M-044.xml docs/verification/V-M-045.xml docs/verification/V-M-046.xml docs/verification/V-M-047.xml docs/verification-index.xml docs/graph-index.xml docs/plan-index.xml docs/current-status.xml &amp;&amp; mygrace lint</command-5>
     <command-6>operator-live: after DNS and trusted wildcard TLS readiness, smoke https://krotpn.xyz, admin route, API health, one issued MTProto SNI, and rollback readiness.</command-6>
   </Verification>
   <VerificationMatrix>
@@ -35,6 +35,14 @@
     <artifact-2>scripts/phase34-mtproto-stabilization-smoke.mjs verifies static redaction and route wiring across registration, dashboard MTProto, admin MTProto, and edge docs.</artifact-2>
     <artifact-3>docs/handoff/PHASE-34-RELEASE-CHECKLIST.xml records local gates, live-only assumptions, rollback notes, and operator acceptance evidence.</artifact-3>
   </ExpectedExecutionArtifacts>
+  <ExecutionEvidence>
+    <evidence-1>2026-05-14: Phase-34 backend targeted suite passed locally with 52 tests across email delivery, verification guards, verified registration, MTProto integration, assignment registry, provisioning, runtime bridge, owner API, admin ops, migrations, and scheduler.</evidence-1>
+    <evidence-2>2026-05-14: User frontend npm run build passed, then Phase-28 register-flow smoke and Phase-31 MTProto cabinet smoke passed.</evidence-2>
+    <evidence-3>2026-05-14: Admin frontend npm run build passed, then Phase-33 MTProto admin smoke passed.</evidence-3>
+    <evidence-4>2026-05-14: Phase-34 static stabilization smoke, XML parse, MyGRACE lint, and git diff whitespace check passed.</evidence-4>
+    <evidence-5>2026-05-14: docs/recovery/BACKUP-PHASE-22.xml and docs/handoff/PHASE-34-RELEASE-CHECKLIST.xml now cover MTProto assignment restore counts, SNI, credential mode, status, and rotation marker without secret exposure.</evidence-5>
+    <evidence-6>2026-05-14: Production-like krotpn.xyz DNS/TLS/shared-443/Telegram client smoke remains blocked-live and must be completed by operator before claiming live readiness.</evidence-6>
+  </ExecutionEvidence>
   <RedactionMatrix>
     <item-1>Email verification tokens, token hashes, JWTs, refresh tokens, cookies, provider API keys, and SMTP credentials must not appear in logs, smoke output, audit rows, or docs evidence.</item-1>
     <item-2>tg://proxy links and derived fake-TLS secrets may appear only in authenticated owner API/UI responses, never in admin payloads or audit records.</item-2>
@@ -48,7 +56,7 @@
   <AcceptanceCriteria>
     <item-1>Unverified registration cannot create trial, VPN, referral, or MTProto access.</item-1>
     <item-2>Verified registration creates KrotPN trial and free indefinite Telegram MTProto proxy without duplicate side effects.</item-2>
-    <item-3>Owner dashboard, admin ops, runtime bridge, and edge smoke all have evidence.</item-3>
+    <item-3>Owner dashboard, admin ops, runtime bridge, and local/static edge checks have evidence; production edge smoke remains explicitly blocked-live.</item-3>
     <item-4>Release handoff clearly states remaining live-only assumptions.</item-4>
   </AcceptanceCriteria>
   <Risks>

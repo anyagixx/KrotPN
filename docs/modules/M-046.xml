@@ -19,6 +19,7 @@
     <file>backend/tests/test_domain_tls_edge_static.py</file>
     <file>scripts/phase32-edge-contract-smoke.mjs</file>
     <file>docs/edge/PHASE-32-CUTOVER.xml</file>
+    <file>docs/handoff/PHASE-34-RELEASE-CHECKLIST.xml</file>
   </files>
   <edge-policy>
     <policy-1>Shared 443 design must be verified before replacing direct nginx ownership of 443.</policy-1>
@@ -32,6 +33,7 @@
   <evidence>
     <evidence-1>2026-05-14: Phase-32 local static verification passed for settings, nginx redirect/fallback, compose config, protected deploy/install guard, cutover runbook, XML parse, and MyGRACE lint.</evidence-1>
     <evidence-2>Production smoke remains blocked-live until operator-provided DNS, trusted wildcard certificate, and rollback window are available.</evidence-2>
+    <evidence-3>2026-05-14: Phase-34 release handoff records V-M-046 as operator-live and keeps deploy/install/edge surfaces protected during local stabilization.</evidence-3>
   </evidence>
   <hotspot>H-032: Shared 443 edge can break both HTTPS and Telegram proxy if fallback routing or wildcard TLS is misconfigured</hotspot>
 </M-046>

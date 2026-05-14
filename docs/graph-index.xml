@@ -31,7 +31,7 @@
   <M-032 NAME="vpn-network-addressing-capacity" TYPE="INTEGRATION" STATUS="stable" PATH="backend/app/core/vpn_network.py backend/app/core/config.py backend/app/vpn/amneziawg.py backend/app/vpn/models.py backend/app/core/init_vpn.py backend/app/vpn/provisioning.py backend/app/vpn/topology.py deploy/lib/vpn-network.sh deploy/deploy-on-server.sh deploy/deploy-all.sh install.sh .env.example .env.production" DEPENDS="M-001,M-003,M-012,M-019,M-020,M-022,M-028,M-030" VERIFICATION-REF="V-M-032" />
   <M-033 NAME="mygrace-integrity-cleanup" TYPE="UTILITY" STATUS="done" PATH="docs/graph-index.xml docs/plan-index.xml docs/verification-index.xml docs/current-status.xml docs/plans/Phase-21.xml docs/plans/Phase-26.xml docs/handoff/STABILIZATION-PHASE-26.xml README.md AGENTS.md" DEPENDS="M-006,M-007,M-017" VERIFICATION-REF="V-M-033" />
   <M-034 NAME="disaster-recovery-runbook" TYPE="INTEGRATION" STATUS="blocked-live" PATH="docs/plans/Phase-22.xml docs/modules/M-034.xml docs/recovery/DR-PHASE-22.xml docs/recovery/DRY-RUN-PHASE-22.xml" DEPENDS="M-001,M-003,M-012,M-028,M-032,M-035" VERIFICATION-REF="V-M-034" />
-  <M-035 NAME="portable-data-backup" TYPE="DATA_LAYER" STATUS="blocked-live" PATH="backend/app/core docs/plans/Phase-22.xml docs/modules/M-035.xml docs/recovery/BACKUP-PHASE-22.xml docs/recovery/DRY-RUN-PHASE-22.xml" DEPENDS="M-001,M-003,M-020,M-028,M-030" VERIFICATION-REF="V-M-035" />
+  <M-035 NAME="portable-data-backup" TYPE="DATA_LAYER" STATUS="blocked-live" PATH="backend/app/core docs/plans/Phase-22.xml docs/modules/M-035.xml docs/recovery/BACKUP-PHASE-22.xml docs/recovery/DRY-RUN-PHASE-22.xml" DEPENDS="M-001,M-003,M-020,M-028,M-030,M-042,M-043" VERIFICATION-REF="V-M-035" />
   <M-036 NAME="mobile-user-cabinet" TYPE="UI_COMPONENT" STATUS="done" PATH="frontend docs/plans/Phase-23.xml" DEPENDS="M-002,M-003,M-004,M-005,M-022,M-038" VERIFICATION-REF="V-M-036" />
   <M-037 NAME="mobile-admin-console" TYPE="UI_COMPONENT" STATUS="done" PATH="frontend-admin docs/plans/Phase-24.xml" DEPENDS="M-006,M-010,M-024,M-038" VERIFICATION-REF="V-M-037" />
   <M-038 NAME="compact-ui-system" TYPE="UI_COMPONENT" STATUS="done" PATH="frontend frontend-admin docs/plans/Phase-23.xml docs/plans/Phase-24.xml" DEPENDS="M-009,M-010" VERIFICATION-REF="V-M-038" />
@@ -166,6 +166,8 @@
     <link from="M-035" to="M-020" />
     <link from="M-035" to="M-028" />
     <link from="M-035" to="M-030" />
+    <link from="M-035" to="M-042" />
+    <link from="M-035" to="M-043" />
     <link from="M-036" to="M-002" />
     <link from="M-036" to="M-003" />
     <link from="M-036" to="M-004" />

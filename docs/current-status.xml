@@ -44,6 +44,7 @@
     <item>Phase-31 MTProto user cabinet UX passed local verification on 2026-05-14: owner-only /api/v1/mtproto/proxy endpoint, compact dashboard proxy card, Telegram open/copy actions, safe unverified/pending/reissue states, frontend build, static mobile/API smoke, and no deploy/install changes.</item>
     <item>Phase-32 domain TLS edge passed local/static verification on 2026-05-14: krotpn.xyz settings, HTTP to HTTPS redirect contract, wildcard HTTPS fallback, compose config, protected deploy/install guard, rollback/live-smoke checklist, and M-044/M-043/M-040 regression tests.</item>
     <item>Phase-33 MTProto admin ops passed local verification on 2026-05-14: admin-only redacted assignment list/detail/health, confirmation-safe reissue/revoke with runtime SNI policy removal, safe audit events, compact frontend-admin /mtproto page, backend regression tests, frontend build, static smoke, and no deploy/install changes.</item>
+    <item>Phase-34 MTProto integration stabilization passed local verification on 2026-05-14: verified email activation to owner MTProto assignment integration, static frontend/admin redaction smoke, MTProto backup/restore documentation coverage, and release handoff checklist were added without deploy/install/edge surface changes. Live DNS/TLS/shared-443 smoke remains operator-required.</item>
   </what-is-working>
 
   <what-is-fragile>
@@ -52,7 +53,7 @@
     <item>Legacy VPNServer compatibility during topology migration.</item>
     <item>Remote credentials handled through temporary operator materialization remain a deployment risk.</item>
     <item>Verification reproducibility across environments.</item>
-    <item>MTProto public edge integration is still planned for later phases; Phase-31 exposes owner-only dashboard proxy state and Phase-33 exposes admin-safe operations, but shared 443/TLS/domain live work is still deferred.</item>
+    <item>MTProto public edge integration has local/static coverage through Phases 31-34, but shared 443/TLS/domain live proof is still deferred until operator DNS, wildcard TLS, and rollback window are ready.</item>
     <item>Phase-32 shared 443 production smoke remains blocked until DNS, trusted wildcard TLS material, and an operator rollback window are available.</item>
     <item>Emergency relocation is documented but still blocked until a trusted backup bundle and isolated restore target exist for dry-run evidence.</item>
     <item>Cookie-only auth migration is planned but not executed because it requires explicit approval and HTTPS or production-like smoke evidence.</item>
@@ -116,11 +117,14 @@
     <gate id="phase-33-mtproto-admin-ops" status="passed-local">
       <summary>Local Phase-33 backend tests, frontend-admin build, static smoke, XML parse, and MyGRACE lint passed; admins can inspect redacted MTProto state and run confirmation-safe reissue/revoke with runtime SNI policy removal and without deploy/install changes.</summary>
     </gate>
+    <gate id="phase-34-mtproto-integration-stabilization" status="partial-local">
+      <summary>Local Phase-34 backend integration, frontend/admin static smoke, backup/restore docs coverage, XML parse, and MyGRACE lint passed; live krotpn.xyz DNS/TLS/shared-443/Telegram client smoke remains operator-required.</summary>
+    </gate>
   </rollout-gates>
 
   <immediate-priorities>
     <priority rank="1">Fix Phase-28 refresh findings: V-M-004 billing route/API tests and V-M-022 VPN compatibility route tests currently return 404 in their full per-module gates.</priority>
-    <priority rank="2">Complete Phase-32 live edge smoke after DNS points to the intended host, trusted wildcard TLS for krotpn.xyz and *.krotpn.xyz is installed, and an operator rollback window is available.</priority>
+    <priority rank="2">Complete Phase-32/Phase-34 live edge smoke after DNS points to the intended host, trusted wildcard TLS for krotpn.xyz and *.krotpn.xyz is installed, an issued MTProto SNI is available, and an operator rollback window is available.</priority>
     <priority rank="3">Run Phase-22 non-production restore rehearsal with a trusted backup bundle and isolated restore target.</priority>
     <priority rank="4">Decide whether to approve cookie-only auth migration and provide HTTPS or production-like auth smoke target.</priority>
     <priority rank="5">Keep deploy/install scripts unchanged unless the operator explicitly requests deployment-surface work.</priority>

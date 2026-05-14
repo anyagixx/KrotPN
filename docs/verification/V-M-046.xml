@@ -3,7 +3,7 @@
   <module>krotpn-domain-tls-edge</module>
   <phase-scope>
     <phase-32 status="partial-local">Domain, HTTPS redirect, wildcard TLS, and shared 443 routing verification for krotpn.xyz passed local/static gates; live smoke remains operator-required.</phase-32>
-    <phase-34 status="planned">Stabilization gate reuses local/static edge checks and keeps production DNS, wildcard TLS, shared 443, and real Telegram client smoke as explicit operator-live evidence.</phase-34>
+    <phase-34 status="partial-local">Stabilization gate reuses local/static edge checks and keeps production DNS, wildcard TLS, shared 443, and real Telegram client smoke as explicit operator-live evidence.</phase-34>
   </phase-scope>
   <test-files>
     <file>backend/tests/test_domain_tls_edge_static.py</file>
@@ -14,6 +14,8 @@
     <file>.env.example</file>
     <file>docs/plans/Phase-32.xml</file>
     <file>docs/edge/PHASE-32-CUTOVER.xml</file>
+    <file phase="34-handoff">docs/handoff/PHASE-34-RELEASE-CHECKLIST.xml</file>
+    <file phase="34-static">scripts/phase34-mtproto-stabilization-smoke.mjs</file>
   </test-files>
   <commands>
     <command-1>cd backend &amp;&amp; SECRET_KEY=test-secret-key-with-enough-length PYTHONPATH=. ../.venv/bin/python -m pytest -o addopts='' tests/test_domain_tls_edge_static.py -v</command-1>
@@ -89,5 +91,6 @@
     <evidence-3>2026-05-14: scripts/phase32-edge-contract-smoke.mjs passed and protected deploy/install scripts were not changed.</evidence-3>
     <evidence-4>2026-05-14: M-044/M-043/M-040 regression pytest passed locally with 29 tests for runtime bridge, scheduler, MTProto provisioning, email delivery, and email verification guards.</evidence-4>
     <evidence-5>2026-05-14: XML parse, MyGRACE lint, and git diff whitespace checks passed.</evidence-5>
+    <evidence-6>2026-05-14: Phase-34 handoff records V-M-046 live smoke as operator-required and the local static smoke keeps deploy/install/edge surfaces unchanged.</evidence-6>
   </evidence>
 </V-M-046>
