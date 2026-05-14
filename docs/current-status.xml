@@ -43,6 +43,7 @@
     <item>Phase-30 KPprotoN runtime bridge passed local verification on 2026-05-14: fake/local adapter boundary, startup replay, degraded bridge semantics, secret-free runtime health, MTProto scheduler reconciliation, and no deploy/install changes.</item>
     <item>Phase-31 MTProto user cabinet UX passed local verification on 2026-05-14: owner-only /api/v1/mtproto/proxy endpoint, compact dashboard proxy card, Telegram open/copy actions, safe unverified/pending/reissue states, frontend build, static mobile/API smoke, and no deploy/install changes.</item>
     <item>Phase-32 domain TLS edge passed local/static verification on 2026-05-14: krotpn.xyz settings, HTTP to HTTPS redirect contract, wildcard HTTPS fallback, compose config, protected deploy/install guard, rollback/live-smoke checklist, and M-044/M-043/M-040 regression tests.</item>
+    <item>Phase-33 MTProto admin ops passed local verification on 2026-05-14: admin-only redacted assignment list/detail/health, confirmation-safe reissue/revoke, safe audit events, compact frontend-admin /mtproto page, backend regression tests, frontend build, static smoke, and no deploy/install changes.</item>
   </what-is-working>
 
   <what-is-fragile>
@@ -51,7 +52,7 @@
     <item>Legacy VPNServer compatibility during topology migration.</item>
     <item>Remote credentials handled through temporary operator materialization remain a deployment risk.</item>
     <item>Verification reproducibility across environments.</item>
-    <item>MTProto public edge integration and admin operations are still planned for later phases; Phase-31 exposes owner-only dashboard proxy state, but shared 443/TLS/domain edge work is still deferred.</item>
+    <item>MTProto public edge integration is still planned for later phases; Phase-31 exposes owner-only dashboard proxy state and Phase-33 exposes admin-safe operations, but shared 443/TLS/domain live work is still deferred.</item>
     <item>Phase-32 shared 443 production smoke remains blocked until DNS, trusted wildcard TLS material, and an operator rollback window are available.</item>
     <item>Emergency relocation is documented but still blocked until a trusted backup bundle and isolated restore target exist for dry-run evidence.</item>
     <item>Cookie-only auth migration is planned but not executed because it requires explicit approval and HTTPS or production-like smoke evidence.</item>
@@ -111,6 +112,9 @@
     </gate>
     <gate id="phase-32-domain-tls-edge" status="partial-local">
       <summary>Local Phase-32 static gates passed for krotpn.xyz settings, nginx redirect/fallback contract, compose config, cutover runbook, and protected deploy/install guard; live DNS/TLS/MTProto shared 443 smoke remains operator-required.</summary>
+    </gate>
+    <gate id="phase-33-mtproto-admin-ops" status="passed-local">
+      <summary>Local Phase-33 backend tests, frontend-admin build, static smoke, XML parse, and MyGRACE lint passed; admins can inspect redacted MTProto state and run confirmation-safe reissue/revoke without deploy/install changes.</summary>
     </gate>
   </rollout-gates>
 

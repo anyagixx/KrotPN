@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <M-010 NAME="frontend-admin" TYPE="UI_COMPONENT" STATUS="stable">
   <path>frontend-admin</path>
-  <owns>admin login, mobile-capable dashboard, users, devices, servers, plans, analytics, settings, Full Tunnel status, and device anomaly review controls</owns>
+  <owns>admin login, mobile-capable dashboard, users, devices, MTProto operations, servers, plans, analytics, settings, Full Tunnel status, and device anomaly review controls</owns>
   <depends>M-006, M-024</depends>
   <verification-ref>V-M-010</verification-ref>
   <files>
@@ -12,6 +12,7 @@
     <file>frontend-admin/src/pages/Dashboard.tsx</file>
     <file>frontend-admin/src/pages/Users.tsx</file>
     <file>frontend-admin/src/pages/Devices.tsx</file>
+    <file>frontend-admin/src/pages/MTProto.tsx</file>
     <file>frontend-admin/src/pages/Analytics.tsx</file>
     <file>frontend-admin/src/pages/Servers.tsx</file>
     <file>frontend-admin/src/pages/Plans.tsx</file>
@@ -24,6 +25,11 @@
     <surface-1>Admin login persists admin_refresh_token so the existing 401 refresh interceptor can operate.</surface-1>
     <surface-2>Admin logout and setToken(null) clear admin_refresh_token together with admin_token.</surface-2>
   </phase-25-scope>
+  <phase-33-scope>
+    <surface-1>Compact /mtproto admin page renders redacted assignment rows and runtime health.</surface-1>
+    <surface-2>Reissue and revoke actions use explicit confirmation and call M-047 endpoints only.</surface-2>
+    <surface-3>Admin navigation exposes MTProto without changing deploy/install or public edge surfaces.</surface-3>
+  </phase-33-scope>
   <phase-24-scope>
     <surface-1>Compact mobile admin shell and overview.</surface-1>
     <surface-2>Mobile-safe users and devices pages without table-only primary workflows.</surface-2>

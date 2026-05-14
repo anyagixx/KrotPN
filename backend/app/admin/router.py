@@ -3,10 +3,10 @@
 # ROLE: ENTRY_POINT
 # MAP_MODE: SUMMARY
 # START_MODULE_CONTRACT
-#   PURPOSE: Expose privileged admin analytics and system endpoints over current backend state
-#   SCOPE: Dashboard statistics, revenue analytics, user analytics, system health, device control (block/unblock/rotate/revoke)
-#   DEPENDS: M-001 (core database/auth), M-002 (user models), M-003 (vpn topology), M-004 (billing), M-005 (referrals), M-006 (admin-api graph surface), M-016 (route-policy observability)
-#   LINKS: M-006 (admin-api), M-016 (route-decision-api), V-M-006
+#   PURPOSE: Expose privileged admin analytics, system endpoints, and operator recovery controls over current backend state
+#   SCOPE: Dashboard statistics, revenue analytics, user analytics, system health, device control, and MTProto assignment operations
+#   DEPENDS: M-001 (core database/auth), M-002 (user models), M-003 (vpn topology), M-004 (billing), M-005 (referrals), M-006 (admin-api graph surface), M-016 (route-policy observability), M-042/M-043/M-044 (MTProto assignment/provisioning/runtime)
+#   LINKS: M-006 (admin-api), M-016 (route-decision-api), M-047 (mtproto-admin-ops), V-M-006, V-M-047
 # END_MODULE_CONTRACT
 #
 # START_MODULE_MAP
@@ -18,26 +18,44 @@
 #   unblock_admin_device - Clear the blocked state for one device
 #   rotate_admin_device - Reprovision one device config keeping logical device identity
 #   revoke_admin_device - Revoke one device and free the slot
+#   list_admin_mtproto_assignments - Redacted MTProto assignment list with search/status/time filters
+#   get_admin_mtproto_assignment - Redacted MTProto assignment detail
+#   get_admin_mtproto_health - Secret-free runtime bridge health summary
+#   reissue_admin_mtproto_assignment - Explicit audited MTProto reissue without admin secret disclosure
+#   revoke_admin_mtproto_assignment - Explicit audited MTProto assignment disable without VPN/account side effects
 #   get_system_health - Coarse host health metrics for privileged operators
 # END_MODULE_MAP
 #
 # START_CHANGE_SUMMARY
+#   LAST_CHANGE: v3.2.0 - Added Phase-33 MTProto admin list/detail/health/reissue/revoke with redacted audit payloads
 #   LAST_CHANGE: v3.1.0 - Added recent anti-abuse event context to admin device payloads
 #   LAST_CHANGE: v2.8.0 - Added full GRACE MODULE_CONTRACT, MODULE_MAP, BLOCKS per GRACE governance protocol; replaced docstring header with comment-based GRACE header
 # END_CHANGE_SUMMARY
 #
 # <!-- GRACE: module="M-006" api-group="Admin API" -->
 
+import json
 from datetime import datetime, timedelta, timezone
 
 from fastapi import APIRouter, HTTPException, Query, status
-from sqlalchemy import func, select
+from loguru import logger
+from pydantic import BaseModel
+from sqlalchemy import func, or_, select
 from sqlmodel import col
 
 from app.core import CurrentAdmin, CurrentSuperuser, DBSession
+from app.admin.audit import log_admin_action
 from app.billing.models import Payment, PaymentStatus, Plan, Subscription
 from app.devices.models import DeviceSecurityEvent, DeviceSecurityEventType, UserDevice
 from app.devices.service import DeviceAccessPolicyService
+from app.mtproto.health import build_runtime_health_summary
+from app.mtproto.models import MTProtoAssignment, MTProtoAssignmentStatus
+from app.mtproto.provisioning import (
+    MTProtoProvisioningError,
+    MTProtoProvisioningErrorCode,
+    MTProtoProvisioningService,
+)
+from app.mtproto.runtime_bridge import MTProtoRuntimeBridge
 from app.referrals.models import Referral, ReferralCode
 # NOTE: routing models/observer removed in Phase-17 (Full Tunnel)
 from app.users.models import User, UserRole
@@ -54,6 +72,18 @@ ANTI_ABUSE_EVENT_TYPES = {
     DeviceSecurityEventType.ANTI_ABUSE_COOLDOWN_SKIPPED,
     DeviceSecurityEventType.ANTI_ABUSE_REDIS_DEGRADED,
 }
+
+MTPROTO_ADMIN_FORBIDDEN_MARKERS = (
+    "tg://proxy",
+    "MTPROTO_BASE_SECRET_HEX",
+    "MTPROTO_SECRET_SALT",
+)
+
+
+class MTProtoAdminActionRequest(BaseModel):
+    """Confirmation body for destructive MTProto admin actions."""
+
+    confirm: bool = False
 
 
 # START_BLOCK: _serialize_admin_device
@@ -149,6 +179,195 @@ async def _list_admin_devices(
 async def _get_admin_device_or_none(session: DBSession, device_id: int) -> UserDevice | None:
     """Load one device row for admin mutation endpoints."""
     return await session.get(UserDevice, device_id)
+
+
+# START_CONTRACT: _serialize_mtproto_admin_assignment
+#   PURPOSE: Project one MTProto assignment into an admin-safe response shape
+#   INPUTS: assignment: MTProtoAssignment; user: User
+#   OUTPUTS: dict
+#   SIDE_EFFECTS: raises 500 if secret-bearing fields appear in the response
+#   LINKS: M-047, V-M-047
+# END_CONTRACT: _serialize_mtproto_admin_assignment
+# START_BLOCK: _serialize_mtproto_admin_assignment
+def _serialize_mtproto_admin_assignment(
+    *,
+    assignment: MTProtoAssignment,
+    user: User,
+) -> dict:
+    """Return MTProto assignment data that is useful to admins and safe to log."""
+    payload = {
+        "id": assignment.id,
+        "assignment_id": assignment.id,
+        "user_id": assignment.user_id,
+        "user_email": user.email,
+        "user_display_name": user.display_name,
+        "sni": assignment.sni,
+        "credential_mode": assignment.credential_mode.value,
+        "status": assignment.status.value,
+        "rotation_marker": assignment.rotation_marker,
+        "reissue_required": assignment.status == MTProtoAssignmentStatus.REISSUE_REQUIRED,
+        "issued_at": assignment.issued_at,
+        "created_at": assignment.created_at,
+        "updated_at": assignment.updated_at,
+        "superseded_at": assignment.superseded_at,
+    }
+    _assert_mtproto_admin_payload_redacted(payload)
+    return payload
+# END_BLOCK: _serialize_mtproto_admin_assignment
+
+
+# START_BLOCK: _mtproto_admin_helpers
+def _assert_mtproto_admin_payload_redacted(payload: dict | list[dict]) -> None:
+    """Fail closed if a future schema change accidentally includes owner secrets."""
+    payload_text = str(payload)
+    leaked_marker = next(
+        (marker for marker in MTPROTO_ADMIN_FORBIDDEN_MARKERS if marker in payload_text),
+        None,
+    )
+    if leaked_marker:
+        logger.error("[M-047][admin_list_mtproto][REDACT_PAYLOAD] leaked_marker=blocked")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="MTProto admin payload redaction failed",
+        )
+
+
+def _parse_mtproto_status_filter(value: str | None) -> MTProtoAssignmentStatus | None:
+    if not value:
+        return None
+    try:
+        return MTProtoAssignmentStatus(value)
+    except ValueError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Invalid MTProto assignment status",
+        ) from exc
+
+
+def _safe_mtproto_audit_details(
+    *,
+    action: str,
+    assignment: MTProtoAssignment,
+    result_status: str,
+    failure_code: str | None = None,
+) -> str:
+    """Build a compact audit payload without request bodies or credentials."""
+    details = json.dumps(
+        {
+            "action": action,
+            "assignment_id": assignment.id,
+            "user_id": assignment.user_id,
+            "result_status": result_status,
+            "failure_code": failure_code,
+            "rotation_marker": assignment.rotation_marker,
+        },
+        sort_keys=True,
+    )
+    _assert_mtproto_admin_payload_redacted({"details": details})
+    return details
+
+
+async def _get_mtproto_assignment_and_user(
+    session: DBSession,
+    assignment_id: int,
+) -> tuple[MTProtoAssignment, User]:
+    result = await session.execute(
+        select(MTProtoAssignment, User)
+        .join(User, User.id == MTProtoAssignment.user_id)
+        .where(MTProtoAssignment.id == assignment_id)
+    )
+    row = result.first()
+    if row is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="MTProto assignment not found",
+        )
+    assignment, user = row
+    return assignment, user
+# END_BLOCK: _mtproto_admin_helpers
+
+
+# START_CONTRACT: _list_mtproto_admin_assignments
+#   PURPOSE: Return filtered MTProto assignment rows with user context and no secrets
+#   INPUTS: search, status_filter, created_from, created_to, offset, limit
+#   OUTPUTS: dict with items and total
+#   SIDE_EFFECTS: database read and redaction log markers
+#   LINKS: M-047, M-042, V-M-047
+# END_CONTRACT: _list_mtproto_admin_assignments
+# START_BLOCK: _list_mtproto_admin_assignments
+async def _list_mtproto_admin_assignments(
+    session: DBSession,
+    *,
+    search: str = "",
+    status_filter: MTProtoAssignmentStatus | None = None,
+    created_from: datetime | None = None,
+    created_to: datetime | None = None,
+    offset: int = 0,
+    limit: int = 100,
+) -> dict:
+    """Return redacted MTProto assignment rows for operator triage."""
+    conditions = []
+    search_value = search.strip()
+    if search_value:
+        needle = f"%{search_value.lower()}%"
+        clauses = [
+            func.lower(func.coalesce(User.email, "")).like(needle),
+            func.lower(func.coalesce(User.name, "")).like(needle),
+            func.lower(MTProtoAssignment.sni).like(needle),
+        ]
+        if search_value.isdigit():
+            numeric_value = int(search_value)
+            clauses.extend(
+                [
+                    MTProtoAssignment.id == numeric_value,
+                    MTProtoAssignment.user_id == numeric_value,
+                ]
+            )
+        conditions.append(or_(*clauses))
+
+    if status_filter is not None:
+        conditions.append(MTProtoAssignment.status == status_filter)
+    if created_from is not None:
+        conditions.append(MTProtoAssignment.created_at >= created_from)
+    if created_to is not None:
+        conditions.append(MTProtoAssignment.created_at <= created_to)
+
+    safe_offset = max(offset, 0)
+    safe_limit = min(max(limit, 1), 500)
+    logger.info(
+        "[M-047][admin_list_mtproto][FILTER_ASSIGNMENTS] "
+        f"search={bool(search_value)} status={status_filter.value if status_filter else 'all'} "
+        f"offset={safe_offset} limit={safe_limit}"
+    )
+
+    count_query = (
+        select(func.count(MTProtoAssignment.id))
+        .join(User, User.id == MTProtoAssignment.user_id)
+        .where(*conditions)
+    )
+    total = int((await session.execute(count_query)).scalar() or 0)
+
+    query = (
+        select(MTProtoAssignment, User)
+        .join(User, User.id == MTProtoAssignment.user_id)
+        .where(*conditions)
+        .order_by(MTProtoAssignment.created_at.desc(), MTProtoAssignment.id.desc())
+        .offset(safe_offset)
+        .limit(safe_limit)
+    )
+    result = await session.execute(query)
+    items = [
+        _serialize_mtproto_admin_assignment(assignment=assignment, user=user)
+        for assignment, user in result.all()
+    ]
+    payload = {"items": items, "total": total, "offset": safe_offset, "limit": safe_limit}
+    _assert_mtproto_admin_payload_redacted(payload)
+    logger.info(
+        "[M-047][admin_list_mtproto][REDACT_PAYLOAD] "
+        f"returned={len(items)} total={total}"
+    )
+    return payload
+# END_BLOCK: _list_mtproto_admin_assignments
 
 
 # ==================== Dashboard Stats ====================
@@ -431,6 +650,189 @@ async def revoke_admin_device(
     user = await session.get(User, updated.user_id)
     return await _serialize_admin_device(session, device=updated, user=user)
 # END_BLOCK: revoke_admin_device
+
+
+# ==================== MTProto Admin Ops ====================
+
+# START_BLOCK: list_admin_mtproto_assignments
+@router.get("/mtproto/assignments")
+async def list_admin_mtproto_assignments(
+    admin: CurrentAdmin,
+    session: DBSession,
+    search: str = Query(default=""),
+    assignment_status: str | None = Query(default=None, alias="status"),
+    created_from: datetime | None = Query(default=None),
+    created_to: datetime | None = Query(default=None),
+    offset: int = Query(default=0, ge=0),
+    limit: int = Query(default=100, ge=1, le=500),
+):
+    """Return redacted MTProto assignment rows for admin operators."""
+    status_filter = _parse_mtproto_status_filter(assignment_status)
+    return await _list_mtproto_admin_assignments(
+        session,
+        search=search,
+        status_filter=status_filter,
+        created_from=created_from,
+        created_to=created_to,
+        offset=offset,
+        limit=limit,
+    )
+# END_BLOCK: list_admin_mtproto_assignments
+
+
+# START_BLOCK: get_admin_mtproto_assignment
+@router.get("/mtproto/assignments/{assignment_id}")
+async def get_admin_mtproto_assignment(
+    assignment_id: int,
+    admin: CurrentAdmin,
+    session: DBSession,
+):
+    """Return one redacted MTProto assignment detail."""
+    assignment, user = await _get_mtproto_assignment_and_user(session, assignment_id)
+    logger.info(
+        "[M-047][admin_get_mtproto][SAFE_DETAIL] "
+        f"assignment_id={assignment.id} user_id={assignment.user_id}"
+    )
+    return _serialize_mtproto_admin_assignment(assignment=assignment, user=user)
+# END_BLOCK: get_admin_mtproto_assignment
+
+
+# START_BLOCK: get_admin_mtproto_health
+@router.get("/mtproto/health")
+async def get_admin_mtproto_health(
+    admin: CurrentAdmin,
+    session: DBSession,
+):
+    """Return secret-free MTProto runtime bridge health."""
+    bridge = MTProtoRuntimeBridge(session)
+    health = await bridge.runtime_health()
+    payload = build_runtime_health_summary(health)
+    _assert_mtproto_admin_payload_redacted(payload)
+    logger.info(
+        "[M-047][admin_mtproto_health][RUNTIME_HEALTH] "
+        f"status={payload.get('status')} failure_code={payload.get('last_failure_code')}"
+    )
+    return payload
+# END_BLOCK: get_admin_mtproto_health
+
+
+# START_BLOCK: reissue_admin_mtproto_assignment
+@router.post("/mtproto/assignments/{assignment_id}/reissue")
+async def reissue_admin_mtproto_assignment(
+    assignment_id: int,
+    admin: CurrentAdmin,
+    session: DBSession,
+    request: MTProtoAdminActionRequest | None = None,
+):
+    """Reissue one assignment after explicit confirmation without returning credentials."""
+    if request is None or not request.confirm:
+        logger.warning(
+            "[M-047][admin_reissue_mtproto][CONFIRM_REISSUE] "
+            f"assignment_id={assignment_id} confirmed=false"
+        )
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Explicit MTProto reissue confirmation required",
+        )
+
+    assignment, user = await _get_mtproto_assignment_and_user(session, assignment_id)
+    logger.info(
+        "[M-047][admin_reissue_mtproto][CONFIRM_REISSUE] "
+        f"assignment_id={assignment.id} user_id={assignment.user_id} confirmed=true"
+    )
+    service = MTProtoProvisioningService(session)
+    try:
+        await service.issue_user_proxy(user, reissue=True)
+    except MTProtoProvisioningError as exc:
+        status_code = (
+            status.HTTP_503_SERVICE_UNAVAILABLE
+            if exc.code == MTProtoProvisioningErrorCode.CONFIG_INCOMPLETE
+            else status.HTTP_409_CONFLICT
+        )
+        raise HTTPException(status_code=status_code, detail=exc.safe_message) from exc
+
+    await session.flush()
+    await session.refresh(assignment)
+    apply_result = await MTProtoRuntimeBridge(session).apply_domain_policy(assignment)
+    await log_admin_action(
+        session,
+        int(admin.id),
+        "mtproto.reissue",
+        resource_type="mtproto_assignment",
+        resource_id=int(assignment.id),
+        details=_safe_mtproto_audit_details(
+            action="reissue",
+            assignment=assignment,
+            result_status=apply_result.status.value,
+            failure_code=apply_result.failure_code.value if apply_result.failure_code else None,
+        ),
+    )
+    logger.info(
+        "[M-047][admin_reissue_mtproto][AUDIT_REISSUE] "
+        f"assignment_id={assignment.id} user_id={assignment.user_id} status={apply_result.status.value}"
+    )
+    payload = {
+        "assignment": _serialize_mtproto_admin_assignment(assignment=assignment, user=user),
+        "runtime_apply": apply_result.to_safe_dict(),
+    }
+    _assert_mtproto_admin_payload_redacted(payload)
+    return payload
+# END_BLOCK: reissue_admin_mtproto_assignment
+
+
+# START_BLOCK: revoke_admin_mtproto_assignment
+@router.post("/mtproto/assignments/{assignment_id}/revoke")
+async def revoke_admin_mtproto_assignment(
+    assignment_id: int,
+    admin: CurrentAdmin,
+    session: DBSession,
+    request: MTProtoAdminActionRequest | None = None,
+):
+    """Disable one MTProto assignment without touching the user's VPN account state."""
+    if request is None or not request.confirm:
+        logger.warning(
+            "[M-047][admin_revoke_mtproto][CONFIRM_REVOKE] "
+            f"assignment_id={assignment_id} confirmed=false"
+        )
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Explicit MTProto revoke confirmation required",
+        )
+
+    assignment, user = await _get_mtproto_assignment_and_user(session, assignment_id)
+    logger.info(
+        "[M-047][admin_revoke_mtproto][CONFIRM_REVOKE] "
+        f"assignment_id={assignment.id} user_id={assignment.user_id} confirmed=true"
+    )
+    now = datetime.now(timezone.utc)
+    assignment.status = MTProtoAssignmentStatus.DISABLED
+    assignment.updated_at = now
+    assignment.superseded_at = now
+    await session.flush()
+    await session.refresh(assignment)
+    await log_admin_action(
+        session,
+        int(admin.id),
+        "mtproto.revoke",
+        resource_type="mtproto_assignment",
+        resource_id=int(assignment.id),
+        details=_safe_mtproto_audit_details(
+            action="revoke",
+            assignment=assignment,
+            result_status=assignment.status.value,
+        ),
+    )
+    logger.info(
+        "[M-047][admin_revoke_mtproto][AUDIT_REVOKE] "
+        f"assignment_id={assignment.id} user_id={assignment.user_id} status={assignment.status.value}"
+    )
+    payload = {
+        "assignment": _serialize_mtproto_admin_assignment(assignment=assignment, user=user),
+        "revoked": True,
+    }
+    _assert_mtproto_admin_payload_redacted(payload)
+    return payload
+# END_BLOCK: revoke_admin_mtproto_assignment
 
 
 # ==================== System ====================

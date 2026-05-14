@@ -4,24 +4,29 @@
 // MAP_MODE: SUMMARY
 // START_MODULE_CONTRACT
 //   PURPOSE: HTTP API client with JWT auth, refresh-token interceptor, and typed admin endpoint bindings
-//   SCOPE: Axios instance, request/response interceptors, adminApi facade for all backend endpoints
-//   DEPENDS: M-010 (frontend-admin), M-006 (backend API), axios, types (AdminNode, AdminRoute, AdminPlan, AdminUser)
-//   LINKS: M-010, M-006
+//   SCOPE: Axios instance, request/response interceptors, adminApi facade for all backend endpoints including MTProto admin ops
+//   DEPENDS: M-010 (frontend-admin), M-006 (backend API), M-047 (MTProto admin ops), axios, types
+//   LINKS: M-010, M-006, M-047
 // END_MODULE_CONTRACT
 //
 // START_MODULE_MAP
 //   api - Base axios instance with auth header injection via localStorage
 //   response interceptor - Handles 401 with refresh-token retry logic, redirect to /login on failure
-//   adminApi - Facade object grouping all admin API endpoints by domain (auth, users, servers, nodes, routes, plans, billing, referrals, devices)
+//   adminApi - Facade object grouping all admin API endpoints by domain (auth, users, servers, nodes, routes, plans, billing, referrals, devices, MTProto)
 // END_MODULE_MAP
 //
 // START_CHANGE_SUMMARY
+//   LAST_CHANGE: v3.2.0 - Added Phase-33 MTProto admin endpoint bindings
 //   LAST_CHANGE: v2.8.0 - Added full GRACE MODULE_CONTRACT and MODULE_MAP per GRACE governance protocol
 //   LAST_CHANGE: v2.8.1 - Fixed admin login 404: API_BASE changed from '/api' to '/api/v1' to match backend router prefixes
 // END_CHANGE_SUMMARY
 
 import axios from 'axios'
 import type {
+  AdminMTProtoAssignment,
+  AdminMTProtoActionResponse,
+  AdminMTProtoHealth,
+  AdminMTProtoListResponse,
   AdminNode,
   AdminRoute,
   AdminPlan,
@@ -88,7 +93,7 @@ api.interceptors.response.use(
 
 // START_BLOCK: adminApi
 // Facade object exposing all admin backend endpoints grouped by domain
-// Domains: auth, users, stats/analytics, servers, nodes, routes, billing/plans, referrals, devices
+// Domains: auth, users, stats/analytics, servers, nodes, routes, billing/plans, referrals, devices, MTProto
 // DEPENDS: /api/* backend routes (M-006), types (AdminNode, AdminRoute, AdminPlan, AdminUser)
 export const adminApi = {
   // Auth
@@ -196,5 +201,26 @@ export const adminApi = {
 
   revokeDevice: (id: number) =>
     api.delete(`/admin/devices/${id}`),
+
+  // MTProto admin ops
+  getMTProtoAssignments: (search = '', status = '') => {
+    const params = new URLSearchParams()
+    if (search.trim()) params.set('search', search.trim())
+    if (status) params.set('status', status)
+    const query = params.toString()
+    return api.get<AdminMTProtoListResponse>(`/admin/mtproto/assignments${query ? `?${query}` : ''}`)
+  },
+
+  getMTProtoAssignment: (id: number) =>
+    api.get<AdminMTProtoAssignment>(`/admin/mtproto/assignments/${id}`),
+
+  getMTProtoHealth: () =>
+    api.get<AdminMTProtoHealth>('/admin/mtproto/health'),
+
+  reissueMTProtoAssignment: (id: number) =>
+    api.post<AdminMTProtoActionResponse>(`/admin/mtproto/assignments/${id}/reissue`, { confirm: true }),
+
+  revokeMTProtoAssignment: (id: number) =>
+    api.post<AdminMTProtoActionResponse>(`/admin/mtproto/assignments/${id}/revoke`, { confirm: true }),
 }
 // END_BLOCK: adminApi

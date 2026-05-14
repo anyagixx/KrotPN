@@ -4,19 +4,21 @@
 // MAP_MODE: EXPORTS
 // START_MODULE_CONTRACT
 //   PURPOSE: Shared TypeScript interfaces for admin frontend API contracts
-//   SCOPE: AdminUser, AdminDevice, AdminPlan, AdminServer, AdminNode, AdminRoute, BillingStats, ReferralStats, SystemHealth, AnalyticsData, PaginatedResponse, NodeForm, RouteForm
-//   DEPENDS: M-010 (frontend-admin)
-//   LINKS: M-010 (frontend-admin), M-006 (admin-api)
+//   SCOPE: AdminUser, AdminDevice, AdminPlan, AdminServer, AdminNode, AdminRoute, MTProto admin contracts, BillingStats, ReferralStats, SystemHealth, AnalyticsData, PaginatedResponse, NodeForm, RouteForm
+//   DEPENDS: M-010 (frontend-admin), M-047 (mtproto-admin-ops)
+//   LINKS: M-010 (frontend-admin), M-006 (admin-api), M-047
 // END_MODULE_CONTRACT
 //
 // START_MODULE_MAP
 //   AdminUser, AdminDevice, AdminPlan, AdminServer, AdminNode, AdminRoute - Admin entity interfaces
+//   AdminMTProtoAssignment, AdminMTProtoListResponse, AdminMTProtoHealth, AdminMTProtoActionResponse - Redacted MTProto admin interfaces
 //   BillingStats, ReferralStats, SystemHealth, AnalyticsData - Analytics interfaces
 //   PaginatedResponse - Generic pagination wrapper
 //   NodeForm, RouteForm - Form state interfaces for CRUD
 // END_MODULE_MAP
 //
 // START_CHANGE_SUMMARY
+//   LAST_CHANGE: v3.2.0 - Added Phase-33 redacted MTProto admin API contracts
 //   LAST_CHANGE: v2.8.0 - Converted to full GRACE MODULE_CONTRACT/MAP format with START/END blocks
 // END_CHANGE_SUMMARY
 
@@ -121,6 +123,53 @@ export interface AdminRoute {
   tunnel_interface?: string
 }
 // END_BLOCK: AdminRoute
+
+// START_BLOCK: AdminMTProto
+export interface AdminMTProtoAssignment {
+  id: number
+  assignment_id: number
+  user_id: number
+  user_email?: string | null
+  user_display_name?: string | null
+  sni: string
+  credential_mode: string
+  status: string
+  rotation_marker: string
+  reissue_required: boolean
+  issued_at?: string | null
+  created_at?: string | null
+  updated_at?: string | null
+  superseded_at?: string | null
+}
+
+export interface AdminMTProtoListResponse {
+  items: AdminMTProtoAssignment[]
+  total: number
+  offset: number
+  limit: number
+}
+
+export interface AdminMTProtoHealth {
+  status: string
+  adapter_name: string
+  last_success_at?: string | null
+  last_failure_code?: string | null
+  last_checked_at?: string | null
+}
+
+export interface AdminMTProtoActionResponse {
+  assignment: AdminMTProtoAssignment
+  runtime_apply?: {
+    assignment_id?: number | null
+    sni?: string | null
+    status: string
+    failure_code?: string | null
+    safe_message?: string
+    applied_at?: string | null
+  }
+  revoked?: boolean
+}
+// END_BLOCK: AdminMTProto
 
 // START_BLOCK: BillingStats
 export interface BillingStats {

@@ -4,9 +4,9 @@
 // MAP_MODE: SUMMARY
 // START_MODULE_CONTRACT
 //   PURPOSE: Compact admin layout shell with responsive operator navigation, header meta, and route outlet
-//   SCOPE: Desktop rail, mobile tab bar, page metadata display, compact admin identity, logout
-//   DEPENDS: M-010 (frontend-admin), M-037 (mobile-admin-console), M-038 (compact-ui-system), auth store, react-router-dom
-//   LINKS: M-010, M-037, M-038
+//   SCOPE: Desktop rail, mobile tab bar, page metadata display, MTProto admin entry, compact admin identity, logout
+//   DEPENDS: M-010 (frontend-admin), M-037 (mobile-admin-console), M-038 (compact-ui-system), M-047 (mtproto-admin-ops), auth store, react-router-dom
+//   LINKS: M-010, M-037, M-038, M-047
 // END_MODULE_CONTRACT
 //
 // START_MODULE_MAP
@@ -17,6 +17,7 @@
 // END_MODULE_MAP
 //
 // START_CHANGE_SUMMARY
+//   LAST_CHANGE: v3.2.0 - Added Phase-33 compact MTProto admin navigation entry
 //   LAST_CHANGE: v2.8.0 - Added full GRACE MODULE_CONTRACT and MODULE_MAP per GRACE governance protocol
 //   LAST_CHANGE: v2.9.0 - Phase-24 compact mobile admin shell with phone-safe navigation and reduced panels
 // END_CHANGE_SUMMARY
@@ -25,6 +26,7 @@ import { Outlet, NavLink, useLocation, useNavigate } from 'react-router-dom'
 import {
   BarChart3,
   CreditCard,
+  KeyRound,
   LayoutDashboard,
   LogOut,
   Server,
@@ -42,6 +44,7 @@ const navItems = [
   { to: '/', icon: LayoutDashboard, label: 'Обзор', hint: 'Статус' },
   { to: '/users', icon: Users, label: 'Пользователи', hint: 'Аккаунты' },
   { to: '/devices', icon: ShieldAlert, label: 'Устройства', hint: 'Peer control' },
+  { to: '/mtproto', icon: KeyRound, label: 'MTProto', hint: 'Proxy ops' },
   { to: '/analytics', icon: BarChart3, label: 'Аналитика', hint: 'Деньги' },
   { to: '/servers', icon: Server, label: 'Ноды', hint: 'Маршруты' },
   { to: '/plans', icon: CreditCard, label: 'Тарифы', hint: 'Планы' },
@@ -55,6 +58,7 @@ const pageMeta: Record<string, { title: string; description: string }> = {
   '/': { title: 'Операционный центр', description: 'Здоровье сервиса, подписки, выручка и быстрый доступ к рискам.' },
   '/users': { title: 'Пользователи', description: 'Поиск аккаунтов, роли, статус и последние входы.' },
   '/devices': { title: 'Устройства', description: 'Device-bound peers, сигналы и точечные действия.' },
+  '/mtproto': { title: 'MTProto', description: 'Выдачи proxy, runtime health и безопасные reissue/revoke действия.' },
   '/servers': { title: 'Ноды и маршруты', description: 'Entry, exit и route topology.' },
   '/plans': { title: 'Тарифы', description: 'Подписки, лимиты и цены.' },
   '/analytics': { title: 'Аналитика', description: 'Выручка, подписки, рефералы и конверсия.' },

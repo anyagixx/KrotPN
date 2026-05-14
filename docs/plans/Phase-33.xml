@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Phase-33 NAME="MTProto Admin Ops and Observability" STATUS="planned" VERSION="1.0.0">
+<Phase-33 NAME="MTProto Admin Ops and Observability" STATUS="done-local" VERSION="1.1.0" UPDATED="2026-05-14">
   <Goal>Add operator controls and redacted observability for MTProto assignment lifecycle and runtime bridge health.</Goal>
   <Modules>M-047,M-006,M-010,M-024,M-042,M-044</Modules>
   <NonGoals>
@@ -7,15 +7,17 @@
     <item-2>No shared 443 cutover in this phase.</item-2>
   </NonGoals>
   <Steps>
-    <step-1>Add admin API for redacted assignment list, user assignment detail, runtime health, reissue, and revoke.</step-1>
-    <step-2>Add audit events for reissue and revoke without storing full links, verification tokens, or raw secrets.</step-2>
-    <step-3>Add admin frontend surface with mobile-safe search, status filters, bridge health, and confirmation-safe actions.</step-3>
-    <step-4>Add log markers for issue, replay, degraded runtime, reissue, and revoke paths.</step-4>
-    <step-5>Add backend/admin frontend verification for redaction, role gates, and destructive confirmation flows.</step-5>
+    <step-1 STATUS="done-local">Add admin API for redacted assignment list, user assignment detail, runtime health, reissue, and revoke.</step-1>
+    <step-2 STATUS="done-local">Add audit events for reissue and revoke without storing full links, verification tokens, or raw secrets.</step-2>
+    <step-3 STATUS="done-local">Add admin frontend surface with mobile-safe search, status filters, bridge health, and confirmation-safe actions.</step-3>
+    <step-4 STATUS="done-local">Add log markers for issue, replay, degraded runtime, reissue, and revoke paths.</step-4>
+    <step-5 STATUS="done-local">Add backend/admin frontend verification for redaction, role gates, and destructive confirmation flows.</step-5>
   </Steps>
   <Verification>
-    <command>cd backend &amp;&amp; PYTHONPATH=. ../.venv/bin/python -m pytest -o addopts='' tests/test_mtproto_admin_ops.py tests/test_admin_device_control.py -v</command>
+    <command>cd backend &amp;&amp; SECRET_KEY=test-secret-key-with-enough-length DATA_ENCRYPTION_KEY=dpFmfSVqfdAK3yx5MQV6Tcv35RZuw5MzaH0yhxJ01q0= PYTHONPATH=. ../.venv/bin/python -m pytest -o addopts='' tests/test_mtproto_admin_ops.py tests/test_admin_device_control.py tests/test_mtproto_assignment_registry.py tests/test_kpproton_runtime_bridge.py -v</command>
     <command>cd frontend-admin &amp;&amp; npm run build</command>
+    <command>node scripts/phase33-mtproto-admin-smoke.mjs</command>
+    <command>python3 -m xml.etree.ElementTree docs/plans/Phase-33.xml docs/modules/M-047.xml docs/verification/V-M-047.xml docs/verification-index.xml docs/graph-index.xml docs/plan-index.xml &amp;&amp; mygrace lint</command>
   </Verification>
   <AcceptanceCriteria>
     <item-1>Admins can find assignment status and bridge health without seeing raw secrets by default.</item-1>
@@ -27,4 +29,11 @@
     <risk-1>Admin screens can accidentally expose user proxy secrets if response schemas are too broad.</risk-1>
     <risk-2>Reissue behavior after secret rotation must be clear or users will hold stale Telegram links.</risk-2>
   </Risks>
+  <Completion>
+    <item-1>Backend admin API now exposes redacted /api/v1/admin/mtproto assignment list/detail, runtime health, reissue, and revoke endpoints.</item-1>
+    <item-2>Reissue and revoke require explicit confirmation, write admin audit events, and return safe assignment/runtime summaries without owner-only credentials.</item-2>
+    <item-3>Frontend-admin now includes compact /mtproto navigation and page for assignment search, status filters, bridge health, and confirmation-safe actions.</item-3>
+    <item-4>Local Phase-33 verification passed on 2026-05-14: 15 backend tests, frontend-admin build, static smoke, XML parse, MyGRACE lint, and diff whitespace check.</item-4>
+    <item-5>No deploy/install/nginx/docker-compose files were changed.</item-5>
+  </Completion>
 </Phase-33>

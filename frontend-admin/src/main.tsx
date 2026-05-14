@@ -4,9 +4,9 @@
 // MAP_MODE: SUMMARY
 // START_MODULE_CONTRACT
 //   PURPOSE: Application entry point — mounts React router, query client, auth-guarded routes
-//   SCOPE: BrowserRouter, QueryClientProvider, PrivateRoute, page route definitions
-//   DEPENDS: M-010 (frontend-admin), react-router-dom, @tanstack/react-query, stores/auth
-//   LINKS: M-010 (frontend-admin)
+//   SCOPE: BrowserRouter, QueryClientProvider, PrivateRoute, page route definitions including MTProto admin ops
+//   DEPENDS: M-010 (frontend-admin), M-047 (mtproto-admin-ops), react-router-dom, @tanstack/react-query, stores/auth
+//   LINKS: M-010 (frontend-admin), M-047
 // END_MODULE_CONTRACT
 //
 // START_MODULE_MAP
@@ -16,6 +16,7 @@
 // END_MODULE_MAP
 //
 // START_CHANGE_SUMMARY
+//   LAST_CHANGE: v3.2.0 - Added Phase-33 /mtproto admin route
 //   LAST_CHANGE: v2.8.0 - Converted to full GRACE MODULE_CONTRACT/MAP format with START/END blocks
 // END_CHANGE_SUMMARY
 //
@@ -34,6 +35,7 @@ import Login from './pages/Login'
 import Dashboard from './pages/Dashboard'
 import Users from './pages/Users'
 import Devices from './pages/Devices'
+import MTProto from './pages/MTProto'
 import Servers from './pages/Servers'
 import Plans from './pages/Plans'
 import Analytics from './pages/Analytics'
@@ -64,6 +66,7 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
             <Route index element={<Dashboard />} />
             <Route path="users" element={<Users />} />
             <Route path="devices" element={<Devices />} />
+            <Route path="mtproto" element={<MTProto />} />
             <Route path="servers" element={<Servers />} />
             <Route path="plans" element={<Plans />} />
             <Route path="analytics" element={<Analytics />} />
