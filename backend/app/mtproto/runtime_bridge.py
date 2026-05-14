@@ -1,12 +1,12 @@
 """MTProto runtime policy bridge.
 
 # FILE: backend/app/mtproto/runtime_bridge.py
-# VERSION: 1.0.0
+# VERSION: 1.1.0
 # ROLE: RUNTIME
 # MAP_MODE: EXPORTS
 # START_MODULE_CONTRACT
-#   PURPOSE: Apply KrotPN MTProto assignments to a runtime policy boundary safely
-#   SCOPE: Domain policy adapter contract, health, replay, reconciliation, degraded state
+#   PURPOSE: Apply and revoke KrotPN MTProto assignments at a runtime policy boundary safely
+#   SCOPE: Domain policy adapter contract, policy apply/revoke, health, replay, reconciliation, degraded state
 #   DEPENDS: M-001 (DB session), M-042 (assignment registry), M-043 (provisioning)
 #   LINKS: M-044, V-M-044
 # END_MODULE_CONTRACT
@@ -20,11 +20,12 @@
 #   MTProtoReplayResult - Startup/reconciliation replay summary contract
 #   MTProtoPolicyAdapter - Adapter protocol for isolated KPprotoN runtime boundary
 #   InMemoryMTProtoPolicyAdapter - Local safe adapter used by tests and offline runtime
-#   MTProtoRuntimeBridge - Service for apply, replay and health operations
+#   MTProtoRuntimeBridge - Service for apply, revoke, replay and health operations
 #   sync_mtproto_policy - Scheduler-safe reconciliation entry point
 # END_MODULE_MAP
 #
 # START_CHANGE_SUMMARY
+#   LAST_CHANGE: v1.1.0 - Added explicit runtime policy revoke path for admin MTProto assignment disable
 #   LAST_CHANGE: v1.0.0 - Added Phase-30 safe runtime bridge boundary
 # END_CHANGE_SUMMARY
 """
@@ -54,6 +55,7 @@ class MTProtoBridgeStatus(str, Enum):
     ACTIVATED = "activated"
     DEGRADED = "degraded"
     HEALTHY = "healthy"
+    REVOKED = "revoked"
     SKIPPED = "skipped"
 
 
@@ -158,6 +160,9 @@ class MTProtoPolicyAdapter(Protocol):
     async def apply_domain_policy(self, policy: MTProtoDomainPolicy) -> None:
         """Apply one secret-free domain policy to runtime state."""
 
+    async def revoke_domain_policy(self, policy: MTProtoDomainPolicy) -> None:
+        """Remove one secret-free domain policy from runtime state."""
+
     async def health(self) -> MTProtoRuntimeHealth:
         """Return adapter health without credentials."""
 # END_BLOCK_RUNTIME_BRIDGE_TYPES
@@ -186,6 +191,14 @@ class InMemoryMTProtoPolicyAdapter:
         if policy.sni in self.rejected_snis:
             raise ValueError("MTProto runtime adapter rejected the SNI policy")
         self.policies[policy.sni] = policy
+
+    async def revoke_domain_policy(self, policy: MTProtoDomainPolicy) -> None:
+        """Remove one local policy by SNI; missing SNI is already revoked."""
+        if not self.available:
+            raise MTProtoBridgeUnavailable("MTProto runtime bridge is unavailable")
+        if policy.sni in self.rejected_snis:
+            raise ValueError("MTProto runtime adapter rejected the SNI policy")
+        self.policies.pop(policy.sni, None)
 
     async def health(self) -> MTProtoRuntimeHealth:
         """Return local adapter health state."""
@@ -277,6 +290,72 @@ class MTProtoRuntimeBridge:
             applied_at=applied_at,
         )
     # END_BLOCK_LOAD_POLICY
+
+    # START_CONTRACT: revoke_domain_policy
+    #   PURPOSE: Remove one assignment SNI from the configured runtime adapter
+    #   INPUTS: assignment: MTProtoAssignment
+    #   OUTPUTS: MTProtoPolicyApplyResult
+    #   SIDE_EFFECTS: adapter call and redacted log markers, no DB writes
+    #   LINKS: M-044, M-047, V-M-044, V-M-047
+    # END_CONTRACT: revoke_domain_policy
+    # START_BLOCK_REVOKE_POLICY
+    async def revoke_domain_policy(
+        self,
+        assignment: MTProtoAssignment,
+    ) -> MTProtoPolicyApplyResult:
+        """Revoke one assignment policy without raising runtime outages into callers."""
+        policy_or_result = self._policy_identity_from_assignment(
+            assignment,
+            operation="revoke_domain_policy",
+            safe_message="MTProto assignment cannot be revoked by runtime bridge",
+        )
+        if isinstance(policy_or_result, MTProtoPolicyApplyResult):
+            return policy_or_result
+
+        policy = policy_or_result
+        logger.info(
+            "[M-044][revoke_domain_policy][REVOKE_POLICY] "
+            f"assignment_id={policy.assignment_id} user_id={policy.user_id} sni={policy.sni}"
+        )
+
+        try:
+            await self.adapter.revoke_domain_policy(policy)
+        except MTProtoBridgeUnavailable:
+            return self._degraded_result(
+                policy,
+                failure_code=MTProtoBridgeFailureCode.BRIDGE_UNAVAILABLE,
+                safe_message="MTProto runtime bridge is unavailable",
+                operation="revoke_domain_policy",
+            )
+        except ValueError:
+            return self._degraded_result(
+                policy,
+                failure_code=MTProtoBridgeFailureCode.ADAPTER_REJECTED,
+                safe_message="MTProto runtime adapter rejected the revoke policy",
+                operation="revoke_domain_policy",
+            )
+        except Exception:
+            return self._degraded_result(
+                policy,
+                failure_code=MTProtoBridgeFailureCode.REPLAY_FAILED,
+                safe_message="MTProto runtime policy revoke failed",
+                operation="revoke_domain_policy",
+            )
+
+        revoked_at = datetime.now(timezone.utc)
+        self._last_success_at = revoked_at
+        self._last_failure_code = None
+        logger.info(
+            "[M-044][revoke_domain_policy][POLICY_REVOKED] "
+            f"assignment_id={policy.assignment_id} user_id={policy.user_id} sni={policy.sni}"
+        )
+        return MTProtoPolicyApplyResult(
+            assignment_id=policy.assignment_id,
+            sni=policy.sni,
+            status=MTProtoBridgeStatus.REVOKED,
+            applied_at=revoked_at,
+        )
+    # END_BLOCK_REVOKE_POLICY
 
     # START_CONTRACT: replay_active_assignments
     #   PURPOSE: Replay assignment registry rows into runtime adapter policy state
@@ -387,12 +466,7 @@ class MTProtoRuntimeBridge:
         self,
         assignment: MTProtoAssignment,
     ) -> MTProtoDomainPolicy | MTProtoPolicyApplyResult:
-        if (
-            assignment.id is None
-            or assignment.user_id is None
-            or not assignment.sni
-            or assignment.status != MTProtoAssignmentStatus.ACTIVE
-        ):
+        if assignment.status != MTProtoAssignmentStatus.ACTIVE:
             self._last_failure_code = MTProtoBridgeFailureCode.INVALID_ASSIGNMENT
             logger.warning(
                 "[M-044][apply_domain_policy][BRIDGE_UNAVAILABLE] "
@@ -404,6 +478,33 @@ class MTProtoRuntimeBridge:
                 status=MTProtoBridgeStatus.SKIPPED,
                 failure_code=MTProtoBridgeFailureCode.INVALID_ASSIGNMENT,
                 safe_message="MTProto assignment is not active",
+            )
+
+        return self._policy_identity_from_assignment(
+            assignment,
+            operation="apply_domain_policy",
+            safe_message="MTProto assignment is not active",
+        )
+
+    def _policy_identity_from_assignment(
+        self,
+        assignment: MTProtoAssignment,
+        *,
+        operation: str,
+        safe_message: str,
+    ) -> MTProtoDomainPolicy | MTProtoPolicyApplyResult:
+        if assignment.id is None or assignment.user_id is None or not assignment.sni:
+            self._last_failure_code = MTProtoBridgeFailureCode.INVALID_ASSIGNMENT
+            logger.warning(
+                f"[M-044][{operation}][BRIDGE_UNAVAILABLE] "
+                "failure_code=invalid_assignment"
+            )
+            return MTProtoPolicyApplyResult(
+                assignment_id=assignment.id,
+                sni=assignment.sni,
+                status=MTProtoBridgeStatus.SKIPPED,
+                failure_code=MTProtoBridgeFailureCode.INVALID_ASSIGNMENT,
+                safe_message=safe_message,
             )
 
         return MTProtoDomainPolicy(
@@ -420,10 +521,11 @@ class MTProtoRuntimeBridge:
         *,
         failure_code: MTProtoBridgeFailureCode,
         safe_message: str,
+        operation: str = "apply_domain_policy",
     ) -> MTProtoPolicyApplyResult:
         self._last_failure_code = failure_code
         logger.warning(
-            "[M-044][apply_domain_policy][BRIDGE_UNAVAILABLE] "
+            f"[M-044][{operation}][BRIDGE_UNAVAILABLE] "
             f"assignment_id={policy.assignment_id} user_id={policy.user_id} "
             f"sni={policy.sni} failure_code={failure_code.value}"
         )

@@ -1,7 +1,7 @@
 """KPprotoN runtime bridge tests.
 
 # FILE: backend/tests/test_kpproton_runtime_bridge.py
-# VERSION: 1.0.0
+# VERSION: 1.1.0
 # ROLE: TEST
 # MAP_MODE: LOCALS
 # START_MODULE_CONTRACT
@@ -13,6 +13,7 @@
 #
 # START_MODULE_MAP
 #   test_apply_domain_policy_records_active_assignment - Covers successful adapter apply
+#   test_revoke_domain_policy_removes_runtime_policy_state - Covers successful adapter revoke
 #   test_replay_active_assignments_is_idempotent_and_skips_inactive - Covers replay
 #   test_bridge_unavailable_returns_degraded_without_exception - Covers outage path
 #   test_inactive_assignment_is_rejected_before_adapter_call - Covers pre-adapter guard
@@ -20,6 +21,7 @@
 # END_MODULE_MAP
 #
 # START_CHANGE_SUMMARY
+#   LAST_CHANGE: v1.1.0 - Added runtime policy revoke regression coverage for Phase-33 admin revoke
 #   LAST_CHANGE: v1.0.0 - Added Phase-30 runtime bridge tests
 # END_CHANGE_SUMMARY
 """
@@ -48,10 +50,15 @@ class RecordingPolicyAdapter(InMemoryMTProtoPolicyAdapter):
     def __init__(self, *, available: bool = True) -> None:
         super().__init__(available=available)
         self.calls: list[str] = []
+        self.revoke_calls: list[str] = []
 
     async def apply_domain_policy(self, policy: MTProtoDomainPolicy) -> None:
         self.calls.append(policy.sni)
         await super().apply_domain_policy(policy)
+
+    async def revoke_domain_policy(self, policy: MTProtoDomainPolicy) -> None:
+        self.revoke_calls.append(policy.sni)
+        await super().revoke_domain_policy(policy)
 
 
 async def _create_assignment(
@@ -95,6 +102,27 @@ async def test_apply_domain_policy_records_active_assignment(db_session: AsyncSe
     assert result.assignment_id == assignment.id
     assert adapter.policies[assignment.sni].assignment_id == assignment.id
     assert adapter.calls == [assignment.sni]
+
+
+@pytest.mark.asyncio
+async def test_revoke_domain_policy_removes_runtime_policy_state(db_session: AsyncSession):
+    assignment = await _create_assignment(
+        db_session,
+        "bridge-revoke@example.com",
+        "u-revoke22222.krotpn.xyz",
+    )
+    adapter = RecordingPolicyAdapter()
+    bridge = MTProtoRuntimeBridge(db_session, adapter=adapter)
+
+    apply_result = await bridge.apply_domain_policy(assignment)
+    assignment.status = MTProtoAssignmentStatus.DISABLED
+    revoke_result = await bridge.revoke_domain_policy(assignment)
+
+    assert apply_result.status == MTProtoBridgeStatus.ACTIVATED
+    assert revoke_result.status == MTProtoBridgeStatus.REVOKED
+    assert revoke_result.to_safe_dict()["status"] == "revoked"
+    assert assignment.sni not in adapter.policies
+    assert adapter.revoke_calls == [assignment.sni]
 
 
 @pytest.mark.asyncio

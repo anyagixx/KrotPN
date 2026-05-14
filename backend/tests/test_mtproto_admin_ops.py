@@ -1,7 +1,7 @@
 """MTProto admin operations tests.
 
 # FILE: backend/tests/test_mtproto_admin_ops.py
-# VERSION: 1.0.0
+# VERSION: 1.1.0
 # ROLE: TEST
 # MAP_MODE: LOCALS
 # START_MODULE_CONTRACT
@@ -21,10 +21,11 @@
 #   _assert_redacted - Assert no admin response/audit payload contains secrets or tg links
 #   test_admin_mtproto_list_detail_health_are_redacted_and_role_gated - Covers read APIs and auth
 #   test_admin_mtproto_reissue_requires_confirmation_and_redacted_audit - Covers explicit reissue
-#   test_admin_mtproto_revoke_disables_assignment_without_account_or_device_side_effects - Covers scoped revoke
+#   test_admin_mtproto_revoke_disables_assignment_without_account_or_device_side_effects - Covers scoped revoke and runtime policy removal
 # END_MODULE_MAP
 #
 # START_CHANGE_SUMMARY
+#   LAST_CHANGE: v1.1.0 - Added runtime SNI policy removal assertion for admin revoke
 #   LAST_CHANGE: v1.0.0 - Added Phase-33 MTProto admin ops verification
 # END_CHANGE_SUMMARY
 """
@@ -45,6 +46,11 @@ from app.core.security import create_access_token
 from app.devices.models import DeviceStatus, UserDevice
 from app.mtproto.models import MTProtoAssignment, MTProtoAssignmentStatus
 from app.mtproto.provisioning import MTProtoProvisioningService
+from app.mtproto.runtime_bridge import (
+    InMemoryMTProtoPolicyAdapter,
+    MTProtoDomainPolicy,
+    MTProtoRuntimeBridge,
+)
 from app.users.models import User, UserRole
 
 
@@ -228,6 +234,7 @@ async def test_admin_mtproto_reissue_requires_confirmation_and_redacted_audit(
 @pytest.mark.asyncio
 async def test_admin_mtproto_revoke_disables_assignment_without_account_or_device_side_effects(
     db_session: AsyncSession,
+    monkeypatch: pytest.MonkeyPatch,
 ):
     admin = await _create_user(db_session, "admin-revoke-mtproto@example.com", role=UserRole.ADMIN)
     owner = await _create_user(db_session, "owner-revoke-mtproto@example.com")
@@ -235,6 +242,16 @@ async def test_admin_mtproto_revoke_disables_assignment_without_account_or_devic
         db_session,
         owner,
         "u-revoke11111.krotpn.xyz",
+    )
+    adapter = InMemoryMTProtoPolicyAdapter()
+    await adapter.apply_domain_policy(
+        MTProtoDomainPolicy(
+            assignment_id=int(assignment.id),
+            user_id=int(owner.id),
+            sni=assignment.sni,
+            credential_mode=assignment.credential_mode.value,
+            rotation_marker=assignment.rotation_marker,
+        )
     )
     device = UserDevice(
         user_id=int(owner.id),
@@ -244,6 +261,12 @@ async def test_admin_mtproto_revoke_disables_assignment_without_account_or_devic
     )
     db_session.add(device)
     await db_session.flush()
+
+    class TestRuntimeBridge(MTProtoRuntimeBridge):
+        def __init__(self, session: AsyncSession) -> None:
+            super().__init__(session, adapter=adapter)
+
+    monkeypatch.setattr(admin_router_module, "MTProtoRuntimeBridge", TestRuntimeBridge)
     client = _build_client(db_session)
 
     rejected_response = client.post(
@@ -265,9 +288,11 @@ async def test_admin_mtproto_revoke_disables_assignment_without_account_or_devic
     body = response.json()
     assert body["revoked"] is True
     assert body["assignment"]["status"] == "disabled"
+    assert body["runtime_revoke"]["status"] == "revoked"
     assert assignment.status == MTProtoAssignmentStatus.DISABLED
     assert owner.is_active is True
     assert device.status == DeviceStatus.ACTIVE
+    assert assignment.sni not in adapter.policies
     _assert_redacted(body)
 
     audit_result = await db_session.execute(

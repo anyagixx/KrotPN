@@ -1,10 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <M-044 NAME="kpproton-runtime-bridge" TYPE="INTEGRATION" STATUS="done-local">
   <path>backend/app/mtproto backend/app/tasks/scheduler.py docs/plans/Phase-30.xml</path>
-  <owns>Runtime bridge from KrotPN assignments to the KPprotoN/mtproto_proxy policy layer and startup policy replay.</owns>
-  <purpose>Keep Telegram MTProto access active by loading issued SNI assignments into the runtime edge without blocking normal KrotPN auth.</purpose>
+  <owns>Runtime bridge from KrotPN assignments to the KPprotoN/mtproto_proxy policy layer, startup policy replay, and explicit policy revoke.</owns>
+  <purpose>Keep Telegram MTProto access aligned with issued assignment state by loading or removing SNI assignments at the runtime edge without blocking normal KrotPN auth.</purpose>
   <exports>
     <fn-apply-domain-policy>Apply one issued SNI to the MTProto policy runtime.</fn-apply-domain-policy>
+    <fn-revoke-domain-policy>Remove one issued SNI from the MTProto policy runtime after an explicit admin revoke.</fn-revoke-domain-policy>
     <fn-replay-active-assignments>Load active assignments after process or container restart.</fn-replay-active-assignments>
     <fn-runtime-health>Expose bridge health for user-safe and admin-safe status checks.</fn-runtime-health>
     <task-mtproto-policy-sync>Scheduled reconciliation between Postgres assignments and edge policy state.</task-mtproto-policy-sync>
@@ -22,6 +23,7 @@
     <policy-1>Bridge failures mark MTProto provisioning degraded but do not prevent normal KrotPN login.</policy-1>
     <policy-2>Verified registration may complete with a pending proxy status only if user messaging is explicit.</policy-2>
     <policy-3>Startup replay must be idempotent and safe after backup restore.</policy-3>
+    <policy-4>Runtime revoke must be idempotent by SNI and must remove an already-applied policy without requiring the assignment to remain active.</policy-4>
   </runtime-policy>
   <constraints>
     <constraint-1>Do not rely on KPprotoN DETS registry as the source of truth.</constraint-1>
@@ -29,6 +31,7 @@
   </constraints>
   <evidence>
     <evidence-1>2026-05-14: Phase-30 target pytest passed for fake/local adapter policy apply, replay idempotency, degraded mode, runtime health redaction, and scheduler registration.</evidence-1>
+    <evidence-2>2026-05-14: Phase-33 fix added runtime policy revoke regression coverage for admin assignment disable.</evidence-2>
   </evidence>
   <hotspot>H-030: MTProto runtime bridge must degrade safely when policy loading fails and must not block normal KrotPN login</hotspot>
 </M-044>

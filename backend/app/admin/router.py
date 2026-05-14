@@ -27,6 +27,7 @@
 # END_MODULE_MAP
 #
 # START_CHANGE_SUMMARY
+#   LAST_CHANGE: v3.2.1 - MTProto revoke now removes the runtime SNI policy and returns a safe revoke result
 #   LAST_CHANGE: v3.2.0 - Added Phase-33 MTProto admin list/detail/health/reissue/revoke with redacted audit payloads
 #   LAST_CHANGE: v3.1.0 - Added recent anti-abuse event context to admin device payloads
 #   LAST_CHANGE: v2.8.0 - Added full GRACE MODULE_CONTRACT, MODULE_MAP, BLOCKS per GRACE governance protocol; replaced docstring header with comment-based GRACE header
@@ -810,6 +811,7 @@ async def revoke_admin_mtproto_assignment(
     assignment.superseded_at = now
     await session.flush()
     await session.refresh(assignment)
+    revoke_result = await MTProtoRuntimeBridge(session).revoke_domain_policy(assignment)
     await log_admin_action(
         session,
         int(admin.id),
@@ -819,15 +821,18 @@ async def revoke_admin_mtproto_assignment(
         details=_safe_mtproto_audit_details(
             action="revoke",
             assignment=assignment,
-            result_status=assignment.status.value,
+            result_status=revoke_result.status.value,
+            failure_code=revoke_result.failure_code.value if revoke_result.failure_code else None,
         ),
     )
     logger.info(
         "[M-047][admin_revoke_mtproto][AUDIT_REVOKE] "
-        f"assignment_id={assignment.id} user_id={assignment.user_id} status={assignment.status.value}"
+        f"assignment_id={assignment.id} user_id={assignment.user_id} "
+        f"status={assignment.status.value} runtime_status={revoke_result.status.value}"
     )
     payload = {
         "assignment": _serialize_mtproto_admin_assignment(assignment=assignment, user=user),
+        "runtime_revoke": revoke_result.to_safe_dict(),
         "revoked": True,
     }
     _assert_mtproto_admin_payload_redacted(payload)

@@ -6,7 +6,7 @@
   <exports>
     <api-admin-list-mtproto>List assignments by user, SNI, status, and timestamps with redacted sensitive fields.</api-admin-list-mtproto>
     <api-admin-reissue-mtproto>Force explicit reissue after secret rotation or runtime repair.</api-admin-reissue-mtproto>
-    <api-admin-revoke-mtproto>Disable one user's MTProto assignment without disabling VPN account access.</api-admin-revoke-mtproto>
+    <api-admin-revoke-mtproto>Disable one user's MTProto assignment and remove its runtime SNI policy without disabling VPN account access.</api-admin-revoke-mtproto>
     <view-admin-mtproto>Admin UI surface for health, assignment search, reissue, revoke, and recent failures.</view-admin-mtproto>
   </exports>
   <depends>M-006,M-010,M-024,M-042,M-043,M-044</depends>
@@ -33,7 +33,7 @@
   </constraints>
   <completion>
     <item-1>Backend admin endpoints expose redacted list/detail/runtime health and explicit reissue/revoke operations under /api/v1/admin/mtproto.</item-1>
-    <item-2>Reissue and revoke require confirmation, write safe audit events, and do not return owner-only proxy links or derived secrets.</item-2>
+    <item-2>Reissue and revoke require confirmation, write safe audit events, remove runtime policy state on revoke, and do not return owner-only proxy links or derived secrets.</item-2>
     <item-3>Frontend-admin includes a compact /mtproto page with search, status filter, runtime health, and confirmation-safe actions.</item-3>
     <item-4>Local Phase-33 backend tests, frontend-admin build, static smoke, XML parse, and MyGRACE lint passed on 2026-05-14.</item-4>
   </completion>

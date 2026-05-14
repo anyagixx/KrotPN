@@ -18,6 +18,7 @@
 // END_MODULE_MAP
 //
 // START_CHANGE_SUMMARY
+//   LAST_CHANGE: v3.2.1 - Added safe MTProto runtime revoke result to admin action responses
 //   LAST_CHANGE: v3.2.0 - Added Phase-33 redacted MTProto admin API contracts
 //   LAST_CHANGE: v2.8.0 - Converted to full GRACE MODULE_CONTRACT/MAP format with START/END blocks
 // END_CHANGE_SUMMARY
@@ -160,6 +161,14 @@ export interface AdminMTProtoHealth {
 export interface AdminMTProtoActionResponse {
   assignment: AdminMTProtoAssignment
   runtime_apply?: {
+    assignment_id?: number | null
+    sni?: string | null
+    status: string
+    failure_code?: string | null
+    safe_message?: string
+    applied_at?: string | null
+  }
+  runtime_revoke?: {
     assignment_id?: number | null
     sni?: string | null
     status: string

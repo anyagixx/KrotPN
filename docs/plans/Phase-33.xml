@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Phase-33 NAME="MTProto Admin Ops and Observability" STATUS="done-local" VERSION="1.1.0" UPDATED="2026-05-14">
+<Phase-33 NAME="MTProto Admin Ops and Observability" STATUS="done-local" VERSION="1.2.0" UPDATED="2026-05-14">
   <Goal>Add operator controls and redacted observability for MTProto assignment lifecycle and runtime bridge health.</Goal>
   <Modules>M-047,M-006,M-010,M-024,M-042,M-044</Modules>
   <NonGoals>
@@ -21,7 +21,7 @@
   </Verification>
   <AcceptanceCriteria>
     <item-1>Admins can find assignment status and bridge health without seeing raw secrets by default.</item-1>
-    <item-2>Reissue and revoke are explicit audited actions.</item-2>
+    <item-2>Reissue and revoke are explicit audited actions, and revoke removes the runtime SNI policy.</item-2>
     <item-3>Revoking MTProto does not disable KrotPN subscription or VPN devices.</item-3>
     <item-4>Admin mobile console remains compact and confirmation-safe.</item-4>
   </AcceptanceCriteria>
@@ -31,9 +31,9 @@
   </Risks>
   <Completion>
     <item-1>Backend admin API now exposes redacted /api/v1/admin/mtproto assignment list/detail, runtime health, reissue, and revoke endpoints.</item-1>
-    <item-2>Reissue and revoke require explicit confirmation, write admin audit events, and return safe assignment/runtime summaries without owner-only credentials.</item-2>
+    <item-2>Reissue and revoke require explicit confirmation, write admin audit events, remove runtime policy state on revoke, and return safe assignment/runtime summaries without owner-only credentials.</item-2>
     <item-3>Frontend-admin now includes compact /mtproto navigation and page for assignment search, status filters, bridge health, and confirmation-safe actions.</item-3>
-    <item-4>Local Phase-33 verification passed on 2026-05-14: 15 backend tests, frontend-admin build, static smoke, XML parse, MyGRACE lint, and diff whitespace check.</item-4>
+    <item-4>Local Phase-33 verification passed on 2026-05-14: 16 backend tests, frontend-admin build, static smoke, XML parse, MyGRACE lint, and diff whitespace check.</item-4>
     <item-5>No deploy/install/nginx/docker-compose files were changed.</item-5>
   </Completion>
 </Phase-33>
