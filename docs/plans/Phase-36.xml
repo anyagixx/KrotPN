@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Phase-36 NAME="Resend Deploy Email Provider Wiring" STATUS="planned" VERSION="1.0.0">
+  <Goal>Make clean production deployments configure Resend email delivery so verified-registration emails are sent instead of failing with provider_disabled.</Goal>
+  <Modules>M-040,M-041,M-012,M-001,M-048</Modules>
+  <OperatorIntent>
+    <item-1>The production email provider is Resend.</item-1>
+    <item-2>The installer asks for the Resend API key during clean VPS deployment.</item-2>
+    <item-3>The sender address is noreply@krotpn.xyz after the operator verifies krotpn.xyz in Resend.</item-3>
+  </OperatorIntent>
+  <NonGoals>
+    <item-1>No custom mail server, SMTP migration, or alternate provider selection in this phase.</item-1>
+    <item-2>No live email send in automated tests because API keys and real recipients are operator-controlled secrets.</item-2>
+    <item-3>No frontend redesign; user-facing behavior remains the existing check-email and verify-email flow.</item-3>
+  </NonGoals>
+  <DataFlow>
+    <flow-1>install.sh collects PUBLIC_DOMAIN, TLS paths, then prompts for RESEND_API_KEY with secret input and EMAIL_FROM defaulting to noreply@krotpn.xyz.</flow-1>
+    <flow-2>install.sh validates that the Resend API key and sender email are non-empty and safe for temporary deploy config materialization.</flow-2>
+    <flow-3>install.sh writes redaction-safe values into /tmp/krotpn_deploy.conf without printing the API key.</flow-3>
+    <flow-4>deploy/deploy-on-server.sh writes EMAIL_PROVIDER=resend, RESEND_API_KEY, RESEND_API_URL, EMAIL_FROM, and EMAIL_VERIFICATION_URL_BASE into /opt/KrotPN/.env.</flow-4>
+    <flow-5>M-040 ResendEmailProvider sends verification email through https://api.resend.com/emails; M-041 blocks registration activation until the email token is verified.</flow-5>
+  </DataFlow>
+  <Steps>
+    <step-1 STATUS="planned">Extend install.sh input collection with secret Resend API key prompt and sender email prompt defaulting to noreply@krotpn.xyz.</step-1>
+    <step-2 STATUS="planned">Validate Resend API key and sender email format without accepting shell metacharacters, newlines, or empty values.</step-2>
+    <step-3 STATUS="planned">Pass RESEND_API_KEY, EMAIL_PROVIDER, EMAIL_FROM, and RESEND_API_URL through the temporary RU deploy config with redacted operator output.</step-3>
+    <step-4 STATUS="planned">Update deploy/deploy-on-server.sh .env generation so clean production deploys enable Resend instead of leaving EMAIL_PROVIDER disabled.</step-4>
+    <step-5 STATUS="planned">Add deterministic Resend request-shape, deploy env, installer prompt, redaction, and registration-provider smoke coverage.</step-5>
+    <step-6 STATUS="planned">Apply a live hotfix path for already-deployed RU servers by setting Resend env values and restarting backend after operator domain verification is ready.</step-6>
+  </Steps>
+  <Verification>
+    <command-1>bash -n install.sh deploy/deploy-on-server.sh</command-1>
+    <command-2>node scripts/phase36-resend-deploy-smoke.mjs</command-2>
+    <command-3>cd backend &amp;&amp; SECRET_KEY=test-secret-key-with-enough-length DATA_ENCRYPTION_KEY=dpFmfSVqfdAK3yx5MQV6Tcv35RZuw5MzaH0yhxJ01q0= PYTHONPATH=. ../.venv/bin/python -m pytest -o addopts='' tests/test_email_delivery.py tests/test_verified_registration.py tests/test_email_verification_guard.py -v</command-3>
+    <command-4>python3 -m xml.etree.ElementTree docs/plans/Phase-36.xml docs/modules/M-040.xml docs/modules/M-041.xml docs/modules/M-012.xml docs/modules/M-001.xml docs/modules/M-048.xml docs/verification/V-M-040.xml docs/verification/V-M-041.xml docs/verification/V-M-048.xml docs/graph-index.xml docs/plan-index.xml docs/verification-index.xml &amp;&amp; mygrace lint</command-4>
+    <command-5>operator-live: after krotpn.xyz is verified in Resend, submit one registration to a controlled mailbox and verify the email is delivered without logging API key or token.</command-5>
+  </Verification>
+  <AcceptanceCriteria>
+    <item-1>Fresh install asks for Resend API key and email sender, defaulting sender to noreply@krotpn.xyz.</item-1>
+    <item-2>Generated .env contains EMAIL_PROVIDER=resend, RESEND_API_KEY, RESEND_API_URL=https://api.resend.com/emails, EMAIL_FROM=noreply@krotpn.xyz, and EMAIL_VERIFICATION_URL_BASE=https://krotpn.xyz/verify-email.</item-2>
+    <item-3>Registration no longer fails with "Email provider is disabled" when Resend API key is provided.</item-3>
+    <item-4>Resend API key, verification tokens, full verification links, and provider error bodies never appear in logs, XML evidence, frontend output, or installer output.</item-4>
+    <item-5>Missing Resend API key fails closed before claiming deploy success for verified-registration readiness.</item-5>
+  </AcceptanceCriteria>
+  <Risks>
+    <risk-1>Resend will reject mail until krotpn.xyz and noreply@krotpn.xyz sender policy are verified in the Resend dashboard.</risk-1>
+    <risk-2>Free Resend limits can throttle registration bursts; rate-limit errors must map to safe user/operator messages.</risk-2>
+    <risk-3>API key leakage would compromise outbound email; installer, deploy, logs, and verification output must redact it.</risk-3>
+    <risk-4>Strict deploy validation can block clean VPS deployment if operator does not yet have the Resend API key; the error must be explicit.</risk-4>
+  </Risks>
+  <AutonomousExecutionSafety>
+    <safe-local>Static source smoke, fake-provider tests, Resend request-shape tests with fake httpx transport, bash syntax checks, XML parse, and MyGRACE lint.</safe-local>
+    <requires-operator>Real Resend API key, verified krotpn.xyz domain in Resend, live mailbox receipt, and any production resend smoke.</requires-operator>
+  </AutonomousExecutionSafety>
+</Phase-36>

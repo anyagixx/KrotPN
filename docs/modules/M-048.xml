@@ -7,8 +7,9 @@
     <installer-domain-prompt>Prompt for the public domain with krotpn.xyz as the default.</installer-domain-prompt>
     <installer-fullchain-prompt>Prompt for the absolute RU-server fullchain path with /root/krotpn-ssl/fullchain1.pem as the default.</installer-fullchain-prompt>
     <installer-privkey-prompt>Prompt for the absolute RU-server private key path with /root/krotpn-ssl/privkey1.pem as the default.</installer-privkey-prompt>
+    <installer-resend-prompt>Prompt for the Resend API key and sender address for production verification emails.</installer-resend-prompt>
     <remote-cert-validator>Bootstrap openssl when needed, then verify existence, readability, expiry, cert/key match, and SAN coverage before deploy mutates the runtime TLS directory.</remote-cert-validator>
-    <edge-env-wiring>Generate DOMAIN, FRONTEND_URL, MTPROTO_BASE_DOMAIN, MTPROTO_BASE_SECRET_HEX, MTPROTO_SECRET_SALT, and EDGE_TLS_* values for the deployed .env.</edge-env-wiring>
+    <edge-env-wiring>Generate DOMAIN, FRONTEND_URL, MTPROTO_BASE_DOMAIN, MTPROTO_BASE_SECRET_HEX, MTPROTO_SECRET_SALT, EMAIL_PROVIDER, RESEND_API_KEY, EMAIL_FROM, and EDGE_TLS_* values for the deployed .env.</edge-env-wiring>
   </exports>
   <depends>M-001,M-012,M-044,M-046</depends>
   <verification-ref>V-M-048</verification-ref>
@@ -25,6 +26,8 @@
     <input-1>PUBLIC_DOMAIN defaults to krotpn.xyz.</input-1>
     <input-2>TLS_FULLCHAIN_PATH defaults to /root/krotpn-ssl/fullchain1.pem on the RU server.</input-2>
     <input-3>TLS_PRIVKEY_PATH defaults to /root/krotpn-ssl/privkey1.pem on the RU server.</input-3>
+    <input-4>RESEND_API_KEY is entered by the operator and must never be echoed.</input-4>
+    <input-5>EMAIL_FROM defaults to noreply@krotpn.xyz.</input-5>
   </operator-inputs>
   <constraints>
     <constraint-1>Production installs must not fall back to self-signed TLS unless the operator explicitly selects a dev/self-signed mode.</constraint-1>
@@ -33,6 +36,7 @@
     <constraint-4>Shared 443 MTProto routing remains a live-gated M-046/M-044 concern; this module only makes trusted wildcard TLS material deployable and reusable.</constraint-4>
     <constraint-5>Operator certificate source paths must not be under /opt/KrotPN because installer refreshes that repository directory during clone.</constraint-5>
     <constraint-6>Fresh deploys must generate non-empty 32-hex MTProto base secret and salt values without printing them.</constraint-6>
+    <constraint-7>Fresh production deploys must configure Resend email delivery or fail with an explicit operator message before registration can later hit provider_disabled.</constraint-7>
   </constraints>
   <planned-execution>
     <step-1 STATUS="pass-local">Extend install.sh prompt allowlist and interactive flow for domain, fullchain path, and privkey path after RU SSH credentials are known.</step-1>
@@ -40,6 +44,7 @@
     <step-3 STATUS="pass-local">Teach deploy/deploy-on-server.sh to validate and install operator-provided certs into /opt/KrotPN/ssl/server.crt and /opt/KrotPN/ssl/server.key.</step-3>
     <step-4 STATUS="pass-local">Generate production domain and edge TLS env values for backend, frontend, admin, nginx, and MTProto base-domain expectations.</step-4>
     <step-5 STATUS="pass-local">Preserve existing certs across redeploys unless a validated replacement is provided.</step-5>
+    <step-6 STATUS="planned">Collect and pass Resend API key and noreply@krotpn.xyz sender for production email verification delivery.</step-6>
   </planned-execution>
   <evidence>
     <evidence-1>2026-05-17: Local Phase-35 implementation added installer prompts, RU cert preflight, deploy-time certificate validation/install, production env wiring, runtime nginx rendering, and static smoke coverage.</evidence-1>

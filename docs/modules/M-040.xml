@@ -20,6 +20,7 @@
   <implementation-state>
     <state-1>Phase-27 implemented provider-neutral requests, Resend and SMTP adapters, disabled-provider guard, templates, safe log markers, and fake-provider test coverage.</state-1>
     <state-2>Live provider smoke remains operator-run only after EMAIL_PROVIDER and provider secrets are configured outside tests.</state-2>
+    <state-3>Phase-36 plans production deploy wiring so Resend is enabled during clean VPS installs and registration no longer fails with provider_disabled when an API key is supplied.</state-3>
   </implementation-state>
   <source-transfer>
     <from-project>KPprotoN</from-project>
@@ -30,6 +31,12 @@
     <constraint-1>Verification tokens must never appear in logs, traces, or provider error payloads.</constraint-1>
     <constraint-2>Email sending failures block registration activation but do not create user, trial, VPN, or MTProto records.</constraint-2>
     <constraint-3>Provider configuration remains env-backed through M-001 settings.</constraint-3>
+    <constraint-4>Production Resend configuration must use https://api.resend.com/emails, Authorization Bearer API key, and noreply@krotpn.xyz sender after domain verification.</constraint-4>
   </constraints>
+  <phase-36-plan>
+    <step-1 STATUS="planned">Strengthen Resend request-shape tests for URL, Bearer header, sender, recipient, subject, HTML, and text payload.</step-1>
+    <step-2 STATUS="planned">Add deploy smoke coverage that EMAIL_PROVIDER is not left disabled when Resend API key is provided.</step-2>
+    <step-3 STATUS="planned">Keep live Resend smoke operator-only and redact message IDs, API keys, tokens, and full verification links.</step-3>
+  </phase-36-plan>
   <hotspot>H-026: Email delivery must not leak verification tokens, API keys, or raw provider responses</hotspot>
 </M-040>

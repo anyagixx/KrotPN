@@ -1,12 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <V-M-012 MODULE="M-012" PRIORITY="critical" STATUS="pass">
   <module>deploy-surface</module>
-  <checks>Deploy and nginx changes do not introduce weak defaults or unsafe routing assumptions. Deploy creates /var/lib/krotpn/ directory for RU IP snapshots. Snapshot directory permissions are correct (root:root, 755).</checks>
+  <checks>Deploy and nginx changes do not introduce weak defaults or unsafe routing assumptions. Deploy creates /var/lib/krotpn/ directory for RU IP snapshots. Snapshot directory permissions are correct (root:root, 755). Phase-36 planned deploy changes must enable Resend email provider without logging RESEND_API_KEY.</checks>
   <commands>bash -n deploy/deploy-on-server.sh &amp;&amp; bash -n deploy/deploy-all.sh &amp;&amp; bash -n deploy/quick-start.sh &amp;&amp; bash -n deploy/create-client.sh &amp;&amp; bash -n deploy/remove-client.sh &amp;&amp; bash -n deploy/rollback.sh &amp;&amp; bash -n deploy/backup-db.sh &amp;&amp; bash -n install.sh</commands>
   <anchors>DEPLOY_IDEMPOTENT KEYS_PRESERVED DEPLOY_BACKUP_CREATED DEPLOY_RESTORED</anchors>
   <scenarios>
     <scenario kind="success" trace="DEPLOY_IDEMPOTENT">Double deploy preserves existing WG keys and client connections</scenario>
     <scenario kind="success" trace="DEPLOY_BACKUP_CREATED">deploy/rollback.sh creates backup</scenario>
     <scenario kind="success" trace="DEPLOY_RESTORED">Rollback restores from backup successfully</scenario>
+    <scenario kind="success" trace="RESEND_ENV_WRITTEN">Clean deploy writes EMAIL_PROVIDER=resend and redacted Resend configuration when operator provides an API key</scenario>
   </scenarios>
 </V-M-012>

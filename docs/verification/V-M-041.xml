@@ -1,9 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<V-M-041 MODULE="M-041" PRIORITY="critical" STATUS="partial-local" VERSION="1.5.0">
+<V-M-041 MODULE="M-041" PRIORITY="critical" STATUS="partial-local" VERSION="1.6.0">
   <phase-scope>
     <phase-27 status="pass-local">Foundation evidence exists for pending-registration primitives, token hashing, TTL/replay protection, email risk checks, fake-provider email delivery, and unchanged active /register behavior.</phase-27>
     <phase-28 status="partial-local">Primary cutover verification proves that /register is a pending-email flow and that active KrotPN access exists only after verified email activation; full wave closure is partial until V-M-004 and V-M-022 complete gates pass.</phase-28>
     <phase-34 status="pass-local">Stabilization gate proves verified-email activation and the free MTProto owner path are linked without issuing MTProto, trial, VPN, referral, or JWT side effects before email proof.</phase-34>
+    <phase-36 status="planned">Resend deploy wiring verifies pending registration can send email in production after operator supplies a Resend API key.</phase-36>
   </phase-scope>
   <test-files>
     <file phase="27-regression">backend/tests/test_email_verification_guard.py</file>
@@ -12,6 +13,7 @@
     <file phase="28-cross-module">backend/tests/test_device_api.py</file>
     <file phase="28-cross-module">backend/tests/test_referrals.py</file>
     <file phase="34-integration">backend/tests/test_phase34_mtproto_integration.py</file>
+    <file phase="36-planned">scripts/phase36-resend-deploy-smoke.mjs</file>
   </test-files>
   <verification-levels>
     <module-local>Risk checks, pending-token lifecycle, activation idempotency, and redaction run without live email provider, DNS mutability, VPN host mutation, or MTProto runtime.</module-local>
@@ -27,6 +29,7 @@
     <check-6 evidence="deterministic">Successful verification consumes the token, creates the canonical user, marks email ownership verified, and returns the same authenticated session contract used by login.</check-6>
     <check-7 evidence="idempotency">Activation side effects are executed exactly once even if the verify endpoint is called repeatedly or a transaction is retried after partial failure.</check-7>
     <check-8 evidence="phase-34-integration">Verified activation plus first owner MTProto access creates exactly one MTProto assignment; pending/unverified registration creates none.</check-8>
+    <check-9 evidence="phase-36-planned">With EMAIL_PROVIDER=resend and operator API key configured, /register does not fail with provider_disabled and still creates only pending registration state before token proof.</check-9>
   </module-checks>
   <phase-34-stabilization-gates>
     <gate-1>Unverified registration returns pending/check-email and leaves User, Subscription, UserDevice, Referral, and MTProtoAssignment counts unchanged.</gate-1>
@@ -46,6 +49,8 @@
     <scenario-3 kind="failure">Temporary email domain is blocked before verification email is sent.</scenario-3>
     <scenario-4 kind="failure">Malformed, expired, replayed, duplicate, and already-consumed pending-registration tokens fail with safe reasons.</scenario-4>
     <scenario-5 kind="failure">Pending registration cannot emit JWT tokens or provision KrotPN resources.</scenario-5>
+    <scenario-6 kind="success">Production registration request sends one verification email through configured Resend provider and returns check-email state.</scenario-6>
+    <scenario-7 kind="failure">Resend auth, rate-limit, or unavailable errors are safe user/operator failures without creating active access.</scenario-7>
   </scenarios>
   <required-log-markers>
     <marker-1>[M-041][request_registration][EMAIL_RISK_CHECK]</marker-1>
@@ -70,5 +75,6 @@
     <evidence-2>2026-05-13: Phase-28 backend suite passed locally: tests/test_verified_registration.py, tests/test_email_verification_guard.py, tests/test_manual_access_policy.py, tests/test_device_api.py, tests/test_referrals.py, tests/test_telegram_auth.py, and tests/test_security.py; 44 passed.</evidence-2>
     <evidence-3>2026-05-14: MyGRACE reviewer/refresh found full V-M-004 and V-M-022 per-module commands failing on 404 route/API binding tests, so V-M-041 is partial-local at wave level while module-local cutover tests remain green.</evidence-3>
     <evidence-4>2026-05-14: Phase-34 backend/tests/test_phase34_mtproto_integration.py passed locally with 2 tests for pending no-access, verified activation, MTProto owner assignment idempotency, and token replay safety.</evidence-4>
+    <evidence-5>2026-05-17: Phase-36 planning added production Resend deploy wiring after clean VPS registration reached M-040 provider_disabled.</evidence-5>
   </evidence>
 </V-M-041>

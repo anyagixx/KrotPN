@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <M-012 NAME="deploy-surface" TYPE="ENTRY_POINT" STATUS="stable">
   <path>deploy install.sh nginx docker-compose.yml</path>
-  <owns>installation, deploy scripts, runtime composition, proxying, operator wildcard TLS install, dev-only cert generation, host-tool preflight, AWG stealth profile generation, awg0 peer sync watchers, deploy-time secret handling, backup/restore, nginx hardening</owns>
+  <owns>installation, deploy scripts, runtime composition, proxying, operator wildcard TLS install, Resend email provider env wiring, dev-only cert generation, host-tool preflight, AWG stealth profile generation, awg0 peer sync watchers, deploy-time secret handling, backup/restore, nginx hardening</owns>
   <depends>M-003, M-007, M-019, M-030</depends>
   <verification-ref>V-M-012</verification-ref>
   <files>
@@ -22,6 +22,11 @@
   </disaster-recovery-role>
   <hotspot>H-015: Deploy idempotency must preserve WG keys, SSL certs, .env across repeated runs</hotspot>
   <hotspot>H-017: Fresh deploys may generate obfuscation profiles, but upgrades must preserve profiles unless rotation is explicit</hotspot>
+  <phase-36-plan>
+    <step-1 STATUS="planned">Ask for Resend API key and noreply@krotpn.xyz sender during clean production install.</step-1>
+    <step-2 STATUS="planned">Materialize EMAIL_PROVIDER=resend and Resend env values into /opt/KrotPN/.env without printing the API key.</step-2>
+    <step-3 STATUS="planned">Fail deploy readiness explicitly when Resend is required but missing, preventing later provider_disabled registration errors.</step-3>
+  </phase-36-plan>
   <evidence>
     <evidence-1>2026-05-17: Phase-35 changed the deploy surface so production installs consume validated operator wildcard TLS files instead of silently generating self-signed certificates.</evidence-1>
     <evidence-2>2026-05-17: Clean VPS hotfix generates MTProto base secret and salt during deploy .env creation so backend Settings validation does not restart-loop after first compose startup.</evidence-2>

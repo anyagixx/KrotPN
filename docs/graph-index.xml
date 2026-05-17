@@ -36,15 +36,15 @@
   <M-037 NAME="mobile-admin-console" TYPE="UI_COMPONENT" STATUS="done" PATH="frontend-admin docs/plans/Phase-24.xml" DEPENDS="M-006,M-010,M-024,M-038" VERIFICATION-REF="V-M-037" />
   <M-038 NAME="compact-ui-system" TYPE="UI_COMPONENT" STATUS="done" PATH="frontend frontend-admin docs/plans/Phase-23.xml docs/plans/Phase-24.xml" DEPENDS="M-009,M-010" VERIFICATION-REF="V-M-038" />
   <M-039 NAME="session-security-hardening" TYPE="CORE_LOGIC" STATUS="done-local" PATH="backend/app/users frontend frontend-admin docs/plans/Phase-25.xml docs/security/SESSION-PHASE-25.xml scripts/session-security-smoke.mjs" DEPENDS="M-002,M-006,M-009,M-010,M-027" VERIFICATION-REF="V-M-039" />
-  <M-040 NAME="email-delivery" TYPE="INTEGRATION" STATUS="done-local" PATH="backend/app/email docs/plans/Phase-27.xml" DEPENDS="M-001" VERIFICATION-REF="V-M-040" />
-  <M-041 NAME="verified-email-registration" TYPE="CORE_LOGIC" STATUS="done-local" PATH="backend/app/users backend/app/email docs/plans/Phase-27.xml docs/plans/Phase-28.xml" DEPENDS="M-001,M-002,M-004,M-005,M-022,M-027,M-040" VERIFICATION-REF="V-M-041" />
+  <M-040 NAME="email-delivery" TYPE="INTEGRATION" STATUS="done-local" PATH="backend/app/email docs/plans/Phase-27.xml docs/plans/Phase-36.xml" DEPENDS="M-001" VERIFICATION-REF="V-M-040" />
+  <M-041 NAME="verified-email-registration" TYPE="CORE_LOGIC" STATUS="done-local" PATH="backend/app/users backend/app/email docs/plans/Phase-27.xml docs/plans/Phase-28.xml docs/plans/Phase-36.xml" DEPENDS="M-001,M-002,M-004,M-005,M-022,M-027,M-040" VERIFICATION-REF="V-M-041" />
   <M-042 NAME="mtproto-assignment-registry" TYPE="DATA_LAYER" STATUS="done-local" PATH="backend/app/mtproto backend/alembic docs/plans/Phase-29.xml" DEPENDS="M-001,M-002,M-028" VERIFICATION-REF="V-M-042" />
   <M-043 NAME="mtproto-provisioning" TYPE="CORE_LOGIC" STATUS="done-local" PATH="backend/app/mtproto docs/plans/Phase-29.xml" DEPENDS="M-001,M-002,M-040,M-042" VERIFICATION-REF="V-M-043" />
   <M-044 NAME="kpproton-runtime-bridge" TYPE="INTEGRATION" STATUS="done-local" PATH="backend/app/mtproto backend/app/tasks/scheduler.py docs/plans/Phase-30.xml" DEPENDS="M-001,M-008,M-012,M-042,M-043" VERIFICATION-REF="V-M-044" />
   <M-045 NAME="mtproto-user-cabinet" TYPE="UI_COMPONENT" STATUS="done-local" PATH="frontend backend/app/mtproto backend/app/main.py scripts docs/plans/Phase-31.xml" DEPENDS="M-002,M-009,M-036,M-042,M-043" VERIFICATION-REF="V-M-045" />
   <M-046 NAME="krotpn-domain-tls-edge" TYPE="ENTRY_POINT" STATUS="partial-local" PATH="backend/app/core/config.py nginx docker-compose.yml .env.example scripts docs/edge/PHASE-32-CUTOVER.xml docs/plans/Phase-32.xml" DEPENDS="M-001,M-012,M-044" VERIFICATION-REF="V-M-046" />
   <M-047 NAME="mtproto-admin-ops" TYPE="ENTRY_POINT" STATUS="done-local" PATH="backend/app/admin frontend-admin scripts/phase33-mtproto-admin-smoke.mjs docs/plans/Phase-33.xml" DEPENDS="M-006,M-010,M-024,M-042,M-043,M-044" VERIFICATION-REF="V-M-047" />
-  <M-048 NAME="installer-wildcard-tls" TYPE="ENTRY_POINT" STATUS="partial-local" PATH="install.sh deploy/deploy-on-server.sh nginx docker-compose.yml .env.example scripts/phase35-installer-wildcard-tls-smoke.mjs docs/plans/Phase-35.xml" DEPENDS="M-001,M-012,M-044,M-046" VERIFICATION-REF="V-M-048" />
+  <M-048 NAME="installer-wildcard-tls" TYPE="ENTRY_POINT" STATUS="partial-local" PATH="install.sh deploy/deploy-on-server.sh nginx docker-compose.yml .env.example scripts/phase35-installer-wildcard-tls-smoke.mjs docs/plans/Phase-35.xml docs/plans/Phase-36.xml" DEPENDS="M-001,M-012,M-044,M-046" VERIFICATION-REF="V-M-048" />
 
   <CrossLinks>
     <link from="M-002" to="M-001" />
@@ -261,5 +261,6 @@
     <H-032 module="M-046" text="Shared 443 edge can break both HTTPS and Telegram proxy if fallback routing or wildcard TLS is misconfigured" />
     <H-033 module="M-047" text="Admin MTProto operations must never expose full secrets or proxy links in logs, tables, or audit payloads" />
     <H-034 module="M-048" text="Installer-provided wildcard TLS must validate cert/key/domain before deploy and must never log private key material" />
+    <H-035 module="M-040" text="Resend API key and email verification tokens must never leak through installer, deploy, provider errors, or logs" />
   </Hotspots>
 </GraphIndex>

@@ -1,11 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<V-M-040 MODULE="M-040" PRIORITY="critical" STATUS="pass-local" VERSION="1.3.0">
+<V-M-040 MODULE="M-040" PRIORITY="critical" STATUS="pass-local" VERSION="1.4.0">
   <phase-scope>
     <phase-27>Email delivery foundation only: fake-provider tests must prove request shaping, template rendering, provider error mapping, and redaction before live provider use.</phase-27>
     <phase-34 status="planned">Stabilization regression gate proves verification-email delivery still participates in pending registration without leaking tokens or provider secrets.</phase-34>
+    <phase-36 status="planned">Resend production wiring proves clean deployments enable EMAIL_PROVIDER=resend without exposing API keys or verification tokens.</phase-36>
   </phase-scope>
   <test-files>
     <file>backend/tests/test_email_delivery.py</file>
+    <file phase="36-planned">scripts/phase36-resend-deploy-smoke.mjs</file>
   </test-files>
   <verification-levels>
     <module-local>Unit tests use a fake provider/client and never require live email credentials.</module-local>
@@ -19,12 +21,16 @@
     <check-4 evidence="deterministic">Provider 401, 429, 5xx, timeout, and transport failures map to stable internal error codes.</check-4>
     <check-5 evidence="deterministic">Missing or disabled provider configuration blocks send with an operator-safe error and no network call.</check-5>
     <check-6 evidence="phase-34-regression">Phase-34 full registration suite confirms email delivery is invoked only for pending registration and never after MTProto owner payload generation.</check-6>
+    <check-7 evidence="phase-36-planned">Resend request shape uses https://api.resend.com/emails, Authorization Bearer API key, noreply@krotpn.xyz sender, and HTML/text verification template payload.</check-7>
+    <check-8 evidence="phase-36-planned">Deploy smoke proves EMAIL_PROVIDER=resend and RESEND_API_KEY are present when operator supplied the key, while logs and tests redact the key.</check-8>
   </module-checks>
   <scenarios>
     <scenario-1 kind="success">Verification email is sent to a normalized allowed email address through the fake provider.</scenario-1>
     <scenario-2 kind="failure">Provider authentication, rate-limit, server, timeout, and transport errors are surfaced as safe typed failures.</scenario-2>
     <scenario-3 kind="failure">Logs never contain verification token, verification URL, API key, or raw provider response body.</scenario-3>
     <scenario-4 kind="failure">Provider-disabled configuration returns a typed disabled-provider result before request construction.</scenario-4>
+    <scenario-5 kind="success">Clean VPS deployment with a supplied Resend API key sends pending-registration verification email through Resend.</scenario-5>
+    <scenario-6 kind="failure">Missing Resend API key fails with an operator-safe configuration error and no live registration side effects.</scenario-6>
   </scenarios>
   <required-log-markers>
     <marker-1>[M-040][send_verification_email][BUILD_REQUEST]</marker-1>
@@ -42,5 +48,6 @@
   </autonomous-execution-safety>
   <evidence>
     <evidence-1>2026-05-13: backend/tests/test_email_delivery.py passed locally, covering template rendering, fake-provider dispatch, provider-disabled guard, redaction, and safe error mapping.</evidence-1>
+    <evidence-2>2026-05-17: Phase-36 planning scoped Resend deploy wiring after live clean VPS registration returned provider_disabled because EMAIL_PROVIDER was left disabled.</evidence-2>
   </evidence>
 </V-M-040>

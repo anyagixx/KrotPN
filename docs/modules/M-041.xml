@@ -32,11 +32,18 @@
     <state-2>Phase-28 implements /register pending response, /verify-email activation, post-verification trial/VPN/referral orchestration, replay-safe activation, and frontend onboarding states.</state-2>
     <state-3>MTProto assignment remains deferred to Phase-29+ and is not issued in Phase-28.</state-3>
     <state-4>Phase-34 local integration verifies verified activation can expose one owner MTProto assignment while pending/unverified registration creates none.</state-4>
+    <state-5>Phase-36 plans production Resend deploy wiring so pending registration can send verification emails on clean VPS deployments.</state-5>
   </implementation-state>
   <constraints>
     <constraint-1>Do not issue trial, VPN device, referral bonus, or MTProto proxy for unverified email.</constraint-1>
     <constraint-2>Verification token consumption must be one-time, TTL-bound, and replay-safe.</constraint-2>
     <constraint-3>Temp-mail blocking is defense-in-depth; email ownership proof remains the decisive gate.</constraint-3>
+    <constraint-4>Production /register must fail with an operator-actionable provider configuration error only when Resend env values are missing or rejected, not because the provider is left disabled by deploy defaults.</constraint-4>
   </constraints>
+  <phase-36-plan>
+    <step-1 STATUS="planned">Verify /register calls M-040 with EMAIL_PROVIDER=resend and does not produce provider_disabled after deploy wiring is present.</step-1>
+    <step-2 STATUS="planned">Keep all pre-verification side-effect guards unchanged while enabling live email delivery.</step-2>
+    <step-3 STATUS="planned">Add live handoff notes for controlled-mailbox registration smoke after Resend domain verification completes.</step-3>
+  </phase-36-plan>
   <hotspot>H-027: Trial, VPN provisioning, referral effects, and MTProto issuance must not happen before email ownership is verified</hotspot>
 </M-041>
