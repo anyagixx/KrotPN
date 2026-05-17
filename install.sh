@@ -1,10 +1,10 @@
 #!/bin/bash
 #
-# KrotPN Interactive Installer v2.9.0
+# KrotPN Interactive Installer v2.9.1
 # Run this command to install:
 #   curl -fsSL https://raw.githubusercontent.com/anyagixx/KrotPN/main/install.sh | bash
 # FILE: install.sh
-# VERSION: 2.9.0
+# VERSION: 2.9.1
 # ROLE: SCRIPT
 # MAP_MODE: LOCALS
 # START_MODULE_CONTRACT
@@ -24,7 +24,7 @@
 # END_MODULE_MAP
 #
 # START_CHANGE_SUMMARY
-#   LAST_CHANGE: v2.9.0 - Added Phase-35 operator-provided wildcard TLS prompts and remote preflight.
+#   LAST_CHANGE: v2.9.1 - Bootstrap RU openssl for preflight and reject /opt/KrotPN cert source paths.
 # END_CHANGE_SUMMARY
 #
 # GRACE-lite operational contract:
@@ -54,7 +54,7 @@ print_banner() {
     echo "║                                                              ║"
     echo "║                         K R O T V P N                        ║"
     echo "║                                                              ║"
-    echo "║              Interactive Installer v2.9.0                   ║"
+    echo "║              Interactive Installer v2.9.1                   ║"
     echo "║                                                              ║"
     echo "╚══════════════════════════════════════════════════════════════╝"
     echo -e "${NC}"
@@ -221,6 +221,13 @@ validate_tls_path() {
         return 1
     fi
 
+    case "$path" in
+        /opt/KrotPN|/opt/KrotPN/*)
+            print_error "$label path must not be under /opt/KrotPN because installer refreshes that directory"
+            return 1
+            ;;
+    esac
+
     return 0
 }
 
@@ -241,13 +248,33 @@ fail() {
     exit 1
 }
 
+ensure_remote_openssl() {
+    if command -v openssl >/dev/null 2>&1; then
+        return 0
+    fi
+
+    echo "[M-048][installer_tls][VALIDATE_CERT_PATHS] installing openssl on RU server for TLS preflight"
+    if command -v apt-get >/dev/null 2>&1; then
+        apt-get update -qq >/dev/null
+        apt-get install -y -qq openssl ca-certificates >/dev/null
+    elif command -v dnf >/dev/null 2>&1; then
+        dnf install -y openssl ca-certificates >/dev/null
+    elif command -v yum >/dev/null 2>&1; then
+        yum install -y openssl ca-certificates >/dev/null
+    else
+        fail "openssl is required on the RU server and no supported package manager was found"
+    fi
+
+    command -v openssl >/dev/null 2>&1 || fail "openssl installation did not complete"
+}
+
 for path in "$fullchain_path" "$privkey_path"; do
     [ -f "$path" ] || fail "Missing TLS file: $path"
     [ -r "$path" ] || fail "TLS file is not readable: $path"
     [ -s "$path" ] || fail "TLS file is empty: $path"
 done
 
-command -v openssl >/dev/null 2>&1 || fail "openssl is required on the RU server for TLS validation"
+ensure_remote_openssl
 
 openssl x509 -in "$fullchain_path" -noout >/dev/null 2>&1 || fail "fullchain is not a readable X.509 certificate"
 openssl pkey -in "$privkey_path" -noout >/dev/null 2>&1 || fail "private key is not readable by openssl"
@@ -587,4 +614,6 @@ main() {
     show_complete
 }
 
-main "$@"
+if [ "${KROTPN_INSTALLER_SOURCE_ONLY:-0}" != "1" ]; then
+    main "$@"
+fi

@@ -1,9 +1,9 @@
 #!/bin/bash
 #
-# KrotPN Server Deployment Script v3.1.0 (Full Tunnel)
+# KrotPN Server Deployment Script v3.1.1 (Full Tunnel)
 # Run this script ON the RU server
 # FILE: deploy/deploy-on-server.sh
-# VERSION: 3.1.0
+# VERSION: 3.1.1
 # ROLE: SCRIPT
 # MAP_MODE: LOCALS
 # START_MODULE_CONTRACT
@@ -23,7 +23,7 @@
 # END_MODULE_MAP
 #
 # START_CHANGE_SUMMARY
-#   LAST_CHANGE: v3.1.0 - Added Phase-35 operator wildcard TLS validation, install, env wiring, and nginx runtime rendering.
+#   LAST_CHANGE: v3.1.1 - Reject /opt/KrotPN certificate source paths to avoid clone-time source deletion.
 # END_CHANGE_SUMMARY
 #
 # GRACE-lite operational contract:
@@ -104,6 +104,13 @@ validate_tls_path() {
         echo -e "${RED}[M-048][installer_tls][VALIDATE_INPUTS] ${label} path contains unsupported characters${NC}"
         return 1
     fi
+
+    case "$path" in
+        /opt/KrotPN|/opt/KrotPN/*)
+            echo -e "${RED}[M-048][installer_tls][VALIDATE_INPUTS] ${label} path must not be under /opt/KrotPN because deploy refreshes that directory${NC}"
+            return 1
+            ;;
+    esac
 
     return 0
 }

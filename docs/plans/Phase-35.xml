@@ -56,5 +56,6 @@
     <evidence-3>2026-05-17: docker-compose.yml supports NGINX_CONF_PATH so deploy renders ignored nginx/nginx.runtime.conf for the operator-selected domain while keeping tracked nginx/nginx.conf as the krotpn.xyz fallback.</evidence-3>
     <evidence-4>2026-05-17: Local syntax/static checks passed for bash, Phase-35 smoke, Phase-32 edge smoke, Phase-34 stabilization smoke, domain TLS edge pytest, and docker compose config.</evidence-4>
     <evidence-5>Clean VPS deploy with real wildcard certificate files remains operator-live before claiming production closure.</evidence-5>
+    <evidence-6>2026-05-17: Reviewer follow-up resolved clean VPS openssl preflight risk, disallowed /opt/KrotPN certificate source paths, and strengthened Phase-35 smoke with dynamic validator calls.</evidence-6>
   </ExecutionEvidence>
 </Phase-35>
