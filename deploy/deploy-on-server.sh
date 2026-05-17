@@ -1,9 +1,9 @@
 #!/bin/bash
 #
-# KrotPN Server Deployment Script v3.1.1 (Full Tunnel)
+# KrotPN Server Deployment Script v3.1.2 (Full Tunnel)
 # Run this script ON the RU server
 # FILE: deploy/deploy-on-server.sh
-# VERSION: 3.1.1
+# VERSION: 3.1.2
 # ROLE: SCRIPT
 # MAP_MODE: LOCALS
 # START_MODULE_CONTRACT
@@ -23,6 +23,7 @@
 # END_MODULE_MAP
 #
 # START_CHANGE_SUMMARY
+#   LAST_CHANGE: v3.1.2 - Generate required MTProto base secret and salt during fresh deploy env creation.
 #   LAST_CHANGE: v3.1.1 - Reject /opt/KrotPN certificate source paths to avoid clone-time source deletion.
 # END_CHANGE_SUMMARY
 #
@@ -813,6 +814,8 @@ cd /opt/KrotPN
 SECRET_KEY=$(python3 -c "import secrets; print(secrets.token_urlsafe(32))")
 DATA_KEY=$(python3 -c "from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())")
 DB_PASSWORD=$(python3 -c "import secrets; print(secrets.token_urlsafe(16))")
+MTPROTO_BASE_SECRET_HEX=$(python3 -c "import secrets; print(secrets.token_hex(16))")
+MTPROTO_SECRET_SALT=$(python3 -c "import secrets; print(secrets.token_hex(16))")
 
 cat > .env << EOF
 # === APPLICATION ===
@@ -909,8 +912,8 @@ DOMAIN=${PUBLIC_DOMAIN}
 FRONTEND_URL=https://${PUBLIC_DOMAIN}
 MTPROTO_BASE_DOMAIN=${PUBLIC_DOMAIN}
 MTPROTO_PROXY_PORT=443
-MTPROTO_BASE_SECRET_HEX=
-MTPROTO_SECRET_SALT=
+MTPROTO_BASE_SECRET_HEX=${MTPROTO_BASE_SECRET_HEX}
+MTPROTO_SECRET_SALT=${MTPROTO_SECRET_SALT}
 EDGE_PUBLIC_DOMAIN=${PUBLIC_DOMAIN}
 EDGE_CANONICAL_HOST=${PUBLIC_DOMAIN}
 EDGE_TLS_CERTIFICATE_PATH=/etc/nginx/ssl/server.crt

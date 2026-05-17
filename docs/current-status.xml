@@ -47,6 +47,7 @@
     <item>Phase-34 MTProto integration stabilization passed local verification on 2026-05-14: verified email activation to owner MTProto assignment integration, static frontend/admin redaction smoke, MTProto backup/restore documentation coverage, and release handoff checklist were added without deploy/install/edge surface changes. Live DNS/TLS/shared-443 smoke remains operator-required.</item>
     <item>Phase-35 operator wildcard TLS installer passed local/static verification on 2026-05-17: install.sh now asks for domain, fullchain1.pem and privkey1.pem paths, deploy validates operator wildcard TLS material before compose startup, production self-signed fallback is blocked unless dev mode is explicit, and nginx can use an ignored runtime domain config. Clean VPS deploy with real wildcard certificate files remains operator-required.</item>
     <item>Phase-35 reviewer follow-up on 2026-05-17 fixed clean VPS preflight risk by bootstrapping openssl on RU when needed, rejecting certificate source paths under /opt/KrotPN, and strengthening Phase-35 smoke with dynamic installer validator checks.</item>
+    <item>Phase-35 live clean VPS deploy revealed backend startup failure from blank MTProto secrets; 2026-05-17 hotfix generates MTPROTO_BASE_SECRET_HEX and MTPROTO_SECRET_SALT during deploy and treats blank optional MTProto env values as safely unset.</item>
   </what-is-working>
 
   <what-is-fragile>

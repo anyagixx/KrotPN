@@ -16,14 +16,14 @@
     <flow-1>install.sh collects RU SSH credentials, then prompts for PUBLIC_DOMAIN, TLS_FULLCHAIN_PATH, and TLS_PRIVKEY_PATH.</flow-1>
     <flow-2>install.sh performs or triggers remote validation on the RU server before creating the deploy config.</flow-2>
     <flow-3>deploy/deploy-on-server.sh installs validated TLS material to /opt/KrotPN/ssl/server.crt and /opt/KrotPN/ssl/server.key.</flow-3>
-    <flow-4>docker-compose.yml mounts /opt/KrotPN/ssl into nginx as /etc/nginx/ssl, while backend settings read EDGE_TLS_* env values.</flow-4>
+    <flow-4>docker-compose.yml mounts /opt/KrotPN/ssl into nginx as /etc/nginx/ssl, while backend settings read EDGE_TLS_* env values and deploy-generated MTProto secrets.</flow-4>
     <flow-5>M-044 and M-046 continue to own MTProto runtime policy and shared-443 live routing; M-048 supplies trusted wildcard TLS readiness.</flow-5>
   </DataFlow>
   <Steps>
     <step-1 STATUS="pass-local">Add installer prompts for domain, fullchain path, and private-key path after RU SSH connectivity is known.</step-1>
     <step-2 STATUS="pass-local">Add remote validation for file existence, readability, non-empty material, expiry, cert/key match, and SAN coverage for the base domain plus wildcard host.</step-2>
     <step-3 STATUS="pass-local">Replace unconditional production self-signed generation with an operator-wildcard path and explicit dev/self-signed fallback only when requested.</step-3>
-    <step-4 STATUS="pass-local">Wire generated .env values for DOMAIN, FRONTEND_URL, CORS origins, MTPROTO_BASE_DOMAIN, EDGE_PUBLIC_DOMAIN, EDGE_TLS_CERTIFICATE_PATH, EDGE_TLS_CERTIFICATE_KEY_PATH, and EDGE_TLS_CERTIFICATE_MODE.</step-4>
+    <step-4 STATUS="pass-local">Wire generated .env values for DOMAIN, FRONTEND_URL, CORS origins, MTPROTO_BASE_DOMAIN, MTPROTO_BASE_SECRET_HEX, MTPROTO_SECRET_SALT, EDGE_PUBLIC_DOMAIN, EDGE_TLS_CERTIFICATE_PATH, EDGE_TLS_CERTIFICATE_KEY_PATH, and EDGE_TLS_CERTIFICATE_MODE.</step-4>
     <step-5 STATUS="pass-local">Render or validate nginx domain ownership so the canonical host and wildcard host match the operator-selected domain instead of drifting from krotpn.xyz assumptions.</step-5>
     <step-6 STATUS="partial-local">Add static verification and operator-live smoke instructions for a clean VPS deploy with prepared wildcard TLS files.</step-6>
   </Steps>
@@ -37,7 +37,7 @@
     <item-1>Fresh install asks for domain and certificate paths and defaults to krotpn.xyz, /root/krotpn-ssl/fullchain1.pem, and /root/krotpn-ssl/privkey1.pem.</item-1>
     <item-2>Wrong paths, mismatched cert/key, expired cert, or missing wildcard SAN abort before docker compose changes.</item-2>
     <item-3>Valid operator wildcard TLS material is installed to /opt/KrotPN/ssl and reused by nginx/container paths without logging private key contents.</item-3>
-    <item-4>The generated .env advertises https://krotpn.xyz and MTPROTO_BASE_DOMAIN=krotpn.xyz instead of defaulting production to the RU IP.</item-4>
+    <item-4>The generated .env advertises https://krotpn.xyz, MTPROTO_BASE_DOMAIN=krotpn.xyz, and non-empty 32-hex MTProto secret values instead of defaulting production to the RU IP or blank MTProto credentials.</item-4>
     <item-5>Redeploy preserves working cert material unless a validated replacement is explicitly provided.</item-5>
   </AcceptanceCriteria>
   <Risks>
@@ -57,5 +57,6 @@
     <evidence-4>2026-05-17: Local syntax/static checks passed for bash, Phase-35 smoke, Phase-32 edge smoke, Phase-34 stabilization smoke, domain TLS edge pytest, and docker compose config.</evidence-4>
     <evidence-5>Clean VPS deploy with real wildcard certificate files remains operator-live before claiming production closure.</evidence-5>
     <evidence-6>2026-05-17: Reviewer follow-up resolved clean VPS openssl preflight risk, disallowed /opt/KrotPN certificate source paths, and strengthened Phase-35 smoke with dynamic validator calls.</evidence-6>
+    <evidence-7>2026-05-17: Clean VPS live deploy exposed backend restart-loop from blank MTProto secrets; hotfix generates deploy-time 32-hex secret/salt values and adds backend blank-env regression coverage.</evidence-7>
   </ExecutionEvidence>
 </Phase-35>

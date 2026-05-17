@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<V-M-043 MODULE="M-043" PRIORITY="critical" STATUS="pass-local" VERSION="1.3.0">
+<V-M-043 MODULE="M-043" PRIORITY="critical" STATUS="pass-local" VERSION="1.4.0">
   <module>mtproto-provisioning</module>
   <phase-scope>
     <phase-29 status="pass-local">Deterministic MTProto provisioning core implemented and verified locally.</phase-29>
@@ -18,7 +18,7 @@
     <check-1 evidence="deterministic">SNI generation is stable and wildcard-safe for krotpn.xyz.</check-1>
     <check-2 evidence="deterministic">Derived fake-TLS credential differs from raw base secret and matches golden vectors.</check-2>
     <check-3 evidence="deterministic">Repeated issuance is idempotent and returns the same canonical assignment.</check-3>
-    <check-4 evidence="failure-path">Missing, malformed, or rotated base secret/salt returns explicit reissue-required or config-error states without partial persistence.</check-4>
+    <check-4 evidence="failure-path">Missing, blank, malformed, or rotated base secret/salt returns explicit reissue-required or config-error states without partial persistence or backend startup crash.</check-4>
     <check-5 evidence="security">The generated tg://proxy payload is returned only to the owner-safe service response and is not persisted or logged raw.</check-5>
     <check-6 evidence="cross-module">Pending email registration and unverified users cannot trigger MTProto assignment issuance.</check-6>
     <check-7 evidence="phase-34-integration">Verified-email activation plus owner dashboard access produces one idempotent MTProto assignment and owner-only tg://proxy response.</check-7>
@@ -31,7 +31,7 @@
     <scenario-1 kind="success">Verified user receives a personal tg://proxy link with derived per-SNI credential.</scenario-1>
     <scenario-2 kind="success">Reopening the account dashboard rebuilds the same owner-safe payload from assignment state.</scenario-2>
     <scenario-3 kind="success">Explicit reissue after rotation creates a new assignment state or rotation marker according to M-042 policy.</scenario-3>
-    <scenario-4 kind="failure">Missing base secret, missing salt, or invalid secret format blocks issuance safely.</scenario-4>
+    <scenario-4 kind="failure">Missing or blank base secret, missing or blank salt, or invalid secret format blocks issuance safely.</scenario-4>
     <scenario-5 kind="failure">Unsafe SNI characters, wrong domain, duplicate SNI collision, or invalid port fail deterministically.</scenario-5>
     <scenario-6 kind="failure">Unverified, inactive, or missing users do not receive assignment rows or tg://proxy payloads.</scenario-6>
   </scenarios>
@@ -54,5 +54,6 @@
   </autonomous-execution-safety>
   <evidence>
     <evidence-1>2026-05-14: V-M-043 target tests passed locally inside the combined Phase-29 pytest run.</evidence-1>
+    <evidence-2>2026-05-17: Blank MTProto env values regression test added after clean VPS deploy exposed backend startup failure from empty secrets.</evidence-2>
   </evidence>
 </V-M-043>

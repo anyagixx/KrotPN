@@ -1,7 +1,7 @@
 """MTProto provisioning core tests.
 
 # FILE: backend/tests/test_mtproto_provisioning.py
-# VERSION: 1.0.0
+# VERSION: 1.1.0
 # ROLE: TEST
 # MAP_MODE: LOCALS
 # START_MODULE_CONTRACT
@@ -18,10 +18,12 @@
 #   test_issue_user_proxy_is_idempotent_and_owner_safe - Covers owner payload assembly
 #   test_issue_user_proxy_rejects_unverified_user_without_assignment - Covers verified gate
 #   test_rotation_marker_requires_explicit_reissue - Covers reissue-required policy
+#   test_blank_mtproto_secrets_are_treated_as_missing_config - Covers blank env normalization
 #   test_incomplete_runtime_config_is_rejected - Covers safe config failure
 # END_MODULE_MAP
 #
 # START_CHANGE_SUMMARY
+#   LAST_CHANGE: v1.1.0 - Added regression coverage for blank MTProto env values from fresh deploys
 #   LAST_CHANGE: v1.0.0 - Added Phase-29 provisioning tests
 # END_CHANGE_SUMMARY
 """
@@ -163,6 +165,24 @@ async def test_rotation_marker_requires_explicit_reissue(db_session: AsyncSessio
     assert reissued.server == first.server
     assert reissued.rotation_marker == "v2"
     assert await _assignment_count(db_session) == 1
+
+
+@pytest.mark.asyncio
+async def test_blank_mtproto_secrets_are_treated_as_missing_config(
+    db_session: AsyncSession,
+):
+    user = await _create_user(db_session, "blank-config-mtproto@example.com")
+    settings = _settings(mtproto_base_secret_hex="", mtproto_secret_salt="   ")
+    service = MTProtoProvisioningService(db_session, app_settings=settings)
+
+    assert settings.mtproto_base_secret_hex is None
+    assert settings.mtproto_secret_salt is None
+
+    with pytest.raises(MTProtoProvisioningError) as exc:
+        await service.issue_user_proxy(user)
+
+    assert exc.value.code == MTProtoProvisioningErrorCode.CONFIG_INCOMPLETE
+    assert await _assignment_count(db_session) == 0
 
 
 @pytest.mark.asyncio

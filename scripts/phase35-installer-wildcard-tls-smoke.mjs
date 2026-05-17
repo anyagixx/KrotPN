@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 // FILE: scripts/phase35-installer-wildcard-tls-smoke.mjs
-// VERSION: 1.1.0
+// VERSION: 1.2.0
 // ROLE: SCRIPT
 // MAP_MODE: LOCALS
 // START_MODULE_CONTRACT
@@ -12,12 +12,13 @@
 //
 // START_MODULE_MAP
 //   read - Load a project file as UTF-8.
-//   requireText/requireAbsent - Minimal static contract assertions.
+//   requireText/requireAbsent/requireMatch - Minimal static contract assertions.
 //   runInstallerValidator - Source install.sh without running main and execute validator assertions.
 //   BLOCK_PHASE35_INSTALLER_WILDCARD_TLS_SMOKE - Phase-35 source and documentation assertions.
 // END_MODULE_MAP
 //
 // START_CHANGE_SUMMARY
+//   LAST_CHANGE: v1.2.0 - Added deploy-generated MTProto secret regression guard.
 //   LAST_CHANGE: v1.1.0 - Added dynamic installer validator checks for unsafe domains and certificate paths.
 // END_CHANGE_SUMMARY
 
@@ -43,6 +44,13 @@ function requireAbsent(file, marker) {
   const content = read(file)
   if (content.includes(marker)) {
     throw new Error(`${file} must not contain ${JSON.stringify(marker)}`)
+  }
+}
+
+function requireMatch(file, pattern, description) {
+  const content = read(file)
+  if (!pattern.test(content)) {
+    throw new Error(`${file} is missing ${description}`)
   }
 }
 
@@ -94,8 +102,22 @@ requireText('deploy/deploy-on-server.sh', '/opt/KrotPN/ssl/server.key')
 requireText('deploy/deploy-on-server.sh', 'NGINX_CONF_PATH=./nginx/nginx.runtime.conf')
 requireText('deploy/deploy-on-server.sh', 'FRONTEND_URL=https://${PUBLIC_DOMAIN}')
 requireText('deploy/deploy-on-server.sh', 'MTPROTO_BASE_DOMAIN=${PUBLIC_DOMAIN}')
+requireText('deploy/deploy-on-server.sh', 'MTPROTO_BASE_SECRET_HEX=${MTPROTO_BASE_SECRET_HEX}')
+requireText('deploy/deploy-on-server.sh', 'MTPROTO_SECRET_SALT=${MTPROTO_SECRET_SALT}')
+requireMatch(
+  'deploy/deploy-on-server.sh',
+  /MTPROTO_BASE_SECRET_HEX=\$\(python3 -c "import secrets; print\(secrets\.token_hex\(16\)\)"\)/,
+  'deploy-time MTProto base secret generation',
+)
+requireMatch(
+  'deploy/deploy-on-server.sh',
+  /MTPROTO_SECRET_SALT=\$\(python3 -c "import secrets; print\(secrets\.token_hex\(16\)\)"\)/,
+  'deploy-time MTProto secret salt generation',
+)
 requireText('deploy/deploy-on-server.sh', 'EDGE_TLS_CERTIFICATE_MODE=${TLS_CERTIFICATE_MODE}')
 requireText('deploy/deploy-on-server.sh', 'self-signed-dev')
+requireAbsent('deploy/deploy-on-server.sh', 'MTPROTO_BASE_SECRET_HEX=\n')
+requireAbsent('deploy/deploy-on-server.sh', 'MTPROTO_SECRET_SALT=\n')
 requireAbsent('deploy/deploy-on-server.sh', 'cat "$TLS_PRIVKEY_PATH"')
 requireAbsent('deploy/deploy-on-server.sh', 'cat ${TLS_PRIVKEY_PATH}')
 

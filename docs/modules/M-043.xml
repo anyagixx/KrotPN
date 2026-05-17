@@ -26,9 +26,11 @@
     <constraint-1>Knowing base domain, port, and base secret must not be enough to authenticate without issued derived credential.</constraint-1>
     <constraint-2>Base secret or salt rotation invalidates old links and must require explicit reissue messaging.</constraint-2>
     <constraint-3>Provisioning must be idempotent for repeated verified-registration retries.</constraint-3>
+    <constraint-4>Missing or blank MTProto secret configuration must fail proxy issuance safely without crashing unrelated backend startup.</constraint-4>
   </constraints>
   <evidence>
     <evidence-1>2026-05-14: Phase-29 target pytest passed for deterministic SNI, KPprotoN fake-TLS vector, verified-user guard, idempotency, reissue, and config failure paths.</evidence-1>
+    <evidence-2>2026-05-17: Clean VPS hotfix added regression coverage for blank MTProto env values being normalized to missing config and rejected at issuance time.</evidence-2>
   </evidence>
   <hotspot>H-029: Changing MTProto base secret or salt invalidates issued Telegram proxy links unless reissue is explicit</hotspot>
 </M-043>

@@ -24,6 +24,7 @@
 # END_MODULE_MAP
 #
 # START_CHANGE_SUMMARY
+#   LAST_CHANGE: v3.5.1 - Treat blank optional MTProto secrets as unset so backend can degrade instead of crash.
 #   LAST_CHANGE: v3.5.0 - Added Phase-32 krotpn.xyz domain TLS edge settings
 #   LAST_CHANGE: v3.4.0 - Added Phase-29 MTProto provisioning settings
 #   LAST_CHANGE: v3.3.0 - Added Phase-27 email verification provider, TTL and domain guard settings
@@ -342,6 +343,8 @@ class Settings(BaseSettings):
         if v is None:
             return None
         normalized = v.strip().lower()
+        if not normalized:
+            return None
         if not re.fullmatch(r"[0-9a-f]{32}", normalized):
             raise ValueError("MTPROTO_BASE_SECRET_HEX must be exactly 32 hex characters")
         return normalized
@@ -352,6 +355,8 @@ class Settings(BaseSettings):
         if v is None:
             return None
         normalized = v.strip().lower()
+        if not normalized:
+            return None
         if not re.fullmatch(r"[0-9a-f]{32}", normalized):
             raise ValueError("MTPROTO_SECRET_SALT must be exactly 32 hex characters")
         return normalized

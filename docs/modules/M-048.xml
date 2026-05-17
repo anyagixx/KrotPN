@@ -8,7 +8,7 @@
     <installer-fullchain-prompt>Prompt for the absolute RU-server fullchain path with /root/krotpn-ssl/fullchain1.pem as the default.</installer-fullchain-prompt>
     <installer-privkey-prompt>Prompt for the absolute RU-server private key path with /root/krotpn-ssl/privkey1.pem as the default.</installer-privkey-prompt>
     <remote-cert-validator>Bootstrap openssl when needed, then verify existence, readability, expiry, cert/key match, and SAN coverage before deploy mutates the runtime TLS directory.</remote-cert-validator>
-    <edge-env-wiring>Generate DOMAIN, FRONTEND_URL, MTPROTO_BASE_DOMAIN, and EDGE_TLS_* values for the deployed .env.</edge-env-wiring>
+    <edge-env-wiring>Generate DOMAIN, FRONTEND_URL, MTPROTO_BASE_DOMAIN, MTPROTO_BASE_SECRET_HEX, MTPROTO_SECRET_SALT, and EDGE_TLS_* values for the deployed .env.</edge-env-wiring>
   </exports>
   <depends>M-001,M-012,M-044,M-046</depends>
   <verification-ref>V-M-048</verification-ref>
@@ -32,6 +32,7 @@
     <constraint-3>Certificate validation must fail before docker compose changes when paths are missing, key mismatch occurs, SAN coverage is wrong, or the cert is expired.</constraint-3>
     <constraint-4>Shared 443 MTProto routing remains a live-gated M-046/M-044 concern; this module only makes trusted wildcard TLS material deployable and reusable.</constraint-4>
     <constraint-5>Operator certificate source paths must not be under /opt/KrotPN because installer refreshes that repository directory during clone.</constraint-5>
+    <constraint-6>Fresh deploys must generate non-empty 32-hex MTProto base secret and salt values without printing them.</constraint-6>
   </constraints>
   <planned-execution>
     <step-1 STATUS="pass-local">Extend install.sh prompt allowlist and interactive flow for domain, fullchain path, and privkey path after RU SSH credentials are known.</step-1>
@@ -44,6 +45,7 @@
     <evidence-1>2026-05-17: Local Phase-35 implementation added installer prompts, RU cert preflight, deploy-time certificate validation/install, production env wiring, runtime nginx rendering, and static smoke coverage.</evidence-1>
     <evidence-2>2026-05-17: Live clean VPS deploy with prepared wildcard certificate files remains operator-required before STATUS can move beyond partial-local.</evidence-2>
     <evidence-3>2026-05-17: Reviewer follow-up fixed clean VPS openssl bootstrap risk, rejected /opt/KrotPN cert source paths, and added dynamic installer validator smoke checks.</evidence-3>
+    <evidence-4>2026-05-17: Live clean VPS backend unhealthy failure was fixed by generating deploy-time MTProto secrets and adding smoke coverage against blank deploy values.</evidence-4>
   </evidence>
   <hotspot>H-034: Installer-provided wildcard TLS must validate cert/key/domain before deploy and must never log private key material.</hotspot>
 </M-048>
