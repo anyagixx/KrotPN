@@ -3,7 +3,7 @@
 <current-status>
   <meta>
     <project-name>KrotPN</project-name>
-    <updated>2026-05-14</updated>
+    <updated>2026-05-17</updated>
     <status>active-development</status>
   </meta>
 
@@ -45,6 +45,7 @@
     <item>Phase-32 domain TLS edge passed local/static verification on 2026-05-14: krotpn.xyz settings, HTTP to HTTPS redirect contract, wildcard HTTPS fallback, compose config, protected deploy/install guard, rollback/live-smoke checklist, and M-044/M-043/M-040 regression tests.</item>
     <item>Phase-33 MTProto admin ops passed local verification on 2026-05-14: admin-only redacted assignment list/detail/health, confirmation-safe reissue/revoke with runtime SNI policy removal, safe audit events, compact frontend-admin /mtproto page, backend regression tests, frontend build, static smoke, and no deploy/install changes.</item>
     <item>Phase-34 MTProto integration stabilization passed local verification on 2026-05-14: verified email activation to owner MTProto assignment integration, static frontend/admin redaction smoke, MTProto backup/restore documentation coverage, and release handoff checklist were added without deploy/install/edge surface changes. Live DNS/TLS/shared-443 smoke remains operator-required.</item>
+    <item>Phase-35 operator wildcard TLS installer passed local/static verification on 2026-05-17: install.sh now asks for domain, fullchain1.pem and privkey1.pem paths, deploy validates operator wildcard TLS material before compose startup, production self-signed fallback is blocked unless dev mode is explicit, and nginx can use an ignored runtime domain config. Clean VPS deploy with real wildcard certificate files remains operator-required.</item>
   </what-is-working>
 
   <what-is-fragile>
@@ -55,6 +56,7 @@
     <item>Verification reproducibility across environments.</item>
     <item>MTProto public edge integration has local/static coverage through Phases 31-34, but shared 443/TLS/domain live proof is still deferred until operator DNS, wildcard TLS, and rollback window are ready.</item>
     <item>Phase-32 shared 443 production smoke remains blocked until DNS, trusted wildcard TLS material, and an operator rollback window are available.</item>
+    <item>Phase-35 clean VPS wildcard TLS deploy smoke remains operator-live until prepared fullchain1.pem/privkey1.pem files are present on the RU server and public HTTPS is verified.</item>
     <item>Emergency relocation is documented but still blocked until a trusted backup bundle and isolated restore target exist for dry-run evidence.</item>
     <item>Cookie-only auth migration is planned but not executed because it requires explicit approval and HTTPS or production-like smoke evidence.</item>
   </what-is-fragile>
@@ -120,11 +122,14 @@
     <gate id="phase-34-mtproto-integration-stabilization" status="partial-local">
       <summary>Local Phase-34 backend integration, frontend/admin static smoke, backup/restore docs coverage, XML parse, and MyGRACE lint passed; live krotpn.xyz DNS/TLS/shared-443/Telegram client smoke remains operator-required.</summary>
     </gate>
+    <gate id="phase-35-operator-wildcard-tls-installer" status="partial-local">
+      <summary>Local Phase-35 shell syntax, static installer TLS smoke, edge guard smoke, domain TLS pytest, docker compose config, XML parse, and MyGRACE lint passed; clean VPS deploy with prepared wildcard TLS files remains operator-required.</summary>
+    </gate>
   </rollout-gates>
 
   <immediate-priorities>
     <priority rank="1">Fix Phase-28 refresh findings: V-M-004 billing route/API tests and V-M-022 VPN compatibility route tests currently return 404 in their full per-module gates.</priority>
-    <priority rank="2">Complete Phase-32/Phase-34 live edge smoke after DNS points to the intended host, trusted wildcard TLS for krotpn.xyz and *.krotpn.xyz is installed, an issued MTProto SNI is available, and an operator rollback window is available.</priority>
+    <priority rank="2">Complete Phase-32/Phase-34/Phase-35 live edge smoke after DNS points to the intended host, trusted wildcard TLS for krotpn.xyz and *.krotpn.xyz is installed through the Phase-35 installer flow, an issued MTProto SNI is available, and an operator rollback window is available.</priority>
     <priority rank="3">Run Phase-22 non-production restore rehearsal with a trusted backup bundle and isolated restore target.</priority>
     <priority rank="4">Decide whether to approve cookie-only auth migration and provide HTTPS or production-like auth smoke target.</priority>
     <priority rank="5">Keep deploy/install scripts unchanged unless the operator explicitly requests deployment-surface work.</priority>

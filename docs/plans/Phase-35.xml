@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Phase-35 NAME="Operator Wildcard TLS Installer" STATUS="planned" VERSION="1.0.0">
+<Phase-35 NAME="Operator Wildcard TLS Installer" STATUS="partial-local" VERSION="1.1.0">
   <Goal>Make the installer accept and validate an already prepared wildcard TLS certificate so KrotPN can deploy on krotpn.xyz without reissuing certificates during every install.</Goal>
   <Modules>M-048,M-012,M-046,M-001,M-044</Modules>
   <OperatorIntent>
@@ -20,12 +20,12 @@
     <flow-5>M-044 and M-046 continue to own MTProto runtime policy and shared-443 live routing; M-048 supplies trusted wildcard TLS readiness.</flow-5>
   </DataFlow>
   <Steps>
-    <step-1 STATUS="planned">Add installer prompts for domain, fullchain path, and private-key path after RU SSH connectivity is known.</step-1>
-    <step-2 STATUS="planned">Add remote validation for file existence, readability, non-empty material, expiry, cert/key match, and SAN coverage for the base domain plus wildcard host.</step-2>
-    <step-3 STATUS="planned">Replace unconditional production self-signed generation with an operator-wildcard path and explicit dev/self-signed fallback only when requested.</step-3>
-    <step-4 STATUS="planned">Wire generated .env values for DOMAIN, FRONTEND_URL, CORS origins, MTPROTO_BASE_DOMAIN, EDGE_PUBLIC_DOMAIN, EDGE_TLS_CERTIFICATE_PATH, EDGE_TLS_CERTIFICATE_KEY_PATH, and EDGE_TLS_CERTIFICATE_MODE.</step-4>
-    <step-5 STATUS="planned">Render or validate nginx domain ownership so the canonical host and wildcard host match the operator-selected domain instead of drifting from krotpn.xyz assumptions.</step-5>
-    <step-6 STATUS="planned">Add static verification and operator-live smoke instructions for a clean VPS deploy with prepared wildcard TLS files.</step-6>
+    <step-1 STATUS="pass-local">Add installer prompts for domain, fullchain path, and private-key path after RU SSH connectivity is known.</step-1>
+    <step-2 STATUS="pass-local">Add remote validation for file existence, readability, non-empty material, expiry, cert/key match, and SAN coverage for the base domain plus wildcard host.</step-2>
+    <step-3 STATUS="pass-local">Replace unconditional production self-signed generation with an operator-wildcard path and explicit dev/self-signed fallback only when requested.</step-3>
+    <step-4 STATUS="pass-local">Wire generated .env values for DOMAIN, FRONTEND_URL, CORS origins, MTPROTO_BASE_DOMAIN, EDGE_PUBLIC_DOMAIN, EDGE_TLS_CERTIFICATE_PATH, EDGE_TLS_CERTIFICATE_KEY_PATH, and EDGE_TLS_CERTIFICATE_MODE.</step-4>
+    <step-5 STATUS="pass-local">Render or validate nginx domain ownership so the canonical host and wildcard host match the operator-selected domain instead of drifting from krotpn.xyz assumptions.</step-5>
+    <step-6 STATUS="partial-local">Add static verification and operator-live smoke instructions for a clean VPS deploy with prepared wildcard TLS files.</step-6>
   </Steps>
   <Verification>
     <command-1>bash -n install.sh deploy/deploy-on-server.sh</command-1>
@@ -50,4 +50,11 @@
     <safe-local>Static script parsing, XML parsing, MyGRACE lint, and smoke scripts that inspect source text are safe to run locally.</safe-local>
     <requires-operator>Real certificate files, DNS changes, clean VPS install, HTTPS public smoke, and shared-443 MTProto live cutover require operator readiness.</requires-operator>
   </AutonomousExecutionSafety>
+  <ExecutionEvidence>
+    <evidence-1>2026-05-17: install.sh prompts for PUBLIC_DOMAIN, TLS_FULLCHAIN_PATH, and TLS_PRIVKEY_PATH with krotpn.xyz and /root/krotpn-ssl defaults after RU SSH connectivity succeeds.</evidence-1>
+    <evidence-2>2026-05-17: deploy/deploy-on-server.sh validates operator wildcard TLS material before compose startup, installs cert/key atomically into /opt/KrotPN/ssl, and blocks silent production self-signed fallback.</evidence-2>
+    <evidence-3>2026-05-17: docker-compose.yml supports NGINX_CONF_PATH so deploy renders ignored nginx/nginx.runtime.conf for the operator-selected domain while keeping tracked nginx/nginx.conf as the krotpn.xyz fallback.</evidence-3>
+    <evidence-4>2026-05-17: Local syntax/static checks passed for bash, Phase-35 smoke, Phase-32 edge smoke, Phase-34 stabilization smoke, domain TLS edge pytest, and docker compose config.</evidence-4>
+    <evidence-5>Clean VPS deploy with real wildcard certificate files remains operator-live before claiming production closure.</evidence-5>
+  </ExecutionEvidence>
 </Phase-35>

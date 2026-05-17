@@ -1,14 +1,14 @@
 #!/usr/bin/env node
 // FILE: scripts/phase34-mtproto-stabilization-smoke.mjs
-// VERSION: 1.0.0
+// VERSION: 1.1.0
 // ROLE: SCRIPT
 // MAP_MODE: LOCALS
 // START_MODULE_CONTRACT
 //   PURPOSE: Static Phase-34 stabilization smoke for verified onboarding, MTProto owner/admin surfaces, redaction, and release handoff.
 //   SCOPE: Source markers, Phase-34 integration-test presence, frontend/admin anchors,
-//          release checklist markers, secret-redaction guards, and protected deploy/install/edge surface guard.
-//   DEPENDS: M-040, M-041, M-042, M-043, M-045, M-046, M-047, node:fs, node:path, node:child_process
-//   LINKS: V-M-041, V-M-045, V-M-046, V-M-047, docs/plans/Phase-34.xml
+//          release checklist markers, secret-redaction guards, and Phase-35 scoped deploy/install/edge surface guard.
+//   DEPENDS: M-040, M-041, M-042, M-043, M-045, M-046, M-047, M-048, node:fs, node:path, node:child_process
+//   LINKS: V-M-041, V-M-045, V-M-046, V-M-047, V-M-048, docs/plans/Phase-34.xml, docs/plans/Phase-35.xml
 // END_MODULE_CONTRACT
 //
 // START_MODULE_MAP
@@ -19,7 +19,7 @@
 // END_MODULE_MAP
 //
 // START_CHANGE_SUMMARY
-//   LAST_CHANGE: v1.0.0 - Added Phase-34 MTProto stabilization static smoke gate.
+//   LAST_CHANGE: v1.1.0 - Allowed approved Phase-35 wildcard TLS installer edge/deploy changes.
 // END_CHANGE_SUMMARY
 
 import { execFileSync } from 'node:child_process'
@@ -107,15 +107,34 @@ requireAbsent('docs/handoff/PHASE-34-RELEASE-CHECKLIST.xml', '0123456789abcdef')
 requireAbsent('docs/handoff/PHASE-34-RELEASE-CHECKLIST.xml', 'abcdef0123456789')
 requireAbsent('docs/handoff/PHASE-34-RELEASE-CHECKLIST.xml', 'MTPROTO_BASE_SECRET_HEX=')
 
+const approvedPhase35Surface = new Set([
+  '.env.example',
+  'docker-compose.yml',
+  'install.sh',
+  'deploy/deploy-on-server.sh',
+  'backend/tests/test_domain_tls_edge_static.py',
+  'scripts/phase32-edge-contract-smoke.mjs',
+  'scripts/phase34-mtproto-stabilization-smoke.mjs',
+  'scripts/phase35-installer-wildcard-tls-smoke.mjs',
+])
+
 const protectedChanges = changedFiles().filter((file) => (
   file === 'install.sh'
   || file === 'docker-compose.yml'
+  || file === '.env.example'
   || file.startsWith('deploy/')
   || file.startsWith('nginx/')
+  || file.startsWith('scripts/phase')
 ))
+const unexpectedChanges = protectedChanges.filter((file) => !approvedPhase35Surface.has(file))
+
+if (unexpectedChanges.length > 0) {
+  throw new Error(`Phase-34/35 protected surface drift: ${unexpectedChanges.join(', ')}`)
+}
 
 if (protectedChanges.length > 0) {
-  throw new Error(`Phase-34 must not change deploy/install/edge surfaces: ${protectedChanges.join(', ')}`)
+  requireText('docs/graph-index.xml', 'M-048')
+  requireText('docs/plan-index.xml', 'Phase-35')
 }
 // END_BLOCK_PHASE34_MTPROTO_STABILIZATION_SMOKE
 

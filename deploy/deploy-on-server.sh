@@ -1,7 +1,31 @@
 #!/bin/bash
 #
-# KrotPN Server Deployment Script v3.0.0 (Full Tunnel)
+# KrotPN Server Deployment Script v3.1.0 (Full Tunnel)
 # Run this script ON the RU server
+# FILE: deploy/deploy-on-server.sh
+# VERSION: 3.1.0
+# ROLE: SCRIPT
+# MAP_MODE: LOCALS
+# START_MODULE_CONTRACT
+#   PURPOSE: Provision the RU entry host, DE exit host, application runtime, and Phase-35 operator wildcard TLS edge material.
+#   SCOPE: Host prerequisites, AmneziaWG tunnel setup, app env generation, TLS certificate validation/install, nginx runtime config rendering, and Docker Compose startup.
+#   DEPENDS: M-012, M-030, M-032, M-048
+#   LINKS: docs/modules/M-012.xml, docs/modules/M-048.xml, docs/plans/Phase-35.xml, docs/verification/V-M-048.xml
+# END_MODULE_CONTRACT
+#
+# START_MODULE_MAP
+#   validate_public_domain - Validate operator public-domain input before use in env/nginx config.
+#   validate_tls_path - Validate absolute operator certificate paths.
+#   validate_operator_tls_certificate - Verify cert/key readability, expiry, key match, and SAN coverage without leaking private keys.
+#   install_operator_tls_certificate - Atomically install validated cert/key to /opt/KrotPN/ssl.
+#   generate_self_signed_dev_certificate - Explicit dev/test fallback, blocked for production unless selected.
+#   render_nginx_domain_config - Render ignored runtime nginx config for the selected domain.
+# END_MODULE_MAP
+#
+# START_CHANGE_SUMMARY
+#   LAST_CHANGE: v3.1.0 - Added Phase-35 operator wildcard TLS validation, install, env wiring, and nginx runtime rendering.
+# END_CHANGE_SUMMARY
+#
 # GRACE-lite operational contract:
 # - This script is executed on the RU host and consumes temporary config from /tmp/krotpn_deploy.conf.
 # - It decodes remote credentials, provisions RU host services and reaches the DE host over SSH.
@@ -41,6 +65,168 @@ require_command() {
     fi
 }
 
+validate_public_domain() {
+    local domain="$1"
+
+    if [ -z "$domain" ]; then
+        echo -e "${RED}[M-048][installer_tls][VALIDATE_INPUTS] Missing PUBLIC_DOMAIN${NC}"
+        return 1
+    fi
+
+    if [[ "$domain" == http://* ]] || [[ "$domain" == https://* ]] || [[ "$domain" == */* ]]; then
+        echo -e "${RED}[M-048][installer_tls][VALIDATE_INPUTS] PUBLIC_DOMAIN must be a bare domain name${NC}"
+        return 1
+    fi
+
+    if [[ ! "$domain" =~ ^[A-Za-z0-9]([A-Za-z0-9-]{0,61}[A-Za-z0-9])?(\.[A-Za-z0-9]([A-Za-z0-9-]{0,61}[A-Za-z0-9])?)+$ ]]; then
+        echo -e "${RED}[M-048][installer_tls][VALIDATE_INPUTS] Invalid PUBLIC_DOMAIN: ${domain}${NC}"
+        return 1
+    fi
+
+    return 0
+}
+
+validate_tls_path() {
+    local path="$1"
+    local label="$2"
+
+    if [ -z "$path" ]; then
+        echo -e "${RED}[M-048][installer_tls][VALIDATE_INPUTS] Missing ${label} path${NC}"
+        return 1
+    fi
+
+    if [[ "$path" != /* ]]; then
+        echo -e "${RED}[M-048][installer_tls][VALIDATE_INPUTS] ${label} path must be absolute${NC}"
+        return 1
+    fi
+
+    if [[ ! "$path" =~ ^/[A-Za-z0-9._/@:+-]+$ ]]; then
+        echo -e "${RED}[M-048][installer_tls][VALIDATE_INPUTS] ${label} path contains unsupported characters${NC}"
+        return 1
+    fi
+
+    return 0
+}
+
+ensure_openssl_available() {
+    if command -v openssl >/dev/null 2>&1; then
+        return 0
+    fi
+
+    echo -e "${BLUE}[M-048][installer_tls][VALIDATE_CERT_PATHS] Installing openssl for TLS validation...${NC}"
+    apt-get update -qq && apt-get install -y -qq openssl ca-certificates
+}
+
+validate_operator_tls_certificate() {
+    local domain="${PUBLIC_DOMAIN}"
+    local wildcard_domain="*.${domain}"
+    local cert_pub_hash=""
+    local key_pub_hash=""
+    local san_text=""
+    local escaped_domain=""
+    local not_after=""
+
+    echo -e "${BLUE}[M-048][installer_tls][VALIDATE_CERT_PATHS] Validating operator wildcard TLS material...${NC}"
+
+    validate_public_domain "$domain" || exit 1
+    validate_tls_path "$TLS_FULLCHAIN_PATH" "TLS fullchain" || exit 1
+    validate_tls_path "$TLS_PRIVKEY_PATH" "TLS private key" || exit 1
+    ensure_openssl_available
+
+    for path in "$TLS_FULLCHAIN_PATH" "$TLS_PRIVKEY_PATH"; do
+        if [ ! -f "$path" ]; then
+            echo -e "${RED}[M-048][deploy_tls][ABORT_BEFORE_DEPLOY] Missing TLS file: ${path}${NC}"
+            exit 1
+        fi
+        if [ ! -r "$path" ]; then
+            echo -e "${RED}[M-048][deploy_tls][ABORT_BEFORE_DEPLOY] TLS file is not readable: ${path}${NC}"
+            exit 1
+        fi
+        if [ ! -s "$path" ]; then
+            echo -e "${RED}[M-048][deploy_tls][ABORT_BEFORE_DEPLOY] TLS file is empty: ${path}${NC}"
+            exit 1
+        fi
+    done
+
+    openssl x509 -in "$TLS_FULLCHAIN_PATH" -noout >/dev/null 2>&1 || {
+        echo -e "${RED}[M-048][deploy_tls][ABORT_BEFORE_DEPLOY] TLS fullchain is not a readable X.509 certificate${NC}"
+        exit 1
+    }
+    openssl pkey -in "$TLS_PRIVKEY_PATH" -noout >/dev/null 2>&1 || {
+        echo -e "${RED}[M-048][deploy_tls][ABORT_BEFORE_DEPLOY] TLS private key is not readable by openssl${NC}"
+        exit 1
+    }
+
+    if ! openssl x509 -in "$TLS_FULLCHAIN_PATH" -checkend 86400 -noout >/dev/null 2>&1; then
+        echo -e "${RED}[M-048][deploy_tls][ABORT_BEFORE_DEPLOY] TLS certificate is expired or expires in less than 24 hours${NC}"
+        exit 1
+    fi
+
+    cert_pub_hash="$(openssl x509 -in "$TLS_FULLCHAIN_PATH" -pubkey -noout 2>/dev/null | openssl pkey -pubin -outform der 2>/dev/null | openssl dgst -sha256 2>/dev/null | awk '{print $2}')"
+    key_pub_hash="$(openssl pkey -in "$TLS_PRIVKEY_PATH" -pubout -outform der 2>/dev/null | openssl dgst -sha256 2>/dev/null | awk '{print $2}')"
+    if [ -z "$cert_pub_hash" ] || [ -z "$key_pub_hash" ] || [ "$cert_pub_hash" != "$key_pub_hash" ]; then
+        echo -e "${RED}[M-048][installer_tls][VALIDATE_CERT_KEY_MATCH] TLS certificate and private key do not match${NC}"
+        exit 1
+    fi
+
+    san_text="$(openssl x509 -in "$TLS_FULLCHAIN_PATH" -noout -ext subjectAltName 2>/dev/null || true)"
+    escaped_domain="$(printf '%s' "$domain" | sed 's/[.[\*^$()+?{}|\\]/\\&/g')"
+    if ! printf '%s\n' "$san_text" | grep -Eq "DNS:${escaped_domain}([,[:space:]]|$)"; then
+        echo -e "${RED}[M-048][installer_tls][VALIDATE_SAN] TLS certificate SAN does not include ${domain}${NC}"
+        exit 1
+    fi
+    if ! printf '%s\n' "$san_text" | grep -Eq "DNS:\*\.${escaped_domain}([,[:space:]]|$)"; then
+        echo -e "${RED}[M-048][installer_tls][VALIDATE_SAN] TLS certificate SAN does not include ${wildcard_domain}${NC}"
+        exit 1
+    fi
+
+    not_after="$(openssl x509 -in "$TLS_FULLCHAIN_PATH" -noout -enddate 2>/dev/null | sed 's/^notAfter=//')"
+    echo -e "${GREEN}[M-048][installer_tls][VALIDATE_SAN] TLS certificate covers ${domain} and ${wildcard_domain}; expires ${not_after}${NC}"
+}
+
+install_operator_tls_certificate() {
+    local ssl_dir="/opt/KrotPN/ssl"
+    local tmp_cert=""
+    local tmp_key=""
+
+    echo -e "${BLUE}[M-048][deploy_tls][INSTALL_CERT] Installing operator wildcard TLS certificate...${NC}"
+    mkdir -p "$ssl_dir"
+    tmp_cert="$(mktemp "${ssl_dir}/server.crt.tmp.XXXXXX")"
+    tmp_key="$(mktemp "${ssl_dir}/server.key.tmp.XXXXXX")"
+
+    cp "$TLS_FULLCHAIN_PATH" "$tmp_cert"
+    cp "$TLS_PRIVKEY_PATH" "$tmp_key"
+    chown root:root "$tmp_cert" "$tmp_key"
+    chmod 644 "$tmp_cert"
+    chmod 600 "$tmp_key"
+    mv "$tmp_cert" "${ssl_dir}/server.crt"
+    mv "$tmp_key" "${ssl_dir}/server.key"
+    echo -e "${GREEN}[M-048][deploy_tls][INSTALL_CERT] Operator TLS material installed at /opt/KrotPN/ssl/server.crt and /opt/KrotPN/ssl/server.key${NC}"
+}
+
+generate_self_signed_dev_certificate() {
+    echo -e "${YELLOW}[M-048][deploy_tls][INSTALL_CERT] Generating self-signed TLS because TLS_CERTIFICATE_MODE=self-signed-dev${NC}"
+    mkdir -p /opt/KrotPN/ssl
+    cd /opt/KrotPN/ssl
+    openssl req -x509 -nodes -days 3650 -newkey rsa:2048 \
+        -keyout server.key -out server.crt \
+        -subj "/C=RU/ST=Moscow/L=Moscow/O=KrotPN/OU=IT/CN=krotpn.local" 2>/dev/null
+    chmod 600 server.key
+    chmod 644 server.crt
+    echo -e "${GREEN}✓ Dev self-signed SSL certificate generated${NC}"
+}
+
+render_nginx_domain_config() {
+    local source_conf="/opt/KrotPN/nginx/nginx.conf"
+    local runtime_conf="/opt/KrotPN/nginx/nginx.runtime.conf"
+
+    echo -e "${BLUE}[M-048][deploy_tls][ENV_WIRING] Rendering nginx runtime config for ${PUBLIC_DOMAIN}...${NC}"
+    cp "$source_conf" "$runtime_conf"
+    sed -i "s/krotpn.xyz/${PUBLIC_DOMAIN}/g" "$runtime_conf"
+    chmod 644 "$runtime_conf"
+    echo -e "${GREEN}[M-048][deploy_tls][ENV_WIRING] nginx runtime config ready: ${runtime_conf}${NC}"
+}
+
 # Install sshpass if not available (needed for password-based DE auth)
 if ! command -v sshpass &> /dev/null; then
     echo -e "${BLUE}[INSTALL] Installing sshpass...${NC}"
@@ -74,6 +260,10 @@ else
 fi
 
 ADMIN_EMAIL="${ADMIN_EMAIL:-admin@krotpn.com}"
+PUBLIC_DOMAIN="$(printf '%s' "${PUBLIC_DOMAIN:-krotpn.xyz}" | tr '[:upper:]' '[:lower:]')"
+TLS_FULLCHAIN_PATH="${TLS_FULLCHAIN_PATH:-/root/krotpn-ssl/fullchain1.pem}"
+TLS_PRIVKEY_PATH="${TLS_PRIVKEY_PATH:-/root/krotpn-ssl/privkey1.pem}"
+TLS_CERTIFICATE_MODE="${TLS_CERTIFICATE_MODE:-operator-wildcard}"
 if [ -z "$ADMIN_PASSWORD" ]; then
     ADMIN_PASSWORD=$(python3 -c "import secrets; print(secrets.token_urlsafe(24))")
     GENERATED_ADMIN_PASSWORD=1
@@ -87,6 +277,20 @@ if [ -z "$DE_IP" ] || [ -z "$DE_USER" ]; then
     echo "Required: DE_IP, DE_USER"
     exit 1
 fi
+
+case "$TLS_CERTIFICATE_MODE" in
+    operator-wildcard)
+        validate_operator_tls_certificate
+        ;;
+    self-signed-dev)
+        validate_public_domain "$PUBLIC_DOMAIN" || exit 1
+        echo -e "${YELLOW}[M-048][deploy_tls][INSTALL_CERT] self-signed-dev mode is enabled; do not use for production${NC}"
+        ;;
+    *)
+        echo -e "${RED}[M-048][installer_tls][VALIDATE_INPUTS] Unsupported TLS_CERTIFICATE_MODE: ${TLS_CERTIFICATE_MODE}${NC}"
+        exit 1
+        ;;
+esac
 
 # Get RU IPv4 address (force IPv4, multiple fallbacks)
 echo -e "${BLUE}[DETECT] Getting RU server IPv4 address...${NC}"
@@ -583,16 +787,18 @@ else
     echo -e "${YELLOW}[RU] Detached HEAD detected, skipping git pull${NC}"
 fi
 
-# Generate SSL
-echo -e "${BLUE}[RU] Generating SSL certificate...${NC}"
-mkdir -p /opt/KrotPN/ssl
-cd /opt/KrotPN/ssl
-openssl req -x509 -nodes -days 3650 -newkey rsa:2048 \
-    -keyout server.key -out server.crt \
-    -subj "/C=RU/ST=Moscow/L=Moscow/O=KrotPN/OU=IT/CN=krotpn.local" 2>/dev/null
-chmod 600 server.key
-chmod 644 server.crt
-echo -e "${GREEN}✓ SSL certificate generated${NC}"
+# Install SSL
+echo -e "${BLUE}[RU] Installing SSL certificate...${NC}"
+case "$TLS_CERTIFICATE_MODE" in
+    operator-wildcard)
+        validate_operator_tls_certificate
+        install_operator_tls_certificate
+        ;;
+    self-signed-dev)
+        generate_self_signed_dev_certificate
+        ;;
+esac
+render_nginx_domain_config
 
 # Generate .env
 echo -e "${BLUE}[RU] Creating configuration...${NC}"
@@ -626,7 +832,7 @@ DATABASE_URL=postgresql+asyncpg://krotpn:${DB_PASSWORD}@db:5432/krotpn
 REDIS_URL=redis://redis:6379/0
 
 # === CORS ===
-CORS_ORIGINS=["https://${RU_IP}","http://${RU_IP}","http://localhost"]
+CORS_ORIGINS=["https://${PUBLIC_DOMAIN}","https://www.${PUBLIC_DOMAIN}","https://${RU_IP}","http://${RU_IP}","http://localhost"]
 
 # === ADMIN ===
 ADMIN_EMAIL=${ADMIN_EMAIL}
@@ -684,14 +890,27 @@ SMTP_HOST=smtp.gmail.com
 SMTP_PORT=587
 SMTP_USER=
 SMTP_PASSWORD=
-EMAIL_FROM=noreply@krotpn.com
+EMAIL_FROM=noreply@${PUBLIC_DOMAIN}
+EMAIL_VERIFICATION_URL_BASE=https://${PUBLIC_DOMAIN}/verify-email
 
 # === REFERRAL ===
 REFERRAL_BONUS_DAYS=7
 REFERRAL_MIN_PAYMENT=100.0
 
-# === DOMAIN ===
-DOMAIN=${RU_IP}
+# === PUBLIC DOMAIN / TLS EDGE ===
+DOMAIN=${PUBLIC_DOMAIN}
+FRONTEND_URL=https://${PUBLIC_DOMAIN}
+MTPROTO_BASE_DOMAIN=${PUBLIC_DOMAIN}
+MTPROTO_PROXY_PORT=443
+MTPROTO_BASE_SECRET_HEX=
+MTPROTO_SECRET_SALT=
+EDGE_PUBLIC_DOMAIN=${PUBLIC_DOMAIN}
+EDGE_CANONICAL_HOST=${PUBLIC_DOMAIN}
+EDGE_TLS_CERTIFICATE_PATH=/etc/nginx/ssl/server.crt
+EDGE_TLS_CERTIFICATE_KEY_PATH=/etc/nginx/ssl/server.key
+EDGE_TLS_CERTIFICATE_MODE=${TLS_CERTIFICATE_MODE}
+EDGE_SHARED_443_ENABLED=false
+NGINX_CONF_PATH=./nginx/nginx.runtime.conf
 EOF
 
 chmod 600 .env
@@ -740,9 +959,9 @@ echo -e "${GREEN}═════════════════════
 echo -e "${GREEN}        DEPLOYMENT COMPLETE!${NC}"
 echo -e "${GREEN}══════════════════════════════════════════════════════════════${NC}"
 echo ""
-echo -e "  Frontend:    ${CYAN}https://${RU_IP}${NC}"
-echo -e "  Admin Panel: ${CYAN}https://${RU_IP}:8443${NC}"
-echo -e "  Backend API: ${CYAN}https://${RU_IP}:8000${NC}"
+echo -e "  Frontend:    ${CYAN}https://${PUBLIC_DOMAIN}${NC}"
+echo -e "  Admin Panel: ${CYAN}https://${PUBLIC_DOMAIN}:8443${NC}"
+echo -e "  Backend API: ${CYAN}https://${PUBLIC_DOMAIN}/api${NC}"
 echo ""
 echo -e "  Create VPN client:"
 echo -e "  ${YELLOW}/opt/KrotPN/deploy/create-client.sh my_client${NC}"

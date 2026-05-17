@@ -1,5 +1,27 @@
 version: '3.8'
 
+# FILE: docker-compose.yml
+# VERSION: 3.1.0
+# ROLE: CONFIG
+# MAP_MODE: SUMMARY
+# START_MODULE_CONTRACT
+#   PURPOSE: Compose the KrotPN runtime services on the host-network deployment surface.
+#   SCOPE: Database, Redis, backend, user frontend, admin frontend, nginx edge, TLS mount paths, and Phase-35 runtime nginx config selection.
+#   DEPENDS: M-012, M-046, M-048
+#   LINKS: docs/modules/M-012.xml, docs/modules/M-046.xml, docs/modules/M-048.xml, docs/plans/Phase-35.xml
+# END_MODULE_CONTRACT
+#
+# START_MODULE_MAP
+#   backend - FastAPI application service on host network.
+#   frontend - User cabinet service on host network.
+#   frontend-admin - Admin cabinet service on host network.
+#   nginx - Public edge proxy using operator wildcard TLS files and runtime domain config.
+# END_MODULE_MAP
+#
+# START_CHANGE_SUMMARY
+#   LAST_CHANGE: v3.1.0 - Added Phase-35 NGINX_CONF_PATH override for operator-selected domain rendering.
+# END_CHANGE_SUMMARY
+#
 # GRACE-lite operational contract:
 # - All containers use network_mode: host for simplicity.
 # - Backend needs host network for AmneziaWG interface visibility (awg0, awg-client).
@@ -145,7 +167,8 @@ services:
       backend:
         condition: service_healthy
     volumes:
-      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      # Default fallback remains ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro when NGINX_CONF_PATH is unset.
+      - ${NGINX_CONF_PATH:-./nginx/nginx.conf}:/etc/nginx/nginx.conf:ro
       - ./ssl:/etc/nginx/ssl:ro
     network_mode: host
     healthcheck:

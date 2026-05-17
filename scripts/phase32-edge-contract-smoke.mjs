@@ -1,12 +1,12 @@
 // FILE: scripts/phase32-edge-contract-smoke.mjs
-// VERSION: 1.0.0
+// VERSION: 1.1.0
 // ROLE: SCRIPT
 // MAP_MODE: LOCALS
 // START_MODULE_CONTRACT
 //   PURPOSE: Static Phase-32 edge contract smoke without live DNS or certificate access
-//   SCOPE: Source markers, domain/TLS settings, protected deploy/install guard, redaction guard
-//   DEPENDS: M-046, M-012
-//   LINKS: docs/verification/V-M-046.xml, docs/plans/Phase-32.xml
+//   SCOPE: Source markers, domain/TLS settings, Phase-35 scoped deploy/install guard, redaction guard
+//   DEPENDS: M-046, M-012, M-048
+//   LINKS: docs/verification/V-M-046.xml, docs/verification/V-M-048.xml, docs/plans/Phase-32.xml, docs/plans/Phase-35.xml
 // END_MODULE_CONTRACT
 //
 // START_MODULE_MAP
@@ -16,7 +16,7 @@
 // END_MODULE_MAP
 //
 // START_CHANGE_SUMMARY
-//   LAST_CHANGE: v1.0.0 - Added Phase-32 edge contract static smoke
+//   LAST_CHANGE: v1.1.0 - Allowed approved Phase-35 wildcard TLS installer surface changes
 // END_CHANGE_SUMMARY
 
 import { execFileSync } from 'node:child_process'
@@ -64,6 +64,8 @@ requireText('nginx/nginx.conf', '[M-046][edge_router][MTPROTO_ROUTE]')
 requireText('nginx/nginx.conf', 'server_name krotpn.xyz www.krotpn.xyz;')
 requireText('nginx/nginx.conf', 'return 301 https://krotpn.xyz$request_uri;')
 requireText('nginx/nginx.conf', 'server_name krotpn.xyz *.krotpn.xyz;')
+requireText('docker-compose.yml', 'NGINX_CONF_PATH')
+requireText('docker-compose.yml', '${NGINX_CONF_PATH:-./nginx/nginx.conf}:/etc/nginx/nginx.conf:ro')
 
 requireText('.env.example', 'FRONTEND_URL=https://krotpn.xyz')
 requireText('docs/edge/PHASE-32-CUTOVER.xml', '[M-046][edge_contract][ROLLBACK_READY]')
@@ -72,13 +74,34 @@ requireText('docs/edge/PHASE-32-CUTOVER.xml', 'operator-live')
 requireAbsent('nginx/nginx.conf', 'MTPROTO_BASE_SECRET_HEX')
 requireAbsent('docs/edge/PHASE-32-CUTOVER.xml', 'MTPROTO_BASE_SECRET_HEX=')
 
+const approvedPhase35Surface = new Set([
+  '.env.example',
+  'docker-compose.yml',
+  'install.sh',
+  'deploy/deploy-on-server.sh',
+  'backend/tests/test_domain_tls_edge_static.py',
+  'scripts/phase32-edge-contract-smoke.mjs',
+  'scripts/phase34-mtproto-stabilization-smoke.mjs',
+  'scripts/phase35-installer-wildcard-tls-smoke.mjs',
+])
+
 const protectedChanges = changedFiles().filter((file) => (
   file === 'install.sh'
+  || file === 'docker-compose.yml'
+  || file === '.env.example'
   || file.startsWith('deploy/')
+  || file.startsWith('nginx/')
+  || file.startsWith('scripts/phase')
 ))
+const unexpectedChanges = protectedChanges.filter((file) => !approvedPhase35Surface.has(file))
+
+if (unexpectedChanges.length > 0) {
+  throw new Error(`Phase-32/35 protected surface drift: ${unexpectedChanges.join(', ')}`)
+}
 
 if (protectedChanges.length > 0) {
-  throw new Error(`Phase-32 must not change deploy/install scripts: ${protectedChanges.join(', ')}`)
+  requireText('docs/graph-index.xml', 'M-048')
+  requireText('docs/plan-index.xml', 'Phase-35')
 }
 // END_BLOCK_PHASE32_EDGE_CONTRACT_SMOKE
 

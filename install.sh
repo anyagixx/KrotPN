@@ -1,8 +1,32 @@
 #!/bin/bash
 #
-# KrotPN Interactive Installer v2.8.2
+# KrotPN Interactive Installer v2.9.0
 # Run this command to install:
 #   curl -fsSL https://raw.githubusercontent.com/anyagixx/KrotPN/main/install.sh | bash
+# FILE: install.sh
+# VERSION: 2.9.0
+# ROLE: SCRIPT
+# MAP_MODE: LOCALS
+# START_MODULE_CONTRACT
+#   PURPOSE: Interactive KrotPN bootstrap helper for collecting operator deployment inputs.
+#   SCOPE: Local prerequisites, RU/DE SSH credentials, admin credentials, Phase-35 wildcard TLS inputs, and remote deploy launch.
+#   DEPENDS: M-012, M-048
+#   LINKS: docs/modules/M-012.xml, docs/modules/M-048.xml, docs/plans/Phase-35.xml, docs/verification/V-M-048.xml
+# END_MODULE_CONTRACT
+#
+# START_MODULE_MAP
+#   ask/ask_password/ask_yesno - Safe interactive input helpers.
+#   validate_public_domain - Reject unsafe public-domain input before remote command construction.
+#   validate_tls_path - Reject unsafe certificate file paths before remote command construction.
+#   validate_remote_tls_files - Verify prepared wildcard TLS files on the RU server.
+#   get_tls_config - Collect Phase-35 public domain and wildcard certificate paths.
+#   deploy - Materialize temporary deploy config on RU and run deploy/deploy-on-server.sh.
+# END_MODULE_MAP
+#
+# START_CHANGE_SUMMARY
+#   LAST_CHANGE: v2.9.0 - Added Phase-35 operator-provided wildcard TLS prompts and remote preflight.
+# END_CHANGE_SUMMARY
+#
 # GRACE-lite operational contract:
 # - This script is an interactive bootstrap helper, not a hardened deployment system.
 # - It supports both password-based and key-based SSH authentication.
@@ -20,13 +44,17 @@ BLUE='\033[0;34m'
 CYAN='\033[0;36m'
 NC='\033[0m'
 
+DEFAULT_PUBLIC_DOMAIN="krotpn.xyz"
+DEFAULT_TLS_FULLCHAIN_PATH="/root/krotpn-ssl/fullchain1.pem"
+DEFAULT_TLS_PRIVKEY_PATH="/root/krotpn-ssl/privkey1.pem"
+
 print_banner() {
     echo -e "${CYAN}"
     echo "╔══════════════════════════════════════════════════════════════╗"
     echo "║                                                              ║"
     echo "║                         K R O T V P N                        ║"
     echo "║                                                              ║"
-    echo "║              Interactive Installer v2.8.2                   ║"
+    echo "║              Interactive Installer v2.9.0                   ║"
     echo "║                                                              ║"
     echo "╚══════════════════════════════════════════════════════════════╝"
     echo -e "${NC}"
@@ -80,6 +108,9 @@ ask() {
         RU_USER) RU_USER="$value" ;;
         DE_USER) DE_USER="$value" ;;
         ADMIN_EMAIL) ADMIN_EMAIL="$value" ;;
+        PUBLIC_DOMAIN) PUBLIC_DOMAIN="$value" ;;
+        TLS_FULLCHAIN_PATH) TLS_FULLCHAIN_PATH="$value" ;;
+        TLS_PRIVKEY_PATH) TLS_PRIVKEY_PATH="$value" ;;
         CONFIRM) CONFIRM="$value" ;;
         START) START="$value" ;;
         *) print_error "Unknown variable: $var"; exit 1 ;;
@@ -148,6 +179,132 @@ ask_yesno() {
         START) START="$result" ;;
         *) print_error "Unknown variable: $var"; exit 1 ;;
     esac
+}
+
+validate_public_domain() {
+    local domain="$1"
+
+    if [ -z "$domain" ]; then
+        print_error "Public domain is required"
+        return 1
+    fi
+
+    if [[ "$domain" == http://* ]] || [[ "$domain" == https://* ]] || [[ "$domain" == */* ]]; then
+        print_error "Enter only the domain name, for example krotpn.xyz"
+        return 1
+    fi
+
+    if [[ ! "$domain" =~ ^[A-Za-z0-9]([A-Za-z0-9-]{0,61}[A-Za-z0-9])?(\.[A-Za-z0-9]([A-Za-z0-9-]{0,61}[A-Za-z0-9])?)+$ ]]; then
+        print_error "Invalid domain format: $domain"
+        return 1
+    fi
+
+    return 0
+}
+
+validate_tls_path() {
+    local path="$1"
+    local label="$2"
+
+    if [ -z "$path" ]; then
+        print_error "$label path is required"
+        return 1
+    fi
+
+    if [[ "$path" != /* ]]; then
+        print_error "$label path must be absolute, for example /root/krotpn-ssl/fullchain1.pem"
+        return 1
+    fi
+
+    if [[ ! "$path" =~ ^/[A-Za-z0-9._/@:+-]+$ ]]; then
+        print_error "$label path contains unsupported characters"
+        return 1
+    fi
+
+    return 0
+}
+
+validate_remote_tls_files() {
+    print_info "[M-048][installer_tls][VALIDATE_CERT_PATHS] Validating wildcard TLS files on RU server..."
+
+    if sshpass -p "$RU_PASS" ssh -o StrictHostKeyChecking=accept-new -o ConnectTimeout=15 -o LogLevel=ERROR "$RU_USER@$RU_IP" \
+        "bash -s -- '$PUBLIC_DOMAIN' '$TLS_FULLCHAIN_PATH' '$TLS_PRIVKEY_PATH'" <<'REMOTE_TLS'
+set -e
+
+domain="$1"
+fullchain_path="$2"
+privkey_path="$3"
+wildcard_domain="*.${domain}"
+
+fail() {
+    echo "[M-048][installer_tls][ABORT_BEFORE_DEPLOY] $1" >&2
+    exit 1
+}
+
+for path in "$fullchain_path" "$privkey_path"; do
+    [ -f "$path" ] || fail "Missing TLS file: $path"
+    [ -r "$path" ] || fail "TLS file is not readable: $path"
+    [ -s "$path" ] || fail "TLS file is empty: $path"
+done
+
+command -v openssl >/dev/null 2>&1 || fail "openssl is required on the RU server for TLS validation"
+
+openssl x509 -in "$fullchain_path" -noout >/dev/null 2>&1 || fail "fullchain is not a readable X.509 certificate"
+openssl pkey -in "$privkey_path" -noout >/dev/null 2>&1 || fail "private key is not readable by openssl"
+
+if ! openssl x509 -in "$fullchain_path" -checkend 86400 -noout >/dev/null 2>&1; then
+    fail "certificate is expired or expires in less than 24 hours"
+fi
+
+cert_pub_hash="$(openssl x509 -in "$fullchain_path" -pubkey -noout 2>/dev/null | openssl pkey -pubin -outform der 2>/dev/null | openssl dgst -sha256 2>/dev/null | awk '{print $2}')"
+key_pub_hash="$(openssl pkey -in "$privkey_path" -pubout -outform der 2>/dev/null | openssl dgst -sha256 2>/dev/null | awk '{print $2}')"
+[ -n "$cert_pub_hash" ] || fail "could not derive certificate public key fingerprint"
+[ -n "$key_pub_hash" ] || fail "could not derive private key public fingerprint"
+[ "$cert_pub_hash" = "$key_pub_hash" ] || fail "certificate and private key do not match"
+echo "[M-048][installer_tls][VALIDATE_CERT_KEY_MATCH] certificate and private key match"
+
+san_text="$(openssl x509 -in "$fullchain_path" -noout -ext subjectAltName 2>/dev/null || true)"
+escaped_domain="$(printf '%s' "$domain" | sed 's/[.[\*^$()+?{}|\\]/\\&/g')"
+printf '%s\n' "$san_text" | grep -Eq "DNS:${escaped_domain}([,[:space:]]|$)" || fail "certificate SAN does not include ${domain}"
+printf '%s\n' "$san_text" | grep -Eq "DNS:\*\.${escaped_domain}([,[:space:]]|$)" || fail "certificate SAN does not include ${wildcard_domain}"
+
+not_after="$(openssl x509 -in "$fullchain_path" -noout -enddate 2>/dev/null | sed 's/^notAfter=//')"
+echo "[M-048][installer_tls][VALIDATE_SAN] wildcard TLS files are valid for ${domain} and ${wildcard_domain}; expires ${not_after}"
+REMOTE_TLS
+    then
+        print_success "Wildcard TLS files validated"
+    else
+        print_error "Wildcard TLS validation failed. Fix the files on RU server and run install again."
+        exit 1
+    fi
+}
+
+get_tls_config() {
+    print_step "Step 4: Domain and wildcard TLS"
+
+    echo -e "${BLUE}Prepare these files on the RU server before deployment:${NC}"
+    echo -e "  ${CYAN}${DEFAULT_TLS_FULLCHAIN_PATH}${NC}"
+    echo -e "  ${CYAN}${DEFAULT_TLS_PRIVKEY_PATH}${NC}"
+    echo ""
+
+    while true; do
+        ask "Project public domain" "$DEFAULT_PUBLIC_DOMAIN" PUBLIC_DOMAIN
+        PUBLIC_DOMAIN=$(printf '%s' "$PUBLIC_DOMAIN" | tr '[:upper:]' '[:lower:]')
+        validate_public_domain "$PUBLIC_DOMAIN" && break
+    done
+
+    while true; do
+        ask "RU fullchain certificate path" "$DEFAULT_TLS_FULLCHAIN_PATH" TLS_FULLCHAIN_PATH
+        validate_tls_path "$TLS_FULLCHAIN_PATH" "Fullchain certificate" && break
+    done
+
+    while true; do
+        ask "RU private key path" "$DEFAULT_TLS_PRIVKEY_PATH" TLS_PRIVKEY_PATH
+        validate_tls_path "$TLS_PRIVKEY_PATH" "Private key" && break
+    done
+
+    print_info "[M-048][installer_tls][VALIDATE_INPUTS] Domain and TLS paths accepted"
+    validate_remote_tls_files
 }
 
 get_admin_config() {
@@ -333,6 +490,10 @@ RU_USER='${RU_USER}'
 RU_PASS='${RU_PASS}'
 ADMIN_EMAIL='${ADMIN_EMAIL}'
 ADMIN_PASSWORD='${ADMIN_PASSWORD}'
+PUBLIC_DOMAIN='${PUBLIC_DOMAIN}'
+TLS_FULLCHAIN_PATH='${TLS_FULLCHAIN_PATH}'
+TLS_PRIVKEY_PATH='${TLS_PRIVKEY_PATH}'
+TLS_CERTIFICATE_MODE='operator-wildcard'
 VPN_CLIENT_SUBNET='${VPN_CLIENT_SUBNET:-}'
 VPN_CLIENT_GATEWAY='${VPN_CLIENT_GATEWAY:-}'
 VPN_RELAY_SUBNET='${VPN_RELAY_SUBNET:-}'
@@ -389,12 +550,11 @@ show_complete() {
     echo ""
     echo -e "${CYAN}Access your VPN service:${NC}"
     echo ""
-    echo -e "  ${GREEN}Frontend:${NC}    https://${RU_IP}"
-    echo -e "  ${GREEN}Admin Panel:${NC} https://${RU_IP}:8443"
-    echo -e "  ${GREEN}Backend API:${NC} https://${RU_IP} (via nginx)"
+    echo -e "  ${GREEN}Frontend:${NC}    https://${PUBLIC_DOMAIN}"
+    echo -e "  ${GREEN}Admin Panel:${NC} https://${PUBLIC_DOMAIN}:8443"
+    echo -e "  ${GREEN}Backend API:${NC} https://${PUBLIC_DOMAIN} (via nginx)"
     echo ""
-    echo -e "${YELLOW}Note: Browser will warn about self-signed certificate.${NC}"
-    echo -e "${YELLOW}Click 'Advanced' → 'Proceed' to continue.${NC}"
+    echo -e "${GREEN}Wildcard TLS certificate was provided by operator and reused by the project.${NC}"
     echo ""
     echo -e "${CYAN}Create VPN client:${NC}"
     echo ""
@@ -404,6 +564,9 @@ show_complete() {
     echo ""
     echo -e "  • ADMIN_EMAIL         - ${GREEN}${ADMIN_EMAIL}${NC}"
     echo -e "  • ADMIN_PASSWORD      - password entered during installation"
+    echo -e "  • PUBLIC_DOMAIN       - ${GREEN}${PUBLIC_DOMAIN}${NC}"
+    echo -e "  • TLS_FULLCHAIN_PATH  - ${GREEN}${TLS_FULLCHAIN_PATH}${NC}"
+    echo -e "  • TLS_PRIVKEY_PATH    - private key path entered during installation"
     echo ""
     echo -e "${CYAN}Configure later in /opt/KrotPN/.env:${NC}"
     echo ""
@@ -418,6 +581,7 @@ main() {
     check_prerequisites
     get_server_info
     get_ssh_credentials
+    get_tls_config
     get_admin_config
     deploy
     show_complete

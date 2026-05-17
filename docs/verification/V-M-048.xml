@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<V-M-048 MODULE="M-048" PRIORITY="critical" STATUS="pending" VERSION="1.1.0">
+<V-M-048 MODULE="M-048" PRIORITY="critical" STATUS="partial-local" VERSION="1.2.0">
   <module>installer-wildcard-tls</module>
   <phase-scope>
-    <phase-35 status="pending">Installer flow for operator-provided wildcard TLS certificate paths, validation, env wiring, and reusable deploy installation.</phase-35>
+    <phase-35 status="partial-local">Installer flow for operator-provided wildcard TLS certificate paths, validation, env wiring, and reusable deploy installation passed local/static checks; clean VPS wildcard TLS deploy remains operator-live.</phase-35>
   </phase-scope>
   <test-files>
     <file>install.sh</file>
@@ -100,4 +100,11 @@
     <safe-local>bash syntax checks, source static smoke, XML parse, and MyGRACE lint are safe locally.</safe-local>
     <requires-operator>Real cert files, live DNS, clean VPS install, public HTTPS smoke, and MTProto client proof require operator control.</requires-operator>
   </autonomous-execution-safety>
+  <evidence>
+    <evidence-1>2026-05-17: bash -n install.sh deploy/deploy-on-server.sh passed locally.</evidence-1>
+    <evidence-2>2026-05-17: node scripts/phase35-installer-wildcard-tls-smoke.mjs passed locally.</evidence-2>
+    <evidence-3>2026-05-17: backend/tests/test_domain_tls_edge_static.py passed locally with 7 tests.</evidence-3>
+    <evidence-4>2026-05-17: docker compose config passed using local env handling; Docker reported only the existing obsolete version warning.</evidence-4>
+    <evidence-5>Operator-live clean VPS deploy with prepared wildcard cert files remains required before full production closure.</evidence-5>
+  </evidence>
 </V-M-048>

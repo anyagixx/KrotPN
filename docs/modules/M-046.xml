@@ -7,7 +7,7 @@
     <edge-http-redirect>Force http://krotpn.xyz and http://www.krotpn.xyz to https://krotpn.xyz.</edge-http-redirect>
     <edge-wildcard-tls>Use trusted certificates covering krotpn.xyz and *.krotpn.xyz.</edge-wildcard-tls>
     <edge-shared-443>Route MTProto fake-TLS by issued SNI and forward normal HTTPS to KrotPN frontend/backend/admin.</edge-shared-443>
-    <edge-static-guard>Static checks proving deploy/install scripts are not redesigned in this phase.</edge-static-guard>
+    <edge-static-guard>Static checks proving deploy/install changes stay scoped to explicitly approved Phase-35 wildcard TLS installer work.</edge-static-guard>
   </exports>
   <depends>M-001,M-012,M-044</depends>
   <verification-ref>V-M-046</verification-ref>
@@ -24,7 +24,7 @@
   <edge-policy>
     <policy-1>Shared 443 design must be verified before replacing direct nginx ownership of 443.</policy-1>
     <policy-2>Wildcard certificate issuance may remain operator-driven; this module defines runtime expectations first.</policy-2>
-    <policy-3>Existing deploy/install scripts are protected unless the operator explicitly approves edge deployment changes.</policy-3>
+    <policy-3>Existing deploy/install scripts are protected unless the operator explicitly approves edge deployment changes; Phase-35 is the approved installer wildcard TLS exception.</policy-3>
   </edge-policy>
   <constraints>
     <constraint-1>Misrouting 443 can break both website and Telegram proxy, so rollout requires a rollback plan.</constraint-1>
@@ -34,6 +34,7 @@
     <evidence-1>2026-05-14: Phase-32 local static verification passed for settings, nginx redirect/fallback, compose config, protected deploy/install guard, cutover runbook, XML parse, and MyGRACE lint.</evidence-1>
     <evidence-2>Production smoke remains blocked-live until operator-provided DNS, trusted wildcard certificate, and rollback window are available.</evidence-2>
     <evidence-3>2026-05-14: Phase-34 release handoff records V-M-046 as operator-live and keeps deploy/install/edge surfaces protected during local stabilization.</evidence-3>
+    <evidence-4>2026-05-17: Phase-35 added deploy-supported operator wildcard TLS reuse and runtime nginx domain rendering while preserving M-046 shared-443 live gate.</evidence-4>
   </evidence>
   <hotspot>H-032: Shared 443 edge can break both HTTPS and Telegram proxy if fallback routing or wildcard TLS is misconfigured</hotspot>
 </M-046>

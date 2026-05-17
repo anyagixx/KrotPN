@@ -1,14 +1,14 @@
 """Phase-32 domain TLS edge static verification.
 
 # FILE: backend/tests/test_domain_tls_edge_static.py
-# VERSION: 1.0.0
+# VERSION: 1.1.0
 # ROLE: TEST
 # MAP_MODE: LOCALS
 # START_MODULE_CONTRACT
 #   PURPOSE: Verify krotpn.xyz domain/TLS/shared-443 edge contract without touching live DNS
-#   SCOPE: Settings defaults, nginx redirect/fallback config, tracked env template, protected deploy/install guard, rollback runbook
-#   DEPENDS: M-046, M-001, M-012, M-044
-#   LINKS: V-M-046, docs/modules/M-046.xml, docs/plans/Phase-32.xml
+#   SCOPE: Settings defaults, nginx redirect/fallback config, tracked env template, Phase-35 scoped deploy/install guard, rollback runbook
+#   DEPENDS: M-046, M-001, M-012, M-044, M-048
+#   LINKS: V-M-046, V-M-048, docs/modules/M-046.xml, docs/modules/M-048.xml, docs/plans/Phase-32.xml, docs/plans/Phase-35.xml
 # END_MODULE_CONTRACT
 #
 # START_MODULE_MAP
@@ -16,13 +16,13 @@
 #   test_nginx_forces_canonical_domain_http_to_https - M-046 redirect contract
 #   test_nginx_keeps_https_fallback_and_tls_paths - M-046 HTTPS fallback and TLS path contract
 #   test_env_example_declares_domain_tls_contract - Operator env template contract
-#   test_compose_keeps_nginx_as_only_public_edge_owner - M-012 single 443 owner guard
-#   test_deploy_install_scripts_are_not_modified - Protected deploy/install guard
+#   test_compose_keeps_nginx_as_only_public_edge_owner - M-012 single 443 owner guard with Phase-35 runtime config override
+#   test_deploy_install_changes_are_phase35_scoped - Protected deploy/install guard with approved M-048 exception
 #   test_cutover_runbook_contains_live_smoke_and_rollback_gates - Live-required handoff guard
 # END_MODULE_MAP
 #
 # START_CHANGE_SUMMARY
-#   LAST_CHANGE: v1.0.0 - Added Phase-32 static edge verification
+#   LAST_CHANGE: v1.1.0 - Allowed approved Phase-35 installer wildcard TLS surface changes while preserving edge guards
 # END_CHANGE_SUMMARY
 """
 
@@ -112,19 +112,41 @@ def test_compose_keeps_nginx_as_only_public_edge_owner():
     compose = _read("docker-compose.yml")
 
     assert "container_name: krotpn-nginx" in compose
-    assert "./nginx/nginx.conf:/etc/nginx/nginx.conf:ro" in compose
+    assert "NGINX_CONF_PATH" in compose
+    assert "${NGINX_CONF_PATH:-./nginx/nginx.conf}:/etc/nginx/nginx.conf:ro" in compose
     assert "./ssl:/etc/nginx/ssl:ro" in compose
     assert "network_mode: host" in compose
     assert compose.count("container_name: krotpn-nginx") == 1
 
 
-def test_deploy_install_scripts_are_not_modified():
+def test_deploy_install_changes_are_phase35_scoped():
+    approved_phase35_surface = {
+        ".env.example",
+        "docker-compose.yml",
+        "install.sh",
+        "deploy/deploy-on-server.sh",
+        "backend/tests/test_domain_tls_edge_static.py",
+        "scripts/phase32-edge-contract-smoke.mjs",
+        "scripts/phase34-mtproto-stabilization-smoke.mjs",
+        "scripts/phase35-installer-wildcard-tls-smoke.mjs",
+    }
     protected_changes = [
         path for path in _changed_files()
-        if path == "install.sh" or path.startswith("deploy/")
+        if (
+            path == "install.sh"
+            or path == "docker-compose.yml"
+            or path == ".env.example"
+            or path.startswith("deploy/")
+            or path.startswith("nginx/")
+            or path.startswith("scripts/phase")
+        )
     ]
+    unexpected = [path for path in protected_changes if path not in approved_phase35_surface]
 
-    assert protected_changes == []
+    assert unexpected == []
+    if protected_changes:
+        assert "M-048" in _read("docs/graph-index.xml")
+        assert "Phase-35" in _read("docs/plan-index.xml")
 
 
 def test_cutover_runbook_contains_live_smoke_and_rollback_gates():

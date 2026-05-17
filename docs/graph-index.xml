@@ -44,7 +44,7 @@
   <M-045 NAME="mtproto-user-cabinet" TYPE="UI_COMPONENT" STATUS="done-local" PATH="frontend backend/app/mtproto backend/app/main.py scripts docs/plans/Phase-31.xml" DEPENDS="M-002,M-009,M-036,M-042,M-043" VERIFICATION-REF="V-M-045" />
   <M-046 NAME="krotpn-domain-tls-edge" TYPE="ENTRY_POINT" STATUS="partial-local" PATH="backend/app/core/config.py nginx docker-compose.yml .env.example scripts docs/edge/PHASE-32-CUTOVER.xml docs/plans/Phase-32.xml" DEPENDS="M-001,M-012,M-044" VERIFICATION-REF="V-M-046" />
   <M-047 NAME="mtproto-admin-ops" TYPE="ENTRY_POINT" STATUS="done-local" PATH="backend/app/admin frontend-admin scripts/phase33-mtproto-admin-smoke.mjs docs/plans/Phase-33.xml" DEPENDS="M-006,M-010,M-024,M-042,M-043,M-044" VERIFICATION-REF="V-M-047" />
-  <M-048 NAME="installer-wildcard-tls" TYPE="ENTRY_POINT" STATUS="planned" PATH="install.sh deploy/deploy-on-server.sh nginx docker-compose.yml .env.example scripts/phase35-installer-wildcard-tls-smoke.mjs docs/plans/Phase-35.xml" DEPENDS="M-001,M-012,M-044,M-046" VERIFICATION-REF="V-M-048" />
+  <M-048 NAME="installer-wildcard-tls" TYPE="ENTRY_POINT" STATUS="partial-local" PATH="install.sh deploy/deploy-on-server.sh nginx docker-compose.yml .env.example scripts/phase35-installer-wildcard-tls-smoke.mjs docs/plans/Phase-35.xml" DEPENDS="M-001,M-012,M-044,M-046" VERIFICATION-REF="V-M-048" />
 
   <CrossLinks>
     <link from="M-002" to="M-001" />
