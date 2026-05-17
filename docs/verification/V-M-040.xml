@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<V-M-040 MODULE="M-040" PRIORITY="critical" STATUS="pass-local" VERSION="1.5.0">
+<V-M-040 MODULE="M-040" PRIORITY="critical" STATUS="pass-local" VERSION="1.6.0">
   <phase-scope>
     <phase-27>Email delivery foundation only: fake-provider tests must prove request shaping, template rendering, provider error mapping, and redaction before live provider use.</phase-27>
     <phase-34 status="planned">Stabilization regression gate proves verification-email delivery still participates in pending registration without leaking tokens or provider secrets.</phase-34>
-    <phase-36 status="verification-designed">Resend production wiring proves clean deployments enable EMAIL_PROVIDER=resend without exposing API keys or verification tokens.</phase-36>
+    <phase-36 status="pass-local">Resend production wiring proves clean deployments enable EMAIL_PROVIDER=resend without exposing API keys or verification tokens.</phase-36>
   </phase-scope>
   <test-files>
     <file>backend/tests/test_email_delivery.py</file>
@@ -66,5 +66,6 @@
   <evidence>
     <evidence-1>2026-05-13: backend/tests/test_email_delivery.py passed locally, covering template rendering, fake-provider dispatch, provider-disabled guard, redaction, and safe error mapping.</evidence-1>
     <evidence-2>2026-05-17: Phase-36 planning scoped Resend deploy wiring after live clean VPS registration returned provider_disabled because EMAIL_PROVIDER was left disabled.</evidence-2>
+    <evidence-3>2026-05-17: Phase-36 backend/tests/test_email_delivery.py passed locally with Resend request-shape coverage and provider error mapping.</evidence-3>
   </evidence>
 </V-M-040>

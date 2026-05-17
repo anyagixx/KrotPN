@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <M-040 NAME="email-delivery" TYPE="INTEGRATION" STATUS="done-local">
-  <path>backend/app/email docs/plans/Phase-27.xml</path>
+  <path>backend/app/email backend/tests/test_email_delivery.py scripts/phase36-resend-deploy-smoke.mjs docs/plans/Phase-27.xml docs/plans/Phase-36.xml</path>
   <owns>Email provider adapter, verification email templates, provider error mapping, and safe operator evidence for email delivery.</owns>
   <purpose>Provide a KrotPN-native email delivery surface for verified registration without exposing tokens or provider secrets.</purpose>
   <exports>
@@ -20,7 +20,7 @@
   <implementation-state>
     <state-1>Phase-27 implemented provider-neutral requests, Resend and SMTP adapters, disabled-provider guard, templates, safe log markers, and fake-provider test coverage.</state-1>
     <state-2>Live provider smoke remains operator-run only after EMAIL_PROVIDER and provider secrets are configured outside tests.</state-2>
-    <state-3>Phase-36 plans production deploy wiring so Resend is enabled during clean VPS installs and registration no longer fails with provider_disabled when an API key is supplied.</state-3>
+    <state-3>Phase-36 local execution adds production deploy wiring and request-shape tests so Resend is enabled during clean VPS installs and registration no longer fails with provider_disabled when an API key is supplied.</state-3>
   </implementation-state>
   <source-transfer>
     <from-project>KPprotoN</from-project>
@@ -34,9 +34,12 @@
     <constraint-4>Production Resend configuration must use https://api.resend.com/emails, Authorization Bearer API key, and noreply@krotpn.xyz sender after domain verification.</constraint-4>
   </constraints>
   <phase-36-plan>
-    <step-1 STATUS="planned">Strengthen Resend request-shape tests for URL, Bearer header, sender, recipient, subject, HTML, and text payload.</step-1>
-    <step-2 STATUS="planned">Add deploy smoke coverage that EMAIL_PROVIDER is not left disabled when Resend API key is provided.</step-2>
-    <step-3 STATUS="planned">Keep live Resend smoke operator-only and redact message IDs, API keys, tokens, and full verification links.</step-3>
+    <step-1 STATUS="pass-local">Strengthen Resend request-shape tests for URL, Bearer header, sender, recipient, subject, HTML, and text payload.</step-1>
+    <step-2 STATUS="pass-local">Add deploy smoke coverage that EMAIL_PROVIDER is not left disabled when Resend API key is provided.</step-2>
+    <step-3 STATUS="blocked-operator">Keep live Resend smoke operator-only and redact message IDs, API keys, tokens, and full verification links.</step-3>
   </phase-36-plan>
+  <evidence>
+    <evidence-1>2026-05-17: backend/tests/test_email_delivery.py passed locally with Phase-36 Resend URL, Bearer header, sender, payload, timeout, and safe receipt assertions.</evidence-1>
+  </evidence>
   <hotspot>H-026: Email delivery must not leak verification tokens, API keys, or raw provider responses</hotspot>
 </M-040>

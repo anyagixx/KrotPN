@@ -1,29 +1,32 @@
 #!/bin/bash
 #
-# KrotPN Interactive Installer v2.9.1
+# KrotPN Interactive Installer v2.9.2
 # Run this command to install:
 #   curl -fsSL https://raw.githubusercontent.com/anyagixx/KrotPN/main/install.sh | bash
 # FILE: install.sh
-# VERSION: 2.9.1
+# VERSION: 2.9.2
 # ROLE: SCRIPT
 # MAP_MODE: LOCALS
 # START_MODULE_CONTRACT
 #   PURPOSE: Interactive KrotPN bootstrap helper for collecting operator deployment inputs.
-#   SCOPE: Local prerequisites, RU/DE SSH credentials, admin credentials, Phase-35 wildcard TLS inputs, and remote deploy launch.
+#   SCOPE: Local prerequisites, RU/DE SSH credentials, admin credentials, Phase-35 wildcard TLS inputs, Phase-36 Resend email inputs, and remote deploy launch.
 #   DEPENDS: M-012, M-048
-#   LINKS: docs/modules/M-012.xml, docs/modules/M-048.xml, docs/plans/Phase-35.xml, docs/verification/V-M-048.xml
+#   LINKS: docs/modules/M-012.xml, docs/modules/M-048.xml, docs/plans/Phase-35.xml, docs/plans/Phase-36.xml, docs/verification/V-M-048.xml
 # END_MODULE_CONTRACT
 #
 # START_MODULE_MAP
 #   ask/ask_password/ask_yesno - Safe interactive input helpers.
 #   validate_public_domain - Reject unsafe public-domain input before remote command construction.
 #   validate_tls_path - Reject unsafe certificate file paths before remote command construction.
+#   validate_resend_api_key/validate_email_from - Reject unsafe Resend email inputs before deploy config materialization.
 #   validate_remote_tls_files - Verify prepared wildcard TLS files on the RU server.
 #   get_tls_config - Collect Phase-35 public domain and wildcard certificate paths.
+#   get_email_config - Collect Phase-36 Resend API key and sender settings.
 #   deploy - Materialize temporary deploy config on RU and run deploy/deploy-on-server.sh.
 # END_MODULE_MAP
 #
 # START_CHANGE_SUMMARY
+#   LAST_CHANGE: v2.9.2 - Added Phase-36 Resend API key and sender prompts with redacted deploy handoff.
 #   LAST_CHANGE: v2.9.1 - Bootstrap RU openssl for preflight and reject /opt/KrotPN cert source paths.
 # END_CHANGE_SUMMARY
 #
@@ -47,6 +50,8 @@ NC='\033[0m'
 DEFAULT_PUBLIC_DOMAIN="krotpn.xyz"
 DEFAULT_TLS_FULLCHAIN_PATH="/root/krotpn-ssl/fullchain1.pem"
 DEFAULT_TLS_PRIVKEY_PATH="/root/krotpn-ssl/privkey1.pem"
+DEFAULT_EMAIL_FROM="noreply@krotpn.xyz"
+DEFAULT_RESEND_API_URL="https://api.resend.com/emails"
 
 print_banner() {
     echo -e "${CYAN}"
@@ -54,7 +59,7 @@ print_banner() {
     echo "║                                                              ║"
     echo "║                         K R O T V P N                        ║"
     echo "║                                                              ║"
-    echo "║              Interactive Installer v2.9.1                   ║"
+    echo "║              Interactive Installer v2.9.2                   ║"
     echo "║                                                              ║"
     echo "╚══════════════════════════════════════════════════════════════╝"
     echo -e "${NC}"
@@ -111,6 +116,7 @@ ask() {
         PUBLIC_DOMAIN) PUBLIC_DOMAIN="$value" ;;
         TLS_FULLCHAIN_PATH) TLS_FULLCHAIN_PATH="$value" ;;
         TLS_PRIVKEY_PATH) TLS_PRIVKEY_PATH="$value" ;;
+        EMAIL_FROM) EMAIL_FROM="$value" ;;
         CONFIRM) CONFIRM="$value" ;;
         START) START="$value" ;;
         *) print_error "Unknown variable: $var"; exit 1 ;;
@@ -147,6 +153,7 @@ ask_password() {
         ADMIN_PASSWORD_CONFIRM) ADMIN_PASSWORD_CONFIRM="$password" ;;
         RU_PASS) RU_PASS="$password" ;;
         DE_PASS) DE_PASS="$password" ;;
+        RESEND_API_KEY) RESEND_API_KEY="$password" ;;
         *) print_error "Unknown variable: $var"; exit 1 ;;
     esac
 }
@@ -227,6 +234,48 @@ validate_tls_path() {
             return 1
             ;;
     esac
+
+    return 0
+}
+
+validate_resend_api_key() {
+    local api_key="$1"
+
+    if [ -z "$api_key" ]; then
+        print_error "Resend API key is required"
+        return 1
+    fi
+
+    if [[ "$api_key" == *$'\n'* ]] || [[ "$api_key" == *$'\r'* ]] || [[ "$api_key" =~ [[:space:]] ]]; then
+        print_error "Resend API key must not contain whitespace"
+        return 1
+    fi
+
+    if [[ ! "$api_key" =~ ^[-A-Za-z0-9._:=+/]{10,512}$ ]]; then
+        print_error "Resend API key contains unsupported characters"
+        return 1
+    fi
+
+    return 0
+}
+
+validate_email_from() {
+    local email="$1"
+
+    if [ -z "$email" ]; then
+        print_error "Email sender is required"
+        return 1
+    fi
+
+    if [[ "$email" == *$'\n'* ]] || [[ "$email" == *$'\r'* ]] || [[ "$email" =~ [[:space:]] ]]; then
+        print_error "Email sender must not contain whitespace"
+        return 1
+    fi
+
+    if [[ ! "$email" =~ ^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$ ]]; then
+        print_error "Invalid email sender format"
+        return 1
+    fi
 
     return 0
 }
@@ -334,8 +383,32 @@ get_tls_config() {
     validate_remote_tls_files
 }
 
+get_email_config() {
+    print_step "Step 5: Email delivery (Resend)"
+
+    echo -e "${BLUE}Resend will send registration verification emails.${NC}"
+    echo -e "${BLUE}Use a key for the verified krotpn.xyz domain; the key is not printed.${NC}"
+    echo ""
+
+    while true; do
+        ask_password "Resend API key" RESEND_API_KEY
+        validate_resend_api_key "$RESEND_API_KEY" && break
+    done
+
+    while true; do
+        ask "Email sender" "$DEFAULT_EMAIL_FROM" EMAIL_FROM
+        EMAIL_FROM=$(printf '%s' "$EMAIL_FROM" | tr '[:upper:]' '[:lower:]')
+        validate_email_from "$EMAIL_FROM" && break
+    done
+
+    RESEND_API_URL="$DEFAULT_RESEND_API_URL"
+    EMAIL_PROVIDER="resend"
+    print_info "[M-048][installer_resend][PROMPT_SECRET] Resend API key accepted and redacted"
+    print_success "Email sender: ${EMAIL_FROM}"
+}
+
 get_admin_config() {
-    print_step "Step 5: Admin credentials"
+    print_step "Step 6: Admin credentials"
 
     echo -e "${BLUE}Set production admin credentials for KrotPN:${NC}"
     echo ""
@@ -488,7 +561,7 @@ get_ssh_credentials() {
 }
 
 deploy() {
-    print_step "Step 6: Starting deployment"
+    print_step "Step 7: Starting deployment"
     
     echo -e "${BLUE}This will:${NC}"
     echo -e "  1. Clone KrotPN on RU server"
@@ -521,6 +594,10 @@ PUBLIC_DOMAIN='${PUBLIC_DOMAIN}'
 TLS_FULLCHAIN_PATH='${TLS_FULLCHAIN_PATH}'
 TLS_PRIVKEY_PATH='${TLS_PRIVKEY_PATH}'
 TLS_CERTIFICATE_MODE='operator-wildcard'
+EMAIL_PROVIDER='${EMAIL_PROVIDER}'
+RESEND_API_KEY='${RESEND_API_KEY}'
+RESEND_API_URL='${RESEND_API_URL}'
+EMAIL_FROM='${EMAIL_FROM}'
 VPN_CLIENT_SUBNET='${VPN_CLIENT_SUBNET:-}'
 VPN_CLIENT_GATEWAY='${VPN_CLIENT_GATEWAY:-}'
 VPN_RELAY_SUBNET='${VPN_RELAY_SUBNET:-}'
@@ -594,6 +671,9 @@ show_complete() {
     echo -e "  • PUBLIC_DOMAIN       - ${GREEN}${PUBLIC_DOMAIN}${NC}"
     echo -e "  • TLS_FULLCHAIN_PATH  - ${GREEN}${TLS_FULLCHAIN_PATH}${NC}"
     echo -e "  • TLS_PRIVKEY_PATH    - private key path entered during installation"
+    echo -e "  • EMAIL_PROVIDER      - ${GREEN}resend${NC}"
+    echo -e "  • EMAIL_FROM          - ${GREEN}${EMAIL_FROM}${NC}"
+    echo -e "  • RESEND_API_KEY      - key entered during installation, not printed"
     echo ""
     echo -e "${CYAN}Configure later in /opt/KrotPN/.env:${NC}"
     echo ""
@@ -609,6 +689,7 @@ main() {
     get_server_info
     get_ssh_credentials
     get_tls_config
+    get_email_config
     get_admin_config
     deploy
     show_complete

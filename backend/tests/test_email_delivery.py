@@ -1,16 +1,18 @@
 """
 MODULE_CONTRACT
 - PURPOSE: Verify Phase-27 email delivery foundation.
-- SCOPE: Unit tests for verification templates, fake-provider dispatch, provider-disabled guard, and typed provider error mapping.
+- SCOPE: Unit tests for verification templates, fake-provider dispatch, Resend request shape, provider-disabled guard, and typed provider error mapping.
 - DEPENDS: app.email.service, app.email.provider, app.core.config.
 - LINKS: V-M-040.
 
 MODULE_MAP
 - test_send_verification_email_uses_template_and_redacts_token_from_logs: Verifies fake-provider dispatch and token redaction.
+- test_resend_provider_builds_production_request_shape: Verifies Resend URL, sender, payload, Bearer auth, and safe receipt metadata.
 - test_send_verification_email_blocks_when_provider_disabled: Verifies disabled provider fails before a network call.
 - test_map_email_provider_error_returns_stable_safe_codes: Verifies HTTP status mapping.
 
 CHANGE_SUMMARY
+- 2026-05-17: Added Phase-36 Resend production request-shape test.
 - 2026-05-13: Added Phase-27 email delivery tests.
 """
 
@@ -23,8 +25,10 @@ from app.email.provider import (
     EmailDeliveryErrorCode,
     EmailDeliveryReceipt,
     EmailMessageRequest,
+    ResendEmailProvider,
     map_email_provider_error,
 )
+from app.email import provider as provider_module
 from app.email.service import send_verification_email
 
 
@@ -84,6 +88,73 @@ async def test_send_verification_email_uses_template_and_redacts_token_from_logs
 
 
 @pytest.mark.asyncio
+async def test_resend_provider_builds_production_request_shape(monkeypatch):
+    calls: list[dict] = []
+
+    class FakeResponse:
+        status_code = 200
+
+        def json(self) -> dict[str, str]:
+            return {"id": "email_msg_123"}
+
+    class FakeAsyncClient:
+        def __init__(self, *, timeout: float) -> None:
+            self.timeout = timeout
+
+        async def __aenter__(self):
+            return self
+
+        async def __aexit__(self, exc_type, exc, tb) -> bool:
+            return False
+
+        async def post(self, url: str, *, json: dict, headers: dict):
+            calls.append(
+                {
+                    "url": url,
+                    "json": json,
+                    "headers": headers,
+                    "timeout": self.timeout,
+                }
+            )
+            return FakeResponse()
+
+    monkeypatch.setattr(provider_module.httpx, "AsyncClient", FakeAsyncClient)
+    app_settings = _settings(
+        email_provider="resend",
+        resend_api_key="resend_test_secret_123",
+        resend_api_url="https://api.resend.com/emails",
+        email_from="noreply@krotpn.xyz",
+        email_provider_timeout_seconds=7.0,
+    )
+
+    receipt = await ResendEmailProvider(app_settings).send(
+        EmailMessageRequest(
+            to_email="friend@example.com",
+            subject="Verify KrotPN",
+            html="<p>hello</p>",
+            text="hello",
+        )
+    )
+
+    assert receipt.provider == "resend"
+    assert receipt.message_id == "email_msg_123"
+    assert receipt.status == "sent"
+    assert len(calls) == 1
+    call = calls[0]
+    assert call["url"] == "https://api.resend.com/emails"
+    assert call["headers"] == {"Authorization": "Bearer resend_test_secret_123"}
+    assert call["json"] == {
+        "from": "noreply@krotpn.xyz",
+        "to": ["friend@example.com"],
+        "subject": "Verify KrotPN",
+        "html": "<p>hello</p>",
+        "text": "hello",
+    }
+    assert "resend_test_secret_123" not in str(call["json"])
+    assert call["timeout"] == 7.0
+
+
+@pytest.mark.asyncio
 async def test_send_verification_email_blocks_when_provider_disabled():
     with pytest.raises(EmailDeliveryError) as exc_info:
         await send_verification_email(
@@ -98,6 +169,7 @@ async def test_send_verification_email_blocks_when_provider_disabled():
 
 def test_map_email_provider_error_returns_stable_safe_codes():
     assert map_email_provider_error(status_code=401).code == EmailDeliveryErrorCode.PROVIDER_AUTH
+    assert map_email_provider_error(status_code=422).code == EmailDeliveryErrorCode.PROVIDER_INVALID_REQUEST
     assert map_email_provider_error(status_code=429).code == EmailDeliveryErrorCode.PROVIDER_RATE_LIMITED
     assert map_email_provider_error(status_code=500).code == EmailDeliveryErrorCode.PROVIDER_UNAVAILABLE
     assert map_email_provider_error(status_code=400).code == EmailDeliveryErrorCode.PROVIDER_INVALID_REQUEST

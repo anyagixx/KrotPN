@@ -24,6 +24,7 @@
 # END_MODULE_MAP
 #
 # START_CHANGE_SUMMARY
+#   LAST_CHANGE: v3.5.2 - Added Phase-36 Resend API URL, sender, and key format validation.
 #   LAST_CHANGE: v3.5.1 - Treat blank optional MTProto secrets as unset so backend can degrade instead of crash.
 #   LAST_CHANGE: v3.5.0 - Added Phase-32 krotpn.xyz domain TLS edge settings
 #   LAST_CHANGE: v3.4.0 - Added Phase-29 MTProto provisioning settings
@@ -324,6 +325,38 @@ class Settings(BaseSettings):
                 continue
             domains.append(domain.rstrip("."))
         return domains
+
+    @field_validator("resend_api_key")
+    @classmethod
+    def validate_resend_api_key(cls, v: str | None) -> str | None:
+        if v is None:
+            return None
+        normalized = v.strip()
+        if not normalized:
+            return None
+        if not re.fullmatch(r"[-A-Za-z0-9._:=+/]{10,512}", normalized):
+            raise ValueError("RESEND_API_KEY contains unsupported characters")
+        return normalized
+
+    @field_validator("resend_api_url")
+    @classmethod
+    def validate_resend_api_url(cls, v: str) -> str:
+        normalized = v.strip()
+        if normalized != "https://api.resend.com/emails":
+            raise ValueError("RESEND_API_URL must be https://api.resend.com/emails")
+        return normalized
+
+    @field_validator("email_from")
+    @classmethod
+    def validate_email_from(cls, v: str | None) -> str | None:
+        if v is None:
+            return None
+        normalized = v.strip().lower()
+        if not normalized:
+            return None
+        if not re.fullmatch(r"[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}", normalized):
+            raise ValueError("EMAIL_FROM must be a valid sender email address")
+        return normalized
 
     @field_validator("mtproto_base_domain")
     @classmethod

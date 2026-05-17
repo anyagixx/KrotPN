@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<V-M-048 MODULE="M-048" PRIORITY="critical" STATUS="partial-local" VERSION="1.6.0">
+<V-M-048 MODULE="M-048" PRIORITY="critical" STATUS="partial-local" VERSION="1.7.0">
   <module>installer-wildcard-tls</module>
   <phase-scope>
     <phase-35 status="partial-local">Installer flow for operator-provided wildcard TLS certificate paths, validation, env wiring, and reusable deploy installation passed local/static checks; clean VPS wildcard TLS deploy remains operator-live.</phase-35>
-    <phase-36 status="verification-designed">Installer/deploy flow will collect Resend API key and sender settings so clean VPS registration can send verification emails.</phase-36>
+    <phase-36 status="partial-local">Installer/deploy flow collects Resend API key and sender settings so clean VPS registration can send verification emails; real Resend delivery remains operator-live.</phase-36>
   </phase-scope>
   <test-files>
     <file>install.sh</file>
@@ -27,7 +27,7 @@
     <command-4>sh -c 'if [ -e .env ]; then DB_PASSWORD=phase35-compose-check docker compose config; else ln -s .env.example .env &amp;&amp; trap "rm -f .env" EXIT &amp;&amp; DB_PASSWORD=phase35-compose-check docker compose config; fi'</command-4>
     <command-5>python3 -m xml.etree.ElementTree docs/plans/Phase-35.xml docs/plans/Phase-36.xml docs/modules/M-048.xml docs/verification/V-M-048.xml docs/graph-index.xml docs/plan-index.xml docs/verification-index.xml &amp;&amp; mygrace lint</command-5>
     <command-6>operator-live: prepared wildcard cert deploy on clean RU VPS, then HTTPS and MTProto-domain smoke with redacted evidence.</command-6>
-    <command-7 status="planned">node scripts/phase36-resend-deploy-smoke.mjs</command-7>
+    <command-7 status="pass-local">node scripts/phase36-resend-deploy-smoke.mjs</command-7>
     <command-8 status="operator-live">operator-live: after Resend verifies krotpn.xyz, run one controlled-mailbox registration smoke with redacted evidence.</command-8>
   </commands>
   <verification-levels>
@@ -129,5 +129,6 @@
     <evidence-7>2026-05-17: Live clean VPS backend unhealthy failure fixed by generating MTProto secrets in deploy/deploy-on-server.sh and adding smoke guards against blank deploy values.</evidence-7>
     <evidence-8>2026-05-17: Phase-36 planning scoped Resend API key installer/deploy wiring after clean VPS registration hit Email provider is disabled.</evidence-8>
     <evidence-9>2026-05-17: Phase-36 verification design added Resend installer/deploy smoke, backend settings gate, and controlled-mailbox live gate.</evidence-9>
+    <evidence-10>2026-05-17: Phase-36 local execution passed bash syntax and scripts/phase36-resend-deploy-smoke.mjs; live clean VPS Resend mailbox smoke remains blocked on operator API key and domain verification.</evidence-10>
   </evidence>
 </V-M-048>

@@ -48,7 +48,7 @@
     <item>Phase-35 operator wildcard TLS installer passed local/static verification on 2026-05-17: install.sh now asks for domain, fullchain1.pem and privkey1.pem paths, deploy validates operator wildcard TLS material before compose startup, production self-signed fallback is blocked unless dev mode is explicit, and nginx can use an ignored runtime domain config. Clean VPS deploy with real wildcard certificate files remains operator-required.</item>
     <item>Phase-35 reviewer follow-up on 2026-05-17 fixed clean VPS preflight risk by bootstrapping openssl on RU when needed, rejecting certificate source paths under /opt/KrotPN, and strengthening Phase-35 smoke with dynamic installer validator checks.</item>
     <item>Phase-35 live clean VPS deploy revealed backend startup failure from blank MTProto secrets; 2026-05-17 hotfix generates MTPROTO_BASE_SECRET_HEX and MTPROTO_SECRET_SALT during deploy and treats blank optional MTProto env values as safely unset.</item>
-    <item>Phase-36 Resend deploy email-provider verification design is ready: local gates will cover installer secret input, deploy env wiring, Resend request shape, provider_disabled regression, redaction, and controlled-mailbox live smoke after krotpn.xyz is verified in Resend.</item>
+    <item>Phase-36 Resend deploy email-provider wiring passed local execution on 2026-05-17: install.sh now asks for a redacted Resend API key and noreply@krotpn.xyz sender, deploy writes EMAIL_PROVIDER=resend/RESEND_API_KEY/RESEND_API_URL/EMAIL_FROM into .env, and local smoke verifies request shape, provider_disabled regression guards, and secret redaction. Live mailbox proof remains operator-blocked until Resend domain verification completes.</item>
   </what-is-working>
 
   <what-is-fragile>
@@ -60,7 +60,7 @@
     <item>MTProto public edge integration has local/static coverage through Phases 31-34, but shared 443/TLS/domain live proof is still deferred until operator DNS, wildcard TLS, and rollback window are ready.</item>
     <item>Phase-32 shared 443 production smoke remains blocked until DNS, trusted wildcard TLS material, and an operator rollback window are available.</item>
     <item>Phase-35 clean VPS wildcard TLS deploy smoke remains operator-live until prepared fullchain1.pem/privkey1.pem files are present on the RU server and public HTTPS is verified.</item>
-    <item>Phase-36 execution remains pending until the Resend API key is available and krotpn.xyz/noreply@krotpn.xyz verification is complete in Resend.</item>
+    <item>Phase-36 live Resend mailbox smoke remains pending until the Resend API key is available and krotpn.xyz/noreply@krotpn.xyz verification is complete in Resend.</item>
     <item>Emergency relocation is documented but still blocked until a trusted backup bundle and isolated restore target exist for dry-run evidence.</item>
     <item>Cookie-only auth migration is planned but not executed because it requires explicit approval and HTTPS or production-like smoke evidence.</item>
   </what-is-fragile>
@@ -129,13 +129,13 @@
     <gate id="phase-35-operator-wildcard-tls-installer" status="partial-local">
       <summary>Local Phase-35 shell syntax, static installer TLS smoke, edge guard smoke, domain TLS pytest, docker compose config, XML parse, and MyGRACE lint passed; clean VPS deploy with prepared wildcard TLS files remains operator-required.</summary>
     </gate>
-    <gate id="phase-36-resend-deploy-email-provider" status="verification-designed">
-      <summary>Verification matrix is designed for Resend installer/deploy env wiring, backend Settings acceptance, provider_disabled regression, redaction, and controlled-mailbox live smoke after Resend domain verification.</summary>
+    <gate id="phase-36-resend-deploy-email-provider" status="partial-local">
+      <summary>Local execution passed for Resend installer/deploy env wiring, backend Settings acceptance, request-shape coverage, provider_disabled regression guards, and redaction; controlled-mailbox live smoke waits for Resend domain verification and real API key.</summary>
     </gate>
   </rollout-gates>
 
   <immediate-priorities>
-    <priority rank="1">Execute Phase-36 Resend deploy email-provider wiring after the operator provides the Resend API key and domain verification status.</priority>
+    <priority rank="1">Complete Phase-36 live Resend mailbox smoke after the operator provides the Resend API key and confirms krotpn.xyz/noreply@krotpn.xyz verification in Resend.</priority>
     <priority rank="2">Fix Phase-28 refresh findings: V-M-004 billing route/API tests and V-M-022 VPN compatibility route tests currently return 404 in their full per-module gates.</priority>
     <priority rank="3">Complete Phase-32/Phase-34/Phase-35 live edge smoke after DNS points to the intended host, trusted wildcard TLS for krotpn.xyz and *.krotpn.xyz is installed through the Phase-35 installer flow, an issued MTProto SNI is available, and an operator rollback window is available.</priority>
     <priority rank="4">Run Phase-22 non-production restore rehearsal with a trusted backup bundle and isolated restore target.</priority>

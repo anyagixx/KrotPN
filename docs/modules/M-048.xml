@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <M-048 NAME="installer-wildcard-tls" TYPE="ENTRY_POINT" STATUS="partial-local">
-  <path>install.sh deploy/deploy-on-server.sh nginx docker-compose.yml .env.example scripts/phase35-installer-wildcard-tls-smoke.mjs docs/plans/Phase-35.xml</path>
-  <owns>installer prompts, remote wildcard certificate validation, deploy-time certificate installation, production edge env wiring, and operator-safe TLS reuse.</owns>
+  <path>install.sh deploy/deploy-on-server.sh nginx docker-compose.yml .env.example scripts/phase35-installer-wildcard-tls-smoke.mjs scripts/phase36-resend-deploy-smoke.mjs docs/plans/Phase-35.xml docs/plans/Phase-36.xml</path>
+  <owns>installer prompts, remote wildcard certificate validation, deploy-time certificate installation, production edge env wiring, Phase-36 Resend email env prompts, and operator-safe TLS reuse.</owns>
   <purpose>Make fresh deploys accept an operator-provided wildcard certificate instead of reissuing or silently generating production self-signed TLS material.</purpose>
   <exports>
     <installer-domain-prompt>Prompt for the public domain with krotpn.xyz as the default.</installer-domain-prompt>
@@ -20,7 +20,9 @@
     <file>docker-compose.yml</file>
     <file>.env.example</file>
     <file>scripts/phase35-installer-wildcard-tls-smoke.mjs</file>
+    <file>scripts/phase36-resend-deploy-smoke.mjs</file>
     <file>docs/plans/Phase-35.xml</file>
+    <file>docs/plans/Phase-36.xml</file>
   </files>
   <operator-inputs>
     <input-1>PUBLIC_DOMAIN defaults to krotpn.xyz.</input-1>
@@ -44,13 +46,14 @@
     <step-3 STATUS="pass-local">Teach deploy/deploy-on-server.sh to validate and install operator-provided certs into /opt/KrotPN/ssl/server.crt and /opt/KrotPN/ssl/server.key.</step-3>
     <step-4 STATUS="pass-local">Generate production domain and edge TLS env values for backend, frontend, admin, nginx, and MTProto base-domain expectations.</step-4>
     <step-5 STATUS="pass-local">Preserve existing certs across redeploys unless a validated replacement is provided.</step-5>
-    <step-6 STATUS="planned">Collect and pass Resend API key and noreply@krotpn.xyz sender for production email verification delivery.</step-6>
+    <step-6 STATUS="pass-local">Collect and pass Resend API key and noreply@krotpn.xyz sender for production email verification delivery.</step-6>
   </planned-execution>
   <evidence>
     <evidence-1>2026-05-17: Local Phase-35 implementation added installer prompts, RU cert preflight, deploy-time certificate validation/install, production env wiring, runtime nginx rendering, and static smoke coverage.</evidence-1>
     <evidence-2>2026-05-17: Live clean VPS deploy with prepared wildcard certificate files remains operator-required before STATUS can move beyond partial-local.</evidence-2>
     <evidence-3>2026-05-17: Reviewer follow-up fixed clean VPS openssl bootstrap risk, rejected /opt/KrotPN cert source paths, and added dynamic installer validator smoke checks.</evidence-3>
     <evidence-4>2026-05-17: Live clean VPS backend unhealthy failure was fixed by generating deploy-time MTProto secrets and adding smoke coverage against blank deploy values.</evidence-4>
+    <evidence-5>2026-05-17: Phase-36 local execution added Resend secret prompt, sender validation, deploy env wiring, static smoke coverage, and redaction checks.</evidence-5>
   </evidence>
   <hotspot>H-034: Installer-provided wildcard TLS must validate cert/key/domain before deploy and must never log private key material.</hotspot>
 </M-048>

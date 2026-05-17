@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<V-M-012 MODULE="M-012" PRIORITY="critical" STATUS="pass" VERSION="1.1.0">
+<V-M-012 MODULE="M-012" PRIORITY="critical" STATUS="pass" VERSION="1.2.0">
   <module>deploy-surface</module>
   <checks>Deploy and nginx changes do not introduce weak defaults or unsafe routing assumptions. Deploy creates /var/lib/krotpn/ directory for RU IP snapshots. Snapshot directory permissions are correct (root:root, 755). Phase-36 planned deploy changes must enable Resend email provider without logging RESEND_API_KEY.</checks>
   <test-files>
@@ -27,4 +27,8 @@
     <scenario kind="success" trace="DEPLOY_RESTORED">Rollback restores from backup successfully</scenario>
     <scenario kind="success" trace="RESEND_ENV_WRITTEN">Clean deploy writes EMAIL_PROVIDER=resend and redacted Resend configuration when operator provides an API key</scenario>
   </scenarios>
+  <evidence>
+    <evidence-1>2026-05-17: bash -n install.sh deploy/deploy-on-server.sh passed after Phase-36 Resend config wiring.</evidence-1>
+    <evidence-2>2026-05-17: node scripts/phase36-resend-deploy-smoke.mjs passed with installer/deploy Resend redaction checks.</evidence-2>
+  </evidence>
 </V-M-012>

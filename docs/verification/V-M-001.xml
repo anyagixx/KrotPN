@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<V-M-001 MODULE="M-001" PRIORITY="critical" STATUS="pass" VERSION="1.1.0">
+<V-M-001 MODULE="M-001" PRIORITY="critical" STATUS="pass" VERSION="1.2.0">
   <module>backend-core</module>
   <checks>Backend config and DB initialization remain runnable; auth and crypto helpers still load. Default secret_key is rejected with ValueError. DATA_ENCRYPTION_KEY is required. Token blacklist functions work with Redis and degrade gracefully without it. All datetime values are timezone-aware. Email settings include Resend provider configuration without secret leakage. MTProto provisioning settings validate domain, port, secret, salt, SNI prefix, and rotation marker; blank optional MTProto secret env values normalize to missing config instead of crashing app import.</checks>
   <test-files>backend/tests/test_security.py backend/tests/test_mtproto_provisioning.py</test-files>
@@ -23,5 +23,6 @@
     <evidence-2>2026-05-14: Phase-29 target pytest exercised MTProto Settings construction through provisioning tests.</evidence-2>
     <evidence-3>2026-05-17: Clean VPS backend unhealthy hotfix added blank MTProto env normalization coverage.</evidence-3>
     <evidence-4>2026-05-17: Phase-36 planning added Resend deploy configuration expectations for EMAIL_PROVIDER, RESEND_API_KEY, RESEND_API_URL, EMAIL_FROM, and verification URL base.</evidence-4>
+    <evidence-5>2026-05-17: Phase-36 local verification passed Resend Settings validation through backend/tests/test_email_delivery.py and scripts/phase36-resend-deploy-smoke.mjs.</evidence-5>
   </evidence>
 </V-M-001>

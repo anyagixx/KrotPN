@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Phase-36 NAME="Resend Deploy Email Provider Wiring" STATUS="verification-designed" VERSION="1.1.0">
+<Phase-36 NAME="Resend Deploy Email Provider Wiring" STATUS="partial-local" VERSION="1.2.0">
   <Goal>Make clean production deployments configure Resend email delivery so verified-registration emails are sent instead of failing with provider_disabled.</Goal>
   <Modules>M-040,M-041,M-012,M-001,M-048</Modules>
   <OperatorIntent>
@@ -20,18 +20,18 @@
     <flow-5>M-040 ResendEmailProvider sends verification email through https://api.resend.com/emails; M-041 blocks registration activation until the email token is verified.</flow-5>
   </DataFlow>
   <Steps>
-    <step-1 STATUS="planned">Extend install.sh input collection with secret Resend API key prompt and sender email prompt defaulting to noreply@krotpn.xyz.</step-1>
-    <step-2 STATUS="planned">Validate Resend API key and sender email format without accepting shell metacharacters, newlines, or empty values.</step-2>
-    <step-3 STATUS="planned">Pass RESEND_API_KEY, EMAIL_PROVIDER, EMAIL_FROM, and RESEND_API_URL through the temporary RU deploy config with redacted operator output.</step-3>
-    <step-4 STATUS="planned">Update deploy/deploy-on-server.sh .env generation so clean production deploys enable Resend instead of leaving EMAIL_PROVIDER disabled.</step-4>
-    <step-5 STATUS="planned">Add deterministic Resend request-shape, deploy env, installer prompt, redaction, and registration-provider smoke coverage.</step-5>
-    <step-6 STATUS="planned">Apply a live hotfix path for already-deployed RU servers by setting Resend env values and restarting backend after operator domain verification is ready.</step-6>
+    <step-1 STATUS="pass-local">Extend install.sh input collection with secret Resend API key prompt and sender email prompt defaulting to noreply@krotpn.xyz.</step-1>
+    <step-2 STATUS="pass-local">Validate Resend API key and sender email format without accepting shell metacharacters, newlines, or empty values.</step-2>
+    <step-3 STATUS="pass-local">Pass RESEND_API_KEY, EMAIL_PROVIDER, EMAIL_FROM, and RESEND_API_URL through the temporary RU deploy config with redacted operator output.</step-3>
+    <step-4 STATUS="pass-local">Update deploy/deploy-on-server.sh .env generation so clean production deploys enable Resend instead of leaving EMAIL_PROVIDER disabled.</step-4>
+    <step-5 STATUS="pass-local">Add deterministic Resend request-shape, deploy env, installer prompt, redaction, and registration-provider smoke coverage.</step-5>
+    <step-6 STATUS="blocked-operator">Apply a live hotfix path for already-deployed RU servers by setting Resend env values and restarting backend after operator domain verification is ready.</step-6>
   </Steps>
   <Verification>
     <command-1>bash -n install.sh deploy/deploy-on-server.sh</command-1>
     <command-2>node scripts/phase36-resend-deploy-smoke.mjs</command-2>
     <command-3>cd backend &amp;&amp; SECRET_KEY=test-secret-key-with-enough-length DATA_ENCRYPTION_KEY=dpFmfSVqfdAK3yx5MQV6Tcv35RZuw5MzaH0yhxJ01q0= PYTHONPATH=. ../.venv/bin/python -m pytest -o addopts='' tests/test_email_delivery.py tests/test_verified_registration.py tests/test_email_verification_guard.py -v</command-3>
-    <command-4>python3 -m xml.etree.ElementTree docs/plans/Phase-36.xml docs/modules/M-040.xml docs/modules/M-041.xml docs/modules/M-012.xml docs/modules/M-001.xml docs/modules/M-048.xml docs/verification/V-M-040.xml docs/verification/V-M-041.xml docs/verification/V-M-048.xml docs/graph-index.xml docs/plan-index.xml docs/verification-index.xml &amp;&amp; mygrace lint</command-4>
+    <command-4>python3 -m xml.etree.ElementTree docs/plans/Phase-36.xml docs/modules/M-040.xml docs/modules/M-041.xml docs/modules/M-012.xml docs/modules/M-001.xml docs/modules/M-048.xml docs/verification/V-M-001.xml docs/verification/V-M-012.xml docs/verification/V-M-040.xml docs/verification/V-M-041.xml docs/verification/V-M-048.xml docs/graph-index.xml docs/plan-index.xml docs/verification-index.xml &amp;&amp; mygrace lint</command-4>
     <command-5>operator-live: after krotpn.xyz is verified in Resend, submit one registration to a controlled mailbox and verify the email is delivered without logging API key or token.</command-5>
     <command-6>operator-live-existing-ru: update /opt/KrotPN/.env with Resend values, restart backend, then repeat the controlled-mailbox registration smoke with redacted evidence.</command-6>
   </Verification>
@@ -68,4 +68,10 @@
     <safe-local>Static source smoke, fake-provider tests, Resend request-shape tests with fake httpx transport, bash syntax checks, XML parse, and MyGRACE lint.</safe-local>
     <requires-operator>Real Resend API key, verified krotpn.xyz domain in Resend, live mailbox receipt, and any production resend smoke.</requires-operator>
   </AutonomousExecutionSafety>
+  <ExecutionEvidence>
+    <evidence-1>2026-05-17: install.sh now collects RESEND_API_KEY through secret input, validates EMAIL_FROM, and writes redacted Resend deploy config for RU.</evidence-1>
+    <evidence-2>2026-05-17: deploy/deploy-on-server.sh validates Resend env, writes EMAIL_PROVIDER=resend, RESEND_API_KEY, RESEND_API_URL, EMAIL_FROM, and EMAIL_VERIFICATION_URL_BASE into /opt/KrotPN/.env, and aborts before deploy when the key is missing.</evidence-2>
+    <evidence-3>2026-05-17: scripts/phase36-resend-deploy-smoke.mjs and backend/tests/test_email_delivery.py passed locally.</evidence-3>
+    <evidence-4>Operator-live existing RU hotfix and controlled mailbox smoke remain blocked until the real Resend API key is available and krotpn.xyz/noreply@krotpn.xyz verification is complete.</evidence-4>
+  </ExecutionEvidence>
 </Phase-36>

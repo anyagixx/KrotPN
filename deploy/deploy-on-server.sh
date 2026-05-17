@@ -1,16 +1,16 @@
 #!/bin/bash
 #
-# KrotPN Server Deployment Script v3.1.2 (Full Tunnel)
+# KrotPN Server Deployment Script v3.1.3 (Full Tunnel)
 # Run this script ON the RU server
 # FILE: deploy/deploy-on-server.sh
-# VERSION: 3.1.2
+# VERSION: 3.1.3
 # ROLE: SCRIPT
 # MAP_MODE: LOCALS
 # START_MODULE_CONTRACT
-#   PURPOSE: Provision the RU entry host, DE exit host, application runtime, and Phase-35 operator wildcard TLS edge material.
-#   SCOPE: Host prerequisites, AmneziaWG tunnel setup, app env generation, TLS certificate validation/install, nginx runtime config rendering, and Docker Compose startup.
-#   DEPENDS: M-012, M-030, M-032, M-048
-#   LINKS: docs/modules/M-012.xml, docs/modules/M-048.xml, docs/plans/Phase-35.xml, docs/verification/V-M-048.xml
+#   PURPOSE: Provision the RU entry host, DE exit host, application runtime, Phase-35 operator wildcard TLS edge material, and Phase-36 Resend email provider env.
+#   SCOPE: Host prerequisites, AmneziaWG tunnel setup, app env generation, TLS certificate validation/install, Resend config validation, nginx runtime config rendering, and Docker Compose startup.
+#   DEPENDS: M-012, M-030, M-032, M-040, M-041, M-048
+#   LINKS: docs/modules/M-012.xml, docs/modules/M-040.xml, docs/modules/M-041.xml, docs/modules/M-048.xml, docs/plans/Phase-35.xml, docs/plans/Phase-36.xml, docs/verification/V-M-048.xml
 # END_MODULE_CONTRACT
 #
 # START_MODULE_MAP
@@ -19,10 +19,12 @@
 #   validate_operator_tls_certificate - Verify cert/key readability, expiry, key match, and SAN coverage without leaking private keys.
 #   install_operator_tls_certificate - Atomically install validated cert/key to /opt/KrotPN/ssl.
 #   generate_self_signed_dev_certificate - Explicit dev/test fallback, blocked for production unless selected.
+#   validate_resend_email_config - Validate Resend API key, URL, and sender without printing secrets.
 #   render_nginx_domain_config - Render ignored runtime nginx config for the selected domain.
 # END_MODULE_MAP
 #
 # START_CHANGE_SUMMARY
+#   LAST_CHANGE: v3.1.3 - Enable Resend email provider env wiring and fail closed when the API key is missing.
 #   LAST_CHANGE: v3.1.2 - Generate required MTProto base secret and salt during fresh deploy env creation.
 #   LAST_CHANGE: v3.1.1 - Reject /opt/KrotPN certificate source paths to avoid clone-time source deletion.
 # END_CHANGE_SUMMARY
@@ -114,6 +116,74 @@ validate_tls_path() {
     esac
 
     return 0
+}
+
+validate_resend_api_key() {
+    local api_key="$1"
+
+    if [ -z "$api_key" ]; then
+        echo -e "${RED}[M-012][deploy_resend][ABORT_MISSING_KEY] Missing RESEND_API_KEY${NC}"
+        return 1
+    fi
+
+    if [[ "$api_key" == *$'\n'* ]] || [[ "$api_key" == *$'\r'* ]] || [[ "$api_key" =~ [[:space:]] ]]; then
+        echo -e "${RED}[M-012][deploy_resend][ABORT_MISSING_KEY] RESEND_API_KEY must not contain whitespace${NC}"
+        return 1
+    fi
+
+    if [[ ! "$api_key" =~ ^[-A-Za-z0-9._:=+/]{10,512}$ ]]; then
+        echo -e "${RED}[M-012][deploy_resend][ABORT_MISSING_KEY] RESEND_API_KEY contains unsupported characters${NC}"
+        return 1
+    fi
+
+    return 0
+}
+
+validate_email_from() {
+    local email="$1"
+
+    if [ -z "$email" ]; then
+        echo -e "${RED}[M-012][deploy_resend][VALIDATE_INPUTS] Missing EMAIL_FROM${NC}"
+        return 1
+    fi
+
+    if [[ "$email" == *$'\n'* ]] || [[ "$email" == *$'\r'* ]] || [[ "$email" =~ [[:space:]] ]]; then
+        echo -e "${RED}[M-012][deploy_resend][VALIDATE_INPUTS] EMAIL_FROM must not contain whitespace${NC}"
+        return 1
+    fi
+
+    if [[ ! "$email" =~ ^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$ ]]; then
+        echo -e "${RED}[M-012][deploy_resend][VALIDATE_INPUTS] Invalid EMAIL_FROM format${NC}"
+        return 1
+    fi
+
+    return 0
+}
+
+validate_resend_api_url() {
+    local api_url="$1"
+
+    if [ "$api_url" != "https://api.resend.com/emails" ]; then
+        echo -e "${RED}[M-012][deploy_resend][VALIDATE_INPUTS] RESEND_API_URL must be https://api.resend.com/emails${NC}"
+        return 1
+    fi
+
+    return 0
+}
+
+validate_resend_email_config() {
+    if [ "$EMAIL_PROVIDER" != "resend" ]; then
+        echo -e "${RED}[M-012][deploy_resend][ABORT_MISSING_KEY] EMAIL_PROVIDER must be resend for production email verification${NC}"
+        exit 1
+    fi
+
+    validate_resend_api_key "$RESEND_API_KEY" || exit 1
+    validate_resend_api_url "$RESEND_API_URL" || exit 1
+    validate_email_from "$EMAIL_FROM" || exit 1
+
+    echo -e "${BLUE}[M-012][deploy_resend][ENV_WIRING] Resend email provider configured for ${EMAIL_FROM}${NC}"
+    echo -e "${BLUE}[M-012][deploy_resend][REDACT_SECRET] RESEND_API_KEY accepted and redacted${NC}"
+    echo -e "${BLUE}[M-048][deploy_resend][ENV_WIRING] Resend env will be written with secret redaction${NC}"
 }
 
 ensure_openssl_available() {
@@ -272,6 +342,10 @@ PUBLIC_DOMAIN="$(printf '%s' "${PUBLIC_DOMAIN:-krotpn.xyz}" | tr '[:upper:]' '[:
 TLS_FULLCHAIN_PATH="${TLS_FULLCHAIN_PATH:-/root/krotpn-ssl/fullchain1.pem}"
 TLS_PRIVKEY_PATH="${TLS_PRIVKEY_PATH:-/root/krotpn-ssl/privkey1.pem}"
 TLS_CERTIFICATE_MODE="${TLS_CERTIFICATE_MODE:-operator-wildcard}"
+EMAIL_PROVIDER="${EMAIL_PROVIDER:-resend}"
+RESEND_API_KEY="${RESEND_API_KEY:-}"
+RESEND_API_URL="${RESEND_API_URL:-https://api.resend.com/emails}"
+EMAIL_FROM="$(printf '%s' "${EMAIL_FROM:-noreply@${PUBLIC_DOMAIN}}" | tr '[:upper:]' '[:lower:]')"
 if [ -z "$ADMIN_PASSWORD" ]; then
     ADMIN_PASSWORD=$(python3 -c "import secrets; print(secrets.token_urlsafe(24))")
     GENERATED_ADMIN_PASSWORD=1
@@ -285,6 +359,8 @@ if [ -z "$DE_IP" ] || [ -z "$DE_USER" ]; then
     echo "Required: DE_IP, DE_USER"
     exit 1
 fi
+
+validate_resend_email_config
 
 case "$TLS_CERTIFICATE_MODE" in
     operator-wildcard)
@@ -896,11 +972,14 @@ TELEGRAM_BOT_TOKEN=
 TELEGRAM_WEBHOOK_URL=
 
 # === EMAIL ===
+EMAIL_PROVIDER=${EMAIL_PROVIDER}
+RESEND_API_KEY=${RESEND_API_KEY}
+RESEND_API_URL=${RESEND_API_URL}
 SMTP_HOST=smtp.gmail.com
 SMTP_PORT=587
 SMTP_USER=
 SMTP_PASSWORD=
-EMAIL_FROM=noreply@${PUBLIC_DOMAIN}
+EMAIL_FROM=${EMAIL_FROM}
 EMAIL_VERIFICATION_URL_BASE=https://${PUBLIC_DOMAIN}/verify-email
 
 # === REFERRAL ===

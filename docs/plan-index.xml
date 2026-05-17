@@ -37,5 +37,5 @@
   <Phase-33 NAME="MTProto Admin Ops and Observability" STATUS="done-local" STEPS="5" MODULES="M-047,M-006,M-010,M-024,M-042,M-044" />
   <Phase-34 NAME="MTProto Integration Stabilization Gates" STATUS="partial-local" STEPS="6" MODULES="M-040,M-041,M-042,M-043,M-044,M-045,M-046,M-047" />
   <Phase-35 NAME="Operator Wildcard TLS Installer" STATUS="partial-local" STEPS="6" MODULES="M-048,M-012,M-046,M-001,M-044" />
-  <Phase-36 NAME="Resend Deploy Email Provider Wiring" STATUS="verification-designed" STEPS="6" MODULES="M-040,M-041,M-012,M-001,M-048" />
+  <Phase-36 NAME="Resend Deploy Email Provider Wiring" STATUS="partial-local" STEPS="6" MODULES="M-040,M-041,M-012,M-001,M-048" />
 </PlanIndex>

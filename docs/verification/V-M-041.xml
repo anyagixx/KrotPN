@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<V-M-041 MODULE="M-041" PRIORITY="critical" STATUS="partial-local" VERSION="1.7.0">
+<V-M-041 MODULE="M-041" PRIORITY="critical" STATUS="partial-local" VERSION="1.8.0">
   <phase-scope>
     <phase-27 status="pass-local">Foundation evidence exists for pending-registration primitives, token hashing, TTL/replay protection, email risk checks, fake-provider email delivery, and unchanged active /register behavior.</phase-27>
     <phase-28 status="partial-local">Primary cutover verification proves that /register is a pending-email flow and that active KrotPN access exists only after verified email activation; full wave closure is partial until V-M-004 and V-M-022 complete gates pass.</phase-28>
     <phase-34 status="pass-local">Stabilization gate proves verified-email activation and the free MTProto owner path are linked without issuing MTProto, trial, VPN, referral, or JWT side effects before email proof.</phase-34>
-    <phase-36 status="verification-designed">Resend deploy wiring verifies pending registration can send email in production after operator supplies a Resend API key.</phase-36>
+    <phase-36 status="partial-local">Resend deploy wiring verifies pending registration can send email in production after operator supplies a Resend API key; live mailbox proof remains operator-blocked.</phase-36>
   </phase-scope>
   <test-files>
     <file phase="27-regression">backend/tests/test_email_verification_guard.py</file>
@@ -90,5 +90,6 @@
     <evidence-4>2026-05-14: Phase-34 backend/tests/test_phase34_mtproto_integration.py passed locally with 2 tests for pending no-access, verified activation, MTProto owner assignment idempotency, and token replay safety.</evidence-4>
     <evidence-5>2026-05-17: Phase-36 planning added production Resend deploy wiring after clean VPS registration reached M-040 provider_disabled.</evidence-5>
     <evidence-6>2026-05-17: Phase-36 verification design added provider_disabled regression, Resend failure side-effect, and live controlled-mailbox gates.</evidence-6>
+    <evidence-7>2026-05-17: Phase-36 local implementation preserves fake-provider registration verification and leaves live controlled-mailbox proof blocked until Resend domain verification completes.</evidence-7>
   </evidence>
 </V-M-041>
