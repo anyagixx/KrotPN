@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<V-M-048 MODULE="M-048" PRIORITY="critical" STATUS="planned" VERSION="1.0.0">
+  <module>installer-wildcard-tls</module>
+  <phase-scope>
+    <phase-35 status="planned">Installer flow for operator-provided wildcard TLS certificate paths, validation, env wiring, and reusable deploy installation.</phase-35>
+  </phase-scope>
+  <test-files>
+    <file>install.sh</file>
+    <file>deploy/deploy-on-server.sh</file>
+    <file>nginx/nginx.conf</file>
+    <file>docker-compose.yml</file>
+    <file>.env.example</file>
+    <file>scripts/phase35-installer-wildcard-tls-smoke.mjs</file>
+    <file>docs/plans/Phase-35.xml</file>
+    <file>docs/modules/M-048.xml</file>
+  </test-files>
+  <commands>
+    <command-1>bash -n install.sh deploy/deploy-on-server.sh</command-1>
+    <command-2>node scripts/phase35-installer-wildcard-tls-smoke.mjs</command-2>
+    <command-3>python3 -m xml.etree.ElementTree docs/plans/Phase-35.xml docs/modules/M-048.xml docs/verification/V-M-048.xml docs/graph-index.xml docs/plan-index.xml docs/verification-index.xml &amp;&amp; mygrace lint</command-3>
+    <command-4>operator-live: prepared wildcard cert deploy on clean RU VPS, then HTTPS and MTProto-domain smoke with redacted evidence.</command-4>
+  </commands>
+  <module-checks>
+    <check-1 evidence="deterministic">install.sh prompts for PUBLIC_DOMAIN, TLS_FULLCHAIN_PATH, and TLS_PRIVKEY_PATH after RU SSH connectivity is available.</check-1>
+    <check-2 evidence="deterministic">Remote validation rejects missing files, unreadable files, empty files, expired certs, mismatched cert/key pairs, and missing base-domain or wildcard SAN coverage.</check-2>
+    <check-3 evidence="deterministic">deploy/deploy-on-server.sh installs validated cert material to /opt/KrotPN/ssl/server.crt and /opt/KrotPN/ssl/server.key with safe permissions.</check-3>
+    <check-4 evidence="deterministic">Production deploy does not silently generate self-signed certificates when operator wildcard TLS is expected.</check-4>
+    <check-5 evidence="deterministic">Generated .env uses the operator domain for DOMAIN, FRONTEND_URL, MTPROTO_BASE_DOMAIN, EDGE_PUBLIC_DOMAIN, EDGE_TLS_CERTIFICATE_PATH, EDGE_TLS_CERTIFICATE_KEY_PATH, and EDGE_TLS_CERTIFICATE_MODE.</check-5>
+    <check-6 evidence="static-redaction">No verification output, installer logs, deploy logs, XML files, or smoke scripts print private key contents.</check-6>
+    <check-7 evidence="live-required">Clean VPS smoke proves HTTP redirect, HTTPS frontend/API/admin, trusted cert chain, and MTProto SNI readiness with prepared wildcard TLS.</check-7>
+  </module-checks>
+  <scenarios>
+    <scenario-1 kind="success">Operator places /root/krotpn-ssl/fullchain1.pem and /root/krotpn-ssl/privkey1.pem on RU, accepts default krotpn.xyz prompts, and deploy completes with trusted TLS paths.</scenario-1>
+    <scenario-2 kind="success">Operator reruns install with the same valid cert paths and the deploy preserves or atomically refreshes TLS material without reissuing certificates.</scenario-2>
+    <scenario-3 kind="failure">Wrong file path or permission issue aborts before docker compose changes.</scenario-3>
+    <scenario-4 kind="failure">Mismatched key, expired cert, or SAN mismatch aborts before replacing /opt/KrotPN/ssl files.</scenario-4>
+    <scenario-5 kind="failure">Self-signed fallback is unavailable in production mode unless explicitly selected for dev/test.</scenario-5>
+  </scenarios>
+  <required-log-markers>
+    <marker-1>[M-048][installer_tls][PROMPT_DOMAIN]</marker-1>
+    <marker-2>[M-048][installer_tls][VALIDATE_CERT_PATHS]</marker-2>
+    <marker-3>[M-048][installer_tls][VALIDATE_CERT_KEY_MATCH]</marker-3>
+    <marker-4>[M-048][installer_tls][VALIDATE_SAN]</marker-4>
+    <marker-5>[M-048][deploy_tls][INSTALL_CERT]</marker-5>
+    <marker-6>[M-048][deploy_tls][ENV_WIRING]</marker-6>
+  </required-log-markers>
+  <redaction-rules>
+    <rule-1>Never print private key contents, certificate PEM bodies, .env secrets, MTPROTO_BASE_SECRET_HEX, MTPROTO_SECRET_SALT, JWTs, refresh tokens, or email verification tokens.</rule-1>
+    <rule-2>Logs may include the domain, redacted paths, certificate issuer, notAfter date, and validation status.</rule-2>
+    <rule-3>Operator-live evidence must redact server passwords and should not include full shell traces around secret-handling commands.</rule-3>
+  </redaction-rules>
+  <live-smoke-gates>
+    <gate-1>DNS for krotpn.xyz points to the target RU edge host.</gate-1>
+    <gate-2>Wildcard certificate files are present on RU before install starts.</gate-2>
+    <gate-3>Installer validation passes without printing private key contents.</gate-3>
+    <gate-4>curl -I http://krotpn.xyz returns a redirect to https://krotpn.xyz.</gate-4>
+    <gate-5>HTTPS frontend, /api health, and /admin route respond with the trusted wildcard certificate.</gate-5>
+    <gate-6>One issued MTProto SNI under the wildcard domain is ready for the existing M-046/M-044 live smoke.</gate-6>
+  </live-smoke-gates>
+  <autonomous-execution-safety>
+    <level>planned-static-plus-operator-live</level>
+    <safe-local>bash syntax checks, source static smoke, XML parse, and MyGRACE lint are safe locally.</safe-local>
+    <requires-operator>Real cert files, live DNS, clean VPS install, public HTTPS smoke, and MTProto client proof require operator control.</requires-operator>
+  </autonomous-execution-safety>
+</V-M-048>

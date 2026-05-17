@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Phase-35 NAME="Operator Wildcard TLS Installer" STATUS="planned" VERSION="1.0.0">
+  <Goal>Make the installer accept and validate an already prepared wildcard TLS certificate so KrotPN can deploy on krotpn.xyz without reissuing certificates during every install.</Goal>
+  <Modules>M-048,M-012,M-046,M-001,M-044</Modules>
+  <OperatorIntent>
+    <item-1>The operator prepares fullchain1.pem and privkey1.pem on the RU server before running install.sh.</item-1>
+    <item-2>The installer prompts for the public domain, fullchain path, and private-key path, with krotpn.xyz defaults.</item-2>
+    <item-3>The same wildcard TLS material is used for the web panels, backend/API/admin edge, and MTProto domain/SNI expectations.</item-3>
+  </OperatorIntent>
+  <NonGoals>
+    <item-1>No automatic Lets Encrypt issuance or renewal in this phase.</item-1>
+    <item-2>No production shared-443 MTProto cutover without the existing M-046 live rollback gate.</item-2>
+    <item-3>No rewrite of unrelated deploy, VPN, billing, frontend, admin, or email flows.</item-3>
+  </NonGoals>
+  <DataFlow>
+    <flow-1>install.sh collects RU SSH credentials, then prompts for PUBLIC_DOMAIN, TLS_FULLCHAIN_PATH, and TLS_PRIVKEY_PATH.</flow-1>
+    <flow-2>install.sh performs or triggers remote validation on the RU server before creating the deploy config.</flow-2>
+    <flow-3>deploy/deploy-on-server.sh installs validated TLS material to /opt/KrotPN/ssl/server.crt and /opt/KrotPN/ssl/server.key.</flow-3>
+    <flow-4>docker-compose.yml mounts /opt/KrotPN/ssl into nginx as /etc/nginx/ssl, while backend settings read EDGE_TLS_* env values.</flow-4>
+    <flow-5>M-044 and M-046 continue to own MTProto runtime policy and shared-443 live routing; M-048 supplies trusted wildcard TLS readiness.</flow-5>
+  </DataFlow>
+  <Steps>
+    <step-1 STATUS="planned">Add installer prompts for domain, fullchain path, and private-key path after RU SSH connectivity is known.</step-1>
+    <step-2 STATUS="planned">Add remote validation for file existence, readability, non-empty material, expiry, cert/key match, and SAN coverage for the base domain plus wildcard host.</step-2>
+    <step-3 STATUS="planned">Replace unconditional production self-signed generation with an operator-wildcard path and explicit dev/self-signed fallback only when requested.</step-3>
+    <step-4 STATUS="planned">Wire generated .env values for DOMAIN, FRONTEND_URL, CORS origins, MTPROTO_BASE_DOMAIN, EDGE_PUBLIC_DOMAIN, EDGE_TLS_CERTIFICATE_PATH, EDGE_TLS_CERTIFICATE_KEY_PATH, and EDGE_TLS_CERTIFICATE_MODE.</step-4>
+    <step-5 STATUS="planned">Render or validate nginx domain ownership so the canonical host and wildcard host match the operator-selected domain instead of drifting from krotpn.xyz assumptions.</step-5>
+    <step-6 STATUS="planned">Add static verification and operator-live smoke instructions for a clean VPS deploy with prepared wildcard TLS files.</step-6>
+  </Steps>
+  <Verification>
+    <command-1>bash -n install.sh deploy/deploy-on-server.sh</command-1>
+    <command-2>node scripts/phase35-installer-wildcard-tls-smoke.mjs</command-2>
+    <command-3>python3 -m xml.etree.ElementTree docs/plans/Phase-35.xml docs/modules/M-048.xml docs/verification/V-M-048.xml docs/graph-index.xml docs/plan-index.xml docs/verification-index.xml &amp;&amp; mygrace lint</command-3>
+    <command-4>operator-live: copy wildcard fullchain/key to /root/krotpn-ssl on a clean RU server, run install.sh, then smoke HTTP redirect, HTTPS frontend/API/admin, certificate issuer/expiry, and MTProto SNI readiness.</command-4>
+  </Verification>
+  <AcceptanceCriteria>
+    <item-1>Fresh install asks for domain and certificate paths and defaults to krotpn.xyz, /root/krotpn-ssl/fullchain1.pem, and /root/krotpn-ssl/privkey1.pem.</item-1>
+    <item-2>Wrong paths, mismatched cert/key, expired cert, or missing wildcard SAN abort before docker compose changes.</item-2>
+    <item-3>Valid operator wildcard TLS material is installed to /opt/KrotPN/ssl and reused by nginx/container paths without logging private key contents.</item-3>
+    <item-4>The generated .env advertises https://krotpn.xyz and MTPROTO_BASE_DOMAIN=krotpn.xyz instead of defaulting production to the RU IP.</item-4>
+    <item-5>Redeploy preserves working cert material unless a validated replacement is explicitly provided.</item-5>
+  </AcceptanceCriteria>
+  <Risks>
+    <risk-1>Incorrect certificate paths can break public HTTPS; validation must happen before service replacement.</risk-1>
+    <risk-2>Private-key leakage through shell tracing or logs is critical; commands must avoid printing key contents.</risk-2>
+    <risk-3>Supporting arbitrary domains requires nginx/domain rendering discipline so hardcoded krotpn.xyz assumptions do not drift.</risk-3>
+    <risk-4>Wildcard TLS readiness does not by itself prove shared-443 MTProto routing; that remains live-gated.</risk-4>
+  </Risks>
+  <AutonomousExecutionSafety>
+    <safe-local>Static script parsing, XML parsing, MyGRACE lint, and smoke scripts that inspect source text are safe to run locally.</safe-local>
+    <requires-operator>Real certificate files, DNS changes, clean VPS install, HTTPS public smoke, and shared-443 MTProto live cutover require operator readiness.</requires-operator>
+  </AutonomousExecutionSafety>
+</Phase-35>

@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<M-048 NAME="installer-wildcard-tls" TYPE="ENTRY_POINT" STATUS="planned">
+  <path>install.sh deploy/deploy-on-server.sh nginx docker-compose.yml .env.example scripts/phase35-installer-wildcard-tls-smoke.mjs docs/plans/Phase-35.xml</path>
+  <owns>installer prompts, remote wildcard certificate validation, deploy-time certificate installation, production edge env wiring, and operator-safe TLS reuse.</owns>
+  <purpose>Make fresh deploys accept an operator-provided wildcard certificate instead of reissuing or silently generating production self-signed TLS material.</purpose>
+  <exports>
+    <installer-domain-prompt>Prompt for the public domain with krotpn.xyz as the default.</installer-domain-prompt>
+    <installer-fullchain-prompt>Prompt for the absolute RU-server fullchain path with /root/krotpn-ssl/fullchain1.pem as the default.</installer-fullchain-prompt>
+    <installer-privkey-prompt>Prompt for the absolute RU-server private key path with /root/krotpn-ssl/privkey1.pem as the default.</installer-privkey-prompt>
+    <remote-cert-validator>Verify existence, readability, expiry, cert/key match, and SAN coverage before deploy mutates the runtime TLS directory.</remote-cert-validator>
+    <edge-env-wiring>Generate DOMAIN, FRONTEND_URL, MTPROTO_BASE_DOMAIN, and EDGE_TLS_* values for the deployed .env.</edge-env-wiring>
+  </exports>
+  <depends>M-001,M-012,M-044,M-046</depends>
+  <verification-ref>V-M-048</verification-ref>
+  <files>
+    <file>install.sh</file>
+    <file>deploy/deploy-on-server.sh</file>
+    <file>nginx/nginx.conf</file>
+    <file>docker-compose.yml</file>
+    <file>.env.example</file>
+    <file>scripts/phase35-installer-wildcard-tls-smoke.mjs</file>
+    <file>docs/plans/Phase-35.xml</file>
+  </files>
+  <operator-inputs>
+    <input-1>PUBLIC_DOMAIN defaults to krotpn.xyz.</input-1>
+    <input-2>TLS_FULLCHAIN_PATH defaults to /root/krotpn-ssl/fullchain1.pem on the RU server.</input-2>
+    <input-3>TLS_PRIVKEY_PATH defaults to /root/krotpn-ssl/privkey1.pem on the RU server.</input-3>
+  </operator-inputs>
+  <constraints>
+    <constraint-1>Production installs must not fall back to self-signed TLS unless the operator explicitly selects a dev/self-signed mode.</constraint-1>
+    <constraint-2>The private key must never be printed, copied into logs, embedded in XML evidence, or sent through unsafe command output.</constraint-2>
+    <constraint-3>Certificate validation must fail before docker compose changes when paths are missing, key mismatch occurs, SAN coverage is wrong, or the cert is expired.</constraint-3>
+    <constraint-4>Shared 443 MTProto routing remains a live-gated M-046/M-044 concern; this module only makes trusted wildcard TLS material deployable and reusable.</constraint-4>
+  </constraints>
+  <planned-execution>
+    <step-1>Extend install.sh prompt allowlist and interactive flow for domain, fullchain path, and privkey path after RU SSH credentials are known.</step-1>
+    <step-2>Pass sanitized TLS inputs to the remote deploy configuration without exposing private key contents.</step-2>
+    <step-3>Teach deploy/deploy-on-server.sh to validate and install operator-provided certs into /opt/KrotPN/ssl/server.crt and /opt/KrotPN/ssl/server.key.</step-3>
+    <step-4>Generate production domain and edge TLS env values for backend, frontend, admin, nginx, and MTProto base-domain expectations.</step-4>
+    <step-5>Preserve existing certs across redeploys unless a validated replacement is provided.</step-5>
+  </planned-execution>
+  <hotspot>H-034: Installer-provided wildcard TLS must validate cert/key/domain before deploy and must never log private key material.</hotspot>
+</M-048>
