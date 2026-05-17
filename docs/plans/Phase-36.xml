@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Phase-36 NAME="Resend Deploy Email Provider Wiring" STATUS="planned" VERSION="1.0.0">
+<Phase-36 NAME="Resend Deploy Email Provider Wiring" STATUS="verification-designed" VERSION="1.1.0">
   <Goal>Make clean production deployments configure Resend email delivery so verified-registration emails are sent instead of failing with provider_disabled.</Goal>
   <Modules>M-040,M-041,M-012,M-001,M-048</Modules>
   <OperatorIntent>
@@ -33,7 +33,24 @@
     <command-3>cd backend &amp;&amp; SECRET_KEY=test-secret-key-with-enough-length DATA_ENCRYPTION_KEY=dpFmfSVqfdAK3yx5MQV6Tcv35RZuw5MzaH0yhxJ01q0= PYTHONPATH=. ../.venv/bin/python -m pytest -o addopts='' tests/test_email_delivery.py tests/test_verified_registration.py tests/test_email_verification_guard.py -v</command-3>
     <command-4>python3 -m xml.etree.ElementTree docs/plans/Phase-36.xml docs/modules/M-040.xml docs/modules/M-041.xml docs/modules/M-012.xml docs/modules/M-001.xml docs/modules/M-048.xml docs/verification/V-M-040.xml docs/verification/V-M-041.xml docs/verification/V-M-048.xml docs/graph-index.xml docs/plan-index.xml docs/verification-index.xml &amp;&amp; mygrace lint</command-4>
     <command-5>operator-live: after krotpn.xyz is verified in Resend, submit one registration to a controlled mailbox and verify the email is delivered without logging API key or token.</command-5>
+    <command-6>operator-live-existing-ru: update /opt/KrotPN/.env with Resend values, restart backend, then repeat the controlled-mailbox registration smoke with redacted evidence.</command-6>
   </Verification>
+  <VerificationMatrix>
+    <gate-1 MODULES="M-048,M-012" EVIDENCE="deterministic">Installer collects Resend API key through secret input, defaults EMAIL_FROM to noreply@krotpn.xyz, rejects blank or unsafe values, and does not print the key.</gate-1>
+    <gate-2 MODULES="M-012,M-001" EVIDENCE="deterministic">Deploy-generated .env enables EMAIL_PROVIDER=resend and backend Settings accepts the Resend configuration without exposing secret material.</gate-2>
+    <gate-3 MODULES="M-040" EVIDENCE="deterministic">Resend provider sends the expected POST request shape through a fake transport: endpoint, Bearer auth, sender, recipient, subject, HTML, and text payload.</gate-3>
+    <gate-4 MODULES="M-041,M-040" EVIDENCE="deterministic">/register creates only pending registration state, invokes email delivery once, and does not emit provider_disabled when Resend env values are present.</gate-4>
+    <gate-5 MODULES="M-040,M-041,M-048" EVIDENCE="operator-live">After Resend verifies krotpn.xyz, a controlled mailbox receives one verification email and backend/deploy logs redact API keys, tokens, and full verification links.</gate-5>
+  </VerificationMatrix>
+  <TelemetryRequirements>
+    <marker-1>[M-048][installer_resend][PROMPT_SECRET]</marker-1>
+    <marker-2>[M-048][deploy_resend][ENV_WIRING]</marker-2>
+    <marker-3>[M-040][send_verification_email][POST_PROVIDER]</marker-3>
+    <marker-4>[M-040][send_verification_email][MAP_PROVIDER_ERROR]</marker-4>
+    <marker-5>[M-041][request_registration][PENDING_RESPONSE]</marker-5>
+    <redaction-1>Telemetry may include provider name, masked recipient, HTTP status class, and safe error code.</redaction-1>
+    <redaction-2>Telemetry must never include RESEND_API_KEY, verification token, full verification URL, password, provider response body, or raw .env contents.</redaction-2>
+  </TelemetryRequirements>
   <AcceptanceCriteria>
     <item-1>Fresh install asks for Resend API key and email sender, defaulting sender to noreply@krotpn.xyz.</item-1>
     <item-2>Generated .env contains EMAIL_PROVIDER=resend, RESEND_API_KEY, RESEND_API_URL=https://api.resend.com/emails, EMAIL_FROM=noreply@krotpn.xyz, and EMAIL_VERIFICATION_URL_BASE=https://krotpn.xyz/verify-email.</item-2>

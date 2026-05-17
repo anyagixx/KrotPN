@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<V-M-048 MODULE="M-048" PRIORITY="critical" STATUS="partial-local" VERSION="1.5.0">
+<V-M-048 MODULE="M-048" PRIORITY="critical" STATUS="partial-local" VERSION="1.6.0">
   <module>installer-wildcard-tls</module>
   <phase-scope>
     <phase-35 status="partial-local">Installer flow for operator-provided wildcard TLS certificate paths, validation, env wiring, and reusable deploy installation passed local/static checks; clean VPS wildcard TLS deploy remains operator-live.</phase-35>
-    <phase-36 status="planned">Installer/deploy flow will collect Resend API key and sender settings so clean VPS registration can send verification emails.</phase-36>
+    <phase-36 status="verification-designed">Installer/deploy flow will collect Resend API key and sender settings so clean VPS registration can send verification emails.</phase-36>
   </phase-scope>
   <test-files>
     <file>install.sh</file>
@@ -14,7 +14,8 @@
     <file>backend/tests/test_domain_tls_edge_static.py</file>
     <file>backend/tests/test_mtproto_provisioning.py</file>
     <file>scripts/phase35-installer-wildcard-tls-smoke.mjs</file>
-    <file phase="36-planned">scripts/phase36-resend-deploy-smoke.mjs</file>
+    <file phase="36-designed">scripts/phase36-resend-deploy-smoke.mjs</file>
+    <file phase="36-designed">docs/plans/Phase-36.xml</file>
     <file>docs/plans/Phase-35.xml</file>
     <file>docs/modules/M-048.xml</file>
     <file>docs/verification/V-M-048.xml</file>
@@ -24,8 +25,10 @@
     <command-2>node scripts/phase35-installer-wildcard-tls-smoke.mjs</command-2>
     <command-3>cd backend &amp;&amp; SECRET_KEY=test-secret-key-with-enough-length PYTHONPATH=. ../.venv/bin/python -m pytest -o addopts='' tests/test_domain_tls_edge_static.py tests/test_mtproto_provisioning.py -v</command-3>
     <command-4>sh -c 'if [ -e .env ]; then DB_PASSWORD=phase35-compose-check docker compose config; else ln -s .env.example .env &amp;&amp; trap "rm -f .env" EXIT &amp;&amp; DB_PASSWORD=phase35-compose-check docker compose config; fi'</command-4>
-    <command-5>python3 -m xml.etree.ElementTree docs/plans/Phase-35.xml docs/modules/M-048.xml docs/verification/V-M-048.xml docs/graph-index.xml docs/plan-index.xml docs/verification-index.xml &amp;&amp; mygrace lint</command-5>
+    <command-5>python3 -m xml.etree.ElementTree docs/plans/Phase-35.xml docs/plans/Phase-36.xml docs/modules/M-048.xml docs/verification/V-M-048.xml docs/graph-index.xml docs/plan-index.xml docs/verification-index.xml &amp;&amp; mygrace lint</command-5>
     <command-6>operator-live: prepared wildcard cert deploy on clean RU VPS, then HTTPS and MTProto-domain smoke with redacted evidence.</command-6>
+    <command-7 status="planned">node scripts/phase36-resend-deploy-smoke.mjs</command-7>
+    <command-8 status="operator-live">operator-live: after Resend verifies krotpn.xyz, run one controlled-mailbox registration smoke with redacted evidence.</command-8>
   </commands>
   <verification-levels>
     <module-local>M-048 source smoke proves prompts, dynamic input validators, default paths, RU openssl bootstrap, remote certificate validation, production self-signed guard, safe cert install, deploy-generated MTProto secrets, Resend email env, and edge env wiring.</module-local>
@@ -45,7 +48,7 @@
     <check-10 evidence="deterministic">Production deploy does not silently generate self-signed certificates when operator wildcard TLS is expected.</check-10>
     <check-11 evidence="deterministic">Generated .env uses the operator domain for DOMAIN, FRONTEND_URL, CORS origins, MTPROTO_BASE_DOMAIN, EDGE_PUBLIC_DOMAIN, EDGE_TLS_CERTIFICATE_PATH, EDGE_TLS_CERTIFICATE_KEY_PATH, and EDGE_TLS_CERTIFICATE_MODE.</check-11>
     <check-12 evidence="deterministic">Generated .env includes deploy-created non-empty 32-hex MTPROTO_BASE_SECRET_HEX and MTPROTO_SECRET_SALT values without printing them.</check-12>
-    <check-13 evidence="phase-36-planned">Generated .env includes EMAIL_PROVIDER=resend, RESEND_API_KEY, RESEND_API_URL=https://api.resend.com/emails, EMAIL_FROM=noreply@krotpn.xyz, and EMAIL_VERIFICATION_URL_BASE for the selected domain.</check-13>
+    <check-13 evidence="phase-36-designed">Generated .env includes EMAIL_PROVIDER=resend, RESEND_API_KEY, RESEND_API_URL=https://api.resend.com/emails, EMAIL_FROM=noreply@krotpn.xyz, and EMAIL_VERIFICATION_URL_BASE for the selected domain.</check-13>
     <check-14 evidence="deterministic">nginx canonical host, wildcard host, and mounted cert paths match the operator-selected domain and /etc/nginx/ssl/server.* contract.</check-14>
     <check-15 evidence="static-redaction">No verification output, installer logs, deploy logs, XML files, or smoke scripts print private key contents or Resend API key.</check-15>
     <check-16 evidence="live-required">Clean VPS smoke proves HTTP redirect, HTTPS frontend/API/admin, trusted cert chain, MTProto SNI readiness, and Resend-backed registration email delivery with prepared wildcard TLS.</check-16>
@@ -56,6 +59,8 @@
     <gate-3 MODULES="M-048,M-046" EVIDENCE="deterministic+static">Validated wildcard TLS is wired to backend/frontend/admin edge env and nginx cert mount paths.</gate-3>
     <gate-4 MODULES="M-048,M-012" EVIDENCE="static-redaction">Secret-bearing material is never printed or embedded in verification artifacts.</gate-4>
     <gate-5 MODULES="M-048,M-046,M-044" EVIDENCE="live-required">Prepared wildcard TLS supports public HTTPS and leaves MTProto shared-443 proof under the existing live gate.</gate-5>
+    <gate-6 MODULES="M-048,M-012,M-001" EVIDENCE="deterministic">Installer/deploy Resend env wiring is sufficient for backend Settings to enable email provider delivery.</gate-6>
+    <gate-7 MODULES="M-048,M-040,M-041" EVIDENCE="operator-live">Clean VPS registration sends a verification email through Resend after the domain is verified.</gate-7>
   </verification-matrix>
   <scenarios>
     <scenario-1 kind="success">Operator places /root/krotpn-ssl/fullchain1.pem and /root/krotpn-ssl/privkey1.pem on RU, accepts default krotpn.xyz prompts, and deploy completes with trusted TLS paths.</scenario-1>
@@ -90,6 +95,7 @@
     <metric-3>deploy_tls_install_result tagged success, preserved, replaced, or aborted.</metric-3>
     <metric-4>edge_domain_config_result tagged by canonical host only.</metric-4>
     <metric-5>self_signed_fallback_attempt_count tagged dev-mode or blocked-production.</metric-5>
+    <metric-6>deploy_resend_config_result tagged configured, missing-key, invalid-sender, or redacted without API key value.</metric-6>
   </telemetry-requirements>
   <live-smoke-gates>
     <gate-1>DNS for krotpn.xyz points to the target RU edge host.</gate-1>
@@ -99,16 +105,19 @@
     <gate-5>curl -I http://krotpn.xyz returns a redirect to https://krotpn.xyz.</gate-5>
     <gate-6>HTTPS frontend, /api health, and /admin route respond with the trusted wildcard certificate.</gate-6>
     <gate-7>One issued MTProto SNI under the wildcard domain is ready for the existing M-046/M-044 live smoke.</gate-7>
+    <gate-8>krotpn.xyz domain is verified in Resend and noreply@krotpn.xyz is accepted as the production sender.</gate-8>
+    <gate-9>A controlled mailbox receives one registration verification email and logs contain no Resend API key, verification token, or full verification URL.</gate-9>
   </live-smoke-gates>
   <failure-handoff>
     <item-1>If local static smoke fails, fix installer/deploy contract drift before running any live VPS install.</item-1>
     <item-2>If remote cert validation fails live, preserve the existing /opt/KrotPN/ssl files and report the redacted failure reason.</item-2>
     <item-3>If public HTTPS smoke fails after deploy, roll back to the previous /opt/KrotPN/ssl files and nginx config before testing MTProto shared 443.</item-3>
+    <item-4>If Resend rejects the key or sender, leave active user access unissued, preserve deployment state, and return an operator-safe provider configuration failure.</item-4>
   </failure-handoff>
   <autonomous-execution-safety>
     <level>planned-static-plus-operator-live</level>
-    <safe-local>bash syntax checks, source static smoke, XML parse, and MyGRACE lint are safe locally.</safe-local>
-    <requires-operator>Real cert files, live DNS, clean VPS install, public HTTPS smoke, and MTProto client proof require operator control.</requires-operator>
+    <safe-local>bash syntax checks, source static smoke, Phase-36 Resend deploy smoke, XML parse, and MyGRACE lint are safe locally.</safe-local>
+    <requires-operator>Real cert files, live DNS, clean VPS install, public HTTPS smoke, verified Resend domain, live mailbox receipt, and MTProto client proof require operator control.</requires-operator>
   </autonomous-execution-safety>
   <evidence>
     <evidence-1>2026-05-17: bash -n install.sh deploy/deploy-on-server.sh passed locally.</evidence-1>
@@ -119,5 +128,6 @@
     <evidence-6>2026-05-17: Reviewer follow-up added RU openssl bootstrap, /opt/KrotPN source-path rejection, and dynamic validator checks in scripts/phase35-installer-wildcard-tls-smoke.mjs.</evidence-6>
     <evidence-7>2026-05-17: Live clean VPS backend unhealthy failure fixed by generating MTProto secrets in deploy/deploy-on-server.sh and adding smoke guards against blank deploy values.</evidence-7>
     <evidence-8>2026-05-17: Phase-36 planning scoped Resend API key installer/deploy wiring after clean VPS registration hit Email provider is disabled.</evidence-8>
+    <evidence-9>2026-05-17: Phase-36 verification design added Resend installer/deploy smoke, backend settings gate, and controlled-mailbox live gate.</evidence-9>
   </evidence>
 </V-M-048>

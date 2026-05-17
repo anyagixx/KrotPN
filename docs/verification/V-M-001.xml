@@ -1,10 +1,17 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<V-M-001 MODULE="M-001" PRIORITY="critical" STATUS="pass">
+<V-M-001 MODULE="M-001" PRIORITY="critical" STATUS="pass" VERSION="1.1.0">
   <module>backend-core</module>
   <checks>Backend config and DB initialization remain runnable; auth and crypto helpers still load. Default secret_key is rejected with ValueError. DATA_ENCRYPTION_KEY is required. Token blacklist functions work with Redis and degrade gracefully without it. All datetime values are timezone-aware. Email settings include Resend provider configuration without secret leakage. MTProto provisioning settings validate domain, port, secret, salt, SNI prefix, and rotation marker; blank optional MTProto secret env values normalize to missing config instead of crashing app import.</checks>
   <test-files>backend/tests/test_security.py backend/tests/test_mtproto_provisioning.py</test-files>
   <commands>cd backend &amp;&amp; SECRET_KEY=test-secret-key-with-enough-length DATA_ENCRYPTION_KEY=dpFmfSVqfdAK3yx5MQV6Tcv35RZuw5MzaH0yhxJ01q0= PYTHONPATH=. ../.venv/bin/python -m pytest -o addopts='' tests/test_security.py tests/test_mtproto_provisioning.py -v</commands>
   <anchors>SECURITY_DEFAULT_KEY_REJECTED SECURITY_ENCRYPTION_KEY_REQUIRED DATETIME_TIMEZONE_AWARE TOKEN_BLACKLISTED</anchors>
+  <phase-36-verification>
+    <check-1 evidence="deterministic">Settings accepts EMAIL_PROVIDER=resend, non-empty RESEND_API_KEY, RESEND_API_URL=https://api.resend.com/emails, EMAIL_FROM=noreply@krotpn.xyz, and EMAIL_VERIFICATION_URL_BASE=https://krotpn.xyz/verify-email.</check-1>
+    <check-2 evidence="deterministic">Blank Resend API key fails closed before live registration can later hit provider_disabled.</check-2>
+    <check-3 evidence="static-redaction">Settings validation errors and log-friendly summaries must never include RESEND_API_KEY or full verification URLs.</check-3>
+    <command-1>cd backend &amp;&amp; SECRET_KEY=test-secret-key-with-enough-length DATA_ENCRYPTION_KEY=dpFmfSVqfdAK3yx5MQV6Tcv35RZuw5MzaH0yhxJ01q0= PYTHONPATH=. ../.venv/bin/python -m pytest -o addopts='' tests/test_email_delivery.py -v</command-1>
+    <command-2 status="planned">node scripts/phase36-resend-deploy-smoke.mjs</command-2>
+  </phase-36-verification>
   <scenarios>
     <scenario kind="success" trace="SECURITY_DEFAULT_KEY_REJECTED">App refuses to start with default secret_key</scenario>
     <scenario kind="success" trace="SECURITY_ENCRYPTION_KEY_REQUIRED">App requires explicit DATA_ENCRYPTION_KEY</scenario>
