@@ -1,14 +1,14 @@
 """Secret-free MTProto availability diagnostics helpers.
 
 # FILE: backend/app/mtproto/availability.py
-# VERSION: 1.0.0
+# VERSION: 1.1.0
 # ROLE: UTILITY
 # MAP_MODE: EXPORTS
 # START_MODULE_CONTRACT
 #   PURPOSE: Provide redacted MTProto availability diagnostics and Telegram web-link helpers.
-#   SCOPE: SNI masking, safe fingerprints, proxy-link redaction, and https://t.me/proxy link assembly.
-#   DEPENDS: M-043, M-045, M-051
-#   LINKS: M-051, V-M-051
+#   SCOPE: SNI masking, safe fingerprints, proxy-link redaction, official dd-secret redaction, and https://t.me/proxy link assembly.
+#   DEPENDS: M-043, M-045, M-051, M-053
+#   LINKS: M-051, M-053, V-M-051, V-M-053
 # END_MODULE_CONTRACT
 #
 # START_MODULE_MAP
@@ -19,6 +19,7 @@
 # END_MODULE_MAP
 #
 # START_CHANGE_SUMMARY
+#   LAST_CHANGE: v1.1.0 - Redact official MTProxy dd secrets in diagnostics.
 #   LAST_CHANGE: v1.0.0 - Added Phase-39 redacted availability diagnostics helpers.
 # END_CHANGE_SUMMARY
 """
@@ -33,6 +34,7 @@ from urllib.parse import urlencode
 _PROXY_LINK_RE = re.compile(r"(?:tg://proxy|https://t\.me/proxy)\?[^\s\"'<>]+", re.IGNORECASE)
 _SECRET_PARAM_RE = re.compile(r"([?&]secret=)[^&\s\"'<>]+", re.IGNORECASE)
 _FAKE_TLS_SECRET_RE = re.compile(r"\bee[0-9a-f]{48,512}\b", re.IGNORECASE)
+_OFFICIAL_SECURE_SECRET_RE = re.compile(r"\bdd[0-9a-f]{32}\b", re.IGNORECASE)
 
 
 # START_CONTRACT: mask_sni
@@ -85,13 +87,14 @@ def safe_fingerprint(value: str | None, *, length: int = 12) -> str:
 # END_CONTRACT: redact_proxy_text
 # START_BLOCK_REDACT_PROXY_TEXT
 def redact_proxy_text(text: str | None) -> str:
-    """Redact full proxy links, secret query parameters, and fake-TLS hex secrets."""
+    """Redact full proxy links, secret query parameters, fake-TLS, and official dd secrets."""
     if not text:
         return ""
 
     redacted = _PROXY_LINK_RE.sub("<redacted-mtproto-link>", text)
     redacted = _SECRET_PARAM_RE.sub(r"\1<redacted>", redacted)
-    return _FAKE_TLS_SECRET_RE.sub("<redacted-mtproto-secret>", redacted)
+    redacted = _FAKE_TLS_SECRET_RE.sub("<redacted-mtproto-secret>", redacted)
+    return _OFFICIAL_SECURE_SECRET_RE.sub("<redacted-mtproto-secret>", redacted)
 # END_BLOCK_REDACT_PROXY_TEXT
 
 

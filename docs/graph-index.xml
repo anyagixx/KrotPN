@@ -9,7 +9,7 @@
   <M-005 NAME="referrals" TYPE="CORE_LOGIC" STATUS="stable" PATH="backend/app/referrals" DEPENDS="M-001" VERIFICATION-REF="V-M-005" />
   <M-006 NAME="admin-api" TYPE="ENTRY_POINT" STATUS="stable" PATH="backend/app/admin" DEPENDS="M-001,M-002,M-003,M-004,M-005,M-007,M-024,M-026" VERIFICATION-REF="V-M-006" />
   <M-007 NAME="routing" TYPE="UTILITY" STATUS="stable" PATH="backend/app/routing/manager.py" DEPENDS="M-001" VERIFICATION-REF="V-M-007" />
-  <M-008 NAME="tasks" TYPE="UTILITY" STATUS="stable" PATH="backend/app/tasks" DEPENDS="M-001,M-044" VERIFICATION-REF="V-M-008" />
+  <M-008 NAME="tasks" TYPE="UTILITY" STATUS="stable" PATH="backend/app/tasks" DEPENDS="M-001,M-044,M-053" VERIFICATION-REF="V-M-008" />
   <M-009 NAME="frontend-user" TYPE="UI_COMPONENT" STATUS="stable" PATH="frontend" DEPENDS="M-002,M-003,M-004,M-005,M-022" VERIFICATION-REF="V-M-009" />
   <M-010 NAME="frontend-admin" TYPE="UI_COMPONENT" STATUS="stable" PATH="frontend-admin" DEPENDS="M-006,M-024" VERIFICATION-REF="V-M-010" />
   <M-011 NAME="telegram-bot" TYPE="ENTRY_POINT" STATUS="stable" PATH="telegram-bot" DEPENDS="M-002,M-003,M-004" VERIFICATION-REF="V-M-011" />
@@ -48,8 +48,8 @@
   <M-049 NAME="mtproto-live-edge-runtime" TYPE="INTEGRATION" STATUS="blocked-live" PATH="mtproto-runtime backend/app/mtproto/runtime_bridge.py backend/app/mtproto/provisioning.py nginx/nginx.conf docker-compose.yml deploy/deploy-on-server.sh scripts/phase37-mtproto-runtime-smoke.mjs docs/plans/Phase-37.xml docs/plans/Phase-38.xml" DEPENDS="M-001,M-012,M-043,M-044,M-046,M-048,M-050" VERIFICATION-REF="V-M-049" />
   <M-050 NAME="mtproto-de-backed-edge" TYPE="INTEGRATION" STATUS="partial-live" PATH="mtproto-runtime nginx docker-compose.yml deploy/deploy-on-server.sh deploy/haproxy-phase38.cfg deploy/haproxy-phase40.cfg deploy/mtproto-de-compose.yml backend/app/core/config.py backend/app/mtproto scripts/phase38-de-mtproto-edge-smoke.mjs docs/plans/Phase-38.xml docs/plans/Phase-40.xml" DEPENDS="M-001,M-012,M-043,M-044,M-046,M-048,M-049,M-052" VERIFICATION-REF="V-M-050" />
   <M-051 NAME="mtproto-availability-diagnostics" TYPE="INTEGRATION" STATUS="partial-live" PATH="backend/app/mtproto frontend scripts/phase39-mtproto-availability-smoke.mjs scripts/phase39-mtproto-live-smoke.sh scripts/phase40-official-mtproxy-live-smoke.sh docs/plans/Phase-39.xml docs/plans/Phase-40.xml" DEPENDS="M-012,M-043,M-044,M-045,M-050,M-052,M-053" VERIFICATION-REF="V-M-051" />
-  <M-052 NAME="official-mtproxy-data-plane" TYPE="INTEGRATION" STATUS="planned" PATH="official-mtproxy deploy docker-compose.yml deploy/deploy-on-server.sh deploy/haproxy-phase40.cfg deploy/mtproto-de-compose.yml scripts/phase40-official-mtproxy-live-smoke.sh docs/plans/Phase-40.xml" DEPENDS="M-001,M-012,M-050,M-051" VERIFICATION-REF="V-M-052" />
-  <M-053 NAME="mtproxy-secret-sync" TYPE="INTEGRATION" STATUS="planned" PATH="backend/app/mtproto backend/app/tasks/scheduler.py backend/tests/test_mtproxy_secret_sync.py docs/plans/Phase-40.xml" DEPENDS="M-001,M-008,M-042,M-043,M-052" VERIFICATION-REF="V-M-053" />
+  <M-052 NAME="official-mtproxy-data-plane" TYPE="INTEGRATION" STATUS="partial-live" PATH="official-mtproxy deploy docker-compose.yml deploy/deploy-on-server.sh deploy/haproxy-phase40.cfg deploy/mtproto-de-compose.yml scripts/phase40-official-mtproxy-live-smoke.sh docs/plans/Phase-40.xml" DEPENDS="M-001,M-012,M-050,M-051" VERIFICATION-REF="V-M-052" />
+  <M-053 NAME="mtproxy-secret-sync" TYPE="INTEGRATION" STATUS="done-local" PATH="backend/app/mtproto backend/app/tasks/scheduler.py backend/tests/test_mtproxy_secret_sync.py docs/plans/Phase-40.xml" DEPENDS="M-001,M-008,M-042,M-043,M-052" VERIFICATION-REF="V-M-053" />
 
   <CrossLinks>
     <link from="M-002" to="M-001" />

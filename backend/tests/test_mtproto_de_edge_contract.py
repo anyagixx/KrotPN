@@ -1,23 +1,24 @@
-"""Phase-38 DE-backed MTProto edge settings contract tests.
+"""Phase-40 DE-backed official MTProxy edge settings contract tests.
 
 # FILE: backend/tests/test_mtproto_de_edge_contract.py
-# VERSION: 1.0.0
+# VERSION: 1.1.0
 # ROLE: TEST
 # MAP_MODE: LOCALS
 # START_MODULE_CONTRACT
-#   PURPOSE: Verify backend Settings accept only private Phase-38 MTProto policy API targets.
-#   SCOPE: Private DE policy URL, policy bind IP, SNI-router DE target settings, and unsafe URL rejection.
-#   DEPENDS: M-001, M-044, M-050
-#   LINKS: V-M-044, V-M-050, docs/modules/M-050.xml
+#   PURPOSE: Verify backend Settings accept only private Phase-40 official MTProxy policy API targets.
+#   SCOPE: Private DE policy URL, policy bind IP, RU router DE target settings, and unsafe URL rejection.
+#   DEPENDS: M-001, M-052, M-053
+#   LINKS: V-M-052, V-M-053, docs/modules/M-052.xml, docs/modules/M-053.xml
 # END_MODULE_CONTRACT
 #
 # START_MODULE_MAP
 #   test_private_de_policy_url_is_allowed - Allows RU backend to target DE policy API over the relay subnet.
 #   test_public_or_wildcard_policy_url_is_rejected - Rejects public/wildcard policy URLs.
-#   test_phase38_edge_target_settings_are_validated - Covers SNI-router DE target settings.
+#   test_phase40_edge_target_settings_are_validated - Covers RU router DE target settings.
 # END_MODULE_MAP
 #
 # START_CHANGE_SUMMARY
+#   LAST_CHANGE: v1.1.0 - Reframed private policy settings for Phase-40 official MTProxy.
 #   LAST_CHANGE: v1.0.0 - Added Phase-38 private DE policy URL and edge target settings coverage.
 # END_CHANGE_SUMMARY
 """
@@ -75,7 +76,7 @@ def test_public_or_wildcard_policy_url_is_rejected(policy_url: str):
         )
 
 
-def test_phase38_edge_target_settings_are_validated():
+def test_phase40_edge_target_settings_are_validated():
     settings = Settings(
         _env_file=None,
         secret_key=SECRET_KEY,

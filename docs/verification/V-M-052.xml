@@ -1,18 +1,19 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<V-M-052 MODULE="M-052" PRIORITY="critical" STATUS="verification-designed">
+<V-M-052 MODULE="M-052" PRIORITY="critical" STATUS="partial-live">
   <purpose>Verify that the official MTProxy data-plane is reachable through KrotPN public 443 and proves real Telegram protocol availability without leaking secrets.</purpose>
   <test-files>
-    <file planned="true">backend/tests/test_deploy_phase40_static.py</file>
-    <file planned="true">scripts/phase40-official-mtproxy-live-smoke.sh</file>
-    <file planned="true">official-mtproxy/entrypoint.sh</file>
-    <file planned="true">official-mtproxy/Dockerfile</file>
-    <file planned="true">deploy/haproxy-phase40.cfg</file>
-    <file planned="true">deploy/mtproto-de-compose.yml</file>
-    <file planned="true">docker-compose.yml</file>
+    <file implemented="true">backend/tests/test_deploy_phase38_static.py</file>
+    <file implemented="true">scripts/phase40-official-mtproxy-live-smoke.sh</file>
+    <file implemented="true">official-mtproxy/entrypoint.sh</file>
+    <file implemented="true">official-mtproxy/secret-control.py</file>
+    <file implemented="true">official-mtproxy/Dockerfile</file>
+    <file implemented="true">deploy/haproxy-phase40.cfg</file>
+    <file implemented="true">deploy/mtproto-de-compose.yml</file>
+    <file implemented="true">docker-compose.yml</file>
   </test-files>
   <module-checks>
     <check-1 LEVEL="module-local">bash -n official-mtproxy/entrypoint.sh scripts/phase40-official-mtproxy-live-smoke.sh deploy/deploy-on-server.sh install.sh</check-1>
-    <check-2 LEVEL="module-local">cd backend &amp;&amp; SECRET_KEY=test-secret-key-with-enough-length PYTHONPATH=. ../.venv/bin/python -m pytest -o addopts='' tests/test_deploy_phase40_static.py -v</check-2>
+    <check-2 LEVEL="module-local">cd backend &amp;&amp; SECRET_KEY=test-secret-key-with-enough-length PYTHONPATH=. ../.venv/bin/python -m pytest -o addopts='' tests/test_deploy_phase38_static.py tests/test_domain_tls_edge_static.py tests/test_mtproto_de_edge_contract.py -v</check-2>
     <check-3 LEVEL="wave">docker compose config with Phase-40 MTProxy services enabled, using redacted env fixtures only.</check-3>
     <check-4 LEVEL="phase-live">scripts/phase40-official-mtproxy-live-smoke.sh --redacted --require-req-pq</check-4>
   </module-checks>
@@ -26,9 +27,9 @@
     <scenario-7 kind="failure">Any web HTTPS, backend API, or admin 8443 regression blocks release readiness.</scenario-7>
   </scenarios>
   <required-log-markers>
-    <marker-1>[OfficialMTProxy][launch][BUILD_ARGS_REDACTED]</marker-1>
-    <marker-2>[OfficialMTProxy][launch][SECRET_MANIFEST_COUNT]</marker-2>
-    <marker-3>[OfficialMTProxy][health][PRIVATE_STATS]</marker-3>
+    <marker-1>[OfficialMTProxy][manifest][REDACTED_COUNT]</marker-1>
+    <marker-2>[OfficialMTProxy][process][STARTED]</marker-2>
+    <marker-3>[OfficialMTProxy][http][STARTED]</marker-3>
     <marker-4>[Phase40Smoke][route][HTTPS_OK]</marker-4>
     <marker-5>[Phase40Smoke][req_pq][PASS_REDACTED]</marker-5>
     <marker-6>[Phase40Smoke][redaction][PASS]</marker-6>

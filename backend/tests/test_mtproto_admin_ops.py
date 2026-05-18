@@ -1,15 +1,15 @@
 """MTProto admin operations tests.
 
 # FILE: backend/tests/test_mtproto_admin_ops.py
-# VERSION: 1.1.0
+# VERSION: 2.0.0
 # ROLE: TEST
 # MAP_MODE: LOCALS
 # START_MODULE_CONTRACT
-#   PURPOSE: Verify Phase-33 admin-only MTProto assignment operations and redaction gates
+#   PURPOSE: Verify admin-only MTProto assignment operations and redaction gates
 #   SCOPE: Redacted list/detail/health, role gates, reissue/revoke confirmation, audit records,
 #          and non-MTProto account/device preservation
-#   DEPENDS: M-047, M-006, M-024, M-042, M-043, M-044
-#   LINKS: V-M-047
+#   DEPENDS: M-047, M-006, M-024, M-042, M-043, M-053
+#   LINKS: V-M-047, V-M-053
 # END_MODULE_CONTRACT
 #
 # START_MODULE_MAP
@@ -21,10 +21,11 @@
 #   _assert_redacted - Assert no admin response/audit payload contains secrets or tg links
 #   test_admin_mtproto_list_detail_health_are_redacted_and_role_gated - Covers read APIs and auth
 #   test_admin_mtproto_reissue_requires_confirmation_and_redacted_audit - Covers explicit reissue
-#   test_admin_mtproto_revoke_disables_assignment_without_account_or_device_side_effects - Covers scoped revoke and runtime policy removal
+#   test_admin_mtproto_revoke_disables_assignment_without_account_or_device_side_effects - Covers scoped revoke and official manifest removal
 # END_MODULE_MAP
 #
 # START_CHANGE_SUMMARY
+#   LAST_CHANGE: v2.0.0 - Updated admin MTProto operations for official MTProxy manifest sync.
 #   LAST_CHANGE: v1.1.0 - Added runtime SNI policy removal assertion for admin revoke
 #   LAST_CHANGE: v1.0.0 - Added Phase-33 MTProto admin ops verification
 # END_CHANGE_SUMMARY
@@ -45,12 +46,8 @@ from app.core.database import get_session
 from app.core.security import create_access_token
 from app.devices.models import DeviceStatus, UserDevice
 from app.mtproto.models import MTProtoAssignment, MTProtoAssignmentStatus
+from app.mtproto.official_secrets import InMemoryMTProxySecretAdapter, MTProxySecretSyncService
 from app.mtproto.provisioning import MTProtoProvisioningService
-from app.mtproto.runtime_bridge import (
-    InMemoryMTProtoPolicyAdapter,
-    MTProtoDomainPolicy,
-    MTProtoRuntimeBridge,
-)
 from app.users.models import User, UserRole
 
 
@@ -131,6 +128,8 @@ def _headers(user: User) -> dict[str, str]:
 def _assert_redacted(payload: object) -> None:
     payload_text = str(payload)
     assert "tg://proxy" not in payload_text
+    assert "https://t.me/proxy" not in payload_text
+    assert "secret=" not in payload_text
     assert BASE_SECRET not in payload_text
     assert SECRET_SALT not in payload_text
     assert "MTPROTO_BASE_SECRET_HEX" not in payload_text
@@ -243,16 +242,11 @@ async def test_admin_mtproto_revoke_disables_assignment_without_account_or_devic
         owner,
         "u-revoke11111.krotpn.xyz",
     )
-    adapter = InMemoryMTProtoPolicyAdapter()
-    await adapter.apply_domain_policy(
-        MTProtoDomainPolicy(
-            assignment_id=int(assignment.id),
-            user_id=int(owner.id),
-            sni=assignment.sni,
-            credential_mode=assignment.credential_mode.value,
-            rotation_marker=assignment.rotation_marker,
-        )
-    )
+    adapter = InMemoryMTProxySecretAdapter()
+    pre_service = MTProxySecretSyncService(db_session, app_settings=_settings(), adapter=adapter)
+    await pre_service.apply_active_manifest()
+    assert adapter.applied_manifest is not None
+    assert adapter.applied_manifest.active_count == 1
     device = UserDevice(
         user_id=int(owner.id),
         name="Owner phone",
@@ -262,11 +256,11 @@ async def test_admin_mtproto_revoke_disables_assignment_without_account_or_devic
     db_session.add(device)
     await db_session.flush()
 
-    class TestRuntimeBridge(MTProtoRuntimeBridge):
+    class TestSecretSyncService(MTProxySecretSyncService):
         def __init__(self, session: AsyncSession) -> None:
-            super().__init__(session, adapter=adapter)
+            super().__init__(session, app_settings=_settings(), adapter=adapter)
 
-    monkeypatch.setattr(admin_router_module, "MTProtoRuntimeBridge", TestRuntimeBridge)
+    monkeypatch.setattr(admin_router_module, "MTProxySecretSyncService", TestSecretSyncService)
     client = _build_client(db_session)
 
     rejected_response = client.post(
@@ -292,7 +286,8 @@ async def test_admin_mtproto_revoke_disables_assignment_without_account_or_devic
     assert assignment.status == MTProtoAssignmentStatus.DISABLED
     assert owner.is_active is True
     assert device.status == DeviceStatus.ACTIVE
-    assert assignment.sni not in adapter.policies
+    assert adapter.applied_manifest is not None
+    assert adapter.applied_manifest.active_count == 0
     _assert_redacted(body)
 
     audit_result = await db_session.execute(

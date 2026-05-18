@@ -1,26 +1,27 @@
 """MTProto personal proxy provisioning.
 
 # FILE: backend/app/mtproto/provisioning.py
-# VERSION: 1.1.0
+# VERSION: 2.0.0
 # ROLE: RUNTIME
 # MAP_MODE: EXPORTS
 # START_MODULE_CONTRACT
-#   PURPOSE: Generate deterministic personal MTProto proxy assignments and owner-safe payloads
-#   SCOPE: SNI generation, KPprotoN-compatible fake-TLS secret derivation,
-#          tg link assembly, idempotent issue/reissue policy, live runtime policy apply
-#   DEPENDS: M-001 (settings), M-002 (User), M-042 (assignment repository), M-044 (runtime bridge)
-#   LINKS: M-043, M-044, V-M-043
+#   PURPOSE: Generate official personal MTProxy assignments and owner-safe payloads
+#   SCOPE: SNI identity generation, legacy fake-TLS helper compatibility, official secure secret link assembly,
+#          idempotent issue/reissue policy, live official MTProxy manifest apply
+#   DEPENDS: M-001 (settings), M-002 (User), M-042 (assignment repository), M-053 (official secret sync)
+#   LINKS: M-043, M-053, V-M-043, V-M-053
 # END_MODULE_CONTRACT
 #
 # START_MODULE_MAP
 #   MTProtoProvisioningErrorCode, MTProtoProvisioningError - Stable safe failure contract
 #   generate_sni - Deterministic wildcard-safe SNI generation
-#   derive_fake_tls_secret - KPprotoN-compatible per-SNI fake-TLS secret derivation
-#   build_tg_link - Telegram tg://proxy link assembly
+#   derive_fake_tls_secret - Legacy KPprotoN-compatible per-SNI fake-TLS secret derivation
+#   build_tg_link - Generic Telegram tg://proxy link assembly
 #   MTProtoProvisioningService - Idempotent owner-safe issue/reissue service with live policy activation
 # END_MODULE_MAP
 #
 # START_CHANGE_SUMMARY
+#   LAST_CHANGE: v2.0.0 - Switched owner payloads to official MTProxy secure dd secrets and manifest sync.
 #   LAST_CHANGE: v1.1.0 - Apply issued assignments to the live MTProto runtime before returning activated owner payloads.
 #   LAST_CHANGE: v1.0.0 - Added Phase-29 MTProto provisioning core
 # END_CHANGE_SUMMARY
@@ -37,9 +38,15 @@ from loguru import logger
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.config import Settings, settings
-from app.mtproto.models import MTProtoAssignment, MTProtoAssignmentStatus
+from app.mtproto.models import MTProtoAssignment, MTProtoAssignmentStatus, MTProtoCredentialMode
+from app.mtproto.official_secrets import (
+    MTProxySecretSyncService,
+    build_official_tg_link,
+    build_secure_secret,
+    derive_official_secret,
+)
 from app.mtproto.repository import MTProtoAssignmentRepository
-from app.mtproto.runtime_bridge import MTProtoBridgeStatus, MTProtoRuntimeBridge
+from app.mtproto.runtime_bridge import MTProtoBridgeStatus
 from app.mtproto.schemas import MTProtoProxyPayload
 from app.users.models import User
 
@@ -205,6 +212,7 @@ class MTProtoProvisioningService:
             return await self.repository.save_assignment(
                 user_id=user_id,
                 sni=sni,
+                credential_mode=MTProtoCredentialMode.OFFICIAL_SECURE,
                 rotation_marker=self.settings.mtproto_rotation_marker,
             )
 
@@ -225,6 +233,7 @@ class MTProtoProvisioningService:
         updated = await self.repository.save_assignment(
             user_id=user_id,
             sni=assignment.sni,
+            credential_mode=MTProtoCredentialMode.OFFICIAL_SECURE,
             status=MTProtoAssignmentStatus.ACTIVE,
             rotation_marker=self.settings.mtproto_rotation_marker,
             replace=True,
@@ -235,8 +244,8 @@ class MTProtoProvisioningService:
 
     # START_BLOCK_APPLY_RUNTIME_POLICY
     async def _apply_runtime_policy(self, assignment: MTProtoAssignment) -> None:
-        bridge = MTProtoRuntimeBridge(self.session)
-        result = await bridge.apply_domain_policy(assignment)
+        sync_service = MTProxySecretSyncService(self.session, app_settings=self.settings)
+        result = await sync_service.apply_assignment_secret(assignment)
         if result.status == MTProtoBridgeStatus.ACTIVATED:
             return
         logger.warning(
@@ -269,16 +278,27 @@ class MTProtoProvisioningService:
 
     # START_BLOCK_BUILD_OWNER_SAFE_PAYLOAD
     def _payload_from_assignment(self, assignment: MTProtoAssignment) -> MTProtoProxyPayload:
+        if assignment.credential_mode != MTProtoCredentialMode.OFFICIAL_SECURE:
+            logger.warning(
+                "[M-043][issue_user_proxy][REISSUE_REQUIRED] "
+                f"assignment_id={assignment.id} credential_mode={assignment.credential_mode.value}"
+            )
+            raise MTProtoProvisioningError(
+                MTProtoProvisioningErrorCode.REISSUE_REQUIRED,
+                "MTProto proxy link must be reissued",
+            )
         logger.info(f"[M-043][issue_user_proxy][DERIVE_SECRET] assignment_id={assignment.id}")
-        secret = derive_fake_tls_secret(
+        raw_secret = derive_official_secret(
             self.settings.mtproto_base_secret_hex or "",
             self.settings.mtproto_secret_salt or "",
-            assignment.sni,
+            assignment,
         )
-        link = build_tg_link(assignment.sni, self.settings.mtproto_proxy_port, secret)
+        secret = build_secure_secret(raw_secret)
+        public_server = self.settings.edge_public_domain or self.settings.mtproto_base_domain
+        link = build_official_tg_link(public_server, self.settings.mtproto_proxy_port, raw_secret)
         return MTProtoProxyPayload(
             assignment_id=int(assignment.id),
-            server=assignment.sni,
+            server=public_server,
             port=self.settings.mtproto_proxy_port,
             secret=secret,
             tg_link=link,
@@ -292,6 +312,7 @@ class MTProtoProvisioningService:
         return (
             assignment.rotation_marker != self.settings.mtproto_rotation_marker
             or assignment.status == MTProtoAssignmentStatus.REISSUE_REQUIRED
+            or assignment.credential_mode != MTProtoCredentialMode.OFFICIAL_SECURE
         )
     # END_BLOCK_BUILD_OWNER_SAFE_PAYLOAD
 

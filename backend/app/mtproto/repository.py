@@ -1,12 +1,12 @@
 """MTProto assignment repository.
 
 # FILE: backend/app/mtproto/repository.py
-# VERSION: 1.0.0
+# VERSION: 1.1.0
 # ROLE: RUNTIME
 # MAP_MODE: EXPORTS
 # START_MODULE_CONTRACT
 #   PURPOSE: Provide idempotent persistence helpers for MTProto assignments
-#   SCOPE: Lookup by user/SNI, save/update assignment rows, and admin-safe listing
+#   SCOPE: Lookup by user/SNI, save/update official assignment rows, and admin-safe listing
 #   DEPENDS: M-042 (models), SQLAlchemy AsyncSession
 #   LINKS: M-042, V-M-042
 # END_MODULE_CONTRACT
@@ -17,6 +17,7 @@
 # END_MODULE_MAP
 #
 # START_CHANGE_SUMMARY
+#   LAST_CHANGE: v1.1.0 - Default new assignments to official MTProxy secure credential mode.
 #   LAST_CHANGE: v1.0.0 - Added Phase-29 MTProto assignment repository
 # END_CHANGE_SUMMARY
 """
@@ -90,7 +91,7 @@ class MTProtoAssignmentRepository:
         *,
         user_id: int,
         sni: str,
-        credential_mode: MTProtoCredentialMode = MTProtoCredentialMode.DERIVED_PER_SNI,
+        credential_mode: MTProtoCredentialMode = MTProtoCredentialMode.OFFICIAL_SECURE,
         status: MTProtoAssignmentStatus = MTProtoAssignmentStatus.ACTIVE,
         rotation_marker: str = "v1",
         replace: bool = False,

@@ -1,15 +1,15 @@
 """MTProto user-cabinet API tests.
 
 # FILE: backend/tests/test_mtproto_api.py
-# VERSION: 1.0.0
+# VERSION: 2.0.0
 # ROLE: TEST
 # MAP_MODE: LOCALS
 # START_MODULE_CONTRACT
-#   PURPOSE: Verify Phase-31 owner-only MTProto proxy API behavior
-#   SCOPE: Authenticated /api/v1/mtproto/proxy response shape, owner-only secrets,
+#   PURPOSE: Verify owner-only official MTProxy API behavior
+#   SCOPE: Authenticated /api/v1/mtproto/proxy response shape, owner-only dd secrets,
 #          safe failure states, idempotency, and reissue guidance
-#   DEPENDS: M-045, M-043, M-042, M-001, M-002
-#   LINKS: V-M-045, V-M-043, V-M-042
+#   DEPENDS: M-045, M-043, M-053, M-042, M-001, M-002
+#   LINKS: V-M-045, V-M-043, V-M-053, V-M-042
 # END_MODULE_CONTRACT
 #
 # START_MODULE_MAP
@@ -24,6 +24,7 @@
 # END_MODULE_MAP
 #
 # START_CHANGE_SUMMARY
+#   LAST_CHANGE: v2.0.0 - Updated owner API coverage for official MTProxy secure dd secrets.
 #   LAST_CHANGE: v1.0.0 - Added Phase-31 MTProto owner API tests
 # END_CHANGE_SUMMARY
 """
@@ -126,12 +127,16 @@ async def test_get_my_mtproto_proxy_returns_owner_payload_and_reuses_assignment(
     assert second_response.status_code == 200
     body = first_response.json()
     assert body["status"] == "activated"
-    assert body["server"].endswith(".krotpn.xyz")
+    assert body["server"] == "krotpn.xyz"
+    assert body["sni"].endswith(".krotpn.xyz")
     assert body["port"] == 443
-    assert body["secret"].startswith("ee")
+    assert body["secret"].startswith("dd")
+    assert len(body["secret"]) == 34
+    assert body["credential_mode"] == "official_secure"
     assert body["tg_link"].startswith("tg://proxy?")
     assert body["secret"] in body["tg_link"]
     assert BASE_SECRET not in body["tg_link"]
+    assert SECRET_SALT not in body["tg_link"]
     assert second_response.json()["assignment_id"] == body["assignment_id"]
     assert await _assignment_count(db_session) == 1
 

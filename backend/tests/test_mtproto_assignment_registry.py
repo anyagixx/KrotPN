@@ -1,15 +1,15 @@
 """MTProto assignment registry tests.
 
 # FILE: backend/tests/test_mtproto_assignment_registry.py
-# VERSION: 1.0.0
+# VERSION: 1.1.0
 # ROLE: TEST
 # MAP_MODE: LOCALS
 # START_MODULE_CONTRACT
 #   PURPOSE: Verify restore-safe MTProto assignment persistence invariants
-#   SCOPE: Idempotent assignment writes, user/SNI uniqueness,
+#   SCOPE: Idempotent official assignment writes, user/SNI uniqueness,
 #          redacted listing, and migration evidence
-#   DEPENDS: M-042, M-028
-#   LINKS: V-M-042, V-M-028
+#   DEPENDS: M-042, M-028, M-053
+#   LINKS: V-M-042, V-M-028, V-M-053
 # END_MODULE_CONTRACT
 #
 # START_MODULE_MAP
@@ -20,6 +20,7 @@
 # END_MODULE_MAP
 #
 # START_CHANGE_SUMMARY
+#   LAST_CHANGE: v1.1.0 - Updated default assignment mode for Phase-40 official MTProxy.
 #   LAST_CHANGE: v1.0.0 - Added Phase-29 assignment registry tests
 # END_CHANGE_SUMMARY
 """
@@ -67,7 +68,7 @@ async def test_save_assignment_is_idempotent_and_redacted(db_session: AsyncSessi
 
     assert second.id == first.id
     assert second.sni == "u-111111111111.krotpn.xyz"
-    assert second.credential_mode == MTProtoCredentialMode.DERIVED_PER_SNI
+    assert second.credential_mode == MTProtoCredentialMode.OFFICIAL_SECURE
     assert second.status == MTProtoAssignmentStatus.ACTIVE
     assert len(listed) == 1
     assert not hasattr(listed[0], "secret")

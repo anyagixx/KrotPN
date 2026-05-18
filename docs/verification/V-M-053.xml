@@ -1,15 +1,17 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<V-M-053 MODULE="M-053" PRIORITY="critical" STATUS="verification-designed">
+<V-M-053 MODULE="M-053" PRIORITY="critical" STATUS="pass-local">
   <purpose>Verify that KrotPN creates, syncs, revokes, and reissues individual official MTProxy secrets safely and idempotently.</purpose>
   <test-files>
-    <file planned="true">backend/tests/test_mtproxy_secret_sync.py</file>
-    <file planned="true">backend/tests/test_mtproto_provisioning.py</file>
-    <file planned="true">backend/tests/test_mtproto_api.py</file>
-    <file planned="true">backend/tests/test_mtproto_admin_ops.py</file>
-    <file planned="true">backend/tests/test_scheduler.py</file>
+    <file implemented="true">backend/tests/test_mtproxy_secret_sync.py</file>
+    <file implemented="true">backend/tests/test_mtproto_provisioning.py</file>
+    <file implemented="true">backend/tests/test_mtproto_api.py</file>
+    <file implemented="true">backend/tests/test_mtproto_admin_ops.py</file>
+    <file implemented="true">backend/tests/test_mtproto_assignment_registry.py</file>
+    <file implemented="true">backend/tests/test_phase34_mtproto_integration.py</file>
+    <file implemented="true">backend/tests/test_scheduler.py</file>
   </test-files>
   <module-checks>
-    <check-1 LEVEL="module-local">cd backend &amp;&amp; SECRET_KEY=test-secret-key-with-enough-length DATA_ENCRYPTION_KEY=dpFmfSVqfdAK3yx5MQV6Tcv35RZuw5MzaH0yhxJ01q0= PYTHONPATH=. ../.venv/bin/python -m pytest -o addopts='' tests/test_mtproxy_secret_sync.py tests/test_mtproto_provisioning.py tests/test_mtproto_api.py tests/test_mtproto_admin_ops.py tests/test_scheduler.py -v</check-1>
+    <check-1 LEVEL="module-local">cd backend &amp;&amp; SECRET_KEY=test-secret-key-with-enough-length DATA_ENCRYPTION_KEY=dpFmfSVqfdAK3yx5MQV6Tcv35RZuw5MzaH0yhxJ01q0= PYTHONPATH=. ../.venv/bin/python -m pytest -o addopts='' tests/test_mtproxy_secret_sync.py tests/test_mtproto_provisioning.py tests/test_mtproto_api.py tests/test_mtproto_admin_ops.py tests/test_mtproto_assignment_registry.py tests/test_phase34_mtproto_integration.py tests/test_scheduler.py -v</check-1>
     <check-2 LEVEL="wave">Run frontend and frontend-admin builds after payload/API shape changes.</check-2>
     <check-3 LEVEL="phase-live">Run Phase-40 live smoke against one newly verified user and one revoked/reissued user without printing secrets.</check-3>
   </module-checks>

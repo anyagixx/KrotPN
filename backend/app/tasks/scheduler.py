@@ -1,13 +1,13 @@
 # FILE: backend/app/tasks/scheduler.py
-# VERSION: 1.0.0
+# VERSION: 3.3.0
 # ROLE: RUNTIME
 # MAP_MODE: EXPORTS
 # START_MODULE_CONTRACT
 #   PURPOSE: Background task scheduler — recurring maintenance jobs started during FastAPI lifespan
 #   SCOPE: APScheduler-based job registration and execution: subscription expiry,
-#          VPN stats, anomaly detection, MTProto policy sync, cleanup, reporting
-#   DEPENDS: M-001, M-003, M-004, M-023, M-044
-#   LINKS: M-008, M-004, M-003, M-044, V-M-008, V-M-044
+#          VPN stats, anomaly detection, official MTProxy secret sync, cleanup, reporting
+#   DEPENDS: M-001, M-003, M-004, M-023, M-044, M-053
+#   LINKS: M-008, M-004, M-003, M-044, M-053, V-M-008, V-M-044, V-M-053
 # END_MODULE_CONTRACT
 #
 # START_MODULE_MAP
@@ -17,11 +17,12 @@
 #   update_vpn_stats - Every 5 min: update client stats from AmneziaWG
 #   daily_cleanup - Daily at 3AM: clean old failed payments
 #   detect_handshake_anomalies - Configurable interval: observe peer handshakes for anomaly signals
-#   sync_mtproto_policy - Reconcile MTProto assignments into runtime policy state
+#   sync_mtproto_policy - Reconcile active official MTProxy secrets into runtime manifest
 #   weekly_report - Weekly on Monday 9AM: generate subscription stats (placeholder)
 # END_MODULE_MAP
 #
 # START_CHANGE_SUMMARY
+#   LAST_CHANGE: v3.3.0 - Switched scheduled MTProto reconciliation to official MTProxy secret manifest sync.
 #   LAST_CHANGE: v3.2.0 - Added Phase-30 MTProto policy reconciliation job
 #   LAST_CHANGE: v3.1.0 - Made handshake anomaly scan interval configurable for anti-ping-pong detection
 #   LAST_CHANGE: v2.8.0 - Added full GRACE MODULE_CONTRACT and MODULE_MAP per GRACE governance protocol
@@ -44,7 +45,7 @@ MODULE_MAP
 - update_vpn_stats: Updates VPN client statistics from AmneziaWG.
 - daily_cleanup: Cleans old failed payments and performs maintenance.
 - detect_handshake_anomalies: Observes live peer handshakes and records soft anomaly signals.
-- sync_mtproto_policy: Replays MTProto assignment state into the runtime policy bridge.
+- sync_mtproto_policy: Replays active official MTProxy assignment secrets into the runtime manifest.
 - weekly_report: Generates weekly subscription stats (placeholder for notification delivery).
 
 CHANGE_SUMMARY
@@ -294,11 +295,21 @@ async def detect_handshake_anomalies():
 # <!-- START_BLOCK: sync_mtproto_policy -->
 async def sync_mtproto_policy():
     """
-    Reconcile MTProto assignments into runtime policy state.
+    Reconcile active official MTProxy assignments into runtime secret manifest.
     """
-    from app.mtproto.runtime_bridge import sync_mtproto_policy as run_policy_sync
+    from app.mtproto.official_secrets import MTProxySecretSyncService
 
-    return await run_policy_sync()
+    logger.info("[M-053][sync_mtproto_policy][SCHEDULER_SYNC] started")
+    async with async_session_maker() as session:
+        result = await MTProxySecretSyncService(session).apply_active_manifest(
+            reason="scheduler",
+        )
+        await session.commit()
+    logger.info(
+        "[M-053][sync_mtproto_policy][SCHEDULER_SYNC] "
+        f"status={result.status.value} active_count={result.active_count}"
+    )
+    return result
 # <!-- END_BLOCK: sync_mtproto_policy -->
 
 

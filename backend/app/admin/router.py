@@ -1,12 +1,12 @@
 # FILE: backend/app/admin/router.py
-# VERSION: 1.0.0
+# VERSION: 3.3.0
 # ROLE: ENTRY_POINT
 # MAP_MODE: SUMMARY
 # START_MODULE_CONTRACT
 #   PURPOSE: Expose privileged admin analytics, system endpoints, and operator recovery controls over current backend state
 #   SCOPE: Dashboard statistics, revenue analytics, user analytics, system health, device control, and MTProto assignment operations
-#   DEPENDS: M-001 (core database/auth), M-002 (user models), M-003 (vpn topology), M-004 (billing), M-005 (referrals), M-006 (admin-api graph surface), M-016 (route-policy observability), M-042/M-043/M-044 (MTProto assignment/provisioning/runtime)
-#   LINKS: M-006 (admin-api), M-016 (route-decision-api), M-047 (mtproto-admin-ops), V-M-006, V-M-047
+#   DEPENDS: M-001 (core database/auth), M-002 (user models), M-003 (vpn topology), M-004 (billing), M-005 (referrals), M-006 (admin-api graph surface), M-016 (route-policy observability), M-042/M-043/M-053 (MTProto assignment/provisioning/official runtime)
+#   LINKS: M-006 (admin-api), M-016 (route-decision-api), M-047 (mtproto-admin-ops), M-053, V-M-006, V-M-047, V-M-053
 # END_MODULE_CONTRACT
 #
 # START_MODULE_MAP
@@ -20,13 +20,14 @@
 #   revoke_admin_device - Revoke one device and free the slot
 #   list_admin_mtproto_assignments - Redacted MTProto assignment list with search/status/time filters
 #   get_admin_mtproto_assignment - Redacted MTProto assignment detail
-#   get_admin_mtproto_health - Secret-free runtime bridge health summary
+#   get_admin_mtproto_health - Secret-free official MTProxy runtime health summary
 #   reissue_admin_mtproto_assignment - Explicit audited MTProto reissue without admin secret disclosure
 #   revoke_admin_mtproto_assignment - Explicit audited MTProto assignment disable without VPN/account side effects
 #   get_system_health - Coarse host health metrics for privileged operators
 # END_MODULE_MAP
 #
 # START_CHANGE_SUMMARY
+#   LAST_CHANGE: v3.3.0 - Switched MTProto admin runtime actions to official MTProxy manifest sync.
 #   LAST_CHANGE: v3.2.1 - MTProto revoke now removes the runtime SNI policy and returns a safe revoke result
 #   LAST_CHANGE: v3.2.0 - Added Phase-33 MTProto admin list/detail/health/reissue/revoke with redacted audit payloads
 #   LAST_CHANGE: v3.1.0 - Added recent anti-abuse event context to admin device payloads
@@ -51,12 +52,12 @@ from app.devices.models import DeviceSecurityEvent, DeviceSecurityEventType, Use
 from app.devices.service import DeviceAccessPolicyService
 from app.mtproto.health import build_runtime_health_summary
 from app.mtproto.models import MTProtoAssignment, MTProtoAssignmentStatus
+from app.mtproto.official_secrets import MTProxySecretSyncService
 from app.mtproto.provisioning import (
     MTProtoProvisioningError,
     MTProtoProvisioningErrorCode,
     MTProtoProvisioningService,
 )
-from app.mtproto.runtime_bridge import MTProtoRuntimeBridge
 from app.referrals.models import Referral, ReferralCode
 # NOTE: routing models/observer removed in Phase-17 (Full Tunnel)
 from app.users.models import User, UserRole
@@ -76,6 +77,8 @@ ANTI_ABUSE_EVENT_TYPES = {
 
 MTPROTO_ADMIN_FORBIDDEN_MARKERS = (
     "tg://proxy",
+    "https://t.me/proxy",
+    "secret=",
     "MTPROTO_BASE_SECRET_HEX",
     "MTPROTO_SECRET_SALT",
 )
@@ -705,8 +708,7 @@ async def get_admin_mtproto_health(
     session: DBSession,
 ):
     """Return secret-free MTProto runtime bridge health."""
-    bridge = MTProtoRuntimeBridge(session)
-    health = await bridge.runtime_health()
+    health = await MTProxySecretSyncService(session).runtime_health()
     payload = build_runtime_health_summary(health)
     _assert_mtproto_admin_payload_redacted(payload)
     logger.info(
@@ -754,7 +756,10 @@ async def reissue_admin_mtproto_assignment(
 
     await session.flush()
     await session.refresh(assignment)
-    apply_result = await MTProtoRuntimeBridge(session).apply_domain_policy(assignment)
+    apply_result = await MTProxySecretSyncService(
+        session,
+        app_settings=service.settings,
+    ).reissue_assignment_secret(assignment)
     await log_admin_action(
         session,
         int(admin.id),
@@ -811,7 +816,7 @@ async def revoke_admin_mtproto_assignment(
     assignment.superseded_at = now
     await session.flush()
     await session.refresh(assignment)
-    revoke_result = await MTProtoRuntimeBridge(session).revoke_domain_policy(assignment)
+    revoke_result = await MTProxySecretSyncService(session).revoke_assignment_secret(assignment)
     await log_admin_action(
         session,
         int(admin.id),

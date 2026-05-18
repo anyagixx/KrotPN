@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<M-052 NAME="official-mtproxy-data-plane" TYPE="INTEGRATION" STATUS="planned">
+<M-052 NAME="official-mtproxy-data-plane" TYPE="INTEGRATION" STATUS="partial-live">
   <path>official-mtproxy deploy docker-compose.yml deploy/deploy-on-server.sh deploy/haproxy-phase40.cfg deploy/mtproto-de-compose.yml scripts/phase40-official-mtproxy-live-smoke.sh docs/plans/Phase-40.xml</path>
   <owns>Official Telegram MTProxy runtime, redacted runtime launcher, local stats/health contract, and RU-to-DE MTProto data-plane routing.</owns>
   <purpose>Provide the production MTProto data-plane that real Telegram clients can validate through req_pq while KrotPN remains the control-plane for users and secrets.</purpose>
@@ -13,14 +13,15 @@
   <depends>M-001,M-012,M-050,M-051</depends>
   <verification-ref>V-M-052</verification-ref>
   <files>
-    <file planned="true">official-mtproxy/entrypoint.sh</file>
-    <file planned="true">official-mtproxy/Dockerfile</file>
-    <file planned="true">deploy/mtproto-de-compose.yml</file>
-    <file planned="true">deploy/haproxy-phase40.cfg</file>
-    <file planned="true">deploy/deploy-on-server.sh</file>
-    <file planned="true">docker-compose.yml</file>
-    <file planned="true">scripts/phase40-official-mtproxy-live-smoke.sh</file>
-    <file planned="true">backend/tests/test_deploy_phase40_static.py</file>
+    <file implemented="true">official-mtproxy/entrypoint.sh</file>
+    <file implemented="true">official-mtproxy/Dockerfile</file>
+    <file implemented="true">official-mtproxy/secret-control.py</file>
+    <file implemented="true">deploy/mtproto-de-compose.yml</file>
+    <file implemented="true">deploy/haproxy-phase40.cfg</file>
+    <file implemented="true">deploy/deploy-on-server.sh</file>
+    <file implemented="true">docker-compose.yml</file>
+    <file implemented="true">scripts/phase40-official-mtproxy-live-smoke.sh</file>
+    <file implemented="true">backend/tests/test_deploy_phase38_static.py</file>
   </files>
   <data-plane-contract>
     <contract-1>The official runtime accepts one or more active user secrets as 32-hex -S values.</contract-1>
@@ -38,6 +39,7 @@
   <evidence>
     <evidence-1>2026-05-19: Phase-39 client-level diagnostics found req_pq timeout through the current KPprotoN/Erlang runtime.</evidence-1>
     <evidence-2>2026-05-19: Temporary official MTProxy runtime on the DE host passed normal and secure req_pq smoke, proving the official runtime is the selected Phase-40 data-plane.</evidence-2>
+    <evidence-3>2026-05-19: Local execution added official-mtproxy runtime scaffold, Phase-40 HAProxy router, DE compose wiring, deploy copy/env changes, redacted live-smoke gate, and deploy/static tests; clean-VPS live req_pq remains pending.</evidence-3>
   </evidence>
   <hotspot>H-039: Official MTProxy runtime must pass req_pq through public 443 and must not print generated links or secrets through default wrapper logs.</hotspot>
 </M-052>

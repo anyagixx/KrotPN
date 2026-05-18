@@ -1,14 +1,14 @@
 """Phase-39 MTProto availability diagnostics tests.
 
 # FILE: backend/tests/test_mtproto_availability_diagnostics.py
-# VERSION: 1.0.0
+# VERSION: 1.1.0
 # ROLE: TEST
 # MAP_MODE: LOCALS
 # START_MODULE_CONTRACT
 #   PURPOSE: Verify redacted MTProto availability diagnostics and Telegram web-link helper behavior.
-#   SCOPE: SNI masking, proxy-link redaction, safe fingerprints, and primary https://t.me/proxy link assembly.
-#   DEPENDS: M-051, M-045, M-043
-#   LINKS: V-M-051
+#   SCOPE: SNI masking, proxy-link redaction, official dd-secret redaction, safe fingerprints, and primary https://t.me/proxy link assembly.
+#   DEPENDS: M-051, M-045, M-043, M-053
+#   LINKS: V-M-051, V-M-053
 # END_MODULE_CONTRACT
 #
 # START_MODULE_MAP
@@ -19,6 +19,7 @@
 # END_MODULE_MAP
 #
 # START_CHANGE_SUMMARY
+#   LAST_CHANGE: v1.1.0 - Added Phase-40 official dd-secret redaction coverage.
 #   LAST_CHANGE: v1.0.0 - Added Phase-39 diagnostics unit tests.
 # END_CHANGE_SUMMARY
 """
@@ -32,6 +33,7 @@ from app.mtproto.availability import (
 
 
 SECRET = "ee" + ("a" * 32) + "752d3031323334353637383961622e6b726f74706e2e78797a"
+OFFICIAL_SECRET = "dd" + ("b" * 32)
 SNI = "u-0123456789ab.krotpn.xyz"
 
 
@@ -48,7 +50,7 @@ def test_redact_proxy_text_removes_full_links_and_fake_tls_secrets():
     text = (
         f"open tg://proxy?server={SNI}&port=443&secret={SECRET} "
         f"or https://t.me/proxy?server={SNI}&port=443&secret={SECRET} "
-        f"raw={SECRET}"
+        f"raw={SECRET} official={OFFICIAL_SECRET}"
     )
 
     redacted = redact_proxy_text(text)
@@ -56,6 +58,7 @@ def test_redact_proxy_text_removes_full_links_and_fake_tls_secrets():
     assert "tg://proxy" not in redacted
     assert "https://t.me/proxy" not in redacted
     assert SECRET not in redacted
+    assert OFFICIAL_SECRET not in redacted
     assert "<redacted-mtproto-link>" in redacted
     assert "<redacted-mtproto-secret>" in redacted
 

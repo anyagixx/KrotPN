@@ -1,16 +1,16 @@
 """Phase-34 verified-registration to MTProto integration tests.
 
 # FILE: backend/tests/test_phase34_mtproto_integration.py
-# VERSION: 1.0.0
+# VERSION: 1.1.0
 # ROLE: TEST
 # MAP_MODE: LOCALS
 # START_MODULE_CONTRACT
 #   PURPOSE: Verify release-readiness integration between email verification, onboarding,
 #            and owner-only MTProto proxy issuance.
 #   SCOPE: Pending registration guard, verified activation side effects, referral/trial/device
-#          creation, authenticated MTProto owner payload, idempotent assignment reuse, replay safety.
-#   DEPENDS: M-041, M-042, M-043, M-045, M-040, M-004, M-005, M-020
-#   LINKS: V-M-041, V-M-042, V-M-043, V-M-045, docs/plans/Phase-34.xml
+#          creation, authenticated official MTProxy owner payload, idempotent assignment reuse, replay safety.
+#   DEPENDS: M-041, M-042, M-043, M-045, M-053, M-040, M-004, M-005, M-020
+#   LINKS: V-M-041, V-M-042, V-M-043, V-M-045, V-M-053, docs/plans/Phase-34.xml, docs/plans/Phase-40.xml
 # END_MODULE_CONTRACT
 #
 # START_MODULE_MAP
@@ -25,6 +25,7 @@
 # END_MODULE_MAP
 #
 # START_CHANGE_SUMMARY
+#   LAST_CHANGE: v1.1.0 - Updated integration gate for Phase-40 official MTProxy dd owner payload.
 #   LAST_CHANGE: v1.0.0 - Added Phase-34 verified-registration/MTProto integration gate.
 # END_CHANGE_SUMMARY
 """
@@ -228,10 +229,11 @@ async def test_verified_registration_issues_single_owner_mtproto_proxy(
     first_proxy = first_proxy_response.json()
     second_proxy = second_proxy_response.json()
     assert first_proxy["status"] == "activated"
-    assert first_proxy["server"].endswith(".krotpn.xyz")
-    assert first_proxy["sni"] == first_proxy["server"]
+    assert first_proxy["server"] == "krotpn.xyz"
+    assert first_proxy["sni"].endswith(".krotpn.xyz")
     assert first_proxy["port"] == 443
-    assert first_proxy["secret"].startswith("ee")
+    assert first_proxy["secret"].startswith("dd")
+    assert first_proxy["credential_mode"] == "official_secure"
     assert first_proxy["tg_link"].startswith("tg://proxy?")
     assert BASE_SECRET not in first_proxy["tg_link"]
     assert SECRET_SALT not in first_proxy["tg_link"]

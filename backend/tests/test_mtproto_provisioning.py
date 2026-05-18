@@ -1,20 +1,21 @@
 """MTProto provisioning core tests.
 
 # FILE: backend/tests/test_mtproto_provisioning.py
-# VERSION: 1.1.0
+# VERSION: 2.0.0
 # ROLE: TEST
 # MAP_MODE: LOCALS
 # START_MODULE_CONTRACT
-#   PURPOSE: Verify deterministic owner-safe MTProto proxy provisioning
-#   SCOPE: SNI generation, KPprotoN fake-TLS vectors, idempotent issuance,
-#          reissue, and verified-user guard
-#   DEPENDS: M-043, M-042, M-001, M-002
-#   LINKS: V-M-043, V-M-042, V-M-001
+#   PURPOSE: Verify deterministic owner-safe official MTProxy provisioning
+#   SCOPE: SNI generation, legacy KPprotoN fake-TLS vectors, official dd-secret issuance,
+#          manifest activation, reissue, and verified-user guard
+#   DEPENDS: M-043, M-053, M-042, M-001, M-002
+#   LINKS: V-M-043, V-M-053, V-M-042, V-M-001
 # END_MODULE_CONTRACT
 #
 # START_MODULE_MAP
 #   test_generate_sni_is_stable_and_under_base_domain - Covers stable SNI generation
 #   test_derive_fake_tls_secret_matches_kpproton_vector - Covers fake-TLS derivation
+#   test_official_secret_helpers_build_dd_owner_link - Covers official secure secret formatting
 #   test_issue_user_proxy_is_idempotent_and_owner_safe - Covers owner payload assembly
 #   test_issue_user_proxy_rejects_unverified_user_without_assignment - Covers verified gate
 #   test_rotation_marker_requires_explicit_reissue - Covers reissue-required policy
@@ -23,6 +24,7 @@
 # END_MODULE_MAP
 #
 # START_CHANGE_SUMMARY
+#   LAST_CHANGE: v2.0.0 - Updated provisioning coverage for official MTProxy dd secrets.
 #   LAST_CHANGE: v1.1.0 - Added regression coverage for blank MTProto env values from fresh deploys
 #   LAST_CHANGE: v1.0.0 - Added Phase-29 provisioning tests
 # END_CHANGE_SUMMARY
@@ -33,12 +35,15 @@ from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.config import Settings
-from app.mtproto.models import MTProtoAssignment
+from app.mtproto.models import MTProtoAssignment, MTProtoAssignmentStatus, MTProtoCredentialMode
 from app.mtproto.service import (
     MTProtoProvisioningError,
     MTProtoProvisioningErrorCode,
     MTProtoProvisioningService,
+    build_official_tg_link,
+    build_secure_secret,
     derive_fake_tls_secret,
+    derive_official_secret,
     generate_sni,
 )
 from app.users.models import User
@@ -108,6 +113,30 @@ def test_derive_fake_tls_secret_matches_kpproton_vector():
 
 
 @pytest.mark.asyncio
+async def test_official_secret_helpers_build_dd_owner_link(db_session: AsyncSession):
+    user = await _create_user(db_session, "official-helper-mtproto@example.com")
+    assignment = MTProtoAssignment(
+        user_id=int(user.id),
+        sni="u-helper11111.krotpn.xyz",
+        credential_mode=MTProtoCredentialMode.OFFICIAL_SECURE,
+        status=MTProtoAssignmentStatus.ACTIVE,
+    )
+    db_session.add(assignment)
+    await db_session.flush()
+    await db_session.refresh(assignment)
+
+    raw_secret = derive_official_secret(BASE_SECRET, SECRET_SALT, assignment)
+    secure_secret = build_secure_secret(raw_secret)
+    link = build_official_tg_link("krotpn.xyz", 443, raw_secret)
+
+    assert len(raw_secret) == 32
+    assert secure_secret == f"dd{raw_secret}"
+    assert link == f"tg://proxy?server=krotpn.xyz&port=443&secret={secure_secret}"
+    assert BASE_SECRET not in link
+    assert SECRET_SALT not in link
+
+
+@pytest.mark.asyncio
 async def test_issue_user_proxy_is_idempotent_and_owner_safe(db_session: AsyncSession):
     user = await _create_user(db_session, "verified-mtproto@example.com")
     service = MTProtoProvisioningService(db_session, app_settings=_settings())
@@ -116,13 +145,16 @@ async def test_issue_user_proxy_is_idempotent_and_owner_safe(db_session: AsyncSe
     second = await service.issue_user_proxy(user)
 
     assert second == first
-    assert first.server == first.sni
-    assert first.server.endswith(".krotpn.xyz")
+    assert first.server == "krotpn.xyz"
+    assert first.sni.endswith(".krotpn.xyz")
     assert first.port == 443
-    assert first.secret.startswith("ee")
-    assert first.secret.endswith(first.sni.encode("utf-8").hex())
+    assert first.secret.startswith("dd")
+    assert len(first.secret) == 34
+    assert first.credential_mode == "official_secure"
     assert first.tg_link.startswith("tg://proxy?")
     assert first.tg_link.count(BASE_SECRET) == 0
+    assert first.tg_link.count(SECRET_SALT) == 0
+    assert first.secret in first.tg_link
     assert await _assignment_count(db_session) == 1
 
 
@@ -163,6 +195,7 @@ async def test_rotation_marker_requires_explicit_reissue(db_session: AsyncSessio
 
     assert reissued.assignment_id == first.assignment_id
     assert reissued.server == first.server
+    assert reissued.secret != first.secret
     assert reissued.rotation_marker == "v2"
     assert await _assignment_count(db_session) == 1
 

@@ -1,14 +1,14 @@
 version: '3.8'
 
 # FILE: docker-compose.yml
-# VERSION: 3.3.2
+# VERSION: 3.4.0
 # ROLE: CONFIG
 # MAP_MODE: SUMMARY
 # START_MODULE_CONTRACT
 #   PURPOSE: Compose the KrotPN runtime services on the host-network deployment surface.
-#   SCOPE: Database, Redis, backend, user frontend, admin frontend, nginx private HTTPS fallback, RU SNI router, optional local MTProto edge, TLS mount paths, and runtime config selection.
-#   DEPENDS: M-012, M-046, M-048, M-050
-#   LINKS: docs/modules/M-012.xml, docs/modules/M-046.xml, docs/modules/M-048.xml, docs/modules/M-050.xml, docs/plans/Phase-35.xml, docs/plans/Phase-38.xml
+#   SCOPE: Database, Redis, backend, user frontend, admin frontend, nginx private HTTPS fallback, RU Phase-40 router, optional legacy local MTProto edge, TLS mount paths, and runtime config selection.
+#   DEPENDS: M-012, M-046, M-048, M-050, M-052, M-053
+#   LINKS: docs/modules/M-012.xml, docs/modules/M-046.xml, docs/modules/M-048.xml, docs/modules/M-050.xml, docs/modules/M-052.xml, docs/modules/M-053.xml, docs/plans/Phase-35.xml, docs/plans/Phase-38.xml, docs/plans/Phase-40.xml
 # END_MODULE_CONTRACT
 #
 # START_MODULE_MAP
@@ -16,11 +16,12 @@ version: '3.8'
 #   frontend - User cabinet service on host network.
 #   frontend-admin - Admin cabinet service on host network.
 #   nginx - HTTP redirect, public admin 8443, and private HTTPS fallback proxy using operator wildcard TLS files.
-#   sni-router - HAProxy TCP SNI router owning public 443 and forwarding MTProto SNI to DE.
-#   mtproto-edge - Optional local KPprotoN/mtproto_proxy shared-443 runtime with KrotPN policy bridge.
+#   sni-router - HAProxy TCP router owning public 443 and forwarding non-HTTPS MTProto to DE.
+#   mtproto-edge - Optional legacy local KPprotoN/mtproto_proxy shared-443 runtime with KrotPN policy bridge.
 # END_MODULE_MAP
 #
 # START_CHANGE_SUMMARY
+#   LAST_CHANGE: v3.4.0 - Default RU public 443 router to Phase-40 HTTPS-vs-official-MTProxy split.
 #   LAST_CHANGE: v3.3.2 - Keep admin public 8443 separate from the private SNI-router web fallback port.
 #   LAST_CHANGE: v3.3.1 - Run Phase-38 HAProxy SNI router with explicit low-port bind permissions.
 #   LAST_CHANGE: v3.3.0 - Added Phase-38 RU SNI router and moved local mtproto-edge behind an explicit profile.
@@ -188,7 +189,7 @@ services:
           memory: 128M
           cpus: '0.5'
 
-  # Phase-38 RU TCP SNI router (public 443 owner)
+  # Phase-40 RU TCP router (public 443 owner)
   sni-router:
     image: haproxy:2.9-alpine
     container_name: krotpn-sni-router
@@ -200,7 +201,7 @@ services:
       nginx:
         condition: service_healthy
     volumes:
-      - ${SNI_ROUTER_CONF_PATH:-./deploy/haproxy-phase38.cfg}:/usr/local/etc/haproxy/haproxy.cfg:ro
+      - ${SNI_ROUTER_CONF_PATH:-./deploy/haproxy-phase40.cfg}:/usr/local/etc/haproxy/haproxy.cfg:ro
     network_mode: host
     healthcheck:
       test: ["CMD-SHELL", "pidof haproxy >/dev/null"]

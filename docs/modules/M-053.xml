@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<M-053 NAME="mtproxy-secret-sync" TYPE="INTEGRATION" STATUS="planned">
+<M-053 NAME="mtproxy-secret-sync" TYPE="INTEGRATION" STATUS="done-local">
   <path>backend/app/mtproto backend/app/tasks/scheduler.py backend/tests/test_mtproxy_secret_sync.py docs/plans/Phase-40.xml</path>
   <owns>Per-user official MTProxy secret lifecycle, active-secret manifest generation, runtime apply/revoke/reissue, startup replay, and redacted sync health.</owns>
   <purpose>Keep KrotPN assignment state and the official MTProxy runtime secret list aligned without exposing raw secret material outside owner-only payloads.</purpose>
@@ -15,15 +15,15 @@
   <depends>M-001,M-008,M-042,M-043,M-052</depends>
   <verification-ref>V-M-053</verification-ref>
   <files>
-    <file planned="true">backend/app/mtproto/official_secrets.py</file>
-    <file planned="true">backend/app/mtproto/runtime_bridge.py</file>
-    <file planned="true">backend/app/mtproto/provisioning.py</file>
-    <file planned="true">backend/app/mtproto/repository.py</file>
-    <file planned="true">backend/app/mtproto/schemas.py</file>
-    <file planned="true">backend/app/tasks/scheduler.py</file>
-    <file planned="true">backend/tests/test_mtproxy_secret_sync.py</file>
-    <file planned="true">backend/tests/test_mtproto_provisioning.py</file>
-    <file planned="true">backend/tests/test_mtproto_admin_ops.py</file>
+    <file implemented="true">backend/app/mtproto/official_secrets.py</file>
+    <file implemented="true">backend/app/mtproto/provisioning.py</file>
+    <file implemented="true">backend/app/mtproto/repository.py</file>
+    <file implemented="true">backend/app/mtproto/models.py</file>
+    <file implemented="true">backend/app/mtproto/service.py</file>
+    <file implemented="true">backend/app/admin/router.py</file>
+    <file implemented="true">backend/tests/test_mtproxy_secret_sync.py</file>
+    <file implemented="true">backend/tests/test_mtproto_provisioning.py</file>
+    <file implemented="true">backend/tests/test_mtproto_admin_ops.py</file>
   </files>
   <lifecycle-contract>
     <state-1>create: verified email activation creates a canonical assignment and official credential mode before owner payload is returned.</state-1>
@@ -41,6 +41,7 @@
   </constraints>
   <evidence>
     <evidence-1>2026-05-19: Phase-40 plan selects official per-user secrets as the access primitive because KPprotoN fake-TLS SNI policy did not pass real client-level req_pq proof.</evidence-1>
+    <evidence-2>2026-05-19: Local execution passed official dd-secret provisioning, owner API, admin revoke/reissue, manifest redaction, and assignment registry regression tests.</evidence-2>
   </evidence>
   <hotspot>H-040: Per-user MTProxy secret sync must revoke and reissue exactly one user without leaking raw secrets or breaking unrelated active users.</hotspot>
 </M-053>
