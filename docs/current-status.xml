@@ -52,7 +52,7 @@
     <item>Phase-37 live MTProto shared-443 fix is implemented locally on 2026-05-18: mtproto-runtime is added as a host-network edge service, backend has a token-protected HTTP policy adapter, provisioning applies SNI policy before returning active payloads, nginx HTTPS fallback moves to 8443, deploy generates runtime policy-token/env wiring, and deploy persists Telegram upstream routes through awg-client.</item>
     <item>Phase-38 DE-backed MTProto edge is partial-live on 2026-05-18: RU public 443 is HAProxy SNI router, HTTPS reaches private RU nginx fallback on 9443, public admin remains on 8443, DE runtime listens on 443, private policy health is OK, and HAProxy reports the DE MTProto backend UP. Telegram Desktop proof remains operator-required.</item>
     <item>Phase-39 MTProto availability closure is partial-live on 2026-05-18: local/static smoke, 34 backend MTProto regression tests, frontend build, XML parse, and MyGRACE lint passed; redacted live smoke proved active assignment, healthy policy_count, public RU:443 route, validated fake-TLS accept, private DE fallback 9443, and reachable Telegram downstream. Telegram Desktop proof remains operator-required.</item>
-    <item>Phase-40 official MTProxy data-plane and individual user secrets is planned on 2026-05-19 after client-level req_pq diagnostics showed the KPprotoN/Erlang data-plane is insufficient even when Phase-39 fake-TLS acceptance passes.</item>
+    <item>Phase-40 official MTProxy data-plane and individual user secrets is verification-designed on 2026-05-19: module-local, wave-level, and live req_pq gates are specified before execution.</item>
   </what-is-working>
 
   <what-is-fragile>
@@ -148,8 +148,8 @@
     <gate id="phase-39-mtproto-availability-closure" status="partial-live">
       <summary>Local and redacted live smoke passed for issued assignment, policy health, RU public 443, fake-TLS accept, DE fallback 9443, and Telegram downstream reachability; Telegram Desktop available proof remains operator-live.</summary>
     </gate>
-    <gate id="phase-40-official-mtproxy-data-plane" status="planned">
-      <summary>Plan recorded to replace the KPprotoN/Erlang data-plane with official MTProxy, individual user secrets, redacted secret sync, shared 443 routing, and req_pq-based live verification.</summary>
+    <gate id="phase-40-official-mtproxy-data-plane" status="verification-designed">
+      <summary>Verification matrix recorded to replace the KPprotoN/Erlang data-plane with official MTProxy, individual user secrets, redacted secret sync, shared 443 routing, and req_pq-based live verification.</summary>
     </gate>
   </rollout-gates>
 

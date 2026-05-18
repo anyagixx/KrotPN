@@ -41,5 +41,5 @@
   <Phase-37 NAME="Live MTProto Shared-443 Runtime Fix" STATUS="blocked-live" STEPS="6" MODULES="M-049,M-044,M-046,M-048,M-012,M-043" />
   <Phase-38 NAME="DE-backed MTProto Edge and RU SNI Router" STATUS="partial-live" STEPS="8" MODULES="M-050,M-049,M-044,M-046,M-048,M-012,M-043" />
   <Phase-39 NAME="MTProto Telegram Availability Closure" STATUS="partial-live" STEPS="9" MODULES="M-051,M-045,M-050,M-044,M-043,M-012" />
-  <Phase-40 NAME="Official MTProxy data-plane and individual user secrets" STATUS="planned" STEPS="9" MODULES="M-052,M-053,M-042,M-043,M-045,M-047,M-050,M-051,M-012" />
+  <Phase-40 NAME="Official MTProxy data-plane and individual user secrets" STATUS="verification-designed" STEPS="9" MODULES="M-052,M-053,M-042,M-043,M-045,M-047,M-050,M-051,M-012" />
 </PlanIndex>

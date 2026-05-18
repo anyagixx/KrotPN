@@ -1,34 +1,51 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<V-M-053 MODULE="M-053" PRIORITY="critical" STATUS="planned">
+<V-M-053 MODULE="M-053" PRIORITY="critical" STATUS="verification-designed">
   <purpose>Verify that KrotPN creates, syncs, revokes, and reissues individual official MTProxy secrets safely and idempotently.</purpose>
   <test-files>
     <file planned="true">backend/tests/test_mtproxy_secret_sync.py</file>
     <file planned="true">backend/tests/test_mtproto_provisioning.py</file>
+    <file planned="true">backend/tests/test_mtproto_api.py</file>
     <file planned="true">backend/tests/test_mtproto_admin_ops.py</file>
     <file planned="true">backend/tests/test_scheduler.py</file>
   </test-files>
-  <commands>
-    <command-1>cd backend &amp;&amp; SECRET_KEY=test-secret-key-with-enough-length DATA_ENCRYPTION_KEY=dpFmfSVqfdAK3yx5MQV6Tcv35RZuw5MzaH0yhxJ01q0= PYTHONPATH=. ../.venv/bin/python -m pytest -o addopts='' tests/test_mtproxy_secret_sync.py tests/test_mtproto_provisioning.py tests/test_mtproto_admin_ops.py tests/test_scheduler.py -v</command-1>
-  </commands>
+  <module-checks>
+    <check-1 LEVEL="module-local">cd backend &amp;&amp; SECRET_KEY=test-secret-key-with-enough-length DATA_ENCRYPTION_KEY=dpFmfSVqfdAK3yx5MQV6Tcv35RZuw5MzaH0yhxJ01q0= PYTHONPATH=. ../.venv/bin/python -m pytest -o addopts='' tests/test_mtproxy_secret_sync.py tests/test_mtproto_provisioning.py tests/test_mtproto_api.py tests/test_mtproto_admin_ops.py tests/test_scheduler.py -v</check-1>
+    <check-2 LEVEL="wave">Run frontend and frontend-admin builds after payload/API shape changes.</check-2>
+    <check-3 LEVEL="phase-live">Run Phase-40 live smoke against one newly verified user and one revoked/reissued user without printing secrets.</check-3>
+  </module-checks>
   <scenarios>
-    <scenario-1>Verified user receives one canonical official credential mode assignment and owner-only secure link.</scenario-1>
-    <scenario-2>Unverified user receives no MTProxy secret and no runtime apply attempt.</scenario-2>
-    <scenario-3>Active assignments render to a deterministic redacted manifest and apply only when the manifest changes.</scenario-3>
-    <scenario-4>Admin revoke removes exactly one user secret and preserves unrelated active users.</scenario-4>
-    <scenario-5>Admin reissue rotates exactly one user secret, invalidates the old runtime secret, and returns the new owner payload only to the owner.</scenario-5>
-    <scenario-6>Startup replay after backend/runtime restart restores all active assignment secrets.</scenario-6>
-    <scenario-7>Runtime apply failure returns degraded state and retries without blocking normal KrotPN login.</scenario-7>
+    <scenario-1 kind="success">Verified user receives one canonical official credential-mode assignment and owner-only secure link with secret=dd&lt;32-hex-secret&gt;.</scenario-1>
+    <scenario-2 kind="success">Repeated verified-registration or dashboard refresh reuses the same active assignment unless explicit reissue is requested.</scenario-2>
+    <scenario-3 kind="success">Active assignments render to a deterministic redacted manifest and apply only when the manifest fingerprint changes.</scenario-3>
+    <scenario-4 kind="success">Admin revoke removes exactly one user secret and preserves unrelated active users.</scenario-4>
+    <scenario-5 kind="success">Admin reissue rotates exactly one user secret, invalidates the old runtime secret, and returns the new owner payload only to the owner.</scenario-5>
+    <scenario-6 kind="success">Startup replay after backend, runtime, or restored-server startup restores all active assignment secrets.</scenario-6>
+    <scenario-7 kind="failure">Unverified user receives no MTProxy secret and no runtime apply attempt.</scenario-7>
+    <scenario-8 kind="failure">Runtime apply failure returns degraded state, retries safely, and does not block normal KrotPN login.</scenario-8>
+    <scenario-9 kind="failure">Oversized manifest or command-line guard prevents unsafe runtime launch and reports scale-out requirement.</scenario-9>
   </scenarios>
-  <log-markers>
+  <required-log-markers>
     <marker-1>[MTProxySecretSync][derive][FINGERPRINT_ONLY]</marker-1>
     <marker-2>[MTProxySecretSync][manifest][REDACTED_COUNT]</marker-2>
-    <marker-3>[MTProxySecretSync][revoke][ASSIGNMENT_ONLY]</marker-3>
-    <marker-4>[MTProxySecretSync][reissue][ROTATED_ONE]</marker-4>
-    <marker-5>[MTProxySecretSync][replay][ACTIVE_COUNT]</marker-5>
-  </log-markers>
+    <marker-3>[MTProxySecretSync][apply][FINGERPRINT_CHANGED]</marker-3>
+    <marker-4>[MTProxySecretSync][revoke][ASSIGNMENT_ONLY]</marker-4>
+    <marker-5>[MTProxySecretSync][reissue][ROTATED_ONE]</marker-5>
+    <marker-6>[MTProxySecretSync][replay][ACTIVE_COUNT]</marker-6>
+    <marker-7>[MTProxySecretSync][degraded][RETRYABLE]</marker-7>
+  </required-log-markers>
+  <redaction-rules>
+    <rule-1>Admin APIs, audit events, health checks, task logs, and smoke output may expose only assignment id, user id when authorized, masked hostname, secret fingerprint, count, status, and timestamps.</rule-1>
+    <rule-2>Raw secret is allowed only in the authenticated owner payload needed to configure Telegram and must not be persisted in admin-visible fields.</rule-2>
+  </redaction-rules>
+  <evidence-levels>
+    <level-1>Deterministic unit assertions first: secret format, stable derivation or encrypted persistence contract, owner-only payload, idempotency, redaction, and lifecycle transitions.</level-1>
+    <level-2>Trace assertions second: required log markers on create, apply, revoke, reissue, replay, and degraded branches.</level-2>
+    <level-3>Integration checks third: scheduler replay, runtime adapter calls, API/admin responses, and UI payload rendering.</level-3>
+  </evidence-levels>
   <failure-policy>
-    <policy-1>Any raw secret in admin responses, audit events, logs, or smoke output fails verification.</policy-1>
-    <policy-2>Any revoke/reissue operation affecting more than the target assignment fails verification.</policy-2>
-    <policy-3>Any issuance before email verification fails verification.</policy-3>
+    <policy-1>Any raw secret in admin responses, audit events, logs, task output, or smoke output fails verification.</policy-1>
+    <policy-2>Any revoke or reissue operation affecting more than the target assignment fails verification.</policy-2>
+    <policy-3>Any MTProxy issuance before email verification fails verification.</policy-3>
+    <policy-4>Any active user payload returned before runtime apply succeeds or explicitly reports degraded state fails verification.</policy-4>
   </failure-policy>
 </V-M-053>

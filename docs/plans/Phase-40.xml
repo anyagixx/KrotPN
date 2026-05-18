@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Phase-40 NAME="Official MTProxy data-plane and individual user secrets" STATUS="planned">
+<Phase-40 NAME="Official MTProxy data-plane and individual user secrets" STATUS="verification-designed">
   <intent>
     Replace the unreliable KPprotoN/Erlang MTProto data-plane with the official Telegram MTProxy runtime while keeping KrotPN as the user, assignment, secret, admin, and deployment control-plane.
   </intent>
@@ -75,4 +75,18 @@
     <verification-1>V-M-052 validates official runtime, redacted launcher, routing, stats, and live req_pq behavior.</verification-1>
     <verification-2>V-M-053 validates secret derivation, owner-only payloads, manifest sync, revoke, reissue, replay, and redaction.</verification-2>
   </verification-refs>
+
+  <verification-design>
+    <matrix-1 LEVEL="module-local" MODULES="M-053">Deterministic user secret derivation, credential mode migration, owner-only secure link, unverified-user guard, manifest redaction, idempotent apply, revoke, reissue, replay, and degraded retry behavior.</matrix-1>
+    <matrix-2 LEVEL="module-local" MODULES="M-052">Official MTProxy launcher syntax, official -S argument rendering, no wrapper secret printing, private stats binding, runtime config fetch/cache fallback, and health output redaction.</matrix-2>
+    <matrix-3 LEVEL="wave" MODULES="M-012,M-050,M-052">Deploy/compose/HAProxy static checks prove public 443 ownership, HTTPS ClientHello routing to web, non-HTTPS MTProto routing to DE, admin 8443 preservation, and rollback path.</matrix-3>
+    <matrix-4 LEVEL="wave" MODULES="M-043,M-045,M-047,M-053">API and UI checks prove official secure payload shape, legacy fake-TLS reissue messaging, admin redaction, and single-user revoke/reissue blast radius.</matrix-4>
+    <matrix-5 LEVEL="phase-live" MODULES="M-051,M-052,M-053">Redacted live smoke obtains one active issued assignment, confirms runtime secret sync, sends req_pq through RU public 443 to DE official MTProxy, and records Telegram Desktop/mobile available proof.</matrix-5>
+  </verification-design>
+
+  <autonomous-execution-safety>
+    <safety-1>Safe for local autonomous execution after verification artifacts are in place: backend unit tests, static deploy tests, frontend build, XML parse, and MyGRACE lint.</safety-1>
+    <safety-2>Not safe for unattended live promotion: public 443 routing, DE runtime replacement, and Telegram client proof require explicit operator confirmation and rollback readiness.</safety-2>
+    <safety-3>Any evidence that prints raw secrets, full tg links, wildcard private keys, runtime tokens, or provider keys invalidates the run and requires cleanup before retry.</safety-3>
+  </autonomous-execution-safety>
 </Phase-40>
