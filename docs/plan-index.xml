@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!-- MyGRACE Plan Index — lazy-loading entry point for phase navigation -->
 <!-- MyGRACE plan index generated from per-phase files; archived monoliths are reference-only -->
-<PlanIndex VERSION="1.0.0" PROJECT="KrotPN" PHASE-COUNT="38">
+<PlanIndex VERSION="1.0.0" PROJECT="KrotPN" PHASE-COUNT="39">
   <Phase-1 NAME="Policy model and safe compatibility layer" STATUS="done" STEPS="3" MODULES="M-007,M-017" />
   <Phase-2 NAME="Runtime synchronization and DNS binding" STATUS="done" STEPS="3" MODULES="M-017" />
   <Phase-3 NAME="Admin control plane and operator visibility" STATUS="done" STEPS="3" MODULES="M-006,M-010,M-017" />
@@ -40,4 +40,5 @@
   <Phase-36 NAME="Resend Deploy Email Provider Wiring" STATUS="partial-local" STEPS="6" MODULES="M-040,M-041,M-012,M-001,M-048" />
   <Phase-37 NAME="Live MTProto Shared-443 Runtime Fix" STATUS="blocked-live" STEPS="6" MODULES="M-049,M-044,M-046,M-048,M-012,M-043" />
   <Phase-38 NAME="DE-backed MTProto Edge and RU SNI Router" STATUS="partial-live" STEPS="8" MODULES="M-050,M-049,M-044,M-046,M-048,M-012,M-043" />
+  <Phase-39 NAME="MTProto Telegram Availability Closure" STATUS="planned" STEPS="9" MODULES="M-051,M-045,M-050,M-044,M-043,M-012" />
 </PlanIndex>

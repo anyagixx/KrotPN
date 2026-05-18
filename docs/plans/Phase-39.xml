@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Phase-39 NAME="MTProto Telegram Availability Closure" STATUS="planned" VERSION="1.0.0">
+  <Goal>Close the remaining Telegram Desktop unavailable state by proving the full issued-link path, fixing stale DE runtime fallback config, and improving the user connection flow without rotating existing MTProto secrets or redesigning deployment scripts.</Goal>
+  <Modules>M-051,M-045,M-050,M-044,M-043,M-012</Modules>
+  <OperatorProblem>
+    <item-1>Verified users receive a personal MTProto proxy in the cabinet, but Telegram Desktop still reports the proxy as unavailable.</item-1>
+    <item-2>Phase-38 live evidence proves public HTTPS, admin 8443, RU HAProxy routing, DE listener 443, and private policy health, but not final Telegram client availability.</item-2>
+    <item-3>Live DE logs showed tls_invalid_digest during operator attempts, while policy apply and fake-TLS derivation parity are healthy.</item-3>
+  </OperatorProblem>
+  <LiveFindings>
+    <finding-1>RU database has an active issued assignment and backend repeatedly applies its SNI policy successfully to DE.</finding-1>
+    <finding-2>RU HAProxy logs show Telegram attempts routed to mtproto_de_runtime, so DNS and SNI routing are not the primary blocker.</finding-2>
+    <finding-3>DE runtime health reports healthy policy table and policy_count above zero.</finding-3>
+    <finding-4>Python KrotPN secret derivation and Erlang mtp_fake_tls derivation matched for the issued SNI; a generated fake-TLS ClientHello received a response through public RU 443.</finding-4>
+    <finding-5>DE runtime env still contained stale DE_MTPROTO_DOMAIN_FRONTING=127.0.0.1:8443 from an earlier deploy, while current Phase-38 contract uses 9443.</finding-5>
+  </LiveFindings>
+  <NonGoals>
+    <item-1>No reimplementation of KPprotoN or mtproto_proxy internals.</item-1>
+    <item-2>No rotation of MTPROTO_BASE_SECRET_HEX, MTPROTO_SECRET_SALT, SNI names, assignment ids, or tg links.</item-2>
+    <item-3>No redesign of install.sh or deploy-on-server.sh; only narrow stale-config guards are allowed.</item-3>
+    <item-4>No public exposure of DE policy API or secret-bearing diagnostics.</item-4>
+  </NonGoals>
+  <DataFlow>
+    <flow-1>User opens cabinet and receives owner-only MTProto payload from M-043/M-045 after policy apply through M-044.</flow-1>
+    <flow-2>Primary connection action uses a Telegram web/deep link built from the same server, port, and derived secret.</flow-2>
+    <flow-3>Telegram Desktop connects to issued u-*.krotpn.xyz on public 443, RU HAProxy sends it to DE runtime, and DE mtproto_proxy validates fake-TLS against the per-SNI derived secret.</flow-3>
+    <flow-4>DE runtime connects to Telegram downstream DC using bootstrap config or safe fallback and completes proxy availability checks.</flow-4>
+    <flow-5>Operator diagnostics correlate assignment, policy, route, fake-TLS accept, and downstream status using redacted identifiers only.</flow-5>
+  </DataFlow>
+  <Steps>
+    <step-1 STATUS="planned">Create M-051 and V-M-051 as the availability closure contract for Phase-39.</step-1>
+    <step-2 STATUS="planned">Add a secret-free local/static availability smoke for link format, route contract, redaction, and stale DE fallback config guards.</step-2>
+    <step-3 STATUS="planned">Add an operator-live smoke that checks one active assignment end-to-end: DB assignment, policy health/count, RU HAProxy route, DE fake-TLS accept, and Telegram downstream reachability.</step-3>
+    <step-4 STATUS="planned">Fix DE runtime stale fallback handling so DE_MTPROTO_DOMAIN_FRONTING converges to 127.0.0.1:9443 during deploy without redesigning deploy/install scripts.</step-4>
+    <step-5 STATUS="planned">Improve user cabinet MTProto connection UX: primary Telegram open action, full-link copy, compact secondary manual fields, and clearer degraded/pending states.</step-5>
+    <step-6 STATUS="planned">Add redacted admin/operator diagnostics for masked SNI, policy apply state, fake-TLS path status, downstream status, and safe failure codes.</step-6>
+    <step-7 STATUS="planned">Run local verification: XML parse, MyGRACE lint, backend MTProto tests, frontend build, and Phase-39 static smoke.</step-7>
+    <step-8 STATUS="operator-live">Apply the narrow fix to RU/DE, run Phase-39 live smoke, then have the operator retest Telegram Desktop using the refreshed primary Telegram action.</step-8>
+    <step-9 STATUS="operator-live">Record Telegram Desktop available proof and update Phase-38/Phase-39 live status only after the client-level proof passes.</step-9>
+  </Steps>
+  <Verification>
+    <command-1>bash -n install.sh deploy/deploy-on-server.sh</command-1>
+    <command-2>node scripts/phase39-mtproto-availability-smoke.mjs</command-2>
+    <command-3>bash scripts/phase39-mtproto-live-smoke.sh --redacted</command-3>
+    <command-4>cd backend &amp;&amp; SECRET_KEY=test-secret-key-with-enough-length DATA_ENCRYPTION_KEY=dpFmfSVqfdAK3yx5MQV6Tcv35RZuw5MzaH0yhxJ01q0= PYTHONPATH=. ../.venv/bin/python -m pytest -o addopts='' tests/test_mtproto_provisioning.py tests/test_kpproton_runtime_bridge.py tests/test_mtproto_api.py tests/test_mtproto_de_edge_contract.py tests/test_deploy_phase38_static.py tests/test_mtproto_availability_diagnostics.py -v</command-4>
+    <command-5>cd frontend &amp;&amp; npm run build</command-5>
+    <command-6>python3 -m xml.etree.ElementTree docs/graph-index.xml docs/plan-index.xml docs/verification-index.xml docs/modules/M-051.xml docs/plans/Phase-39.xml docs/verification/V-M-051.xml &amp;&amp; mygrace lint</command-6>
+  </Verification>
+  <AcceptanceCriteria>
+    <item-1>Policy health alone is no longer treated as MTProto availability proof.</item-1>
+    <item-2>One active assignment can be proven with redacted live smoke from DB row to fake-TLS accept through the public route.</item-2>
+    <item-3>DE runtime stale fallback port 8443 is removed or corrected to 9443 by deploy guard.</item-3>
+    <item-4>User dashboard connection action reduces manual secret-copy errors and remains compact on mobile.</item-4>
+    <item-5>Telegram Desktop marks the issued proxy available before MTProto edge is promoted to stable-live.</item-5>
+  </AcceptanceCriteria>
+  <Risks>
+    <risk-1>Telegram Desktop may cache an old or manually entered bad secret; UX must guide the operator/user to use the freshly generated primary link.</risk-1>
+    <risk-2>Live smoke can leak secrets if implemented with shell tracing or raw .env output; redaction is a hard gate.</risk-2>
+    <risk-3>Changing edge fallback ports incorrectly can break HTTPS fallback or admin 8443; Phase-39 guards must distinguish private 9443 fallback from public admin 8443.</risk-3>
+    <risk-4>Downstream Telegram reachability can vary by region/provider; diagnostics must separate route/secret failures from Telegram DC failures.</risk-4>
+  </Risks>
+  <AutonomousExecutionSafety>
+    <safe-local>Docs, static smoke, backend fake/private-adapter tests, frontend build, XML parse, and MyGRACE lint.</safe-local>
+    <requires-operator>Live RU/DE smoke, server-side deploy application, and Telegram Desktop availability proof.</requires-operator>
+  </AutonomousExecutionSafety>
+</Phase-39>
