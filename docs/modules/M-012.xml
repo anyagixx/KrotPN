@@ -30,14 +30,15 @@
     <step-3 STATUS="pass-local">Fail deploy readiness explicitly when Resend is required but missing, preventing later provider_disabled registration errors.</step-3>
   </phase-36-plan>
   <phase-38-plan>
-    <step-1 STATUS="pending">Extend the deployment contract for a DE-hosted MTProto runtime while preserving the operator-approved install flow.</step-1>
-    <step-2 STATUS="pending">Add RU SNI router and DE runtime wiring only after static smoke proves HTTPS fallback and policy API safety.</step-2>
-    <step-3 STATUS="pending">Keep rollback to nginx-only public 443 documented before any public port ownership change.</step-3>
+    <step-1 STATUS="pass-local">Extend the deployment contract for a DE-hosted MTProto runtime while preserving the operator-approved install flow.</step-1>
+    <step-2 STATUS="pass-local">Add RU SNI router and DE runtime wiring only after static smoke proves HTTPS fallback and policy API safety.</step-2>
+    <step-3 STATUS="operator-live-pending">Keep rollback to nginx-only public 443 documented before any public port ownership change.</step-3>
   </phase-38-plan>
   <evidence>
     <evidence-1>2026-05-17: Phase-35 changed the deploy surface so production installs consume validated operator wildcard TLS files instead of silently generating self-signed certificates.</evidence-1>
     <evidence-2>2026-05-17: Clean VPS hotfix generates MTProto base secret and salt during deploy .env creation so backend Settings validation does not restart-loop after first compose startup.</evidence-2>
     <evidence-3>2026-05-17: Phase-36 added redacted Resend deploy config handoff and /opt/KrotPN/.env generation for EMAIL_PROVIDER=resend.</evidence-3>
     <evidence-4>2026-05-18: Phase-38 plan adds DE-backed MTProto edge deployment as the next step after RU-only mtproto_proxy live blocking.</evidence-4>
+    <evidence-5>2026-05-18: Phase-38 local deploy surface now renders HAProxy SNI router config, starts a DE runtime from deploy/mtproto-de-compose.yml, binds policy API to the relay address, and preserves MTProto base secret/salt/runtime token on redeploy.</evidence-5>
   </evidence>
 </M-012>

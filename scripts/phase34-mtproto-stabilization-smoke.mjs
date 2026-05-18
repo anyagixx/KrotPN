@@ -1,13 +1,13 @@
 #!/usr/bin/env node
 // FILE: scripts/phase34-mtproto-stabilization-smoke.mjs
-// VERSION: 1.2.0
+// VERSION: 1.3.0
 // ROLE: SCRIPT
 // MAP_MODE: LOCALS
 // START_MODULE_CONTRACT
 //   PURPOSE: Static Phase-34 stabilization smoke for verified onboarding, MTProto owner/admin surfaces, redaction, and release handoff.
 //   SCOPE: Source markers, Phase-34 integration-test presence, frontend/admin anchors,
-//          release checklist markers, secret-redaction guards, and Phase-35/37 scoped deploy/install/edge surface guard.
-//   DEPENDS: M-040, M-041, M-042, M-043, M-044, M-045, M-046, M-047, M-048, node:fs, node:path, node:child_process
+//          release checklist markers, secret-redaction guards, and Phase-35/37/38 scoped deploy/install/edge surface guard.
+//   DEPENDS: M-040, M-041, M-042, M-043, M-044, M-045, M-046, M-047, M-048, M-050, node:fs, node:path, node:child_process
 //   LINKS: V-M-041, V-M-045, V-M-046, V-M-047, V-M-048, docs/plans/Phase-34.xml, docs/plans/Phase-35.xml
 // END_MODULE_CONTRACT
 //
@@ -19,6 +19,7 @@
 // END_MODULE_MAP
 //
 // START_CHANGE_SUMMARY
+//   LAST_CHANGE: v1.3.0 - Added Phase-38 DE-backed SNI router deploy surface allowances.
 //   LAST_CHANGE: v1.2.0 - Added Phase-37 live MTProto runtime bridge static assertions.
 //   LAST_CHANGE: v1.1.0 - Allowed approved Phase-35 wildcard TLS installer edge/deploy changes.
 // END_CHANGE_SUMMARY
@@ -118,11 +119,17 @@ const approvedPhase35Surface = new Set([
   'docker-compose.yml',
   'install.sh',
   'deploy/deploy-on-server.sh',
+  'deploy/haproxy-phase38.cfg',
+  'deploy/mtproto-de-compose.yml',
   'nginx/nginx.conf',
+  'backend/app/core/config.py',
   'backend/tests/test_domain_tls_edge_static.py',
+  'backend/tests/test_deploy_phase38_static.py',
+  'backend/tests/test_mtproto_de_edge_contract.py',
   'backend/app/mtproto/runtime_bridge.py',
   'backend/app/mtproto/provisioning.py',
   'backend/tests/test_kpproton_runtime_bridge.py',
+  'mtproto-runtime/src/kpproton_runtime.erl',
   'mtproto-runtime/src/kpproton_policy_handler.erl',
   'mtproto-runtime/src/kpproton_web.erl',
   'mtproto-runtime/apps/kpproton_proxy/src/mtproto/kpproton_proxy_bridge.erl',
@@ -130,6 +137,7 @@ const approvedPhase35Surface = new Set([
   'scripts/phase34-mtproto-stabilization-smoke.mjs',
   'scripts/phase35-installer-wildcard-tls-smoke.mjs',
   'scripts/phase37-mtproto-runtime-smoke.mjs',
+  'scripts/phase38-de-mtproto-edge-smoke.mjs',
 ])
 
 const protectedChanges = changedFiles().filter((file) => (
@@ -149,7 +157,7 @@ if (unexpectedChanges.length > 0) {
 
 if (protectedChanges.length > 0) {
   requireText('docs/graph-index.xml', 'M-048')
-  requireText('docs/plan-index.xml', 'Phase-37')
+  requireText('docs/plan-index.xml', 'Phase-38')
 }
 // END_BLOCK_PHASE34_MTPROTO_STABILIZATION_SMOKE
 

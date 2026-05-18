@@ -1,14 +1,14 @@
 """Phase-32 domain TLS edge static verification.
 
 # FILE: backend/tests/test_domain_tls_edge_static.py
-# VERSION: 1.2.0
+# VERSION: 1.3.0
 # ROLE: TEST
 # MAP_MODE: LOCALS
 # START_MODULE_CONTRACT
 #   PURPOSE: Verify krotpn.xyz domain/TLS/shared-443 edge contract without touching live DNS
-#   SCOPE: Settings defaults, nginx redirect/fallback config, tracked env template, Phase-35/37 scoped deploy/install guard, rollback runbook
-#   DEPENDS: M-046, M-001, M-012, M-044, M-048
-#   LINKS: V-M-046, V-M-048, docs/modules/M-046.xml, docs/modules/M-048.xml, docs/plans/Phase-32.xml, docs/plans/Phase-35.xml
+#   SCOPE: Settings defaults, nginx redirect/fallback config, tracked env template, Phase-35/37/38 scoped deploy/install guard, rollback runbook
+#   DEPENDS: M-046, M-001, M-012, M-044, M-048, M-050
+#   LINKS: V-M-046, V-M-048, V-M-050, docs/modules/M-046.xml, docs/modules/M-048.xml, docs/modules/M-050.xml, docs/plans/Phase-32.xml, docs/plans/Phase-35.xml, docs/plans/Phase-38.xml
 # END_MODULE_CONTRACT
 #
 # START_MODULE_MAP
@@ -16,12 +16,13 @@
 #   test_nginx_forces_canonical_domain_http_to_https - M-046 redirect contract
 #   test_nginx_keeps_https_fallback_and_tls_paths - M-046 HTTPS fallback and TLS path contract
 #   test_env_example_declares_domain_tls_contract - Operator env template contract
-#   test_compose_routes_public_443_to_mtproto_edge - M-012 shared 443 owner guard with Phase-37 MTProto edge
+#   test_compose_routes_public_443_to_sni_router - M-012 shared 443 owner guard with Phase-38 RU SNI router
 #   test_deploy_install_changes_are_phase35_scoped - Protected deploy/install guard with approved M-048 exception
 #   test_cutover_runbook_contains_live_smoke_and_rollback_gates - Live-required handoff guard
 # END_MODULE_MAP
 #
 # START_CHANGE_SUMMARY
+#   LAST_CHANGE: v1.3.0 - Updated static edge guards for Phase-38 RU SNI router public 443 ownership.
 #   LAST_CHANGE: v1.2.0 - Updated static edge guards for Phase-37 MTProto runtime owning public 443.
 #   LAST_CHANGE: v1.1.0 - Allowed approved Phase-35 installer wildcard TLS surface changes while preserving edge guards
 # END_CHANGE_SUMMARY
@@ -70,6 +71,7 @@ def test_settings_defaults_are_canonical_krotpn_xyz():
     assert settings.edge_tls_certificate_path == "/etc/nginx/ssl/server.crt"
     assert settings.edge_tls_certificate_key_path == "/etc/nginx/ssl/server.key"
     assert settings.edge_tls_certificate_mode == "operator-wildcard"
+    assert settings.edge_mtproto_mode == "de-backed"
 
 
 def test_nginx_forces_canonical_domain_http_to_https():
@@ -108,16 +110,24 @@ def test_env_example_declares_domain_tls_contract():
     assert "EDGE_CANONICAL_HOST=krotpn.xyz" in env_example
     assert "EDGE_TLS_CERTIFICATE_MODE=operator-wildcard" in env_example
     assert "EDGE_SHARED_443_ENABLED=true" in env_example
-    assert "MTPROTO_RUNTIME_POLICY_URL=http://127.0.0.1:18080/krotpn/mtproto/policy" in env_example
+    assert "MTPROTO_RUNTIME_POLICY_URL=http://172.29.255.1:18080/krotpn/mtproto/policy" in env_example
     assert "MTPROTO_RUNTIME_TOKEN=" in env_example
+    assert "MTPROTO_POLICY_BIND_IP=172.29.255.1" in env_example
+    assert "EDGE_MTPROTO_MODE=de-backed" in env_example
+    assert "SNI_ROUTER_CONF_PATH=./deploy/haproxy-phase38.cfg" in env_example
 
 
-def test_compose_routes_public_443_to_mtproto_edge():
+def test_compose_routes_public_443_to_sni_router():
     compose = _read("docker-compose.yml")
 
     assert "container_name: krotpn-nginx" in compose
+    assert "container_name: krotpn-sni-router" in compose
+    assert "haproxy:2.9-alpine" in compose
+    assert "SNI_ROUTER_CONF_PATH" in compose
     assert "container_name: krotpn-mtproto-edge" in compose
     assert "context: ./mtproto-runtime" in compose
+    assert "profiles:" in compose
+    assert "local-mtproto-edge" in compose
     assert "PROXY_PORT: ${MTPROTO_PROXY_PORT:-443}" in compose
     assert "PORTAL_DOMAIN_FRONTING: 127.0.0.1:${EDGE_HTTPS_FALLBACK_PORT:-8443}" in compose
     assert "KROTPN_MTPROTO_POLICY_TOKEN" in compose
@@ -126,6 +136,7 @@ def test_compose_routes_public_443_to_mtproto_edge():
     assert "./ssl:/etc/nginx/ssl:ro" in compose
     assert "network_mode: host" in compose
     assert compose.count("container_name: krotpn-nginx") == 1
+    assert compose.count("container_name: krotpn-sni-router") == 1
     assert compose.count("container_name: krotpn-mtproto-edge") == 1
 
 
@@ -135,8 +146,15 @@ def test_deploy_install_changes_are_phase35_scoped():
         "docker-compose.yml",
         "install.sh",
         "deploy/deploy-on-server.sh",
+        "deploy/haproxy-phase38.cfg",
+        "deploy/mtproto-de-compose.yml",
         "nginx/nginx.conf",
+        "backend/app/core/config.py",
+        "backend/app/mtproto/runtime_bridge.py",
         "backend/tests/test_domain_tls_edge_static.py",
+        "backend/tests/test_deploy_phase38_static.py",
+        "backend/tests/test_mtproto_de_edge_contract.py",
+        "mtproto-runtime/src/kpproton_runtime.erl",
         "mtproto-runtime/src/kpproton_policy_handler.erl",
         "mtproto-runtime/src/kpproton_web.erl",
         "mtproto-runtime/apps/kpproton_proxy/src/mtproto/kpproton_proxy_bridge.erl",
@@ -144,6 +162,7 @@ def test_deploy_install_changes_are_phase35_scoped():
         "scripts/phase34-mtproto-stabilization-smoke.mjs",
         "scripts/phase35-installer-wildcard-tls-smoke.mjs",
         "scripts/phase37-mtproto-runtime-smoke.mjs",
+        "scripts/phase38-de-mtproto-edge-smoke.mjs",
     }
     protected_changes = [
         path for path in _changed_files()
@@ -162,7 +181,7 @@ def test_deploy_install_changes_are_phase35_scoped():
     assert unexpected == []
     if protected_changes:
         assert "M-048" in _read("docs/graph-index.xml")
-        assert "Phase-37" in _read("docs/plan-index.xml")
+        assert "Phase-38" in _read("docs/plan-index.xml")
 
 
 def test_cutover_runbook_contains_live_smoke_and_rollback_gates():

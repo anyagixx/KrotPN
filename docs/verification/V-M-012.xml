@@ -22,12 +22,12 @@
     <marker-2>[M-012][deploy_resend][REDACT_SECRET]</marker-2>
     <marker-3>[M-012][deploy_resend][ABORT_MISSING_KEY]</marker-3>
   </phase-36-observability>
-  <phase-38-verification>
+  <phase-38-verification status="pass-local">
     <check-1 evidence="deterministic">Deploy surface defines RU SNI router, RU nginx fallback, DE MTProto runtime, and private policy API roles without public policy exposure.</check-1>
     <check-2 evidence="deterministic">Phase-38 env wiring preserves existing MTProto base secret and salt on redeploy.</check-2>
     <check-3 evidence="static-redaction">Deploy/install output must not print runtime tokens, wildcard private keys, raw .env values, or full proxy links.</check-3>
     <command-1>bash -n install.sh deploy/deploy-on-server.sh</command-1>
-    <command-2 status="planned">node scripts/phase38-de-mtproto-edge-smoke.mjs</command-2>
+    <command-2 status="pass-local">node scripts/phase38-de-mtproto-edge-smoke.mjs</command-2>
   </phase-38-verification>
   <scenarios>
     <scenario kind="success" trace="DEPLOY_IDEMPOTENT">Double deploy preserves existing WG keys and client connections</scenario>
@@ -40,5 +40,6 @@
     <evidence-1>2026-05-17: bash -n install.sh deploy/deploy-on-server.sh passed after Phase-36 Resend config wiring.</evidence-1>
     <evidence-2>2026-05-17: node scripts/phase36-resend-deploy-smoke.mjs passed with installer/deploy Resend redaction checks.</evidence-2>
     <evidence-3>2026-05-18: Phase-38 verification design adds deploy-surface gates for RU SNI router, DE runtime, private policy API, and redaction-safe TLS/token handling.</evidence-3>
+    <evidence-4>2026-05-18: Phase-38 local deploy-surface verification passed for bash syntax, HAProxy SNI router static smoke, DE runtime compose template, private policy URL wiring, and secret preservation guards.</evidence-4>
   </evidence>
 </V-M-012>

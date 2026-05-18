@@ -1,14 +1,14 @@
 version: '3.8'
 
 # FILE: docker-compose.yml
-# VERSION: 3.2.0
+# VERSION: 3.3.0
 # ROLE: CONFIG
 # MAP_MODE: SUMMARY
 # START_MODULE_CONTRACT
 #   PURPOSE: Compose the KrotPN runtime services on the host-network deployment surface.
-#   SCOPE: Database, Redis, backend, user frontend, admin frontend, nginx HTTPS fallback, MTProto shared-443 edge, TLS mount paths, and runtime config selection.
-#   DEPENDS: M-012, M-046, M-048
-#   LINKS: docs/modules/M-012.xml, docs/modules/M-046.xml, docs/modules/M-048.xml, docs/plans/Phase-35.xml
+#   SCOPE: Database, Redis, backend, user frontend, admin frontend, nginx HTTPS fallback, RU SNI router, optional local MTProto edge, TLS mount paths, and runtime config selection.
+#   DEPENDS: M-012, M-046, M-048, M-050
+#   LINKS: docs/modules/M-012.xml, docs/modules/M-046.xml, docs/modules/M-048.xml, docs/modules/M-050.xml, docs/plans/Phase-35.xml, docs/plans/Phase-38.xml
 # END_MODULE_CONTRACT
 #
 # START_MODULE_MAP
@@ -16,10 +16,12 @@ version: '3.8'
 #   frontend - User cabinet service on host network.
 #   frontend-admin - Admin cabinet service on host network.
 #   nginx - HTTP redirect and HTTPS fallback proxy using operator wildcard TLS files.
-#   mtproto-edge - KPprotoN/mtproto_proxy shared-443 runtime with KrotPN policy bridge.
+#   sni-router - HAProxy TCP SNI router owning public 443 and forwarding MTProto SNI to DE.
+#   mtproto-edge - Optional local KPprotoN/mtproto_proxy shared-443 runtime with KrotPN policy bridge.
 # END_MODULE_MAP
 #
 # START_CHANGE_SUMMARY
+#   LAST_CHANGE: v3.3.0 - Added Phase-38 RU SNI router and moved local mtproto-edge behind an explicit profile.
 #   LAST_CHANGE: v3.2.0 - Added Phase-37 MTProto shared-443 edge runtime sidecar.
 #   LAST_CHANGE: v3.1.0 - Added Phase-35 NGINX_CONF_PATH override for operator-selected domain rendering.
 # END_CHANGE_SUMMARY
@@ -184,8 +186,32 @@ services:
           memory: 128M
           cpus: '0.5'
 
+  # Phase-38 RU TCP SNI router (public 443 owner)
+  sni-router:
+    image: haproxy:2.9-alpine
+    container_name: krotpn-sni-router
+    restart: unless-stopped
+    depends_on:
+      nginx:
+        condition: service_healthy
+    volumes:
+      - ${SNI_ROUTER_CONF_PATH:-./deploy/haproxy-phase38.cfg}:/usr/local/etc/haproxy/haproxy.cfg:ro
+    network_mode: host
+    healthcheck:
+      test: ["CMD-SHELL", "pidof haproxy >/dev/null"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    deploy:
+      resources:
+        limits:
+          memory: 64M
+          cpus: '0.25'
+
   # Telegram MTProto shared-443 edge
   mtproto-edge:
+    profiles:
+      - local-mtproto-edge
     build:
       context: ./mtproto-runtime
       dockerfile: Dockerfile

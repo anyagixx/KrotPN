@@ -5,7 +5,7 @@
     <phase-35 status="partial-local">Installer flow for operator-provided wildcard TLS certificate paths, validation, env wiring, and reusable deploy installation passed local/static checks; clean VPS wildcard TLS deploy remains operator-live.</phase-35>
     <phase-36 status="partial-local">Installer/deploy flow collects Resend API key and sender settings so clean VPS registration can send verification emails; real Resend delivery remains operator-live.</phase-36>
     <phase-37 status="partial-live">Deploy flow generates MTProto runtime token and shared-443 env so clean VPS installs start the live mtproto-edge service.</phase-37>
-    <phase-38 status="verification-designed">Deploy/install verification must cover DE runtime TLS reuse, private policy API URL, and RU SNI router env wiring without secret leakage.</phase-38>
+    <phase-38 status="pass-local">Deploy/install verification covers DE runtime TLS reuse, private policy API URL, and RU SNI router env wiring without secret leakage.</phase-38>
   </phase-scope>
   <test-files>
     <file>install.sh</file>
@@ -18,7 +18,7 @@
     <file>scripts/phase35-installer-wildcard-tls-smoke.mjs</file>
     <file phase="36-designed">scripts/phase36-resend-deploy-smoke.mjs</file>
     <file phase="37-designed">scripts/phase37-mtproto-runtime-smoke.mjs</file>
-    <file phase="38-designed">scripts/phase38-de-mtproto-edge-smoke.mjs</file>
+    <file phase="38-pass-local">scripts/phase38-de-mtproto-edge-smoke.mjs</file>
     <file phase="36-designed">docs/plans/Phase-36.xml</file>
     <file phase="37-designed">docs/plans/Phase-37.xml</file>
     <file>docs/plans/Phase-35.xml</file>
@@ -35,7 +35,7 @@
     <command-7 status="pass-local">node scripts/phase36-resend-deploy-smoke.mjs</command-7>
     <command-8 status="pass-local">node scripts/phase37-mtproto-runtime-smoke.mjs</command-8>
     <command-9 status="operator-live">operator-live: after Resend verifies krotpn.xyz, run one controlled-mailbox registration smoke with redacted evidence.</command-9>
-    <command-10 status="planned">node scripts/phase38-de-mtproto-edge-smoke.mjs</command-10>
+    <command-10 status="pass-local">node scripts/phase38-de-mtproto-edge-smoke.mjs</command-10>
   </commands>
   <verification-levels>
     <module-local>M-048 source smoke proves prompts, dynamic input validators, default paths, RU openssl bootstrap, remote certificate validation, production self-signed guard, safe cert install, deploy-generated MTProto secrets, MTProto runtime token, Resend email env, and edge env wiring.</module-local>
@@ -151,5 +151,6 @@
     <evidence-10>2026-05-17: Phase-36 local execution passed bash syntax and scripts/phase36-resend-deploy-smoke.mjs; live clean VPS Resend mailbox smoke remains blocked on operator API key and domain verification.</evidence-10>
     <evidence-11>2026-05-18: Phase-37 added MTProto runtime token/env wiring and static deploy smoke after clean-VPS Telegram Desktop reported unavailable proxy.</evidence-11>
     <evidence-12>2026-05-18: Phase-38 verification adds redaction-safe DE runtime TLS, private policy URL, and RU SNI router deploy gates.</evidence-12>
+    <evidence-13>2026-05-18: Phase-38 local execution passed deploy/TLS redaction smoke for HAProxy runtime rendering, DE runtime compose/env delivery, private policy bind, backend policy URL, and secret-preserving MTProto env regeneration.</evidence-13>
   </evidence>
 </V-M-048>

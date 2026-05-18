@@ -5,7 +5,7 @@
 # START_MODULE_CONTRACT
 #   PURPOSE: Application configuration and environment variable parsing with validation
 #   SCOPE: Settings model, environment parsing, secret validation, VPN network settings,
-#          AmneziaWG params, anti-abuse, email verification, MTProto knobs, and edge domain/TLS settings
+#          AmneziaWG params, anti-abuse, email verification, MTProto knobs, and edge domain/TLS/SNI-router settings
 #   DEPENDS: M-032 (vpn-network-addressing-capacity)
 #   LINKS: M-001 (backend-core), M-032, V-M-001, V-M-032
 # END_MODULE_CONTRACT
@@ -17,13 +17,14 @@
 #   Settings.awg_relay_obfuscation_params - RELAY_PROFILE mapping
 #   Settings.anti_abuse_* - Observe/auto-rotate and endpoint-history thresholds
 #   Settings.email_verification_* - Provider, TTL, URL and domain guard settings
-#   Settings.mtproto_* - Personal MTProto proxy provisioning and live runtime bridge settings
-#   Settings.edge_* - krotpn.xyz canonical domain, TLS path, and shared 443 edge contract
+#   Settings.mtproto_* - Personal MTProto proxy provisioning, private policy API, and live runtime bridge settings
+#   Settings.edge_* - krotpn.xyz canonical domain, TLS path, shared 443, and DE-backed SNI-router contract
 #   get_settings - lru_cache factory returning validated Settings singleton
 #   settings - Module-level cached Settings instance
 # END_MODULE_MAP
 #
 # START_CHANGE_SUMMARY
+#   LAST_CHANGE: v3.7.0 - Allow Phase-38 private DE MTProto policy targets and edge SNI-router settings.
 #   LAST_CHANGE: v3.6.0 - Added Phase-37 MTProto runtime policy bridge URL and token validation.
 #   LAST_CHANGE: v3.5.2 - Added Phase-36 Resend API URL, sender, and key format validation.
 #   LAST_CHANGE: v3.5.1 - Treat blank optional MTProto secrets as unset so backend can degrade instead of crash.
@@ -49,6 +50,7 @@ GRACE-lite module contract:
 # <!-- GRACE: module="M-001" contract="config-loading" -->
 
 from functools import lru_cache
+import ipaddress
 import json
 import re
 from typing import Annotated, Literal
@@ -258,6 +260,7 @@ class Settings(BaseSettings):
     mtproto_runtime_policy_url: str | None = None
     mtproto_runtime_token: str | None = None
     mtproto_runtime_timeout_seconds: float = Field(default=3.0, gt=0, le=30)
+    mtproto_policy_bind_ip: str = "127.0.0.1"
 
     # Public domain/TLS edge contract
     edge_public_domain: str = "krotpn.xyz"
@@ -268,6 +271,10 @@ class Settings(BaseSettings):
         "operator-wildcard"
     )
     edge_shared_443_enabled: bool = False
+    edge_mtproto_mode: Literal["disabled", "local-ru", "de-backed"] = "de-backed"
+    edge_mtproto_de_target_host: str | None = None
+    edge_mtproto_de_target_port: int = Field(default=443, ge=1, le=65535)
+    sni_router_conf_path: str = "./deploy/haproxy.runtime.cfg"
 
     # Referral
     referral_bonus_days: int = 7
@@ -424,15 +431,34 @@ class Settings(BaseSettings):
         if not normalized:
             return None
         parsed = urlparse(normalized)
-        if parsed.scheme != "http" or parsed.hostname not in {"127.0.0.1", "localhost"}:
+        if parsed.scheme != "http":
             raise ValueError(
-                "MTPROTO_RUNTIME_POLICY_URL must be local http://127.0.0.1 or localhost"
+                "MTPROTO_RUNTIME_POLICY_URL must use http for the private policy API"
+            )
+        hostname = parsed.hostname
+        if not hostname or not cls._is_private_policy_host(hostname):
+            raise ValueError(
+                "MTPROTO_RUNTIME_POLICY_URL must target localhost or a private policy IP"
             )
         if not parsed.port or parsed.port < 1 or parsed.port > 65535:
-            raise ValueError("MTPROTO_RUNTIME_POLICY_URL must include a valid local port")
+            raise ValueError("MTPROTO_RUNTIME_POLICY_URL must include a valid policy port")
         if not parsed.path.startswith("/krotpn/mtproto/policy"):
             raise ValueError("MTPROTO_RUNTIME_POLICY_URL must target /krotpn/mtproto/policy")
         return normalized
+
+    @field_validator("mtproto_policy_bind_ip")
+    @classmethod
+    def validate_mtproto_policy_bind_ip(cls, v: str) -> str:
+        normalized = v.strip()
+        try:
+            address = ipaddress.ip_address(normalized)
+        except ValueError as exc:
+            raise ValueError("MTPROTO_POLICY_BIND_IP must be an IP address") from exc
+        if address.is_unspecified or address.is_multicast:
+            raise ValueError("MTPROTO_POLICY_BIND_IP must not be public wildcard or multicast")
+        if not (address.is_loopback or address.is_private or address.is_link_local):
+            raise ValueError("MTPROTO_POLICY_BIND_IP must be loopback or private")
+        return str(address)
 
     @field_validator("mtproto_runtime_token")
     @classmethod
@@ -467,6 +493,52 @@ class Settings(BaseSettings):
         if not normalized.startswith("/") or ".." in normalized or "\n" in normalized:
             raise ValueError("EDGE TLS paths must be absolute safe paths")
         return normalized
+
+    @field_validator("edge_mtproto_de_target_host")
+    @classmethod
+    def validate_edge_mtproto_de_target_host(cls, v: str | None) -> str | None:
+        if v is None:
+            return None
+        normalized = v.strip().lower().removeprefix("https://").removeprefix("http://")
+        normalized = normalized.rstrip(".")
+        if not normalized:
+            return None
+        if "/" in normalized or ":" in normalized or "\n" in normalized:
+            raise ValueError("EDGE_MTPROTO_DE_TARGET_HOST must be a bare host or IP")
+        try:
+            address = ipaddress.ip_address(normalized)
+        except ValueError:
+            labels = normalized.split(".")
+            if len(labels) < 2 or any(not label for label in labels):
+                raise ValueError("EDGE_MTPROTO_DE_TARGET_HOST must be a DNS name or IP")
+            if any(not re.fullmatch(r"[a-z0-9-]{1,63}", label) for label in labels):
+                raise ValueError("EDGE_MTPROTO_DE_TARGET_HOST labels must be DNS-safe")
+            return normalized
+        if address.is_unspecified or address.is_multicast:
+            raise ValueError("EDGE_MTPROTO_DE_TARGET_HOST must not be wildcard or multicast")
+        return str(address)
+
+    @field_validator("sni_router_conf_path")
+    @classmethod
+    def validate_sni_router_conf_path(cls, v: str) -> str:
+        normalized = v.strip()
+        if not normalized or ".." in normalized or "\n" in normalized:
+            raise ValueError("SNI_ROUTER_CONF_PATH must be a safe relative or absolute path")
+        if not (normalized.startswith("./") or normalized.startswith("/")):
+            raise ValueError("SNI_ROUTER_CONF_PATH must start with ./ or /")
+        return normalized
+
+    @staticmethod
+    def _is_private_policy_host(hostname: str) -> bool:
+        if hostname == "localhost":
+            return True
+        try:
+            address = ipaddress.ip_address(hostname)
+        except ValueError:
+            return False
+        if address.is_unspecified or address.is_multicast:
+            return False
+        return address.is_loopback or address.is_private or address.is_link_local
 
     @property
     def is_production(self) -> bool:

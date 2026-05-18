@@ -1,12 +1,12 @@
 // FILE: scripts/phase32-edge-contract-smoke.mjs
-// VERSION: 1.2.0
+// VERSION: 1.3.0
 // ROLE: SCRIPT
 // MAP_MODE: LOCALS
 // START_MODULE_CONTRACT
 //   PURPOSE: Static Phase-32 edge contract smoke without live DNS or certificate access
-//   SCOPE: Source markers, domain/TLS settings, Phase-35/37 scoped deploy/install guard, redaction guard
-//   DEPENDS: M-046, M-012, M-048
-//   LINKS: docs/verification/V-M-046.xml, docs/verification/V-M-048.xml, docs/plans/Phase-32.xml, docs/plans/Phase-35.xml
+//   SCOPE: Source markers, domain/TLS settings, Phase-35/37/38 scoped deploy/install guard, redaction guard
+//   DEPENDS: M-046, M-012, M-048, M-050
+//   LINKS: docs/verification/V-M-046.xml, docs/verification/V-M-048.xml, docs/verification/V-M-050.xml, docs/plans/Phase-32.xml, docs/plans/Phase-35.xml, docs/plans/Phase-38.xml
 // END_MODULE_CONTRACT
 //
 // START_MODULE_MAP
@@ -16,6 +16,7 @@
 // END_MODULE_MAP
 //
 // START_CHANGE_SUMMARY
+//   LAST_CHANGE: v1.3.0 - Updated static edge smoke for Phase-38 RU SNI router owning public 443.
 //   LAST_CHANGE: v1.2.0 - Updated static edge smoke for Phase-37 MTProto runtime owning public 443
 //   LAST_CHANGE: v1.1.0 - Allowed approved Phase-35 wildcard TLS installer surface changes
 // END_CHANGE_SUMMARY
@@ -68,13 +69,17 @@ requireText('nginx/nginx.conf', 'listen 8443 ssl;')
 requireText('nginx/nginx.conf', 'server_name krotpn.xyz *.krotpn.xyz;')
 requireText('docker-compose.yml', 'NGINX_CONF_PATH')
 requireText('docker-compose.yml', '${NGINX_CONF_PATH:-./nginx/nginx.conf}:/etc/nginx/nginx.conf:ro')
+requireText('docker-compose.yml', 'container_name: krotpn-sni-router')
+requireText('docker-compose.yml', 'SNI_ROUTER_CONF_PATH')
 requireText('docker-compose.yml', 'container_name: krotpn-mtproto-edge')
+requireText('docker-compose.yml', 'local-mtproto-edge')
 requireText('docker-compose.yml', 'PORTAL_DOMAIN_FRONTING: 127.0.0.1:${EDGE_HTTPS_FALLBACK_PORT:-8443}')
 requireText('docker-compose.yml', 'KROTPN_MTPROTO_POLICY_TOKEN')
 
 requireText('.env.example', 'FRONTEND_URL=https://krotpn.xyz')
 requireText('.env.example', 'EDGE_SHARED_443_ENABLED=true')
-requireText('.env.example', 'MTPROTO_RUNTIME_POLICY_URL=http://127.0.0.1:18080/krotpn/mtproto/policy')
+requireText('.env.example', 'MTPROTO_RUNTIME_POLICY_URL=http://172.29.255.1:18080/krotpn/mtproto/policy')
+requireText('.env.example', 'SNI_ROUTER_CONF_PATH=./deploy/haproxy-phase38.cfg')
 requireText('docs/edge/PHASE-32-CUTOVER.xml', '[M-046][edge_contract][ROLLBACK_READY]')
 requireText('docs/edge/PHASE-32-CUTOVER.xml', 'operator-live')
 
@@ -86,8 +91,15 @@ const approvedPhase35Surface = new Set([
   'docker-compose.yml',
   'install.sh',
   'deploy/deploy-on-server.sh',
+  'deploy/haproxy-phase38.cfg',
+  'deploy/mtproto-de-compose.yml',
   'nginx/nginx.conf',
+  'backend/app/core/config.py',
+  'backend/app/mtproto/runtime_bridge.py',
   'backend/tests/test_domain_tls_edge_static.py',
+  'backend/tests/test_deploy_phase38_static.py',
+  'backend/tests/test_mtproto_de_edge_contract.py',
+  'mtproto-runtime/src/kpproton_runtime.erl',
   'mtproto-runtime/src/kpproton_policy_handler.erl',
   'mtproto-runtime/src/kpproton_web.erl',
   'mtproto-runtime/apps/kpproton_proxy/src/mtproto/kpproton_proxy_bridge.erl',
@@ -95,6 +107,7 @@ const approvedPhase35Surface = new Set([
   'scripts/phase34-mtproto-stabilization-smoke.mjs',
   'scripts/phase35-installer-wildcard-tls-smoke.mjs',
   'scripts/phase37-mtproto-runtime-smoke.mjs',
+  'scripts/phase38-de-mtproto-edge-smoke.mjs',
 ])
 
 const protectedChanges = changedFiles().filter((file) => (
@@ -114,7 +127,7 @@ if (unexpectedChanges.length > 0) {
 
 if (protectedChanges.length > 0) {
   requireText('docs/graph-index.xml', 'M-048')
-  requireText('docs/plan-index.xml', 'Phase-37')
+  requireText('docs/plan-index.xml', 'Phase-38')
 }
 // END_BLOCK_PHASE32_EDGE_CONTRACT_SMOKE
 

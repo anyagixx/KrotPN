@@ -18,6 +18,8 @@
   <files>
     <file>install.sh</file>
     <file>deploy/deploy-on-server.sh</file>
+    <file>deploy/haproxy-phase38.cfg</file>
+    <file>deploy/mtproto-de-compose.yml</file>
     <file>nginx/nginx.conf</file>
     <file>docker-compose.yml</file>
     <file>.env.example</file>
@@ -56,7 +58,7 @@
     <step-5 STATUS="pass-local">Preserve existing certs across redeploys unless a validated replacement is provided.</step-5>
     <step-6 STATUS="pass-local">Collect and pass Resend API key and noreply@krotpn.xyz sender for production email verification delivery.</step-6>
     <step-7 STATUS="pass-local">Generate and wire the live MTProto runtime policy token and shared-443 fallback env values.</step-7>
-    <step-8 STATUS="pending">Plan DE runtime TLS reuse, private policy URL, and RU SNI router env wiring for Phase-38.</step-8>
+    <step-8 STATUS="pass-local">Plan and implement DE runtime TLS reuse, private policy URL, and RU SNI router env wiring for Phase-38.</step-8>
   </planned-execution>
   <evidence>
     <evidence-1>2026-05-17: Local Phase-35 implementation added installer prompts, RU cert preflight, deploy-time certificate validation/install, production env wiring, runtime nginx rendering, and static smoke coverage.</evidence-1>
@@ -66,6 +68,7 @@
     <evidence-5>2026-05-17: Phase-36 local execution added Resend secret prompt, sender validation, deploy env wiring, static smoke coverage, and redaction checks.</evidence-5>
     <evidence-6>2026-05-18: Phase-37 added deploy-time MTPROTO_RUNTIME_TOKEN generation, localhost policy URL wiring, shared-443 enablement, and static smoke guards for the mtproto-edge service.</evidence-6>
     <evidence-7>2026-05-18: Phase-38 plan requires DE runtime TLS/key handling and private policy URL wiring to stay redaction-safe before execution.</evidence-7>
+    <evidence-8>2026-05-18: Phase-38 local execution copies wildcard TLS material to DE through scp without printing PEM contents, writes redacted DE runtime env, renders HAProxy runtime config, and sets backend policy URL to the private relay address.</evidence-8>
   </evidence>
   <hotspot>H-034: Installer-provided wildcard TLS must validate cert/key/domain before deploy and must never log private key material.</hotspot>
 </M-048>

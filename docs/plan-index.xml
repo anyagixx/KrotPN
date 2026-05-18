@@ -39,5 +39,5 @@
   <Phase-35 NAME="Operator Wildcard TLS Installer" STATUS="partial-local" STEPS="6" MODULES="M-048,M-012,M-046,M-001,M-044" />
   <Phase-36 NAME="Resend Deploy Email Provider Wiring" STATUS="partial-local" STEPS="6" MODULES="M-040,M-041,M-012,M-001,M-048" />
   <Phase-37 NAME="Live MTProto Shared-443 Runtime Fix" STATUS="blocked-live" STEPS="6" MODULES="M-049,M-044,M-046,M-048,M-012,M-043" />
-  <Phase-38 NAME="DE-backed MTProto Edge and RU SNI Router" STATUS="pending" STEPS="8" MODULES="M-050,M-049,M-044,M-046,M-048,M-012,M-043" />
+  <Phase-38 NAME="DE-backed MTProto Edge and RU SNI Router" STATUS="partial-local" STEPS="8" MODULES="M-050,M-049,M-044,M-046,M-048,M-012,M-043" />
 </PlanIndex>

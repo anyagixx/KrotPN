@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <M-046 NAME="krotpn-domain-tls-edge" TYPE="ENTRY_POINT" STATUS="partial-live">
-  <path>backend/app/core/config.py nginx docker-compose.yml .env.example mtproto-runtime scripts docs/edge/PHASE-32-CUTOVER.xml docs/plans/Phase-32.xml docs/plans/Phase-37.xml docs/plans/Phase-38.xml</path>
+  <path>backend/app/core/config.py nginx docker-compose.yml .env.example deploy/haproxy-phase38.cfg deploy/mtproto-de-compose.yml mtproto-runtime scripts docs/edge/PHASE-32-CUTOVER.xml docs/plans/Phase-32.xml docs/plans/Phase-37.xml docs/plans/Phase-38.xml</path>
   <owns>krotpn.xyz domain edge, HTTP to HTTPS redirect, wildcard TLS expectations, and shared 443 routing contract for HTTPS plus MTProto.</owns>
   <purpose>Define the production edge model needed for https://krotpn.xyz and Telegram fake-TLS MTProto proxy to coexist safely.</purpose>
   <exports>
@@ -16,12 +16,15 @@
     <file>backend/app/core/config.py</file>
     <file>nginx/nginx.conf</file>
     <file>docker-compose.yml</file>
+    <file>deploy/haproxy-phase38.cfg</file>
+    <file>deploy/mtproto-de-compose.yml</file>
     <file>.env.example</file>
     <file>mtproto-runtime</file>
     <file>backend/tests/test_domain_tls_edge_static.py</file>
     <file>scripts/phase32-edge-contract-smoke.mjs</file>
     <file>scripts/phase37-mtproto-runtime-smoke.mjs</file>
     <file>scripts/phase38-de-mtproto-edge-smoke.mjs</file>
+    <file>backend/tests/test_deploy_phase38_static.py</file>
     <file>docs/edge/PHASE-32-CUTOVER.xml</file>
     <file>docs/handoff/PHASE-34-RELEASE-CHECKLIST.xml</file>
   </files>
@@ -43,6 +46,7 @@
     <evidence-4>2026-05-17: Phase-35 added deploy-supported operator wildcard TLS reuse and runtime nginx domain rendering while preserving M-046 shared-443 live gate.</evidence-4>
     <evidence-5>2026-05-18: Phase-37 corrected the clean-VPS live failure where nginx owned public 443 and no MTProto edge was running; nginx now listens on 8443 behind mtproto-edge.</evidence-5>
     <evidence-6>2026-05-18: Phase-38 plan changes the intended public 443 owner to an RU SNI router so HTTPS fallback and DE MTProto runtime can coexist.</evidence-6>
+    <evidence-7>2026-05-18: Phase-38 local execution added HAProxy SNI router config and compose wiring so public 443 is owned by krotpn-sni-router while nginx stays on 80/8443/8080.</evidence-7>
   </evidence>
   <hotspot>H-032: Shared 443 edge can break both HTTPS and Telegram proxy if fallback routing or wildcard TLS is misconfigured</hotspot>
 </M-046>

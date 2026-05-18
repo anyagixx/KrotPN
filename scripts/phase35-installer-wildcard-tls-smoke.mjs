@@ -1,12 +1,12 @@
 #!/usr/bin/env node
 // FILE: scripts/phase35-installer-wildcard-tls-smoke.mjs
-// VERSION: 1.3.0
+// VERSION: 1.4.0
 // ROLE: SCRIPT
 // MAP_MODE: LOCALS
 // START_MODULE_CONTRACT
 //   PURPOSE: Static Phase-35 smoke for operator-provided wildcard TLS installer and deploy wiring.
-//   SCOPE: Installer prompts, TLS input guards, remote cert validation, production self-signed guard, env wiring, runtime nginx fallback config, MTProto edge token wiring, and redaction assertions.
-//   DEPENDS: M-048, M-012, M-044, M-046, node:fs, node:path
+//   SCOPE: Installer prompts, TLS input guards, remote cert validation, production self-signed guard, env wiring, runtime nginx/SNI-router config, MTProto edge token wiring, and redaction assertions.
+//   DEPENDS: M-048, M-012, M-044, M-046, M-050, node:fs, node:path
 //   LINKS: docs/modules/M-048.xml, docs/plans/Phase-35.xml, docs/verification/V-M-048.xml
 // END_MODULE_CONTRACT
 //
@@ -18,6 +18,7 @@
 // END_MODULE_MAP
 //
 // START_CHANGE_SUMMARY
+//   LAST_CHANGE: v1.4.0 - Updated MTProto env assertions for Phase-38 DE-backed policy URL and secret preservation.
 //   LAST_CHANGE: v1.3.0 - Added Phase-37 MTProto runtime token and shared-443 edge checks.
 //   LAST_CHANGE: v1.2.0 - Added deploy-generated MTProto secret regression guard.
 //   LAST_CHANGE: v1.1.0 - Added dynamic installer validator checks for unsafe domains and certificate paths.
@@ -101,24 +102,19 @@ requireText('deploy/deploy-on-server.sh', '[M-048][deploy_tls][ENV_WIRING]')
 requireText('deploy/deploy-on-server.sh', '/opt/KrotPN/ssl/server.crt')
 requireText('deploy/deploy-on-server.sh', '/opt/KrotPN/ssl/server.key')
 requireText('deploy/deploy-on-server.sh', 'NGINX_CONF_PATH=./nginx/nginx.runtime.conf')
+requireText('deploy/deploy-on-server.sh', 'SNI_ROUTER_CONF_PATH=./deploy/haproxy.runtime.cfg')
 requireText('deploy/deploy-on-server.sh', 'FRONTEND_URL=https://${PUBLIC_DOMAIN}')
 requireText('deploy/deploy-on-server.sh', 'MTPROTO_BASE_DOMAIN=${PUBLIC_DOMAIN}')
 requireText('deploy/deploy-on-server.sh', 'MTPROTO_BASE_SECRET_HEX=${MTPROTO_BASE_SECRET_HEX}')
 requireText('deploy/deploy-on-server.sh', 'MTPROTO_SECRET_SALT=${MTPROTO_SECRET_SALT}')
-requireText('deploy/deploy-on-server.sh', 'MTPROTO_RUNTIME_TOKEN=$(python3 -c "import secrets; print(secrets.token_urlsafe(32))")')
-requireText('deploy/deploy-on-server.sh', 'MTPROTO_RUNTIME_POLICY_URL=http://127.0.0.1:18080/krotpn/mtproto/policy')
-requireMatch(
-  'deploy/deploy-on-server.sh',
-  /MTPROTO_BASE_SECRET_HEX=\$\(python3 -c "import secrets; print\(secrets\.token_hex\(16\)\)"\)/,
-  'deploy-time MTProto base secret generation',
-)
-requireMatch(
-  'deploy/deploy-on-server.sh',
-  /MTPROTO_SECRET_SALT=\$\(python3 -c "import secrets; print\(secrets\.token_hex\(16\)\)"\)/,
-  'deploy-time MTProto secret salt generation',
-)
+requireText('deploy/deploy-on-server.sh', 'generate_or_preserve_secret MTPROTO_RUNTIME_TOKEN')
+requireText('deploy/deploy-on-server.sh', 'MTPROTO_RUNTIME_POLICY_URL=http://${MTPROTO_POLICY_BIND_IP}:${MTPROTO_POLICY_PORT}/krotpn/mtproto/policy')
+requireText('deploy/deploy-on-server.sh', 'generate_or_preserve_secret MTPROTO_BASE_SECRET_HEX')
+requireText('deploy/deploy-on-server.sh', 'generate_or_preserve_secret MTPROTO_SECRET_SALT')
+requireMatch('deploy/deploy-on-server.sh', /secrets\.token_hex\(16\)/, 'deploy-time MTProto secret generation')
 requireText('deploy/deploy-on-server.sh', 'EDGE_TLS_CERTIFICATE_MODE=${TLS_CERTIFICATE_MODE}')
 requireText('deploy/deploy-on-server.sh', 'EDGE_SHARED_443_ENABLED=true')
+requireText('deploy/deploy-on-server.sh', 'EDGE_MTPROTO_MODE=${EDGE_MTPROTO_MODE}')
 requireText('deploy/deploy-on-server.sh', 'self-signed-dev')
 requireAbsent('deploy/deploy-on-server.sh', 'MTPROTO_BASE_SECRET_HEX=\n')
 requireAbsent('deploy/deploy-on-server.sh', 'MTPROTO_SECRET_SALT=\n')
@@ -128,10 +124,13 @@ requireAbsent('deploy/deploy-on-server.sh', 'cat ${TLS_PRIVKEY_PATH}')
 requireText('docker-compose.yml', 'START_MODULE_CONTRACT')
 requireText('docker-compose.yml', 'NGINX_CONF_PATH')
 requireText('docker-compose.yml', '${NGINX_CONF_PATH:-./nginx/nginx.conf}:/etc/nginx/nginx.conf:ro')
+requireText('docker-compose.yml', 'container_name: krotpn-sni-router')
+requireText('docker-compose.yml', 'SNI_ROUTER_CONF_PATH')
 requireText('docker-compose.yml', 'container_name: krotpn-mtproto-edge')
 requireText('docker-compose.yml', 'KROTPN_MTPROTO_POLICY_TOKEN')
 requireText('.env.example', 'START_MODULE_CONTRACT')
 requireText('.env.example', 'NGINX_CONF_PATH=./nginx/nginx.runtime.conf')
+requireText('.env.example', 'SNI_ROUTER_CONF_PATH=./deploy/haproxy-phase38.cfg')
 requireText('.env.example', 'EDGE_SHARED_443_ENABLED=true')
 
 requireText('docs/plans/Phase-35.xml', 'Operator Wildcard TLS Installer')

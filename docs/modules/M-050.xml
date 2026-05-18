@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<M-050 NAME="mtproto-de-backed-edge" TYPE="INTEGRATION" STATUS="pending">
-  <path>mtproto-runtime nginx docker-compose.yml deploy/deploy-on-server.sh backend/app/mtproto scripts/phase38-de-mtproto-edge-smoke.mjs docs/plans/Phase-38.xml</path>
+<M-050 NAME="mtproto-de-backed-edge" TYPE="INTEGRATION" STATUS="partial-local">
+  <path>mtproto-runtime nginx docker-compose.yml deploy/deploy-on-server.sh deploy/haproxy-phase38.cfg deploy/mtproto-de-compose.yml backend/app/core/config.py backend/app/mtproto scripts/phase38-de-mtproto-edge-smoke.mjs docs/plans/Phase-38.xml</path>
   <owns>DE-hosted MTProto runtime, RU public TCP 443 SNI router, private RU-to-DE policy API reachability, and live Telegram availability gates.</owns>
   <purpose>Restore Telegram MTProto availability by routing issued user SNI traffic from the RU public edge to a DE-hosted MTProto runtime while keeping HTTPS on krotpn.xyz available.</purpose>
   <exports>
@@ -14,11 +14,16 @@
   <verification-ref>V-M-050</verification-ref>
   <files>
     <file>deploy/deploy-on-server.sh</file>
+    <file>deploy/haproxy-phase38.cfg</file>
+    <file>deploy/mtproto-de-compose.yml</file>
     <file>docker-compose.yml</file>
     <file>nginx/nginx.conf</file>
     <file>mtproto-runtime</file>
+    <file>backend/app/core/config.py</file>
     <file>backend/app/mtproto/runtime_bridge.py</file>
     <file>backend/app/mtproto/provisioning.py</file>
+    <file>backend/tests/test_mtproto_de_edge_contract.py</file>
+    <file>backend/tests/test_deploy_phase38_static.py</file>
     <file>scripts/phase38-de-mtproto-edge-smoke.mjs</file>
     <file>docs/plans/Phase-38.xml</file>
     <file>docs/verification/V-M-050.xml</file>
@@ -36,14 +41,15 @@
     <constraint-3>Telegram availability requires operator-live proof with a real Telegram client after DE runtime activation.</constraint-3>
   </constraints>
   <planned-execution>
-    <step-1 STATUS="pending">Design the RU SNI router target map for web SNI, wildcard MTProto SNI, and unknown SNI fallback behavior.</step-1>
-    <step-2 STATUS="pending">Define DE runtime install, TLS material delivery, firewall, and private policy API reachability.</step-2>
-    <step-3 STATUS="pending">Update backend bridge settings so policy apply/revoke/health can target the DE policy API safely.</step-3>
-    <step-4 STATUS="pending">Add deterministic local/static smoke coverage and live operator gates.</step-4>
+    <step-1 STATUS="pass-local">Design the RU SNI router target map for web SNI, wildcard MTProto SNI, and unknown SNI fallback behavior.</step-1>
+    <step-2 STATUS="pass-local">Define DE runtime install, TLS material delivery, firewall, and private policy API reachability.</step-2>
+    <step-3 STATUS="pass-local">Update backend bridge settings so policy apply/revoke/health can target the DE policy API safely.</step-3>
+    <step-4 STATUS="pass-local">Add deterministic local/static smoke coverage and live operator gates.</step-4>
   </planned-execution>
   <evidence>
     <evidence-1>2026-05-18: Phase-37 local runtime wiring exists, but RU live mtproto_proxy downstream handshakes remain blocked and nginx public 443 rollback keeps web available.</evidence-1>
     <evidence-2>2026-05-18: Phase-38 planning selects DE-backed MTProto runtime plus RU SNI router as the safer production architecture.</evidence-2>
+    <evidence-3>2026-05-18: Phase-38 local execution added RU HAProxy SNI router, DE runtime compose/deploy wiring, private policy bind, backend private policy URL guards, secret-preserving deploy env generation, and deterministic smoke/pytest coverage.</evidence-3>
   </evidence>
   <hotspot>H-037: DE-backed MTProto edge and RU SNI router can break HTTPS or expose policy/cert material unless routing, private API reachability, and redaction gates are strict.</hotspot>
 </M-050>

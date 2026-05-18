@@ -1,8 +1,8 @@
 %% FILE: src/kpproton_runtime.erl
-%% VERSION: 1.1.0
+%% VERSION: 1.2.0
 %% START_MODULE_CONTRACT
 %%   PURPOSE: Expose canonical runtime configuration and token state to portal and proxy modules.
-%%   SCOPE: Read env-backed settings, store verification tokens, and provide shared getters for release-time components.
+%%   SCOPE: Read env-backed settings, store verification tokens, and provide shared getters for release-time components including the private policy bind IP.
 %%   DEPENDS: M-CONFIG, M-TOKEN, M-RELEASE
 %%   LINKS: M-CONFIG, M-TOKEN, M-RELEASE, M-PROXY-ISSUE
 %% END_MODULE_CONTRACT
@@ -14,9 +14,11 @@
 %%   base_domain/0 - returns the configured base domain
 %%   proxy_secret/0 - returns the base MTProto secret
 %%   proxy_secret_salt/0 - returns the private per-SNI derivation salt
+%%   policy_listen_ip/0 - returns the loopback/private Cowboy bind address for policy and portal listeners
 %% END_MODULE_MAP
 %%
 %% START_CHANGE_SUMMARY
+%%   LAST_CHANGE: v1.2.0 - Added POLICY_LISTEN_IP parsing for Phase-38 private DE policy API binding.
 %%   LAST_CHANGE: v1.1.0 - Added a required per-SNI salt runtime getter for MTProto credential hardening.
 %% END_CHANGE_SUMMARY
 
@@ -38,6 +40,7 @@
     static_root/0,
     portal_port/0,
     portal_tls_port/0,
+    policy_listen_ip/0,
     tls_cert_path/0,
     tls_key_path/0
 ]).
@@ -86,6 +89,9 @@ portal_port() ->
 
 portal_tls_port() ->
     env_integer("PORTAL_TLS_INTERNAL_PORT", 8443).
+
+policy_listen_ip() ->
+    parse_ip_tuple(env_string("POLICY_LISTEN_IP", "127.0.0.1")).
 
 tls_cert_path() ->
     env_string("TLS_CERT_PATH", "/certs/live/example.com/fullchain.pem").
@@ -159,4 +165,10 @@ required_env_string(Key) ->
         false -> erlang:error({missing_env, Key});
         [] -> erlang:error({empty_env, Key});
         Value -> Value
+    end.
+
+parse_ip_tuple(Value) ->
+    case inet:parse_address(Value) of
+        {ok, Address} -> Address;
+        _ -> {127, 0, 0, 1}
     end.

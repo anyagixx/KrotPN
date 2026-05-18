@@ -1,16 +1,16 @@
 #!/bin/bash
 #
-# KrotPN Server Deployment Script v3.2.0 (Full Tunnel)
+# KrotPN Server Deployment Script v3.3.0 (Full Tunnel)
 # Run this script ON the RU server
 # FILE: deploy/deploy-on-server.sh
-# VERSION: 3.2.0
+# VERSION: 3.3.0
 # ROLE: SCRIPT
 # MAP_MODE: LOCALS
 # START_MODULE_CONTRACT
-#   PURPOSE: Provision the RU entry host, DE exit host, application runtime, Phase-35 operator wildcard TLS edge material, Phase-36 Resend email provider env, and Phase-37 MTProto shared-443 edge.
-#   SCOPE: Host prerequisites, AmneziaWG tunnel setup, app env generation, TLS certificate validation/install, Resend config validation, nginx fallback rendering, MTProto edge env wiring, and Docker Compose startup.
-#   DEPENDS: M-012, M-030, M-032, M-040, M-041, M-044, M-046, M-048
-#   LINKS: docs/modules/M-012.xml, docs/modules/M-040.xml, docs/modules/M-041.xml, docs/modules/M-044.xml, docs/modules/M-046.xml, docs/modules/M-048.xml, docs/plans/Phase-35.xml, docs/plans/Phase-36.xml, docs/verification/V-M-048.xml
+#   PURPOSE: Provision the RU entry host, DE exit host, application runtime, Phase-35 operator wildcard TLS edge material, Phase-36 Resend email provider env, and Phase-38 DE-backed MTProto edge.
+#   SCOPE: Host prerequisites, AmneziaWG tunnel setup, app env generation, TLS certificate validation/install, Resend config validation, nginx fallback/SNI-router rendering, DE MTProto runtime deployment, private policy API wiring, and Docker Compose startup.
+#   DEPENDS: M-012, M-030, M-032, M-040, M-041, M-044, M-046, M-048, M-050
+#   LINKS: docs/modules/M-012.xml, docs/modules/M-040.xml, docs/modules/M-041.xml, docs/modules/M-044.xml, docs/modules/M-046.xml, docs/modules/M-048.xml, docs/modules/M-050.xml, docs/plans/Phase-35.xml, docs/plans/Phase-36.xml, docs/plans/Phase-38.xml, docs/verification/V-M-048.xml, docs/verification/V-M-050.xml
 # END_MODULE_CONTRACT
 #
 # START_MODULE_MAP
@@ -20,10 +20,12 @@
 #   install_operator_tls_certificate - Atomically install validated cert/key to /opt/KrotPN/ssl.
 #   generate_self_signed_dev_certificate - Explicit dev/test fallback, blocked for production unless selected.
 #   validate_resend_email_config - Validate Resend API key, URL, and sender without printing secrets.
-#   render_nginx_domain_config - Render ignored runtime nginx fallback config for the selected domain.
+#   render_nginx_domain_config - Render ignored runtime nginx fallback and HAProxy SNI-router configs for the selected domain/DE target.
+#   deploy_de_mtproto_runtime - Copy runtime artifacts, TLS material, and redacted env to DE and start the private policy runtime.
 # END_MODULE_MAP
 #
 # START_CHANGE_SUMMARY
+#   LAST_CHANGE: v3.3.0 - Added Phase-38 DE MTProto runtime deployment and RU HAProxy SNI-router wiring.
 #   LAST_CHANGE: v3.2.0 - Enable MTProto shared-443 runtime sidecar and backend policy bridge token wiring.
 #   LAST_CHANGE: v3.1.3 - Enable Resend email provider env wiring and fail closed when the API key is missing.
 #   LAST_CHANGE: v3.1.2 - Generate required MTProto base secret and salt during fresh deploy env creation.
@@ -298,12 +300,95 @@ generate_self_signed_dev_certificate() {
 render_nginx_domain_config() {
     local source_conf="/opt/KrotPN/nginx/nginx.conf"
     local runtime_conf="/opt/KrotPN/nginx/nginx.runtime.conf"
+    local router_source_conf="/opt/KrotPN/deploy/haproxy-phase38.cfg"
+    local router_runtime_conf="/opt/KrotPN/deploy/haproxy.runtime.cfg"
+    local mtproto_de_target="${EDGE_MTPROTO_DE_TARGET_HOST}:${EDGE_MTPROTO_DE_TARGET_PORT}"
 
     echo -e "${BLUE}[M-048][deploy_tls][ENV_WIRING] Rendering nginx runtime config for ${PUBLIC_DOMAIN}...${NC}"
     cp "$source_conf" "$runtime_conf"
     sed -i "s/krotpn.xyz/${PUBLIC_DOMAIN}/g" "$runtime_conf"
     chmod 644 "$runtime_conf"
     echo -e "${GREEN}[M-048][deploy_tls][ENV_WIRING] nginx runtime config ready: ${runtime_conf}${NC}"
+
+    echo -e "${BLUE}[M-050][ru_sni_router][ROUTE_WEB] Rendering RU SNI router web fallback for ${PUBLIC_DOMAIN}:443 -> 127.0.0.1:8443${NC}"
+    echo -e "${BLUE}[M-050][ru_sni_router][ROUTE_MTPROTO] Rendering RU SNI router MTProto target ${mtproto_de_target}${NC}"
+    cp "$router_source_conf" "$router_runtime_conf"
+    sed -i "s/krotpn.xyz/${PUBLIC_DOMAIN}/g" "$router_runtime_conf"
+    sed -i "s/127\\.0\\.0\\.1:9443/${mtproto_de_target}/g" "$router_runtime_conf"
+    chmod 644 "$router_runtime_conf"
+    echo -e "${GREEN}[M-050][ru_sni_router][ROUTE_UNKNOWN_SNI] Unknown SNI fallback remains RU nginx HTTPS fallback${NC}"
+}
+
+existing_env_value() {
+    local key="$1"
+    local env_file="${2:-/opt/KrotPN/.env}"
+
+    if [ ! -f "$env_file" ]; then
+        return 0
+    fi
+
+    awk -F= -v key="$key" '
+        $1 == key {
+            sub(/^[^=]*=/, "")
+            print
+            exit
+        }
+    ' "$env_file"
+}
+
+generate_or_preserve_secret() {
+    local key="$1"
+    local generator="$2"
+    local validator_regex="$3"
+    local existing=""
+
+    existing="$(existing_env_value "$key")"
+    if [ -n "$existing" ] && [[ "$existing" =~ $validator_regex ]]; then
+        printf '%s' "$existing"
+        return 0
+    fi
+
+    python3 -c "$generator"
+}
+
+deploy_de_mtproto_runtime() {
+    local de_app_dir="/opt/krotpn-mtproto"
+    local runtime_tar="/tmp/krotpn-mtproto-runtime.tgz"
+    local policy_health_url="http://${MTPROTO_POLICY_BIND_IP}:${MTPROTO_POLICY_PORT}/krotpn/mtproto/policy/health"
+
+    echo -e "${BLUE}[M-050][de_mtproto_runtime][START_RUNTIME] Preparing DE MTProto runtime on ${DE_IP}...${NC}"
+
+    tar --exclude='_build' --exclude='rebar3.crashdump' -C /opt/KrotPN -czf "$runtime_tar" mtproto-runtime
+    ssh_de "rm -rf '${de_app_dir}/mtproto-runtime' && mkdir -p '${de_app_dir}/ssl'"
+    sshpass -p "$DE_PASS" scp -o StrictHostKeyChecking=accept-new -o LogLevel=ERROR "$runtime_tar" "$DE_USER@$DE_IP:/tmp/krotpn-mtproto-runtime.tgz"
+    ssh_de "tar -xzf /tmp/krotpn-mtproto-runtime.tgz -C '${de_app_dir}' && rm -f /tmp/krotpn-mtproto-runtime.tgz"
+    rm -f "$runtime_tar"
+
+    sshpass -p "$DE_PASS" scp -o StrictHostKeyChecking=accept-new -o LogLevel=ERROR /opt/KrotPN/deploy/mtproto-de-compose.yml "$DE_USER@$DE_IP:${de_app_dir}/docker-compose.yml"
+    sshpass -p "$DE_PASS" scp -o StrictHostKeyChecking=accept-new -o LogLevel=ERROR /opt/KrotPN/ssl/server.crt "$DE_USER@$DE_IP:${de_app_dir}/ssl/server.crt"
+    sshpass -p "$DE_PASS" scp -o StrictHostKeyChecking=accept-new -o LogLevel=ERROR /opt/KrotPN/ssl/server.key "$DE_USER@$DE_IP:${de_app_dir}/ssl/server.key"
+    ssh_de "chmod 644 '${de_app_dir}/ssl/server.crt' && chmod 600 '${de_app_dir}/ssl/server.key'"
+
+    sshpass -p "$DE_PASS" ssh -o StrictHostKeyChecking=accept-new -o LogLevel=ERROR "$DE_USER@$DE_IP" "cat > '${de_app_dir}/.env' && chmod 600 '${de_app_dir}/.env'" << EOF
+MTPROTO_BASE_DOMAIN=${PUBLIC_DOMAIN}
+MTPROTO_DE_RUNTIME_PORT=${EDGE_MTPROTO_DE_TARGET_PORT}
+MTPROTO_BASE_SECRET_HEX=${MTPROTO_BASE_SECRET_HEX}
+MTPROTO_SECRET_SALT=${MTPROTO_SECRET_SALT}
+MTPROTO_RUNTIME_TOKEN=${MTPROTO_RUNTIME_TOKEN}
+MTPROTO_POLICY_PORT=${MTPROTO_POLICY_PORT}
+MTPROTO_POLICY_BIND_IP=${MTPROTO_POLICY_BIND_IP}
+MTPROTO_POLICY_TLS_PORT=18443
+DE_MTPROTO_DOMAIN_FRONTING=127.0.0.1:8443
+EOF
+
+    ssh_de "ufw allow proto tcp from '${RU_IP}' to any port '${EDGE_MTPROTO_DE_TARGET_PORT}' >/dev/null 2>&1 || true"
+    ssh_de "ufw allow in on awg0 proto tcp from '${VPN_RELAY_RU_ADDRESS}' to any port '${MTPROTO_POLICY_PORT}' >/dev/null 2>&1 || true"
+    ssh_de "ufw --force enable >/dev/null 2>&1 || true"
+    echo -e "${GREEN}[M-050][de_policy_api][DENY_PUBLIC] DE policy API binds ${MTPROTO_POLICY_BIND_IP} and public firewall does not allow ${MTPROTO_POLICY_PORT}/tcp${NC}"
+
+    ssh_de "cd '${de_app_dir}' && docker compose up -d --build"
+    ssh_de "cd '${de_app_dir}' && set -a && . ./.env && set +a && curl -fsS -H \"x-krotpn-mtproto-token: \${MTPROTO_RUNTIME_TOKEN}\" '${policy_health_url}' >/dev/null"
+    echo -e "${GREEN}[M-050][de_policy_api][HEALTH] Private DE MTProto policy health passed over ${MTPROTO_POLICY_BIND_IP}:${MTPROTO_POLICY_PORT}${NC}"
 }
 
 # Install sshpass if not available (needed for password-based DE auth)
@@ -360,6 +445,11 @@ if [ -z "$DE_IP" ] || [ -z "$DE_USER" ]; then
     echo "Required: DE_IP, DE_USER"
     exit 1
 fi
+
+MTPROTO_POLICY_PORT="${MTPROTO_POLICY_PORT:-18080}"
+EDGE_MTPROTO_MODE="${EDGE_MTPROTO_MODE:-de-backed}"
+EDGE_MTPROTO_DE_TARGET_HOST="${EDGE_MTPROTO_DE_TARGET_HOST:-$DE_IP}"
+EDGE_MTPROTO_DE_TARGET_PORT="${EDGE_MTPROTO_DE_TARGET_PORT:-443}"
 
 validate_resend_email_config
 
@@ -476,6 +566,11 @@ awg_profile_lines RELAY_ > /etc/amnezia/amneziawg/krotpn-relay-profile.conf
 chmod 600 /etc/amnezia/amneziawg/krotpn-*-profile.conf
 
 vpn_network_resolve /etc/amnezia/amneziawg/awg0.conf /etc/amnezia/amneziawg/awg-client.conf
+MTPROTO_POLICY_BIND_IP="${MTPROTO_POLICY_BIND_IP:-$VPN_RELAY_DE_ADDRESS}"
+if [ "$MTPROTO_POLICY_BIND_IP" = "0.0.0.0" ]; then
+    echo -e "${RED}[M-050][de_policy_api][DENY_PUBLIC] MTPROTO_POLICY_BIND_IP must not be 0.0.0.0${NC}"
+    exit 1
+fi
 
 echo -e "${GREEN}✓ Keys generated${NC}"
 echo -e "  Server Public: ${RU_SERVER_PUBLIC}"
@@ -539,6 +634,14 @@ apt update -qq && apt upgrade -y -qq
 echo -e "${BLUE}[DE] Installing dependencies...${NC}"
 apt install -y -qq software-properties-common python3-launchpadlib gnupg2 \
     linux-headers-$(uname -r) curl wget git iptables ufw qrencode ca-certificates
+
+echo -e "${BLUE}[DE] Installing Docker for MTProto runtime...${NC}"
+if ! command -v docker &> /dev/null; then
+    curl -fsSL https://get.docker.com -o /tmp/get-docker.sh
+    sh /tmp/get-docker.sh
+    apt install -y -qq docker-compose-plugin
+fi
+echo -e "${GREEN}✓ Docker installed${NC}"
 
 echo -e "${BLUE}[DE] Installing AmneziaWG...${NC}"
 if ! command -v awg &> /dev/null; then
@@ -898,12 +1001,12 @@ render_nginx_domain_config
 # Generate .env
 echo -e "${BLUE}[RU] Creating configuration...${NC}"
 cd /opt/KrotPN
-SECRET_KEY=$(python3 -c "import secrets; print(secrets.token_urlsafe(32))")
-DATA_KEY=$(python3 -c "from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())")
-DB_PASSWORD=$(python3 -c "import secrets; print(secrets.token_urlsafe(16))")
-MTPROTO_BASE_SECRET_HEX=$(python3 -c "import secrets; print(secrets.token_hex(16))")
-MTPROTO_SECRET_SALT=$(python3 -c "import secrets; print(secrets.token_hex(16))")
-MTPROTO_RUNTIME_TOKEN=$(python3 -c "import secrets; print(secrets.token_urlsafe(32))")
+SECRET_KEY=$(generate_or_preserve_secret SECRET_KEY "import secrets; print(secrets.token_urlsafe(32))" '^[-A-Za-z0-9._~+/=]{32,}$')
+DATA_KEY=$(generate_or_preserve_secret DATA_ENCRYPTION_KEY "from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())" '^[A-Za-z0-9_-]{43}=$')
+DB_PASSWORD=$(generate_or_preserve_secret DB_PASSWORD "import secrets; print(secrets.token_urlsafe(16))" '^[-A-Za-z0-9._~+/=]{16,}$')
+MTPROTO_BASE_SECRET_HEX=$(generate_or_preserve_secret MTPROTO_BASE_SECRET_HEX "import secrets; print(secrets.token_hex(16))" '^[0-9a-f]{32}$')
+MTPROTO_SECRET_SALT=$(generate_or_preserve_secret MTPROTO_SECRET_SALT "import secrets; print(secrets.token_hex(16))" '^[0-9a-f]{32}$')
+MTPROTO_RUNTIME_TOKEN=$(generate_or_preserve_secret MTPROTO_RUNTIME_TOKEN "import secrets; print(secrets.token_urlsafe(32))" '^[-A-Za-z0-9._~+/=]{24,512}$')
 
 cat > .env << EOF
 # === APPLICATION ===
@@ -1005,10 +1108,11 @@ MTPROTO_BASE_DOMAIN=${PUBLIC_DOMAIN}
 MTPROTO_PROXY_PORT=443
 MTPROTO_BASE_SECRET_HEX=${MTPROTO_BASE_SECRET_HEX}
 MTPROTO_SECRET_SALT=${MTPROTO_SECRET_SALT}
-MTPROTO_RUNTIME_POLICY_URL=http://127.0.0.1:18080/krotpn/mtproto/policy
+MTPROTO_RUNTIME_POLICY_URL=http://${MTPROTO_POLICY_BIND_IP}:${MTPROTO_POLICY_PORT}/krotpn/mtproto/policy
 MTPROTO_RUNTIME_TOKEN=${MTPROTO_RUNTIME_TOKEN}
 MTPROTO_RUNTIME_TIMEOUT_SECONDS=3.0
-MTPROTO_POLICY_PORT=18080
+MTPROTO_POLICY_PORT=${MTPROTO_POLICY_PORT}
+MTPROTO_POLICY_BIND_IP=${MTPROTO_POLICY_BIND_IP}
 EDGE_PUBLIC_DOMAIN=${PUBLIC_DOMAIN}
 EDGE_CANONICAL_HOST=${PUBLIC_DOMAIN}
 EDGE_TLS_CERTIFICATE_PATH=/etc/nginx/ssl/server.crt
@@ -1016,7 +1120,11 @@ EDGE_TLS_CERTIFICATE_KEY_PATH=/etc/nginx/ssl/server.key
 EDGE_TLS_CERTIFICATE_MODE=${TLS_CERTIFICATE_MODE}
 EDGE_SHARED_443_ENABLED=true
 EDGE_HTTPS_FALLBACK_PORT=8443
+EDGE_MTPROTO_MODE=${EDGE_MTPROTO_MODE}
+EDGE_MTPROTO_DE_TARGET_HOST=${EDGE_MTPROTO_DE_TARGET_HOST}
+EDGE_MTPROTO_DE_TARGET_PORT=${EDGE_MTPROTO_DE_TARGET_PORT}
 NGINX_CONF_PATH=./nginx/nginx.runtime.conf
+SNI_ROUTER_CONF_PATH=./deploy/haproxy.runtime.cfg
 EOF
 
 chmod 600 .env
@@ -1051,6 +1159,11 @@ systemctl daemon-reload
 systemctl enable krotpn-sync-awg0.path
 systemctl start krotpn-sync-awg0.path
 echo -e "${GREEN}✓ Systemd services created${NC}"
+
+# DE MTProto runtime
+echo -e "${BLUE}[M-050][de_mtproto_runtime][START_RUNTIME] Deploying DE-backed MTProto runtime...${NC}"
+deploy_de_mtproto_runtime
+echo -e "${GREEN}[M-050][de_mtproto_runtime][START_RUNTIME] DE-backed MTProto runtime deployed${NC}"
 
 # Docker
 echo -e "${BLUE}[RU] Building and starting Docker containers...${NC}"

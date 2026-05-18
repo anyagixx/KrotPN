@@ -1,12 +1,12 @@
 """MTProto runtime policy bridge.
 
 # FILE: backend/app/mtproto/runtime_bridge.py
-# VERSION: 1.2.0
+# VERSION: 1.3.0
 # ROLE: RUNTIME
 # MAP_MODE: EXPORTS
 # START_MODULE_CONTRACT
-#   PURPOSE: Apply and revoke KrotPN MTProto assignments at a runtime policy boundary safely
-#   SCOPE: Domain policy adapter contract, HTTP live adapter, policy apply/revoke, health, replay, reconciliation, degraded state
+#   PURPOSE: Apply and revoke KrotPN MTProto assignments at a private runtime policy boundary safely
+#   SCOPE: Domain policy adapter contract, HTTP live/private-DE adapter, policy apply/revoke, health, replay, reconciliation, degraded state
 #   DEPENDS: M-001 (DB session), M-042 (assignment registry), M-043 (provisioning)
 #   LINKS: M-044, V-M-044
 # END_MODULE_CONTRACT
@@ -26,6 +26,7 @@
 # END_MODULE_MAP
 #
 # START_CHANGE_SUMMARY
+#   LAST_CHANGE: v1.3.0 - Mark HTTP adapter operations for Phase-38 private DE runtime tracing.
 #   LAST_CHANGE: v1.2.0 - Added Phase-37 HTTP live adapter for the KPprotoN MTProto shared-443 runtime.
 #   LAST_CHANGE: v1.1.0 - Added explicit runtime policy revoke path for admin MTProto assignment disable
 #   LAST_CHANGE: v1.0.0 - Added Phase-30 safe runtime bridge boundary
@@ -249,6 +250,7 @@ class HTTPMTProtoPolicyAdapter:
     async def health(self) -> MTProtoRuntimeHealth:
         """Return live sidecar health without credentials."""
         try:
+            logger.info("[M-044][HTTPMTProtoPolicyAdapter][GET_HEALTH] adapter=kpproton-http")
             async with httpx.AsyncClient(
                 timeout=self.timeout_seconds,
                 transport=self.transport,
@@ -283,6 +285,10 @@ class HTTPMTProtoPolicyAdapter:
             "rotation_marker": policy.rotation_marker,
         }
         try:
+            logger.info(
+                "[M-044][HTTPMTProtoPolicyAdapter][POST_APPLY] "
+                f"operation={operation} assignment_id={policy.assignment_id} sni={policy.sni}"
+            )
             async with httpx.AsyncClient(
                 timeout=self.timeout_seconds,
                 transport=self.transport,

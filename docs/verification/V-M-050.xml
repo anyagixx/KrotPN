@@ -1,18 +1,20 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<V-M-050 MODULE="M-050" PRIORITY="critical" STATUS="verification-designed" VERSION="1.1.0">
+<V-M-050 MODULE="M-050" PRIORITY="critical" STATUS="partial-local" VERSION="1.2.0">
   <module>mtproto-de-backed-edge</module>
   <phase-scope>
-    <phase-38 status="verification-designed">DE-hosted MTProto runtime plus RU public TCP 443 SNI router verification before implementation.</phase-38>
+    <phase-38 status="partial-local">DE-hosted MTProto runtime plus RU public TCP 443 SNI router implemented locally; live VPS and Telegram Desktop proof remain operator-required.</phase-38>
     <supersedes>M-049 remains blocked-live for the RU-only runtime path; Phase-38 verifies the replacement DE-backed traffic path.</supersedes>
   </phase-scope>
   <test-files>
-    <file phase="38-planned">scripts/phase38-de-mtproto-edge-smoke.mjs</file>
-    <file phase="38-planned">backend/tests/test_mtproto_de_edge_contract.py</file>
-    <file phase="38-planned">backend/tests/test_deploy_phase38_static.py</file>
+    <file phase="38-pass-local">scripts/phase38-de-mtproto-edge-smoke.mjs</file>
+    <file phase="38-pass-local">backend/tests/test_mtproto_de_edge_contract.py</file>
+    <file phase="38-pass-local">backend/tests/test_deploy_phase38_static.py</file>
     <file>backend/tests/test_kpproton_runtime_bridge.py</file>
     <file>backend/tests/test_mtproto_provisioning.py</file>
     <file>backend/tests/test_domain_tls_edge_static.py</file>
     <file>deploy/deploy-on-server.sh</file>
+    <file>deploy/haproxy-phase38.cfg</file>
+    <file>deploy/mtproto-de-compose.yml</file>
     <file>install.sh</file>
     <file>docker-compose.yml</file>
     <file>nginx/nginx.conf</file>
@@ -21,7 +23,7 @@
   </test-files>
   <commands>
     <command-1>bash -n install.sh deploy/deploy-on-server.sh</command-1>
-    <command-2>sh -c 'if [ -e .env ]; then DB_PASSWORD=phase38-compose-check docker compose config; else ln -s .env.example .env &amp;&amp; trap "rm -f .env" EXIT &amp;&amp; DB_PASSWORD=phase38-compose-check docker compose config; fi'</command-2>
+    <command-2 status="pass-local">sh -c 'if [ -e .env ]; then DB_PASSWORD=phase38-compose-check docker compose config; else ln -s .env.example .env &amp;&amp; trap "rm -f .env" EXIT &amp;&amp; DB_PASSWORD=phase38-compose-check docker compose config; fi'</command-2>
     <command-3>node scripts/phase38-de-mtproto-edge-smoke.mjs</command-3>
     <command-4>cd backend &amp;&amp; SECRET_KEY=test-secret-key-with-enough-length DATA_ENCRYPTION_KEY=dpFmfSVqfdAK3yx5MQV6Tcv35RZuw5MzaH0yhxJ01q0= PYTHONPATH=. ../.venv/bin/python -m pytest -o addopts='' tests/test_kpproton_runtime_bridge.py tests/test_mtproto_provisioning.py tests/test_domain_tls_edge_static.py tests/test_mtproto_de_edge_contract.py tests/test_deploy_phase38_static.py -v</command-4>
     <command-5>python3 -m xml.etree.ElementTree docs/graph-index.xml docs/plan-index.xml docs/verification-index.xml docs/modules/M-012.xml docs/modules/M-043.xml docs/modules/M-044.xml docs/modules/M-046.xml docs/modules/M-048.xml docs/modules/M-049.xml docs/modules/M-050.xml docs/plans/Phase-38.xml docs/verification/V-M-012.xml docs/verification/V-M-043.xml docs/verification/V-M-044.xml docs/verification/V-M-046.xml docs/verification/V-M-048.xml docs/verification/V-M-049.xml docs/verification/V-M-050.xml &amp;&amp; mygrace lint</command-5>
@@ -108,4 +110,9 @@
     <safe-local>XML parse, MyGRACE lint, static smoke, syntax checks, compose config, and backend tests with fake/private policy targets.</safe-local>
     <requires-operator>Public 443 routing changes, DE runtime rollout, wildcard certificate/private key placement, firewall changes, private policy API live proof, and Telegram Desktop proof.</requires-operator>
   </autonomous-execution-safety>
+  <evidence>
+    <evidence-1>2026-05-18: Local Phase-38 execution added HAProxy RU SNI router, default compose public-443 owner, DE runtime compose template, private POLICY_LISTEN_IP runtime bind, private DE policy URL validation, deploy-time DE runtime rollout, and secret-preserving .env generation.</evidence-1>
+    <evidence-2>2026-05-18: Local verification passed: bash -n install.sh deploy/deploy-on-server.sh; docker compose config with .env.example; node scripts/phase38-de-mtproto-edge-smoke.mjs; backend pytest wave for runtime bridge, provisioning, domain TLS edge, Phase-38 settings, and Phase-38 deploy static tests; rebar3 compile.</evidence-2>
+    <evidence-3>Operator-live gates remain open for clean VPS deploy, RU public HTTPS through SNI router, DE runtime listener, private policy API denial from public internet, assignment replay, and Telegram Desktop available status.</evidence-3>
+  </evidence>
 </V-M-050>

@@ -50,7 +50,7 @@
     <item>Phase-35 live clean VPS deploy revealed backend startup failure from blank MTProto secrets; 2026-05-17 hotfix generates MTPROTO_BASE_SECRET_HEX and MTPROTO_SECRET_SALT during deploy and treats blank optional MTProto env values as safely unset.</item>
     <item>Phase-36 Resend deploy email-provider wiring passed local execution on 2026-05-17: install.sh now asks for a redacted Resend API key and noreply@krotpn.xyz sender, deploy writes EMAIL_PROVIDER=resend/RESEND_API_KEY/RESEND_API_URL/EMAIL_FROM into .env, and local smoke verifies request shape, provider_disabled regression guards, and secret redaction. Live mailbox proof remains operator-blocked until Resend domain verification completes.</item>
     <item>Phase-37 live MTProto shared-443 fix is implemented locally on 2026-05-18: mtproto-runtime is added as a host-network edge service, backend has a token-protected HTTP policy adapter, provisioning applies SNI policy before returning active payloads, nginx HTTPS fallback moves to 8443, deploy generates runtime policy-token/env wiring, and deploy persists Telegram upstream routes through awg-client.</item>
-    <item>Phase-38 DE-backed MTProto edge plan and verification design were created on 2026-05-18: RU public 443 will become an SNI router, HTTPS will continue to RU nginx fallback, and issued MTProto SNI traffic will route to a DE-hosted runtime with private policy API control.</item>
+    <item>Phase-38 DE-backed MTProto edge passed local execution on 2026-05-18: RU public 443 is now modeled as an HAProxy SNI router, HTTPS continues to RU nginx fallback on 8443, issued MTProto SNI routes to a DE-hosted runtime template, backend policy URL targets the private relay address, runtime policy/portal listeners can bind privately, and static/backend verification passed locally.</item>
   </what-is-working>
 
   <what-is-fragile>
@@ -64,7 +64,7 @@
     <item>Phase-35 clean VPS wildcard TLS deploy smoke remains operator-live until prepared fullchain1.pem/privkey1.pem files are present on the RU server and public HTTPS is verified.</item>
     <item>Phase-36 live Resend mailbox smoke remains pending until the Resend API key is available and krotpn.xyz/noreply@krotpn.xyz verification is complete in Resend.</item>
     <item>Phase-37 live Telegram availability proof is blocked-live: RU mtproto-edge policy API starts, but mtproto_proxy still fails downstream Telegram handshakes after scoped routes via awg-client; nginx public 443 was restored on RU to keep the web product available while the MTProto edge remains unavailable.</item>
-    <item>Phase-38 is verification-designed but not implemented: DE-backed runtime, RU SNI router, private policy API, wildcard TLS delivery to DE, and Telegram Desktop live proof remain pending.</item>
+    <item>Phase-38 is partial-local: DE-backed runtime, RU SNI router, private policy API, wildcard TLS delivery to DE, and secret-preserving deploy wiring are implemented locally, but clean VPS deploy and Telegram Desktop live proof remain pending.</item>
     <item>Emergency relocation is documented but still blocked until a trusted backup bundle and isolated restore target exist for dry-run evidence.</item>
     <item>Cookie-only auth migration is planned but not executed because it requires explicit approval and HTTPS or production-like smoke evidence.</item>
   </what-is-fragile>
@@ -139,13 +139,13 @@
     <gate id="phase-37-live-mtproto-shared-443-runtime" status="blocked-live">
       <summary>Local implementation addresses the missing runtime pieces and RU Telegram routes, but mtproto_proxy still fails downstream handshakes; nginx public 443 rollback keeps HTTPS available until the upstream/proxy runtime blocker is resolved.</summary>
     </gate>
-    <gate id="phase-38-de-backed-mtproto-edge" status="verification-designed">
-      <summary>Plan and verification design exist for replacing the blocked RU-only MTProto runtime with a DE-hosted runtime and RU SNI router; implementation and live Telegram proof remain pending.</summary>
+    <gate id="phase-38-de-backed-mtproto-edge" status="partial-local">
+      <summary>Local implementation and verification passed for replacing the blocked RU-only MTProto runtime with a DE-hosted runtime and RU SNI router; clean VPS deploy, private policy API live proof, and Telegram Desktop proof remain operator-live.</summary>
     </gate>
   </rollout-gates>
 
   <immediate-priorities>
-    <priority rank="1">Execute Phase-38 DE-backed MTProto edge plan; keep nginx public 443 rollback active until RU SNI router, DE runtime, HTTPS fallback, private policy API, and Telegram Desktop proof pass.</priority>
+    <priority rank="1">Deploy Phase-38 to clean VPS and verify RU SNI router, DE runtime, HTTPS fallback, private policy API, active assignment replay, and Telegram Desktop proof; keep nginx public 443 rollback available until live proof passes.</priority>
     <priority rank="2">Complete Phase-36 live Resend mailbox smoke after the operator provides the Resend API key and confirms krotpn.xyz/noreply@krotpn.xyz verification in Resend.</priority>
     <priority rank="3">Fix Phase-28 refresh findings: V-M-004 billing route/API tests and V-M-022 VPN compatibility route tests currently return 404 in their full per-module gates.</priority>
     <priority rank="4">Complete remaining Phase-32/Phase-34/Phase-35 live edge smoke after Phase-38 public 443 routing is stable, trusted wildcard TLS is installed, an issued MTProto SNI is available, and an operator rollback window is available.</priority>

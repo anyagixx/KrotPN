@@ -89,5 +89,6 @@
     <evidence-2>2026-05-18: Live RU first run showed policy health but no TCP 443 bind because core bootstrap timed out; bounded fallback bootstrap is now in scope.</evidence-2>
     <evidence-3>2026-05-18: Telegram upstream routes through awg-client restored TCP reachability, but mtproto_proxy downstream handshakes still closed; nginx public 443 rollback preserved web availability.</evidence-3>
     <evidence-4>2026-05-18: Phase-38 verification moves live availability proof to V-M-050 while preserving Phase-37 artifacts as reusable runtime components.</evidence-4>
+    <evidence-5>2026-05-18: Phase-38 local execution keeps mtproto-runtime buildable and policy-handler tests intact while default compose no longer starts RU mtproto-edge as the public 443 owner.</evidence-5>
   </evidence>
 </V-M-049>

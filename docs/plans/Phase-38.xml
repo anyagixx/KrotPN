@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Phase-38 NAME="DE-backed MTProto Edge and RU SNI Router" STATUS="pending" VERSION="1.0.0">
+<Phase-38 NAME="DE-backed MTProto Edge and RU SNI Router" STATUS="partial-local" VERSION="1.1.0">
   <Goal>Replace the blocked RU-only MTProto shared-443 runtime with a DE-hosted MTProto runtime and an RU public TCP 443 SNI router that preserves HTTPS while routing issued Telegram proxy SNI to DE.</Goal>
   <Modules>M-050,M-049,M-044,M-046,M-048,M-012,M-043</Modules>
   <OperatorProblem>
@@ -27,20 +27,20 @@
     <flow-5>Admin/user health surfaces show degraded status when DE runtime or private policy API is unavailable, without leaking secrets.</flow-5>
   </DataFlow>
   <Steps>
-    <step-1 STATUS="pending">Design and document the RU TCP 443 SNI router target map for canonical web hosts, issued MTProto wildcard hosts, and unknown SNI fallback.</step-1>
-    <step-2 STATUS="pending">Define DE MTProto runtime deployment, TLS mount expectations, firewall rules, service ownership, and rollback behavior.</step-2>
-    <step-3 STATUS="pending">Define private RU-to-DE policy API connectivity, token handling, bind address, and deny-public checks.</step-3>
-    <step-4 STATUS="pending">Adjust runtime bridge configuration contract so apply, revoke, health, and replay target the DE runtime safely.</step-4>
-    <step-5 STATUS="pending">Preserve existing assignment credentials and replay active SNI policies without reissuing user proxy links.</step-5>
-    <step-6 STATUS="pending">Add deterministic static smoke coverage for SNI router config, DE runtime env, policy URL safety, secret redaction, and rollback notes.</step-6>
-    <step-7 STATUS="pending">Run local verification: script syntax, compose config, backend MTProto tests, Phase-38 smoke, XML parse, and MyGRACE lint.</step-7>
-    <step-8 STATUS="pending">Run operator-live verification: RU HTTPS, RU router, DE runtime, private policy health, assignment replay, and Telegram Desktop availability.</step-8>
+    <step-1 STATUS="pass-local">Design and document the RU TCP 443 SNI router target map for canonical web hosts, issued MTProto wildcard hosts, and unknown SNI fallback.</step-1>
+    <step-2 STATUS="pass-local">Define DE MTProto runtime deployment, TLS mount expectations, firewall rules, service ownership, and rollback behavior.</step-2>
+    <step-3 STATUS="pass-local">Define private RU-to-DE policy API connectivity, token handling, bind address, and deny-public checks.</step-3>
+    <step-4 STATUS="pass-local">Adjust runtime bridge configuration contract so apply, revoke, health, and replay target the DE runtime safely.</step-4>
+    <step-5 STATUS="pass-local">Preserve existing assignment credentials and replay active SNI policies without reissuing user proxy links.</step-5>
+    <step-6 STATUS="pass-local">Add deterministic static smoke coverage for SNI router config, DE runtime env, policy URL safety, secret redaction, and rollback notes.</step-6>
+    <step-7 STATUS="pass-local">Run local verification: script syntax, compose config, backend MTProto tests, Phase-38 smoke, XML parse, and MyGRACE lint.</step-7>
+    <step-8 STATUS="operator-live-pending">Run operator-live verification: RU HTTPS, RU router, DE runtime, private policy health, assignment replay, and Telegram Desktop availability.</step-8>
   </Steps>
   <Verification>
     <command-1>bash -n install.sh deploy/deploy-on-server.sh</command-1>
-    <command-2>docker compose config</command-2>
+    <command-2>sh -c 'if [ -e .env ]; then DB_PASSWORD=phase38-compose-check docker compose config; else ln -s .env.example .env &amp;&amp; trap "rm -f .env" EXIT &amp;&amp; DB_PASSWORD=phase38-compose-check docker compose config; fi'</command-2>
     <command-3>node scripts/phase38-de-mtproto-edge-smoke.mjs</command-3>
-    <command-4>cd backend &amp;&amp; SECRET_KEY=test-secret-key-with-enough-length DATA_ENCRYPTION_KEY=dpFmfSVqfdAK3yx5MQV6Tcv35RZuw5MzaH0yhxJ01q0= PYTHONPATH=. ../.venv/bin/python -m pytest -o addopts='' tests/test_kpproton_runtime_bridge.py tests/test_mtproto_provisioning.py tests/test_domain_tls_edge_static.py -v</command-4>
+    <command-4>cd backend &amp;&amp; SECRET_KEY=test-secret-key-with-enough-length DATA_ENCRYPTION_KEY=dpFmfSVqfdAK3yx5MQV6Tcv35RZuw5MzaH0yhxJ01q0= PYTHONPATH=. ../.venv/bin/python -m pytest -o addopts='' tests/test_kpproton_runtime_bridge.py tests/test_mtproto_provisioning.py tests/test_domain_tls_edge_static.py tests/test_mtproto_de_edge_contract.py tests/test_deploy_phase38_static.py -v</command-4>
     <command-5>python3 -m xml.etree.ElementTree docs/graph-index.xml docs/plan-index.xml docs/verification-index.xml docs/modules/M-050.xml docs/plans/Phase-38.xml docs/verification/V-M-050.xml &amp;&amp; mygrace lint</command-5>
     <command-6>operator-live: verify RU public 443 owner is the SNI router, RU nginx fallback is healthy, DE MTProto runtime listens on its configured port, private policy health succeeds only from RU/backend, and Telegram Desktop marks the issued proxy available.</command-6>
   </Verification>
@@ -79,4 +79,9 @@
     <safe-local>Planning docs, static smoke, syntax checks, XML parse, MyGRACE lint, and backend fake/private-adapter tests.</safe-local>
     <requires-operator>Public 443 routing change, DE runtime deployment, private policy API live proof, wildcard key material placement, and Telegram Desktop availability proof.</requires-operator>
   </AutonomousExecutionSafety>
+  <Evidence>
+    <evidence-1>2026-05-18: Added HAProxy RU SNI-router template, docker-compose sni-router service, profiled local mtproto-edge, DE runtime compose template, private POLICY_LISTEN_IP runtime bind, private DE policy URL Settings validation, deploy-time DE runtime startup, and Phase-38 static/backend tests.</evidence-1>
+    <evidence-2>2026-05-18: Local verification passed: bash syntax, docker compose config with .env.example, rebar3 compile, Phase-32/34/35/36/37/38 smoke scripts, and Phase-38 backend pytest wave.</evidence-2>
+    <evidence-3>Operator-live proof remains required for clean VPS deploy, public HTTPS through RU SNI router, private DE policy health, active assignment replay, and Telegram Desktop availability.</evidence-3>
+  </Evidence>
 </Phase-38>

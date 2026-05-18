@@ -2,21 +2,22 @@
 -behaviour(gen_server).
 
 %% FILE: src/kpproton_web.erl
-%% VERSION: 1.1.0
+%% VERSION: 1.2.0
 %% START_MODULE_CONTRACT
 %%   PURPOSE: Start Cowboy HTTP and HTTPS listeners that expose bootstrap, policy bridge, and health routes.
-%%   SCOPE: Build the dispatch table, open listeners, and stop them cleanly on termination.
+%%   SCOPE: Build the dispatch table, open private-bind policy/portal listeners, and stop them cleanly on termination.
 %%   DEPENDS: M-RELEASE
 %%   LINKS: M-RELEASE, M-WEB-API, M-WEB-UI
 %% END_MODULE_CONTRACT
 %%
 %% START_MODULE_MAP
 %%   start_link/0 - starts the web runtime server
-%%   init/1 - boots Cowboy listeners and dispatch rules
+%%   init/1 - boots Cowboy listeners and dispatch rules using POLICY_LISTEN_IP
 %%   terminate/2 - stops Cowboy listeners during shutdown
 %% END_MODULE_MAP
 %%
 %% START_CHANGE_SUMMARY
+%%   LAST_CHANGE: v1.2.0 - Bind policy/portal listeners to POLICY_LISTEN_IP for Phase-38 DE runtime privacy.
 %%   LAST_CHANGE: v1.1.0 - Added KrotPN token-protected MTProto policy bridge routes.
 %%   LAST_CHANGE: v1.0.0 - Added MyGRACE source contract metadata for the Cowboy web runtime.
 %% END_CHANGE_SUMMARY
@@ -31,6 +32,7 @@ start_link() ->
 
 %% START_BLOCK_INIT
 init([]) ->
+    PolicyListenIp = kpproton_runtime:policy_listen_ip(),
     Dispatch = cowboy_router:compile([
         {'_', [
             {"/", cowboy_static, {file, filename:join(kpproton_runtime:static_root(), "index.html")}},
@@ -47,12 +49,13 @@ init([]) ->
     ]),
     {ok, _} = cowboy:start_clear(
         kpproton_http,
-        [{port, kpproton_runtime:portal_port()}],
+        [{ip, PolicyListenIp}, {port, kpproton_runtime:portal_port()}],
         #{env => #{dispatch => Dispatch}}
     ),
     {ok, _} = cowboy:start_tls(
         kpproton_https,
         [
+            {ip, PolicyListenIp},
             {port, kpproton_runtime:portal_tls_port()},
             {certfile, kpproton_runtime:tls_cert_path()},
             {keyfile, kpproton_runtime:tls_key_path()}

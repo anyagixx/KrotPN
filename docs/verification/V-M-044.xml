@@ -5,7 +5,7 @@
     <phase-30 status="pass-local">Runtime bridge implemented with fake/local adapter verification.</phase-30>
     <phase-34 status="planned">Stabilization gate keeps runtime apply, replay, health, and revoke in the end-to-end MTProto release suite.</phase-34>
     <phase-37 status="partial-live">Live edge runtime adapter added after clean-VPS Telegram Desktop proxy availability failed because no real MTProto service owned public 443.</phase-37>
-    <phase-38 status="verification-designed">Runtime bridge must apply, revoke, health-check, and replay policy against a private DE runtime API with degraded-safe failure behavior.</phase-38>
+    <phase-38 status="pass-local">Runtime bridge must apply, revoke, health-check, and replay policy against a private DE runtime API with degraded-safe failure behavior.</phase-38>
   </phase-scope>
   <test-files>
     <file>backend/tests/test_kpproton_runtime_bridge.py</file>
@@ -14,8 +14,8 @@
     <file>backend/tests/test_scheduler.py</file>
     <file phase="37">mtproto-runtime/src/kpproton_policy_handler.erl</file>
     <file phase="37">scripts/phase37-mtproto-runtime-smoke.mjs</file>
-    <file phase="38-designed">scripts/phase38-de-mtproto-edge-smoke.mjs</file>
-    <file phase="38-planned">backend/tests/test_mtproto_de_edge_contract.py</file>
+    <file phase="38-pass-local">scripts/phase38-de-mtproto-edge-smoke.mjs</file>
+    <file phase="38-pass-local">backend/tests/test_mtproto_de_edge_contract.py</file>
   </test-files>
   <commands>cd backend &amp;&amp; SECRET_KEY=test-secret-key-with-enough-length DATA_ENCRYPTION_KEY=dpFmfSVqfdAK3yx5MQV6Tcv35RZuw5MzaH0yhxJ01q0= PYTHONPATH=. ../.venv/bin/python -m pytest -o addopts='' tests/test_kpproton_runtime_bridge.py tests/test_mtproto_assignment_registry.py tests/test_mtproto_provisioning.py tests/test_scheduler.py -v</commands>
   <verification-levels>
@@ -87,5 +87,6 @@
     <evidence-2>2026-05-14: Phase-33 runtime revoke fix added deterministic test coverage for removing an applied SNI policy.</evidence-2>
     <evidence-3>2026-05-18: Phase-37 added HTTP adapter coverage and live-apply provisioning regression coverage after clean-VPS Telegram Desktop reported the issued proxy as unavailable.</evidence-3>
     <evidence-4>2026-05-18: Phase-38 verification adds private DE policy API target gates and degraded-safe failure requirements.</evidence-4>
+    <evidence-5>2026-05-18: Phase-38 local execution passed private DE policy URL Settings tests, existing runtime bridge tests, and trace-marker smoke for HTTP apply/health operations.</evidence-5>
   </evidence>
 </V-M-044>
