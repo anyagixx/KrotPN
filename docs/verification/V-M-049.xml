@@ -1,8 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<V-M-049 MODULE="M-049" PRIORITY="critical" STATUS="blocked-live" VERSION="1.0.0">
+<V-M-049 MODULE="M-049" PRIORITY="critical" STATUS="blocked-live" VERSION="1.1.0">
   <module>mtproto-live-edge-runtime</module>
   <phase-scope>
     <phase-37 status="blocked-live">Live MTProto edge runtime fix for clean-VPS Telegram proxy unavailability; local verification passed, but RU mtproto_proxy downstream handshakes still block TCP 443 ownership.</phase-37>
+    <phase-38 status="superseded-by-M-050">Phase-38 keeps reusable runtime and policy bridge artifacts but replaces RU-only live traffic ownership with a DE-backed runtime behind an RU SNI router.</phase-38>
   </phase-scope>
   <test-files>
     <file>scripts/phase37-mtproto-runtime-smoke.mjs</file>
@@ -43,6 +44,7 @@
     <check-8 evidence="deterministic">Deploy persists Telegram MTProto upstream routes through awg-client for 149.154.160.0/20, 91.108.4.0/22, 91.108.56.0/22, and 91.105.192.0/23.</check-8>
     <check-9 evidence="operator-live">RU server has mtproto-edge healthy, TCP 443 owned by the edge, TCP 8443 owned by nginx fallback, and policy_count includes issued active SNI after replay.</check-9>
     <check-10 evidence="operator-live">Telegram Desktop marks the issued proxy available from the existing user dashboard link.</check-10>
+    <check-11 evidence="phase-38-design">Phase-38 must not delete Phase-37 runtime artifacts; it reuses policy API and runtime code while moving production traffic to DE.</check-11>
   </module-checks>
   <scenarios>
     <scenario-1 kind="success">Fresh deploy starts mtproto-edge with wildcard TLS and no public 443 conflict.</scenario-1>
@@ -51,6 +53,7 @@
     <scenario-4 kind="success">Normal https://krotpn.xyz traffic is forwarded to nginx fallback and still reaches frontend, API, and admin surfaces.</scenario-4>
     <scenario-5 kind="failure">Missing runtime token, unreachable policy API, invalid SNI, or policy API auth failure returns degraded state and never claims an active usable proxy.</scenario-5>
     <scenario-6 kind="failure">Port bind conflict or broken fallback requires rollback to previous nginx-only edge before user traffic is advertised.</scenario-6>
+    <scenario-7 kind="success">Phase-38 reuses runtime policy semantics but no longer requires RU mtproto_proxy downstream handshakes for production Telegram availability.</scenario-7>
   </scenarios>
   <required-log-markers>
     <marker-1>[M-049][kpproton_policy_handler][AUTH]</marker-1>
@@ -74,6 +77,7 @@
     <gate-5>Existing active assignment SNI apply returns success through the local policy API or scheduler replay.</gate-5>
     <gate-6>curl https://krotpn.xyz returns a healthy frontend response without TLS bypass.</gate-6>
     <gate-7>Operator Telegram Desktop retest marks the proxy available.</gate-7>
+    <gate-8>Phase-38 handoff verifies M-050 owns the replacement live gates before M-049 is considered superseded in production.</gate-8>
   </live-smoke-gates>
   <autonomous-execution-safety>
     <level>local-plus-authorized-live-hotfix</level>
@@ -84,5 +88,6 @@
     <evidence-1>2026-05-18: Local diagnosis confirmed issued assignment existed but no live MTProto runtime process owned public 443.</evidence-1>
     <evidence-2>2026-05-18: Live RU first run showed policy health but no TCP 443 bind because core bootstrap timed out; bounded fallback bootstrap is now in scope.</evidence-2>
     <evidence-3>2026-05-18: Telegram upstream routes through awg-client restored TCP reachability, but mtproto_proxy downstream handshakes still closed; nginx public 443 rollback preserved web availability.</evidence-3>
+    <evidence-4>2026-05-18: Phase-38 verification moves live availability proof to V-M-050 while preserving Phase-37 artifacts as reusable runtime components.</evidence-4>
   </evidence>
 </V-M-049>

@@ -1,10 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<V-M-044 MODULE="M-044" PRIORITY="critical" STATUS="partial-live" VERSION="1.5.0">
+<V-M-044 MODULE="M-044" PRIORITY="critical" STATUS="partial-live" VERSION="1.6.0">
   <module>kpproton-runtime-bridge</module>
   <phase-scope>
     <phase-30 status="pass-local">Runtime bridge implemented with fake/local adapter verification.</phase-30>
     <phase-34 status="planned">Stabilization gate keeps runtime apply, replay, health, and revoke in the end-to-end MTProto release suite.</phase-34>
     <phase-37 status="partial-live">Live edge runtime adapter added after clean-VPS Telegram Desktop proxy availability failed because no real MTProto service owned public 443.</phase-37>
+    <phase-38 status="verification-designed">Runtime bridge must apply, revoke, health-check, and replay policy against a private DE runtime API with degraded-safe failure behavior.</phase-38>
   </phase-scope>
   <test-files>
     <file>backend/tests/test_kpproton_runtime_bridge.py</file>
@@ -13,6 +14,8 @@
     <file>backend/tests/test_scheduler.py</file>
     <file phase="37">mtproto-runtime/src/kpproton_policy_handler.erl</file>
     <file phase="37">scripts/phase37-mtproto-runtime-smoke.mjs</file>
+    <file phase="38-designed">scripts/phase38-de-mtproto-edge-smoke.mjs</file>
+    <file phase="38-planned">backend/tests/test_mtproto_de_edge_contract.py</file>
   </test-files>
   <commands>cd backend &amp;&amp; SECRET_KEY=test-secret-key-with-enough-length DATA_ENCRYPTION_KEY=dpFmfSVqfdAK3yx5MQV6Tcv35RZuw5MzaH0yhxJ01q0= PYTHONPATH=. ../.venv/bin/python -m pytest -o addopts='' tests/test_kpproton_runtime_bridge.py tests/test_mtproto_assignment_registry.py tests/test_mtproto_provisioning.py tests/test_scheduler.py -v</commands>
   <verification-levels>
@@ -31,6 +34,8 @@
     <check-8 evidence="phase-34-integration">Phase-34 full gate proves assignment issuance, owner access, admin revoke, runtime policy removal, and replay remain mutually consistent.</check-8>
     <check-9 evidence="phase-37-deterministic">HTTPMTProtoPolicyAdapter applies, revokes, and health-checks the local edge policy API with a token header and without exposing token or proxy secrets.</check-9>
     <check-10 evidence="phase-37-live-required">Provisioning returns an active proxy payload only after live policy apply succeeds or explicitly reports degraded/incomplete state.</check-10>
+    <check-11 evidence="phase-38-deterministic">HTTPMTProtoPolicyAdapter accepts a private DE policy API URL and rejects unsafe public/no-token configurations in static smoke.</check-11>
+    <check-12 evidence="phase-38-failure-path">DE policy API timeout, auth failure, public exposure guard failure, or unreachable route returns degraded state without blocking normal KrotPN login/VPN access.</check-12>
   </module-checks>
   <phase-34-stabilization-gates>
     <gate-1>Startup replay after restore loads only active assignments and skips disabled, superseded, or revoked rows.</gate-1>
@@ -45,6 +50,7 @@
     <scenario-6 kind="failure">Invalid SNI, disabled assignment, superseded assignment, or missing assignment is rejected before adapter apply calls.</scenario-6>
     <scenario-7 kind="failure">Policy apply or revoke failure does not prevent normal KrotPN login, verified-email activation, billing, or VPN config retrieval.</scenario-7>
     <scenario-8 kind="success">Configured backend bridge applies an issued SNI to the live mtproto-edge policy API before the user sees an active Telegram proxy link.</scenario-8>
+    <scenario-9 kind="success">Configured backend bridge applies an issued SNI to the private DE runtime policy API while preserving the owner proxy payload.</scenario-9>
   </scenarios>
   <required-log-markers>
     <marker-1>[M-044][apply_domain_policy][LOAD_POLICY]</marker-1>
@@ -60,6 +66,7 @@
     <marker-11>[M-044][revoke_domain_policy][POLICY_REVOKED]</marker-11>
     <marker-12>[M-044][HTTPMTProtoPolicyAdapter][POST_APPLY]</marker-12>
     <marker-13>[M-044][HTTPMTProtoPolicyAdapter][GET_HEALTH]</marker-13>
+    <marker-14>[M-050][de_policy_api][HEALTH]</marker-14>
   </required-log-markers>
   <redaction-rules>
     <rule-1>Policy logs may include assignment id, user id, SNI, status, adapter name, retry count, and correlation id.</rule-1>
@@ -73,11 +80,12 @@
   </telemetry-requirements>
   <autonomous-execution-safety>
     <level>safe-local-adapter-only</level>
-    <reason>Phase-30 may be executed autonomously only with fake/local KPprotoN adapters and isolated DB tests. Phase-37 live runtime rollout is authorized by the operator's production defect report, but public 443 mutation still requires server-side health and rollback checks.</reason>
+    <reason>Phase-30/38 may be executed autonomously only with fake/private adapters and static smoke. Phase-37/38 live runtime rollout and public routing changes require server-side health, rollback checks, and operator Telegram proof.</reason>
   </autonomous-execution-safety>
   <evidence>
     <evidence-1>2026-05-14: V-M-044 target tests passed locally inside the combined Phase-30 pytest run.</evidence-1>
     <evidence-2>2026-05-14: Phase-33 runtime revoke fix added deterministic test coverage for removing an applied SNI policy.</evidence-2>
     <evidence-3>2026-05-18: Phase-37 added HTTP adapter coverage and live-apply provisioning regression coverage after clean-VPS Telegram Desktop reported the issued proxy as unavailable.</evidence-3>
+    <evidence-4>2026-05-18: Phase-38 verification adds private DE policy API target gates and degraded-safe failure requirements.</evidence-4>
   </evidence>
 </V-M-044>
