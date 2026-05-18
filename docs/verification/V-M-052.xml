@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<V-M-052 MODULE="M-052" PRIORITY="critical" STATUS="planned">
+  <purpose>Verify that the official MTProxy data-plane is reachable through KrotPN public 443 and proves real Telegram protocol availability without leaking secrets.</purpose>
+  <test-files>
+    <file planned="true">backend/tests/test_deploy_phase40_static.py</file>
+    <file planned="true">scripts/phase40-official-mtproxy-live-smoke.sh</file>
+    <file planned="true">official-mtproxy/entrypoint.sh</file>
+    <file planned="true">deploy/haproxy-phase40.cfg</file>
+    <file planned="true">deploy/mtproto-de-compose.yml</file>
+  </test-files>
+  <commands>
+    <command-1>bash -n official-mtproxy/entrypoint.sh scripts/phase40-official-mtproxy-live-smoke.sh deploy/deploy-on-server.sh install.sh</command-1>
+    <command-2>cd backend &amp;&amp; SECRET_KEY=test-secret-key-with-enough-length PYTHONPATH=. ../.venv/bin/python -m pytest -o addopts='' tests/test_deploy_phase40_static.py -v</command-2>
+    <command-3>scripts/phase40-official-mtproxy-live-smoke.sh --redacted --require-req-pq</command-3>
+  </commands>
+  <scenarios>
+    <scenario-1>Launcher builds official mtproto-proxy arguments from active 32-hex secrets and never prints full tg links or raw secrets.</scenario-1>
+    <scenario-2>Runtime stats and health are private or loopback-only and do not expose user secrets.</scenario-2>
+    <scenario-3>RU public 443 routes HTTPS ClientHello for krotpn.xyz to web while non-HTTPS MTProto traffic reaches DE official MTProxy.</scenario-3>
+    <scenario-4>Live req_pq probe through the public KrotPN endpoint succeeds for the issued secure secret.</scenario-4>
+    <scenario-5>Fallback/rollback keeps web HTTPS and admin 8443 available if the official MTProxy route is degraded.</scenario-5>
+  </scenarios>
+  <log-markers>
+    <marker-1>[OfficialMTProxy][launch][REDACTED_ARGS]</marker-1>
+    <marker-2>[OfficialMTProxy][health][PRIVATE_STATS]</marker-2>
+    <marker-3>[Phase40Smoke][req_pq][PASS_REDACTED]</marker-3>
+  </log-markers>
+  <failure-policy>
+    <policy-1>Any req_pq timeout keeps Phase-40 blocked-live.</policy-1>
+    <policy-2>Any raw secret or full proxy link in logs or smoke output fails verification.</policy-2>
+    <policy-3>Any regression in web HTTPS or admin 8443 fails release readiness.</policy-3>
+  </failure-policy>
+</V-M-052>

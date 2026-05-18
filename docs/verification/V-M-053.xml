@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<V-M-053 MODULE="M-053" PRIORITY="critical" STATUS="planned">
+  <purpose>Verify that KrotPN creates, syncs, revokes, and reissues individual official MTProxy secrets safely and idempotently.</purpose>
+  <test-files>
+    <file planned="true">backend/tests/test_mtproxy_secret_sync.py</file>
+    <file planned="true">backend/tests/test_mtproto_provisioning.py</file>
+    <file planned="true">backend/tests/test_mtproto_admin_ops.py</file>
+    <file planned="true">backend/tests/test_scheduler.py</file>
+  </test-files>
+  <commands>
+    <command-1>cd backend &amp;&amp; SECRET_KEY=test-secret-key-with-enough-length DATA_ENCRYPTION_KEY=dpFmfSVqfdAK3yx5MQV6Tcv35RZuw5MzaH0yhxJ01q0= PYTHONPATH=. ../.venv/bin/python -m pytest -o addopts='' tests/test_mtproxy_secret_sync.py tests/test_mtproto_provisioning.py tests/test_mtproto_admin_ops.py tests/test_scheduler.py -v</command-1>
+  </commands>
+  <scenarios>
+    <scenario-1>Verified user receives one canonical official credential mode assignment and owner-only secure link.</scenario-1>
+    <scenario-2>Unverified user receives no MTProxy secret and no runtime apply attempt.</scenario-2>
+    <scenario-3>Active assignments render to a deterministic redacted manifest and apply only when the manifest changes.</scenario-3>
+    <scenario-4>Admin revoke removes exactly one user secret and preserves unrelated active users.</scenario-4>
+    <scenario-5>Admin reissue rotates exactly one user secret, invalidates the old runtime secret, and returns the new owner payload only to the owner.</scenario-5>
+    <scenario-6>Startup replay after backend/runtime restart restores all active assignment secrets.</scenario-6>
+    <scenario-7>Runtime apply failure returns degraded state and retries without blocking normal KrotPN login.</scenario-7>
+  </scenarios>
+  <log-markers>
+    <marker-1>[MTProxySecretSync][derive][FINGERPRINT_ONLY]</marker-1>
+    <marker-2>[MTProxySecretSync][manifest][REDACTED_COUNT]</marker-2>
+    <marker-3>[MTProxySecretSync][revoke][ASSIGNMENT_ONLY]</marker-3>
+    <marker-4>[MTProxySecretSync][reissue][ROTATED_ONE]</marker-4>
+    <marker-5>[MTProxySecretSync][replay][ACTIVE_COUNT]</marker-5>
+  </log-markers>
+  <failure-policy>
+    <policy-1>Any raw secret in admin responses, audit events, logs, or smoke output fails verification.</policy-1>
+    <policy-2>Any revoke/reissue operation affecting more than the target assignment fails verification.</policy-2>
+    <policy-3>Any issuance before email verification fails verification.</policy-3>
+  </failure-policy>
+</V-M-053>

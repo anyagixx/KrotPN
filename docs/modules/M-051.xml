@@ -1,16 +1,17 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <M-051 NAME="mtproto-availability-diagnostics" TYPE="INTEGRATION" STATUS="partial-live">
-  <path>backend/app/mtproto frontend scripts/phase39-mtproto-availability-smoke.mjs scripts/phase39-mtproto-live-smoke.sh docs/plans/Phase-39.xml</path>
-  <owns>Secret-free MTProto availability proof from issued assignment through RU public 443, DE runtime fake-TLS acceptance, Telegram downstream reachability, and user connection UX.</owns>
+  <path>backend/app/mtproto frontend scripts/phase39-mtproto-availability-smoke.mjs scripts/phase39-mtproto-live-smoke.sh scripts/phase40-official-mtproxy-live-smoke.sh docs/plans/Phase-39.xml docs/plans/Phase-40.xml</path>
+  <owns>Secret-free MTProto availability proof from issued assignment through RU public 443, DE runtime acceptance, Telegram downstream reachability, req_pq proof, and user connection UX.</owns>
   <purpose>Close the remaining Telegram proxy unavailable state with deterministic diagnostics, safer user connection flow, and live proof before marking MTProto production-ready.</purpose>
   <exports>
     <phase39-live-smoke>Run an operator-safe issued-assignment availability smoke without printing tokens, proxy links, derived secrets, base secret, or salt.</phase39-live-smoke>
     <fake-tls-path-probe>Generate a Telegram-compatible fake-TLS ClientHello for one active assignment and prove RU-to-DE public route acceptance.</fake-tls-path-probe>
     <telegram-downstream-probe>Verify DE runtime can reach at least one Telegram downstream from bootstrap config or safe static fallback.</telegram-downstream-probe>
+    <req-pq-path-probe planned="true">Verify that a real MTProto req_pq request receives resPQ through the public KrotPN edge.</req-pq-path-probe>
     <owner-link-ux>Prefer a single Telegram open link and full-link copy flow in the user cabinet, with manual fields as secondary fallback.</owner-link-ux>
     <redacted-operator-diagnostics>Expose only masked SNI, assignment id, policy status, route status, and safe failure codes for admin/operator triage.</redacted-operator-diagnostics>
   </exports>
-  <depends>M-012,M-043,M-044,M-045,M-050</depends>
+  <depends>M-012,M-043,M-044,M-045,M-050,M-052,M-053</depends>
   <verification-ref>V-M-051</verification-ref>
   <files>
     <file>scripts/phase39-mtproto-availability-smoke.mjs</file>
@@ -27,23 +28,28 @@
     <finding-2>DE logs showed tls_invalid_digest during operator Telegram Desktop attempts, so the remaining blocker is end-to-end issued-link compatibility, stale client/link handling, or runtime handshake proof rather than basic routing.</finding-2>
     <finding-3>Backend Python derivation and Erlang mtp_fake_tls derivation matched for the issued SNI, and an internal fake-TLS probe received a response through the public RU-to-DE route.</finding-3>
     <finding-4>DE runtime had stale domain-fronting fallback value 127.0.0.1:8443 while Phase-38 contract requires private 9443 fallback.</finding-4>
+    <finding-5>2026-05-19 follow-up diagnostics showed fake-TLS acceptance was insufficient: real req_pq timed out against the KPprotoN/Erlang data-plane.</finding-5>
+    <finding-6>2026-05-19 temporary official MTProxy data-plane passed req_pq for official normal and secure secrets on the same DE host.</finding-6>
   </phase39-findings>
   <constraints>
     <constraint-1>Do not rotate MTPROTO_BASE_SECRET_HEX, MTPROTO_SECRET_SALT, user SNI, assignment ids, or existing tg links unless an explicit reissue phase is approved.</constraint-1>
     <constraint-2>Diagnostics must never print full tg links, derived secrets, base secret, salt, runtime token, wildcard private key, JWTs, or raw .env content.</constraint-2>
     <constraint-3>Deploy/install scripts are not redesigned in this phase; only narrow guards for stale Phase-38 MTProto edge values are allowed.</constraint-3>
     <constraint-4>User cabinet changes must remain compact on mobile and must not hide VPN trial/config actions.</constraint-4>
+    <constraint-5>Fake-TLS accept and downstream reachability do not satisfy production readiness without req_pq or real Telegram client proof.</constraint-5>
   </constraints>
   <acceptance>
     <item-1 status="passed-live">Operator can run one command to prove active assignment, policy apply, public RU route, DE fake-TLS accept, and Telegram downstream reachability with redacted output.</item-1>
     <item-2 status="passed-local">User dashboard provides a primary Telegram connection action that avoids manual secret entry mistakes.</item-2>
     <item-3 status="passed-live">DE runtime no longer preserves stale 8443 domain-fronting fallback after the Phase-39 guard is applied.</item-3>
     <item-4 status="operator-required">Telegram Desktop availability proof is recorded before MTProto edge status is promoted from partial-live.</item-4>
+    <item-5 status="planned-phase-40">Official MTProxy req_pq smoke replaces fake-TLS-only proof as the automated production gate.</item-5>
   </acceptance>
   <execution-evidence>
     <item-1>Local Phase-39 shell syntax, static smoke, backend MTProto regression tests, frontend build, XML parse, and MyGRACE lint passed on 2026-05-18.</item-1>
     <item-2>Redacted live smoke found active assignment id 1, healthy policy_count 2, public RU:443 TCP route, fake-TLS accept, private DE fallback 9443, and reachable Telegram downstream config.</item-2>
     <item-3>The live DE stale fallback value 127.0.0.1:8443 was corrected to 127.0.0.1:9443 without rotating MTProto secrets or assignments.</item-3>
+    <item-4>2026-05-19 client-level diagnostics found req_pq timeout through KPprotoN/Erlang and selected Phase-40 official MTProxy as the closure path.</item-4>
   </execution-evidence>
   <hotspot>H-038: Do not claim MTProto availability from policy health alone; issued-link and Telegram-client proof are required.</hotspot>
 </M-051>

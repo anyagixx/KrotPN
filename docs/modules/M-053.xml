@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<M-053 NAME="mtproxy-secret-sync" TYPE="INTEGRATION" STATUS="planned">
+  <path>backend/app/mtproto backend/app/tasks/scheduler.py backend/tests/test_mtproxy_secret_sync.py docs/plans/Phase-40.xml</path>
+  <owns>Per-user official MTProxy secret lifecycle, active-secret manifest generation, runtime apply/revoke/reissue, startup replay, and redacted sync health.</owns>
+  <purpose>Keep KrotPN assignment state and the official MTProxy runtime secret list aligned without exposing raw secret material outside owner-only payloads.</purpose>
+  <exports>
+    <fn-derive-official-secret>Derive or materialize one 16-byte official MTProxy secret for a verified user's canonical assignment.</fn-derive-official-secret>
+    <fn-build-secure-official-link>Build the owner-only Telegram link with secret=dd&lt;hex-secret&gt;.</fn-build-secure-official-link>
+    <fn-render-secret-manifest>Render active official secrets into an atomic runtime manifest without logging secret values.</fn-render-secret-manifest>
+    <fn-apply-secret-manifest>Apply the manifest to the official runtime and report degraded state when runtime apply fails.</fn-apply-secret-manifest>
+    <fn-revoke-user-secret>Remove exactly one user's active secret from the manifest and runtime after admin revoke.</fn-revoke-user-secret>
+    <fn-reissue-user-secret>Rotate exactly one user's secret and preserve unrelated active assignments.</fn-reissue-user-secret>
+    <task-secret-replay>Replay active assignments after backend, runtime, or restored-server startup.</task-secret-replay>
+  </exports>
+  <depends>M-001,M-008,M-042,M-043,M-052</depends>
+  <verification-ref>V-M-053</verification-ref>
+  <files>
+    <file planned="true">backend/app/mtproto/official_secrets.py</file>
+    <file planned="true">backend/app/mtproto/runtime_bridge.py</file>
+    <file planned="true">backend/app/mtproto/provisioning.py</file>
+    <file planned="true">backend/app/mtproto/repository.py</file>
+    <file planned="true">backend/app/mtproto/schemas.py</file>
+    <file planned="true">backend/app/tasks/scheduler.py</file>
+    <file planned="true">backend/tests/test_mtproxy_secret_sync.py</file>
+    <file planned="true">backend/tests/test_mtproto_provisioning.py</file>
+    <file planned="true">backend/tests/test_mtproto_admin_ops.py</file>
+  </files>
+  <lifecycle-contract>
+    <state-1>create: verified email activation creates a canonical assignment and official credential mode before owner payload is returned.</state-1>
+    <state-2>apply: active assignment secrets are synced to M-052 before the user sees an active proxy status.</state-2>
+    <state-3>replay: backend/runtime startup reconciles all active assignments into the official secret manifest.</state-3>
+    <state-4>revoke: admin revoke removes runtime access for exactly one assignment and records an audit-safe event.</state-4>
+    <state-5>reissue: admin/user-approved rotation creates a new owner payload and removes the old runtime secret.</state-5>
+  </lifecycle-contract>
+  <constraints>
+    <constraint-1>No MTProxy secret is issued before email ownership verification.</constraint-1>
+    <constraint-2>Admin APIs, audit events, health checks, and logs must expose only redacted fingerprints, counts, assignment ids, and statuses.</constraint-2>
+    <constraint-3>Raw secrets may be returned only in the authenticated owner payload needed to configure Telegram.</constraint-3>
+    <constraint-4>Revoke and reissue must be idempotent and must not rotate unrelated users.</constraint-4>
+    <constraint-5>Backup/restore must preserve enough assignment metadata to reproduce or safely reissue user access after relocation.</constraint-5>
+  </constraints>
+  <evidence>
+    <evidence-1>2026-05-19: Phase-40 plan selects official per-user secrets as the access primitive because KPprotoN fake-TLS SNI policy did not pass real client-level req_pq proof.</evidence-1>
+  </evidence>
+  <hotspot>H-040: Per-user MTProxy secret sync must revoke and reissue exactly one user without leaking raw secrets or breaking unrelated active users.</hotspot>
+</M-053>

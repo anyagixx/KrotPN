@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Phase-40 NAME="Official MTProxy data-plane and individual user secrets" STATUS="planned">
+  <intent>
+    Replace the unreliable KPprotoN/Erlang MTProto data-plane with the official Telegram MTProxy runtime while keeping KrotPN as the user, assignment, secret, admin, and deployment control-plane.
+  </intent>
+
+  <scope>
+    <in-scope-1>Official MTProxy runtime on the DE data-plane node.</in-scope-1>
+    <in-scope-2>One individual official MTProxy secret per verified KrotPN user.</in-scope-2>
+    <in-scope-3>Secret-safe KrotPN sync from active assignments into the official runtime.</in-scope-3>
+    <in-scope-4>RU public TCP 443 routing that keeps HTTPS on krotpn.xyz working and sends MTProto traffic to the DE runtime.</in-scope-4>
+    <in-scope-5>Owner-only user cabinet payloads and admin-safe redacted operations.</in-scope-5>
+    <in-scope-6>Live Telegram req_pq verification through the public RU edge.</in-scope-6>
+    <out-of-scope-1>No redesign of the whole installer/deploy workflow beyond Phase-40 MTProxy wiring.</out-of-scope-1>
+    <out-of-scope-2>No exposure of raw proxy links, private keys, runtime tokens, base secrets, or user secrets in logs or admin views.</out-of-scope-2>
+  </scope>
+
+  <driver-findings>
+    <finding-1>Phase-39 proved DNS, RU public 443 reachability, HAProxy routing, DE policy health, fake-TLS acceptance, and Telegram downstream reachability, but real Telegram clients still marked issued links unavailable.</finding-1>
+    <finding-2>A stronger client-level req_pq probe timed out against the KPprotoN/Erlang runtime, so fake-TLS acceptance alone is not a valid production availability proof.</finding-2>
+    <finding-3>A temporary official MTProxy runtime on the same DE host passed req_pq for normal and secure MTProxy secrets, proving the blocker is the current KrotPN data-plane implementation rather than the server network path.</finding-3>
+  </driver-findings>
+
+  <modules>
+    <module-1>M-052 official-mtproxy-data-plane owns the official runtime, redacted launcher, stats/health, and RU-to-DE data-plane routing contract.</module-1>
+    <module-2>M-053 mtproxy-secret-sync owns per-user official secret derivation, manifest rendering, apply/revoke/reissue, and replay after restart or restore.</module-2>
+    <module-3>M-042 preserves restore-safe assignment metadata and adds credential mode/version fields as needed.</module-3>
+    <module-4>M-043 changes provisioning output from fake-TLS SNI-derived links to official secure MTProxy links.</module-4>
+    <module-5>M-045 updates the user cabinet to present one compact official Telegram proxy action.</module-5>
+    <module-6>M-047 keeps admin MTProto operations redacted while targeting official secret lifecycle actions.</module-6>
+    <module-7>M-050 updates the RU edge from issued fake-TLS SNI routing to HTTPS-vs-MTProto TCP classification.</module-7>
+    <module-8>M-051 promotes req_pq-based smoke to the production gate.</module-8>
+    <module-9>M-012 wires the official runtime into the existing deploy surface without broad installer redesign.</module-9>
+  </modules>
+
+  <architecture>
+    <flow-1>Verified email activation creates or reuses one canonical MTProto assignment for the user.</flow-1>
+    <flow-2>KrotPN derives one 16-byte official MTProxy user secret and exposes only the owner payload as secret=dd&lt;hex-secret&gt;.</flow-2>
+    <flow-3>M-053 renders active official secrets into a redacted runtime manifest and applies it to M-052.</flow-3>
+    <flow-4>M-052 launches official mtproto-proxy with one -S argument per active user secret and keeps stats local/private.</flow-4>
+    <flow-5>RU public 443 sends HTTPS ClientHello for krotpn.xyz and admin-safe web names to nginx, while non-HTTPS MTProto traffic is sent to the DE official MTProxy runtime.</flow-5>
+    <flow-6>User links may keep stable user wildcard hostnames, but identity and access are controlled by the official per-user secret, not fake-TLS SNI policy.</flow-6>
+  </architecture>
+
+  <steps>
+    <step-1 STATUS="planned">Create Phase-40 MyGRACE module and verification artifacts for M-052 and M-053.</step-1>
+    <step-2 STATUS="planned">Add official credential mode and deterministic, per-user secret derivation without logging or persisting unnecessary raw secret material.</step-2>
+    <step-3 STATUS="planned">Implement secret sync apply/revoke/reissue/replay semantics with degraded-safe user and admin status.</step-3>
+    <step-4 STATUS="planned">Add official MTProxy runtime compose/launcher that bypasses secret-printing wrapper behavior and accepts the full active secret manifest.</step-4>
+    <step-5 STATUS="planned">Update RU 443 routing so normal HTTPS remains stable and MTProto traffic reaches DE official MTProxy.</step-5>
+    <step-6 STATUS="planned">Update user and admin MTProto API/UX wording and actions for official secure MTProxy links.</step-6>
+    <step-7 STATUS="planned">Add unit/static/smoke tests for secret derivation, manifest redaction, routing contract, and runtime launcher behavior.</step-7>
+    <step-8 STATUS="planned">Add live req_pq smoke through the public RU edge without printing full links or secrets.</step-8>
+    <step-9 STATUS="planned">Run clean local verification, MyGRACE refresh/reviewer, then prepare a test release only after live Telegram Desktop/phone proof passes.</step-9>
+  </steps>
+
+  <acceptance>
+    <item-1>New verified user receives an individual official MTProxy secret and secure Telegram link.</item-1>
+    <item-2>Telegram Desktop and mobile mark the issued proxy available through the public KrotPN domain on port 443.</item-2>
+    <item-3>Automated live req_pq smoke passes through RU public 443 to the DE official runtime.</item-3>
+    <item-4>Web HTTPS, admin 8443, backend API, and existing VPN functions remain available.</item-4>
+    <item-5>Admin revoke removes exactly one user secret from runtime access; reissue rotates exactly one user secret.</item-5>
+    <item-6>No raw user secret, full proxy link, runtime token, private key, or provider secret appears in logs, smoke output, admin tables, or audit records.</item-6>
+  </acceptance>
+
+  <risk-controls>
+    <control-1>Legacy fake-TLS links must be treated as superseded and reissued explicitly; do not silently claim compatibility.</control-1>
+    <control-2>Official Docker wrapper output is not trusted for production because it prints links/secrets; use a redacted launcher around the official binary.</control-2>
+    <control-3>Restart-on-secret-change is acceptable for the first production closure, but the implementation must be idempotent and visible as degraded during apply failure.</control-3>
+    <control-4>Secret manifest size and command-line argument limits must be guarded before scale-out; shard/runtime split is a later phase if needed.</control-4>
+    <control-5>Shared public 443 changes require rollback evidence before release tagging.</control-5>
+  </risk-controls>
+
+  <verification-refs>
+    <verification-1>V-M-052 validates official runtime, redacted launcher, routing, stats, and live req_pq behavior.</verification-1>
+    <verification-2>V-M-053 validates secret derivation, owner-only payloads, manifest sync, revoke, reissue, replay, and redaction.</verification-2>
+  </verification-refs>
+</Phase-40>

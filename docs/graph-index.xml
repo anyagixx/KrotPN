@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!-- MyGRACE Graph Index — lazy-loading entry point for module navigation -->
 <!-- MyGRACE index generated from per-module contracts; archived monoliths are reference-only -->
-<GraphIndex VERSION="1.0.0" PROJECT="KrotPN" MODULE-COUNT="46">
+<GraphIndex VERSION="1.0.0" PROJECT="KrotPN" MODULE-COUNT="48">
   <M-001 NAME="backend-core" TYPE="UTILITY" STATUS="stable" PATH="backend/app/core" DEPENDS="M-028" VERIFICATION-REF="V-M-001" />
   <M-002 NAME="users" TYPE="CORE_LOGIC" STATUS="stable" PATH="backend/app/users" DEPENDS="M-001,M-027" VERIFICATION-REF="V-M-002" />
   <M-003 NAME="vpn" TYPE="CORE_LOGIC" STATUS="stable" PATH="backend/app/vpn" DEPENDS="M-001,M-002,M-007,M-020,M-030" VERIFICATION-REF="V-M-003" />
@@ -13,7 +13,7 @@
   <M-009 NAME="frontend-user" TYPE="UI_COMPONENT" STATUS="stable" PATH="frontend" DEPENDS="M-002,M-003,M-004,M-005,M-022" VERIFICATION-REF="V-M-009" />
   <M-010 NAME="frontend-admin" TYPE="UI_COMPONENT" STATUS="stable" PATH="frontend-admin" DEPENDS="M-006,M-024" VERIFICATION-REF="V-M-010" />
   <M-011 NAME="telegram-bot" TYPE="ENTRY_POINT" STATUS="stable" PATH="telegram-bot" DEPENDS="M-002,M-003,M-004" VERIFICATION-REF="V-M-011" />
-  <M-012 NAME="deploy-surface" TYPE="ENTRY_POINT" STATUS="stable" PATH="deploy install.sh nginx docker-compose.yml scripts/phase36-resend-deploy-smoke.mjs scripts/phase38-de-mtproto-edge-smoke.mjs scripts/phase39-mtproto-availability-smoke.mjs scripts/phase39-mtproto-live-smoke.sh docs/plans/Phase-36.xml docs/plans/Phase-38.xml docs/plans/Phase-39.xml" DEPENDS="M-003,M-007,M-019,M-030,M-050,M-051" VERIFICATION-REF="V-M-012" />
+  <M-012 NAME="deploy-surface" TYPE="ENTRY_POINT" STATUS="stable" PATH="deploy install.sh nginx docker-compose.yml scripts/phase36-resend-deploy-smoke.mjs scripts/phase38-de-mtproto-edge-smoke.mjs scripts/phase39-mtproto-availability-smoke.mjs scripts/phase39-mtproto-live-smoke.sh scripts/phase40-official-mtproxy-live-smoke.sh docs/plans/Phase-36.xml docs/plans/Phase-38.xml docs/plans/Phase-39.xml docs/plans/Phase-40.xml" DEPENDS="M-003,M-007,M-019,M-030,M-050,M-051,M-052,M-053" VERIFICATION-REF="V-M-012" />
   <M-017 NAME="route-sync-runtime" TYPE="INTEGRATION" STATUS="stable" PATH="backend/app/routing/manager.py backend/app/routing/router.py deploy/deploy-on-server.sh" DEPENDS="M-007,M-012" VERIFICATION-REF="V-M-017" />
   <M-018 NAME="manual-access-policy" TYPE="CORE_LOGIC" STATUS="stable" PATH="backend/app/users/service.py backend/app/billing/service.py backend/app/billing/models.py" DEPENDS="M-001,M-002,M-003,M-004" VERIFICATION-REF="V-M-018" />
   <M-019 NAME="manual-client-cli" TYPE="ENTRY_POINT" STATUS="stable" PATH="backend/app/cli.py deploy/create-client.sh" DEPENDS="M-001,M-002,M-003,M-004,M-012,M-018" VERIFICATION-REF="V-M-019" />
@@ -39,15 +39,17 @@
   <M-040 NAME="email-delivery" TYPE="INTEGRATION" STATUS="done-local" PATH="backend/app/email backend/tests/test_email_delivery.py docs/plans/Phase-27.xml docs/plans/Phase-36.xml scripts/phase36-resend-deploy-smoke.mjs" DEPENDS="M-001" VERIFICATION-REF="V-M-040" />
   <M-041 NAME="verified-email-registration" TYPE="CORE_LOGIC" STATUS="done-local" PATH="backend/app/users backend/app/email docs/plans/Phase-27.xml docs/plans/Phase-28.xml docs/plans/Phase-36.xml scripts/phase36-resend-deploy-smoke.mjs" DEPENDS="M-001,M-002,M-004,M-005,M-022,M-027,M-040" VERIFICATION-REF="V-M-041" />
   <M-042 NAME="mtproto-assignment-registry" TYPE="DATA_LAYER" STATUS="done-local" PATH="backend/app/mtproto backend/alembic docs/plans/Phase-29.xml" DEPENDS="M-001,M-002,M-028" VERIFICATION-REF="V-M-042" />
-  <M-043 NAME="mtproto-provisioning" TYPE="CORE_LOGIC" STATUS="done-local" PATH="backend/app/mtproto docs/plans/Phase-29.xml" DEPENDS="M-001,M-002,M-040,M-042" VERIFICATION-REF="V-M-043" />
+  <M-043 NAME="mtproto-provisioning" TYPE="CORE_LOGIC" STATUS="done-local" PATH="backend/app/mtproto docs/plans/Phase-29.xml docs/plans/Phase-40.xml" DEPENDS="M-001,M-002,M-040,M-042" VERIFICATION-REF="V-M-043" />
   <M-044 NAME="kpproton-runtime-bridge" TYPE="INTEGRATION" STATUS="partial-live" PATH="backend/app/mtproto backend/app/tasks/scheduler.py mtproto-runtime docs/plans/Phase-30.xml docs/plans/Phase-37.xml docs/plans/Phase-38.xml" DEPENDS="M-001,M-008,M-012,M-042,M-043,M-049,M-050" VERIFICATION-REF="V-M-044" />
   <M-045 NAME="mtproto-user-cabinet" TYPE="UI_COMPONENT" STATUS="done-local" PATH="frontend backend/app/mtproto backend/app/main.py scripts docs/plans/Phase-31.xml" DEPENDS="M-002,M-009,M-036,M-042,M-043" VERIFICATION-REF="V-M-045" />
   <M-046 NAME="krotpn-domain-tls-edge" TYPE="ENTRY_POINT" STATUS="partial-live" PATH="backend/app/core/config.py nginx docker-compose.yml .env.example mtproto-runtime scripts docs/edge/PHASE-32-CUTOVER.xml docs/plans/Phase-32.xml docs/plans/Phase-37.xml docs/plans/Phase-38.xml" DEPENDS="M-001,M-012,M-044,M-049,M-050" VERIFICATION-REF="V-M-046" />
   <M-047 NAME="mtproto-admin-ops" TYPE="ENTRY_POINT" STATUS="done-local" PATH="backend/app/admin frontend-admin scripts/phase33-mtproto-admin-smoke.mjs docs/plans/Phase-33.xml" DEPENDS="M-006,M-010,M-024,M-042,M-043,M-044" VERIFICATION-REF="V-M-047" />
   <M-048 NAME="installer-wildcard-tls" TYPE="ENTRY_POINT" STATUS="partial-live" PATH="install.sh deploy/deploy-on-server.sh nginx docker-compose.yml .env.example scripts/phase35-installer-wildcard-tls-smoke.mjs scripts/phase36-resend-deploy-smoke.mjs scripts/phase37-mtproto-runtime-smoke.mjs scripts/phase38-de-mtproto-edge-smoke.mjs docs/plans/Phase-35.xml docs/plans/Phase-36.xml docs/plans/Phase-37.xml docs/plans/Phase-38.xml" DEPENDS="M-001,M-012,M-044,M-046,M-049,M-050" VERIFICATION-REF="V-M-048" />
   <M-049 NAME="mtproto-live-edge-runtime" TYPE="INTEGRATION" STATUS="blocked-live" PATH="mtproto-runtime backend/app/mtproto/runtime_bridge.py backend/app/mtproto/provisioning.py nginx/nginx.conf docker-compose.yml deploy/deploy-on-server.sh scripts/phase37-mtproto-runtime-smoke.mjs docs/plans/Phase-37.xml docs/plans/Phase-38.xml" DEPENDS="M-001,M-012,M-043,M-044,M-046,M-048,M-050" VERIFICATION-REF="V-M-049" />
-  <M-050 NAME="mtproto-de-backed-edge" TYPE="INTEGRATION" STATUS="partial-live" PATH="mtproto-runtime nginx docker-compose.yml deploy/deploy-on-server.sh deploy/haproxy-phase38.cfg deploy/mtproto-de-compose.yml backend/app/core/config.py backend/app/mtproto scripts/phase38-de-mtproto-edge-smoke.mjs docs/plans/Phase-38.xml" DEPENDS="M-001,M-012,M-043,M-044,M-046,M-048,M-049" VERIFICATION-REF="V-M-050" />
-  <M-051 NAME="mtproto-availability-diagnostics" TYPE="INTEGRATION" STATUS="partial-live" PATH="backend/app/mtproto frontend scripts/phase39-mtproto-availability-smoke.mjs scripts/phase39-mtproto-live-smoke.sh docs/plans/Phase-39.xml" DEPENDS="M-012,M-043,M-044,M-045,M-050" VERIFICATION-REF="V-M-051" />
+  <M-050 NAME="mtproto-de-backed-edge" TYPE="INTEGRATION" STATUS="partial-live" PATH="mtproto-runtime nginx docker-compose.yml deploy/deploy-on-server.sh deploy/haproxy-phase38.cfg deploy/haproxy-phase40.cfg deploy/mtproto-de-compose.yml backend/app/core/config.py backend/app/mtproto scripts/phase38-de-mtproto-edge-smoke.mjs docs/plans/Phase-38.xml docs/plans/Phase-40.xml" DEPENDS="M-001,M-012,M-043,M-044,M-046,M-048,M-049,M-052" VERIFICATION-REF="V-M-050" />
+  <M-051 NAME="mtproto-availability-diagnostics" TYPE="INTEGRATION" STATUS="partial-live" PATH="backend/app/mtproto frontend scripts/phase39-mtproto-availability-smoke.mjs scripts/phase39-mtproto-live-smoke.sh scripts/phase40-official-mtproxy-live-smoke.sh docs/plans/Phase-39.xml docs/plans/Phase-40.xml" DEPENDS="M-012,M-043,M-044,M-045,M-050,M-052,M-053" VERIFICATION-REF="V-M-051" />
+  <M-052 NAME="official-mtproxy-data-plane" TYPE="INTEGRATION" STATUS="planned" PATH="official-mtproxy deploy docker-compose.yml deploy/deploy-on-server.sh deploy/haproxy-phase40.cfg deploy/mtproto-de-compose.yml scripts/phase40-official-mtproxy-live-smoke.sh docs/plans/Phase-40.xml" DEPENDS="M-001,M-012,M-050,M-051" VERIFICATION-REF="V-M-052" />
+  <M-053 NAME="mtproxy-secret-sync" TYPE="INTEGRATION" STATUS="planned" PATH="backend/app/mtproto backend/app/tasks/scheduler.py backend/tests/test_mtproxy_secret_sync.py docs/plans/Phase-40.xml" DEPENDS="M-001,M-008,M-042,M-043,M-052" VERIFICATION-REF="V-M-053" />
 
   <CrossLinks>
     <link from="M-002" to="M-001" />
@@ -85,6 +87,8 @@
     <link from="M-012" to="M-019" />
     <link from="M-012" to="M-030" />
     <link from="M-012" to="M-051" />
+    <link from="M-012" to="M-052" />
+    <link from="M-012" to="M-053" />
     <link from="M-017" to="M-007" />
     <link from="M-017" to="M-012" />
     <link from="M-018" to="M-001" />
@@ -244,11 +248,23 @@
     <link from="M-050" to="M-046" />
     <link from="M-050" to="M-048" />
     <link from="M-050" to="M-049" />
+    <link from="M-050" to="M-052" />
     <link from="M-051" to="M-012" />
     <link from="M-051" to="M-043" />
     <link from="M-051" to="M-044" />
     <link from="M-051" to="M-045" />
     <link from="M-051" to="M-050" />
+    <link from="M-051" to="M-052" />
+    <link from="M-051" to="M-053" />
+    <link from="M-052" to="M-001" />
+    <link from="M-052" to="M-012" />
+    <link from="M-052" to="M-050" />
+    <link from="M-052" to="M-051" />
+    <link from="M-053" to="M-001" />
+    <link from="M-053" to="M-008" />
+    <link from="M-053" to="M-042" />
+    <link from="M-053" to="M-043" />
+    <link from="M-053" to="M-052" />
   </CrossLinks>
 
   <Hotspots>
@@ -290,5 +306,7 @@
     <H-036 module="M-049" text="MTProto live edge must own public TCP 443, forward normal HTTPS to nginx 8443, and load issued SNI policies without rotating existing secrets" />
     <H-037 module="M-050" text="DE-backed MTProto edge and RU SNI router can break HTTPS or expose policy/cert material unless routing, private API reachability, and redaction gates are strict" />
     <H-038 module="M-051" text="MTProto must not be shown as production-available until issued-link, public route, fake-TLS accept, and Telegram Desktop proof all pass without leaking secrets" />
+    <H-039 module="M-052" text="Official MTProxy runtime must pass req_pq through public 443 and must not print generated links or secrets through default wrapper logs" />
+    <H-040 module="M-053" text="Per-user MTProxy secret sync must revoke and reissue exactly one user without leaking raw secrets or breaking unrelated active users" />
   </Hotspots>
 </GraphIndex>

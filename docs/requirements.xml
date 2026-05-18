@@ -14,7 +14,7 @@
     <actor-TelegramBot>Telegram bot client that mediates auth, config delivery, and subscription status for users</actor-TelegramBot>
     <actor-PaymentProvider>External YooKassa payment system processing subscriptions</actor-PaymentProvider>
     <actor-EmailProvider>External email delivery provider used for verification messages</actor-EmailProvider>
-    <actor-MTProtoRuntime>KPprotoN-derived MTProto runtime responsible for Telegram proxy policy activation</actor-MTProtoRuntime>
+    <actor-MTProtoRuntime>Official MTProxy data-plane plus KrotPN secret-sync control-plane responsible for Telegram proxy activation</actor-MTProtoRuntime>
   </Actors>
 
   <UseCases>
@@ -167,7 +167,7 @@
       <Action>Receives an individual indefinite Telegram MTProto proxy in the KrotPN personal cabinet after email verification</Action>
       <Goal>Give every verified KrotPN account a free personal Telegram proxy while preserving KrotPN trial subscription semantics</Goal>
       <Preconditions>Email ownership is verified; MTProto provisioning settings are valid; wildcard TLS for krotpn.xyz and *.krotpn.xyz is ready before production links are advertised</Preconditions>
-      <AcceptanceCriteria>Each verified user has one canonical personal MTProto assignment with stable SNI, derived per-SNI fake-TLS secret, owner-only tg://proxy visibility, and admin-safe redacted operations. The user dashboard shows proxy details compactly on mobile. HTTP traffic to krotpn.xyz redirects to HTTPS.</AcceptanceCriteria>
+      <AcceptanceCriteria>Each verified user has one canonical personal MTProto assignment with a stable public hostname, individual official MTProxy secret, owner-only tg://proxy visibility, real Telegram req_pq availability proof, and admin-safe redacted operations. The user dashboard shows proxy details compactly on mobile. HTTP traffic to krotpn.xyz redirects to HTTPS.</AcceptanceCriteria>
       <Priority>critical</Priority>
       <RelatedFlows>DF-MTPROTO-ISSUE, DF-MTPROTO-DASHBOARD, DF-MTPROTO-EDGE</RelatedFlows>
     </UC-014>
@@ -191,7 +191,7 @@
     <constraint-6>Existing deploy and install scripts are treated as operator-approved deployment surface and must not be redesigned by the recovery or UI cleanup phases</constraint-6>
     <constraint-7>Emergency recovery artifacts must protect secrets at rest and avoid printing credentials, tokens, private keys, or raw .env content into logs</constraint-7>
     <constraint-8>Email ownership verification is mandatory before issuing trial, VPN, referral, JWT session, or MTProto proxy access</constraint-8>
-    <constraint-9>MTProto fake-TLS and normal HTTPS must share the krotpn.xyz edge safely through wildcard TLS and explicit 443 routing</constraint-9>
+    <constraint-9>Official MTProxy traffic and normal HTTPS must share the krotpn.xyz edge safely through explicit 443 routing that preserves web HTTPS and forwards Telegram MTProto traffic to the official data-plane</constraint-9>
   </Constraints>
 
   <Risks>
@@ -204,7 +204,7 @@
     <risk-7>Disaster recovery can fail silently if backup manifests omit VPN client state, AWG profile data, or runtime secrets</risk-7>
     <risk-8>Mobile UI simplification can hide critical admin/user actions unless workflows are verified on small viewports</risk-8>
     <risk-9>Disposable-email filtering can block real users or miss new temporary domains; email ownership proof remains the decisive control</risk-9>
-    <risk-10>Shared 443 routing for HTTPS and MTProto can break both website access and Telegram proxy if wildcard TLS or fallback routing is misconfigured</risk-10>
+    <risk-10>Shared 443 routing for HTTPS and MTProto can break both website access and Telegram proxy if TLS classification, fallback routing, or official MTProxy secret sync is misconfigured</risk-10>
   </Risks>
 
   <OpenQuestions>
