@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 // FILE: scripts/phase37-mtproto-runtime-smoke.mjs
-// VERSION: 1.2.0
+// VERSION: 1.3.0
 // ROLE: SCRIPT
 // MAP_MODE: LOCALS
 // START_MODULE_CONTRACT
@@ -17,6 +17,7 @@
 // END_MODULE_MAP
 //
 // START_CHANGE_SUMMARY
+//   LAST_CHANGE: v1.3.0 - Guard POLICY_LISTEN_IP-aware bootstrap URL construction.
 //   LAST_CHANGE: v1.2.0 - Updated fallback-port assertions for public admin 8443 and private HTTPS fallback 9443.
 //   LAST_CHANGE: v1.1.0 - Kept Phase-37 runtime artifact checks compatible with Phase-38 DE-backed edge wiring.
 //   LAST_CHANGE: v1.0.0 - Added Phase-37 MTProto runtime bridge static smoke.
@@ -49,6 +50,8 @@ function requireAbsent(file, marker) {
 // START_BLOCK_PHASE37_MTPROTO_RUNTIME_SMOKE
 requireText('mtproto-runtime/rebar.config', 'mtproto_proxy')
 requireText('mtproto-runtime/src/kpproton_app.erl', 'per_sni_secrets, on')
+requireText('mtproto-runtime/src/kpproton_app.erl', 'PolicyListenHost = env_string("POLICY_LISTEN_IP", "127.0.0.1")')
+requireText('mtproto-runtime/src/kpproton_app.erl', 'LocalBootstrapBase = "http://" ++ PolicyListenHost')
 requireText('mtproto-runtime/src/kpproton_web.erl', '/krotpn/mtproto/policy/apply')
 requireText('mtproto-runtime/src/kpproton_core_api.erl', 'STATIC_SECRET_FALLBACK')
 requireText('mtproto-runtime/src/kpproton_core_api.erl', 'BOOTSTRAP_CORE_FETCH_TIMEOUT_SECONDS')

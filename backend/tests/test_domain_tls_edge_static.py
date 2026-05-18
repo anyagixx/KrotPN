@@ -174,6 +174,7 @@ def test_deploy_install_changes_are_phase35_scoped():
         "backend/tests/test_domain_tls_edge_static.py",
         "backend/tests/test_deploy_phase38_static.py",
         "backend/tests/test_mtproto_de_edge_contract.py",
+        "mtproto-runtime/src/kpproton_app.erl",
         "mtproto-runtime/src/kpproton_runtime.erl",
         "mtproto-runtime/src/kpproton_policy_handler.erl",
         "mtproto-runtime/src/kpproton_web.erl",

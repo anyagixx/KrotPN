@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 // FILE: scripts/phase34-mtproto-stabilization-smoke.mjs
-// VERSION: 1.3.0
+// VERSION: 1.3.1
 // ROLE: SCRIPT
 // MAP_MODE: LOCALS
 // START_MODULE_CONTRACT
@@ -19,6 +19,7 @@
 // END_MODULE_MAP
 //
 // START_CHANGE_SUMMARY
+//   LAST_CHANGE: v1.3.1 - Allowed Phase-38 POLICY_LISTEN_IP bootstrap fix in kpproton_app.
 //   LAST_CHANGE: v1.3.0 - Added Phase-38 DE-backed SNI router deploy surface allowances.
 //   LAST_CHANGE: v1.2.0 - Added Phase-37 live MTProto runtime bridge static assertions.
 //   LAST_CHANGE: v1.1.0 - Allowed approved Phase-35 wildcard TLS installer edge/deploy changes.
@@ -129,6 +130,7 @@ const approvedPhase35Surface = new Set([
   'backend/app/mtproto/runtime_bridge.py',
   'backend/app/mtproto/provisioning.py',
   'backend/tests/test_kpproton_runtime_bridge.py',
+  'mtproto-runtime/src/kpproton_app.erl',
   'mtproto-runtime/src/kpproton_runtime.erl',
   'mtproto-runtime/src/kpproton_policy_handler.erl',
   'mtproto-runtime/src/kpproton_web.erl',

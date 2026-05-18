@@ -1,5 +1,5 @@
 %% FILE: src/kpproton_app.erl
-%% VERSION: 1.2.0
+%% VERSION: 1.3.0
 %% START_MODULE_CONTRACT
 %%   PURPOSE: Start the unified KPprotoN OTP application and configure upstream runtime integrations before supervision begins.
 %%   SCOPE: Read env-backed release settings, inject `mtproto_proxy` application config, seed the base domain, and start the top-level supervisor.
@@ -15,6 +15,7 @@
 %% END_MODULE_MAP
 %%
 %% START_CHANGE_SUMMARY
+%%   LAST_CHANGE: v1.3.0 - Build local bootstrap URLs from POLICY_LISTEN_IP so private-bound DE runtimes can start mtproto_proxy.
 %%   LAST_CHANGE: v1.2.0 - Enable per-SNI secret enforcement so the MTProto listener rejects raw-base-secret fake-TLS handshakes.
 %% END_CHANGE_SUMMARY
 
@@ -43,9 +44,10 @@ configure_mtproto_proxy() ->
     SecretSalt = kpproton_runtime:proxy_secret_salt(),
     Tag = env_binary("PROXY_AD_TAG", <<>>),
     Port = env_integer("PROXY_PORT", 443),
-    DomainFronting = env_string("PORTAL_DOMAIN_FRONTING", "127.0.0.1:8443"),
+    DomainFronting = env_string("PORTAL_DOMAIN_FRONTING", "127.0.0.1:9443"),
     PortalPort = env_integer("PORTAL_HTTP_INTERNAL_PORT", 8080),
-    LocalBootstrapBase = "http://127.0.0.1:" ++ integer_to_list(PortalPort) ++ "/bootstrap",
+    PolicyListenHost = env_string("POLICY_LISTEN_IP", "127.0.0.1"),
+    LocalBootstrapBase = "http://" ++ PolicyListenHost ++ ":" ++ integer_to_list(PortalPort) ++ "/bootstrap",
     application:load(mtproto_proxy),
     ok = application:set_env(mtproto_proxy, listen_ip, env_string("PROXY_LISTEN_IP", "0.0.0.0")),
     ok = application:set_env(mtproto_proxy, ports, [

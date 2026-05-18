@@ -47,6 +47,7 @@
     <check-10 evidence="operator-live">RU public HTTPS remains healthy through the SNI router after public 443 ownership changes.</check-10>
     <check-11 evidence="operator-live">DE runtime reaches Telegram upstream and Telegram Desktop marks the issued proxy available.</check-11>
     <check-12 evidence="deterministic">Direct https://krotpn.xyz:8443/login serves the admin frontend, not the user frontend.</check-12>
+    <check-13 evidence="deterministic">DE mtproto_proxy bootstrap endpoints use the configured private POLICY_LISTEN_IP so the proxy listener can start while the policy API remains private.</check-13>
   </module-checks>
   <verification-matrix>
     <gate-1 MODULES="M-050,M-046" EVIDENCE="deterministic">SNI router target map separates web, issued MTProto SNI, and unknown SNI behavior.</gate-1>
@@ -116,5 +117,6 @@
     <evidence-2>2026-05-18: Local verification passed: bash -n install.sh deploy/deploy-on-server.sh; docker compose config with .env.example; node scripts/phase38-de-mtproto-edge-smoke.mjs; backend pytest wave for runtime bridge, provisioning, domain TLS edge, Phase-38 settings, and Phase-38 deploy static tests; rebar3 compile.</evidence-2>
     <evidence-3>Operator-live gates remain open for clean VPS deploy, RU public HTTPS through SNI router, DE runtime listener, private policy API denial from public internet, assignment replay, and Telegram Desktop available status.</evidence-3>
     <evidence-4>2026-05-18: Clean VPS follow-up fixed live regressions by adding HAProxy low-port bind permissions and separating admin 8443 from the SNI-router web fallback on private 9443.</evidence-4>
+    <evidence-5>2026-05-18: DE runtime follow-up fixed mtproto_proxy startup against private policy bind by replacing the hardcoded 127.0.0.1 bootstrap URL with POLICY_LISTEN_IP-derived bootstrap URLs.</evidence-5>
   </evidence>
 </V-M-050>

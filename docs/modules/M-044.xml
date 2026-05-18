@@ -19,6 +19,7 @@
     <file>backend/app/mtproto/provisioning.py</file>
     <file>backend/app/mtproto/health.py</file>
     <file>backend/app/tasks/scheduler.py</file>
+    <file>mtproto-runtime/src/kpproton_app.erl</file>
     <file>mtproto-runtime/src/kpproton_policy_handler.erl</file>
     <file>backend/tests/test_kpproton_runtime_bridge.py</file>
     <file>backend/tests/test_mtproto_de_edge_contract.py</file>
@@ -43,6 +44,7 @@
     <evidence-3>2026-05-18: Phase-37 added HTTPMTProtoPolicyAdapter, provisioning-time live policy apply, token-protected Erlang policy handler, and local regression coverage for live edge policy calls.</evidence-3>
     <evidence-4>2026-05-18: Phase-38 plan keeps the same bridge contract but moves the production policy target from RU-local runtime to the private DE runtime.</evidence-4>
     <evidence-5>2026-05-18: Phase-38 local execution permits private DE policy URLs, rejects public/wildcard policy API targets, and adds HTTP adapter trace markers for apply/health operations.</evidence-5>
+    <evidence-6>2026-05-18: DE live smoke found mtproto_proxy bootstrap still hardcoded to 127.0.0.1 while policy API was privately bound to 172.29.255.1; runtime now builds bootstrap URLs from POLICY_LISTEN_IP.</evidence-6>
   </evidence>
   <hotspot>H-030: MTProto runtime bridge must degrade safely when policy loading fails and must not block normal KrotPN login</hotspot>
 </M-044>

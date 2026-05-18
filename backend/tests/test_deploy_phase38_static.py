@@ -1,7 +1,7 @@
 """Phase-38 deploy surface static verification.
 
 # FILE: backend/tests/test_deploy_phase38_static.py
-# VERSION: 1.1.0
+# VERSION: 1.2.0
 # ROLE: TEST
 # MAP_MODE: LOCALS
 # START_MODULE_CONTRACT
@@ -19,6 +19,7 @@
 # END_MODULE_MAP
 #
 # START_CHANGE_SUMMARY
+#   LAST_CHANGE: v1.2.0 - Guard DE mtproto_proxy bootstrap against private POLICY_LISTEN_IP binding.
 #   LAST_CHANGE: v1.1.0 - Guard low-port HAProxy bind permissions and admin/fallback port separation.
 #   LAST_CHANGE: v1.0.0 - Added Phase-38 static deploy verification.
 # END_CHANGE_SUMMARY
@@ -89,13 +90,17 @@ def test_deploy_wires_de_runtime_and_private_policy_url():
 
 def test_de_runtime_compose_binds_policy_api_privately():
     de_compose = _read("deploy/mtproto-de-compose.yml")
+    app = _read("mtproto-runtime/src/kpproton_app.erl")
     runtime = _read("mtproto-runtime/src/kpproton_web.erl")
     settings = _read("mtproto-runtime/src/kpproton_runtime.erl")
 
     assert "container_name: krotpn-mtproto-de-runtime" in de_compose
     assert "POLICY_LISTEN_IP: ${MTPROTO_POLICY_BIND_IP:-127.0.0.1}" in de_compose
     assert "PROXY_LISTEN_IP: 0.0.0.0" in de_compose
+    assert "PORTAL_DOMAIN_FRONTING: ${DE_MTPROTO_DOMAIN_FRONTING:-127.0.0.1:9443}" in de_compose
     assert "/krotpn/mtproto/policy/health" in de_compose
+    assert 'PolicyListenHost = env_string("POLICY_LISTEN_IP", "127.0.0.1")' in app
+    assert 'LocalBootstrapBase = "http://" ++ PolicyListenHost' in app
     assert "POLICY_LISTEN_IP" in runtime
     assert "{ip, PolicyListenIp}" in runtime
     assert "policy_listen_ip/0" in settings
