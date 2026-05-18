@@ -1,7 +1,7 @@
 """Phase-32 domain TLS edge static verification.
 
 # FILE: backend/tests/test_domain_tls_edge_static.py
-# VERSION: 1.3.0
+# VERSION: 1.4.0
 # ROLE: TEST
 # MAP_MODE: LOCALS
 # START_MODULE_CONTRACT
@@ -14,7 +14,8 @@
 # START_MODULE_MAP
 #   test_settings_defaults_are_canonical_krotpn_xyz - M-001 edge settings contract
 #   test_nginx_forces_canonical_domain_http_to_https - M-046 redirect contract
-#   test_nginx_keeps_https_fallback_and_tls_paths - M-046 HTTPS fallback and TLS path contract
+#   test_nginx_keeps_private_https_fallback_and_tls_paths - M-046 private HTTPS fallback and TLS path contract
+#   test_nginx_exposes_admin_panel_on_public_8443 - M-046 public admin panel port contract
 #   test_env_example_declares_domain_tls_contract - Operator env template contract
 #   test_compose_routes_public_443_to_sni_router - M-012 shared 443 owner guard with Phase-38 RU SNI router
 #   test_deploy_install_changes_are_phase35_scoped - Protected deploy/install guard with approved M-048 exception
@@ -22,6 +23,7 @@
 # END_MODULE_MAP
 #
 # START_CHANGE_SUMMARY
+#   LAST_CHANGE: v1.4.0 - Guard public admin 8443 separately from private SNI-router fallback 9443.
 #   LAST_CHANGE: v1.3.0 - Updated static edge guards for Phase-38 RU SNI router public 443 ownership.
 #   LAST_CHANGE: v1.2.0 - Updated static edge guards for Phase-37 MTProto runtime owning public 443.
 #   LAST_CHANGE: v1.1.0 - Allowed approved Phase-35 installer wildcard TLS surface changes while preserving edge guards
@@ -83,20 +85,35 @@ def test_nginx_forces_canonical_domain_http_to_https():
     assert "return 301 https://krotpn.xyz$request_uri;" in nginx
 
 
-def test_nginx_keeps_https_fallback_and_tls_paths():
+def test_nginx_keeps_private_https_fallback_and_tls_paths():
     nginx = _read("nginx/nginx.conf")
 
     assert "[M-046][edge_contract][DOMAIN_SETTINGS]" in nginx
     assert "[M-046][edge_router][HTTPS_FALLBACK]" in nginx
     assert "[M-046][edge_router][SNI_CLASSIFY]" in nginx
     assert "[M-046][edge_router][MTPROTO_ROUTE]" in nginx
-    assert "listen 8443 ssl;" in nginx
+    assert "listen 127.0.0.1:9443 ssl;" in nginx
     assert "listen 443 ssl;" not in nginx
     assert "server_name krotpn.xyz *.krotpn.xyz;" in nginx
     assert "ssl_certificate /etc/nginx/ssl/server.crt;" in nginx
     assert "ssl_certificate_key /etc/nginx/ssl/server.key;" in nginx
     assert "proxy_set_header X-Forwarded-Proto $scheme;" in nginx
     assert "Strict-Transport-Security" in nginx
+
+
+def test_nginx_exposes_admin_panel_on_public_8443():
+    nginx = _read("nginx/nginx.conf")
+    admin_block = nginx.split("# START_BLOCK_ADMIN_PUBLIC_HTTPS", 1)[1].split(
+        "# END_BLOCK_ADMIN_PUBLIC_HTTPS", 1
+    )[0]
+
+    assert "[M-046][edge_router][ADMIN_PUBLIC_HTTPS]" in nginx
+    assert "listen 8443 ssl default_server;" in admin_block
+    assert "server_name krotpn.xyz www.krotpn.xyz _;" in admin_block
+    assert "location /api/" in admin_block
+    assert "proxy_pass http://backend;" in admin_block
+    assert "location / {" in admin_block
+    assert "proxy_pass http://frontend-admin;" in admin_block
 
 
 def test_env_example_declares_domain_tls_contract():
@@ -110,6 +127,7 @@ def test_env_example_declares_domain_tls_contract():
     assert "EDGE_CANONICAL_HOST=krotpn.xyz" in env_example
     assert "EDGE_TLS_CERTIFICATE_MODE=operator-wildcard" in env_example
     assert "EDGE_SHARED_443_ENABLED=true" in env_example
+    assert "EDGE_HTTPS_FALLBACK_PORT=9443" in env_example
     assert "MTPROTO_RUNTIME_POLICY_URL=http://172.29.255.1:18080/krotpn/mtproto/policy" in env_example
     assert "MTPROTO_RUNTIME_TOKEN=" in env_example
     assert "MTPROTO_POLICY_BIND_IP=172.29.255.1" in env_example
@@ -129,8 +147,10 @@ def test_compose_routes_public_443_to_sni_router():
     assert "profiles:" in compose
     assert "local-mtproto-edge" in compose
     assert "PROXY_PORT: ${MTPROTO_PROXY_PORT:-443}" in compose
-    assert "PORTAL_DOMAIN_FRONTING: 127.0.0.1:${EDGE_HTTPS_FALLBACK_PORT:-8443}" in compose
+    assert "PORTAL_DOMAIN_FRONTING: 127.0.0.1:${EDGE_HTTPS_FALLBACK_PORT:-9443}" in compose
     assert "KROTPN_MTPROTO_POLICY_TOKEN" in compose
+    assert 'user: "0:0"' in compose
+    assert "NET_BIND_SERVICE" in compose
     assert "NGINX_CONF_PATH" in compose
     assert "${NGINX_CONF_PATH:-./nginx/nginx.conf}:/etc/nginx/nginx.conf:ro" in compose
     assert "./ssl:/etc/nginx/ssl:ro" in compose

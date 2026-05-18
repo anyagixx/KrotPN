@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<V-M-012 MODULE="M-012" PRIORITY="critical" STATUS="pass" VERSION="1.3.0">
+<V-M-012 MODULE="M-012" PRIORITY="critical" STATUS="pass" VERSION="1.3.1">
   <module>deploy-surface</module>
   <checks>Deploy and nginx changes do not introduce weak defaults or unsafe routing assumptions. Deploy creates /var/lib/krotpn/ directory for RU IP snapshots. Snapshot directory permissions are correct (root:root, 755). Phase-36 planned deploy changes must enable Resend email provider without logging RESEND_API_KEY. Phase-38 planned deploy changes must wire DE-backed MTProto edge roles without exposing policy tokens or wildcard private keys.</checks>
   <test-files>
@@ -23,7 +23,7 @@
     <marker-3>[M-012][deploy_resend][ABORT_MISSING_KEY]</marker-3>
   </phase-36-observability>
   <phase-38-verification status="pass-local">
-    <check-1 evidence="deterministic">Deploy surface defines RU SNI router, RU nginx fallback, DE MTProto runtime, and private policy API roles without public policy exposure.</check-1>
+    <check-1 evidence="deterministic">Deploy surface defines RU SNI router, private RU nginx fallback on 9443, public admin on 8443, DE MTProto runtime, and private policy API roles without public policy exposure.</check-1>
     <check-2 evidence="deterministic">Phase-38 env wiring preserves existing MTProto base secret and salt on redeploy.</check-2>
     <check-3 evidence="static-redaction">Deploy/install output must not print runtime tokens, wildcard private keys, raw .env values, or full proxy links.</check-3>
     <command-1>bash -n install.sh deploy/deploy-on-server.sh</command-1>
@@ -41,5 +41,6 @@
     <evidence-2>2026-05-17: node scripts/phase36-resend-deploy-smoke.mjs passed with installer/deploy Resend redaction checks.</evidence-2>
     <evidence-3>2026-05-18: Phase-38 verification design adds deploy-surface gates for RU SNI router, DE runtime, private policy API, and redaction-safe TLS/token handling.</evidence-3>
     <evidence-4>2026-05-18: Phase-38 local deploy-surface verification passed for bash syntax, HAProxy SNI router static smoke, DE runtime compose template, private policy URL wiring, and secret preservation guards.</evidence-4>
+    <evidence-5>2026-05-18: Follow-up deploy-surface checks cover HAProxy low-port bind permission and admin 8443 versus private fallback 9443 separation.</evidence-5>
   </evidence>
 </V-M-012>

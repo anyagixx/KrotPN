@@ -1,5 +1,5 @@
 // FILE: scripts/phase32-edge-contract-smoke.mjs
-// VERSION: 1.3.0
+// VERSION: 1.4.0
 // ROLE: SCRIPT
 // MAP_MODE: LOCALS
 // START_MODULE_CONTRACT
@@ -16,6 +16,7 @@
 // END_MODULE_MAP
 //
 // START_CHANGE_SUMMARY
+//   LAST_CHANGE: v1.4.0 - Guard public admin 8443 separately from private SNI-router fallback 9443.
 //   LAST_CHANGE: v1.3.0 - Updated static edge smoke for Phase-38 RU SNI router owning public 443.
 //   LAST_CHANGE: v1.2.0 - Updated static edge smoke for Phase-37 MTProto runtime owning public 443
 //   LAST_CHANGE: v1.1.0 - Allowed approved Phase-35 wildcard TLS installer surface changes
@@ -65,15 +66,18 @@ requireText('nginx/nginx.conf', '[M-046][edge_router][HTTPS_FALLBACK]')
 requireText('nginx/nginx.conf', '[M-046][edge_router][MTPROTO_ROUTE]')
 requireText('nginx/nginx.conf', 'server_name krotpn.xyz www.krotpn.xyz;')
 requireText('nginx/nginx.conf', 'return 301 https://krotpn.xyz$request_uri;')
-requireText('nginx/nginx.conf', 'listen 8443 ssl;')
+requireText('nginx/nginx.conf', 'listen 127.0.0.1:9443 ssl;')
+requireText('nginx/nginx.conf', 'listen 8443 ssl default_server;')
+requireText('nginx/nginx.conf', '[M-046][edge_router][ADMIN_PUBLIC_HTTPS]')
 requireText('nginx/nginx.conf', 'server_name krotpn.xyz *.krotpn.xyz;')
 requireText('docker-compose.yml', 'NGINX_CONF_PATH')
 requireText('docker-compose.yml', '${NGINX_CONF_PATH:-./nginx/nginx.conf}:/etc/nginx/nginx.conf:ro')
 requireText('docker-compose.yml', 'container_name: krotpn-sni-router')
+requireText('docker-compose.yml', 'NET_BIND_SERVICE')
 requireText('docker-compose.yml', 'SNI_ROUTER_CONF_PATH')
 requireText('docker-compose.yml', 'container_name: krotpn-mtproto-edge')
 requireText('docker-compose.yml', 'local-mtproto-edge')
-requireText('docker-compose.yml', 'PORTAL_DOMAIN_FRONTING: 127.0.0.1:${EDGE_HTTPS_FALLBACK_PORT:-8443}')
+requireText('docker-compose.yml', 'PORTAL_DOMAIN_FRONTING: 127.0.0.1:${EDGE_HTTPS_FALLBACK_PORT:-9443}')
 requireText('docker-compose.yml', 'KROTPN_MTPROTO_POLICY_TOKEN')
 
 requireText('.env.example', 'FRONTEND_URL=https://krotpn.xyz')

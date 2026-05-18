@@ -1,7 +1,7 @@
 """Phase-38 deploy surface static verification.
 
 # FILE: backend/tests/test_deploy_phase38_static.py
-# VERSION: 1.0.0
+# VERSION: 1.1.0
 # ROLE: TEST
 # MAP_MODE: LOCALS
 # START_MODULE_CONTRACT
@@ -13,12 +13,13 @@
 #
 # START_MODULE_MAP
 #   test_haproxy_routes_web_and_mtproto_sni - Verifies public TCP 443 SNI routing contract.
-#   test_compose_has_single_default_public_443_owner - Verifies sni-router owns 443 and local edge is profiled.
+#   test_compose_has_single_default_public_443_owner - Verifies sni-router owns 443 with bind permissions and local edge is profiled.
 #   test_deploy_wires_de_runtime_and_private_policy_url - Verifies deploy-generated Phase-38 env and DE runtime startup.
 #   test_de_runtime_compose_binds_policy_api_privately - Verifies DE runtime policy API bind and health path.
 # END_MODULE_MAP
 #
 # START_CHANGE_SUMMARY
+#   LAST_CHANGE: v1.1.0 - Guard low-port HAProxy bind permissions and admin/fallback port separation.
 #   LAST_CHANGE: v1.0.0 - Added Phase-38 static deploy verification.
 # END_CHANGE_SUMMARY
 """
@@ -45,8 +46,8 @@ def test_haproxy_routes_web_and_mtproto_sni():
     assert "[M-050][ru_sni_router][ROUTE_UNKNOWN_SNI]" in haproxy
     assert "acl sni_web req.ssl_sni -i krotpn.xyz www.krotpn.xyz" in haproxy
     assert r"^u-[0-9a-f]{12}\.krotpn\.xyz$" in haproxy
-    assert "server ru_nginx_8443 127.0.0.1:8443 check" in haproxy
-    assert "server de_mtproto_443 127.0.0.1:9443 check" in haproxy
+    assert "server ru_nginx_9443 127.0.0.1:9443 check" in haproxy
+    assert "server de_mtproto_443 127.0.0.1:19443 check" in haproxy
     assert "default_backend web_https_fallback" in haproxy
 
 
@@ -55,6 +56,8 @@ def test_compose_has_single_default_public_443_owner():
 
     assert "container_name: krotpn-sni-router" in compose
     assert "haproxy:2.9-alpine" in compose
+    assert 'user: "0:0"' in compose
+    assert "NET_BIND_SERVICE" in compose
     assert "SNI_ROUTER_CONF_PATH" in compose
     assert "container_name: krotpn-mtproto-edge" in compose
     assert "profiles:" in compose
@@ -74,7 +77,9 @@ def test_deploy_wires_de_runtime_and_private_policy_url():
     )
     assert "EDGE_MTPROTO_MODE=${EDGE_MTPROTO_MODE}" in deploy
     assert "EDGE_MTPROTO_DE_TARGET_HOST=${EDGE_MTPROTO_DE_TARGET_HOST}" in deploy
+    assert "EDGE_HTTPS_FALLBACK_PORT=9443" in deploy
     assert "SNI_ROUTER_CONF_PATH=./deploy/haproxy.runtime.cfg" in deploy
+    assert "127\\\\.0\\\\.0\\\\.1:19443" in deploy
     assert "ufw allow proto tcp from '${RU_IP}' to any port '${EDGE_MTPROTO_DE_TARGET_PORT}'" in deploy
     assert "[M-050][de_policy_api][DENY_PUBLIC]" in deploy
     assert "generate_or_preserve_secret MTPROTO_BASE_SECRET_HEX" in deploy

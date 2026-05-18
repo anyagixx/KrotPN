@@ -1,9 +1,9 @@
 #!/bin/bash
 #
-# KrotPN Server Deployment Script v3.3.0 (Full Tunnel)
+# KrotPN Server Deployment Script v3.3.1 (Full Tunnel)
 # Run this script ON the RU server
 # FILE: deploy/deploy-on-server.sh
-# VERSION: 3.3.0
+# VERSION: 3.3.1
 # ROLE: SCRIPT
 # MAP_MODE: LOCALS
 # START_MODULE_CONTRACT
@@ -25,6 +25,7 @@
 # END_MODULE_MAP
 #
 # START_CHANGE_SUMMARY
+#   LAST_CHANGE: v3.3.1 - Keep public admin 8443 separate from private Phase-38 web fallback on 9443.
 #   LAST_CHANGE: v3.3.0 - Added Phase-38 DE MTProto runtime deployment and RU HAProxy SNI-router wiring.
 #   LAST_CHANGE: v3.2.0 - Enable MTProto shared-443 runtime sidecar and backend policy bridge token wiring.
 #   LAST_CHANGE: v3.1.3 - Enable Resend email provider env wiring and fail closed when the API key is missing.
@@ -310,11 +311,11 @@ render_nginx_domain_config() {
     chmod 644 "$runtime_conf"
     echo -e "${GREEN}[M-048][deploy_tls][ENV_WIRING] nginx runtime config ready: ${runtime_conf}${NC}"
 
-    echo -e "${BLUE}[M-050][ru_sni_router][ROUTE_WEB] Rendering RU SNI router web fallback for ${PUBLIC_DOMAIN}:443 -> 127.0.0.1:8443${NC}"
+    echo -e "${BLUE}[M-050][ru_sni_router][ROUTE_WEB] Rendering RU SNI router web fallback for ${PUBLIC_DOMAIN}:443 -> 127.0.0.1:9443${NC}"
     echo -e "${BLUE}[M-050][ru_sni_router][ROUTE_MTPROTO] Rendering RU SNI router MTProto target ${mtproto_de_target}${NC}"
     cp "$router_source_conf" "$router_runtime_conf"
     sed -i "s/krotpn.xyz/${PUBLIC_DOMAIN}/g" "$router_runtime_conf"
-    sed -i "s/127\\.0\\.0\\.1:9443/${mtproto_de_target}/g" "$router_runtime_conf"
+    sed -i "s/127\\.0\\.0\\.1:19443/${mtproto_de_target}/g" "$router_runtime_conf"
     chmod 644 "$router_runtime_conf"
     echo -e "${GREEN}[M-050][ru_sni_router][ROUTE_UNKNOWN_SNI] Unknown SNI fallback remains RU nginx HTTPS fallback${NC}"
 }
@@ -378,7 +379,7 @@ MTPROTO_RUNTIME_TOKEN=${MTPROTO_RUNTIME_TOKEN}
 MTPROTO_POLICY_PORT=${MTPROTO_POLICY_PORT}
 MTPROTO_POLICY_BIND_IP=${MTPROTO_POLICY_BIND_IP}
 MTPROTO_POLICY_TLS_PORT=18443
-DE_MTPROTO_DOMAIN_FRONTING=127.0.0.1:8443
+DE_MTPROTO_DOMAIN_FRONTING=127.0.0.1:9443
 EOF
 
     ssh_de "ufw allow proto tcp from '${RU_IP}' to any port '${EDGE_MTPROTO_DE_TARGET_PORT}' >/dev/null 2>&1 || true"
@@ -1119,7 +1120,7 @@ EDGE_TLS_CERTIFICATE_PATH=/etc/nginx/ssl/server.crt
 EDGE_TLS_CERTIFICATE_KEY_PATH=/etc/nginx/ssl/server.key
 EDGE_TLS_CERTIFICATE_MODE=${TLS_CERTIFICATE_MODE}
 EDGE_SHARED_443_ENABLED=true
-EDGE_HTTPS_FALLBACK_PORT=8443
+EDGE_HTTPS_FALLBACK_PORT=9443
 EDGE_MTPROTO_MODE=${EDGE_MTPROTO_MODE}
 EDGE_MTPROTO_DE_TARGET_HOST=${EDGE_MTPROTO_DE_TARGET_HOST}
 EDGE_MTPROTO_DE_TARGET_PORT=${EDGE_MTPROTO_DE_TARGET_PORT}

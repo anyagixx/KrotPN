@@ -40,5 +40,6 @@
     <evidence-3>2026-05-17: Phase-36 added redacted Resend deploy config handoff and /opt/KrotPN/.env generation for EMAIL_PROVIDER=resend.</evidence-3>
     <evidence-4>2026-05-18: Phase-38 plan adds DE-backed MTProto edge deployment as the next step after RU-only mtproto_proxy live blocking.</evidence-4>
     <evidence-5>2026-05-18: Phase-38 local deploy surface now renders HAProxy SNI router config, starts a DE runtime from deploy/mtproto-de-compose.yml, binds policy API to the relay address, and preserves MTProto base secret/salt/runtime token on redeploy.</evidence-5>
+    <evidence-6>2026-05-18: Clean deploy follow-up keeps public admin 8443 separate from private web fallback 9443 and grants the HAProxy SNI router explicit permission to bind public 443.</evidence-6>
   </evidence>
 </M-012>

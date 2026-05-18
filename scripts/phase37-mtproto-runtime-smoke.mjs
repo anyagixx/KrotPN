@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 // FILE: scripts/phase37-mtproto-runtime-smoke.mjs
-// VERSION: 1.1.0
+// VERSION: 1.2.0
 // ROLE: SCRIPT
 // MAP_MODE: LOCALS
 // START_MODULE_CONTRACT
@@ -17,6 +17,7 @@
 // END_MODULE_MAP
 //
 // START_CHANGE_SUMMARY
+//   LAST_CHANGE: v1.2.0 - Updated fallback-port assertions for public admin 8443 and private HTTPS fallback 9443.
 //   LAST_CHANGE: v1.1.0 - Kept Phase-37 runtime artifact checks compatible with Phase-38 DE-backed edge wiring.
 //   LAST_CHANGE: v1.0.0 - Added Phase-37 MTProto runtime bridge static smoke.
 // END_CHANGE_SUMMARY
@@ -65,8 +66,10 @@ requireText('docker-compose.yml', 'profiles:')
 requireText('docker-compose.yml', 'local-mtproto-edge')
 requireText('docker-compose.yml', 'container_name: krotpn-sni-router')
 requireText('docker-compose.yml', 'PROXY_PORT: ${MTPROTO_PROXY_PORT:-443}')
-requireText('docker-compose.yml', 'PORTAL_DOMAIN_FRONTING: 127.0.0.1:${EDGE_HTTPS_FALLBACK_PORT:-8443}')
-requireText('nginx/nginx.conf', 'listen 8443 ssl;')
+requireText('docker-compose.yml', 'PORTAL_DOMAIN_FRONTING: 127.0.0.1:${EDGE_HTTPS_FALLBACK_PORT:-9443}')
+requireText('nginx/nginx.conf', 'listen 127.0.0.1:9443 ssl;')
+requireText('nginx/nginx.conf', 'listen 8443 ssl default_server;')
+requireText('nginx/nginx.conf', '[M-046][edge_router][ADMIN_PUBLIC_HTTPS]')
 requireAbsent('nginx/nginx.conf', 'listen 443 ssl;')
 
 requireText('deploy/deploy-on-server.sh', 'generate_or_preserve_secret MTPROTO_RUNTIME_TOKEN')

@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 // FILE: scripts/phase38-de-mtproto-edge-smoke.mjs
-// VERSION: 1.0.0
+// VERSION: 1.1.0
 // ROLE: SCRIPT
 // MAP_MODE: LOCALS
 // START_MODULE_CONTRACT
@@ -17,6 +17,7 @@
 // END_MODULE_MAP
 //
 // START_CHANGE_SUMMARY
+//   LAST_CHANGE: v1.1.0 - Guard HAProxy low-port bind permissions and private fallback port 9443.
 //   LAST_CHANGE: v1.0.0 - Added Phase-38 DE-backed MTProto edge static smoke.
 // END_CHANGE_SUMMARY
 
@@ -51,11 +52,13 @@ requireText('deploy/haproxy-phase38.cfg', '[M-050][ru_sni_router][ROUTE_MTPROTO]
 requireText('deploy/haproxy-phase38.cfg', '[M-050][ru_sni_router][ROUTE_UNKNOWN_SNI]')
 requireText('deploy/haproxy-phase38.cfg', 'acl sni_web req.ssl_sni -i krotpn.xyz www.krotpn.xyz')
 requireText('deploy/haproxy-phase38.cfg', '^u-[0-9a-f]{12}\\.krotpn\\.xyz$')
-requireText('deploy/haproxy-phase38.cfg', 'server ru_nginx_8443 127.0.0.1:8443 check')
-requireText('deploy/haproxy-phase38.cfg', 'server de_mtproto_443 127.0.0.1:9443 check')
+requireText('deploy/haproxy-phase38.cfg', 'server ru_nginx_9443 127.0.0.1:9443 check')
+requireText('deploy/haproxy-phase38.cfg', 'server de_mtproto_443 127.0.0.1:19443 check')
 
 requireText('docker-compose.yml', 'container_name: krotpn-sni-router')
 requireText('docker-compose.yml', 'haproxy:2.9-alpine')
+requireText('docker-compose.yml', 'user: "0:0"')
+requireText('docker-compose.yml', 'NET_BIND_SERVICE')
 requireText('docker-compose.yml', 'SNI_ROUTER_CONF_PATH')
 requireText('docker-compose.yml', 'profiles:')
 requireText('docker-compose.yml', 'local-mtproto-edge')
@@ -80,6 +83,8 @@ requireText('deploy/deploy-on-server.sh', 'render_nginx_domain_config')
 requireText('deploy/deploy-on-server.sh', 'deploy_de_mtproto_runtime')
 requireText('deploy/deploy-on-server.sh', 'MTPROTO_POLICY_BIND_IP="${MTPROTO_POLICY_BIND_IP:-$VPN_RELAY_DE_ADDRESS}"')
 requireText('deploy/deploy-on-server.sh', 'MTPROTO_RUNTIME_POLICY_URL=http://${MTPROTO_POLICY_BIND_IP}:${MTPROTO_POLICY_PORT}/krotpn/mtproto/policy')
+requireText('deploy/deploy-on-server.sh', 'EDGE_HTTPS_FALLBACK_PORT=9443')
+requireText('deploy/deploy-on-server.sh', '127\\\\.0\\\\.0\\\\.1:19443')
 requireText('deploy/deploy-on-server.sh', 'SNI_ROUTER_CONF_PATH=./deploy/haproxy.runtime.cfg')
 requireText('deploy/deploy-on-server.sh', '[M-050][de_policy_api][DENY_PUBLIC]')
 requireText('deploy/deploy-on-server.sh', '[M-050][de_policy_api][HEALTH]')
@@ -88,6 +93,7 @@ requireText('deploy/deploy-on-server.sh', 'generate_or_preserve_secret MTPROTO_S
 
 requireText('.env.example', 'MTPROTO_RUNTIME_POLICY_URL=http://172.29.255.1:18080/krotpn/mtproto/policy')
 requireText('.env.example', 'MTPROTO_POLICY_BIND_IP=172.29.255.1')
+requireText('.env.example', 'EDGE_HTTPS_FALLBACK_PORT=9443')
 requireText('.env.example', 'EDGE_MTPROTO_MODE=de-backed')
 requireText('.env.example', 'EDGE_MTPROTO_DE_TARGET_HOST=203.0.113.10')
 requireText('.env.example', 'SNI_ROUTER_CONF_PATH=./deploy/haproxy-phase38.cfg')

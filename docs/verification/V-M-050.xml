@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<V-M-050 MODULE="M-050" PRIORITY="critical" STATUS="partial-local" VERSION="1.2.0">
+<V-M-050 MODULE="M-050" PRIORITY="critical" STATUS="partial-local" VERSION="1.2.1">
   <module>mtproto-de-backed-edge</module>
   <phase-scope>
     <phase-38 status="partial-local">DE-hosted MTProto runtime plus RU public TCP 443 SNI router implemented locally; live VPS and Telegram Desktop proof remain operator-required.</phase-38>
@@ -35,8 +35,8 @@
     <phase-level>Operator-live evidence on RU and DE proves HTTPS, private policy health, assignment replay, DE Telegram upstream reachability, and Telegram Desktop availability.</phase-level>
   </verification-levels>
   <module-checks>
-    <check-1 evidence="deterministic">RU public TCP 443 has exactly one configured owner: the SNI router.</check-1>
-    <check-2 evidence="deterministic">Web SNI names krotpn.xyz and www.krotpn.xyz route to RU nginx HTTPS fallback on 8443.</check-2>
+    <check-1 evidence="deterministic">RU public TCP 443 has exactly one configured owner, the SNI router, and the compose service grants explicit low-port bind permission.</check-1>
+    <check-2 evidence="deterministic">Web SNI names krotpn.xyz and www.krotpn.xyz route to private RU nginx HTTPS fallback on 9443.</check-2>
     <check-3 evidence="deterministic">Issued MTProto wildcard SNI names route to the DE MTProto runtime target and unknown SNI has an explicit safe fallback or reject behavior.</check-3>
     <check-4 evidence="deterministic">DE runtime env contains non-empty base secret, salt, runtime token, TLS paths, policy bind address, and proxy port values.</check-4>
     <check-5 evidence="deterministic">Backend bridge uses a private DE policy API URL with bearer token auth and redacts token, base secret, salt, derived secret, and full tg link material.</check-5>
@@ -46,6 +46,7 @@
     <check-9 evidence="trace">Required route and policy log markers exist for web route, MTProto route, DE runtime start, DE policy health, policy apply, and degraded apply failure.</check-9>
     <check-10 evidence="operator-live">RU public HTTPS remains healthy through the SNI router after public 443 ownership changes.</check-10>
     <check-11 evidence="operator-live">DE runtime reaches Telegram upstream and Telegram Desktop marks the issued proxy available.</check-11>
+    <check-12 evidence="deterministic">Direct https://krotpn.xyz:8443/login serves the admin frontend, not the user frontend.</check-12>
   </module-checks>
   <verification-matrix>
     <gate-1 MODULES="M-050,M-046" EVIDENCE="deterministic">SNI router target map separates web, issued MTProto SNI, and unknown SNI behavior.</gate-1>
@@ -56,7 +57,7 @@
     <gate-6 MODULES="M-050" EVIDENCE="operator-live">Telegram Desktop marks an existing issued user proxy available through the DE runtime route.</gate-6>
   </verification-matrix>
   <scenarios>
-    <scenario-1 kind="success">Browser request for krotpn.xyz routes from RU public 443 to RU nginx 8443 and returns a healthy HTTPS page.</scenario-1>
+    <scenario-1 kind="success">Browser request for krotpn.xyz routes from RU public 443 to private RU nginx 9443 and returns a healthy HTTPS page.</scenario-1>
     <scenario-2 kind="success">Telegram request for an issued user SNI routes from RU public 443 to DE MTProto runtime and becomes available in Telegram Desktop.</scenario-2>
     <scenario-3 kind="success">Backend startup replay loads all active assignment policies into the DE runtime after backend, runtime, or server restart.</scenario-3>
     <scenario-4 kind="success">Admin health shows a redacted DE-backed runtime state with aggregate counts only.</scenario-4>
@@ -90,7 +91,7 @@
     <metric-5>phase38_rollback_trigger_count tagged by safe failure code.</metric-5>
   </telemetry-requirements>
   <live-smoke-gates>
-    <gate-1>RU ss output shows public TCP 443 owned by the SNI router and nginx HTTPS fallback on 8443.</gate-1>
+    <gate-1>RU ss output shows public TCP 443 owned by the SNI router, nginx private HTTPS fallback on 9443, and public admin TLS on 8443.</gate-1>
     <gate-2>DE ss output shows MTProto runtime listening on its configured target port.</gate-2>
     <gate-3>RU backend policy health succeeds to DE over the private path with the runtime token.</gate-3>
     <gate-4>Public internet cannot access the DE policy API.</gate-4>
@@ -114,5 +115,6 @@
     <evidence-1>2026-05-18: Local Phase-38 execution added HAProxy RU SNI router, default compose public-443 owner, DE runtime compose template, private POLICY_LISTEN_IP runtime bind, private DE policy URL validation, deploy-time DE runtime rollout, and secret-preserving .env generation.</evidence-1>
     <evidence-2>2026-05-18: Local verification passed: bash -n install.sh deploy/deploy-on-server.sh; docker compose config with .env.example; node scripts/phase38-de-mtproto-edge-smoke.mjs; backend pytest wave for runtime bridge, provisioning, domain TLS edge, Phase-38 settings, and Phase-38 deploy static tests; rebar3 compile.</evidence-2>
     <evidence-3>Operator-live gates remain open for clean VPS deploy, RU public HTTPS through SNI router, DE runtime listener, private policy API denial from public internet, assignment replay, and Telegram Desktop available status.</evidence-3>
+    <evidence-4>2026-05-18: Clean VPS follow-up fixed live regressions by adding HAProxy low-port bind permissions and separating admin 8443 from the SNI-router web fallback on private 9443.</evidence-4>
   </evidence>
 </V-M-050>

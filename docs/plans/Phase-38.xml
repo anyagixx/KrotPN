@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Phase-38 NAME="DE-backed MTProto Edge and RU SNI Router" STATUS="partial-local" VERSION="1.1.0">
+<Phase-38 NAME="DE-backed MTProto Edge and RU SNI Router" STATUS="partial-local" VERSION="1.1.1">
   <Goal>Replace the blocked RU-only MTProto shared-443 runtime with a DE-hosted MTProto runtime and an RU public TCP 443 SNI router that preserves HTTPS while routing issued Telegram proxy SNI to DE.</Goal>
   <Modules>M-050,M-049,M-044,M-046,M-048,M-012,M-043</Modules>
   <OperatorProblem>
@@ -20,7 +20,7 @@
     <item-4>No automatic Lets Encrypt issuance; the operator-provided wildcard TLS model remains in force.</item-4>
   </NonGoals>
   <DataFlow>
-    <flow-1>Browser HTTPS to krotpn.xyz:443 reaches the RU SNI router and routes to local nginx fallback on 127.0.0.1:8443.</flow-1>
+    <flow-1>Browser HTTPS to krotpn.xyz:443 reaches the RU SNI router and routes to local private nginx fallback on 127.0.0.1:9443 while direct krotpn.xyz:8443 stays the admin panel.</flow-1>
     <flow-2>Telegram fake-TLS to u-*.krotpn.xyz:443 reaches the RU SNI router and routes to the DE MTProto runtime.</flow-2>
     <flow-3>Backend provisioning reuses the existing assignment and sends apply/revoke/health to the DE policy API over the private RU-DE path.</flow-3>
     <flow-4>Startup or scheduler replay sends all active assignment SNI policies to the DE runtime after deploy, restart, or restore.</flow-4>
@@ -66,7 +66,7 @@
     <item-2>DE runtime has Telegram upstream reachability and serves the issued fake-TLS MTProto policy.</item-2>
     <item-3>Backend apply/revoke/health works against the private DE policy API and fails degraded, not silently active, when unavailable.</item-3>
     <item-4>Existing user dashboard MTProto links remain stable unless explicit reissue is requested.</item-4>
-    <item-5>HTTPS, API, admin, registration email, and VPN surfaces remain unaffected by the MTProto edge change.</item-5>
+    <item-5>HTTPS, API, admin on https://krotpn.xyz:8443/login, registration email, and VPN surfaces remain unaffected by the MTProto edge change.</item-5>
     <item-6>Telegram Desktop marks the issued proxy available in operator-live smoke.</item-6>
   </AcceptanceCriteria>
   <Risks>
@@ -83,5 +83,6 @@
     <evidence-1>2026-05-18: Added HAProxy RU SNI-router template, docker-compose sni-router service, profiled local mtproto-edge, DE runtime compose template, private POLICY_LISTEN_IP runtime bind, private DE policy URL Settings validation, deploy-time DE runtime startup, and Phase-38 static/backend tests.</evidence-1>
     <evidence-2>2026-05-18: Local verification passed: bash syntax, docker compose config with .env.example, rebar3 compile, Phase-32/34/35/36/37/38 smoke scripts, and Phase-38 backend pytest wave.</evidence-2>
     <evidence-3>Operator-live proof remains required for clean VPS deploy, public HTTPS through RU SNI router, private DE policy health, active assignment replay, and Telegram Desktop availability.</evidence-3>
+    <evidence-4>2026-05-18: Follow-up clean deploy fix separated public admin 8443 from private web fallback 9443 and granted HAProxy explicit low-port bind permission for public 443.</evidence-4>
   </Evidence>
 </Phase-38>

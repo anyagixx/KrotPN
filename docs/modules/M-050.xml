@@ -30,7 +30,7 @@
   </files>
   <edge-policy>
     <policy-1>RU public TCP 443 has exactly one owner: the SNI router.</policy-1>
-    <policy-2>RU web SNI names such as krotpn.xyz and www.krotpn.xyz route to local nginx HTTPS fallback on 8443.</policy-2>
+    <policy-2>RU web SNI names such as krotpn.xyz and www.krotpn.xyz route to local private nginx HTTPS fallback on 9443.</policy-2>
     <policy-3>Issued MTProto SNI names under the configured wildcard domain route to the DE MTProto runtime.</policy-3>
     <policy-4>DE policy API binds privately and requires the existing runtime token or a deploy-generated replacement that is never logged.</policy-4>
     <policy-5>Existing assignment secrets, salts, SNI names, and tg links must be preserved unless an explicit reissue phase is approved.</policy-5>
@@ -50,6 +50,7 @@
     <evidence-1>2026-05-18: Phase-37 local runtime wiring exists, but RU live mtproto_proxy downstream handshakes remain blocked and nginx public 443 rollback keeps web available.</evidence-1>
     <evidence-2>2026-05-18: Phase-38 planning selects DE-backed MTProto runtime plus RU SNI router as the safer production architecture.</evidence-2>
     <evidence-3>2026-05-18: Phase-38 local execution added RU HAProxy SNI router, DE runtime compose/deploy wiring, private policy bind, backend private policy URL guards, secret-preserving deploy env generation, and deterministic smoke/pytest coverage.</evidence-3>
+    <evidence-4>2026-05-18: Clean VPS deploy found HAProxy lacked low-port bind permission for 443 and the admin 8443 URL collided with the web fallback; fixed by running sni-router with NET_BIND_SERVICE/root and moving web fallback to private 9443 while preserving admin 8443.</evidence-4>
   </evidence>
   <hotspot>H-037: DE-backed MTProto edge and RU SNI router can break HTTPS or expose policy/cert material unless routing, private API reachability, and redaction gates are strict.</hotspot>
 </M-050>
