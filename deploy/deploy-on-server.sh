@@ -1,16 +1,16 @@
 #!/bin/bash
 #
-# KrotPN Server Deployment Script v3.3.1 (Full Tunnel)
+# KrotPN Server Deployment Script v3.3.2 (Full Tunnel)
 # Run this script ON the RU server
 # FILE: deploy/deploy-on-server.sh
-# VERSION: 3.3.1
+# VERSION: 3.3.2
 # ROLE: SCRIPT
 # MAP_MODE: LOCALS
 # START_MODULE_CONTRACT
-#   PURPOSE: Provision the RU entry host, DE exit host, application runtime, Phase-35 operator wildcard TLS edge material, Phase-36 Resend email provider env, and Phase-38 DE-backed MTProto edge.
-#   SCOPE: Host prerequisites, AmneziaWG tunnel setup, app env generation, TLS certificate validation/install, Resend config validation, nginx fallback/SNI-router rendering, DE MTProto runtime deployment, private policy API wiring, and Docker Compose startup.
-#   DEPENDS: M-012, M-030, M-032, M-040, M-041, M-044, M-046, M-048, M-050
-#   LINKS: docs/modules/M-012.xml, docs/modules/M-040.xml, docs/modules/M-041.xml, docs/modules/M-044.xml, docs/modules/M-046.xml, docs/modules/M-048.xml, docs/modules/M-050.xml, docs/plans/Phase-35.xml, docs/plans/Phase-36.xml, docs/plans/Phase-38.xml, docs/verification/V-M-048.xml, docs/verification/V-M-050.xml
+#   PURPOSE: Provision the RU entry host, DE exit host, application runtime, Phase-35 operator wildcard TLS edge material, Phase-36 Resend email provider env, Phase-38 DE-backed MTProto edge, and Phase-39 MTProto availability guard.
+#   SCOPE: Host prerequisites, AmneziaWG tunnel setup, app env generation, TLS certificate validation/install, Resend config validation, nginx fallback/SNI-router rendering, DE MTProto runtime deployment, private policy API wiring, stale DE fallback normalization, and Docker Compose startup.
+#   DEPENDS: M-012, M-030, M-032, M-040, M-041, M-044, M-046, M-048, M-050, M-051
+#   LINKS: docs/modules/M-012.xml, docs/modules/M-040.xml, docs/modules/M-041.xml, docs/modules/M-044.xml, docs/modules/M-046.xml, docs/modules/M-048.xml, docs/modules/M-050.xml, docs/modules/M-051.xml, docs/plans/Phase-35.xml, docs/plans/Phase-36.xml, docs/plans/Phase-38.xml, docs/plans/Phase-39.xml, docs/verification/V-M-048.xml, docs/verification/V-M-050.xml, docs/verification/V-M-051.xml
 # END_MODULE_CONTRACT
 #
 # START_MODULE_MAP
@@ -21,10 +21,12 @@
 #   generate_self_signed_dev_certificate - Explicit dev/test fallback, blocked for production unless selected.
 #   validate_resend_email_config - Validate Resend API key, URL, and sender without printing secrets.
 #   render_nginx_domain_config - Render ignored runtime nginx fallback and HAProxy SNI-router configs for the selected domain/DE target.
+#   normalize_de_mtproto_domain_fronting - Force stale DE domain-fronting fallback to the Phase-38/39 private 9443 target.
 #   deploy_de_mtproto_runtime - Copy runtime artifacts, TLS material, and redacted env to DE and start the private policy runtime.
 # END_MODULE_MAP
 #
 # START_CHANGE_SUMMARY
+#   LAST_CHANGE: v3.3.2 - Normalize stale DE MTProto domain-fronting fallback to 127.0.0.1:9443 during deploy.
 #   LAST_CHANGE: v3.3.1 - Keep public admin 8443 separate from private Phase-38 web fallback on 9443.
 #   LAST_CHANGE: v3.3.0 - Added Phase-38 DE MTProto runtime deployment and RU HAProxy SNI-router wiring.
 #   LAST_CHANGE: v3.2.0 - Enable MTProto shared-443 runtime sidecar and backend policy bridge token wiring.
@@ -352,6 +354,15 @@ generate_or_preserve_secret() {
     python3 -c "$generator"
 }
 
+normalize_de_mtproto_domain_fronting() {
+    local de_app_dir="$1"
+
+    echo -e "${BLUE}[M-051][de_mtproto_runtime][NORMALIZE_DOMAIN_FRONTING] Ensuring DE fallback targets private 9443...${NC}"
+    ssh_de "if [ -f '${de_app_dir}/.env' ]; then sed -i -E 's|^DE_MTPROTO_DOMAIN_FRONTING=127[.]0[.]0[.]1:8443$|DE_MTPROTO_DOMAIN_FRONTING=127.0.0.1:9443|' '${de_app_dir}/.env'; fi"
+    ssh_de "grep -qx 'DE_MTPROTO_DOMAIN_FRONTING=127.0.0.1:9443' '${de_app_dir}/.env'"
+    echo -e "${GREEN}[M-050][de_mtproto_runtime][FALLBACK_PORT_GUARD] DE fallback uses 127.0.0.1:9443${NC}"
+}
+
 deploy_de_mtproto_runtime() {
     local de_app_dir="/opt/krotpn-mtproto"
     local runtime_tar="/tmp/krotpn-mtproto-runtime.tgz"
@@ -381,6 +392,8 @@ MTPROTO_POLICY_BIND_IP=${MTPROTO_POLICY_BIND_IP}
 MTPROTO_POLICY_TLS_PORT=18443
 DE_MTPROTO_DOMAIN_FRONTING=127.0.0.1:9443
 EOF
+
+    normalize_de_mtproto_domain_fronting "$de_app_dir"
 
     ssh_de "ufw allow proto tcp from '${RU_IP}' to any port '${EDGE_MTPROTO_DE_TARGET_PORT}' >/dev/null 2>&1 || true"
     ssh_de "ufw allow in on awg0 proto tcp from '${VPN_RELAY_RU_ADDRESS}' to any port '${MTPROTO_POLICY_PORT}' >/dev/null 2>&1 || true"

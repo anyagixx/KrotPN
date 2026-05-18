@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Phase-39 NAME="MTProto Telegram Availability Closure" STATUS="planned" VERSION="1.0.0">
+<Phase-39 NAME="MTProto Telegram Availability Closure" STATUS="partial-live" VERSION="1.1.0">
   <Goal>Close the remaining Telegram Desktop unavailable state by proving the full issued-link path, fixing stale DE runtime fallback config, and improving the user connection flow without rotating existing MTProto secrets or redesigning deployment scripts.</Goal>
   <Modules>M-051,M-045,M-050,M-044,M-043,M-012</Modules>
   <OperatorProblem>
@@ -28,14 +28,14 @@
     <flow-5>Operator diagnostics correlate assignment, policy, route, fake-TLS accept, and downstream status using redacted identifiers only.</flow-5>
   </DataFlow>
   <Steps>
-    <step-1 STATUS="planned">Create M-051 and V-M-051 as the availability closure contract for Phase-39.</step-1>
-    <step-2 STATUS="planned">Add a secret-free local/static availability smoke for link format, route contract, redaction, and stale DE fallback config guards.</step-2>
-    <step-3 STATUS="planned">Add an operator-live smoke that checks one active assignment end-to-end: DB assignment, policy health/count, RU HAProxy route, DE fake-TLS accept, and Telegram downstream reachability.</step-3>
-    <step-4 STATUS="planned">Fix DE runtime stale fallback handling so DE_MTPROTO_DOMAIN_FRONTING converges to 127.0.0.1:9443 during deploy without redesigning deploy/install scripts.</step-4>
-    <step-5 STATUS="planned">Improve user cabinet MTProto connection UX: primary Telegram open action, full-link copy, compact secondary manual fields, and clearer degraded/pending states.</step-5>
-    <step-6 STATUS="planned">Add redacted admin/operator diagnostics for masked SNI, policy apply state, fake-TLS path status, downstream status, and safe failure codes.</step-6>
-    <step-7 STATUS="planned">Run local verification: XML parse, MyGRACE lint, backend MTProto tests, frontend build, and Phase-39 static smoke.</step-7>
-    <step-8 STATUS="operator-live">Apply the narrow fix to RU/DE, run Phase-39 live smoke, then have the operator retest Telegram Desktop using the refreshed primary Telegram action.</step-8>
+    <step-1 STATUS="done">Create M-051 and V-M-051 as the availability closure contract for Phase-39.</step-1>
+    <step-2 STATUS="done-local">Add a secret-free local/static availability smoke for link format, route contract, redaction, and stale DE fallback config guards.</step-2>
+    <step-3 STATUS="done-live">Add an operator-live smoke that checks one active assignment end-to-end: DB assignment, policy health/count, RU HAProxy route, DE fake-TLS accept, and Telegram downstream reachability.</step-3>
+    <step-4 STATUS="done-live">Fix DE runtime stale fallback handling so DE_MTPROTO_DOMAIN_FRONTING converges to 127.0.0.1:9443 during deploy without redesigning deploy/install scripts.</step-4>
+    <step-5 STATUS="done-local">Improve user cabinet MTProto connection UX: primary Telegram open action, full-link copy, compact secondary manual fields, and clearer degraded/pending states.</step-5>
+    <step-6 STATUS="done-live">Add redacted admin/operator diagnostics for masked SNI, policy apply state, fake-TLS path status, downstream status, and safe failure codes.</step-6>
+    <step-7 STATUS="done-local">Run local verification: XML parse, MyGRACE lint, backend MTProto tests, frontend build, and Phase-39 static smoke.</step-7>
+    <step-8 STATUS="partial-live">Apply the narrow fix to RU/DE, run Phase-39 live smoke, then have the operator retest Telegram Desktop using the refreshed primary Telegram action.</step-8>
     <step-9 STATUS="operator-live">Record Telegram Desktop available proof and update Phase-38/Phase-39 live status only after the client-level proof passes.</step-9>
   </Steps>
   <Verification>
@@ -63,4 +63,9 @@
     <safe-local>Docs, static smoke, backend fake/private-adapter tests, frontend build, XML parse, and MyGRACE lint.</safe-local>
     <requires-operator>Live RU/DE smoke, server-side deploy application, and Telegram Desktop availability proof.</requires-operator>
   </AutonomousExecutionSafety>
+  <ExecutionEvidence>
+    <item-1>Local checks passed on 2026-05-18: bash syntax, Phase-39 static smoke, 34 backend MTProto regression tests, frontend build, XML parse, and MyGRACE lint.</item-1>
+    <item-2>Redacted live smoke passed after applying the fallback guard: active assignment found, policy healthy with non-zero policy_count, RU public 443 reachable, fake-TLS response validated, DE fallback target private_9443, and Telegram downstream reachable.</item-2>
+    <item-3>Final Telegram Desktop available proof remains operator-live and must use the refreshed primary Telegram action in the user cabinet.</item-3>
+  </ExecutionEvidence>
 </Phase-39>

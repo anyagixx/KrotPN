@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<M-051 NAME="mtproto-availability-diagnostics" TYPE="INTEGRATION" STATUS="planned">
+<M-051 NAME="mtproto-availability-diagnostics" TYPE="INTEGRATION" STATUS="partial-live">
   <path>backend/app/mtproto frontend scripts/phase39-mtproto-availability-smoke.mjs scripts/phase39-mtproto-live-smoke.sh docs/plans/Phase-39.xml</path>
   <owns>Secret-free MTProto availability proof from issued assignment through RU public 443, DE runtime fake-TLS acceptance, Telegram downstream reachability, and user connection UX.</owns>
   <purpose>Close the remaining Telegram proxy unavailable state with deterministic diagnostics, safer user connection flow, and live proof before marking MTProto production-ready.</purpose>
@@ -13,9 +13,9 @@
   <depends>M-012,M-043,M-044,M-045,M-050</depends>
   <verification-ref>V-M-051</verification-ref>
   <files>
-    <file planned="true">scripts/phase39-mtproto-availability-smoke.mjs</file>
-    <file planned="true">scripts/phase39-mtproto-live-smoke.sh</file>
-    <file planned="true">backend/tests/test_mtproto_availability_diagnostics.py</file>
+    <file>scripts/phase39-mtproto-availability-smoke.mjs</file>
+    <file>scripts/phase39-mtproto-live-smoke.sh</file>
+    <file>backend/tests/test_mtproto_availability_diagnostics.py</file>
     <file planned="true">backend/tests/test_mtproto_api.py</file>
     <file planned="true">frontend/src/pages/Dashboard.tsx</file>
     <file planned="true">frontend/src/lib/api.ts</file>
@@ -35,10 +35,15 @@
     <constraint-4>User cabinet changes must remain compact on mobile and must not hide VPN trial/config actions.</constraint-4>
   </constraints>
   <acceptance>
-    <item-1>Operator can run one command to prove active assignment, policy apply, public RU route, DE fake-TLS accept, and Telegram downstream reachability with redacted output.</item-1>
-    <item-2>User dashboard provides a primary Telegram connection action that avoids manual secret entry mistakes.</item-2>
-    <item-3>DE runtime no longer preserves stale 8443 domain-fronting fallback after deploy.</item-3>
-    <item-4>Telegram Desktop availability proof is recorded before MTProto edge status is promoted from partial-live.</item-4>
+    <item-1 status="passed-live">Operator can run one command to prove active assignment, policy apply, public RU route, DE fake-TLS accept, and Telegram downstream reachability with redacted output.</item-1>
+    <item-2 status="passed-local">User dashboard provides a primary Telegram connection action that avoids manual secret entry mistakes.</item-2>
+    <item-3 status="passed-live">DE runtime no longer preserves stale 8443 domain-fronting fallback after the Phase-39 guard is applied.</item-3>
+    <item-4 status="operator-required">Telegram Desktop availability proof is recorded before MTProto edge status is promoted from partial-live.</item-4>
   </acceptance>
+  <execution-evidence>
+    <item-1>Local Phase-39 shell syntax, static smoke, backend MTProto regression tests, frontend build, XML parse, and MyGRACE lint passed on 2026-05-18.</item-1>
+    <item-2>Redacted live smoke found active assignment id 1, healthy policy_count 2, public RU:443 TCP route, fake-TLS accept, private DE fallback 9443, and reachable Telegram downstream config.</item-2>
+    <item-3>The live DE stale fallback value 127.0.0.1:8443 was corrected to 127.0.0.1:9443 without rotating MTProto secrets or assignments.</item-3>
+  </execution-evidence>
   <hotspot>H-038: Do not claim MTProto availability from policy health alone; issued-link and Telegram-client proof are required.</hotspot>
 </M-051>

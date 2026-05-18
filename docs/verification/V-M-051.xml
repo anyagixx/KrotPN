@@ -1,14 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<V-M-051 MODULE="M-051" PRIORITY="critical" STATUS="verification-designed" VERSION="1.1.0">
+<V-M-051 MODULE="M-051" PRIORITY="critical" STATUS="partial-live" VERSION="1.2.0">
   <module>mtproto-availability-diagnostics</module>
   <phase-scope>
-    <phase-39 status="planned">Close the remaining issued Telegram proxy unavailable state with redacted local/static and operator-live evidence.</phase-39>
+    <phase-39 status="partial-live">Close the remaining issued Telegram proxy unavailable state with redacted local/static and operator-live evidence.</phase-39>
     <supersedes>M-050 remains the edge-routing module; M-051 adds the missing availability proof layer above routing and policy health.</supersedes>
   </phase-scope>
   <test-files>
-    <file planned="true">scripts/phase39-mtproto-availability-smoke.mjs</file>
-    <file planned="true">scripts/phase39-mtproto-live-smoke.sh</file>
-    <file planned="true">backend/tests/test_mtproto_availability_diagnostics.py</file>
+    <file>scripts/phase39-mtproto-availability-smoke.mjs</file>
+    <file>scripts/phase39-mtproto-live-smoke.sh</file>
+    <file>backend/tests/test_mtproto_availability_diagnostics.py</file>
     <file>backend/tests/test_mtproto_provisioning.py</file>
     <file>backend/tests/test_kpproton_runtime_bridge.py</file>
     <file>backend/tests/test_mtproto_api.py</file>
@@ -21,6 +21,7 @@
     <command-1>bash -n install.sh deploy/deploy-on-server.sh</command-1>
     <command-2>node scripts/phase39-mtproto-availability-smoke.mjs</command-2>
     <command-3>bash scripts/phase39-mtproto-live-smoke.sh --redacted</command-3>
+    <command-3b>bash scripts/phase39-mtproto-live-smoke.sh --redacted --apply-fallback-guard</command-3b>
     <command-4>cd backend &amp;&amp; SECRET_KEY=test-secret-key-with-enough-length DATA_ENCRYPTION_KEY=dpFmfSVqfdAK3yx5MQV6Tcv35RZuw5MzaH0yhxJ01q0= PYTHONPATH=. ../.venv/bin/python -m pytest -o addopts='' tests/test_mtproto_provisioning.py tests/test_kpproton_runtime_bridge.py tests/test_mtproto_api.py tests/test_mtproto_de_edge_contract.py tests/test_deploy_phase38_static.py tests/test_mtproto_availability_diagnostics.py -v</command-4>
     <command-5>cd frontend &amp;&amp; npm run build</command-5>
     <command-6>python3 -m xml.etree.ElementTree docs/graph-index.xml docs/plan-index.xml docs/verification-index.xml docs/modules/M-051.xml docs/plans/Phase-39.xml docs/verification/V-M-051.xml &amp;&amp; mygrace lint</command-6>
@@ -35,9 +36,9 @@
     <check-2 evidence="deterministic">Generated owner link supports the primary Telegram connection action and full-link copy flow.</check-2>
     <check-3 evidence="deterministic">DE runtime fallback guard rejects stale 127.0.0.1:8443 for Phase-39 and expects private 9443 fallback.</check-3>
     <check-4 evidence="security">Phase-39 diagnostics redact tg links, derived secrets, base secret, salt, runtime token, private keys, JWTs, and raw .env content.</check-4>
-    <check-5 evidence="operator-live">One active assignment is present, active, policy-applied, and counted in DE policy health.</check-5>
-    <check-6 evidence="operator-live">Fake-TLS probe receives a response through public RU 443 to DE runtime using the issued assignment derivation.</check-6>
-    <check-7 evidence="operator-live">DE runtime can reach at least one Telegram downstream target or emits a separate downstream failure code.</check-7>
+    <check-5 evidence="operator-live" status="passed">One active assignment is present, active, policy-applied, and counted in DE policy health.</check-5>
+    <check-6 evidence="operator-live" status="passed">Fake-TLS probe receives a response through public RU 443 to DE runtime using the issued assignment derivation.</check-6>
+    <check-7 evidence="operator-live" status="passed">DE runtime can reach at least one Telegram downstream target or emits a separate downstream failure code.</check-7>
     <check-8 evidence="operator-live">Telegram Desktop marks the issued proxy available using the refreshed primary connection action.</check-8>
   </module-checks>
   <verification-matrix>
@@ -78,13 +79,18 @@
     <metric-6>phase39_desktop_proof_status tagged operator_available, operator_unavailable, not_run, or stale_client_state.</metric-6>
   </telemetry-requirements>
   <live-smoke-gates>
-    <gate-1>RU backend can identify exactly one active assignment for the selected test user.</gate-1>
-    <gate-2>DE policy health succeeds privately and policy_count is non-zero.</gate-2>
-    <gate-3>RU HAProxy routes issued SNI traffic to the DE backend.</gate-3>
-    <gate-4>Fake-TLS probe receives a server response through public RU 443.</gate-4>
-    <gate-5>DE reaches at least one Telegram downstream target.</gate-5>
+    <gate-1 status="passed">RU backend can identify exactly one active assignment for the selected test user.</gate-1>
+    <gate-2 status="passed">DE policy health succeeds privately and policy_count is non-zero.</gate-2>
+    <gate-3 status="passed">RU HAProxy routes issued SNI traffic to the DE backend.</gate-3>
+    <gate-4 status="passed">Fake-TLS probe receives a server response through public RU 443.</gate-4>
+    <gate-5 status="passed">DE reaches at least one Telegram downstream target.</gate-5>
     <gate-6>Operator Telegram Desktop proof reports available.</gate-6>
   </live-smoke-gates>
+  <execution-evidence>
+    <item-1>Local verification passed on 2026-05-18: shell syntax, static Phase-39 smoke, backend MTProto regression tests including availability diagnostics, frontend build, XML parse, and MyGRACE lint.</item-1>
+    <item-2>Redacted live smoke initially detected live DE fallback status=stale_8443, then --apply-fallback-guard corrected it and rerun passed with status=ok target=private_9443.</item-2>
+    <item-3>Redacted live smoke passed with active assignment id 1, masked SNI only, policy_count non-zero, public RU 443 TCP connect, validated fake-TLS server response, and reachable Telegram downstream config.</item-3>
+  </execution-evidence>
   <failure-handoff>
     <item-1>If route fails, inspect RU HAProxy SNI match and wildcard DNS before changing secrets.</item-1>
     <item-2>If fake-TLS accept fails, compare redacted derivation fingerprints and user link source before rotating anything.</item-2>

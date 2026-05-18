@@ -1,21 +1,23 @@
 // FILE: frontend/src/pages/Dashboard.tsx
-// VERSION: 1.1.0
+// VERSION: 1.2.0
 // ROLE: UI_COMPONENT
 // MAP_MODE: SUMMARY
 // START_MODULE_CONTRACT
 //   PURPOSE: Compact mobile-first dashboard showing VPN status, config action, subscription, MTProto proxy, traffic, and device summary
 //   SCOPE: Mobile home workflow, primary config/subscription CTA, MTProto owner actions, active device summary, compact traffic and connection facts
-//   DEPENDS: M-009 (frontend-user), M-002 (auth API), M-003 (vpn stats API), M-004 (billing API), M-022 (device API), M-036 (mobile-user-cabinet), M-045 (mtproto-user-cabinet)
-//   LINKS: M-009 (frontend-user), M-036 (mobile-user-cabinet), M-045
+//   DEPENDS: M-009 (frontend-user), M-002 (auth API), M-003 (vpn stats API), M-004 (billing API), M-022 (device API), M-036 (mobile-user-cabinet), M-045 (mtproto-user-cabinet), M-051 (mtproto-availability-diagnostics)
+//   LINKS: M-009 (frontend-user), M-036 (mobile-user-cabinet), M-045, M-051
 // END_MODULE_CONTRACT
 //
 // START_MODULE_MAP
 //   DashboardPage - Compact dashboard component with mobile-first primary actions, MTProto owner card, and device summary
+//   buildMtprotoTelegramWebLink - Builds the primary https://t.me/proxy action link from the owner payload
 //   BLOCK_DASHBOARD_PAGE - DashboardPage default export with VPN, subscription, MTProto, config, and device surfaces
 //   default - React component (default export)
 // END_MODULE_MAP
 //
 // START_CHANGE_SUMMARY
+//   LAST_CHANGE: v3.1.0 - Added Phase-39 primary Telegram web-link action and full-link copy flow
 //   LAST_CHANGE: v3.0.0 - Added Phase-31 compact MTProto proxy owner card
 //   LAST_CHANGE: v2.8.0 - Added full GRACE MODULE_CONTRACT and MODULE_MAP per GRACE governance protocol
 //   LAST_CHANGE: v2.9.0 - Reworked dashboard into compact Phase-23 mobile home workflow
@@ -51,6 +53,7 @@ import Loading from '../components/Loading'
 
 const MTPROTO_CARD_RENDER_MARKER = '[M-045][dashboard_mtproto_card][CARD_RENDER]'
 const MTPROTO_COPY_ACTION_MARKER = '[M-045][dashboard_mtproto_card][COPY_ACTION]'
+const MTPROTO_OPEN_TELEGRAM_MARKER = '[M-045][dashboard_mtproto_card][OPEN_TELEGRAM]'
 
 type MTProtoCopyField = 'link' | 'server' | 'port' | 'secret'
 
@@ -79,6 +82,17 @@ function mtprotoStatusClass(payload?: MTProtoProxyResponse, isLoading?: boolean,
   if (isError || payload?.status === 'degraded' || payload?.status === 'reissue_required') return 'status-badge-error w-fit'
   if (payload?.status === 'activated') return 'status-badge-success w-fit'
   return 'status-badge-warning w-fit'
+}
+
+function buildMtprotoTelegramWebLink(payload?: MTProtoProxyResponse) {
+  if (!hasOwnerProxy(payload)) return null
+
+  const params = new URLSearchParams({
+    server: payload.server,
+    port: String(payload.port),
+    secret: payload.secret,
+  })
+  return `https://t.me/proxy?${params.toString()}`
 }
 
 export default function Dashboard() {
@@ -137,6 +151,7 @@ export default function Dashboard() {
   const deviceLimit = devicesData?.data?.device_limit || 0
   const lastHandshake = stats?.last_handshake_at ? new Date(stats.last_handshake_at).toLocaleString('ru-RU') : 'Нет данных'
   const mtprotoReady = hasOwnerProxy(mtproto)
+  const mtprotoTelegramWebLink = buildMtprotoTelegramWebLink(mtproto)
 
   const handleMtprotoCopy = async (field: MTProtoCopyField, value?: string | number | null) => {
     if (value === null || value === undefined || value === '') {
@@ -255,15 +270,18 @@ export default function Dashboard() {
 
             <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-5">
               <a
-                href={mtproto.tg_link}
+                href={mtprotoTelegramWebLink || mtproto.tg_link}
                 className="btn-primary min-h-10 min-w-0 rounded-lg px-2 py-2 text-sm"
                 aria-label="Open MTProto proxy in Telegram"
                 title="Open MTProto proxy in Telegram"
+                target="_blank"
+                rel="noreferrer"
+                onClick={() => console.info(MTPROTO_OPEN_TELEGRAM_MARKER, { field: 'telegram_web_link' })}
               >
                 <ExternalLink className="h-4 w-4" />
                 <span className="truncate">Telegram</span>
               </a>
-              {renderMtprotoCopyButton('link', 'Link', mtproto.tg_link)}
+              {renderMtprotoCopyButton('link', 'Full link', mtprotoTelegramWebLink || mtproto.tg_link)}
               {renderMtprotoCopyButton('server', 'Server', mtproto.server)}
               {renderMtprotoCopyButton('port', 'Port', mtproto.port)}
               {renderMtprotoCopyButton('secret', 'Secret', mtproto.secret)}

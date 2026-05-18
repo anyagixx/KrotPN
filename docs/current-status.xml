@@ -51,6 +51,7 @@
     <item>Phase-36 Resend deploy email-provider wiring passed local execution on 2026-05-17: install.sh now asks for a redacted Resend API key and noreply@krotpn.xyz sender, deploy writes EMAIL_PROVIDER=resend/RESEND_API_KEY/RESEND_API_URL/EMAIL_FROM into .env, and local smoke verifies request shape, provider_disabled regression guards, and secret redaction. Live mailbox proof remains operator-blocked until Resend domain verification completes.</item>
     <item>Phase-37 live MTProto shared-443 fix is implemented locally on 2026-05-18: mtproto-runtime is added as a host-network edge service, backend has a token-protected HTTP policy adapter, provisioning applies SNI policy before returning active payloads, nginx HTTPS fallback moves to 8443, deploy generates runtime policy-token/env wiring, and deploy persists Telegram upstream routes through awg-client.</item>
     <item>Phase-38 DE-backed MTProto edge is partial-live on 2026-05-18: RU public 443 is HAProxy SNI router, HTTPS reaches private RU nginx fallback on 9443, public admin remains on 8443, DE runtime listens on 443, private policy health is OK, and HAProxy reports the DE MTProto backend UP. Telegram Desktop proof remains operator-required.</item>
+    <item>Phase-39 MTProto availability closure is partial-live on 2026-05-18: local/static smoke, 34 backend MTProto regression tests, frontend build, XML parse, and MyGRACE lint passed; redacted live smoke proved active assignment, healthy policy_count, public RU:443 route, validated fake-TLS accept, private DE fallback 9443, and reachable Telegram downstream. Telegram Desktop proof remains operator-required.</item>
   </what-is-working>
 
   <what-is-fragile>
@@ -63,8 +64,9 @@
     <item>Phase-32 shared 443 production smoke remains blocked until DNS, trusted wildcard TLS material, and an operator rollback window are available.</item>
     <item>Phase-35 clean VPS wildcard TLS deploy smoke remains operator-live until prepared fullchain1.pem/privkey1.pem files are present on the RU server and public HTTPS is verified.</item>
     <item>Phase-36 live Resend mailbox smoke remains pending until the Resend API key is available and krotpn.xyz/noreply@krotpn.xyz verification is complete in Resend.</item>
-    <item>Phase-37 live Telegram availability proof is blocked-live: RU mtproto-edge policy API starts, but mtproto_proxy still fails downstream Telegram handshakes after scoped routes via awg-client; nginx public 443 was restored on RU to keep the web product available while the MTProto edge remains unavailable.</item>
+    <item>Phase-37 RU-local MTProto edge remains superseded by Phase-38/39 DE-backed edge work; use Phase-39 evidence for current Telegram availability triage instead of the earlier RU-local downstream blocker.</item>
     <item>Phase-38 is partial-live: RU public web, direct admin 8443, DE runtime listener, private policy health, and RU-to-DE HAProxy reachability are verified on VPS; assignment replay and Telegram Desktop available status remain pending.</item>
+    <item>Phase-39 is partial-live: automated redacted proof now passes through fake-TLS accept and Telegram downstream reachability, but final MTProto production readiness still requires the operator to verify Telegram Desktop marks the refreshed proxy link as available.</item>
     <item>Emergency relocation is documented but still blocked until a trusted backup bundle and isolated restore target exist for dry-run evidence.</item>
     <item>Cookie-only auth migration is planned but not executed because it requires explicit approval and HTTPS or production-like smoke evidence.</item>
   </what-is-fragile>
@@ -142,10 +144,13 @@
     <gate id="phase-38-de-backed-mtproto-edge" status="partial-live">
       <summary>Live RU/DE edge proof passed for public HTTPS, admin 8443, DE listener 443, private policy health, and HAProxy DE backend UP; assignment replay and Telegram Desktop proof remain operator-live.</summary>
     </gate>
+    <gate id="phase-39-mtproto-availability-closure" status="partial-live">
+      <summary>Local and redacted live smoke passed for issued assignment, policy health, RU public 443, fake-TLS accept, DE fallback 9443, and Telegram downstream reachability; Telegram Desktop available proof remains operator-live.</summary>
+    </gate>
   </rollout-gates>
 
   <immediate-priorities>
-    <priority rank="1">Finish Phase-38 live proof by retesting an issued Telegram Desktop MTProto proxy and confirming active assignment replay after backend/runtime restart.</priority>
+    <priority rank="1">Finish Phase-39 by retesting the issued Telegram Desktop MTProto proxy through the refreshed primary Telegram action in the user cabinet and recording available/unavailable proof.</priority>
     <priority rank="2">Complete Phase-36 live Resend mailbox smoke after the operator provides the Resend API key and confirms krotpn.xyz/noreply@krotpn.xyz verification in Resend.</priority>
     <priority rank="3">Fix Phase-28 refresh findings: V-M-004 billing route/API tests and V-M-022 VPN compatibility route tests currently return 404 in their full per-module gates.</priority>
     <priority rank="4">Complete remaining Phase-32/Phase-34/Phase-35 live edge smoke after Phase-38 public 443 routing is stable, trusted wildcard TLS is installed, an issued MTProto SNI is available, and an operator rollback window is available.</priority>

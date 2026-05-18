@@ -5,7 +5,7 @@
   <purpose>Show every verified user their free indefinite MTProto proxy alongside KrotPN trial and VPN actions in the mobile cabinet.</purpose>
   <exports>
     <api-get-my-mtproto-proxy>Authenticated endpoint returning server, port, secret, tg link, status, and reissue guidance.</api-get-my-mtproto-proxy>
-    <view-mtproto-card>Dashboard card with open-in-Telegram, copy link, copy server, copy port, and copy secret actions.</view-mtproto-card>
+    <view-mtproto-card>Dashboard card with primary https://t.me/proxy open action, full-link copy, copy server, copy port, and copy secret actions.</view-mtproto-card>
     <view-mtproto-empty-state>Compact unavailable, pending, degraded, and reissue-required states.</view-mtproto-empty-state>
   </exports>
   <depends>M-002,M-009,M-036,M-042,M-043</depends>
@@ -32,6 +32,7 @@
   <evidence>
     <evidence-1>2026-05-14: Phase-31 local backend tests, frontend build, static mobile/API smoke, XML parse, and MyGRACE lint passed.</evidence-1>
     <evidence-2>2026-05-14: Phase-34 local integration confirms post-verify owner dashboard/API reuses exactly one canonical MTProto assignment and keeps pending/unverified users secret-free.</evidence-2>
+    <evidence-3>2026-05-18: Phase-39 keeps manual fields but makes the primary Telegram action a https://t.me/proxy link and copy action a full-link copy to reduce manual secret-entry mistakes.</evidence-3>
   </evidence>
   <hotspot>H-031: User dashboard must show MTProto access compactly without hiding VPN trial status or config actions</hotspot>
 </M-045>

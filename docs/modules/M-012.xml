@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <M-012 NAME="deploy-surface" TYPE="ENTRY_POINT" STATUS="stable">
-  <path>deploy install.sh nginx docker-compose.yml scripts/phase36-resend-deploy-smoke.mjs scripts/phase38-de-mtproto-edge-smoke.mjs docs/plans/Phase-36.xml docs/plans/Phase-38.xml</path>
-  <owns>installation, deploy scripts, runtime composition, proxying, operator wildcard TLS install, Resend email provider env wiring, dev-only cert generation, host-tool preflight, AWG stealth profile generation, awg0 peer sync watchers, deploy-time secret handling, backup/restore, nginx hardening, and planned DE-backed MTProto edge rollout</owns>
-  <depends>M-003, M-007, M-019, M-030, M-050</depends>
+  <path>deploy install.sh nginx docker-compose.yml scripts/phase36-resend-deploy-smoke.mjs scripts/phase38-de-mtproto-edge-smoke.mjs scripts/phase39-mtproto-availability-smoke.mjs scripts/phase39-mtproto-live-smoke.sh docs/plans/Phase-36.xml docs/plans/Phase-38.xml docs/plans/Phase-39.xml</path>
+  <owns>installation, deploy scripts, runtime composition, proxying, operator wildcard TLS install, Resend email provider env wiring, dev-only cert generation, host-tool preflight, AWG stealth profile generation, awg0 peer sync watchers, deploy-time secret handling, backup/restore, nginx hardening, DE-backed MTProto edge rollout, and Phase-39 stale fallback guard</owns>
+  <depends>M-003, M-007, M-019, M-030, M-050, M-051</depends>
   <verification-ref>V-M-012</verification-ref>
   <files>
     <file>deploy/deploy-on-server.sh</file>
@@ -17,6 +17,8 @@
     <file>docker-compose.yml</file>
     <file>scripts/phase36-resend-deploy-smoke.mjs</file>
     <file>scripts/phase38-de-mtproto-edge-smoke.mjs</file>
+    <file>scripts/phase39-mtproto-availability-smoke.mjs</file>
+    <file>scripts/phase39-mtproto-live-smoke.sh</file>
   </files>
   <disaster-recovery-role>
     <role-1>Phase-22 uses the existing deploy/install surface as an operator-approved black box for replacement-server provisioning.</role-1>
@@ -42,5 +44,6 @@
     <evidence-5>2026-05-18: Phase-38 local deploy surface now renders HAProxy SNI router config, starts a DE runtime from deploy/mtproto-de-compose.yml, binds policy API to the relay address, and preserves MTProto base secret/salt/runtime token on redeploy.</evidence-5>
     <evidence-6>2026-05-18: Clean deploy follow-up keeps public admin 8443 separate from private web fallback 9443 and grants the HAProxy SNI router explicit permission to bind public 443.</evidence-6>
     <evidence-7>2026-05-18: Live RU/DE deploy-surface follow-up applied the GitHub main fixes, regenerated runtime configs, rebuilt DE mtproto runtime, and verified public web/admin plus DE backend reachability.</evidence-7>
+    <evidence-8>2026-05-18: Phase-39 added a narrow deploy/live guard so stale DE_MTPROTO_DOMAIN_FRONTING=127.0.0.1:8443 converges to the private 127.0.0.1:9443 fallback without rotating MTProto secrets or redesigning install/deploy flow.</evidence-8>
   </evidence>
 </M-012>

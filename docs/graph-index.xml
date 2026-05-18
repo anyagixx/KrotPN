@@ -13,7 +13,7 @@
   <M-009 NAME="frontend-user" TYPE="UI_COMPONENT" STATUS="stable" PATH="frontend" DEPENDS="M-002,M-003,M-004,M-005,M-022" VERIFICATION-REF="V-M-009" />
   <M-010 NAME="frontend-admin" TYPE="UI_COMPONENT" STATUS="stable" PATH="frontend-admin" DEPENDS="M-006,M-024" VERIFICATION-REF="V-M-010" />
   <M-011 NAME="telegram-bot" TYPE="ENTRY_POINT" STATUS="stable" PATH="telegram-bot" DEPENDS="M-002,M-003,M-004" VERIFICATION-REF="V-M-011" />
-  <M-012 NAME="deploy-surface" TYPE="ENTRY_POINT" STATUS="stable" PATH="deploy install.sh nginx docker-compose.yml scripts/phase36-resend-deploy-smoke.mjs scripts/phase38-de-mtproto-edge-smoke.mjs docs/plans/Phase-36.xml docs/plans/Phase-38.xml" DEPENDS="M-003,M-007,M-019,M-030,M-050" VERIFICATION-REF="V-M-012" />
+  <M-012 NAME="deploy-surface" TYPE="ENTRY_POINT" STATUS="stable" PATH="deploy install.sh nginx docker-compose.yml scripts/phase36-resend-deploy-smoke.mjs scripts/phase38-de-mtproto-edge-smoke.mjs scripts/phase39-mtproto-availability-smoke.mjs scripts/phase39-mtproto-live-smoke.sh docs/plans/Phase-36.xml docs/plans/Phase-38.xml docs/plans/Phase-39.xml" DEPENDS="M-003,M-007,M-019,M-030,M-050,M-051" VERIFICATION-REF="V-M-012" />
   <M-017 NAME="route-sync-runtime" TYPE="INTEGRATION" STATUS="stable" PATH="backend/app/routing/manager.py backend/app/routing/router.py deploy/deploy-on-server.sh" DEPENDS="M-007,M-012" VERIFICATION-REF="V-M-017" />
   <M-018 NAME="manual-access-policy" TYPE="CORE_LOGIC" STATUS="stable" PATH="backend/app/users/service.py backend/app/billing/service.py backend/app/billing/models.py" DEPENDS="M-001,M-002,M-003,M-004" VERIFICATION-REF="V-M-018" />
   <M-019 NAME="manual-client-cli" TYPE="ENTRY_POINT" STATUS="stable" PATH="backend/app/cli.py deploy/create-client.sh" DEPENDS="M-001,M-002,M-003,M-004,M-012,M-018" VERIFICATION-REF="V-M-019" />
@@ -47,7 +47,7 @@
   <M-048 NAME="installer-wildcard-tls" TYPE="ENTRY_POINT" STATUS="partial-live" PATH="install.sh deploy/deploy-on-server.sh nginx docker-compose.yml .env.example scripts/phase35-installer-wildcard-tls-smoke.mjs scripts/phase36-resend-deploy-smoke.mjs scripts/phase37-mtproto-runtime-smoke.mjs scripts/phase38-de-mtproto-edge-smoke.mjs docs/plans/Phase-35.xml docs/plans/Phase-36.xml docs/plans/Phase-37.xml docs/plans/Phase-38.xml" DEPENDS="M-001,M-012,M-044,M-046,M-049,M-050" VERIFICATION-REF="V-M-048" />
   <M-049 NAME="mtproto-live-edge-runtime" TYPE="INTEGRATION" STATUS="blocked-live" PATH="mtproto-runtime backend/app/mtproto/runtime_bridge.py backend/app/mtproto/provisioning.py nginx/nginx.conf docker-compose.yml deploy/deploy-on-server.sh scripts/phase37-mtproto-runtime-smoke.mjs docs/plans/Phase-37.xml docs/plans/Phase-38.xml" DEPENDS="M-001,M-012,M-043,M-044,M-046,M-048,M-050" VERIFICATION-REF="V-M-049" />
   <M-050 NAME="mtproto-de-backed-edge" TYPE="INTEGRATION" STATUS="partial-live" PATH="mtproto-runtime nginx docker-compose.yml deploy/deploy-on-server.sh deploy/haproxy-phase38.cfg deploy/mtproto-de-compose.yml backend/app/core/config.py backend/app/mtproto scripts/phase38-de-mtproto-edge-smoke.mjs docs/plans/Phase-38.xml" DEPENDS="M-001,M-012,M-043,M-044,M-046,M-048,M-049" VERIFICATION-REF="V-M-050" />
-  <M-051 NAME="mtproto-availability-diagnostics" TYPE="INTEGRATION" STATUS="planned" PATH="backend/app/mtproto frontend scripts/phase39-mtproto-availability-smoke.mjs scripts/phase39-mtproto-live-smoke.sh docs/plans/Phase-39.xml" DEPENDS="M-012,M-043,M-044,M-045,M-050" VERIFICATION-REF="V-M-051" />
+  <M-051 NAME="mtproto-availability-diagnostics" TYPE="INTEGRATION" STATUS="partial-live" PATH="backend/app/mtproto frontend scripts/phase39-mtproto-availability-smoke.mjs scripts/phase39-mtproto-live-smoke.sh docs/plans/Phase-39.xml" DEPENDS="M-012,M-043,M-044,M-045,M-050" VERIFICATION-REF="V-M-051" />
 
   <CrossLinks>
     <link from="M-002" to="M-001" />
@@ -84,6 +84,7 @@
     <link from="M-012" to="M-007" />
     <link from="M-012" to="M-019" />
     <link from="M-012" to="M-030" />
+    <link from="M-012" to="M-051" />
     <link from="M-017" to="M-007" />
     <link from="M-017" to="M-012" />
     <link from="M-018" to="M-001" />
