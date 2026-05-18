@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<V-M-051 MODULE="M-051" PRIORITY="critical" STATUS="planned" VERSION="1.0.0">
+<V-M-051 MODULE="M-051" PRIORITY="critical" STATUS="verification-designed" VERSION="1.1.0">
   <module>mtproto-availability-diagnostics</module>
   <phase-scope>
     <phase-39 status="planned">Close the remaining issued Telegram proxy unavailable state with redacted local/static and operator-live evidence.</phase-39>
@@ -40,6 +40,14 @@
     <check-7 evidence="operator-live">DE runtime can reach at least one Telegram downstream target or emits a separate downstream failure code.</check-7>
     <check-8 evidence="operator-live">Telegram Desktop marks the issued proxy available using the refreshed primary connection action.</check-8>
   </module-checks>
+  <verification-matrix>
+    <gate-1 MODULES="M-051,M-043" EVIDENCE="deterministic">Issued assignment payload, SNI, port, and link assembly remain stable and do not rotate existing user credentials.</gate-1>
+    <gate-2 MODULES="M-051,M-044" EVIDENCE="deterministic">Runtime policy diagnostics distinguish policy-applied, policy-missing, bridge-unreachable, and adapter-rejected states without leaking credentials.</gate-2>
+    <gate-3 MODULES="M-051,M-045" EVIDENCE="deterministic">User cabinet exposes a primary Telegram connection action and full-link copy while keeping manual fields secondary and mobile-safe.</gate-3>
+    <gate-4 MODULES="M-051,M-050,M-012" EVIDENCE="deterministic">Deploy/static smoke rejects stale DE fallback 8443 and preserves the Phase-38 private 9443 web fallback versus public admin 8443 split.</gate-4>
+    <gate-5 MODULES="M-051,M-050" EVIDENCE="operator-live">Public RU 443 routes an issued MTProto SNI to DE and the fake-TLS probe receives a runtime response.</gate-5>
+    <gate-6 MODULES="M-051" EVIDENCE="operator-live">Telegram Desktop marks the issued proxy available after using the refreshed primary connection action.</gate-6>
+  </verification-matrix>
   <scenarios>
     <scenario-1 kind="success">Verified user opens cabinet, clicks the primary Telegram action, and Telegram Desktop marks the issued proxy available.</scenario-1>
     <scenario-2 kind="success">Operator runs redacted live smoke and receives assignment, policy, route, fake-TLS, and downstream success without secrets.</scenario-2>
@@ -61,6 +69,14 @@
     <rule-1>Never print full tg://proxy links, https://t.me/proxy links, derived secret, base secret, salt, runtime token, wildcard private key, JWTs, refresh tokens, Resend key, or raw .env values.</rule-1>
     <rule-2>Live evidence may include assignment id, user id, masked SNI, status codes, policy count, safe hash fingerprints, route role names, and safe failure codes only.</rule-2>
   </redaction-rules>
+  <telemetry-requirements>
+    <metric-1>phase39_assignment_probe_status tagged found, missing, inactive, duplicate, or query_failed.</metric-1>
+    <metric-2>phase39_policy_status tagged healthy, degraded, unauthorized, unreachable, or policy_missing.</metric-2>
+    <metric-3>phase39_route_status tagged web_route, mtproto_route, unknown_route, connect_failed, or timeout.</metric-3>
+    <metric-4>phase39_fake_tls_status tagged accepted, invalid_digest, no_sni, no_response, or runtime_unreachable.</metric-4>
+    <metric-5>phase39_downstream_status tagged reachable, unreachable, bootstrap_empty, or provider_blocked.</metric-5>
+    <metric-6>phase39_desktop_proof_status tagged operator_available, operator_unavailable, not_run, or stale_client_state.</metric-6>
+  </telemetry-requirements>
   <live-smoke-gates>
     <gate-1>RU backend can identify exactly one active assignment for the selected test user.</gate-1>
     <gate-2>DE policy health succeeds privately and policy_count is non-zero.</gate-2>
@@ -75,4 +91,10 @@
     <item-3>If downstream fails, keep user link stable and investigate DE provider/Telegram DC reachability separately.</item-3>
     <item-4>If Telegram Desktop alone fails after fake-TLS probe passes, clear old proxy entries and retry with the refreshed primary Telegram link before code changes.</item-4>
   </failure-handoff>
+  <autonomous-execution-safety>
+    <safe-local>XML parse, MyGRACE lint, static smoke, backend fake/private adapter tests, frontend build, redaction checks, and deterministic link-format checks.</safe-local>
+    <safe-server-readonly>Read-only server diagnostics that do not print .env values, tokens, full links, private keys, or secrets.</safe-server-readonly>
+    <requires-operator>Applying live deploy changes, restarting RU/DE services, and accepting Telegram Desktop proof as final availability evidence.</requires-operator>
+    <blocked-action>Secret rotation, SNI reissue, policy token replacement, wildcard certificate replacement, and public firewall changes are out of scope unless a new explicit fix phase approves them.</blocked-action>
+  </autonomous-execution-safety>
 </V-M-051>
