@@ -1,12 +1,12 @@
 """KPprotoN runtime bridge tests.
 
 # FILE: backend/tests/test_kpproton_runtime_bridge.py
-# VERSION: 1.1.0
+# VERSION: 1.2.0
 # ROLE: TEST
 # MAP_MODE: LOCALS
 # START_MODULE_CONTRACT
 #   PURPOSE: Verify safe MTProto runtime policy bridge behavior
-#   SCOPE: Policy apply, replay idempotency, degraded mode, health, and redaction
+#   SCOPE: Policy apply, HTTP live adapter, replay idempotency, degraded mode, health, and redaction
 #   DEPENDS: M-044, M-042, M-043
 #   LINKS: V-M-044
 # END_MODULE_CONTRACT
@@ -16,11 +16,13 @@
 #   test_revoke_domain_policy_removes_runtime_policy_state - Covers successful adapter revoke
 #   test_replay_active_assignments_is_idempotent_and_skips_inactive - Covers replay
 #   test_bridge_unavailable_returns_degraded_without_exception - Covers outage path
+#   test_http_policy_adapter_posts_apply_and_health_with_token - Covers live sidecar request shape
 #   test_inactive_assignment_is_rejected_before_adapter_call - Covers pre-adapter guard
 #   test_runtime_health_summary_is_secret_free - Covers safe health payload
 # END_MODULE_MAP
 #
 # START_CHANGE_SUMMARY
+#   LAST_CHANGE: v1.2.0 - Added Phase-37 HTTP live adapter request-shape coverage
 #   LAST_CHANGE: v1.1.0 - Added runtime policy revoke regression coverage for Phase-33 admin revoke
 #   LAST_CHANGE: v1.0.0 - Added Phase-30 runtime bridge tests
 # END_CHANGE_SUMMARY
@@ -28,12 +30,16 @@
 
 from __future__ import annotations
 
+import json
+
+import httpx
 import pytest
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.mtproto.health import build_runtime_health_summary
 from app.mtproto.models import MTProtoAssignment, MTProtoAssignmentStatus
 from app.mtproto.runtime_bridge import (
+    HTTPMTProtoPolicyAdapter,
     InMemoryMTProtoPolicyAdapter,
     MTProtoBridgeFailureCode,
     MTProtoBridgeStatus,
@@ -189,6 +195,51 @@ async def test_bridge_unavailable_returns_degraded_without_exception(
     assert result.failure_code == MTProtoBridgeFailureCode.BRIDGE_UNAVAILABLE
     assert health.status == MTProtoBridgeStatus.DEGRADED
     assert adapter.policies == {}
+
+
+@pytest.mark.asyncio
+async def test_http_policy_adapter_posts_apply_and_health_with_token(
+    db_session: AsyncSession,
+):
+    assignment = await _create_assignment(
+        db_session,
+        "bridge-http@example.com",
+        "u-http1111111.krotpn.xyz",
+    )
+    requests: list[httpx.Request] = []
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        requests.append(request)
+        if request.url.path.endswith("/apply"):
+            payload = json.loads(request.content.decode("utf-8"))
+            assert payload["sni"] == assignment.sni
+            assert "secret" not in payload
+            return httpx.Response(200, json={"status": "applied"})
+        if request.url.path.endswith("/health"):
+            return httpx.Response(200, json={"status": "healthy"})
+        return httpx.Response(404, json={"status": "not_found"})
+
+    adapter = HTTPMTProtoPolicyAdapter(
+        base_url="http://127.0.0.1:18080/krotpn/mtproto/policy",
+        token="test-runtime-token-with-enough-length",
+        transport=httpx.MockTransport(handler),
+    )
+    bridge = MTProtoRuntimeBridge(db_session, adapter=adapter)
+
+    result = await bridge.apply_domain_policy(assignment)
+    health = await bridge.runtime_health()
+
+    assert result.status == MTProtoBridgeStatus.ACTIVATED
+    assert health.status == MTProtoBridgeStatus.HEALTHY
+    assert [request.url.path for request in requests] == [
+        "/krotpn/mtproto/policy/apply",
+        "/krotpn/mtproto/policy/health",
+    ]
+    assert all(
+        request.headers["x-krotpn-mtproto-token"]
+        == "test-runtime-token-with-enough-length"
+        for request in requests
+    )
 
 
 @pytest.mark.asyncio

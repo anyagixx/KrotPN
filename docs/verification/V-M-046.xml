@@ -1,10 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<V-M-046 MODULE="M-046" PRIORITY="critical" STATUS="partial-local" VERSION="1.4.0">
+<V-M-046 MODULE="M-046" PRIORITY="critical" STATUS="partial-live" VERSION="1.5.0">
   <module>krotpn-domain-tls-edge</module>
   <phase-scope>
     <phase-32 status="partial-local">Domain, HTTPS redirect, wildcard TLS, and shared 443 routing verification for krotpn.xyz passed local/static gates; live smoke remains operator-required.</phase-32>
     <phase-34 status="partial-local">Stabilization gate reuses local/static edge checks and keeps production DNS, wildcard TLS, shared 443, and real Telegram client smoke as explicit operator-live evidence.</phase-34>
     <phase-35 status="partial-local">Approved installer wildcard TLS changes provide deploy-supported operator certificate reuse and runtime nginx domain rendering while preserving shared-443 live gates.</phase-35>
+    <phase-37 status="partial-live">Shared 443 is implemented by mtproto-edge owning public TCP 443 and forwarding normal HTTPS to nginx fallback on 8443.</phase-37>
   </phase-scope>
   <test-files>
     <file>backend/tests/test_domain_tls_edge_static.py</file>
@@ -17,13 +18,16 @@
     <file>docs/edge/PHASE-32-CUTOVER.xml</file>
     <file phase="34-handoff">docs/handoff/PHASE-34-RELEASE-CHECKLIST.xml</file>
     <file phase="34-static">scripts/phase34-mtproto-stabilization-smoke.mjs</file>
+    <file phase="37-static">scripts/phase37-mtproto-runtime-smoke.mjs</file>
+    <file phase="37-runtime">mtproto-runtime</file>
   </test-files>
   <commands>
     <command-1>cd backend &amp;&amp; SECRET_KEY=test-secret-key-with-enough-length PYTHONPATH=. ../.venv/bin/python -m pytest -o addopts='' tests/test_domain_tls_edge_static.py -v</command-1>
     <command-2>sh -c 'if [ -e .env ]; then DB_PASSWORD=phase32-compose-check docker compose config; else ln -s .env.example .env &amp;&amp; trap "rm -f .env" EXIT &amp;&amp; DB_PASSWORD=phase32-compose-check docker compose config; fi'</command-2>
     <command-3>node scripts/phase32-edge-contract-smoke.mjs</command-3>
     <command-4>python3 -m xml.etree.ElementTree docs/plans/Phase-32.xml docs/modules/M-046.xml docs/verification/V-M-046.xml docs/verification-index.xml &amp;&amp; mygrace lint</command-4>
-    <command-5>operator-live smoke after DNS and wildcard certificate readiness: HTTP redirect, HTTPS frontend/API/admin health, issued MTProto SNI route, rollback rehearsal notes.</command-5>
+    <command-5>node scripts/phase37-mtproto-runtime-smoke.mjs</command-5>
+    <command-6>operator-live smoke after DNS and wildcard certificate readiness: HTTP redirect, HTTPS frontend/API/admin health through 8443 fallback, issued MTProto SNI route, Telegram Desktop available status, rollback rehearsal notes.</command-6>
   </commands>
   <verification-levels>
     <module-local>M-046 static tests prove krotpn.xyz domain settings, redirect rules, wildcard certificate paths, single 443 owner contract, and protected deploy/install script boundaries.</module-local>
@@ -40,6 +44,7 @@
     <check-7 evidence="static-guard">Phase-32/34 verification fails if deploy scripts or install.sh drift outside explicitly approved Phase-35 wildcard TLS installer scope.</check-7>
     <check-8 evidence="rollback">Rollback evidence shows how to restore previous nginx-only 443 behavior if shared edge routing fails.</check-8>
     <check-9 evidence="phase-34-live-required">Phase-34 cannot claim production readiness until HTTPS, admin, API, one issued MTProto SNI, unknown SNI behavior, and rollback readiness are live-smoked.</check-9>
+    <check-10 evidence="phase-37-deterministic">nginx no longer binds listen 443 ssl; mtproto-edge is the public 443 owner and nginx HTTPS fallback listens on 8443.</check-10>
   </module-checks>
   <phase-34-stabilization-gates>
     <gate-1>Local execution may run static edge checks only; no DNS, certificate, nginx, docker-compose, deploy, install, or live server changes are allowed without operator scope.</gate-1>
@@ -73,6 +78,7 @@
     <gate-4>HTTPS frontend, backend API health, and admin route return healthy responses through the public edge.</gate-4>
     <gate-5>One issued MTProto SNI reaches the runtime bridge while unknown SNI remains safely rejected or falls back to HTTPS as designed.</gate-5>
     <gate-6>Rollback procedure is documented and rehearsed enough to restore previous public behavior quickly.</gate-6>
+    <gate-7>Phase-37 live smoke confirms public TCP 443 owner, nginx 8443 fallback owner, local policy health, public HTTPS response, and Telegram Desktop proxy availability.</gate-7>
   </live-smoke-gates>
   <telemetry-requirements>
     <metric-1>edge_http_redirect_count tagged by host and status code.</metric-1>
@@ -84,7 +90,7 @@
   <autonomous-execution-safety>
     <level>partial-local-only</level>
     <safe-local>Static tests, docker compose config, XML parsing, MyGRACE lint, and secret-redaction checks are safe to run locally.</safe-local>
-    <requires-operator>Live DNS, wildcard certificate issuance, public 443 ownership changes, and production smoke require explicit operator readiness and rollback window.</requires-operator>
+    <requires-operator>Live DNS, wildcard certificate issuance, public 443 ownership changes, production smoke, and Telegram Desktop proof require explicit operator readiness and rollback window.</requires-operator>
   </autonomous-execution-safety>
   <evidence>
     <evidence-1>2026-05-14: backend/tests/test_domain_tls_edge_static.py passed locally with 7 tests.</evidence-1>
@@ -94,5 +100,6 @@
     <evidence-5>2026-05-14: XML parse, MyGRACE lint, and git diff whitespace checks passed.</evidence-5>
     <evidence-6>2026-05-14: Phase-34 handoff records V-M-046 live smoke as operator-required and the local static smoke keeps deploy/install/edge surfaces unchanged.</evidence-6>
     <evidence-7>2026-05-17: Phase-35 updated the edge static guard to allow only approved M-048 installer wildcard TLS deploy surface changes; M-046 public shared-443 live smoke remains operator-required.</evidence-7>
+    <evidence-8>2026-05-18: Phase-37 corrected the live design so mtproto-edge owns public 443 and normal HTTPS fallback moves to nginx 8443.</evidence-8>
   </evidence>
 </V-M-046>

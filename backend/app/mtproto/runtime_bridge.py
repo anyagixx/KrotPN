@@ -1,12 +1,12 @@
 """MTProto runtime policy bridge.
 
 # FILE: backend/app/mtproto/runtime_bridge.py
-# VERSION: 1.1.0
+# VERSION: 1.2.0
 # ROLE: RUNTIME
 # MAP_MODE: EXPORTS
 # START_MODULE_CONTRACT
 #   PURPOSE: Apply and revoke KrotPN MTProto assignments at a runtime policy boundary safely
-#   SCOPE: Domain policy adapter contract, policy apply/revoke, health, replay, reconciliation, degraded state
+#   SCOPE: Domain policy adapter contract, HTTP live adapter, policy apply/revoke, health, replay, reconciliation, degraded state
 #   DEPENDS: M-001 (DB session), M-042 (assignment registry), M-043 (provisioning)
 #   LINKS: M-044, V-M-044
 # END_MODULE_CONTRACT
@@ -20,11 +20,13 @@
 #   MTProtoReplayResult - Startup/reconciliation replay summary contract
 #   MTProtoPolicyAdapter - Adapter protocol for isolated KPprotoN runtime boundary
 #   InMemoryMTProtoPolicyAdapter - Local safe adapter used by tests and offline runtime
+#   HTTPMTProtoPolicyAdapter - Token-protected adapter for the live KPprotoN/mtproto_proxy sidecar
 #   MTProtoRuntimeBridge - Service for apply, revoke, replay and health operations
 #   sync_mtproto_policy - Scheduler-safe reconciliation entry point
 # END_MODULE_MAP
 #
 # START_CHANGE_SUMMARY
+#   LAST_CHANGE: v1.2.0 - Added Phase-37 HTTP live adapter for the KPprotoN MTProto shared-443 runtime.
 #   LAST_CHANGE: v1.1.0 - Added explicit runtime policy revoke path for admin MTProto assignment disable
 #   LAST_CHANGE: v1.0.0 - Added Phase-30 safe runtime bridge boundary
 # END_CHANGE_SUMMARY
@@ -37,10 +39,12 @@ from datetime import datetime, timezone
 from enum import Enum
 from typing import Protocol
 
+import httpx
 from loguru import logger
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.core.config import Settings, settings
 from app.core.database import async_session_maker
 from app.mtproto.models import MTProtoAssignment, MTProtoAssignmentStatus
 
@@ -215,7 +219,104 @@ class InMemoryMTProtoPolicyAdapter:
 # END_BLOCK_IN_MEMORY_ADAPTER
 
 
-default_policy_adapter = InMemoryMTProtoPolicyAdapter()
+# START_BLOCK_HTTP_ADAPTER
+class HTTPMTProtoPolicyAdapter:
+    """Token-protected adapter for the live KPprotoN MTProto edge sidecar."""
+
+    adapter_name = "kpproton-http"
+
+    def __init__(
+        self,
+        *,
+        base_url: str,
+        token: str,
+        timeout_seconds: float = 3.0,
+        transport: httpx.AsyncBaseTransport | None = None,
+    ) -> None:
+        self.base_url = base_url.rstrip("/")
+        self.token = token
+        self.timeout_seconds = timeout_seconds
+        self.transport = transport
+
+    async def apply_domain_policy(self, policy: MTProtoDomainPolicy) -> None:
+        """Apply one issued SNI to the live MTProto policy table."""
+        await self._post_policy("apply", policy)
+
+    async def revoke_domain_policy(self, policy: MTProtoDomainPolicy) -> None:
+        """Remove one issued SNI from the live MTProto policy table."""
+        await self._post_policy("revoke", policy)
+
+    async def health(self) -> MTProtoRuntimeHealth:
+        """Return live sidecar health without credentials."""
+        try:
+            async with httpx.AsyncClient(
+                timeout=self.timeout_seconds,
+                transport=self.transport,
+            ) as client:
+                response = await client.get(
+                    f"{self.base_url}/health",
+                    headers=self._headers(),
+                )
+            if response.status_code == 200:
+                return MTProtoRuntimeHealth(
+                    status=MTProtoBridgeStatus.HEALTHY,
+                    adapter_name=self.adapter_name,
+                )
+            return MTProtoRuntimeHealth(
+                status=MTProtoBridgeStatus.DEGRADED,
+                adapter_name=self.adapter_name,
+                last_failure_code=MTProtoBridgeFailureCode.ADAPTER_REJECTED,
+            )
+        except httpx.HTTPError:
+            return MTProtoRuntimeHealth(
+                status=MTProtoBridgeStatus.DEGRADED,
+                adapter_name=self.adapter_name,
+                last_failure_code=MTProtoBridgeFailureCode.BRIDGE_UNAVAILABLE,
+            )
+
+    async def _post_policy(self, operation: str, policy: MTProtoDomainPolicy) -> None:
+        payload = {
+            "assignment_id": policy.assignment_id,
+            "user_id": policy.user_id,
+            "sni": policy.sni,
+            "credential_mode": policy.credential_mode,
+            "rotation_marker": policy.rotation_marker,
+        }
+        try:
+            async with httpx.AsyncClient(
+                timeout=self.timeout_seconds,
+                transport=self.transport,
+            ) as client:
+                response = await client.post(
+                    f"{self.base_url}/{operation}",
+                    json=payload,
+                    headers=self._headers(),
+                )
+        except httpx.HTTPError as exc:
+            raise MTProtoBridgeUnavailable("MTProto runtime bridge is unavailable") from exc
+
+        if response.status_code == 401:
+            raise MTProtoBridgeUnavailable("MTProto runtime bridge rejected credentials")
+        if response.status_code >= 400:
+            raise ValueError("MTProto runtime adapter rejected the SNI policy")
+
+    def _headers(self) -> dict[str, str]:
+        return {"x-krotpn-mtproto-token": self.token}
+
+
+def build_default_policy_adapter(app_settings: Settings = settings) -> MTProtoPolicyAdapter:
+    """Build the live adapter when configured, otherwise keep local-memory behavior."""
+    if app_settings.mtproto_runtime_policy_url and app_settings.mtproto_runtime_token:
+        return HTTPMTProtoPolicyAdapter(
+            base_url=app_settings.mtproto_runtime_policy_url,
+            token=app_settings.mtproto_runtime_token,
+            timeout_seconds=app_settings.mtproto_runtime_timeout_seconds,
+        )
+    return InMemoryMTProtoPolicyAdapter()
+# END_BLOCK_HTTP_ADAPTER
+
+
+default_policy_adapter = build_default_policy_adapter()
 
 
 class MTProtoRuntimeBridge:

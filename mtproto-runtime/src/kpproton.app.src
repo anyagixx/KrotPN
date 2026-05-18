@@ -1,0 +1,38 @@
+%% FILE: src/kpproton.app.src
+%% VERSION: 1.0.0
+%% START_MODULE_CONTRACT
+%%   PURPOSE: Define the OTP application metadata, runtime dependencies, and start callback for the unified release.
+%%   SCOPE: Application description, module entrypoint, registered processes, and dependency list.
+%%   DEPENDS: M-CONFIG
+%%   LINKS: M-RELEASE
+%% END_MODULE_CONTRACT
+%%
+%% START_MODULE_MAP
+%%   application descriptor - OTP application metadata for kpproton
+%% END_MODULE_MAP
+%%
+%% START_CHANGE_SUMMARY
+%%   LAST_CHANGE: v1.1.0 - Bumped the OTP application version to 0.1.12-rc1 for the current test release push.
+%% END_CHANGE_SUMMARY
+%%
+%% START_BLOCK_APPLICATION_DESCRIPTOR
+{application, kpproton,
+ [
+  {description, "KPprotoN runnable skeleton"},
+  {vsn, "0.1.12-rc1"},
+  {registered, [kpproton_runtime]},
+  {mod, {kpproton_app, []}},
+  {applications, [
+      kernel,
+      stdlib,
+      crypto,
+      ssl,
+      inets,
+      ranch,
+      cowlib,
+      cowboy,
+      jsx
+  ]},
+  {env, []}
+ ]}.
+%% END_BLOCK_APPLICATION_DESCRIPTOR

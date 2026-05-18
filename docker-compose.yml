@@ -1,12 +1,12 @@
 version: '3.8'
 
 # FILE: docker-compose.yml
-# VERSION: 3.1.0
+# VERSION: 3.2.0
 # ROLE: CONFIG
 # MAP_MODE: SUMMARY
 # START_MODULE_CONTRACT
 #   PURPOSE: Compose the KrotPN runtime services on the host-network deployment surface.
-#   SCOPE: Database, Redis, backend, user frontend, admin frontend, nginx edge, TLS mount paths, and Phase-35 runtime nginx config selection.
+#   SCOPE: Database, Redis, backend, user frontend, admin frontend, nginx HTTPS fallback, MTProto shared-443 edge, TLS mount paths, and runtime config selection.
 #   DEPENDS: M-012, M-046, M-048
 #   LINKS: docs/modules/M-012.xml, docs/modules/M-046.xml, docs/modules/M-048.xml, docs/plans/Phase-35.xml
 # END_MODULE_CONTRACT
@@ -15,10 +15,12 @@ version: '3.8'
 #   backend - FastAPI application service on host network.
 #   frontend - User cabinet service on host network.
 #   frontend-admin - Admin cabinet service on host network.
-#   nginx - Public edge proxy using operator wildcard TLS files and runtime domain config.
+#   nginx - HTTP redirect and HTTPS fallback proxy using operator wildcard TLS files.
+#   mtproto-edge - KPprotoN/mtproto_proxy shared-443 runtime with KrotPN policy bridge.
 # END_MODULE_MAP
 #
 # START_CHANGE_SUMMARY
+#   LAST_CHANGE: v3.2.0 - Added Phase-37 MTProto shared-443 edge runtime sidecar.
 #   LAST_CHANGE: v3.1.0 - Added Phase-35 NGINX_CONF_PATH override for operator-selected domain rendering.
 # END_CHANGE_SUMMARY
 #
@@ -182,6 +184,52 @@ services:
           memory: 128M
           cpus: '0.5'
 
+  # Telegram MTProto shared-443 edge
+  mtproto-edge:
+    build:
+      context: ./mtproto-runtime
+      dockerfile: Dockerfile
+      target: runtime
+    container_name: krotpn-mtproto-edge
+    restart: unless-stopped
+    depends_on:
+      nginx:
+        condition: service_healthy
+      backend:
+        condition: service_healthy
+    env_file:
+      - .env
+    environment:
+      BASE_DOMAIN: ${MTPROTO_BASE_DOMAIN:-krotpn.xyz}
+      PROXY_PORT: ${MTPROTO_PROXY_PORT:-443}
+      PROXY_SECRET_HEX: ${MTPROTO_BASE_SECRET_HEX:?MTPROTO_BASE_SECRET_HEX must be set in .env}
+      PROXY_SECRET_SALT: ${MTPROTO_SECRET_SALT:?MTPROTO_SECRET_SALT must be set in .env}
+      PROXY_LISTEN_IP: 0.0.0.0
+      PORTAL_HTTP_INTERNAL_PORT: ${MTPROTO_POLICY_PORT:-18080}
+      PORTAL_TLS_INTERNAL_PORT: 18443
+      PORTAL_DOMAIN_FRONTING: 127.0.0.1:${EDGE_HTTPS_FALLBACK_PORT:-8443}
+      TLS_CERT_PATH: /certs/krotpn/server.crt
+      TLS_KEY_PATH: /certs/krotpn/server.key
+      KROTPN_MTPROTO_POLICY_TOKEN: ${MTPROTO_RUNTIME_TOKEN:?MTPROTO_RUNTIME_TOKEN must be set in .env}
+      DOMAIN_FRONTING_TIMEOUT_SEC: 10
+      MTPROXY_BOOT_RETRY_SECONDS: 15
+    volumes:
+      - mtproto_runtime_data:/var/lib/kpproton
+      - ./ssl:/certs/krotpn:ro
+    network_mode: host
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS -H \"x-krotpn-mtproto-token: $$KROTPN_MTPROTO_POLICY_TOKEN\" http://127.0.0.1:${MTPROTO_POLICY_PORT:-18080}/krotpn/mtproto/policy/health >/dev/null"]
+      interval: 30s
+      timeout: 10s
+      start_period: 60s
+      retries: 3
+    deploy:
+      resources:
+        limits:
+          memory: 384M
+          cpus: '1'
+
 volumes:
   postgres_data:
   redis_data:
+  mtproto_runtime_data:

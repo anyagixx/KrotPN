@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<M-049 NAME="mtproto-live-edge-runtime" TYPE="INTEGRATION" STATUS="blocked-live">
+  <path>mtproto-runtime backend/app/mtproto/runtime_bridge.py backend/app/mtproto/provisioning.py nginx/nginx.conf docker-compose.yml deploy/deploy-on-server.sh scripts/phase37-mtproto-runtime-smoke.mjs docs/plans/Phase-37.xml</path>
+  <owns>Live KPprotoN/mtproto_proxy runtime, token-protected local policy API, public TCP 443 ownership, and HTTPS fallback to nginx on 8443.</owns>
+  <purpose>Make issued KrotPN MTProto assignments reachable by Telegram clients by running a real fake-TLS MTProto edge instead of only generating proxy links.</purpose>
+  <exports>
+    <runtime-mtproto-edge>Host-network mtproto-edge service owns public TCP 443 and loads KPprotoN-compatible fake-TLS policy.</runtime-mtproto-edge>
+    <runtime-policy-api>Local HTTP policy API applies, revokes, and health-checks issued SNI domains using a deploy-generated bearer token.</runtime-policy-api>
+    <https-fallback>Normal HTTPS requests are domain-fronted from the MTProto edge to nginx on 127.0.0.1:8443.</https-fallback>
+    <provisioning-live-apply>Backend provisioning applies an issued SNI to the live edge before returning an active proxy payload.</provisioning-live-apply>
+    <runtime-smoke>Phase-37 static and local runtime smoke checks protect service wiring, nginx port ownership, and secret redaction.</runtime-smoke>
+    <telegram-upstream-routes>Deploy keeps Telegram MTProto upstream ranges routed through the existing RU-to-DE awg-client tunnel so RU edge can reach Telegram DCs without changing the host default route.</telegram-upstream-routes>
+  </exports>
+  <depends>M-001,M-012,M-043,M-044,M-046,M-048</depends>
+  <verification-ref>V-M-049</verification-ref>
+  <files>
+    <file>mtproto-runtime/Dockerfile</file>
+    <file>mtproto-runtime/src/kpproton_app.erl</file>
+    <file>mtproto-runtime/src/kpproton_core_api.erl</file>
+    <file>mtproto-runtime/src/kpproton_web.erl</file>
+    <file>mtproto-runtime/src/kpproton_policy_handler.erl</file>
+    <file>mtproto-runtime/apps/kpproton_proxy/src/mtproto/kpproton_proxy_bridge.erl</file>
+    <file>backend/app/mtproto/runtime_bridge.py</file>
+    <file>backend/app/mtproto/provisioning.py</file>
+    <file>docker-compose.yml</file>
+    <file>nginx/nginx.conf</file>
+    <file>deploy/deploy-on-server.sh</file>
+    <file>.env.example</file>
+    <file>scripts/phase37-mtproto-runtime-smoke.mjs</file>
+  </files>
+  <runtime-policy>
+    <policy-1>Public TCP 443 has exactly one runtime owner: mtproto-edge. Nginx serves HTTPS fallback on internal 8443.</policy-1>
+    <policy-2>The edge must accept issued SNI policies only through the localhost policy API with MTPROTO_RUNTIME_TOKEN.</policy-2>
+    <policy-3>Existing MTPROTO_BASE_SECRET_HEX and MTPROTO_SECRET_SALT values must be preserved across hotfix deploys.</policy-3>
+    <policy-4>Normal HTTPS, /api, and /admin traffic must continue working through the fallback path after mtproto-edge starts.</policy-4>
+    <policy-5>Logs and health payloads may expose status and counts, but never base secret, salt, derived secrets, full tg:// links, private keys, JWTs, or email tokens.</policy-5>
+    <policy-6>MTProto bootstrap must use bounded Telegram core fetches with static fallback artifacts so the edge can start when core.telegram.org is slow or blocked.</policy-6>
+    <policy-7>RU host routes for Telegram upstream ranges must be scoped to Telegram networks only and use awg-client, not a broad default-route mutation.</policy-7>
+  </runtime-policy>
+  <constraints>
+    <constraint-1>Host-network public 443 changes are production-sensitive and must be paired with rollback-ready nginx fallback validation.</constraint-1>
+    <constraint-2>Policy API must bind to localhost only and reject missing or wrong tokens.</constraint-2>
+    <constraint-3>Telegram availability cannot be fully proven by local unit tests; final proof requires a real Telegram client or protocol-compatible live smoke.</constraint-3>
+  </constraints>
+  <evidence>
+    <evidence-1>2026-05-18: Local Erlang compile passed for mtproto-runtime with the token-protected policy handler.</evidence-1>
+    <evidence-2>2026-05-18: Local Erlang prod release passed from an ASCII temp path; direct release from the Cyrillic checkout path hit a rebar3 path-formatting bug only.</evidence-2>
+    <evidence-3>2026-05-18: Backend regression tests passed for HTTP policy adapter, provisioning live apply, API payloads, and existing local bridge behavior.</evidence-3>
+    <evidence-4>2026-05-18: Live RU application exposed Telegram upstream reachability problems; deploy now routes Telegram MTProto ranges through awg-client and runtime includes bounded static bootstrap fallback before final Telegram Desktop proof.</evidence-4>
+    <evidence-5>2026-05-18: RU HTTPS was rolled back to nginx public 443 after mtproto_proxy continued failing downstream handshakes; website remains available while MTProto live proof is blocked.</evidence-5>
+  </evidence>
+  <hotspot>H-036: MTProto live edge must own public TCP 443, forward normal HTTPS to nginx 8443, and load issued SNI policies without rotating existing secrets.</hotspot>
+</M-049>

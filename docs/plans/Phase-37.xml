@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Phase-37 NAME="Live MTProto Shared-443 Runtime Fix" STATUS="blocked-live" VERSION="1.0.0">
+  <Goal>Fix the clean-VPS production defect where KrotPN issued MTProto proxy links but Telegram marked them unavailable because no live MTProto fake-TLS edge owned public TCP 443.</Goal>
+  <Modules>M-049,M-044,M-046,M-048,M-012,M-043</Modules>
+  <OperatorProblem>
+    <item-1>Clean deploy, email verification, login, and dashboard issuance worked.</item-1>
+    <item-2>The copied Telegram Desktop proxy link was unavailable.</item-2>
+    <item-3>Live inspection showed nginx owned public TCP 443 and no MTProto runtime/policy process was running.</item-3>
+  </OperatorProblem>
+  <RootCause>
+    <item-1>Phase-30/34 issued assignments and simulated runtime policy apply locally, but production compose did not start KPprotoN/mtproto_proxy.</item-1>
+    <item-2>Public TCP 443 was served by normal HTTPS nginx, so Telegram fake-TLS traffic could not reach MTProto runtime classification.</item-2>
+    <item-3>The backend returned an active proxy payload before proving the issued SNI was loaded into a real edge runtime.</item-3>
+  </RootCause>
+  <NonGoals>
+    <item-1>No rotation of MTPROTO_BASE_SECRET_HEX or MTPROTO_SECRET_SALT.</item-1>
+    <item-2>No change to already-issued assignment rows except replaying their SNI policies into the live runtime.</item-2>
+    <item-3>No replacement of the operator-approved wildcard TLS installer flow.</item-3>
+    <item-4>No frontend redesign in this hotfix phase.</item-4>
+  </NonGoals>
+  <DataFlow>
+    <flow-1>deploy/deploy-on-server.sh creates MTPROTO_RUNTIME_TOKEN and writes the localhost policy URL and shared-443 fallback env values.</flow-1>
+    <flow-2>docker-compose starts mtproto-edge in host network mode with PROXY_PORT=443, trusted wildcard certs, and a domain-fronting fallback to 127.0.0.1:8443.</flow-2>
+    <flow-3>nginx serves normal HTTPS fallback on 8443 while HTTP port 80 still performs the canonical HTTPS redirect.</flow-3>
+    <flow-4>backend/app/mtproto/runtime_bridge.py uses HTTPMTProtoPolicyAdapter when MTPROTO_RUNTIME_POLICY_URL and MTPROTO_RUNTIME_TOKEN are configured.</flow-4>
+    <flow-5>backend/app/mtproto/provisioning.py applies the issued SNI through the bridge before returning an active Telegram proxy payload.</flow-5>
+    <flow-6>deploy/deploy-on-server.sh routes Telegram MTProto upstream ranges through RU awg-client to DE while leaving the host default route unchanged.</flow-6>
+    <flow-7>mtproto-runtime serves bounded local bootstrap secret/config responses with static fallback if core.telegram.org is slow or blocked.</flow-7>
+    <flow-8>Startup/scheduler replay loads existing active assignments into the live policy table after container restart or hotfix deploy.</flow-8>
+  </DataFlow>
+  <Steps>
+    <step-1 STATUS="pass-local">Import the required KPprotoN runtime surface as mtproto-runtime without generated build artifacts.</step-1>
+    <step-2 STATUS="pass-local">Add a token-protected local Erlang policy handler for apply, revoke, and health operations.</step-2>
+    <step-3 STATUS="pass-local">Add backend HTTPMTProtoPolicyAdapter and select it from Settings when the runtime URL/token are present.</step-3>
+    <step-4 STATUS="pass-local">Change provisioning to require live policy apply before returning an active proxy payload.</step-4>
+    <step-5 STATUS="pass-local">Move public TCP 443 ownership from nginx to mtproto-edge and move nginx HTTPS fallback to 8443.</step-5>
+    <step-6 STATUS="blocked-live">Apply the hotfix to the RU server, route Telegram upstream ranges through awg-client, ensure mtproto_proxy binds public 443 after bounded bootstrap fallback, replay existing active assignment SNI, and collect redacted HTTPS/policy health evidence before the operator retests Telegram Desktop.</step-6>
+  </Steps>
+  <Verification>
+    <command-1>cd mtproto-runtime &amp;&amp; rebar3 compile</command-1>
+    <command-2>rm -rf /tmp/krotpn-mtproto-runtime-check &amp;&amp; rsync -a --exclude='_build' --exclude='rebar3.crashdump' mtproto-runtime/ /tmp/krotpn-mtproto-runtime-check/ &amp;&amp; cd /tmp/krotpn-mtproto-runtime-check &amp;&amp; rebar3 as prod release</command-2>
+    <command-3>cd backend &amp;&amp; SECRET_KEY=test-secret-key-with-enough-length DATA_ENCRYPTION_KEY=dpFmfSVqfdAK3yx5MQV6Tcv35RZuw5MzaH0yhxJ01q0= PYTHONPATH=. ../.venv/bin/python -m pytest -o addopts='' tests/test_kpproton_runtime_bridge.py tests/test_mtproto_provisioning.py tests/test_mtproto_api.py -v</command-3>
+    <command-4>bash -n deploy/deploy-on-server.sh install.sh</command-4>
+    <command-5>DB_PASSWORD=phase37-compose-check SECRET_KEY=test-secret-key-with-enough-length POSTGRES_PASSWORD=phase37-postgres REDIS_PASSWORD=phase37-redis JWT_SECRET_KEY=phase37-jwt DATA_ENCRYPTION_KEY=dpFmfSVqfdAK3yx5MQV6Tcv35RZuw5MzaH0yhxJ01q0= MTPROTO_BASE_SECRET_HEX=00112233445566778899aabbccddeeff MTPROTO_SECRET_SALT=ffeeddccbbaa99887766554433221100 MTPROTO_RUNTIME_TOKEN=phase37-runtime-token-abcdefghijklmnopqrstuvwxyz MTPROTO_RUNTIME_POLICY_URL=http://127.0.0.1:18080/krotpn/mtproto/policy docker compose config</command-5>
+    <command-6>node scripts/phase32-edge-contract-smoke.mjs &amp;&amp; node scripts/phase34-mtproto-stabilization-smoke.mjs &amp;&amp; node scripts/phase35-installer-wildcard-tls-smoke.mjs &amp;&amp; node scripts/phase37-mtproto-runtime-smoke.mjs</command-6>
+    <command-7>python3 -m xml.etree.ElementTree docs/graph-index.xml docs/plan-index.xml docs/verification-index.xml docs/modules/M-044.xml docs/modules/M-046.xml docs/modules/M-048.xml docs/modules/M-049.xml docs/plans/Phase-37.xml docs/verification/V-M-049.xml &amp;&amp; mygrace lint</command-7>
+    <command-8>operator-live: on RU, verify mtproto-edge owns TCP 443, nginx owns fallback 8443, policy health is healthy, public HTTPS still responds, and the operator-retained Telegram Desktop proxy becomes available.</command-8>
+  </Verification>
+  <VerificationMatrix>
+    <gate-1 MODULES="M-049,M-046" EVIDENCE="deterministic">docker-compose has mtproto-edge host-network service and nginx does not bind public 443.</gate-1>
+    <gate-2 MODULES="M-049,M-048" EVIDENCE="deterministic">deploy generates MTPROTO_RUNTIME_TOKEN, policy URL, policy port, shared-443 flag, and HTTPS fallback port without printing secrets.</gate-2>
+    <gate-3 MODULES="M-044,M-049" EVIDENCE="deterministic">backend HTTP adapter sends apply/revoke/health to the local policy API with the token header and redacts token/secret material.</gate-3>
+    <gate-4 MODULES="M-043,M-044" EVIDENCE="deterministic">provisioning does not present an active proxy as usable until runtime policy apply succeeds.</gate-4>
+    <gate-5 MODULES="M-046,M-049" EVIDENCE="operator-live">After hotfix deploy, Telegram upstream ranges route through awg-client, public HTTPS remains available through fallback, mtproto_proxy binds public 443, and issued MTProto SNI is loaded in live policy.</gate-5>
+    <gate-6 MODULES="M-049" EVIDENCE="operator-live">Telegram Desktop marks the issued proxy available using the existing dashboard link.</gate-6>
+  </VerificationMatrix>
+  <TelemetryRequirements>
+    <marker-1>[M-049][kpproton_policy_handler][AUTH]</marker-1>
+    <marker-2>[M-049][kpproton_policy_handler][APPLY_POLICY]</marker-2>
+    <marker-3>[M-049][kpproton_policy_handler][REVOKE_POLICY]</marker-3>
+    <marker-4>[M-049][mtproto_edge][HTTPS_FALLBACK]</marker-4>
+    <marker-5>[M-044][HTTPMTProtoPolicyAdapter][POST_APPLY]</marker-5>
+    <marker-6>[M-043][get_or_create_assignment_payload][APPLY_RUNTIME_POLICY]</marker-6>
+    <redaction-1>Never log MTPROTO_RUNTIME_TOKEN, MTPROTO_BASE_SECRET_HEX, MTPROTO_SECRET_SALT, derived secrets, full tg:// links, certificate private keys, JWTs, or verification tokens.</redaction-1>
+  </TelemetryRequirements>
+  <AcceptanceCriteria>
+    <item-1>Fresh deploy starts mtproto-edge and backend without blank-secret or missing-token failures.</item-1>
+    <item-2>Public TCP 443 is not bound by nginx; nginx HTTPS fallback is bound on 8443.</item-2>
+    <item-3>Policy health endpoint is reachable only with the deploy-generated token from localhost.</item-3>
+    <item-4>MTProto bootstrap succeeds through bounded local core fetch or static fallback and public TCP 443 is bound by mtproto-edge.</item-4>
+    <item-5>Existing active assignment SNI is applied to the live policy table without rotating proxy credentials.</item-5>
+    <item-6>https://krotpn.xyz remains reachable after shared-443 change.</item-6>
+    <item-7>Telegram Desktop proxy availability is restored after operator retest.</item-7>
+  </AcceptanceCriteria>
+  <Risks>
+    <risk-1>Host-network mtproto-edge can break HTTPS if fallback target or wildcard cert mount is wrong.</risk-1>
+    <risk-2>Changing public 443 ownership requires careful live rollout and rollback evidence.</risk-2>
+    <risk-3>Telegram availability is ultimately client/network dependent; local evidence can prove edge policy and ports but not replace operator Telegram client proof.</risk-3>
+  </Risks>
+  <ExecutionEvidence>
+    <evidence-1>2026-05-18: Local diagnosis on RU confirmed backend/frontend/nginx were healthy, but no MTProto process existed and nginx owned public TCP 443.</evidence-1>
+    <evidence-2>2026-05-18: Local implementation added mtproto-runtime, policy API, backend HTTP adapter, provisioning live-apply, compose service, nginx 8443 fallback, and deploy env wiring.</evidence-2>
+    <evidence-3>2026-05-18: Live RU first run showed policy API healthy but mtproto_proxy bootstrap timed out against Telegram core; Phase-37 adds bounded static bootstrap fallback and requires TCP 443 bind evidence.</evidence-3>
+    <evidence-4>2026-05-18: After Telegram routes via awg-client, TCP reachability improved but mtproto_proxy downstream handshakes still closed; nginx was temporarily restored on public 443 to keep KrotPN web available.</evidence-4>
+  </ExecutionEvidence>
+</Phase-37>

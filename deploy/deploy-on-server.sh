@@ -1,16 +1,16 @@
 #!/bin/bash
 #
-# KrotPN Server Deployment Script v3.1.3 (Full Tunnel)
+# KrotPN Server Deployment Script v3.2.0 (Full Tunnel)
 # Run this script ON the RU server
 # FILE: deploy/deploy-on-server.sh
-# VERSION: 3.1.3
+# VERSION: 3.2.0
 # ROLE: SCRIPT
 # MAP_MODE: LOCALS
 # START_MODULE_CONTRACT
-#   PURPOSE: Provision the RU entry host, DE exit host, application runtime, Phase-35 operator wildcard TLS edge material, and Phase-36 Resend email provider env.
-#   SCOPE: Host prerequisites, AmneziaWG tunnel setup, app env generation, TLS certificate validation/install, Resend config validation, nginx runtime config rendering, and Docker Compose startup.
-#   DEPENDS: M-012, M-030, M-032, M-040, M-041, M-048
-#   LINKS: docs/modules/M-012.xml, docs/modules/M-040.xml, docs/modules/M-041.xml, docs/modules/M-048.xml, docs/plans/Phase-35.xml, docs/plans/Phase-36.xml, docs/verification/V-M-048.xml
+#   PURPOSE: Provision the RU entry host, DE exit host, application runtime, Phase-35 operator wildcard TLS edge material, Phase-36 Resend email provider env, and Phase-37 MTProto shared-443 edge.
+#   SCOPE: Host prerequisites, AmneziaWG tunnel setup, app env generation, TLS certificate validation/install, Resend config validation, nginx fallback rendering, MTProto edge env wiring, and Docker Compose startup.
+#   DEPENDS: M-012, M-030, M-032, M-040, M-041, M-044, M-046, M-048
+#   LINKS: docs/modules/M-012.xml, docs/modules/M-040.xml, docs/modules/M-041.xml, docs/modules/M-044.xml, docs/modules/M-046.xml, docs/modules/M-048.xml, docs/plans/Phase-35.xml, docs/plans/Phase-36.xml, docs/verification/V-M-048.xml
 # END_MODULE_CONTRACT
 #
 # START_MODULE_MAP
@@ -20,10 +20,11 @@
 #   install_operator_tls_certificate - Atomically install validated cert/key to /opt/KrotPN/ssl.
 #   generate_self_signed_dev_certificate - Explicit dev/test fallback, blocked for production unless selected.
 #   validate_resend_email_config - Validate Resend API key, URL, and sender without printing secrets.
-#   render_nginx_domain_config - Render ignored runtime nginx config for the selected domain.
+#   render_nginx_domain_config - Render ignored runtime nginx fallback config for the selected domain.
 # END_MODULE_MAP
 #
 # START_CHANGE_SUMMARY
+#   LAST_CHANGE: v3.2.0 - Enable MTProto shared-443 runtime sidecar and backend policy bridge token wiring.
 #   LAST_CHANGE: v3.1.3 - Enable Resend email provider env wiring and fail closed when the API key is missing.
 #   LAST_CHANGE: v3.1.2 - Generate required MTProto base secret and salt during fresh deploy env creation.
 #   LAST_CHANGE: v3.1.1 - Reject /opt/KrotPN certificate source paths to avoid clone-time source deletion.
@@ -680,6 +681,8 @@ cat > awg-client.conf << EOF
 PrivateKey = ${RU_CLIENT_PRIVATE}
 Address = ${VPN_RELAY_RU_CIDR}
 Table = off
+PostUp = ip route replace 149.154.160.0/20 dev %i; ip route replace 91.108.4.0/22 dev %i; ip route replace 91.108.56.0/22 dev %i; ip route replace 91.105.192.0/23 dev %i
+PreDown = ip route del 149.154.160.0/20 dev %i 2>/dev/null || true; ip route del 91.108.4.0/22 dev %i 2>/dev/null || true; ip route del 91.108.56.0/22 dev %i 2>/dev/null || true; ip route del 91.105.192.0/23 dev %i 2>/dev/null || true
 $(awg_profile_lines RELAY_)
 
 [Peer]
@@ -762,9 +765,17 @@ echo -e "${BLUE}[RU] Adding route to DE tunnel subnet...${NC}"
 ip route add ${VPN_RELAY_SUBNET} dev awg-client 2>/dev/null || true
 echo -e "${GREEN}✓ Route to ${VPN_RELAY_SUBNET} added${NC}"
 
+# START_BLOCK_MTPROTO_TELEGRAM_ROUTES
+echo -e "${BLUE}[RU] Routing Telegram MTProto upstream ranges through DE tunnel...${NC}"
+for tg_route in 149.154.160.0/20 91.108.4.0/22 91.108.56.0/22 91.105.192.0/23; do
+    ip route replace "$tg_route" dev awg-client 2>/dev/null || true
+done
+echo -e "${GREEN}✓ Telegram MTProto upstream routes use awg-client${NC}"
+# END_BLOCK_MTPROTO_TELEGRAM_ROUTES
+
 # Show routing table for debugging
 echo -e "${BLUE}[RU] Current routes to DE tunnel:${NC}"
-ip route show | grep -E "(awg-client|${VPN_RELAY_SUBNET%%/*})" || echo "No routes found"
+ip route show | grep -E "(awg-client|${VPN_RELAY_SUBNET%%/*}|149\\.154\\.160\\.0|91\\.108\\.4\\.0|91\\.108\\.56\\.0|91\\.105\\.192\\.0)" || echo "No routes found"
 
 # Verify awg-client is up
 echo -e "${BLUE}[RU] Verifying awg-client interface...${NC}"
@@ -892,6 +903,7 @@ DATA_KEY=$(python3 -c "from cryptography.fernet import Fernet; print(Fernet.gene
 DB_PASSWORD=$(python3 -c "import secrets; print(secrets.token_urlsafe(16))")
 MTPROTO_BASE_SECRET_HEX=$(python3 -c "import secrets; print(secrets.token_hex(16))")
 MTPROTO_SECRET_SALT=$(python3 -c "import secrets; print(secrets.token_hex(16))")
+MTPROTO_RUNTIME_TOKEN=$(python3 -c "import secrets; print(secrets.token_urlsafe(32))")
 
 cat > .env << EOF
 # === APPLICATION ===
@@ -993,12 +1005,17 @@ MTPROTO_BASE_DOMAIN=${PUBLIC_DOMAIN}
 MTPROTO_PROXY_PORT=443
 MTPROTO_BASE_SECRET_HEX=${MTPROTO_BASE_SECRET_HEX}
 MTPROTO_SECRET_SALT=${MTPROTO_SECRET_SALT}
+MTPROTO_RUNTIME_POLICY_URL=http://127.0.0.1:18080/krotpn/mtproto/policy
+MTPROTO_RUNTIME_TOKEN=${MTPROTO_RUNTIME_TOKEN}
+MTPROTO_RUNTIME_TIMEOUT_SECONDS=3.0
+MTPROTO_POLICY_PORT=18080
 EDGE_PUBLIC_DOMAIN=${PUBLIC_DOMAIN}
 EDGE_CANONICAL_HOST=${PUBLIC_DOMAIN}
 EDGE_TLS_CERTIFICATE_PATH=/etc/nginx/ssl/server.crt
 EDGE_TLS_CERTIFICATE_KEY_PATH=/etc/nginx/ssl/server.key
 EDGE_TLS_CERTIFICATE_MODE=${TLS_CERTIFICATE_MODE}
-EDGE_SHARED_443_ENABLED=false
+EDGE_SHARED_443_ENABLED=true
+EDGE_HTTPS_FALLBACK_PORT=8443
 NGINX_CONF_PATH=./nginx/nginx.runtime.conf
 EOF
 

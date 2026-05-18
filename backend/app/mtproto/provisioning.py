@@ -1,15 +1,15 @@
 """MTProto personal proxy provisioning.
 
 # FILE: backend/app/mtproto/provisioning.py
-# VERSION: 1.0.0
+# VERSION: 1.1.0
 # ROLE: RUNTIME
 # MAP_MODE: EXPORTS
 # START_MODULE_CONTRACT
 #   PURPOSE: Generate deterministic personal MTProto proxy assignments and owner-safe payloads
 #   SCOPE: SNI generation, KPprotoN-compatible fake-TLS secret derivation,
-#          tg link assembly, idempotent issue/reissue policy
-#   DEPENDS: M-001 (settings), M-002 (User), M-042 (assignment repository)
-#   LINKS: M-043, V-M-043
+#          tg link assembly, idempotent issue/reissue policy, live runtime policy apply
+#   DEPENDS: M-001 (settings), M-002 (User), M-042 (assignment repository), M-044 (runtime bridge)
+#   LINKS: M-043, M-044, V-M-043
 # END_MODULE_CONTRACT
 #
 # START_MODULE_MAP
@@ -17,10 +17,11 @@
 #   generate_sni - Deterministic wildcard-safe SNI generation
 #   derive_fake_tls_secret - KPprotoN-compatible per-SNI fake-TLS secret derivation
 #   build_tg_link - Telegram tg://proxy link assembly
-#   MTProtoProvisioningService - Idempotent owner-safe issue/reissue service
+#   MTProtoProvisioningService - Idempotent owner-safe issue/reissue service with live policy activation
 # END_MODULE_MAP
 #
 # START_CHANGE_SUMMARY
+#   LAST_CHANGE: v1.1.0 - Apply issued assignments to the live MTProto runtime before returning activated owner payloads.
 #   LAST_CHANGE: v1.0.0 - Added Phase-29 MTProto provisioning core
 # END_CHANGE_SUMMARY
 """
@@ -38,6 +39,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.config import Settings, settings
 from app.mtproto.models import MTProtoAssignment, MTProtoAssignmentStatus
 from app.mtproto.repository import MTProtoAssignmentRepository
+from app.mtproto.runtime_bridge import MTProtoBridgeStatus, MTProtoRuntimeBridge
 from app.mtproto.schemas import MTProtoProxyPayload
 from app.users.models import User
 
@@ -178,10 +180,12 @@ class MTProtoProvisioningService:
                     "[M-043][issue_user_proxy][REUSE_ASSIGNMENT] "
                     f"user_id={user_id} assignment_id={existing.id}"
                 )
+                await self._apply_runtime_policy(existing)
                 return self._payload_from_assignment(existing)
             return await self._reissue_existing(user_id, existing)
 
         assignment = await self._create_assignment(user_id)
+        await self._apply_runtime_policy(assignment)
         return self._payload_from_assignment(assignment)
     # END_BLOCK_ISSUE_USER_PROXY
 
@@ -225,8 +229,26 @@ class MTProtoProvisioningService:
             rotation_marker=self.settings.mtproto_rotation_marker,
             replace=True,
         )
+        await self._apply_runtime_policy(updated)
         return self._payload_from_assignment(updated)
     # END_BLOCK_ASSIGNMENT_CREATE_REISSUE
+
+    # START_BLOCK_APPLY_RUNTIME_POLICY
+    async def _apply_runtime_policy(self, assignment: MTProtoAssignment) -> None:
+        bridge = MTProtoRuntimeBridge(self.session)
+        result = await bridge.apply_domain_policy(assignment)
+        if result.status == MTProtoBridgeStatus.ACTIVATED:
+            return
+        logger.warning(
+            "[M-043][issue_user_proxy][REISSUE_REQUIRED] "
+            f"assignment_id={assignment.id} runtime_status={result.status.value} "
+            f"failure_code={result.failure_code.value if result.failure_code else 'unknown'}"
+        )
+        raise MTProtoProvisioningError(
+            MTProtoProvisioningErrorCode.CONFIG_INCOMPLETE,
+            "MTProto runtime policy is not ready",
+        )
+    # END_BLOCK_APPLY_RUNTIME_POLICY
 
     # START_BLOCK_VALIDATE_PROVISIONING_INPUTS
     def _ensure_verified_user(self, user: User) -> None:

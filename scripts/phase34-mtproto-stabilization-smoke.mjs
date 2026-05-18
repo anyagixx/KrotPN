@@ -1,13 +1,13 @@
 #!/usr/bin/env node
 // FILE: scripts/phase34-mtproto-stabilization-smoke.mjs
-// VERSION: 1.1.0
+// VERSION: 1.2.0
 // ROLE: SCRIPT
 // MAP_MODE: LOCALS
 // START_MODULE_CONTRACT
 //   PURPOSE: Static Phase-34 stabilization smoke for verified onboarding, MTProto owner/admin surfaces, redaction, and release handoff.
 //   SCOPE: Source markers, Phase-34 integration-test presence, frontend/admin anchors,
-//          release checklist markers, secret-redaction guards, and Phase-35 scoped deploy/install/edge surface guard.
-//   DEPENDS: M-040, M-041, M-042, M-043, M-045, M-046, M-047, M-048, node:fs, node:path, node:child_process
+//          release checklist markers, secret-redaction guards, and Phase-35/37 scoped deploy/install/edge surface guard.
+//   DEPENDS: M-040, M-041, M-042, M-043, M-044, M-045, M-046, M-047, M-048, node:fs, node:path, node:child_process
 //   LINKS: V-M-041, V-M-045, V-M-046, V-M-047, V-M-048, docs/plans/Phase-34.xml, docs/plans/Phase-35.xml
 // END_MODULE_CONTRACT
 //
@@ -19,6 +19,7 @@
 // END_MODULE_MAP
 //
 // START_CHANGE_SUMMARY
+//   LAST_CHANGE: v1.2.0 - Added Phase-37 live MTProto runtime bridge static assertions.
 //   LAST_CHANGE: v1.1.0 - Allowed approved Phase-35 wildcard TLS installer edge/deploy changes.
 // END_CHANGE_SUMMARY
 
@@ -73,6 +74,11 @@ requireText('backend/app/mtproto/router.py', '[M-045][get_my_mtproto_proxy][REND
 requireText('backend/app/admin/router.py', '@router.post("/mtproto/assignments/{assignment_id}/revoke")')
 requireText('backend/app/admin/audit.py', 'log_admin_action')
 requireText('backend/app/mtproto/runtime_bridge.py', '[M-044][revoke_domain_policy][POLICY_REVOKED]')
+requireText('backend/app/mtproto/runtime_bridge.py', 'HTTPMTProtoPolicyAdapter')
+requireText('backend/app/mtproto/provisioning.py', 'START_BLOCK_APPLY_RUNTIME_POLICY')
+requireText('mtproto-runtime/src/kpproton_policy_handler.erl', 'KROTPN_MTPROTO_POLICY_TOKEN')
+requireText('mtproto-runtime/apps/kpproton_proxy/src/mtproto/kpproton_proxy_bridge.erl', 'mtp_policy_table:add(personal_domains, tls_domain, SniDomain)')
+requireText('docker-compose.yml', 'container_name: krotpn-mtproto-edge')
 
 requireText('frontend/src/lib/api.ts', 'verifyEmail: (token: string)')
 requireText('frontend/src/lib/api.ts', 'MTProtoProxyResponse')
@@ -112,10 +118,18 @@ const approvedPhase35Surface = new Set([
   'docker-compose.yml',
   'install.sh',
   'deploy/deploy-on-server.sh',
+  'nginx/nginx.conf',
   'backend/tests/test_domain_tls_edge_static.py',
+  'backend/app/mtproto/runtime_bridge.py',
+  'backend/app/mtproto/provisioning.py',
+  'backend/tests/test_kpproton_runtime_bridge.py',
+  'mtproto-runtime/src/kpproton_policy_handler.erl',
+  'mtproto-runtime/src/kpproton_web.erl',
+  'mtproto-runtime/apps/kpproton_proxy/src/mtproto/kpproton_proxy_bridge.erl',
   'scripts/phase32-edge-contract-smoke.mjs',
   'scripts/phase34-mtproto-stabilization-smoke.mjs',
   'scripts/phase35-installer-wildcard-tls-smoke.mjs',
+  'scripts/phase37-mtproto-runtime-smoke.mjs',
 ])
 
 const protectedChanges = changedFiles().filter((file) => (
@@ -124,6 +138,7 @@ const protectedChanges = changedFiles().filter((file) => (
   || file === '.env.example'
   || file.startsWith('deploy/')
   || file.startsWith('nginx/')
+  || file.startsWith('mtproto-runtime/')
   || file.startsWith('scripts/phase')
 ))
 const unexpectedChanges = protectedChanges.filter((file) => !approvedPhase35Surface.has(file))
@@ -134,7 +149,7 @@ if (unexpectedChanges.length > 0) {
 
 if (protectedChanges.length > 0) {
   requireText('docs/graph-index.xml', 'M-048')
-  requireText('docs/plan-index.xml', 'Phase-35')
+  requireText('docs/plan-index.xml', 'Phase-37')
 }
 // END_BLOCK_PHASE34_MTPROTO_STABILIZATION_SMOKE
 

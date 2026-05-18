@@ -17,13 +17,14 @@
 #   Settings.awg_relay_obfuscation_params - RELAY_PROFILE mapping
 #   Settings.anti_abuse_* - Observe/auto-rotate and endpoint-history thresholds
 #   Settings.email_verification_* - Provider, TTL, URL and domain guard settings
-#   Settings.mtproto_* - Personal MTProto proxy provisioning settings
+#   Settings.mtproto_* - Personal MTProto proxy provisioning and live runtime bridge settings
 #   Settings.edge_* - krotpn.xyz canonical domain, TLS path, and shared 443 edge contract
 #   get_settings - lru_cache factory returning validated Settings singleton
 #   settings - Module-level cached Settings instance
 # END_MODULE_MAP
 #
 # START_CHANGE_SUMMARY
+#   LAST_CHANGE: v3.6.0 - Added Phase-37 MTProto runtime policy bridge URL and token validation.
 #   LAST_CHANGE: v3.5.2 - Added Phase-36 Resend API URL, sender, and key format validation.
 #   LAST_CHANGE: v3.5.1 - Treat blank optional MTProto secrets as unset so backend can degrade instead of crash.
 #   LAST_CHANGE: v3.5.0 - Added Phase-32 krotpn.xyz domain TLS edge settings
@@ -51,6 +52,7 @@ from functools import lru_cache
 import json
 import re
 from typing import Annotated, Literal
+from urllib.parse import urlparse
 
 from pydantic import Field, field_validator
 from pydantic_settings import BaseSettings, NoDecode, SettingsConfigDict
@@ -253,6 +255,9 @@ class Settings(BaseSettings):
     mtproto_secret_salt: str | None = None
     mtproto_sni_prefix: str = Field(default="u", min_length=1, max_length=24)
     mtproto_rotation_marker: str = Field(default="v1", min_length=1, max_length=64)
+    mtproto_runtime_policy_url: str | None = None
+    mtproto_runtime_token: str | None = None
+    mtproto_runtime_timeout_seconds: float = Field(default=3.0, gt=0, le=30)
 
     # Public domain/TLS edge contract
     edge_public_domain: str = "krotpn.xyz"
@@ -408,6 +413,37 @@ class Settings(BaseSettings):
         normalized = v.strip()
         if not re.fullmatch(r"[A-Za-z0-9._-]{1,64}", normalized):
             raise ValueError("MTPROTO_ROTATION_MARKER must be a safe opaque marker")
+        return normalized
+
+    @field_validator("mtproto_runtime_policy_url")
+    @classmethod
+    def validate_mtproto_runtime_policy_url(cls, v: str | None) -> str | None:
+        if v is None:
+            return None
+        normalized = v.strip().rstrip("/")
+        if not normalized:
+            return None
+        parsed = urlparse(normalized)
+        if parsed.scheme != "http" or parsed.hostname not in {"127.0.0.1", "localhost"}:
+            raise ValueError(
+                "MTPROTO_RUNTIME_POLICY_URL must be local http://127.0.0.1 or localhost"
+            )
+        if not parsed.port or parsed.port < 1 or parsed.port > 65535:
+            raise ValueError("MTPROTO_RUNTIME_POLICY_URL must include a valid local port")
+        if not parsed.path.startswith("/krotpn/mtproto/policy"):
+            raise ValueError("MTPROTO_RUNTIME_POLICY_URL must target /krotpn/mtproto/policy")
+        return normalized
+
+    @field_validator("mtproto_runtime_token")
+    @classmethod
+    def validate_mtproto_runtime_token(cls, v: str | None) -> str | None:
+        if v is None:
+            return None
+        normalized = v.strip()
+        if not normalized:
+            return None
+        if not re.fullmatch(r"[-A-Za-z0-9._~+/=]{24,512}", normalized):
+            raise ValueError("MTPROTO_RUNTIME_TOKEN contains unsupported characters")
         return normalized
 
     @field_validator("edge_public_domain", "edge_canonical_host")

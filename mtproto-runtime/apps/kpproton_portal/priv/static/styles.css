@@ -1,0 +1,282 @@
+/* FILE: apps/kpproton_portal/priv/static/styles.css */
+/* VERSION: 1.1.0 */
+/* START_MODULE_CONTRACT
+  PURPOSE: Define the visual language for the KPprotoN request portal.
+  SCOPE: Layout, typography, form styling, state colors, and responsive behavior.
+  DEPENDS: apps/kpproton_portal/priv/static/index.html
+  LINKS: M-WEB-UI
+END_MODULE_CONTRACT */
+/* START_MODULE_MAP
+  :root - theme variables
+  .shell - page layout wrapper
+  .panel - request form card
+  .status-panel - dynamic success/error state container
+END_MODULE_MAP */
+/* START_CHANGE_SUMMARY
+  LAST_CHANGE: v1.1.0 - Added verify result layout, field cards, and copy action styling.
+END_CHANGE_SUMMARY */
+
+/* START_BLOCK_THEME */
+:root {
+  --bg: #f2efe8;
+  --surface: rgba(255, 252, 245, 0.88);
+  --ink: #1a1d23;
+  --muted: #5d6470;
+  --accent: #c75929;
+  --accent-dark: #933915;
+  --ok: #1d7a49;
+  --error: #b23b3b;
+  --shadow: 0 24px 60px rgba(35, 27, 18, 0.12);
+  --radius: 28px;
+}
+/* END_BLOCK_THEME */
+
+/* START_BLOCK_LAYOUT */
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  font-family: "IBM Plex Sans", "Segoe UI", sans-serif;
+  color: var(--ink);
+  background:
+    radial-gradient(circle at top left, rgba(199, 89, 41, 0.18), transparent 28%),
+    linear-gradient(160deg, #f7f3ec 0%, #ece6db 100%);
+}
+
+.shell {
+  width: min(960px, calc(100vw - 32px));
+  margin: 0 auto;
+  padding: 72px 0 48px;
+}
+
+.hero {
+  max-width: 680px;
+  margin-bottom: 28px;
+}
+
+.eyebrow {
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--accent-dark);
+  font-size: 0.8rem;
+}
+
+.hero h1 {
+  margin: 12px 0 16px;
+  font-size: clamp(2.4rem, 6vw, 4.6rem);
+  line-height: 0.95;
+}
+
+.lede {
+  max-width: 560px;
+  font-size: 1.05rem;
+  color: var(--muted);
+}
+
+.panel {
+  padding: 28px;
+  border-radius: var(--radius);
+  background: var(--surface);
+  backdrop-filter: blur(18px);
+  box-shadow: var(--shadow);
+}
+/* END_BLOCK_LAYOUT */
+
+/* START_BLOCK_FORM */
+.request-form {
+  display: grid;
+  gap: 18px;
+}
+
+.field {
+  display: grid;
+  gap: 10px;
+  font-weight: 600;
+}
+
+.field input {
+  border: 1px solid rgba(26, 29, 35, 0.14);
+  border-radius: 16px;
+  padding: 16px 18px;
+  font: inherit;
+  background: rgba(255, 255, 255, 0.92);
+}
+
+button {
+  border: 0;
+  border-radius: 999px;
+  padding: 16px 22px;
+  font: inherit;
+  font-weight: 700;
+  color: #fff8f0;
+  background: linear-gradient(135deg, var(--accent), var(--accent-dark));
+  cursor: pointer;
+}
+
+button[disabled] {
+  opacity: 0.7;
+  cursor: progress;
+}
+/* END_BLOCK_FORM */
+
+/* START_BLOCK_STATUS */
+.status-panel {
+  margin-top: 18px;
+  padding: 18px 20px;
+  border-radius: 20px;
+  background: rgba(26, 29, 35, 0.04);
+}
+
+.status-panel h2 {
+  margin: 0 0 8px;
+}
+
+.status-panel p {
+  margin: 0;
+  color: var(--muted);
+}
+
+.status-panel[data-state="success"] {
+  background: rgba(29, 122, 73, 0.1);
+}
+
+.status-panel[data-state="error"] {
+  background: rgba(178, 59, 59, 0.1);
+}
+/* END_BLOCK_STATUS */
+
+/* START_BLOCK_VERIFY_RESULT */
+.result-shell {
+  width: min(1080px, calc(100vw - 32px));
+  margin: 0 auto;
+  padding: 44px 0 60px;
+}
+
+.result-panel {
+  display: grid;
+  gap: 22px;
+  padding: 30px;
+  border-radius: var(--radius);
+  background: var(--surface);
+  backdrop-filter: blur(18px);
+  box-shadow: var(--shadow);
+}
+
+.result-grid {
+  display: grid;
+  gap: 18px;
+  grid-template-columns: 1.4fr 1fr;
+}
+
+.result-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.result-actions a,
+.copy-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 0;
+  border-radius: 999px;
+  min-height: 50px;
+  padding: 0 18px;
+  font: inherit;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.copy-button {
+  color: var(--ink);
+  background: rgba(26, 29, 35, 0.08);
+}
+
+.primary-link {
+  color: #fff8f0;
+  background: linear-gradient(135deg, var(--accent), var(--accent-dark));
+}
+
+.result-card {
+  padding: 20px;
+  border-radius: 22px;
+  background: rgba(255, 255, 255, 0.74);
+  border: 1px solid rgba(26, 29, 35, 0.08);
+}
+
+.result-card h2,
+.result-card h3 {
+  margin: 0 0 10px;
+}
+
+.result-card p {
+  margin: 0 0 12px;
+  color: var(--muted);
+}
+
+.result-field {
+  display: grid;
+  gap: 8px;
+  margin-top: 14px;
+}
+
+.result-field label {
+  font-size: 0.85rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--accent-dark);
+}
+
+.result-value {
+  display: block;
+  width: 100%;
+  padding: 14px 16px;
+  border-radius: 16px;
+  background: #ffffff;
+  border: 1px solid rgba(26, 29, 35, 0.1);
+  font-family: "IBM Plex Mono", "SFMono-Regular", monospace;
+  font-size: 0.95rem;
+  line-height: 1.55;
+  word-break: break-all;
+}
+
+.result-field-row {
+  display: grid;
+  gap: 10px;
+}
+
+.result-note {
+  font-size: 0.93rem;
+  color: var(--muted);
+}
+
+.result-error {
+  background: rgba(178, 59, 59, 0.1);
+}
+/* END_BLOCK_VERIFY_RESULT */
+
+@media (max-width: 640px) {
+  .shell {
+    padding-top: 44px;
+  }
+
+  .panel {
+    padding: 20px;
+  }
+
+  .result-shell {
+    padding-top: 28px;
+  }
+
+  .result-panel {
+    padding: 20px;
+  }
+
+  .result-grid {
+    grid-template-columns: 1fr;
+  }
+}

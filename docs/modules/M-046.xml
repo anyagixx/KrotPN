@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<M-046 NAME="krotpn-domain-tls-edge" TYPE="ENTRY_POINT" STATUS="partial-local">
-  <path>backend/app/core/config.py nginx docker-compose.yml .env.example scripts docs/edge/PHASE-32-CUTOVER.xml docs/plans/Phase-32.xml</path>
+<M-046 NAME="krotpn-domain-tls-edge" TYPE="ENTRY_POINT" STATUS="partial-live">
+  <path>backend/app/core/config.py nginx docker-compose.yml .env.example mtproto-runtime scripts docs/edge/PHASE-32-CUTOVER.xml docs/plans/Phase-32.xml docs/plans/Phase-37.xml</path>
   <owns>krotpn.xyz domain edge, HTTP to HTTPS redirect, wildcard TLS expectations, and shared 443 routing contract for HTTPS plus MTProto.</owns>
   <purpose>Define the production edge model needed for https://krotpn.xyz and Telegram fake-TLS MTProto proxy to coexist safely.</purpose>
   <exports>
@@ -9,15 +9,17 @@
     <edge-shared-443>Route MTProto fake-TLS by issued SNI and forward normal HTTPS to KrotPN frontend/backend/admin.</edge-shared-443>
     <edge-static-guard>Static checks proving deploy/install changes stay scoped to explicitly approved Phase-35 wildcard TLS installer work.</edge-static-guard>
   </exports>
-  <depends>M-001,M-012,M-044</depends>
+  <depends>M-001,M-012,M-044,M-049</depends>
   <verification-ref>V-M-046</verification-ref>
   <files>
     <file>backend/app/core/config.py</file>
     <file>nginx/nginx.conf</file>
     <file>docker-compose.yml</file>
     <file>.env.example</file>
+    <file>mtproto-runtime</file>
     <file>backend/tests/test_domain_tls_edge_static.py</file>
     <file>scripts/phase32-edge-contract-smoke.mjs</file>
+    <file>scripts/phase37-mtproto-runtime-smoke.mjs</file>
     <file>docs/edge/PHASE-32-CUTOVER.xml</file>
     <file>docs/handoff/PHASE-34-RELEASE-CHECKLIST.xml</file>
   </files>
@@ -25,6 +27,7 @@
     <policy-1>Shared 443 design must be verified before replacing direct nginx ownership of 443.</policy-1>
     <policy-2>Wildcard certificate issuance may remain operator-driven; this module defines runtime expectations first.</policy-2>
     <policy-3>Existing deploy/install scripts are protected unless the operator explicitly approves edge deployment changes; Phase-35 is the approved installer wildcard TLS exception.</policy-3>
+    <policy-4>Phase-37 makes mtproto-edge the production TCP 443 owner and moves nginx HTTPS fallback to 8443.</policy-4>
   </edge-policy>
   <constraints>
     <constraint-1>Misrouting 443 can break both website and Telegram proxy, so rollout requires a rollback plan.</constraint-1>
@@ -35,6 +38,7 @@
     <evidence-2>Production smoke remains blocked-live until operator-provided DNS, trusted wildcard certificate, and rollback window are available.</evidence-2>
     <evidence-3>2026-05-14: Phase-34 release handoff records V-M-046 as operator-live and keeps deploy/install/edge surfaces protected during local stabilization.</evidence-3>
     <evidence-4>2026-05-17: Phase-35 added deploy-supported operator wildcard TLS reuse and runtime nginx domain rendering while preserving M-046 shared-443 live gate.</evidence-4>
+    <evidence-5>2026-05-18: Phase-37 corrected the clean-VPS live failure where nginx owned public 443 and no MTProto edge was running; nginx now listens on 8443 behind mtproto-edge.</evidence-5>
   </evidence>
   <hotspot>H-032: Shared 443 edge can break both HTTPS and Telegram proxy if fallback routing or wildcard TLS is misconfigured</hotspot>
 </M-046>
