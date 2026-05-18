@@ -42,5 +42,6 @@
     <evidence-3>2026-05-18: Phase-38 verification design adds deploy-surface gates for RU SNI router, DE runtime, private policy API, and redaction-safe TLS/token handling.</evidence-3>
     <evidence-4>2026-05-18: Phase-38 local deploy-surface verification passed for bash syntax, HAProxy SNI router static smoke, DE runtime compose template, private policy URL wiring, and secret preservation guards.</evidence-4>
     <evidence-5>2026-05-18: Follow-up deploy-surface checks cover HAProxy low-port bind permission and admin 8443 versus private fallback 9443 separation.</evidence-5>
+    <evidence-6>2026-05-18: Live deploy-surface proof passed after pulling GitHub main on RU, regenerating runtime nginx/HAProxy configs, and rebuilding DE runtime from the updated mtproto runtime source.</evidence-6>
   </evidence>
 </V-M-012>

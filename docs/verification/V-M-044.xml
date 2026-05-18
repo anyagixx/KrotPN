@@ -91,5 +91,6 @@
     <evidence-4>2026-05-18: Phase-38 verification adds private DE policy API target gates and degraded-safe failure requirements.</evidence-4>
     <evidence-5>2026-05-18: Phase-38 local execution passed private DE policy URL Settings tests, existing runtime bridge tests, and trace-marker smoke for HTTP apply/health operations.</evidence-5>
     <evidence-6>2026-05-18: Follow-up verification covers POLICY_LISTEN_IP-aware bootstrap URL generation after DE mtproto_proxy failed to start against hardcoded 127.0.0.1:18080.</evidence-6>
+    <evidence-7>2026-05-18: DE runtime live check passed after rebuild: policy health OK and mtproto_proxy listener open on TCP 443 while policy API remains on the private relay address.</evidence-7>
   </evidence>
 </V-M-044>

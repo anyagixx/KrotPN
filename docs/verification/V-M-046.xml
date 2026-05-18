@@ -114,5 +114,6 @@
     <evidence-9>2026-05-18: Phase-38 verification redefines the public 443 live gate around RU SNI router plus DE runtime after RU-only mtproto_proxy stayed blocked-live.</evidence-9>
     <evidence-10>2026-05-18: Phase-38 local execution passed SNI router static coverage, compose public-443 ownership checks, nginx HTTPS fallback checks, and docker compose config with .env.example.</evidence-10>
     <evidence-11>2026-05-18: Follow-up static checks now require private nginx fallback on 127.0.0.1:9443, public admin on 8443, and explicit HAProxy low-port bind permissions before clean deploy is claimed healthy.</evidence-11>
+    <evidence-12>2026-05-18: Live edge smoke confirmed public 443 serves the user frontend through HAProxy and direct public 8443/login serves the admin frontend.</evidence-12>
   </evidence>
 </V-M-046>

@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<V-M-050 MODULE="M-050" PRIORITY="critical" STATUS="partial-local" VERSION="1.2.1">
+<V-M-050 MODULE="M-050" PRIORITY="critical" STATUS="partial-live" VERSION="1.3.0">
   <module>mtproto-de-backed-edge</module>
   <phase-scope>
-    <phase-38 status="partial-local">DE-hosted MTProto runtime plus RU public TCP 443 SNI router implemented locally; live VPS and Telegram Desktop proof remain operator-required.</phase-38>
+    <phase-38 status="partial-live">DE-hosted MTProto runtime plus RU public TCP 443 SNI router passed live RU/DE edge checks; assignment replay and Telegram Desktop proof remain operator-required.</phase-38>
     <supersedes>M-049 remains blocked-live for the RU-only runtime path; Phase-38 verifies the replacement DE-backed traffic path.</supersedes>
   </phase-scope>
   <test-files>
@@ -118,5 +118,6 @@
     <evidence-3>Operator-live gates remain open for clean VPS deploy, RU public HTTPS through SNI router, DE runtime listener, private policy API denial from public internet, assignment replay, and Telegram Desktop available status.</evidence-3>
     <evidence-4>2026-05-18: Clean VPS follow-up fixed live regressions by adding HAProxy low-port bind permissions and separating admin 8443 from the SNI-router web fallback on private 9443.</evidence-4>
     <evidence-5>2026-05-18: DE runtime follow-up fixed mtproto_proxy startup against private policy bind by replacing the hardcoded 127.0.0.1 bootstrap URL with POLICY_LISTEN_IP-derived bootstrap URLs.</evidence-5>
+    <evidence-6>2026-05-18: Live verification passed: RU public 443 serves KrotPN through HAProxy, RU public 8443/login serves KrotPN Admin, nginx private fallback listens on 127.0.0.1:9443, DE runtime listens on 0.0.0.0:443, private policy health returns OK, RU can reach DE 443, and HAProxy reports mtproto_de_runtime UP.</evidence-6>
   </evidence>
 </V-M-050>

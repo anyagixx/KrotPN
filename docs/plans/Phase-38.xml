@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Phase-38 NAME="DE-backed MTProto Edge and RU SNI Router" STATUS="partial-local" VERSION="1.1.1">
+<Phase-38 NAME="DE-backed MTProto Edge and RU SNI Router" STATUS="partial-live" VERSION="1.2.0">
   <Goal>Replace the blocked RU-only MTProto shared-443 runtime with a DE-hosted MTProto runtime and an RU public TCP 443 SNI router that preserves HTTPS while routing issued Telegram proxy SNI to DE.</Goal>
   <Modules>M-050,M-049,M-044,M-046,M-048,M-012,M-043</Modules>
   <OperatorProblem>
@@ -34,7 +34,7 @@
     <step-5 STATUS="pass-local">Preserve existing assignment credentials and replay active SNI policies without reissuing user proxy links.</step-5>
     <step-6 STATUS="pass-local">Add deterministic static smoke coverage for SNI router config, DE runtime env, policy URL safety, secret redaction, and rollback notes.</step-6>
     <step-7 STATUS="pass-local">Run local verification: script syntax, compose config, backend MTProto tests, Phase-38 smoke, XML parse, and MyGRACE lint.</step-7>
-    <step-8 STATUS="operator-live-pending">Run operator-live verification: RU HTTPS, RU router, DE runtime, private policy health, assignment replay, and Telegram Desktop availability.</step-8>
+    <step-8 STATUS="partial-live">Run operator-live verification: RU HTTPS, RU router, DE runtime, and private policy health passed; assignment replay and Telegram Desktop availability remain operator-required.</step-8>
   </Steps>
   <Verification>
     <command-1>bash -n install.sh deploy/deploy-on-server.sh</command-1>
@@ -85,5 +85,6 @@
     <evidence-3>Operator-live proof remains required for clean VPS deploy, public HTTPS through RU SNI router, private DE policy health, active assignment replay, and Telegram Desktop availability.</evidence-3>
     <evidence-4>2026-05-18: Follow-up clean deploy fix separated public admin 8443 from private web fallback 9443 and granted HAProxy explicit low-port bind permission for public 443.</evidence-4>
     <evidence-5>2026-05-18: Follow-up DE runtime fix makes mtproto_proxy bootstrap use POLICY_LISTEN_IP so private policy binding does not prevent the DE proxy listener from starting.</evidence-5>
+    <evidence-6>2026-05-18: Live RU/DE verification passed for public https://krotpn.xyz title KrotPN, public https://krotpn.xyz:8443/login title KrotPN Admin, RU HAProxy on 443 healthy, DE runtime listening on 443, private policy health OK, and HAProxy DE backend UP.</evidence-6>
   </Evidence>
 </Phase-38>

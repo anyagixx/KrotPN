@@ -49,6 +49,7 @@
     <evidence-6>2026-05-18: Phase-38 plan changes the intended public 443 owner to an RU SNI router so HTTPS fallback and DE MTProto runtime can coexist.</evidence-6>
     <evidence-7>2026-05-18: Phase-38 local execution added HAProxy SNI router config and compose wiring so public 443 is owned by krotpn-sni-router while nginx stays on 80/9443 private fallback, 8443 public admin, and 8080 legacy admin.</evidence-7>
     <evidence-8>2026-05-18: Clean VPS deploy exposed two live edge regressions: HAProxy could not bind public 443 without explicit low-port permissions, and direct https://krotpn.xyz:8443/login showed the user frontend until admin 8443 was separated from private fallback 9443.</evidence-8>
+    <evidence-9>2026-05-18: Live curl through RU confirmed https://krotpn.xyz returns KrotPN and https://krotpn.xyz:8443/login returns KrotPN Admin after the port split.</evidence-9>
   </evidence>
   <hotspot>H-032: Shared 443 edge can break both HTTPS and Telegram proxy if fallback routing or wildcard TLS is misconfigured</hotspot>
 </M-046>

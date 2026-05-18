@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<M-050 NAME="mtproto-de-backed-edge" TYPE="INTEGRATION" STATUS="partial-local">
+<M-050 NAME="mtproto-de-backed-edge" TYPE="INTEGRATION" STATUS="partial-live">
   <path>mtproto-runtime nginx docker-compose.yml deploy/deploy-on-server.sh deploy/haproxy-phase38.cfg deploy/mtproto-de-compose.yml backend/app/core/config.py backend/app/mtproto scripts/phase38-de-mtproto-edge-smoke.mjs docs/plans/Phase-38.xml</path>
   <owns>DE-hosted MTProto runtime, RU public TCP 443 SNI router, private RU-to-DE policy API reachability, and live Telegram availability gates.</owns>
   <purpose>Restore Telegram MTProto availability by routing issued user SNI traffic from the RU public edge to a DE-hosted MTProto runtime while keeping HTTPS on krotpn.xyz available.</purpose>
@@ -52,6 +52,7 @@
     <evidence-3>2026-05-18: Phase-38 local execution added RU HAProxy SNI router, DE runtime compose/deploy wiring, private policy bind, backend private policy URL guards, secret-preserving deploy env generation, and deterministic smoke/pytest coverage.</evidence-3>
     <evidence-4>2026-05-18: Clean VPS deploy found HAProxy lacked low-port bind permission for 443 and the admin 8443 URL collided with the web fallback; fixed by running sni-router with NET_BIND_SERVICE/root and moving web fallback to private 9443 while preserving admin 8443.</evidence-4>
     <evidence-5>2026-05-18: DE runtime follow-up found the policy API healthy on the private bind but mtproto_proxy down because bootstrap still used 127.0.0.1; fixed by deriving bootstrap from POLICY_LISTEN_IP.</evidence-5>
+    <evidence-6>2026-05-18: Live RU/DE checks passed for public web/admin titles, RU 443 HAProxy ownership, private nginx fallback 9443, public admin 8443, DE listener 443, private policy health, and HAProxy mtproto_de_runtime backend UP.</evidence-6>
   </evidence>
   <hotspot>H-037: DE-backed MTProto edge and RU SNI router can break HTTPS or expose policy/cert material unless routing, private API reachability, and redaction gates are strict.</hotspot>
 </M-050>

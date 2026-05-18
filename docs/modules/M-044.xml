@@ -45,6 +45,7 @@
     <evidence-4>2026-05-18: Phase-38 plan keeps the same bridge contract but moves the production policy target from RU-local runtime to the private DE runtime.</evidence-4>
     <evidence-5>2026-05-18: Phase-38 local execution permits private DE policy URLs, rejects public/wildcard policy API targets, and adds HTTP adapter trace markers for apply/health operations.</evidence-5>
     <evidence-6>2026-05-18: DE live smoke found mtproto_proxy bootstrap still hardcoded to 127.0.0.1 while policy API was privately bound to 172.29.255.1; runtime now builds bootstrap URLs from POLICY_LISTEN_IP.</evidence-6>
+    <evidence-7>2026-05-18: DE live rebuild passed with mtproto_proxy listening on 0.0.0.0:443 and private policy health OK on 172.29.255.1:18080.</evidence-7>
   </evidence>
   <hotspot>H-030: MTProto runtime bridge must degrade safely when policy loading fails and must not block normal KrotPN login</hotspot>
 </M-044>
