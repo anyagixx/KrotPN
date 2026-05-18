@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<V-M-050 MODULE="M-050" PRIORITY="critical" STATUS="pending" VERSION="1.0.0">
+  <module>mtproto-de-backed-edge</module>
+  <phase-scope>
+    <phase-38 status="pending">Plan DE-hosted MTProto runtime and RU public TCP 443 SNI router to replace the blocked RU-only Phase-37 live edge.</phase-38>
+  </phase-scope>
+  <test-files>
+    <file>scripts/phase38-de-mtproto-edge-smoke.mjs</file>
+    <file>backend/tests/test_kpproton_runtime_bridge.py</file>
+    <file>backend/tests/test_mtproto_provisioning.py</file>
+    <file>backend/tests/test_domain_tls_edge_static.py</file>
+    <file>deploy/deploy-on-server.sh</file>
+    <file>docker-compose.yml</file>
+    <file>nginx/nginx.conf</file>
+    <file>mtproto-runtime</file>
+    <file>docs/plans/Phase-38.xml</file>
+  </test-files>
+  <commands>
+    <command-1>bash -n install.sh deploy/deploy-on-server.sh</command-1>
+    <command-2>docker compose config</command-2>
+    <command-3>node scripts/phase38-de-mtproto-edge-smoke.mjs</command-3>
+    <command-4>cd backend &amp;&amp; SECRET_KEY=test-secret-key-with-enough-length DATA_ENCRYPTION_KEY=dpFmfSVqfdAK3yx5MQV6Tcv35RZuw5MzaH0yhxJ01q0= PYTHONPATH=. ../.venv/bin/python -m pytest -o addopts='' tests/test_kpproton_runtime_bridge.py tests/test_mtproto_provisioning.py tests/test_domain_tls_edge_static.py -v</command-4>
+    <command-5>python3 -m xml.etree.ElementTree docs/graph-index.xml docs/plan-index.xml docs/verification-index.xml docs/modules/M-050.xml docs/plans/Phase-38.xml docs/verification/V-M-050.xml &amp;&amp; mygrace lint</command-5>
+    <command-6>operator-live: RU SNI router owns public 443, RU nginx fallback works, DE runtime listens privately/publicly as designed, private policy API rejects public access, active SNI replay succeeds, and Telegram Desktop marks the proxy available.</command-6>
+  </commands>
+  <verification-levels>
+    <module-local>Static config smoke, syntax checks, backend bridge tests with fake/private policy targets, XML parse, and MyGRACE lint.</module-local>
+    <wave-level>M-044, M-046, M-048, M-049, and M-050 must pass together because routing, deployment, policy apply, and runtime ownership form one edge behavior.</wave-level>
+    <phase-level>Operator-live proof on RU and DE validates HTTPS, private policy API, assignment replay, DE Telegram upstream, and Telegram Desktop availability.</phase-level>
+  </verification-levels>
+  <module-checks>
+    <check-1 evidence="deterministic">RU SNI router config has mutually exclusive web and MTProto routes with an explicit unknown-SNI behavior.</check-1>
+    <check-2 evidence="deterministic">DE runtime env contains no blank MTProto secret, salt, token, cert, or policy settings.</check-2>
+    <check-3 evidence="deterministic">Backend bridge can target a private DE policy API URL and redacts token and SNI secret material.</check-3>
+    <check-4 evidence="deterministic">Existing assignments replay to DE runtime without reissue or secret rotation.</check-4>
+    <check-5 evidence="deterministic">Static smoke rejects configs that expose DE policy API on 0.0.0.0 without firewall/private binding.</check-5>
+    <check-6 evidence="operator-live">RU public HTTPS remains healthy through the SNI router.</check-6>
+    <check-7 evidence="operator-live">DE runtime reaches Telegram upstream and Telegram Desktop marks the issued proxy available.</check-7>
+  </module-checks>
+  <scenarios>
+    <scenario-1 kind="success">Browser request for krotpn.xyz routes from RU public 443 to RU nginx 8443 and returns a healthy HTTPS page.</scenario-1>
+    <scenario-2 kind="success">Telegram request for an issued user SNI routes from RU public 443 to DE MTProto runtime and becomes available in Telegram Desktop.</scenario-2>
+    <scenario-3 kind="success">Backend startup replay loads active assignment policies into DE runtime after restart.</scenario-3>
+    <scenario-4 kind="failure">DE policy API unavailable returns degraded MTProto state and does not claim an active usable proxy.</scenario-4>
+    <scenario-5 kind="failure">Public access to DE policy API is rejected by bind address, firewall, token auth, or all three.</scenario-5>
+    <scenario-6 kind="failure">SNI router failure rolls back to nginx-only public 443 before user traffic is advertised.</scenario-6>
+  </scenarios>
+  <required-log-markers>
+    <marker-1>[M-050][ru_sni_router][ROUTE_WEB]</marker-1>
+    <marker-2>[M-050][ru_sni_router][ROUTE_MTPROTO]</marker-2>
+    <marker-3>[M-050][de_mtproto_runtime][START_RUNTIME]</marker-3>
+    <marker-4>[M-050][de_policy_api][HEALTH]</marker-4>
+    <marker-5>[M-044][HTTPMTProtoPolicyAdapter][POST_APPLY]</marker-5>
+    <marker-6>[M-043][get_or_create_assignment_payload][APPLY_RUNTIME_POLICY]</marker-6>
+  </required-log-markers>
+  <redaction-rules>
+    <rule-1>Never print MTPROTO_RUNTIME_TOKEN, MTPROTO_BASE_SECRET_HEX, MTPROTO_SECRET_SALT, derived fake-TLS secrets, full tg links, private keys, JWTs, refresh tokens, Resend API keys, or email verification tokens.</rule-1>
+    <rule-2>Live evidence may include role names, port ownership, status codes, policy counts, and redacted SNI suffixes only.</rule-2>
+  </redaction-rules>
+  <live-smoke-gates>
+    <gate-1>RU ss output shows public TCP 443 owned by the SNI router and nginx HTTPS fallback on 8443.</gate-1>
+    <gate-2>DE ss output shows MTProto runtime listening on its configured target port.</gate-2>
+    <gate-3>RU backend policy health succeeds to DE over the private path with the runtime token.</gate-3>
+    <gate-4>Public internet cannot access the DE policy API.</gate-4>
+    <gate-5>curl https://krotpn.xyz returns a healthy frontend response without TLS bypass.</gate-5>
+    <gate-6>Existing active assignment SNI replay returns success and policy count is non-zero.</gate-6>
+    <gate-7>Operator Telegram Desktop retest marks the proxy available.</gate-7>
+  </live-smoke-gates>
+  <autonomous-execution-safety>
+    <level>planning-plus-local-verification</level>
+    <safe-local>XML parse, MyGRACE lint, static smoke, syntax checks, compose config, and backend tests with fake/private policy targets.</safe-local>
+    <requires-operator>Public routing changes, DE runtime rollout, wildcard certificate/private key placement, and Telegram Desktop proof.</requires-operator>
+  </autonomous-execution-safety>
+</V-M-050>

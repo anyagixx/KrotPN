@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <M-048 NAME="installer-wildcard-tls" TYPE="ENTRY_POINT" STATUS="partial-live">
-  <path>install.sh deploy/deploy-on-server.sh nginx docker-compose.yml .env.example scripts/phase35-installer-wildcard-tls-smoke.mjs scripts/phase36-resend-deploy-smoke.mjs scripts/phase37-mtproto-runtime-smoke.mjs docs/plans/Phase-35.xml docs/plans/Phase-36.xml docs/plans/Phase-37.xml</path>
-  <owns>installer prompts, remote wildcard certificate validation, deploy-time certificate installation, production edge env wiring, Phase-36 Resend email env prompts, Phase-37 MTProto runtime token/env wiring, and operator-safe TLS reuse.</owns>
+  <path>install.sh deploy/deploy-on-server.sh nginx docker-compose.yml .env.example scripts/phase35-installer-wildcard-tls-smoke.mjs scripts/phase36-resend-deploy-smoke.mjs scripts/phase37-mtproto-runtime-smoke.mjs scripts/phase38-de-mtproto-edge-smoke.mjs docs/plans/Phase-35.xml docs/plans/Phase-36.xml docs/plans/Phase-37.xml docs/plans/Phase-38.xml</path>
+  <owns>installer prompts, remote wildcard certificate validation, deploy-time certificate installation, production edge env wiring, Phase-36 Resend email env prompts, Phase-37 MTProto runtime token/env wiring, planned Phase-38 DE-backed edge wiring, and operator-safe TLS reuse.</owns>
   <purpose>Make fresh deploys accept an operator-provided wildcard certificate instead of reissuing or silently generating production self-signed TLS material.</purpose>
   <exports>
     <installer-domain-prompt>Prompt for the public domain with krotpn.xyz as the default.</installer-domain-prompt>
@@ -11,8 +11,9 @@
     <remote-cert-validator>Bootstrap openssl when needed, then verify existence, readability, expiry, cert/key match, and SAN coverage before deploy mutates the runtime TLS directory.</remote-cert-validator>
     <edge-env-wiring>Generate DOMAIN, FRONTEND_URL, MTPROTO_BASE_DOMAIN, MTPROTO_BASE_SECRET_HEX, MTPROTO_SECRET_SALT, EMAIL_PROVIDER, RESEND_API_KEY, EMAIL_FROM, and EDGE_TLS_* values for the deployed .env.</edge-env-wiring>
     <mtproto-runtime-env-wiring>Generate MTPROTO_RUNTIME_POLICY_URL, MTPROTO_RUNTIME_TOKEN, MTPROTO_POLICY_PORT, EDGE_SHARED_443_ENABLED, and EDGE_HTTPS_FALLBACK_PORT for the live edge runtime.</mtproto-runtime-env-wiring>
+    <phase38-de-edge-env-wiring>Plan DE runtime policy URL, RU SNI router targets, and cert reuse without printing token, private key, or proxy secrets.</phase38-de-edge-env-wiring>
   </exports>
-  <depends>M-001,M-012,M-044,M-046,M-049</depends>
+  <depends>M-001,M-012,M-044,M-046,M-049,M-050</depends>
   <verification-ref>V-M-048</verification-ref>
   <files>
     <file>install.sh</file>
@@ -23,6 +24,7 @@
     <file>scripts/phase35-installer-wildcard-tls-smoke.mjs</file>
     <file>scripts/phase36-resend-deploy-smoke.mjs</file>
     <file>scripts/phase37-mtproto-runtime-smoke.mjs</file>
+    <file>scripts/phase38-de-mtproto-edge-smoke.mjs</file>
     <file>docs/plans/Phase-35.xml</file>
     <file>docs/plans/Phase-36.xml</file>
     <file>docs/plans/Phase-37.xml</file>
@@ -44,6 +46,7 @@
     <constraint-7>Fresh production deploys must configure Resend email delivery or fail with an explicit operator message before registration can later hit provider_disabled.</constraint-7>
     <constraint-8>Fresh deploys must generate an MTPROTO_RUNTIME_TOKEN and must not print it or reuse it outside the localhost policy bridge.</constraint-8>
     <constraint-9>Hotfix deploys must preserve existing MTPROTO_BASE_SECRET_HEX and MTPROTO_SECRET_SALT so already-issued Telegram proxy links remain valid.</constraint-9>
+    <constraint-10>Phase-38 must not expose the DE policy API publicly and must not print wildcard private key material while preparing DE runtime TLS.</constraint-10>
   </constraints>
   <planned-execution>
     <step-1 STATUS="pass-local">Extend install.sh prompt allowlist and interactive flow for domain, fullchain path, and privkey path after RU SSH credentials are known.</step-1>
@@ -53,6 +56,7 @@
     <step-5 STATUS="pass-local">Preserve existing certs across redeploys unless a validated replacement is provided.</step-5>
     <step-6 STATUS="pass-local">Collect and pass Resend API key and noreply@krotpn.xyz sender for production email verification delivery.</step-6>
     <step-7 STATUS="pass-local">Generate and wire the live MTProto runtime policy token and shared-443 fallback env values.</step-7>
+    <step-8 STATUS="pending">Plan DE runtime TLS reuse, private policy URL, and RU SNI router env wiring for Phase-38.</step-8>
   </planned-execution>
   <evidence>
     <evidence-1>2026-05-17: Local Phase-35 implementation added installer prompts, RU cert preflight, deploy-time certificate validation/install, production env wiring, runtime nginx rendering, and static smoke coverage.</evidence-1>
@@ -61,6 +65,7 @@
     <evidence-4>2026-05-17: Live clean VPS backend unhealthy failure was fixed by generating deploy-time MTProto secrets and adding smoke coverage against blank deploy values.</evidence-4>
     <evidence-5>2026-05-17: Phase-36 local execution added Resend secret prompt, sender validation, deploy env wiring, static smoke coverage, and redaction checks.</evidence-5>
     <evidence-6>2026-05-18: Phase-37 added deploy-time MTPROTO_RUNTIME_TOKEN generation, localhost policy URL wiring, shared-443 enablement, and static smoke guards for the mtproto-edge service.</evidence-6>
+    <evidence-7>2026-05-18: Phase-38 plan requires DE runtime TLS/key handling and private policy URL wiring to stay redaction-safe before execution.</evidence-7>
   </evidence>
   <hotspot>H-034: Installer-provided wildcard TLS must validate cert/key/domain before deploy and must never log private key material.</hotspot>
 </M-048>
