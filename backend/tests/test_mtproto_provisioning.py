@@ -1,21 +1,21 @@
 """MTProto provisioning core tests.
 
 # FILE: backend/tests/test_mtproto_provisioning.py
-# VERSION: 2.0.0
+# VERSION: 2.1.0
 # ROLE: TEST
 # MAP_MODE: LOCALS
 # START_MODULE_CONTRACT
-#   PURPOSE: Verify deterministic owner-safe official MTProxy provisioning
-#   SCOPE: SNI generation, legacy KPprotoN fake-TLS vectors, official dd-secret issuance,
-#          manifest activation, reissue, and verified-user guard
-#   DEPENDS: M-043, M-053, M-042, M-001, M-002
-#   LINKS: V-M-043, V-M-053, V-M-042, V-M-001
+#   PURPOSE: Verify deterministic owner-safe KPprotoN fake-TLS provisioning
+#   SCOPE: SNI generation, KPprotoN fake-TLS vectors, derived-per-SNI issuance,
+#          runtime policy activation, reissue, and verified-user guard
+#   DEPENDS: M-043, M-044, M-042, M-001, M-002
+#   LINKS: V-M-043, V-M-044, V-M-042, V-M-001
 # END_MODULE_CONTRACT
 #
 # START_MODULE_MAP
 #   test_generate_sni_is_stable_and_under_base_domain - Covers stable SNI generation
 #   test_derive_fake_tls_secret_matches_kpproton_vector - Covers fake-TLS derivation
-#   test_official_secret_helpers_build_dd_owner_link - Covers official secure secret formatting
+#   test_fake_tls_link_helper_builds_owner_link - Covers KPprotoN fake-TLS link formatting
 #   test_issue_user_proxy_is_idempotent_and_owner_safe - Covers owner payload assembly
 #   test_issue_user_proxy_rejects_unverified_user_without_assignment - Covers verified gate
 #   test_rotation_marker_requires_explicit_reissue - Covers reissue-required policy
@@ -24,6 +24,7 @@
 # END_MODULE_MAP
 #
 # START_CHANGE_SUMMARY
+#   LAST_CHANGE: v2.1.0 - Restored KPprotoN derived-per-SNI fake-TLS provisioning coverage.
 #   LAST_CHANGE: v2.0.0 - Updated provisioning coverage for official MTProxy dd secrets.
 #   LAST_CHANGE: v1.1.0 - Added regression coverage for blank MTProto env values from fresh deploys
 #   LAST_CHANGE: v1.0.0 - Added Phase-29 provisioning tests
@@ -40,10 +41,8 @@ from app.mtproto.service import (
     MTProtoProvisioningError,
     MTProtoProvisioningErrorCode,
     MTProtoProvisioningService,
-    build_official_tg_link,
-    build_secure_secret,
+    build_tg_link,
     derive_fake_tls_secret,
-    derive_official_secret,
     generate_sni,
 )
 from app.users.models import User
@@ -113,25 +112,24 @@ def test_derive_fake_tls_secret_matches_kpproton_vector():
 
 
 @pytest.mark.asyncio
-async def test_official_secret_helpers_build_dd_owner_link(db_session: AsyncSession):
-    user = await _create_user(db_session, "official-helper-mtproto@example.com")
+async def test_fake_tls_link_helper_builds_owner_link(db_session: AsyncSession):
+    user = await _create_user(db_session, "faketls-helper-mtproto@example.com")
     assignment = MTProtoAssignment(
         user_id=int(user.id),
         sni="u-helper11111.krotpn.xyz",
-        credential_mode=MTProtoCredentialMode.OFFICIAL_SECURE,
+        credential_mode=MTProtoCredentialMode.DERIVED_PER_SNI,
         status=MTProtoAssignmentStatus.ACTIVE,
     )
     db_session.add(assignment)
     await db_session.flush()
     await db_session.refresh(assignment)
 
-    raw_secret = derive_official_secret(BASE_SECRET, SECRET_SALT, assignment)
-    secure_secret = build_secure_secret(raw_secret)
-    link = build_official_tg_link("krotpn.xyz", 443, raw_secret)
+    secret = derive_fake_tls_secret(BASE_SECRET, SECRET_SALT, assignment.sni)
+    link = build_tg_link(assignment.sni, 443, secret)
 
-    assert len(raw_secret) == 32
-    assert secure_secret == f"dd{raw_secret}"
-    assert link == f"tg://proxy?server=krotpn.xyz&port=443&secret={secure_secret}"
+    assert secret.startswith("ee")
+    assert assignment.sni.encode("utf-8").hex() in secret
+    assert link == f"tg://proxy?server={assignment.sni}&port=443&secret={secret}"
     assert BASE_SECRET not in link
     assert SECRET_SALT not in link
 
@@ -145,12 +143,12 @@ async def test_issue_user_proxy_is_idempotent_and_owner_safe(db_session: AsyncSe
     second = await service.issue_user_proxy(user)
 
     assert second == first
-    assert first.server == "krotpn.xyz"
+    assert first.server == first.sni
     assert first.sni.endswith(".krotpn.xyz")
     assert first.port == 443
-    assert first.secret.startswith("dd")
-    assert len(first.secret) == 34
-    assert first.credential_mode == "official_secure"
+    assert first.secret.startswith("ee")
+    assert first.sni.encode("utf-8").hex() in first.secret
+    assert first.credential_mode == "derived_per_sni"
     assert first.tg_link.startswith("tg://proxy?")
     assert first.tg_link.count(BASE_SECRET) == 0
     assert first.tg_link.count(SECRET_SALT) == 0
@@ -195,8 +193,38 @@ async def test_rotation_marker_requires_explicit_reissue(db_session: AsyncSessio
 
     assert reissued.assignment_id == first.assignment_id
     assert reissued.server == first.server
-    assert reissued.secret != first.secret
+    assert reissued.secret == first.secret
     assert reissued.rotation_marker == "v2"
+    assert await _assignment_count(db_session) == 1
+
+
+@pytest.mark.asyncio
+async def test_official_secure_assignment_requires_explicit_reissue(
+    db_session: AsyncSession,
+):
+    user = await _create_user(db_session, "official-stale-mtproto@example.com")
+    assignment = MTProtoAssignment(
+        user_id=int(user.id),
+        sni="u-stale111111.krotpn.xyz",
+        credential_mode=MTProtoCredentialMode.OFFICIAL_SECURE,
+        status=MTProtoAssignmentStatus.ACTIVE,
+        rotation_marker="v1",
+    )
+    db_session.add(assignment)
+    await db_session.flush()
+
+    service = MTProtoProvisioningService(db_session, app_settings=_settings())
+    with pytest.raises(MTProtoProvisioningError) as exc:
+        await service.issue_user_proxy(user)
+
+    assert exc.value.code == MTProtoProvisioningErrorCode.REISSUE_REQUIRED
+
+    reissued = await service.issue_user_proxy(user, reissue=True)
+
+    assert reissued.assignment_id == assignment.id
+    assert reissued.server == assignment.sni
+    assert reissued.secret.startswith("ee")
+    assert reissued.credential_mode == "derived_per_sni"
     assert await _assignment_count(db_session) == 1
 
 

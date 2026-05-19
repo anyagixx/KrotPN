@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Phase-41 NAME="KPprotoN fake-TLS production data-plane rollback" STATUS="verification-designed" VERSION="1.1.0">
+<Phase-41 NAME="KPprotoN fake-TLS production data-plane rollback" STATUS="pass-local" VERSION="1.2.0">
   <Goal>Replace the Phase-40 official MTProxy production path with the KPprotoN fake-TLS SNI data-plane while keeping KrotPN as the registration, assignment, dashboard, admin, and backup control-plane.</Goal>
   <Modules>M-043,M-044,M-049,M-050,M-051,M-052,M-053,M-012,M-045,M-047</Modules>
   <OperatorProblem>
@@ -30,25 +30,25 @@
     <flow-6>M-051 proves the issued user path with redacted diagnostics and operator Telegram Desktop/mobile evidence.</flow-6>
   </DataFlow>
   <Steps>
-    <step-1 STATUS="planned">Mark Phase-40 official MTProxy modules M-052/M-053 as superseded for production and keep them as rollback/reference only.</step-1>
-    <step-2 STATUS="planned">Restore M-043 provisioning to KPprotoN fake-TLS payloads with server=u-*.krotpn.xyz and secret=ee...; official dd assignments must be reissued explicitly.</step-2>
-    <step-3 STATUS="planned">Restore M-044 policy apply/revoke/replay as the production runtime bridge and remove official secret-manifest sync from active issuance.</step-3>
-    <step-4 STATUS="planned">Reconcile M-049 mtproto-runtime with CodexKPprotoN_for_KPN for per-SNI policy, fake-TLS secret handling, bounded Telegram bootstrap, and private policy API behavior.</step-4>
-    <step-5 STATUS="planned">Restore M-050 RU SNI routing so issued wildcard SNI goes to DE KPprotoN runtime and web/admin HTTPS remains stable.</step-5>
-    <step-6 STATUS="planned">Update M-012 deploy wiring to start the KPprotoN DE runtime as the active data-plane and disable official MTProxy services in the production compose path.</step-6>
-    <step-7 STATUS="planned">Update M-045/M-047 user/admin surfaces only as needed for reissue messaging, redaction, and fake-TLS status semantics.</step-7>
-    <step-8 STATUS="planned">Strengthen M-051 diagnostics with Phase-41 redacted smoke for issued ee link, SNI route, policy apply without restart, DE runtime logs, and Telegram proof.</step-8>
-    <step-9 STATUS="planned">Run local verification, MyGRACE reviewer/refresh, then clean VPS deploy and operator Telegram Desktop/mobile acceptance before any release tag.</step-9>
+    <step-1 STATUS="pass-local">Mark Phase-40 official MTProxy modules M-052/M-053 as superseded for production and keep them as rollback/reference only.</step-1>
+    <step-2 STATUS="pass-local">Restore M-043 provisioning to KPprotoN fake-TLS payloads with server=u-*.krotpn.xyz and secret=ee...; official dd assignments must be reissued explicitly.</step-2>
+    <step-3 STATUS="pass-local">Restore M-044 policy apply/revoke/replay as the production runtime bridge and remove official secret-manifest sync from active issuance.</step-3>
+    <step-4 STATUS="pass-local">Reconcile M-049 mtproto-runtime with CodexKPprotoN_for_KPN for per-SNI policy, fake-TLS secret handling, bounded Telegram bootstrap, and private policy API behavior.</step-4>
+    <step-5 STATUS="pass-local">Restore M-050 RU SNI routing so issued wildcard SNI goes to DE KPprotoN runtime and web/admin HTTPS remains stable.</step-5>
+    <step-6 STATUS="pass-local">Update M-012 deploy wiring to start the KPprotoN DE runtime as the active data-plane and disable official MTProxy services in the production compose path.</step-6>
+    <step-7 STATUS="pass-local">Update M-045/M-047 user/admin surfaces only as needed for reissue messaging, redaction, and fake-TLS status semantics.</step-7>
+    <step-8 STATUS="pass-local">Strengthen M-051 diagnostics with Phase-41 redacted smoke for issued ee link, SNI route, policy apply without restart, DE runtime logs, and Telegram proof.</step-8>
+    <step-9 STATUS="local-pass-operator-live-pending">Run local verification, MyGRACE reviewer/refresh, then clean VPS deploy and operator Telegram Desktop/mobile acceptance before any release tag.</step-9>
   </Steps>
   <Verification>
-    <command-1>bash -n install.sh deploy/deploy-on-server.sh scripts/phase39-mtproto-live-smoke.sh</command-1>
-    <command-2>node scripts/phase38-de-mtproto-edge-smoke.mjs</command-2>
-    <command-3>node scripts/phase39-mtproto-availability-smoke.mjs</command-3>
-    <command-4 status="planned">node scripts/phase41-kpproton-faketls-smoke.mjs</command-4>
-    <command-5>cd backend &amp;&amp; SECRET_KEY=test-secret-key-with-enough-length DATA_ENCRYPTION_KEY=dpFmfSVqfdAK3yx5MQV6Tcv35RZuw5MzaH0yhxJ01q0= PYTHONPATH=. ../.venv/bin/python -m pytest -o addopts='' tests/test_mtproto_provisioning.py tests/test_kpproton_runtime_bridge.py tests/test_mtproto_api.py tests/test_mtproto_admin_ops.py tests/test_mtproto_de_edge_contract.py tests/test_mtproto_availability_diagnostics.py -v</command-5>
-    <command-6>cd mtproto-runtime &amp;&amp; rebar3 compile</command-6>
-    <command-7>python3 -m xml.etree.ElementTree docs/graph-index.xml docs/plan-index.xml docs/verification-index.xml docs/current-status.xml docs/plans/Phase-41.xml docs/modules/M-012.xml docs/modules/M-043.xml docs/modules/M-044.xml docs/modules/M-045.xml docs/modules/M-047.xml docs/modules/M-049.xml docs/modules/M-050.xml docs/modules/M-051.xml docs/modules/M-052.xml docs/modules/M-053.xml docs/verification/V-M-012.xml docs/verification/V-M-043.xml docs/verification/V-M-044.xml docs/verification/V-M-045.xml docs/verification/V-M-047.xml docs/verification/V-M-049.xml docs/verification/V-M-050.xml docs/verification/V-M-051.xml docs/verification/V-M-052.xml docs/verification/V-M-053.xml &amp;&amp; mygrace lint</command-7>
-    <command-8>operator-live: clean VPS deploy, new verified user receives ee fake-TLS link, RU routes issued SNI to DE, DE policy_count changes without data-plane restart, and Telegram Desktop/mobile works.</command-8>
+    <command-1 status="pass-local">bash -n install.sh deploy/deploy-on-server.sh scripts/phase39-mtproto-live-smoke.sh</command-1>
+    <command-2 status="pass-local">node scripts/phase38-de-mtproto-edge-smoke.mjs</command-2>
+    <command-3 status="pass-local">node scripts/phase39-mtproto-availability-smoke.mjs</command-3>
+    <command-4 status="pass-local">node scripts/phase41-kpproton-faketls-smoke.mjs</command-4>
+    <command-5 status="pass-local">cd backend &amp;&amp; SECRET_KEY=test-secret-key-with-enough-length DATA_ENCRYPTION_KEY=dpFmfSVqfdAK3yx5MQV6Tcv35RZuw5MzaH0yhxJ01q0= PYTHONPATH=. ../.venv/bin/python -m pytest -o addopts='' tests/test_mtproto_provisioning.py tests/test_kpproton_runtime_bridge.py tests/test_mtproto_api.py tests/test_mtproto_admin_ops.py tests/test_mtproto_de_edge_contract.py tests/test_mtproto_availability_diagnostics.py -v</command-5>
+    <command-6 status="pass-local">cd mtproto-runtime &amp;&amp; rebar3 compile</command-6>
+    <command-7 status="pass-local">python3 -m xml.etree.ElementTree docs/graph-index.xml docs/plan-index.xml docs/verification-index.xml docs/current-status.xml docs/plans/Phase-41.xml docs/modules/M-012.xml docs/modules/M-043.xml docs/modules/M-044.xml docs/modules/M-045.xml docs/modules/M-047.xml docs/modules/M-049.xml docs/modules/M-050.xml docs/modules/M-051.xml docs/modules/M-052.xml docs/modules/M-053.xml docs/verification/V-M-012.xml docs/verification/V-M-043.xml docs/verification/V-M-044.xml docs/verification/V-M-045.xml docs/verification/V-M-047.xml docs/verification/V-M-049.xml docs/verification/V-M-050.xml docs/verification/V-M-051.xml docs/verification/V-M-052.xml docs/verification/V-M-053.xml &amp;&amp; mygrace lint</command-7>
+    <command-8 status="operator-live-pending">operator-live: clean VPS deploy, new verified user receives ee fake-TLS link, RU routes issued SNI to DE, DE policy_count changes without data-plane restart, and Telegram Desktop/mobile works.</command-8>
   </Verification>
   <VerificationDesign STATUS="designed" DATE="2026-05-19">
     <item-1>V-M-043 verifies owner payload format, explicit official-dd reissue state, and no stale active production link.</item-1>
@@ -59,6 +59,13 @@
     <item-6>V-M-051 verifies redacted availability diagnostics and requires real Telegram Desktop/mobile proof before release readiness.</item-6>
     <item-7>V-M-052 and V-M-053 verify official MTProxy and official manifest sync stay inactive in the production path unless an explicit rollback phase is approved.</item-7>
   </VerificationDesign>
+  <ExecutionEvidence STATUS="pass-local" DATE="2026-05-19">
+    <item-1>Backend Phase-41 regression wave passed locally: provisioning, runtime bridge, owner API, admin ops, DE edge contract, availability diagnostics, scheduler, deploy static, and domain TLS edge tests (55 passed).</item-1>
+    <item-2>Static smoke passed locally for Phase-32/34/35/37/38/39/41 scripts, including the new KPprotoN fake-TLS production-path guard.</item-2>
+    <item-3>Shell syntax passed for install.sh, deploy/deploy-on-server.sh, and scripts/phase39-mtproto-live-smoke.sh.</item-3>
+    <item-4>mtproto-runtime rebar3 compile passed and docker compose config rendered with redacted local env fixtures.</item-4>
+    <item-5>Operator-live clean VPS deploy and Telegram Desktop/mobile proof remain required before release readiness.</item-5>
+  </ExecutionEvidence>
   <VerificationMatrix>
     <gate-1 MODULES="M-043,M-045" EVIDENCE="deterministic">Owner payload uses fake-TLS ee secret and issued user SNI, not official dd secret on the base domain.</gate-1>
     <gate-2 MODULES="M-044,M-049" EVIDENCE="deterministic">Policy apply/revoke/replay updates KPprotoN runtime policy without restarting the MTProto data-plane for unchanged or newly added SNI policy.</gate-2>

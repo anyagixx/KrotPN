@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<M-049 NAME="mtproto-live-edge-runtime" TYPE="INTEGRATION" STATUS="verification-designed-phase41">
+<M-049 NAME="mtproto-live-edge-runtime" TYPE="INTEGRATION" STATUS="pass-local-phase41">
   <path>mtproto-runtime backend/app/mtproto/runtime_bridge.py backend/app/mtproto/provisioning.py nginx/nginx.conf docker-compose.yml deploy/deploy-on-server.sh deploy/mtproto-de-compose.yml scripts/phase37-mtproto-runtime-smoke.mjs docs/plans/Phase-37.xml docs/plans/Phase-38.xml docs/plans/Phase-41.xml</path>
-  <owns>Live KPprotoN/mtproto_proxy runtime, token-protected local policy API, public TCP 443 ownership, and HTTPS fallback to nginx on 8443.</owns>
+  <owns>Live KPprotoN/mtproto_proxy runtime, token-protected policy API, DE MTProto data-plane ownership, and HTTPS domain-fronting fallback.</owns>
   <purpose>Make issued KrotPN MTProto assignments reachable by Telegram clients by running a real fake-TLS MTProto edge instead of only generating proxy links.</purpose>
   <exports>
     <runtime-mtproto-edge>Host-network mtproto-edge service owns public TCP 443 and loads KPprotoN-compatible fake-TLS policy.</runtime-mtproto-edge>
     <runtime-policy-api>Local HTTP policy API applies, revokes, and health-checks issued SNI domains using a deploy-generated bearer token.</runtime-policy-api>
-    <https-fallback>Normal HTTPS requests are domain-fronted from the MTProto edge to nginx on 127.0.0.1:8443.</https-fallback>
+    <https-fallback>Normal HTTPS requests are domain-fronted from the MTProto edge to the configured private frontend fallback.</https-fallback>
     <provisioning-live-apply>Backend provisioning applies an issued SNI to the live edge before returning an active proxy payload.</provisioning-live-apply>
     <runtime-smoke>Phase-37 static and local runtime smoke checks protect service wiring, nginx port ownership, and secret redaction.</runtime-smoke>
     <telegram-upstream-routes>Deploy keeps Telegram MTProto upstream ranges routed through the existing RU-to-DE awg-client tunnel so RU edge can reach Telegram DCs without changing the host default route.</telegram-upstream-routes>
@@ -47,9 +47,9 @@
     <constraint-5>Phase-41 must reconcile runtime behavior against CodexKPprotoN_for_KPN before claiming fake-TLS production readiness.</constraint-5>
   </constraints>
   <phase-41-plan>
-    <step-1 STATUS="verification-designed">Compare mtproto-runtime fake-TLS, per-SNI policy, and bootstrap paths with the reference CodexKPprotoN_for_KPN implementation.</step-1>
-    <step-2 STATUS="verification-designed">Keep the DE runtime as the production MTProto listener and apply user SNI policy without official secret manifests.</step-2>
-    <step-3 STATUS="verification-designed">Expose only redacted health, policy counts, and safe failure codes to KrotPN diagnostics.</step-3>
+    <step-1 STATUS="pass-local">Compare mtproto-runtime fake-TLS, per-SNI policy, and bootstrap paths with the reference CodexKPprotoN_for_KPN implementation.</step-1>
+    <step-2 STATUS="pass-local">Keep the DE runtime as the production MTProto listener and apply user SNI policy without official secret manifests.</step-2>
+    <step-3 STATUS="pass-local">Expose only redacted health, policy counts, and safe failure codes to KrotPN diagnostics.</step-3>
   </phase-41-plan>
   <evidence>
     <evidence-1>2026-05-18: Local Erlang compile passed for mtproto-runtime with the token-protected policy handler.</evidence-1>
@@ -60,6 +60,7 @@
     <evidence-6>2026-05-18: Phase-38 plan supersedes RU-only runtime ownership with a DE-backed runtime and RU SNI router, while preserving existing assignments and secrets.</evidence-6>
     <evidence-7>2026-05-18: Phase-38 local execution keeps the reusable mtproto-runtime and policy API but moves the local mtproto-edge compose service behind an explicit profile so default public 443 belongs to the RU SNI router.</evidence-7>
     <evidence-8>2026-05-19: Phase-41 verification design selects the KPprotoN fake-TLS runtime as the production data-plane to match the reference project and avoid official MTProxy process restarts on per-user issuance.</evidence-8>
+    <evidence-9>2026-05-19: Phase-41 local execution passed Erlang compile and static smoke proving the production DE runtime path uses KPprotoN policy apply instead of official secret manifests.</evidence-9>
   </evidence>
   <hotspot>H-036: MTProto live edge must own public TCP 443, forward normal HTTPS to nginx 8443, and load issued SNI policies without rotating existing secrets.</hotspot>
 </M-049>

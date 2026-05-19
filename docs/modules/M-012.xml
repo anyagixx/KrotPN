@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<M-012 NAME="deploy-surface" TYPE="ENTRY_POINT" STATUS="verification-designed-phase41">
+<M-012 NAME="deploy-surface" TYPE="ENTRY_POINT" STATUS="pass-local-phase41">
   <path>deploy install.sh nginx docker-compose.yml scripts/phase36-resend-deploy-smoke.mjs scripts/phase38-de-mtproto-edge-smoke.mjs scripts/phase39-mtproto-availability-smoke.mjs scripts/phase39-mtproto-live-smoke.sh scripts/phase40-official-mtproxy-live-smoke.sh scripts/phase41-kpproton-faketls-smoke.mjs docs/plans/Phase-36.xml docs/plans/Phase-38.xml docs/plans/Phase-39.xml docs/plans/Phase-40.xml docs/plans/Phase-41.xml</path>
-  <owns>installation, deploy scripts, runtime composition, proxying, operator wildcard TLS install, Resend email provider env wiring, dev-only cert generation, host-tool preflight, AWG stealth profile generation, awg0 peer sync watchers, deploy-time secret handling, backup/restore, nginx hardening, DE-backed MTProto edge rollout, Phase-39 stale fallback guard, Phase-40 official MTProxy runtime wiring, and verification-designed Phase-41 rollback to KPprotoN fake-TLS runtime wiring</owns>
+  <owns>installation, deploy scripts, runtime composition, proxying, operator wildcard TLS install, Resend email provider env wiring, dev-only cert generation, host-tool preflight, AWG stealth profile generation, awg0 peer sync watchers, deploy-time secret handling, backup/restore, nginx hardening, DE-backed MTProto edge rollout, Phase-39 stale fallback guard, Phase-40 official MTProxy reference wiring, and Phase-41 KPprotoN fake-TLS runtime production wiring</owns>
   <depends>M-003, M-007, M-019, M-030, M-049, M-050, M-051, M-052, M-053</depends>
   <verification-ref>V-M-012</verification-ref>
   <files>
@@ -20,7 +20,7 @@
     <file>scripts/phase39-mtproto-availability-smoke.mjs</file>
     <file>scripts/phase39-mtproto-live-smoke.sh</file>
     <file planned="true">scripts/phase40-official-mtproxy-live-smoke.sh</file>
-    <file phase="41-verification-designed">scripts/phase41-kpproton-faketls-smoke.mjs</file>
+    <file phase="41-pass-local">scripts/phase41-kpproton-faketls-smoke.mjs</file>
     <file planned="true">official-mtproxy/entrypoint.sh</file>
   </files>
   <disaster-recovery-role>
@@ -45,9 +45,9 @@
     <step-3 STATUS="planned">Keep all Phase-40 smoke output redacted and require public req_pq proof before release.</step-3>
   </phase-40-plan>
   <phase-41-plan>
-    <step-1 STATUS="verification-designed">Disable official MTProxy as the active production data-plane and restore DE KPprotoN fake-TLS runtime wiring.</step-1>
-    <step-2 STATUS="verification-designed">Restore RU public 443 SNI routing so krotpn.xyz web traffic reaches nginx and issued u-*.krotpn.xyz traffic reaches DE KPprotoN runtime.</step-2>
-    <step-3 STATUS="verification-designed">Keep deploy/install flow operator-approved and limit changes to MTProto runtime selection, env rendering, and redacted smoke gates.</step-3>
+    <step-1 STATUS="pass-local">Disable official MTProxy as the active production data-plane and restore DE KPprotoN fake-TLS runtime wiring.</step-1>
+    <step-2 STATUS="pass-local">Restore RU public 443 SNI routing so krotpn.xyz web traffic reaches nginx and issued u-*.krotpn.xyz traffic reaches DE KPprotoN runtime.</step-2>
+    <step-3 STATUS="pass-local">Keep deploy/install flow operator-approved and limit changes to MTProto runtime selection, env rendering, and redacted smoke gates.</step-3>
   </phase-41-plan>
   <evidence>
     <evidence-1>2026-05-17: Phase-35 changed the deploy surface so production installs consume validated operator wildcard TLS files instead of silently generating self-signed certificates.</evidence-1>
@@ -60,5 +60,6 @@
     <evidence-8>2026-05-18: Phase-39 added a narrow deploy/live guard so stale DE_MTPROTO_DOMAIN_FRONTING=127.0.0.1:8443 converges to the private 127.0.0.1:9443 fallback without rotating MTProto secrets or redesigning install/deploy flow.</evidence-8>
     <evidence-9>2026-05-19: Phase-40 planning records an official MTProxy runtime pivot after KPprotoN fake-TLS acceptance failed real client-level req_pq availability.</evidence-9>
     <evidence-10>2026-05-19: Phase-41 verification design records the operator-approved rollback from official MTProxy to the KPprotoN fake-TLS SNI model used by the reference CodexKPprotoN_for_KPN project.</evidence-10>
+    <evidence-11>2026-05-19: Phase-41 local execution restored deploy/compose defaults to the KPprotoN DE runtime, selected deploy/haproxy-phase38.cfg as the active SNI router, and passed shell, compose, and static smoke verification.</evidence-11>
   </evidence>
 </M-012>

@@ -140,6 +140,9 @@ const approvedPhase35Surface = new Set([
   'scripts/phase35-installer-wildcard-tls-smoke.mjs',
   'scripts/phase37-mtproto-runtime-smoke.mjs',
   'scripts/phase38-de-mtproto-edge-smoke.mjs',
+  'scripts/phase39-mtproto-availability-smoke.mjs',
+  'scripts/phase39-mtproto-live-smoke.sh',
+  'scripts/phase41-kpproton-faketls-smoke.mjs',
 ])
 
 const protectedChanges = changedFiles().filter((file) => (
@@ -159,7 +162,7 @@ if (unexpectedChanges.length > 0) {
 
 if (protectedChanges.length > 0) {
   requireText('docs/graph-index.xml', 'M-048')
-  requireText('docs/plan-index.xml', 'Phase-38')
+  requireText('docs/plan-index.xml', 'Phase-41')
 }
 // END_BLOCK_PHASE34_MTPROTO_STABILIZATION_SMOKE
 

@@ -1,12 +1,12 @@
 """Phase-32 domain TLS edge static verification.
 
 # FILE: backend/tests/test_domain_tls_edge_static.py
-# VERSION: 1.5.0
+# VERSION: 1.6.0
 # ROLE: TEST
 # MAP_MODE: LOCALS
 # START_MODULE_CONTRACT
 #   PURPOSE: Verify krotpn.xyz domain/TLS/shared-443 edge contract without touching live DNS
-#   SCOPE: Settings defaults, nginx redirect/fallback config, tracked env template, Phase-35/37/38/40 scoped deploy/install guard, rollback runbook
+#   SCOPE: Settings defaults, nginx redirect/fallback config, tracked env template, Phase-35/37/38/40/41 scoped deploy/install guard, rollback runbook
 #   DEPENDS: M-046, M-001, M-012, M-044, M-048, M-050, M-052, M-053
 #   LINKS: V-M-046, V-M-048, V-M-050, V-M-052, V-M-053, docs/modules/M-046.xml, docs/modules/M-048.xml, docs/modules/M-050.xml, docs/modules/M-052.xml, docs/modules/M-053.xml, docs/plans/Phase-32.xml, docs/plans/Phase-35.xml, docs/plans/Phase-38.xml, docs/plans/Phase-40.xml
 # END_MODULE_CONTRACT
@@ -17,12 +17,13 @@
 #   test_nginx_keeps_private_https_fallback_and_tls_paths - M-046 private HTTPS fallback and TLS path contract
 #   test_nginx_exposes_admin_panel_on_public_8443 - M-046 public admin panel port contract
 #   test_env_example_declares_domain_tls_contract - Operator env template contract
-#   test_compose_routes_public_443_to_sni_router - M-012 shared 443 owner guard with Phase-40 RU router
+#   test_compose_routes_public_443_to_sni_router - M-012 shared 443 owner guard with Phase-41 RU SNI router
 #   test_deploy_install_changes_are_phase35_scoped - Protected deploy/install guard with approved M-048 exception
 #   test_cutover_runbook_contains_live_smoke_and_rollback_gates - Live-required handoff guard
 # END_MODULE_MAP
 #
 # START_CHANGE_SUMMARY
+#   LAST_CHANGE: v1.6.0 - Restored static edge guards for Phase-41 KPprotoN SNI routing.
 #   LAST_CHANGE: v1.5.0 - Updated static edge guards for Phase-40 official MTProxy routing.
 #   LAST_CHANGE: v1.4.0 - Guard public admin 8443 separately from private SNI-router fallback 9443.
 #   LAST_CHANGE: v1.3.0 - Updated static edge guards for Phase-38 RU SNI router public 443 ownership.
@@ -133,7 +134,7 @@ def test_env_example_declares_domain_tls_contract():
     assert "MTPROTO_RUNTIME_TOKEN=" in env_example
     assert "MTPROTO_POLICY_BIND_IP=172.29.255.1" in env_example
     assert "EDGE_MTPROTO_MODE=de-backed" in env_example
-    assert "SNI_ROUTER_CONF_PATH=./deploy/haproxy-phase40.cfg" in env_example
+    assert "SNI_ROUTER_CONF_PATH=./deploy/haproxy-phase38.cfg" in env_example
 
 
 def test_compose_routes_public_443_to_sni_router():
@@ -143,7 +144,7 @@ def test_compose_routes_public_443_to_sni_router():
     assert "container_name: krotpn-sni-router" in compose
     assert "haproxy:2.9-alpine" in compose
     assert "SNI_ROUTER_CONF_PATH" in compose
-    assert "haproxy-phase40.cfg" in compose
+    assert "haproxy-phase38.cfg" in compose
     assert "container_name: krotpn-mtproto-edge" in compose
     assert "context: ./mtproto-runtime" in compose
     assert "profiles:" in compose
@@ -203,6 +204,9 @@ def test_deploy_install_changes_are_phase35_scoped():
         "scripts/phase35-installer-wildcard-tls-smoke.mjs",
         "scripts/phase37-mtproto-runtime-smoke.mjs",
         "scripts/phase38-de-mtproto-edge-smoke.mjs",
+        "scripts/phase39-mtproto-availability-smoke.mjs",
+        "scripts/phase39-mtproto-live-smoke.sh",
+        "scripts/phase41-kpproton-faketls-smoke.mjs",
     }
     protected_changes = [
         path for path in _changed_files()
@@ -221,7 +225,7 @@ def test_deploy_install_changes_are_phase35_scoped():
     assert unexpected == []
     if protected_changes:
         assert "M-048" in _read("docs/graph-index.xml")
-        assert "Phase-40" in _read("docs/plan-index.xml")
+        assert "Phase-41" in _read("docs/plan-index.xml")
 
 
 def test_cutover_runbook_contains_live_smoke_and_rollback_gates():

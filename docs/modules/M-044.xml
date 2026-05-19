@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<M-044 NAME="kpproton-runtime-bridge" TYPE="INTEGRATION" STATUS="verification-designed-phase41">
+<M-044 NAME="kpproton-runtime-bridge" TYPE="INTEGRATION" STATUS="pass-local-phase41">
   <path>backend/app/mtproto backend/app/tasks/scheduler.py backend/app/core/config.py mtproto-runtime docs/plans/Phase-30.xml docs/plans/Phase-37.xml docs/plans/Phase-38.xml docs/plans/Phase-41.xml</path>
   <owns>Runtime bridge from KrotPN assignments to the KPprotoN/mtproto_proxy policy layer, startup policy replay, and explicit policy revoke.</owns>
   <purpose>Keep Telegram MTProto access aligned with issued assignment state by loading or removing SNI assignments at the runtime edge without blocking normal KrotPN auth.</purpose>
@@ -53,6 +53,7 @@
     <evidence-7>2026-05-18: DE live rebuild passed with mtproto_proxy listening on 0.0.0.0:443 and private policy health OK on 172.29.255.1:18080.</evidence-7>
     <evidence-8>2026-05-19: Phase-40 planning marks KPprotoN/Erlang data-plane as insufficient after req_pq timeout against issued user links.</evidence-8>
     <evidence-9>2026-05-19: Phase-41 verification design reopens the KPprotoN runtime bridge as the intended production policy plane after official MTProxy proved operationally mismatched for per-user issuance.</evidence-9>
+    <evidence-10>2026-05-19: Phase-41 local execution restored provisioning/admin/scheduler runtime calls to MTProtoRuntimeBridge and passed replay/apply/revoke scheduler regressions without official manifest sync.</evidence-10>
   </evidence>
   <hotspot>H-030: MTProto runtime bridge must degrade safely when policy loading fails and must not block normal KrotPN login</hotspot>
 </M-044>

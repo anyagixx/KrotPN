@@ -1,13 +1,13 @@
 # FILE: backend/app/tasks/scheduler.py
-# VERSION: 3.3.0
+# VERSION: 3.4.0
 # ROLE: RUNTIME
 # MAP_MODE: EXPORTS
 # START_MODULE_CONTRACT
 #   PURPOSE: Background task scheduler — recurring maintenance jobs started during FastAPI lifespan
 #   SCOPE: APScheduler-based job registration and execution: subscription expiry,
-#          VPN stats, anomaly detection, official MTProxy secret sync, cleanup, reporting
-#   DEPENDS: M-001, M-003, M-004, M-023, M-044, M-053
-#   LINKS: M-008, M-004, M-003, M-044, M-053, V-M-008, V-M-044, V-M-053
+#          VPN stats, anomaly detection, KPprotoN MTProto policy sync, cleanup, reporting
+#   DEPENDS: M-001, M-003, M-004, M-023, M-044
+#   LINKS: M-008, M-004, M-003, M-044, V-M-008, V-M-044
 # END_MODULE_CONTRACT
 #
 # START_MODULE_MAP
@@ -17,11 +17,12 @@
 #   update_vpn_stats - Every 5 min: update client stats from AmneziaWG
 #   daily_cleanup - Daily at 3AM: clean old failed payments
 #   detect_handshake_anomalies - Configurable interval: observe peer handshakes for anomaly signals
-#   sync_mtproto_policy - Reconcile active official MTProxy secrets into runtime manifest
+#   sync_mtproto_policy - Reconcile active KPprotoN SNI policies into runtime state
 #   weekly_report - Weekly on Monday 9AM: generate subscription stats (placeholder)
 # END_MODULE_MAP
 #
 # START_CHANGE_SUMMARY
+#   LAST_CHANGE: v3.4.0 - Restored scheduled MTProto reconciliation to KPprotoN runtime policy replay.
 #   LAST_CHANGE: v3.3.0 - Switched scheduled MTProto reconciliation to official MTProxy secret manifest sync.
 #   LAST_CHANGE: v3.2.0 - Added Phase-30 MTProto policy reconciliation job
 #   LAST_CHANGE: v3.1.0 - Made handshake anomaly scan interval configurable for anti-ping-pong detection
@@ -32,10 +33,10 @@
 Background tasks scheduler.
 
 MODULE_CONTRACT
-- PURPOSE: Own recurring maintenance jobs started during FastAPI lifespan — subscription expiry, VPN stats, anomaly detection, cleanup, and reporting.
-- SCOPE: APScheduler-based job registration and execution; tasks may mutate subscriptions, VPN stats, and cleanup state without direct user requests.
-- DEPENDS: M-001 DB session factory, M-003 VPN peer management, M-004 billing subscriptions, M-012 handshake monitor.
-- LINKS: M-004 billing-subscription, M-003 VPN clients, M-012 background-tasks, V-M-012.
+- PURPOSE: Own recurring maintenance jobs started during FastAPI lifespan — subscription expiry, VPN stats, anomaly detection, MTProto policy replay, cleanup, and reporting.
+- SCOPE: APScheduler-based job registration and execution; tasks may mutate subscriptions, VPN stats, KPprotoN MTProto runtime policy, and cleanup state without direct user requests.
+- DEPENDS: M-001 DB session factory, M-003 VPN peer management, M-004 billing subscriptions, M-023/M-031 handshake monitor, M-044 runtime bridge.
+- LINKS: M-004 billing-subscription, M-003 VPN clients, M-008 background-tasks, M-044 runtime bridge, V-M-008, V-M-044.
 
 MODULE_MAP
 - TaskScheduler: APScheduler wrapper managing recurring maintenance jobs.
@@ -45,10 +46,11 @@ MODULE_MAP
 - update_vpn_stats: Updates VPN client statistics from AmneziaWG.
 - daily_cleanup: Cleans old failed payments and performs maintenance.
 - detect_handshake_anomalies: Observes live peer handshakes and records soft anomaly signals.
-- sync_mtproto_policy: Replays active official MTProxy assignment secrets into the runtime manifest.
+- sync_mtproto_policy: Replays active KPprotoN MTProto assignment policies into the runtime state.
 - weekly_report: Generates weekly subscription stats (placeholder for notification delivery).
 
 CHANGE_SUMMARY
+- v3.4.0: Restored scheduled MTProto reconciliation to KPprotoN runtime policy replay.
 - v3.2.0: Added Phase-30 MTProto runtime policy reconciliation job.
 - v2.8.0: Added GRACE-lite runtime markup with START_BLOCK/END_BLOCK for each class and task function.
 """
@@ -295,19 +297,18 @@ async def detect_handshake_anomalies():
 # <!-- START_BLOCK: sync_mtproto_policy -->
 async def sync_mtproto_policy():
     """
-    Reconcile active official MTProxy assignments into runtime secret manifest.
+    Reconcile active KPprotoN MTProto assignments into runtime policy state.
     """
-    from app.mtproto.official_secrets import MTProxySecretSyncService
+    from app.mtproto.runtime_bridge import MTProtoRuntimeBridge
 
-    logger.info("[M-053][sync_mtproto_policy][SCHEDULER_SYNC] started")
+    logger.info("[M-044][sync_mtproto_policy][SCHEDULER_SYNC] started")
     async with async_session_maker() as session:
-        result = await MTProxySecretSyncService(session).apply_active_manifest(
-            reason="scheduler",
-        )
+        result = await MTProtoRuntimeBridge(session).replay_active_assignments()
         await session.commit()
     logger.info(
-        "[M-053][sync_mtproto_policy][SCHEDULER_SYNC] "
-        f"status={result.status.value} active_count={result.active_count}"
+        "[M-044][sync_mtproto_policy][SCHEDULER_SYNC] "
+        f"processed={result.processed_count} applied={result.applied_count} "
+        f"degraded={result.degraded_count}"
     )
     return result
 # <!-- END_BLOCK: sync_mtproto_policy -->

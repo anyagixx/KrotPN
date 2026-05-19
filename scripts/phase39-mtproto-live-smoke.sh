@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 #
 # FILE: scripts/phase39-mtproto-live-smoke.sh
-# VERSION: 1.0.0
+# VERSION: 1.1.0
 # ROLE: SCRIPT
 # MAP_MODE: LOCALS
 # START_MODULE_CONTRACT
@@ -21,12 +21,13 @@
 #   check_policy_health - Verify runtime policy health and policy count.
 #   check_public_route - Verify RU public TCP 443 accepts connections.
 #   check_fake_tls_accept - Verify issued fake-TLS ClientHello receives a valid runtime response.
-#   check_de_fallback_guard - Verify live DE runtime fallback is the private 9443 target.
+#   check_de_fallback_guard - Verify live DE runtime fallback is the private KPprotoN HTTPS listener.
 #   check_telegram_downstream - Verify DE runtime has at least one reachable Telegram downstream.
 #   BLOCK_PHASE39_LIVE_SMOKE - Redacted live availability flow.
 # END_MODULE_MAP
 #
 # START_CHANGE_SUMMARY
+#   LAST_CHANGE: v1.1.0 - Updated DE fallback guard for Phase-41 KPprotoN private 18443.
 #   LAST_CHANGE: v1.0.0 - Added Phase-39 redacted live MTProto availability smoke.
 # END_CHANGE_SUMMARY
 
@@ -417,25 +418,30 @@ PY
 }
 
 check_de_fallback_guard() {
+    local bind_ip=""
     local domain_fronting=""
+    local expected_domain_fronting=""
 
+    bind_ip="$(remote_env_value_de MTPROTO_POLICY_BIND_IP)"
+    bind_ip="${bind_ip:-127.0.0.1}"
+    expected_domain_fronting="${bind_ip}:18443"
     domain_fronting="$(remote_env_value_de DE_MTPROTO_DOMAIN_FRONTING)"
     case "$domain_fronting" in
-        127.0.0.1:9443)
-            printf '%s\n' "[M-050][de_mtproto_runtime][FALLBACK_PORT_GUARD] status=ok target=private_9443"
+        "$expected_domain_fronting")
+            printf '%s\n' "[M-050][de_mtproto_runtime][FALLBACK_PORT_GUARD] status=ok target=private_18443"
             ;;
-        127.0.0.1:8443)
+        127.0.0.1:8443|127.0.0.1:9443)
             if [ "$APPLY_FALLBACK_GUARD" -eq 1 ]; then
-                ssh_de "cd /opt/krotpn-mtproto && sed -i -E 's|^DE_MTPROTO_DOMAIN_FRONTING=127[.]0[.]0[.]1:8443$|DE_MTPROTO_DOMAIN_FRONTING=127.0.0.1:9443|' .env && docker compose up -d >/dev/null 2>&1"
+                ssh_de "cd /opt/krotpn-mtproto && sed -i -E 's|^DE_MTPROTO_DOMAIN_FRONTING=.*$|DE_MTPROTO_DOMAIN_FRONTING=${expected_domain_fronting}|' .env && docker compose up -d >/dev/null 2>&1"
                 domain_fronting="$(remote_env_value_de DE_MTPROTO_DOMAIN_FRONTING)"
-                if [ "$domain_fronting" = "127.0.0.1:9443" ]; then
-                    printf '%s\n' "[M-050][de_mtproto_runtime][FALLBACK_PORT_GUARD] status=corrected target=private_9443"
+                if [ "$domain_fronting" = "$expected_domain_fronting" ]; then
+                    printf '%s\n' "[M-050][de_mtproto_runtime][FALLBACK_PORT_GUARD] status=corrected target=private_18443"
                     return 0
                 fi
                 printf '%s\n' "[M-050][de_mtproto_runtime][FALLBACK_PORT_GUARD] status=correction_failed"
                 exit 1
             fi
-            printf '%s\n' "[M-050][de_mtproto_runtime][FALLBACK_PORT_GUARD] status=stale_8443"
+            printf '%s\n' "[M-050][de_mtproto_runtime][FALLBACK_PORT_GUARD] status=stale_target"
             exit 1
             ;;
         *)

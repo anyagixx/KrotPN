@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<V-M-052 MODULE="M-052" PRIORITY="critical" STATUS="superseded-verification-designed">
+<V-M-052 MODULE="M-052" PRIORITY="critical" STATUS="superseded-pass-local">
   <purpose>Verify the Phase-40 official MTProxy data-plane reference and, for Phase-41, verify that it is not the active production path unless rollback is explicit.</purpose>
   <phase-41-supersession>
-    <item-1>Phase-41 verification-designed production behavior removes official MTProxy from active DE MTProto routing.</item-1>
+    <item-1>Phase-41 production behavior removes official MTProxy from active DE MTProto routing.</item-1>
     <item-2>Official runtime files may remain in the repository as reference/rollback artifacts, but active issuance must use KPprotoN fake-TLS policy.</item-2>
   </phase-41-supersession>
   <test-files>
@@ -63,5 +63,6 @@
     <evidence-1>2026-05-19: backend/tests/test_official_mtproxy_supervisor.py proves unchanged manifest apply skips restart while dead-process fallback still restarts.</evidence-1>
     <evidence-2>2026-05-19: Live DE hotfix showed repeated scheduler/apply cycles emitted UNCHANGED without SIGTERM and health returned healthy with private stats available.</evidence-2>
     <evidence-3>2026-05-19: Phase-41 verification design marks official MTProxy as superseded for production and adds a gate that it is inactive in the KPprotoN rollback path.</evidence-3>
+    <evidence-4>2026-05-19: Phase-41 local smoke verified official MTProxy is not selected as the active production data-plane while rollback/reference files remain available.</evidence-4>
   </evidence>
 </V-M-052>

@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<V-M-047 MODULE="M-047" PRIORITY="high" STATUS="verification-designed-phase41" VERSION="1.5.0">
+<V-M-047 MODULE="M-047" PRIORITY="high" STATUS="pass-local-phase41" VERSION="1.5.1">
   <module>mtproto-admin-ops</module>
   <phase-scope>
     <phase-33 status="pass-local">Admin MTProto operations and observability are implemented behind admin-only APIs and compact frontend-admin screens with strict secret redaction.</phase-33>
     <phase-34 status="pass-local">Stabilization gate keeps admin MTProto operations in the release-readiness suite and verifies they do not expose owner-only proxy secrets.</phase-34>
     <phase-40 status="pass-local">Official dd-secret admin revoke/reissue sync was verified locally but is superseded for production by Phase-41.</phase-40>
-    <phase-41 status="verification-designed">Admin operations must show official-mode assignments as superseded/reissue-required and target KPprotoN SNI policy for revoke/reissue.</phase-41>
+    <phase-41 status="pass-local">Admin operations show official-mode assignments as superseded/reissue-required and target KPprotoN SNI policy for revoke/reissue.</phase-41>
   </phase-scope>
   <test-files>
     <file>backend/app/admin/router.py</file>
@@ -25,7 +25,7 @@
     <file>frontend-admin/src/pages/MTProto.tsx</file>
     <file>scripts/phase33-mtproto-admin-smoke.mjs</file>
     <file phase="34-static">scripts/phase34-mtproto-stabilization-smoke.mjs</file>
-    <file phase="41-verification-designed">scripts/phase41-kpproton-faketls-smoke.mjs</file>
+    <file phase="41-pass-local">scripts/phase41-kpproton-faketls-smoke.mjs</file>
   </test-files>
   <commands>
     <command-1>cd backend &amp;&amp; SECRET_KEY=test-secret-key-with-enough-length DATA_ENCRYPTION_KEY=dpFmfSVqfdAK3yx5MQV6Tcv35RZuw5MzaH0yhxJ01q0= PYTHONPATH=. ../.venv/bin/python -m pytest -o addopts='' tests/test_mtproto_admin_ops.py tests/test_admin_device_control.py tests/test_mtproto_assignment_registry.py tests/test_kpproton_runtime_bridge.py -v</command-1>
@@ -33,7 +33,7 @@
     <command-3>node scripts/phase33-mtproto-admin-smoke.mjs</command-3>
     <command-4>python3 -m xml.etree.ElementTree docs/plans/Phase-33.xml docs/plans/Phase-41.xml docs/modules/M-047.xml docs/verification/V-M-047.xml docs/verification-index.xml docs/graph-index.xml docs/plan-index.xml &amp;&amp; mygrace lint</command-4>
     <command-5>node scripts/phase34-mtproto-stabilization-smoke.mjs</command-5>
-    <command-6 status="planned-implementation">node scripts/phase41-kpproton-faketls-smoke.mjs</command-6>
+    <command-6 status="pass-local">node scripts/phase41-kpproton-faketls-smoke.mjs</command-6>
   </commands>
   <verification-levels>
     <module-local>Backend tests prove admin-only MTProto list/detail/health/reissue/revoke behavior, audit writes, secret-free payloads, and failure mapping.</module-local>
@@ -131,5 +131,6 @@
     <evidence-5>2026-05-14: XML parse, MyGRACE lint, and git diff whitespace checks passed.</evidence-5>
     <evidence-6>2026-05-14: Phase-34 static smoke passed locally and confirmed admin MTProto UI/API surfaces do not expose owner-only tg links or derived secrets.</evidence-6>
     <evidence-7>2026-05-19: Phase-41 verification design adds admin gates for official-mode supersession, KPprotoN reissue/revoke policy behavior, redaction, and mobile compactness.</evidence-7>
+    <evidence-8>2026-05-19: Phase-41 local admin tests passed for KPprotoN bridge health, reissue/revoke through M-044, audit-safe redaction, and no official manifest sync in the normal production path.</evidence-8>
   </evidence>
 </V-M-047>

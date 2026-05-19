@@ -1,19 +1,20 @@
 # FILE: deploy/mtproto-de-compose.yml
-# VERSION: 2.0.0
+# VERSION: 2.2.0
 # ROLE: CONFIG
 # MAP_MODE: SUMMARY
 # START_MODULE_CONTRACT
-#   PURPOSE: Compose the DE-hosted official MTProxy runtime used by Phase-40 behind the RU non-HTTPS router.
-#   SCOPE: Host-network official mtproto-proxy, private secret manifest API bind, redacted env-driven policy token, and runtime health.
-#   DEPENDS: M-052, M-053
-#   LINKS: docs/modules/M-052.xml, docs/modules/M-053.xml, docs/verification/V-M-052.xml, docs/verification/V-M-053.xml
+#   PURPOSE: Compose the DE-hosted KPprotoN MTProto runtime used by Phase-41 behind the RU SNI router.
+#   SCOPE: Host-network KPprotoN mtproto_proxy, private policy API bind, redacted env-driven policy token, wildcard TLS mount, and runtime health.
+#   DEPENDS: M-049, M-050, M-052, M-053
+#   LINKS: docs/modules/M-049.xml, docs/modules/M-050.xml, docs/modules/M-052.xml, docs/modules/M-053.xml, docs/verification/V-M-049.xml, docs/verification/V-M-050.xml, docs/verification/V-M-052.xml, docs/verification/V-M-053.xml
 # END_MODULE_CONTRACT
 #
 # START_MODULE_MAP
-#   mtproto-de-runtime - DE official MTProxy runtime receiving non-HTTPS TCP 443 from the RU router.
+#   mtproto-de-runtime - DE KPprotoN fake-TLS runtime receiving issued wildcard SNI traffic from the RU router.
 # END_MODULE_MAP
 #
 # START_CHANGE_SUMMARY
+#   LAST_CHANGE: v2.2.0 - Restored DE runtime to KPprotoN fake-TLS with per-SNI policy and wildcard TLS mount.
 #   LAST_CHANGE: v2.1.0 - Added official MTProxy HTTP stats and NAT info env wiring.
 #   LAST_CHANGE: v2.0.0 - Switched DE data-plane to official Telegram mtproto-proxy with KrotPN secret manifest API.
 #   LAST_CHANGE: v1.1.0 - Default DE domain-fronting fallback to private 9443 to match Phase-38 RU fallback split.
@@ -21,10 +22,10 @@
 # END_CHANGE_SUMMARY
 
 services:
-  # START_BLOCK_PHASE40_DE_RUNTIME
+  # START_BLOCK_PHASE41_DE_RUNTIME
   mtproto-de-runtime:
     build:
-      context: ./official-mtproxy
+      context: ./mtproto-runtime
       dockerfile: Dockerfile
       target: runtime
     container_name: krotpn-mtproto-de-runtime
@@ -32,16 +33,23 @@ services:
     env_file:
       - .env
     environment:
-      MTPROXY_PORT: ${MTPROTO_DE_RUNTIME_PORT:-443}
-      MTPROXY_STATS_PORT: ${MTPROXY_STATS_PORT:-2398}
-      MTPROXY_WORKERS: ${MTPROXY_WORKERS:-1}
-      MTPROXY_HTTP_STATS: ${MTPROXY_HTTP_STATS:-1}
-      MTPROXY_NAT_INFO: ${MTPROXY_NAT_INFO:-}
-      MTPROTO_POLICY_PORT: ${MTPROTO_POLICY_PORT:-18080}
-      MTPROTO_POLICY_BIND_IP: ${MTPROTO_POLICY_BIND_IP:-127.0.0.1}
+      BASE_DOMAIN: ${MTPROTO_BASE_DOMAIN:?MTPROTO_BASE_DOMAIN must be set}
+      PROXY_PORT: ${MTPROTO_DE_RUNTIME_PORT:-443}
+      PROXY_SECRET_HEX: ${MTPROTO_BASE_SECRET_HEX:?MTPROTO_BASE_SECRET_HEX must be set}
+      PROXY_SECRET_SALT: ${MTPROTO_SECRET_SALT:?MTPROTO_SECRET_SALT must be set}
+      PROXY_LISTEN_IP: 0.0.0.0
+      PORTAL_HTTP_INTERNAL_PORT: ${MTPROTO_POLICY_PORT:-18080}
+      PORTAL_TLS_INTERNAL_PORT: 18443
+      POLICY_LISTEN_IP: ${MTPROTO_POLICY_BIND_IP:-127.0.0.1}
+      PORTAL_DOMAIN_FRONTING: ${DE_MTPROTO_DOMAIN_FRONTING:-127.0.0.1:18443}
+      TLS_CERT_PATH: /certs/krotpn/server.crt
+      TLS_KEY_PATH: /certs/krotpn/server.key
       KROTPN_MTPROTO_POLICY_TOKEN: ${MTPROTO_RUNTIME_TOKEN:?MTPROTO_RUNTIME_TOKEN must be set}
+      DOMAIN_FRONTING_TIMEOUT_SEC: 10
+      MTPROXY_BOOT_RETRY_SECONDS: 15
     volumes:
-      - official_mtproxy_data:/data
+      - mtproto_runtime_data:/var/lib/kpproton
+      - ./ssl:/certs/krotpn:ro
     network_mode: host
     healthcheck:
       test: ["CMD-SHELL", "curl -fsS -H \"x-krotpn-mtproto-token: $$KROTPN_MTPROTO_POLICY_TOKEN\" http://$${MTPROTO_POLICY_BIND_IP:-127.0.0.1}:$${MTPROTO_POLICY_PORT:-18080}/krotpn/mtproto/policy/health >/dev/null"]
@@ -49,7 +57,7 @@ services:
       timeout: 10s
       start_period: 60s
       retries: 3
-  # END_BLOCK_PHASE40_DE_RUNTIME
+  # END_BLOCK_PHASE41_DE_RUNTIME
 
 volumes:
-  official_mtproxy_data:
+  mtproto_runtime_data:

@@ -3,12 +3,12 @@
 # KrotPN Server Deployment Script v3.4.0 (Full Tunnel)
 # Run this script ON the RU server
 # FILE: deploy/deploy-on-server.sh
-# VERSION: 3.4.0
+# VERSION: 3.5.0
 # ROLE: SCRIPT
 # MAP_MODE: LOCALS
 # START_MODULE_CONTRACT
-#   PURPOSE: Provision the RU entry host, DE exit host, application runtime, Phase-35 operator wildcard TLS edge material, Phase-36 Resend email provider env, and Phase-40 official MTProxy edge.
-#   SCOPE: Host prerequisites, AmneziaWG tunnel setup, app env generation, TLS certificate validation/install, Resend config validation, nginx fallback/Phase-40 router rendering, DE official MTProxy runtime deployment, private policy API wiring, and Docker Compose startup.
+#   PURPOSE: Provision the RU entry host, DE exit host, application runtime, Phase-35 operator wildcard TLS edge material, Phase-36 Resend email provider env, and Phase-41 KPprotoN MTProto edge.
+#   SCOPE: Host prerequisites, AmneziaWG tunnel setup, app env generation, TLS certificate validation/install, Resend config validation, nginx fallback/Phase-41 router rendering, DE KPprotoN runtime deployment, private policy API wiring, and Docker Compose startup.
 #   DEPENDS: M-012, M-030, M-032, M-040, M-041, M-044, M-046, M-048, M-050, M-051, M-052, M-053
 #   LINKS: docs/modules/M-012.xml, docs/modules/M-040.xml, docs/modules/M-041.xml, docs/modules/M-044.xml, docs/modules/M-046.xml, docs/modules/M-048.xml, docs/modules/M-050.xml, docs/modules/M-051.xml, docs/modules/M-052.xml, docs/modules/M-053.xml, docs/plans/Phase-35.xml, docs/plans/Phase-36.xml, docs/plans/Phase-38.xml, docs/plans/Phase-39.xml, docs/plans/Phase-40.xml, docs/verification/V-M-048.xml, docs/verification/V-M-050.xml, docs/verification/V-M-051.xml, docs/verification/V-M-052.xml, docs/verification/V-M-053.xml
 # END_MODULE_CONTRACT
@@ -20,12 +20,13 @@
 #   install_operator_tls_certificate - Atomically install validated cert/key to /opt/KrotPN/ssl.
 #   generate_self_signed_dev_certificate - Explicit dev/test fallback, blocked for production unless selected.
 #   validate_resend_email_config - Validate Resend API key, URL, and sender without printing secrets.
-#   render_nginx_domain_config - Render ignored runtime nginx fallback and Phase-40 HAProxy router configs for the selected domain/DE target.
-#   normalize_de_mtproto_domain_fronting - Force stale DE domain-fronting fallback to the Phase-38/39 private 9443 target.
-#   deploy_de_mtproto_runtime - Copy official MTProxy artifacts and redacted env to DE and start the private policy runtime.
+#   render_nginx_domain_config - Render ignored runtime nginx fallback and Phase-41 HAProxy router configs for the selected domain/DE target.
+#   normalize_de_mtproto_domain_fronting - Force stale DE domain-fronting fallback to the private KPprotoN HTTPS listener.
+#   deploy_de_mtproto_runtime - Copy KPprotoN artifacts, wildcard TLS material, and redacted env to DE and start the private policy runtime.
 # END_MODULE_MAP
 #
 # START_CHANGE_SUMMARY
+#   LAST_CHANGE: v3.6.0 - Restored DE MTProto deployment to KPprotoN fake-TLS and wildcard TLS runtime wiring.
 #   LAST_CHANGE: v3.5.0 - Added DE official MTProxy NAT info and HTTP stats env wiring.
 #   LAST_CHANGE: v3.4.0 - Switched DE MTProto deployment to official Telegram mtproto-proxy and Phase-40 HTTPS-vs-MTProxy router.
 #   LAST_CHANGE: v3.3.2 - Normalize stale DE MTProto domain-fronting fallback to 127.0.0.1:9443 during deploy.
@@ -305,7 +306,7 @@ generate_self_signed_dev_certificate() {
 render_nginx_domain_config() {
     local source_conf="/opt/KrotPN/nginx/nginx.conf"
     local runtime_conf="/opt/KrotPN/nginx/nginx.runtime.conf"
-    local router_source_conf="/opt/KrotPN/deploy/haproxy-phase40.cfg"
+    local router_source_conf="/opt/KrotPN/deploy/haproxy-phase38.cfg"
     local router_runtime_conf="/opt/KrotPN/deploy/haproxy.runtime.cfg"
     local mtproto_de_target="${EDGE_MTPROTO_DE_TARGET_HOST}:${EDGE_MTPROTO_DE_TARGET_PORT}"
 
@@ -316,12 +317,12 @@ render_nginx_domain_config() {
     echo -e "${GREEN}[M-048][deploy_tls][ENV_WIRING] nginx runtime config ready: ${runtime_conf}${NC}"
 
     echo -e "${BLUE}[M-050][ru_sni_router][ROUTE_WEB] Rendering RU SNI router web fallback for ${PUBLIC_DOMAIN}:443 -> 127.0.0.1:9443${NC}"
-    echo -e "${BLUE}[M-052][ru_sni_router][ROUTE_MTPROTO] Rendering RU router official MTProxy target ${mtproto_de_target}${NC}"
+    echo -e "${BLUE}[M-050][ru_sni_router][ROUTE_MTPROTO] Rendering RU router KPprotoN target ${mtproto_de_target}${NC}"
     cp "$router_source_conf" "$router_runtime_conf"
     sed -i "s/krotpn.xyz/${PUBLIC_DOMAIN}/g" "$router_runtime_conf"
     sed -i "s/127\\.0\\.0\\.1:19443/${mtproto_de_target}/g" "$router_runtime_conf"
     chmod 644 "$router_runtime_conf"
-    echo -e "${GREEN}[M-052][ru_sni_router][ROUTE_WEB] TLS ClientHello fallback remains RU nginx HTTPS fallback; non-HTTPS goes to official MTProxy${NC}"
+    echo -e "${GREEN}[M-050][ru_sni_router][ROUTE_WEB] Apex web traffic remains RU nginx HTTPS fallback; issued wildcard SNI goes to KPprotoN${NC}"
 }
 
 existing_env_value() {
@@ -358,59 +359,53 @@ generate_or_preserve_secret() {
 
 normalize_de_mtproto_domain_fronting() {
     local de_app_dir="$1"
+    local domain_fronting_target="${MTPROTO_POLICY_BIND_IP}:18443"
 
-    echo -e "${BLUE}[M-051][de_mtproto_runtime][NORMALIZE_DOMAIN_FRONTING] Ensuring DE fallback targets private 9443...${NC}"
-    ssh_de "if [ -f '${de_app_dir}/.env' ]; then sed -i -E 's|^DE_MTPROTO_DOMAIN_FRONTING=127[.]0[.]0[.]1:8443$|DE_MTPROTO_DOMAIN_FRONTING=127.0.0.1:9443|' '${de_app_dir}/.env'; fi"
-    ssh_de "grep -qx 'DE_MTPROTO_DOMAIN_FRONTING=127.0.0.1:9443' '${de_app_dir}/.env'"
-    echo -e "${GREEN}[M-050][de_mtproto_runtime][FALLBACK_PORT_GUARD] DE fallback uses 127.0.0.1:9443${NC}"
+    echo -e "${BLUE}[M-051][de_mtproto_runtime][NORMALIZE_DOMAIN_FRONTING] Ensuring DE fallback targets private KPprotoN HTTPS listener...${NC}"
+    ssh_de "if [ -f '${de_app_dir}/.env' ]; then sed -i -E 's|^DE_MTPROTO_DOMAIN_FRONTING=.*$|DE_MTPROTO_DOMAIN_FRONTING=${domain_fronting_target}|' '${de_app_dir}/.env'; fi"
+    ssh_de "grep -qx 'DE_MTPROTO_DOMAIN_FRONTING=${domain_fronting_target}' '${de_app_dir}/.env'"
+    echo -e "${GREEN}[M-050][de_mtproto_runtime][FALLBACK_PORT_GUARD] DE fallback uses ${domain_fronting_target}${NC}"
 }
 
 deploy_de_mtproto_runtime() {
     local de_app_dir="/opt/krotpn-mtproto"
-    local runtime_tar="/tmp/krotpn-official-mtproxy.tgz"
+    local runtime_tar="/tmp/krotpn-mtproto-runtime.tgz"
     local policy_health_url="http://${MTPROTO_POLICY_BIND_IP}:${MTPROTO_POLICY_PORT}/krotpn/mtproto/policy/health"
-    local mtproxy_nat_local_addr=""
-    local mtproxy_nat_global_addr="${MTPROXY_NAT_GLOBAL_IP:-$DE_IP}"
-    local mtproxy_nat_info="${MTPROXY_NAT_INFO:-}"
+    local domain_fronting_target="${MTPROTO_POLICY_BIND_IP}:18443"
 
-    echo -e "${BLUE}[M-052][de_mtproto_runtime][START_RUNTIME] Preparing DE official MTProxy runtime on ${DE_IP}...${NC}"
+    echo -e "${BLUE}[M-049][de_mtproto_runtime][START_RUNTIME] Preparing DE KPprotoN runtime on ${DE_IP}...${NC}"
 
-    tar -C /opt/KrotPN -czf "$runtime_tar" official-mtproxy
-    ssh_de "rm -rf '${de_app_dir}/official-mtproxy' && mkdir -p '${de_app_dir}'"
-    sshpass -p "$DE_PASS" scp -o StrictHostKeyChecking=accept-new -o LogLevel=ERROR "$runtime_tar" "$DE_USER@$DE_IP:/tmp/krotpn-official-mtproxy.tgz"
-    ssh_de "tar -xzf /tmp/krotpn-official-mtproxy.tgz -C '${de_app_dir}' && rm -f /tmp/krotpn-official-mtproxy.tgz"
+    tar -C /opt/KrotPN -czf "$runtime_tar" mtproto-runtime
+    ssh_de "rm -rf '${de_app_dir}/mtproto-runtime' && mkdir -p '${de_app_dir}/ssl'"
+    sshpass -p "$DE_PASS" scp -o StrictHostKeyChecking=accept-new -o LogLevel=ERROR "$runtime_tar" "$DE_USER@$DE_IP:/tmp/krotpn-mtproto-runtime.tgz"
+    ssh_de "tar -xzf /tmp/krotpn-mtproto-runtime.tgz -C '${de_app_dir}' && rm -f /tmp/krotpn-mtproto-runtime.tgz"
     rm -f "$runtime_tar"
 
     sshpass -p "$DE_PASS" scp -o StrictHostKeyChecking=accept-new -o LogLevel=ERROR /opt/KrotPN/deploy/mtproto-de-compose.yml "$DE_USER@$DE_IP:${de_app_dir}/docker-compose.yml"
-
-    if [ -z "$mtproxy_nat_info" ]; then
-        mtproxy_nat_local_addr="$(
-            ssh_de "ip -4 -o addr show docker0 scope global 2>/dev/null | awk '{split(\$4,a,\"/\"); print a[1]; exit}'" || true
-        )"
-        if [ -n "$mtproxy_nat_local_addr" ] && [ "$mtproxy_nat_local_addr" != "$mtproxy_nat_global_addr" ]; then
-            mtproxy_nat_info="${mtproxy_nat_local_addr}:${mtproxy_nat_global_addr}"
-        fi
-    fi
+    sshpass -p "$DE_PASS" scp -o StrictHostKeyChecking=accept-new -o LogLevel=ERROR /opt/KrotPN/ssl/server.crt "$DE_USER@$DE_IP:${de_app_dir}/ssl/server.crt"
+    sshpass -p "$DE_PASS" scp -o StrictHostKeyChecking=accept-new -o LogLevel=ERROR /opt/KrotPN/ssl/server.key "$DE_USER@$DE_IP:${de_app_dir}/ssl/server.key"
+    ssh_de "chown root:root '${de_app_dir}/ssl/server.crt' '${de_app_dir}/ssl/server.key' && chmod 644 '${de_app_dir}/ssl/server.crt' && chmod 600 '${de_app_dir}/ssl/server.key'"
 
     sshpass -p "$DE_PASS" ssh -o StrictHostKeyChecking=accept-new -o LogLevel=ERROR "$DE_USER@$DE_IP" "cat > '${de_app_dir}/.env' && chmod 600 '${de_app_dir}/.env'" << EOF
+MTPROTO_BASE_DOMAIN=${PUBLIC_DOMAIN}
 MTPROTO_DE_RUNTIME_PORT=${EDGE_MTPROTO_DE_TARGET_PORT}
 MTPROTO_RUNTIME_TOKEN=${MTPROTO_RUNTIME_TOKEN}
 MTPROTO_POLICY_PORT=${MTPROTO_POLICY_PORT}
 MTPROTO_POLICY_BIND_IP=${MTPROTO_POLICY_BIND_IP}
-MTPROXY_STATS_PORT=2398
-MTPROXY_WORKERS=1
-MTPROXY_HTTP_STATS=1
-MTPROXY_NAT_INFO=${mtproxy_nat_info}
+MTPROTO_BASE_SECRET_HEX=${MTPROTO_BASE_SECRET_HEX}
+MTPROTO_SECRET_SALT=${MTPROTO_SECRET_SALT}
+DE_MTPROTO_DOMAIN_FRONTING=${domain_fronting_target}
 EOF
+    normalize_de_mtproto_domain_fronting "$de_app_dir"
 
     ssh_de "ufw allow proto tcp from '${RU_IP}' to any port '${EDGE_MTPROTO_DE_TARGET_PORT}' >/dev/null 2>&1 || true"
     ssh_de "ufw allow in on awg0 proto tcp from '${VPN_RELAY_RU_ADDRESS}' to any port '${MTPROTO_POLICY_PORT}' >/dev/null 2>&1 || true"
     ssh_de "ufw --force enable >/dev/null 2>&1 || true"
-    echo -e "${GREEN}[M-052][de_policy_api][DENY_PUBLIC] DE policy API binds ${MTPROTO_POLICY_BIND_IP} and public firewall does not allow ${MTPROTO_POLICY_PORT}/tcp${NC}"
+    echo -e "${GREEN}[M-050][de_policy_api][DENY_PUBLIC] DE policy API binds ${MTPROTO_POLICY_BIND_IP} and public firewall does not allow ${MTPROTO_POLICY_PORT}/tcp${NC}"
 
     ssh_de "cd '${de_app_dir}' && docker compose up -d --build"
     ssh_de "cd '${de_app_dir}' && set -a && . ./.env && set +a && curl -fsS -H \"x-krotpn-mtproto-token: \${MTPROTO_RUNTIME_TOKEN}\" '${policy_health_url}' >/dev/null"
-    echo -e "${GREEN}[M-052][de_policy_api][HEALTH] Private DE official MTProxy policy health passed over ${MTPROTO_POLICY_BIND_IP}:${MTPROTO_POLICY_PORT}${NC}"
+    echo -e "${GREEN}[M-050][de_policy_api][HEALTH] Private DE KPprotoN policy health passed over ${MTPROTO_POLICY_BIND_IP}:${MTPROTO_POLICY_PORT}${NC}"
 }
 
 # Install sshpass if not available (needed for password-based DE auth)

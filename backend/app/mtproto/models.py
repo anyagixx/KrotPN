@@ -1,12 +1,12 @@
 """MTProto assignment persistence models.
 
 # FILE: backend/app/mtproto/models.py
-# VERSION: 1.1.0
+# VERSION: 1.2.0
 # ROLE: RUNTIME
 # MAP_MODE: EXPORTS
 # START_MODULE_CONTRACT
 #   PURPOSE: Persist restore-safe personal Telegram MTProto proxy assignments
-#   SCOPE: Assignment table, official credential mode, lifecycle status,
+#   SCOPE: Assignment table, credential mode, lifecycle status,
 #          SNI uniqueness, and rotation metadata
 #   DEPENDS: M-001 (core database), M-002 (users)
 #   LINKS: M-042, V-M-042
@@ -19,6 +19,7 @@
 # END_MODULE_MAP
 #
 # START_CHANGE_SUMMARY
+#   LAST_CHANGE: v1.2.0 - Restored derived-per-SNI as the default production credential mode.
 #   LAST_CHANGE: v1.1.0 - Added Phase-40 official MTProxy secure credential mode.
 #   LAST_CHANGE: v1.0.0 - Added Phase-29 MTProto assignment model
 # END_CHANGE_SUMMARY
@@ -59,7 +60,7 @@ class MTProtoAssignment(SQLModel, table=True):
     user_id: int = Field(foreign_key="users.id", unique=True, index=True)
     sni: str = Field(unique=True, index=True, max_length=255)
     credential_mode: MTProtoCredentialMode = Field(
-        default=MTProtoCredentialMode.OFFICIAL_SECURE,
+        default=MTProtoCredentialMode.DERIVED_PER_SNI,
         max_length=50,
     )
     status: MTProtoAssignmentStatus = Field(

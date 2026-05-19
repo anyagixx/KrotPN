@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 // FILE: scripts/phase39-mtproto-availability-smoke.mjs
-// VERSION: 1.0.0
+// VERSION: 1.1.0
 // ROLE: SCRIPT
 // MAP_MODE: LOCALS
 // START_MODULE_CONTRACT
@@ -17,6 +17,7 @@
 // END_MODULE_MAP
 //
 // START_CHANGE_SUMMARY
+//   LAST_CHANGE: v1.1.0 - Updated DE fallback guard for Phase-41 KPprotoN private 18443.
 //   LAST_CHANGE: v1.0.0 - Added Phase-39 static availability smoke.
 // END_CHANGE_SUMMARY
 
@@ -73,12 +74,12 @@ requireText('frontend/src/pages/Dashboard.tsx', 'Full link')
 requireText('frontend/src/pages/Dashboard.tsx', "field: 'telegram_web_link'")
 requireAbsentPattern('frontend/src/pages/Dashboard.tsx', /console\.info\([^)]*secret/i)
 
-requireText('deploy/mtproto-de-compose.yml', 'PORTAL_DOMAIN_FRONTING: ${DE_MTPROTO_DOMAIN_FRONTING:-127.0.0.1:9443}')
+requireText('deploy/mtproto-de-compose.yml', 'PORTAL_DOMAIN_FRONTING: ${DE_MTPROTO_DOMAIN_FRONTING:-127.0.0.1:18443}')
 requireAbsent('deploy/mtproto-de-compose.yml', 'PORTAL_DOMAIN_FRONTING: ${DE_MTPROTO_DOMAIN_FRONTING:-127.0.0.1:8443}')
 requireText('deploy/deploy-on-server.sh', 'normalize_de_mtproto_domain_fronting')
 requireText('deploy/deploy-on-server.sh', '[M-051][de_mtproto_runtime][NORMALIZE_DOMAIN_FRONTING]')
 requireText('deploy/deploy-on-server.sh', '[M-050][de_mtproto_runtime][FALLBACK_PORT_GUARD]')
-requireText('deploy/deploy-on-server.sh', 'DE_MTPROTO_DOMAIN_FRONTING=127.0.0.1:9443')
+requireText('deploy/deploy-on-server.sh', 'DE_MTPROTO_DOMAIN_FRONTING=${domain_fronting_target}')
 requireAbsentPattern('deploy/deploy-on-server.sh', /^DE_MTPROTO_DOMAIN_FRONTING=127\.0\.0\.1:8443$/m)
 
 requireText('scripts/phase39-mtproto-live-smoke.sh', 'set -euo pipefail')

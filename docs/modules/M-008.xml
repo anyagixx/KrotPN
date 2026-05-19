@@ -1,16 +1,19 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<M-008 NAME="tasks" TYPE="UTILITY" STATUS="stable">
+<M-008 NAME="tasks" TYPE="UTILITY" STATUS="pass-local-phase41">
   <path>backend/app/tasks</path>
-  <owns>scheduler and recurring maintenance jobs including subscription expiry, daily cleanup, configurable anti-abuse handshake scans, and official MTProxy secret reconciliation</owns>
+  <owns>scheduler and recurring maintenance jobs including subscription expiry, daily cleanup, configurable anti-abuse handshake scans, and KPprotoN MTProto policy replay</owns>
   <exports>
     <fn-scheduler>APScheduler-based recurring job runner</fn-scheduler>
     <fn-detect-handshake-anomalies>Configurable seconds-based job that delegates live peer observations to M-023/M-031</fn-detect-handshake-anomalies>
-    <task-mtproto-policy-sync>Fixed-interval job that delegates official MTProxy secret manifest reconciliation to M-053</task-mtproto-policy-sync>
+    <task-mtproto-policy-sync>Fixed-interval job that delegates active KPprotoN SNI policy replay to M-044</task-mtproto-policy-sync>
   </exports>
-  <depends>M-001,M-044,M-053</depends>
+  <depends>M-001,M-044</depends>
   <verification-ref>V-M-008</verification-ref>
   <files>
     <file>backend/app/tasks/scheduler.py</file>
     <file>backend/app/tasks/__init__.py</file>
   </files>
+  <evidence>
+    <evidence-1>2026-05-19: Phase-41 restored scheduler MTProto reconciliation to M-044 KPprotoN runtime replay and local scheduler regression passed.</evidence-1>
+  </evidence>
 </M-008>

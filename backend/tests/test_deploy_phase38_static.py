@@ -1,25 +1,26 @@
-"""Phase-40 deploy surface static verification.
+"""Phase-41 deploy surface static verification.
 
 # FILE: backend/tests/test_deploy_phase38_static.py
-# VERSION: 2.0.0
+# VERSION: 2.2.0
 # ROLE: TEST
 # MAP_MODE: LOCALS
 # START_MODULE_CONTRACT
-#   PURPOSE: Verify Phase-40 deploy files define a DE-backed official MTProxy runtime and RU HTTPS-vs-MTProxy router safely.
-#   SCOPE: HAProxy TLS classifier, docker compose port ownership, deploy env wiring, DE official runtime compose, private policy bind, and redaction guards.
-#   DEPENDS: M-012, M-046, M-048, M-052, M-053
-#   LINKS: V-M-012, V-M-046, V-M-048, V-M-052, V-M-053, docs/plans/Phase-40.xml
+#   PURPOSE: Verify Phase-41 deploy files define a DE-backed KPprotoN fake-TLS runtime and RU SNI router safely.
+#   SCOPE: HAProxy SNI classifier, docker compose port ownership, deploy env wiring, DE KPprotoN runtime compose, private policy bind, wildcard TLS mount, and redaction guards.
+#   DEPENDS: M-012, M-046, M-048, M-049, M-050, M-052, M-053
+#   LINKS: V-M-012, V-M-046, V-M-048, V-M-049, V-M-050, V-M-052, V-M-053, docs/plans/Phase-41.xml
 # END_MODULE_CONTRACT
 #
 # START_MODULE_MAP
-#   test_haproxy_routes_tls_web_and_non_tls_mtproxy - Verifies public TCP 443 TLS-vs-MTProxy routing contract.
+#   test_haproxy_routes_web_and_mtproto_sni - Verifies public TCP 443 SNI routing contract.
 #   test_compose_has_single_default_public_443_owner - Verifies sni-router owns 443 with bind permissions and local edge is profiled.
 #   test_deploy_wires_de_runtime_and_private_policy_url - Verifies deploy-generated Phase-40 env and DE official runtime startup.
-#   test_de_runtime_compose_binds_policy_api_privately - Verifies DE official runtime policy API bind and health path.
-#   test_official_supervisor_has_stable_runtime_flags - Verifies stats, NAT info, and unchanged-manifest guards.
+#   test_de_runtime_compose_binds_policy_api_privately - Verifies DE KPprotoN runtime policy API bind, health path, and TLS mount.
+#   test_official_mtproxy_remains_reference_only - Verifies official MTProxy artifacts are no longer production deploy wiring.
 # END_MODULE_MAP
 #
 # START_CHANGE_SUMMARY
+#   LAST_CHANGE: v2.2.0 - Restored deploy static checks for KPprotoN fake-TLS production runtime.
 #   LAST_CHANGE: v2.1.0 - Added static guards for stable official MTProxy runtime flags and idempotent manifests.
 #   LAST_CHANGE: v2.0.0 - Updated deploy static checks for Phase-40 official MTProxy data-plane.
 #   LAST_CHANGE: v1.2.0 - Guard DE mtproto_proxy bootstrap against private POLICY_LISTEN_IP binding.
@@ -41,18 +42,19 @@ def _read(relative_path: str) -> str:
 
 
 # START_BLOCK_PHASE40_DEPLOY_STATIC_TESTS
-def test_haproxy_routes_tls_web_and_non_tls_mtproxy():
-    haproxy = _read("deploy/haproxy-phase40.cfg")
+def test_haproxy_routes_web_and_mtproto_sni():
+    haproxy = _read("deploy/haproxy-phase38.cfg")
 
     assert "bind *:443" in haproxy
-    assert "[M-052][ru_sni_router][ROUTE_WEB]" in haproxy
-    assert "[M-052][ru_sni_router][ROUTE_MTPROTO]" in haproxy
-    assert "acl is_tls req_ssl_hello_type 1" in haproxy
-    assert "use_backend web_https_fallback if is_tls" in haproxy
+    assert "[M-050][ru_sni_router][ROUTE_WEB]" in haproxy
+    assert "[M-050][ru_sni_router][ROUTE_MTPROTO]" in haproxy
+    assert "[M-050][ru_sni_router][ROUTE_UNKNOWN_SNI]" in haproxy
+    assert "acl sni_web req.ssl_sni -i krotpn.xyz www.krotpn.xyz" in haproxy
+    assert r"^u-[0-9a-f]{12}\.krotpn\.xyz$" in haproxy
+    assert "use_backend mtproto_de_runtime if sni_mtproto" in haproxy
     assert "server ru_nginx_9443 127.0.0.1:9443 check" in haproxy
-    assert "server de_mtproxy_443 127.0.0.1:19443 check" in haproxy
-    assert "default_backend mtproto_de_runtime" in haproxy
-    assert "sni_mtproto" not in haproxy
+    assert "server de_mtproto_443 127.0.0.1:19443 check" in haproxy
+    assert "default_backend web_https_fallback" in haproxy
 
 
 def test_compose_has_single_default_public_443_owner():
@@ -63,7 +65,7 @@ def test_compose_has_single_default_public_443_owner():
     assert 'user: "0:0"' in compose
     assert "NET_BIND_SERVICE" in compose
     assert "SNI_ROUTER_CONF_PATH" in compose
-    assert "haproxy-phase40.cfg" in compose
+    assert "haproxy-phase38.cfg" in compose
     assert "container_name: krotpn-mtproto-edge" in compose
     assert "profiles:" in compose
     assert "local-mtproto-edge" in compose
@@ -86,8 +88,12 @@ def test_deploy_wires_de_runtime_and_private_policy_url():
     assert "SNI_ROUTER_CONF_PATH=./deploy/haproxy.runtime.cfg" in deploy
     assert "127\\\\.0\\\\.0\\\\.1:19443" in deploy
     assert "ufw allow proto tcp from '${RU_IP}' to any port '${EDGE_MTPROTO_DE_TARGET_PORT}'" in deploy
-    assert "official-mtproxy" in deploy
-    assert "[M-052][de_policy_api][DENY_PUBLIC]" in deploy
+    assert "mtproto-runtime" in deploy
+    assert "krotpn-mtproto-runtime.tgz" in deploy
+    assert "/opt/KrotPN/ssl/server.crt" in deploy
+    assert "/opt/KrotPN/ssl/server.key" in deploy
+    assert "DE_MTPROTO_DOMAIN_FRONTING=${domain_fronting_target}" in deploy
+    assert "[M-050][de_policy_api][DENY_PUBLIC]" in deploy
     assert "generate_or_preserve_secret MTPROTO_BASE_SECRET_HEX" in deploy
     assert "generate_or_preserve_secret MTPROTO_SECRET_SALT" in deploy
     assert "cat \"$TLS_PRIVKEY_PATH\"" not in deploy
@@ -95,34 +101,29 @@ def test_deploy_wires_de_runtime_and_private_policy_url():
 
 def test_de_runtime_compose_binds_policy_api_privately():
     de_compose = _read("deploy/mtproto-de-compose.yml")
-    supervisor = _read("official-mtproxy/secret-control.py")
-    dockerfile = _read("official-mtproxy/Dockerfile")
 
     assert "container_name: krotpn-mtproto-de-runtime" in de_compose
-    assert "context: ./official-mtproxy" in de_compose
-    assert "MTPROTO_POLICY_BIND_IP: ${MTPROTO_POLICY_BIND_IP:-127.0.0.1}" in de_compose
-    assert "MTPROXY_PORT: ${MTPROTO_DE_RUNTIME_PORT:-443}" in de_compose
-    assert "MTPROXY_HTTP_STATS: ${MTPROXY_HTTP_STATS:-1}" in de_compose
-    assert "MTPROXY_NAT_INFO: ${MTPROXY_NAT_INFO:-}" in de_compose
+    assert "context: ./mtproto-runtime" in de_compose
+    assert "POLICY_LISTEN_IP: ${MTPROTO_POLICY_BIND_IP:-127.0.0.1}" in de_compose
+    assert "PROXY_PORT: ${MTPROTO_DE_RUNTIME_PORT:-443}" in de_compose
+    assert "PROXY_SECRET_HEX: ${MTPROTO_BASE_SECRET_HEX:?MTPROTO_BASE_SECRET_HEX must be set}" in de_compose
+    assert "PROXY_SECRET_SALT: ${MTPROTO_SECRET_SALT:?MTPROTO_SECRET_SALT must be set}" in de_compose
+    assert "PORTAL_DOMAIN_FRONTING: ${DE_MTPROTO_DOMAIN_FRONTING:-127.0.0.1:18443}" in de_compose
+    assert "TLS_CERT_PATH: /certs/krotpn/server.crt" in de_compose
+    assert "TLS_KEY_PATH: /certs/krotpn/server.key" in de_compose
+    assert "./ssl:/certs/krotpn:ro" in de_compose
     assert "KROTPN_MTPROTO_POLICY_TOKEN" in de_compose
     assert "/krotpn/mtproto/policy/health" in de_compose
-    assert "PROXY_SECRET_HEX" not in de_compose
-    assert "/krotpn/mtproto/policy/secrets/apply" in supervisor
-    assert "secret_hex must be a 32-hex official MTProxy secret" in supervisor
-    assert "TelegramMessenger/MTProxy" in dockerfile
 
 
-def test_official_supervisor_has_stable_runtime_flags():
+def test_official_mtproxy_remains_reference_only():
     supervisor = _read("official-mtproxy/secret-control.py")
     deploy = _read("deploy/deploy-on-server.sh")
+    de_compose = _read("deploy/mtproto-de-compose.yml")
 
     assert "[OfficialMTProxy][manifest][UNCHANGED]" in supervisor
-    assert "fingerprint_entries" in supervisor
-    assert "--http-stats" in supervisor
-    assert "--nat-info" in supervisor
-    assert "ready_targets" in supervisor
-    assert "active_targets" in supervisor
-    assert "MTPROXY_HTTP_STATS=1" in deploy
-    assert "MTPROXY_NAT_INFO=${mtproxy_nat_info}" in deploy
-    assert "ip -4 -o addr show docker0" in deploy
+    assert "official-mtproxy" not in de_compose
+    assert "krotpn-official-mtproxy.tgz" not in deploy
+    assert "MTPROXY_NAT_INFO" not in deploy
+    assert "/krotpn/mtproto/policy/secrets/apply" not in de_compose
 # END_BLOCK_PHASE40_DEPLOY_STATIC_TESTS

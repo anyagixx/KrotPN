@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<V-M-043 MODULE="M-043" PRIORITY="critical" STATUS="verification-designed-phase41" VERSION="1.7.0">
+<V-M-043 MODULE="M-043" PRIORITY="critical" STATUS="pass-local-phase41" VERSION="1.7.1">
   <module>mtproto-provisioning</module>
   <phase-scope>
     <phase-29 status="pass-local">Deterministic MTProto provisioning core implemented and verified locally.</phase-29>
     <phase-34 status="planned">Stabilization gate must prove verified users can receive one free indefinite owner proxy while unverified users and stale rotation states remain safe.</phase-34>
     <phase-38 status="verification-designed">Existing SNI, base secret, salt, and tg link stability must survive the runtime target move from RU-only to DE-backed edge.</phase-38>
-    <phase-41 status="verification-designed">Provisioning must return KPprotoN fake-TLS ee owner payloads and explicitly reissue official dd credential-mode assignments.</phase-41>
+    <phase-41 status="pass-local">Provisioning returns KPprotoN fake-TLS ee owner payloads and explicitly reissues official dd credential-mode assignments.</phase-41>
   </phase-scope>
   <test-files>
     <file>backend/tests/test_mtproto_provisioning.py</file>
@@ -63,5 +63,6 @@
     <evidence-2>2026-05-17: Blank MTProto env values regression test added after clean VPS deploy exposed backend startup failure from empty secrets.</evidence-2>
     <evidence-3>2026-05-18: Phase-38 verification requires no user proxy link reissue when moving policy apply to the DE-backed runtime.</evidence-3>
     <evidence-4>2026-05-19: Phase-41 verification design restores fake-TLS ee payload assertions and supersedes official dd payloads for production.</evidence-4>
+    <evidence-5>2026-05-19: Phase-41 local provisioning/API/Phase-34 integration tests passed for derived_per_sni defaults, server=SNI, ee secret shape, official-mode reissue-required state, and redaction guards.</evidence-5>
   </evidence>
 </V-M-043>

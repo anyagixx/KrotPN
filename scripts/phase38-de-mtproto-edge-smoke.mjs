@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 // FILE: scripts/phase38-de-mtproto-edge-smoke.mjs
-// VERSION: 1.2.0
+// VERSION: 1.3.0
 // ROLE: SCRIPT
 // MAP_MODE: LOCALS
 // START_MODULE_CONTRACT
@@ -17,6 +17,7 @@
 // END_MODULE_MAP
 //
 // START_CHANGE_SUMMARY
+//   LAST_CHANGE: v1.3.0 - Restore DE runtime checks to KPprotoN fake-TLS fallback on private 18443.
 //   LAST_CHANGE: v1.2.0 - Guard DE runtime bootstrap URL against private POLICY_LISTEN_IP binding.
 //   LAST_CHANGE: v1.1.0 - Guard HAProxy low-port bind permissions and private fallback port 9443.
 //   LAST_CHANGE: v1.0.0 - Added Phase-38 DE-backed MTProto edge static smoke.
@@ -68,7 +69,9 @@ requireText('docker-compose.yml', '${SNI_ROUTER_CONF_PATH:-./deploy/haproxy-phas
 requireText('deploy/mtproto-de-compose.yml', 'container_name: krotpn-mtproto-de-runtime')
 requireText('deploy/mtproto-de-compose.yml', 'POLICY_LISTEN_IP: ${MTPROTO_POLICY_BIND_IP:-127.0.0.1}')
 requireText('deploy/mtproto-de-compose.yml', 'PROXY_LISTEN_IP: 0.0.0.0')
-requireText('deploy/mtproto-de-compose.yml', 'PORTAL_DOMAIN_FRONTING: ${DE_MTPROTO_DOMAIN_FRONTING:-127.0.0.1:9443}')
+requireText('deploy/mtproto-de-compose.yml', 'context: ./mtproto-runtime')
+requireText('deploy/mtproto-de-compose.yml', 'PORTAL_DOMAIN_FRONTING: ${DE_MTPROTO_DOMAIN_FRONTING:-127.0.0.1:18443}')
+requireText('deploy/mtproto-de-compose.yml', './ssl:/certs/krotpn:ro')
 requireText('deploy/mtproto-de-compose.yml', '/krotpn/mtproto/policy/health')
 
 requireText('mtproto-runtime/src/kpproton_app.erl', 'PolicyListenHost = env_string("POLICY_LISTEN_IP", "127.0.0.1")')
@@ -90,6 +93,8 @@ requireText('deploy/deploy-on-server.sh', 'MTPROTO_RUNTIME_POLICY_URL=http://${M
 requireText('deploy/deploy-on-server.sh', 'EDGE_HTTPS_FALLBACK_PORT=9443')
 requireText('deploy/deploy-on-server.sh', '127\\\\.0\\\\.0\\\\.1:19443')
 requireText('deploy/deploy-on-server.sh', 'SNI_ROUTER_CONF_PATH=./deploy/haproxy.runtime.cfg')
+requireText('deploy/deploy-on-server.sh', 'krotpn-mtproto-runtime.tgz')
+requireText('deploy/deploy-on-server.sh', 'DE_MTPROTO_DOMAIN_FRONTING=${domain_fronting_target}')
 requireText('deploy/deploy-on-server.sh', '[M-050][de_policy_api][DENY_PUBLIC]')
 requireText('deploy/deploy-on-server.sh', '[M-050][de_policy_api][HEALTH]')
 requireText('deploy/deploy-on-server.sh', 'generate_or_preserve_secret MTPROTO_BASE_SECRET_HEX')

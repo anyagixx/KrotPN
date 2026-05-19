@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<V-M-053 MODULE="M-053" PRIORITY="critical" STATUS="superseded-verification-designed">
+<V-M-053 MODULE="M-053" PRIORITY="critical" STATUS="superseded-pass-local">
   <purpose>Verify the Phase-40 official MTProxy secret-sync reference and, for Phase-41, verify that it no longer drives active production issuance.</purpose>
   <phase-41-supersession>
     <item-1>Phase-41 production issuance uses KPprotoN fake-TLS SNI policy via M-043/M-044 instead of official secret manifests.</item-1>
@@ -59,5 +59,6 @@
   </failure-policy>
   <evidence>
     <evidence-1>2026-05-19: Phase-41 verification design marks official secret sync as superseded for production and requires active issuance to use KPprotoN fake-TLS policy instead.</evidence-1>
+    <evidence-2>2026-05-19: Phase-41 local execution verified active provisioning, admin actions, and scheduler replay bypass official manifest sync in favor of M-044 KPprotoN policy apply.</evidence-2>
   </evidence>
 </V-M-053>

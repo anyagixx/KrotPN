@@ -1,15 +1,15 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<M-043 NAME="mtproto-provisioning" TYPE="CORE_LOGIC" STATUS="verification-designed-phase41">
+<M-043 NAME="mtproto-provisioning" TYPE="CORE_LOGIC" STATUS="pass-local-phase41">
   <path>backend/app/mtproto docs/plans/Phase-29.xml docs/plans/Phase-40.xml docs/plans/Phase-41.xml</path>
   <owns>Deterministic assignment identity, KPprotoN fake-TLS link generation, superseded official MTProxy per-user secret generation, tg://proxy assembly, and idempotent reissue policy.</owns>
   <purpose>Port the useful KPprotoN provisioning logic into KrotPN as Python/FastAPI domain code backed by Postgres assignments.</purpose>
   <exports>
     <fn-generate-sni>Generate a stable user-bound wildcard-safe SNI under krotpn.xyz.</fn-generate-sni>
     <fn-derive-fake-tls-secret>Build a per-SNI Telegram fake-TLS secret from configured base secret and private salt.</fn-derive-fake-tls-secret>
-    <fn-derive-official-mtproxy-secret superseded="planned-phase41">Build a 16-byte official MTProxy secret for one canonical user assignment.</fn-derive-official-mtproxy-secret>
+    <fn-derive-official-mtproxy-secret superseded="phase41-pass-local">Build a 16-byte official MTProxy secret for one canonical user assignment.</fn-derive-official-mtproxy-secret>
     <fn-issue-user-proxy>Create or reuse a user's canonical MTProto assignment and return a safe response payload.</fn-issue-user-proxy>
     <fn-build-tg-link>Assemble tg://proxy from server, port, and derived secret for the authenticated user.</fn-build-tg-link>
-    <fn-build-secure-official-tg-link superseded="planned-phase41">Assemble tg://proxy with secret=dd&lt;32-hex-secret&gt; for the authenticated owner after Phase-40 execution.</fn-build-secure-official-tg-link>
+    <fn-build-secure-official-tg-link superseded="phase41-pass-local">Assemble tg://proxy with secret=dd&lt;32-hex-secret&gt; for the authenticated owner after Phase-40 execution.</fn-build-secure-official-tg-link>
   </exports>
   <depends>M-001,M-002,M-040,M-042</depends>
   <verification-ref>V-M-043</verification-ref>
@@ -33,15 +33,16 @@
     <constraint-6>Phase-41 fake-TLS links must treat official dd-secret assignments as superseded and must reissue users explicitly rather than silently claiming compatibility.</constraint-6>
   </constraints>
   <phase-41-plan>
-    <step-1 STATUS="verification-designed">Restore owner payloads to server=u-*.krotpn.xyz and secret=ee... fake-TLS format.</step-1>
-    <step-2 STATUS="verification-designed">Detect official credential-mode assignments and return reissue-required state before showing a stale dd link as active.</step-2>
-    <step-3 STATUS="verification-designed">Keep SNI, base secret, salt, and derived secret redacted in logs and admin surfaces.</step-3>
+    <step-1 STATUS="pass-local">Restore owner payloads to server=u-*.krotpn.xyz and secret=ee... fake-TLS format.</step-1>
+    <step-2 STATUS="pass-local">Detect official credential-mode assignments and return reissue-required state before showing a stale dd link as active.</step-2>
+    <step-3 STATUS="pass-local">Keep SNI, base secret, salt, and derived secret redacted in logs and admin surfaces.</step-3>
   </phase-41-plan>
   <evidence>
     <evidence-1>2026-05-14: Phase-29 target pytest passed for deterministic SNI, KPprotoN fake-TLS vector, verified-user guard, idempotency, reissue, and config failure paths.</evidence-1>
     <evidence-2>2026-05-17: Clean VPS hotfix added regression coverage for blank MTProto env values being normalized to missing config and rejected at issuance time.</evidence-2>
     <evidence-3>2026-05-19: Phase-40 plan adds official MTProxy per-user secret issuance because the fake-TLS data-plane did not pass real req_pq availability.</evidence-3>
     <evidence-4>2026-05-19: Phase-41 verification design supersedes official dd-secret issuance for production and returns owner payloads to the KPprotoN fake-TLS SNI model.</evidence-4>
+    <evidence-5>2026-05-19: Phase-41 local tests passed for derived_per_sni defaults, ee fake-TLS owner payloads, explicit official-mode reissue, owner API behavior, and Phase-34 verified-registration integration.</evidence-5>
   </evidence>
   <hotspot>H-029: Changing MTProto base secret or salt invalidates issued Telegram proxy links unless reissue is explicit</hotspot>
 </M-043>

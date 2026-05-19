@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<V-M-044 MODULE="M-044" PRIORITY="critical" STATUS="verification-designed-phase41" VERSION="1.8.0">
+<V-M-044 MODULE="M-044" PRIORITY="critical" STATUS="pass-local-phase41" VERSION="1.8.1">
   <module>kpproton-runtime-bridge</module>
   <phase-scope>
     <phase-30 status="pass-local">Runtime bridge implemented with fake/local adapter verification.</phase-30>
     <phase-34 status="planned">Stabilization gate keeps runtime apply, replay, health, and revoke in the end-to-end MTProto release suite.</phase-34>
     <phase-37 status="partial-live">Live edge runtime adapter added after clean-VPS Telegram Desktop proxy availability failed because no real MTProto service owned public 443.</phase-37>
     <phase-38 status="pass-local">Runtime bridge must apply, revoke, health-check, and replay policy against a private DE runtime API with degraded-safe failure behavior.</phase-38>
-    <phase-41 status="verification-designed">Runtime bridge becomes the production policy path again and must not depend on official MTProxy manifest sync.</phase-41>
+    <phase-41 status="pass-local">Runtime bridge is the production policy path again and does not depend on official MTProxy manifest sync.</phase-41>
   </phase-scope>
   <test-files>
     <file>backend/tests/test_kpproton_runtime_bridge.py</file>
@@ -96,5 +96,6 @@
     <evidence-6>2026-05-18: Follow-up verification covers POLICY_LISTEN_IP-aware bootstrap URL generation after DE mtproto_proxy failed to start against hardcoded 127.0.0.1:18080.</evidence-6>
     <evidence-7>2026-05-18: DE runtime live check passed after rebuild: policy health OK and mtproto_proxy listener open on TCP 443 while policy API remains on the private relay address.</evidence-7>
     <evidence-8>2026-05-19: Phase-41 verification design restores M-044 as the production policy bridge and removes official manifest sync from the active issuance path.</evidence-8>
+    <evidence-9>2026-05-19: Phase-41 local tests passed for KPprotoN bridge apply/revoke/replay, scheduler replay result shape, admin runtime actions, and absence of official manifest sync in active issuance.</evidence-9>
   </evidence>
 </V-M-044>

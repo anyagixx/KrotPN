@@ -12,7 +12,7 @@ MODULE_MAP
 - test_daily_cleanup_does_not_crash: Verifies daily cleanup runs without errors.
 - test_handshake_anomaly_detection_runs_without_errors: Verifies anomaly detection task runs.
 - test_scheduler_registers_configured_handshake_interval: Verifies anti-abuse scan interval is seconds-based and configurable.
-- test_mtproto_policy_sync_runs_without_errors: Verifies official MTProxy secret sync task delegates safely.
+- test_mtproto_policy_sync_runs_without_errors: Verifies KPprotoN policy replay task delegates safely.
 
 CHANGE_SUMMARY
 - 2026-04-20: Added scheduler interval coverage for anti-ping-pong scans.
@@ -196,8 +196,9 @@ async def test_mtproto_policy_sync_runs_without_errors(session: AsyncSession, mo
 
     result = await scheduler_mod.sync_mtproto_policy()
 
-    assert result.active_count == 0
-    assert result.status.value == "activated"
+    assert result.processed_count == 0
+    assert result.applied_count == 0
+    assert result.degraded_count == 0
 
 
 def test_scheduler_registers_configured_handshake_interval(monkeypatch):
