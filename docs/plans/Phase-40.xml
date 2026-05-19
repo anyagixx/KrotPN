@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Phase-40 NAME="Official MTProxy data-plane and individual user secrets" STATUS="partial-live">
+<Phase-40 NAME="Official MTProxy data-plane and individual user secrets" STATUS="superseded-by-phase-41">
   <intent>
     Replace the unreliable KPprotoN/Erlang MTProto data-plane with the official Telegram MTProxy runtime while keeping KrotPN as the user, assignment, secret, admin, and deployment control-plane.
   </intent>
@@ -50,8 +50,8 @@
     <step-5 STATUS="done-local">Update RU 443 routing so normal HTTPS remains stable and MTProto traffic reaches DE official MTProxy.</step-5>
     <step-6 STATUS="done-local">Update user and admin MTProto API/UX wording and actions for official secure MTProxy links.</step-6>
     <step-7 STATUS="done-local">Add unit/static/smoke tests for secret derivation, manifest redaction, routing contract, and runtime launcher behavior.</step-7>
-    <step-8 STATUS="blocked-live">Add live req_pq smoke through the public RU edge without printing full links or secrets.</step-8>
-    <step-9 STATUS="blocked-live">Run clean local verification, MyGRACE refresh/reviewer, then prepare a test release only after live Telegram Desktop/phone proof passes.</step-9>
+    <step-8 STATUS="superseded-by-phase-41">Add live req_pq smoke through the public RU edge without printing full links or secrets.</step-8>
+    <step-9 STATUS="superseded-by-phase-41">Run clean local verification, MyGRACE refresh/reviewer, then prepare a test release only after live Telegram Desktop/phone proof passes.</step-9>
   </steps>
 
   <acceptance>
@@ -92,7 +92,8 @@
   <execution-evidence>
     <evidence-1>2026-05-19: Local Phase-40 verification passed 49 targeted backend/static tests covering official secret sync, provisioning, owner API, admin ops, assignment registry, verified-registration integration, deploy/static edge, and redaction.</evidence-1>
     <evidence-2>2026-05-19: Full backend suite is not clean for unrelated pre-existing gates: billing plan API/webhook 404 tests, device migration SQLite helpers, and VPN public compatibility wrapper 404 tests remain outside Phase-40 scope.</evidence-2>
-    <evidence-3>2026-05-19: Live req_pq and Telegram Desktop/mobile available proof remain required before production MTProto readiness or release promotion.</evidence-3>
+    <evidence-3>2026-05-19: Live req_pq and Telegram Desktop/mobile proof for the official MTProxy path are superseded by Phase-41 KPprotoN pass-live evidence.</evidence-3>
     <evidence-4>2026-05-19: Live clean deploy revealed Telegram sessions dropped because repeated identical secret manifest applies restarted mtproto-proxy. Hotfix made manifest apply idempotent, added HTTP stats and DE NAT info, and live DE evidence showed repeated UNCHANGED applies without SIGTERM plus healthy private stats.</evidence-4>
+    <evidence-5>2026-05-19: Operator retests showed official MTProxy did not match the required stable per-user SNI/no-restart product behavior; Phase-41 supersedes this path for production.</evidence-5>
   </execution-evidence>
 </Phase-40>

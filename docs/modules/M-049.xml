@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<M-049 NAME="mtproto-live-edge-runtime" TYPE="INTEGRATION" STATUS="fix-live-phase41">
+<M-049 NAME="mtproto-live-edge-runtime" TYPE="INTEGRATION" STATUS="pass-live-phase41">
   <path>mtproto-runtime backend/app/mtproto/runtime_bridge.py backend/app/mtproto/provisioning.py nginx/nginx.conf docker-compose.yml deploy/deploy-on-server.sh deploy/mtproto-de-compose.yml scripts/phase37-mtproto-runtime-smoke.mjs docs/plans/Phase-37.xml docs/plans/Phase-38.xml docs/plans/Phase-41.xml</path>
   <owns>Live KPprotoN/mtproto_proxy runtime, token-protected policy API, DE MTProto data-plane ownership, and HTTPS domain-fronting fallback.</owns>
   <purpose>Make issued KrotPN MTProto assignments reachable by Telegram clients by running a real fake-TLS MTProto edge instead of only generating proxy links.</purpose>
@@ -33,7 +33,7 @@
     <file>scripts/phase37-mtproto-runtime-smoke.mjs</file>
   </files>
   <runtime-policy>
-    <policy-1>Public TCP 443 has exactly one runtime owner: mtproto-edge. Nginx serves HTTPS fallback on internal 8443.</policy-1>
+    <policy-1>Production Phase-41 keeps RU public TCP 443 on the SNI router and routes issued MTProto SNI traffic to the DE mtproto-edge; legacy local-ru fallback must not collide with nginx/admin ports.</policy-1>
     <policy-2>The edge must accept issued SNI policies only through the localhost policy API with MTPROTO_RUNTIME_TOKEN.</policy-2>
     <policy-3>Existing MTPROTO_BASE_SECRET_HEX and MTPROTO_SECRET_SALT values must be preserved across hotfix deploys.</policy-3>
     <policy-4>Normal HTTPS, /api, and /admin traffic must continue working through the fallback path after mtproto-edge starts.</policy-4>
@@ -50,9 +50,9 @@
     <constraint-5>Phase-41 must reconcile runtime behavior against CodexKPprotoN_for_KPN before claiming fake-TLS production readiness.</constraint-5>
   </constraints>
   <phase-41-plan>
-    <step-1 STATUS="pass-local">Compare mtproto-runtime fake-TLS, per-SNI policy, and bootstrap paths with the reference CodexKPprotoN_for_KPN implementation.</step-1>
-    <step-2 STATUS="pass-local">Keep the DE runtime as the production MTProto listener and apply user SNI policy without official secret manifests.</step-2>
-    <step-3 STATUS="pass-local">Expose only redacted health, policy counts, and safe failure codes to KrotPN diagnostics.</step-3>
+    <step-1 STATUS="pass-live">Compare mtproto-runtime fake-TLS, per-SNI policy, and bootstrap paths with the reference CodexKPprotoN_for_KPN implementation.</step-1>
+    <step-2 STATUS="pass-live">Keep the DE runtime as the production MTProto listener and apply user SNI policy without official secret manifests.</step-2>
+    <step-3 STATUS="pass-live">Expose only redacted health, policy counts, and safe failure codes to KrotPN diagnostics.</step-3>
   </phase-41-plan>
   <evidence>
     <evidence-1>2026-05-18: Local Erlang compile passed for mtproto-runtime with the token-protected policy handler.</evidence-1>
@@ -66,6 +66,7 @@
     <evidence-9>2026-05-19: Phase-41 local execution passed Erlang compile and static smoke proving the production DE runtime path uses KPprotoN policy apply instead of official secret manifests.</evidence-9>
     <evidence-10>2026-05-19: Live req_pq diagnostics found the old locked mtproto_proxy e343e30 data-plane timed out after fake-TLS accept; lock now moves to upstream 154a8fb, which adds modern fake-TLS ping support and downstream passive backpressure handling.</evidence-10>
     <evidence-11>2026-05-19: Live comparison against vanilla seriyps/mtproto_proxy isolated empty PROXY_AD_TAG as the remaining req_pq blocker; zero 32-hex tag made the issued-link mtp_ping pass through the RU SNI router and DE runtime for DC +1 through +5.</evidence-11>
+    <evidence-12>2026-05-19: Operator clean-deploy validation confirmed Telegram Desktop/mobile use the issued KPprotoN fake-TLS proxy successfully while VPN remains working.</evidence-12>
   </evidence>
-  <hotspot>H-036: MTProto live edge must own public TCP 443, forward normal HTTPS to nginx 8443, and load issued SNI policies without rotating existing secrets.</hotspot>
+  <hotspot>H-036: Phase-41 MTProto live edge must keep RU public TCP 443 on the SNI router, route web fallback to nginx 9443, and load issued SNI policies without rotating existing secrets.</hotspot>
 </M-049>

@@ -1,8 +1,8 @@
 # 🐀 KrotPN
 
-**Коммерческий VPN-сервис с обфускацией AmneziaWG и двухузловым Full Tunnel**
+**Коммерческий VPN-сервис с AmneziaWG Full Tunnel и персональным MTProto proxy для Telegram**
 
-![Version](https://img.shields.io/badge/version-2.14.0-blue)
+![Version](https://img.shields.io/badge/version-2.19.1-blue)
 ![Python](https://img.shields.io/badge/python-3.11-green)
 ![React](https://img.shields.io/badge/react-18-blue)
 ![License](https://img.shields.io/badge/license-MIT-green)
@@ -11,7 +11,10 @@
 
 - **AmneziaWG** - обфусцированный WireGuard протокол для обхода DPI
 - **Full Tunnel** - весь клиентский трафик проходит через RU Entry Node к DE Exit Node
-- **HTTPS** - самоподписанные SSL сертификаты для безопасности
+- **Персональный MTProto proxy** - каждый подтвержденный пользователь получает индивидуальный `u-*.krotpn.xyz` Telegram proxy
+- **KPprotoN fake-TLS edge** - RU SNI router на публичном 443 маршрутизирует web и MTProto трафик без раскрытия пользовательских секретов
+- **HTTPS production TLS** - операторский wildcard SSL сертификат используется для web, admin и MTProto edge
+- **Email verification** - регистрация активируется только после подтверждения почты через Resend
 - **Двухуровневая архитектура** - RU Entry Node + DE Exit Node
 - **Коммерческая модель** - подписки, триалы, реферальная программа
 - **Telegram Bot** - управление через Telegram
@@ -21,21 +24,31 @@
 ## 🏗️ Архитектура
 
 ```
-┌─────────────┐         ┌─────────────┐         ┌─────────────┐
-│   Клиенты   │ ──AWG─▶ │  RU Сервер  │ ──AWG─▶ │  DE Сервер  │ ──▶ Интернет
-│  (Россия)   │         │ (Entry Node)│         │ (Exit Node) │
-└─────────────┘         └─────────────┘         └─────────────┘
-                              │
-                              ▼
-                        ┌─────────────┐
-                        │   Docker    │
-                        │  - Nginx    │
-                        │  - Backend  │
-                        │  - Frontend │
-                        │  - Admin    │
-                        │  - PostgreSQL
-                        │  - Redis    │
-                        └─────────────┘
+┌──────────────────┐
+│ Пользователь     │
+│ - HTTPS cabinet  │
+│ - AWG client     │
+│ - Telegram proxy │
+└────────┬─────────┘
+         │
+         │ HTTPS / AWG / MTProto over 443
+         ▼
+┌──────────────────────────────────────────┐
+│ RU Entry Node                            │
+│ - HAProxy SNI router :443                │
+│ - nginx web/API fallback :9443           │
+│ - public admin HTTPS :8443               │
+│ - backend/frontend/admin/Postgres/Redis  │
+│ - AWG entry                              │
+└────────┬────────────────────────┬────────┘
+         │                        │
+         │ AWG full tunnel        │ u-*.krotpn.xyz SNI
+         ▼                        ▼
+┌──────────────────┐     ┌─────────────────────────┐
+│ DE Exit Node     │     │ DE KPprotoN Runtime      │
+│ - AWG exit       │     │ - fake-TLS MTProto :443  │
+│ - Internet egress│     │ - private policy API     │
+└──────────────────┘     └─────────────────────────┘
 ```
 
 ## 🤖 AI Development Handoff
@@ -80,17 +93,28 @@ wget -qO- https://raw.githubusercontent.com/anyagixx/KrotPN/main/install.sh | ba
 | OS | Ubuntu 20.04/22.04 | Ubuntu 20.04/22.04 |
 | CPU | 2+ ядер | 1+ ядро |
 | RAM | 2+ GB | 1+ GB |
-| Порты | 22, 80, 443, 8443, 8000, 51821/udp | 22, 51821/udp |
+| Порты | 22, 80, 443, 8443, 51821/udp | 22, 443, 51821/udp |
+
+Перед production-деплоем подготовьте:
+
+- домен, например `krotpn.xyz`, с DNS на RU public IP;
+- wildcard DNS для `*.krotpn.xyz`, чтобы персональные MTProto SNI имена резолвились на RU edge;
+- wildcard TLS файлы `fullchain1.pem` и `privkey1.pem` на RU сервере;
+- Resend API key и подтвержденный sender, например `noreply@krotpn.xyz`;
+- чистые RU и DE VPS с root-доступом.
 
 ### После установки
 
 | Сервис | URL |
 |--------|-----|
-| **Frontend** | `https://YOUR_RU_IP` |
-| **Admin Panel** | `https://YOUR_RU_IP:8443` |
-| **Backend API** | `https://YOUR_RU_IP/api/v1/` |
+| **Frontend** | `https://YOUR_DOMAIN` |
+| **Admin Panel** | `https://YOUR_DOMAIN:8443/login` |
+| **Backend API** | `https://YOUR_DOMAIN/api/v1/` |
+| **User MTProto proxy** | В личном кабинете после подтверждения email |
 
-> ⚠️ Браузер предупредит о самоподписанном сертификате. Нажмите "Дополнительно" → "Перейти".
+HTTP автоматически перенаправляется на HTTPS. В production self-signed TLS не используется: установщик просит пути к подготовленным wildcard TLS файлам.
+
+После регистрации пользователь получает письмо подтверждения. VPN trial и персональный MTProto proxy выдаются только после успешного `verify-email`.
 
 ### 🔐 Доступ к Admin Panel
 
@@ -163,12 +187,15 @@ KrotPN/
 │       ├── users/         # Auth & Users
 │       ├── vpn/           # AmneziaWG Integration
 │       ├── billing/       # YooKassa Payments
+│       ├── mtproto/       # Personal Telegram MTProto proxy
+│       ├── email/         # Verification email delivery
 │       └── referrals/     # Referral System
 │
 ├── frontend/              # React User Dashboard
 ├── frontend-admin/        # React Admin Panel
 ├── telegram-bot/          # Telegram Bot
-├── nginx/                 # SSL Proxy
+├── mtproto-runtime/       # KPprotoN fake-TLS runtime
+├── nginx/                 # HTTPS fallback proxy
 │   ├── Dockerfile
 │   ├── nginx.conf
 │   └── generate-certs.sh
@@ -176,15 +203,22 @@ KrotPN/
 ├── deploy/                # Deployment Scripts
 │   ├── deploy-all.sh     # Автоматический деплой
 │   ├── quick-start.sh    # Wrapper для deploy-all.sh
+│   ├── mtproto-de-compose.yml
+│   ├── haproxy-phase38.cfg
 │   ├── create-client.sh
 │   └── remove-client.sh
 │
-└── docker-compose.yml     # 6 сервисов + nginx
+└── docker-compose.yml     # Core services + nginx + RU SNI router
 ```
 
 ## 🔐 Безопасность
 
-- **HTTPS** - самоподписанные SSL сертификаты
+- **Wildcard TLS** - операторский `fullchain1.pem`/`privkey1.pem` для production HTTPS и MTProto fake-TLS
+- **HTTP -> HTTPS** - принудительный redirect на домене проекта
+- **Email verification** - trial, VPN и MTProto proxy не выдаются до подтверждения почты
+- **Resend provider** - API key вводится при установке и не печатается в логах
+- **Private MTProto policy API** - SNI policy apply/revoke доступны только по приватному токену
+- **Secret redaction** - raw proxy links, derived secrets, TLS private keys, runtime tokens and email tokens не должны попадать в логи
 - **httpOnly cookies** - защита от XSS кражи токенов
 - **JWT токены** - короткий срок жизни (15 мин)
 - **Token blacklist** - отзыв токенов через Redis
@@ -209,13 +243,15 @@ KrotPN/
 |----------|----------|
 | `GET /health` | Health check |
 | `POST /api/v1/auth/register` | Регистрация |
+| `POST /api/v1/auth/verify-email` | Подтверждение email и активация доступа |
 | `POST /api/v1/auth/login` | Авторизация |
 | `GET /api/v1/vpn/config` | Получить конфиг VPN |
 | `GET /api/v1/vpn/qr` | QR код для клиента |
+| `GET /api/v1/mtproto/proxy` | Персональный MTProto proxy для Telegram |
 | `GET /api/v1/subscription/status` | Статус подписки |
 | `POST /api/v1/billing/create-payment` | Создать платёж |
 
-Полная документация: `https://YOUR_RU_IP/docs`
+Полная документация: `https://YOUR_DOMAIN/docs`
 
 ## 📞 Поддержка
 

@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<M-048 NAME="installer-wildcard-tls" TYPE="ENTRY_POINT" STATUS="partial-live">
+<M-048 NAME="installer-wildcard-tls" TYPE="ENTRY_POINT" STATUS="pass-live-phase41">
   <path>install.sh deploy/deploy-on-server.sh nginx docker-compose.yml .env.example scripts/phase35-installer-wildcard-tls-smoke.mjs scripts/phase36-resend-deploy-smoke.mjs scripts/phase37-mtproto-runtime-smoke.mjs scripts/phase38-de-mtproto-edge-smoke.mjs docs/plans/Phase-35.xml docs/plans/Phase-36.xml docs/plans/Phase-37.xml docs/plans/Phase-38.xml</path>
   <owns>installer prompts, remote wildcard certificate validation, deploy-time certificate installation, production edge env wiring, Phase-36 Resend email env prompts, Phase-37 MTProto runtime token/env wiring, planned Phase-38 DE-backed edge wiring, and operator-safe TLS reuse.</owns>
   <purpose>Make fresh deploys accept an operator-provided wildcard certificate instead of reissuing or silently generating production self-signed TLS material.</purpose>
@@ -62,13 +62,14 @@
   </planned-execution>
   <evidence>
     <evidence-1>2026-05-17: Local Phase-35 implementation added installer prompts, RU cert preflight, deploy-time certificate validation/install, production env wiring, runtime nginx rendering, and static smoke coverage.</evidence-1>
-    <evidence-2>2026-05-17: Live clean VPS deploy with prepared wildcard certificate files remains operator-required before STATUS can move beyond partial-local.</evidence-2>
+    <evidence-2>2026-05-19: Clean VPS deploy with prepared wildcard certificate files passed as part of the Phase-41 production validation.</evidence-2>
     <evidence-3>2026-05-17: Reviewer follow-up fixed clean VPS openssl bootstrap risk, rejected /opt/KrotPN cert source paths, and added dynamic installer validator smoke checks.</evidence-3>
     <evidence-4>2026-05-17: Live clean VPS backend unhealthy failure was fixed by generating deploy-time MTProto secrets and adding smoke coverage against blank deploy values.</evidence-4>
     <evidence-5>2026-05-17: Phase-36 local execution added Resend secret prompt, sender validation, deploy env wiring, static smoke coverage, and redaction checks.</evidence-5>
     <evidence-6>2026-05-18: Phase-37 added deploy-time MTPROTO_RUNTIME_TOKEN generation, localhost policy URL wiring, shared-443 enablement, and static smoke guards for the mtproto-edge service.</evidence-6>
     <evidence-7>2026-05-18: Phase-38 plan requires DE runtime TLS/key handling and private policy URL wiring to stay redaction-safe before execution.</evidence-7>
     <evidence-8>2026-05-18: Phase-38 local execution copies wildcard TLS material to DE through scp without printing PEM contents, writes redacted DE runtime env, renders HAProxy runtime config, and sets backend policy URL to the private relay address.</evidence-8>
+    <evidence-9>2026-05-19: Clean VPS registration via email and MTProto proxy validation confirm Resend env wiring and wildcard TLS reuse work in production deployment.</evidence-9>
   </evidence>
   <hotspot>H-034: Installer-provided wildcard TLS must validate cert/key/domain before deploy and must never log private key material.</hotspot>
 </M-048>

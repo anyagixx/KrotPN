@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Phase-37 NAME="Live MTProto Shared-443 Runtime Fix" STATUS="blocked-live" VERSION="1.0.0">
+<Phase-37 NAME="Live MTProto Shared-443 Runtime Fix" STATUS="superseded-by-phase-38" VERSION="1.1.0">
   <Goal>Fix the clean-VPS production defect where KrotPN issued MTProto proxy links but Telegram marked them unavailable because no live MTProto fake-TLS edge owned public TCP 443.</Goal>
   <Modules>M-049,M-044,M-046,M-048,M-012,M-043</Modules>
   <OperatorProblem>
@@ -34,7 +34,7 @@
     <step-3 STATUS="pass-local">Add backend HTTPMTProtoPolicyAdapter and select it from Settings when the runtime URL/token are present.</step-3>
     <step-4 STATUS="pass-local">Change provisioning to require live policy apply before returning an active proxy payload.</step-4>
     <step-5 STATUS="pass-local">Move public TCP 443 ownership from nginx to mtproto-edge and move nginx HTTPS fallback to 8443.</step-5>
-    <step-6 STATUS="blocked-live">Apply the hotfix to the RU server, route Telegram upstream ranges through awg-client, ensure mtproto_proxy binds public 443 after bounded bootstrap fallback, replay existing active assignment SNI, and collect redacted HTTPS/policy health evidence before the operator retests Telegram Desktop.</step-6>
+    <step-6 STATUS="superseded-by-phase-38">Apply the hotfix to the RU server, route Telegram upstream ranges through awg-client, ensure mtproto_proxy binds public 443 after bounded bootstrap fallback, replay existing active assignment SNI, and collect redacted HTTPS/policy health evidence before the operator retests Telegram Desktop.</step-6>
   </Steps>
   <Verification>
     <command-1>cd mtproto-runtime &amp;&amp; rebar3 compile</command-1>
@@ -44,7 +44,7 @@
     <command-5>DB_PASSWORD=phase37-compose-check SECRET_KEY=test-secret-key-with-enough-length POSTGRES_PASSWORD=phase37-postgres REDIS_PASSWORD=phase37-redis JWT_SECRET_KEY=phase37-jwt DATA_ENCRYPTION_KEY=dpFmfSVqfdAK3yx5MQV6Tcv35RZuw5MzaH0yhxJ01q0= MTPROTO_BASE_SECRET_HEX=00112233445566778899aabbccddeeff MTPROTO_SECRET_SALT=ffeeddccbbaa99887766554433221100 MTPROTO_RUNTIME_TOKEN=phase37-runtime-token-abcdefghijklmnopqrstuvwxyz MTPROTO_RUNTIME_POLICY_URL=http://127.0.0.1:18080/krotpn/mtproto/policy docker compose config</command-5>
     <command-6>node scripts/phase32-edge-contract-smoke.mjs &amp;&amp; node scripts/phase34-mtproto-stabilization-smoke.mjs &amp;&amp; node scripts/phase35-installer-wildcard-tls-smoke.mjs &amp;&amp; node scripts/phase37-mtproto-runtime-smoke.mjs</command-6>
     <command-7>python3 -m xml.etree.ElementTree docs/graph-index.xml docs/plan-index.xml docs/verification-index.xml docs/modules/M-044.xml docs/modules/M-046.xml docs/modules/M-048.xml docs/modules/M-049.xml docs/plans/Phase-37.xml docs/verification/V-M-049.xml &amp;&amp; mygrace lint</command-7>
-    <command-8>operator-live: on RU, verify mtproto-edge owns TCP 443, nginx owns fallback 8443, policy health is healthy, public HTTPS still responds, and the operator-retained Telegram Desktop proxy becomes available.</command-8>
+    <command-8 status="superseded-by-phase-38">operator-live: RU-local mtproto-edge proof was superseded by Phase-38/41 DE-backed SNI router proof.</command-8>
   </Verification>
   <VerificationMatrix>
     <gate-1 MODULES="M-049,M-046" EVIDENCE="deterministic">docker-compose has mtproto-edge host-network service and nginx does not bind public 443.</gate-1>
@@ -82,5 +82,6 @@
     <evidence-2>2026-05-18: Local implementation added mtproto-runtime, policy API, backend HTTP adapter, provisioning live-apply, compose service, nginx 8443 fallback, and deploy env wiring.</evidence-2>
     <evidence-3>2026-05-18: Live RU first run showed policy API healthy but mtproto_proxy bootstrap timed out against Telegram core; Phase-37 adds bounded static bootstrap fallback and requires TCP 443 bind evidence.</evidence-3>
     <evidence-4>2026-05-18: After Telegram routes via awg-client, TCP reachability improved but mtproto_proxy downstream handshakes still closed; nginx was temporarily restored on public 443 to keep KrotPN web available.</evidence-4>
+    <evidence-5>2026-05-19: Phase-38/41 superseded the RU-local runtime with RU SNI router plus DE KPprotoN runtime, and clean-deploy Telegram proof passed.</evidence-5>
   </ExecutionEvidence>
 </Phase-37>

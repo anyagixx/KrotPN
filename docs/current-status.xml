@@ -44,18 +44,19 @@
     <item>Phase-31 MTProto user cabinet UX passed local verification on 2026-05-14: owner-only /api/v1/mtproto/proxy endpoint, compact dashboard proxy card, Telegram open/copy actions, safe unverified/pending/reissue states, frontend build, static mobile/API smoke, and no deploy/install changes.</item>
     <item>Phase-32 domain TLS edge passed local/static verification on 2026-05-14: krotpn.xyz settings, HTTP to HTTPS redirect contract, wildcard HTTPS fallback, compose config, protected deploy/install guard, rollback/live-smoke checklist, and M-044/M-043/M-040 regression tests.</item>
     <item>Phase-33 MTProto admin ops passed local verification on 2026-05-14: admin-only redacted assignment list/detail/health, confirmation-safe reissue/revoke with runtime SNI policy removal, safe audit events, compact frontend-admin /mtproto page, backend regression tests, frontend build, static smoke, and no deploy/install changes.</item>
-    <item>Phase-34 MTProto integration stabilization passed local verification on 2026-05-14: verified email activation to owner MTProto assignment integration, static frontend/admin redaction smoke, MTProto backup/restore documentation coverage, and release handoff checklist were added without deploy/install/edge surface changes. Live DNS/TLS/shared-443 smoke remains operator-required.</item>
-    <item>Phase-35 operator wildcard TLS installer passed local/static verification on 2026-05-17: install.sh now asks for domain, fullchain1.pem and privkey1.pem paths, deploy validates operator wildcard TLS material before compose startup, production self-signed fallback is blocked unless dev mode is explicit, and nginx can use an ignored runtime domain config. Clean VPS deploy with real wildcard certificate files remains operator-required.</item>
+    <item>Phase-34 MTProto integration stabilization passed local verification on 2026-05-14 and its production DNS/TLS/shared-443 Telegram smoke is now closed by Phase-41 live evidence.</item>
+    <item>Phase-35 operator wildcard TLS installer passed local/static verification on 2026-05-17 and clean VPS production validation on 2026-05-19: install.sh asks for domain/fullchain1.pem/privkey1.pem paths, deploy validates operator wildcard TLS material before compose startup, production self-signed fallback is blocked unless dev mode is explicit, and nginx can use an ignored runtime domain config.</item>
     <item>Phase-35 reviewer follow-up on 2026-05-17 fixed clean VPS preflight risk by bootstrapping openssl on RU when needed, rejecting certificate source paths under /opt/KrotPN, and strengthening Phase-35 smoke with dynamic installer validator checks.</item>
     <item>Phase-35 live clean VPS deploy revealed backend startup failure from blank MTProto secrets; 2026-05-17 hotfix generates MTPROTO_BASE_SECRET_HEX and MTPROTO_SECRET_SALT during deploy and treats blank optional MTProto env values as safely unset.</item>
-    <item>Phase-36 Resend deploy email-provider wiring passed local execution on 2026-05-17: install.sh now asks for a redacted Resend API key and noreply@krotpn.xyz sender, deploy writes EMAIL_PROVIDER=resend/RESEND_API_KEY/RESEND_API_URL/EMAIL_FROM into .env, and local smoke verifies request shape, provider_disabled regression guards, and secret redaction. Live mailbox proof remains operator-blocked until Resend domain verification completes.</item>
+    <item>Phase-36 Resend deploy email-provider wiring passed local execution on 2026-05-17 and later clean-deploy registration proof: install.sh asks for a redacted Resend API key and noreply@krotpn.xyz sender, deploy writes EMAIL_PROVIDER=resend/RESEND_API_KEY/RESEND_API_URL/EMAIL_FROM into .env, local smoke verifies request shape/provider_disabled guards/secret redaction, and operator registration via email succeeds on VPS.</item>
     <item>Phase-37 live MTProto shared-443 fix is implemented locally on 2026-05-18: mtproto-runtime is added as a host-network edge service, backend has a token-protected HTTP policy adapter, provisioning applies SNI policy before returning active payloads, nginx HTTPS fallback moves to 8443, deploy generates runtime policy-token/env wiring, and deploy persists Telegram upstream routes through awg-client.</item>
-    <item>Phase-38 DE-backed MTProto edge is partial-live on 2026-05-18: RU public 443 is HAProxy SNI router, HTTPS reaches private RU nginx fallback on 9443, public admin remains on 8443, DE runtime listens on 443, private policy health is OK, and HAProxy reports the DE MTProto backend UP. Telegram Desktop proof remains operator-required.</item>
-    <item>Phase-39 MTProto availability closure is partial-live on 2026-05-18: local/static smoke, 34 backend MTProto regression tests, frontend build, XML parse, and MyGRACE lint passed; redacted live smoke proved active assignment, healthy policy_count, public RU:443 route, validated fake-TLS accept, private DE fallback 9443, and reachable Telegram downstream. Telegram Desktop proof remains operator-required.</item>
-    <item>Phase-40 official MTProxy data-plane and individual user secrets passed local execution on 2026-05-19: official-mtproxy runtime scaffold, Phase-40 RU HTTPS-vs-MTProxy routing, per-user dd-secret owner payloads, redacted secret manifest sync, admin revoke/reissue sync, deploy wiring, and 49 targeted regression/static tests pass. Live clean-VPS req_pq and Telegram Desktop/mobile availability proof remain operator-live.</item>
-    <item>Phase-40 live MTProxy stability hotfix on 2026-05-19 fixed repeated identical manifest apply restarts: DE official mtproto-proxy now keeps running across scheduler/apply cycles, exposes private HTTP stats, uses DE NAT info, and live policy health is healthy. Telegram Desktop/mobile reconnect proof remains operator-required after the hotfix.</item>
-    <item>Phase-41 KPprotoN fake-TLS production data-plane rollback passed local execution on 2026-05-19: official MTProxy is superseded for production, owner payloads return to per-user u-*.krotpn.xyz with ee fake-TLS links, provisioning/admin/scheduler use KPprotoN runtime bridge again, deploy selects the DE KPprotoN runtime plus RU SNI router, and local backend/static/Erlang/compose verification passed. Clean VPS and Telegram Desktop/mobile proof remain operator-live.</item>
-    <item>Phase-41 live MTProto fix on 2026-05-19 found two blockers: the old seriyps/mtproto_proxy lock and a blank proxy ad tag. mtproto-runtime now pins upstream commit 154a8fb, deploy defaults MTPROTO_AD_TAG to 32 zero hex chars, the DE runtime was hotfixed, active assignment replay succeeded, and issued-link mtp_ping passed through RU SNI router to DE KPprotoN runtime on DC +1 through +5.</item>
+    <item>Phase-38 DE-backed MTProto edge is historical partial-live on 2026-05-18: RU public 443 is HAProxy SNI router, HTTPS reaches private RU nginx fallback on 9443, public admin remains on 8443, DE runtime listens on 443, private policy health is OK, and HAProxy reports the DE MTProto backend UP. Its remaining Telegram proof gap is superseded by Phase-41.</item>
+    <item>Phase-39 MTProto availability closure is historical partial-live on 2026-05-18: local/static smoke, 34 backend MTProto regression tests, frontend build, XML parse, and MyGRACE lint passed; redacted live smoke proved active assignment, healthy policy_count, public RU:443 route, validated fake-TLS accept, private DE fallback 9443, and reachable Telegram downstream. Its remaining client proof gap is superseded by Phase-41.</item>
+    <item>Phase-40 official MTProxy data-plane and individual user secrets passed local execution on 2026-05-19: official-mtproxy runtime scaffold, Phase-40 RU HTTPS-vs-MTProxy routing, per-user dd-secret owner payloads, redacted secret manifest sync, admin revoke/reissue sync, deploy wiring, and 49 targeted regression/static tests pass. The official MTProxy production path is superseded by Phase-41.</item>
+    <item>Phase-40 live MTProxy stability hotfix on 2026-05-19 fixed repeated identical manifest apply restarts: DE official mtproto-proxy keeps running across scheduler/apply cycles, exposes private HTTP stats, uses DE NAT info, and live policy health is healthy. The path remains rollback/reference only after Phase-41.</item>
+    <item>Phase-41 KPprotoN fake-TLS production data-plane rollback passed local and live verification on 2026-05-19: official MTProxy is superseded for production, owner payloads return to per-user u-*.krotpn.xyz with ee fake-TLS links, provisioning/admin/scheduler use KPprotoN runtime bridge again, deploy selects the DE KPprotoN runtime plus RU SNI router, and local backend/static/Erlang/compose verification passed.</item>
+    <item>Phase-41 live MTProto fix on 2026-05-19 found two blockers: the old seriyps/mtproto_proxy lock and a blank proxy ad tag. mtproto-runtime now pins upstream commit 154a8fb, deploy defaults MTPROTO_AD_TAG to 32 zero hex chars, active assignment replay succeeded, issued-link mtp_ping passed through RU SNI router to DE KPprotoN runtime on DC +1 through +5, and operator clean-deploy testing confirmed both VPN and Telegram Desktop/mobile MTProto proxy work.</item>
+    <item>Release target v2.19.1-kpproton-faketls-stable is the current stable baseline for GitHub main/Releases after Phase-41 live confirmation.</item>
   </what-is-working>
 
   <what-is-fragile>
@@ -64,15 +65,14 @@
     <item>Legacy VPNServer compatibility during topology migration.</item>
     <item>Remote credentials handled through temporary operator materialization remain a deployment risk.</item>
     <item>Verification reproducibility across environments.</item>
-    <item>MTProto public edge integration has local/static coverage through Phases 31-34, but shared 443/TLS/domain live proof is still deferred until operator DNS, wildcard TLS, and rollback window are ready.</item>
-    <item>Phase-32 shared 443 production smoke remains blocked until DNS, trusted wildcard TLS material, and an operator rollback window are available.</item>
-    <item>Phase-35 clean VPS wildcard TLS deploy smoke remains operator-live until prepared fullchain1.pem/privkey1.pem files are present on the RU server and public HTTPS is verified.</item>
-    <item>Phase-36 live Resend mailbox smoke remains pending until the Resend API key is available and krotpn.xyz/noreply@krotpn.xyz verification is complete in Resend.</item>
+    <item>MTProto public edge integration now has local/static and clean-VPS live proof through Phase-41; future shared 443/TLS/domain changes still require operator DNS, wildcard TLS, and rollback window readiness.</item>
+    <item>Phase-32 shared 443 production smoke is closed by Phase-41 clean VPS evidence; future public 443 changes still require DNS, trusted wildcard TLS material, and rollback window discipline.</item>
+    <item>Phase-35 wildcard TLS deploy path is now covered by Phase-41 clean VPS evidence; future certificate replacement remains operator-sensitive.</item>
+    <item>Phase-36 Resend delivery is operator-confirmed for registration on clean deploy; future risk is Resend free-tier limits, sender/domain verification drift, or key rotation.</item>
     <item>Phase-37 RU-local MTProto edge remains superseded by Phase-38/39 DE-backed edge work; use Phase-39 evidence for current Telegram availability triage instead of the earlier RU-local downstream blocker.</item>
-    <item>Phase-38 is partial-live: RU public web, direct admin 8443, DE runtime listener, private policy health, and RU-to-DE HAProxy reachability are verified on VPS; assignment replay and Telegram Desktop available status remain pending.</item>
-    <item>Phase-39 remains partial-live: automated redacted proof passes through fake-TLS accept and Telegram downstream reachability, but earlier KPprotoN/Erlang integration did not reach final Telegram client proof.</item>
-    <item>Phase-40 is partial-live and planned-superseded by Phase-41: clean deploy, official runtime health, secret sync, unchanged-manifest stability, private stats, and DE NAT info are proven on VPS, but official MTProxy does not match the required per-user SNI/no-restart product model.</item>
-    <item>Phase-41 is fix-live: KrotPN provisioning returns ee fake-TLS links and live diagnostics now prove policy replay, RU SNI routing, fake-TLS accept, valid non-empty proxy ad tag, and issued-link mtp_ping req_pq success. Telegram Desktop/mobile proof remains operator-observed.</item>
+    <item>Phase-38 and Phase-39 stay historical partial-live phases because their original acceptance gates were superseded; Phase-41 is now the production MTProto closure path.</item>
+    <item>Phase-40 is partial-live and superseded by Phase-41: clean deploy, official runtime health, secret sync, unchanged-manifest stability, private stats, and DE NAT info were proven on VPS, but official MTProxy does not match the required per-user SNI/no-restart product model.</item>
+    <item>Phase-41 is passed-live: KrotPN provisioning returns ee fake-TLS links and live diagnostics prove policy replay, RU SNI routing, fake-TLS accept, valid non-empty proxy ad tag, issued-link mtp_ping req_pq success, and operator-confirmed Telegram Desktop/mobile connectivity after clean deploy.</item>
     <item>Emergency relocation is documented but still blocked until a trusted backup bundle and isolated restore target exist for dry-run evidence.</item>
     <item>Cookie-only auth migration is planned but not executed because it requires explicit approval and HTTPS or production-like smoke evidence.</item>
   </what-is-fragile>
@@ -129,48 +129,46 @@
     <gate id="phase-31-mtproto-user-cabinet" status="passed-local">
       <summary>Local Phase-31 backend tests, frontend build, static mobile/API smoke, XML parse, and MyGRACE lint passed; owner-only MTProto proxy data is now visible in the user cabinet without deploy/install changes.</summary>
     </gate>
-    <gate id="phase-32-domain-tls-edge" status="partial-local">
-      <summary>Local Phase-32 static gates passed for krotpn.xyz settings, nginx redirect/fallback contract, compose config, cutover runbook, and protected deploy/install guard; live DNS/TLS/MTProto shared 443 smoke remains operator-required.</summary>
+    <gate id="phase-32-domain-tls-edge" status="passed-live">
+      <summary>Local Phase-32 static gates passed for krotpn.xyz settings, nginx redirect/fallback contract, compose config, cutover runbook, and protected deploy/install guard; Phase-41 clean VPS evidence closes live DNS/TLS/MTProto shared 443 smoke.</summary>
     </gate>
     <gate id="phase-33-mtproto-admin-ops" status="passed-local">
       <summary>Local Phase-33 backend tests, frontend-admin build, static smoke, XML parse, and MyGRACE lint passed; admins can inspect redacted MTProto state and run confirmation-safe reissue/revoke with runtime SNI policy removal and without deploy/install changes.</summary>
     </gate>
-    <gate id="phase-34-mtproto-integration-stabilization" status="partial-local">
-      <summary>Local Phase-34 backend integration, frontend/admin static smoke, backup/restore docs coverage, XML parse, and MyGRACE lint passed; live krotpn.xyz DNS/TLS/shared-443/Telegram client smoke remains operator-required.</summary>
+    <gate id="phase-34-mtproto-integration-stabilization" status="passed-live">
+      <summary>Local Phase-34 backend integration, frontend/admin static smoke, backup/restore docs coverage, XML parse, and MyGRACE lint passed; Phase-41 clean VPS evidence closes live krotpn.xyz DNS/TLS/shared-443/Telegram client smoke.</summary>
     </gate>
-    <gate id="phase-35-operator-wildcard-tls-installer" status="partial-local">
-      <summary>Local Phase-35 shell syntax, static installer TLS smoke, edge guard smoke, domain TLS pytest, docker compose config, XML parse, and MyGRACE lint passed; clean VPS deploy with prepared wildcard TLS files remains operator-required.</summary>
+    <gate id="phase-35-operator-wildcard-tls-installer" status="passed-live">
+      <summary>Local Phase-35 shell syntax/static gates passed and Phase-41 clean VPS evidence confirms the operator-provided wildcard TLS path works for production HTTPS and MTProto edge.</summary>
     </gate>
-    <gate id="phase-36-resend-deploy-email-provider" status="partial-local">
-      <summary>Local execution passed for Resend installer/deploy env wiring, backend Settings acceptance, request-shape coverage, provider_disabled regression guards, and redaction; controlled-mailbox live smoke waits for Resend domain verification and real API key.</summary>
+    <gate id="phase-36-resend-deploy-email-provider" status="passed-live">
+      <summary>Local execution passed for Resend installer/deploy env wiring, backend Settings acceptance, request-shape coverage, provider_disabled regression guards, and redaction; clean VPS registration via email is operator-confirmed.</summary>
     </gate>
-    <gate id="phase-37-live-mtproto-shared-443-runtime" status="blocked-live">
-      <summary>Local implementation addresses the missing runtime pieces and RU Telegram routes, but mtproto_proxy still fails downstream handshakes; nginx public 443 rollback keeps HTTPS available until the upstream/proxy runtime blocker is resolved.</summary>
+    <gate id="phase-37-live-mtproto-shared-443-runtime" status="superseded-by-phase-38">
+      <summary>Local implementation addressed missing runtime pieces and RU Telegram routes, but the RU-local runtime path was superseded by Phase-38/41 DE-backed SNI routing and KPprotoN pass-live proof.</summary>
     </gate>
-    <gate id="phase-38-de-backed-mtproto-edge" status="partial-live">
-      <summary>Live RU/DE edge proof passed for public HTTPS, admin 8443, DE listener 443, private policy health, and HAProxy DE backend UP; assignment replay and Telegram Desktop proof remain operator-live.</summary>
+    <gate id="phase-38-de-backed-mtproto-edge" status="superseded-by-phase-41">
+      <summary>Live RU/DE edge proof passed for public HTTPS, admin 8443, DE listener 443, private policy health, and HAProxy DE backend UP; final assignment replay and Telegram Desktop/mobile proof are closed by Phase-41.</summary>
     </gate>
-    <gate id="phase-39-mtproto-availability-closure" status="partial-live">
-      <summary>Local and redacted live smoke passed for issued assignment, policy health, RU public 443, fake-TLS accept, DE fallback 9443, and Telegram downstream reachability; Telegram Desktop available proof remains operator-live.</summary>
+    <gate id="phase-39-mtproto-availability-closure" status="superseded-by-phase-41">
+      <summary>Local and redacted live smoke passed for issued assignment, policy health, RU public 443, fake-TLS accept, DE fallback 9443, and Telegram downstream reachability; final client proof is closed by Phase-41.</summary>
     </gate>
-    <gate id="phase-40-official-mtproxy-data-plane" status="partial-live">
-      <summary>Local Phase-40 execution passed for official MTProxy runtime scaffold, per-user dd-secret sync, redacted admin/user paths, and RU HTTPS-vs-MTProxy routing; live DE hotfix proves unchanged manifest applies no longer restart mtproto-proxy and private stats are healthy. Telegram Desktop/mobile proof remains operator-live.</summary>
+    <gate id="phase-40-official-mtproxy-data-plane" status="superseded-by-phase-41">
+      <summary>Local Phase-40 execution passed for official MTProxy runtime scaffold, per-user dd-secret sync, redacted admin/user paths, and RU HTTPS-vs-MTProxy routing; the production path is superseded by Phase-41 KPprotoN fake-TLS.</summary>
     </gate>
-    <gate id="phase-41-kpproton-faketls-rollback" status="fix-live">
-      <summary>Local execution restores KPprotoN fake-TLS SNI as the production MTProto path; live diagnostics fixed the old mtproto_proxy lock and blank ad-tag req_pq blocker, and issued-link mtp_ping now passes. Telegram Desktop/mobile proof remains operator-observed.</summary>
+    <gate id="phase-41-kpproton-faketls-rollback" status="passed-live">
+      <summary>Local execution restores KPprotoN fake-TLS SNI as the production MTProto path; live diagnostics fixed the old mtproto_proxy lock and blank ad-tag req_pq blocker, issued-link mtp_ping passes, and operator clean-deploy testing confirms Telegram Desktop/mobile proxy connectivity plus VPN.</summary>
     </gate>
   </rollout-gates>
 
   <immediate-priorities>
-    <priority rank="1">Ask the operator to retry the same issued MTProto proxy in Telegram Desktop/mobile after the DE ad-tag hotfix; if confirmed, publish the fix release from main.</priority>
-    <priority rank="2">Complete Phase-36 live Resend mailbox smoke after the operator provides the Resend API key and confirms krotpn.xyz/noreply@krotpn.xyz verification in Resend.</priority>
-    <priority rank="3">Fix Phase-28 refresh findings: V-M-004 billing route/API tests and V-M-022 VPN compatibility route tests currently return 404 in their full per-module gates.</priority>
-    <priority rank="4">Complete remaining Phase-32/Phase-34/Phase-35 live edge smoke after Phase-38 public 443 routing is stable, trusted wildcard TLS is installed, an issued MTProto SNI is available, and an operator rollback window is available.</priority>
-    <priority rank="5">Run Phase-22 non-production restore rehearsal with a trusted backup bundle and isolated restore target.</priority>
-    <priority rank="6">Decide whether to approve cookie-only auth migration and provide HTTPS or production-like auth smoke target.</priority>
-    <priority rank="7">Keep deploy/install scripts unchanged unless the operator explicitly requests deployment-surface work.</priority>
-    <priority rank="8">Improve repeatable local verification for backend, user frontend, and admin frontend.</priority>
-    <priority rank="9">Tune false-positive thresholds before enabling any automatic anti-sharing block policy beyond admin-reviewed detect-first mode.</priority>
+    <priority rank="1">Use the Phase-41 stable MTProto/VPN baseline for future frontend client/admin redesign work.</priority>
+    <priority rank="2">Fix Phase-28 refresh findings: V-M-004 billing route/API tests and V-M-022 VPN compatibility route tests currently return 404 in their full per-module gates.</priority>
+    <priority rank="3">Run Phase-22 non-production restore rehearsal with a trusted backup bundle and isolated restore target.</priority>
+    <priority rank="4">Decide whether to approve cookie-only auth migration and provide HTTPS or production-like auth smoke target.</priority>
+    <priority rank="5">Keep deploy/install scripts unchanged unless the operator explicitly requests deployment-surface work.</priority>
+    <priority rank="6">Improve repeatable local verification for backend, user frontend, and admin frontend.</priority>
+    <priority rank="7">Tune false-positive thresholds before enabling any automatic anti-sharing block policy beyond admin-reviewed detect-first mode.</priority>
   </immediate-priorities>
 
   <known-risks>
@@ -180,7 +178,7 @@
     <risk severity="high">Runtime DB compatibility migrations instead of disciplined migration workflow.</risk>
     <risk severity="high">Strong dependence on host filesystem and host tools for VPN behavior.</risk>
     <risk severity="high">Disaster recovery cannot be considered incident-ready until live or non-production restore rehearsal evidence exists.</risk>
-    <risk severity="high">MTProto production availability has issued-link mtp_ping proof after the Phase-41 dependency/ad-tag fix, but Telegram Desktop/mobile user confirmation is still needed before closing live availability fully.</risk>
+    <risk severity="medium">MTProto production availability is now operator-confirmed after Phase-41, but future runtime/deploy changes must preserve issued-link mtp_ping plus Telegram Desktop/mobile proof before release.</risk>
   </known-risks>
 
   <handoff-instructions>

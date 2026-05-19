@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<V-M-012 MODULE="M-012" PRIORITY="critical" STATUS="pass" VERSION="1.3.1">
+<V-M-012 MODULE="M-012" PRIORITY="critical" STATUS="pass-live-phase41" VERSION="1.4.0">
   <module>deploy-surface</module>
-  <checks>Deploy and nginx changes do not introduce weak defaults or unsafe routing assumptions. Deploy creates /var/lib/krotpn/ directory for RU IP snapshots. Snapshot directory permissions are correct (root:root, 755). Phase-36 planned deploy changes must enable Resend email provider without logging RESEND_API_KEY. Phase-38 planned deploy changes must wire DE-backed MTProto edge roles without exposing policy tokens or wildcard private keys. Phase-41 local execution must restore KPprotoN fake-TLS runtime as the active data-plane while keeping official MTProxy disabled from production routing.</checks>
+  <checks>Deploy and nginx changes do not introduce weak defaults or unsafe routing assumptions. Deploy creates /var/lib/krotpn/ directory for RU IP snapshots. Snapshot directory permissions are correct (root:root, 755). Phase-36 deploy changes enable Resend email provider without logging RESEND_API_KEY. Phase-38 deploy changes wire DE-backed MTProto edge roles without exposing policy tokens or wildcard private keys. Phase-41 restores KPprotoN fake-TLS runtime as the active data-plane while keeping official MTProxy disabled from production routing and has clean-deploy live proof.</checks>
   <test-files>
     <file>install.sh</file>
     <file>deploy/deploy-on-server.sh</file>
@@ -30,12 +30,13 @@
     <command-1>bash -n install.sh deploy/deploy-on-server.sh</command-1>
     <command-2 status="pass-local">node scripts/phase38-de-mtproto-edge-smoke.mjs</command-2>
   </phase-38-verification>
-  <phase-41-verification status="pass-local">
+  <phase-41-verification status="pass-live">
     <check-1 evidence="deterministic">Deploy surface selects KPprotoN fake-TLS runtime as the active DE MTProto data-plane and does not start official MTProxy as production owner.</check-1>
     <check-2 evidence="deterministic">RU public 443 SNI router sends krotpn.xyz/www.krotpn.xyz to nginx fallback and issued u-*.krotpn.xyz to DE KPprotoN runtime.</check-2>
     <check-3 evidence="static-redaction">Deploy/install output must not print runtime tokens, wildcard private keys, base secret, salt, derived secrets, raw .env values, or full proxy links.</check-3>
     <command-1>bash -n install.sh deploy/deploy-on-server.sh</command-1>
     <command-2 status="pass-local">node scripts/phase41-kpproton-faketls-smoke.mjs</command-2>
+    <command-3 status="pass-live">operator clean-deploy proof for wildcard TLS, Resend registration email, VPN, and KPprotoN MTProto proxy.</command-3>
   </phase-41-verification>
   <scenarios>
     <scenario kind="success" trace="DEPLOY_IDEMPOTENT">Double deploy preserves existing WG keys and client connections</scenario>
@@ -54,5 +55,6 @@
     <evidence-6>2026-05-18: Live deploy-surface proof passed after pulling GitHub main on RU, regenerating runtime nginx/HAProxy configs, and rebuilding DE runtime from the updated mtproto runtime source.</evidence-6>
     <evidence-7>2026-05-19: Phase-41 verification design adds deploy gates for restoring KPprotoN fake-TLS runtime and disabling official MTProxy from the active production path.</evidence-7>
     <evidence-8>2026-05-19: Phase-41 local deploy verification passed for shell syntax, docker compose config, Phase-38/39/41 smoke scripts, and active KPprotoN DE runtime selection.</evidence-8>
+    <evidence-9>2026-05-19: Operator clean-deploy validation from GitHub main confirmed deploy surface works for wildcard TLS, Resend registration email, VPN, and KPprotoN MTProto proxy.</evidence-9>
   </evidence>
 </V-M-012>

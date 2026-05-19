@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<V-M-050 MODULE="M-050" PRIORITY="critical" STATUS="fix-live-phase41" VERSION="1.5.2">
+<V-M-050 MODULE="M-050" PRIORITY="critical" STATUS="pass-live-phase41" VERSION="1.6.0">
   <module>mtproto-de-backed-edge</module>
   <phase-scope>
-    <phase-38 status="partial-live">DE-hosted MTProto runtime plus RU public TCP 443 SNI router passed live RU/DE edge checks; assignment replay and Telegram Desktop proof remain operator-required.</phase-38>
-    <phase-41 status="fix-live">DE-backed edge returns to KPprotoN fake-TLS SNI routing, removes official MTProxy from the active production target, and fixes blank ad-tag req_pq timeout.</phase-41>
-    <supersedes>M-049 remains blocked-live for the RU-only runtime path; Phase-38 verifies the replacement DE-backed traffic path.</supersedes>
+    <phase-38 status="partial-live">DE-hosted MTProto runtime plus RU public TCP 443 SNI router passed live RU/DE edge checks; Phase-41 supersedes the remaining Phase-38 Telegram acceptance gap.</phase-38>
+    <phase-41 status="pass-live">DE-backed edge returns to KPprotoN fake-TLS SNI routing, removes official MTProxy from the active production target, fixes blank ad-tag req_pq timeout, and passes operator Telegram Desktop/mobile proof.</phase-41>
+    <supersedes>M-049 RU-only runtime path is superseded; Phase-38/41 verifies the replacement DE-backed traffic path.</supersedes>
   </phase-scope>
   <test-files>
     <file phase="38-pass-local">scripts/phase38-de-mtproto-edge-smoke.mjs</file>
@@ -31,7 +31,7 @@
     <command-3>node scripts/phase38-de-mtproto-edge-smoke.mjs</command-3>
     <command-4>cd backend &amp;&amp; SECRET_KEY=test-secret-key-with-enough-length DATA_ENCRYPTION_KEY=dpFmfSVqfdAK3yx5MQV6Tcv35RZuw5MzaH0yhxJ01q0= PYTHONPATH=. ../.venv/bin/python -m pytest -o addopts='' tests/test_kpproton_runtime_bridge.py tests/test_mtproto_provisioning.py tests/test_domain_tls_edge_static.py tests/test_mtproto_de_edge_contract.py tests/test_deploy_phase38_static.py -v</command-4>
     <command-5>python3 -m xml.etree.ElementTree docs/graph-index.xml docs/plan-index.xml docs/verification-index.xml docs/modules/M-012.xml docs/modules/M-043.xml docs/modules/M-044.xml docs/modules/M-046.xml docs/modules/M-048.xml docs/modules/M-049.xml docs/modules/M-050.xml docs/plans/Phase-38.xml docs/verification/V-M-012.xml docs/verification/V-M-043.xml docs/verification/V-M-044.xml docs/verification/V-M-046.xml docs/verification/V-M-048.xml docs/verification/V-M-049.xml docs/verification/V-M-050.xml &amp;&amp; mygrace lint</command-5>
-    <command-6 status="partial-live">operator-live: RU SNI router owns public TCP 443, RU nginx fallback works, DE MTProto runtime listens, private policy API rejects public access, active SNI replay succeeds, and mtp_ping marks the issued proxy available; Telegram Desktop/mobile user retest remains operator-observed.</command-6>
+    <command-6 status="pass-live">operator-live: RU SNI router owns public TCP 443, RU nginx fallback works, DE MTProto runtime listens, private policy API rejects public access, active SNI replay succeeds, mtp_ping marks the issued proxy available, and Telegram Desktop/mobile user retest passed.</command-6>
   </commands>
   <verification-levels>
     <module-local>Static contract tests and smoke scripts prove the intended config shape: one RU public 443 owner, web SNI to RU nginx fallback, MTProto SNI to DE runtime, private policy API, no blank runtime secrets, and no secret leakage.</module-local>
@@ -49,19 +49,19 @@
     <check-8 evidence="deterministic">Wildcard cert/key delivery to DE is validated or copied through a redaction-safe path and never printed in logs, XML evidence, or smoke output.</check-8>
     <check-9 evidence="trace">Required route and policy log markers exist for web route, MTProto route, DE runtime start, DE policy health, policy apply, and degraded apply failure.</check-9>
     <check-10 evidence="operator-live">RU public HTTPS remains healthy through the SNI router after public 443 ownership changes.</check-10>
-    <check-11 evidence="operator-live">DE runtime reaches Telegram upstream and Telegram Desktop marks the issued proxy available.</check-11>
+    <check-11 evidence="operator-live" status="passed">DE runtime reaches Telegram upstream and Telegram Desktop/mobile mark the issued proxy available and usable.</check-11>
     <check-12 evidence="deterministic">Direct https://krotpn.xyz:8443/login serves the admin frontend, not the user frontend.</check-12>
     <check-13 evidence="deterministic">DE mtproto_proxy bootstrap endpoints use the configured private POLICY_LISTEN_IP so the proxy listener can start while the policy API remains private.</check-13>
     <check-14 evidence="phase-41-deterministic">Issued u-*.krotpn.xyz SNI routes to DE KPprotoN fake-TLS runtime while official MTProxy is not the active target.</check-14>
-    <check-15 evidence="operator-live">MTPROTO_AD_TAG/PROXY_AD_TAG is non-empty and defaults to zero 32-hex tag; issued-link mtp_ping returns OK across DC +1 through +5 after policy replay.</check-15>
+    <check-15 evidence="operator-live" status="passed">MTPROTO_AD_TAG/PROXY_AD_TAG is non-empty and defaults to zero 32-hex tag; issued-link mtp_ping returns OK across DC +1 through +5 after policy replay.</check-15>
   </module-checks>
   <verification-matrix>
     <gate-1 MODULES="M-050,M-046" EVIDENCE="deterministic">SNI router target map separates web, issued MTProto SNI, and unknown SNI behavior.</gate-1>
     <gate-2 MODULES="M-050,M-048,M-012" EVIDENCE="deterministic">Deploy/install contract creates or preserves Phase-38 env values without printing tokens, private key material, or raw .env contents.</gate-2>
     <gate-3 MODULES="M-050,M-044" EVIDENCE="deterministic">HTTPMTProtoPolicyAdapter can apply, revoke, and health-check a private DE policy API target and return degraded state when unavailable.</gate-3>
     <gate-4 MODULES="M-050,M-043,M-049" EVIDENCE="deterministic">Existing assignment SNI, base secret, salt, and tg links remain stable while runtime target changes from RU-only to DE-backed.</gate-4>
-    <gate-5 MODULES="M-050,M-046" EVIDENCE="operator-live">Public HTTPS, API, admin, and registration surfaces remain healthy after RU public 443 is moved to the SNI router.</gate-5>
-    <gate-6 MODULES="M-050" EVIDENCE="operator-live">Telegram Desktop marks an existing issued user proxy available through the DE runtime route.</gate-6>
+    <gate-5 MODULES="M-050,M-046" EVIDENCE="operator-live" STATUS="passed">Public HTTPS, API, admin, and registration surfaces remain healthy after RU public 443 is moved to the SNI router.</gate-5>
+    <gate-6 MODULES="M-050" EVIDENCE="operator-live" STATUS="passed">Telegram Desktop/mobile mark an existing issued user proxy available and usable through the DE runtime route.</gate-6>
     <gate-7 MODULES="M-050,M-052" EVIDENCE="phase-41-deterministic">Official MTProxy route is disabled from production traffic after KPprotoN fake-TLS rollback.</gate-7>
   </verification-matrix>
   <scenarios>
@@ -104,11 +104,11 @@
     <gate-2>DE ss output shows MTProto runtime listening on its configured target port.</gate-2>
     <gate-3>RU backend policy health succeeds to DE over the private path with the runtime token.</gate-3>
     <gate-4>Public internet cannot access the DE policy API.</gate-4>
-    <gate-5>curl https://krotpn.xyz returns a healthy frontend response without TLS bypass.</gate-5>
-    <gate-6>Backend/API/admin and registration email surfaces remain healthy after the router change.</gate-6>
-    <gate-7>Existing active assignment SNI replay returns success and policy count is non-zero.</gate-7>
-    <gate-8>Operator Telegram Desktop retest marks the proxy available.</gate-8>
-    <gate-9>Phase-41 clean deploy proves official MTProxy is not the active DE data-plane and KPprotoN runtime owns the issued SNI path.</gate-9>
+    <gate-5 status="passed">curl https://krotpn.xyz returns a healthy frontend response without TLS bypass.</gate-5>
+    <gate-6 status="passed">Backend/API/admin and registration email surfaces remain healthy after the router change.</gate-6>
+    <gate-7 status="passed">Existing active assignment SNI replay returns success and policy count is non-zero.</gate-7>
+    <gate-8 status="passed">Operator Telegram Desktop/mobile retest marks the proxy available and usable.</gate-8>
+    <gate-9 status="passed">Phase-41 clean deploy proves official MTProxy is not the active DE data-plane and KPprotoN runtime owns the issued SNI path.</gate-9>
   </live-smoke-gates>
   <failure-handoff>
     <item-1>If static SNI router smoke fails, do not touch live public 443; fix config shape locally first.</item-1>
@@ -117,19 +117,20 @@
     <item-4>If Telegram Desktop remains unavailable while DE runtime and policy apply are healthy, collect redacted DE runtime logs and Telegram upstream reachability evidence before changing assignment secrets.</item-4>
   </failure-handoff>
   <autonomous-execution-safety>
-    <level>local-verification-only-before-operator-live</level>
+    <level>local-plus-operator-live-verified</level>
     <safe-local>XML parse, MyGRACE lint, static smoke, syntax checks, compose config, and backend tests with fake/private policy targets.</safe-local>
-    <requires-operator>Public 443 routing changes, DE runtime rollout, wildcard certificate/private key placement, firewall changes, private policy API live proof, and Telegram Desktop proof.</requires-operator>
+    <requires-operator>Future public 443 routing changes, DE runtime rollout changes, wildcard certificate/private key replacement, firewall changes, private policy API live proof, and Telegram Desktop/mobile proof.</requires-operator>
   </autonomous-execution-safety>
   <evidence>
     <evidence-1>2026-05-18: Local Phase-38 execution added HAProxy RU SNI router, default compose public-443 owner, DE runtime compose template, private POLICY_LISTEN_IP runtime bind, private DE policy URL validation, deploy-time DE runtime rollout, and secret-preserving .env generation.</evidence-1>
     <evidence-2>2026-05-18: Local verification passed: bash -n install.sh deploy/deploy-on-server.sh; docker compose config with .env.example; node scripts/phase38-de-mtproto-edge-smoke.mjs; backend pytest wave for runtime bridge, provisioning, domain TLS edge, Phase-38 settings, and Phase-38 deploy static tests; rebar3 compile.</evidence-2>
-    <evidence-3>Operator-live gates remain open for clean VPS deploy, RU public HTTPS through SNI router, DE runtime listener, private policy API denial from public internet, assignment replay, and Telegram Desktop available status.</evidence-3>
+    <evidence-3>Earlier operator-live gates for clean VPS deploy, RU public HTTPS through SNI router, DE runtime listener, private policy API denial from public internet, assignment replay, and Telegram Desktop available status are closed by Phase-41 pass-live evidence.</evidence-3>
     <evidence-4>2026-05-18: Clean VPS follow-up fixed live regressions by adding HAProxy low-port bind permissions and separating admin 8443 from the SNI-router web fallback on private 9443.</evidence-4>
     <evidence-5>2026-05-18: DE runtime follow-up fixed mtproto_proxy startup against private policy bind by replacing the hardcoded 127.0.0.1 bootstrap URL with POLICY_LISTEN_IP-derived bootstrap URLs.</evidence-5>
     <evidence-6>2026-05-18: Live verification passed: RU public 443 serves KrotPN through HAProxy, RU public 8443/login serves KrotPN Admin, nginx private fallback listens on 127.0.0.1:9443, DE runtime listens on 0.0.0.0:443, private policy health returns OK, RU can reach DE 443, and HAProxy reports mtproto_de_runtime UP.</evidence-6>
     <evidence-7>2026-05-19: Phase-41 verification design restores M-050 to KPprotoN fake-TLS SNI routing and marks official MTProxy routing as superseded for production.</evidence-7>
     <evidence-8>2026-05-19: Phase-41 local execution passed deploy static tests and smoke for active haproxy-phase38 SNI routing, KPprotoN DE runtime compose, admin 8443 preservation, and official MTProxy production inactivity.</evidence-8>
     <evidence-9>2026-05-19: Live fix on DE showed vanilla mtproto_proxy passes req_pq only with a valid tag; KrotPN DE runtime with zero 32-hex tag, active assignment replay, RU SNI route, and issued u-*.krotpn.xyz link passed mtp_ping on DC +1 through +5.</evidence-9>
+    <evidence-10>2026-05-19: Operator clean-deploy validation confirmed RU public web, admin, VPN, and Telegram Desktop/mobile MTProto proxy behavior work from the Phase-41 edge.</evidence-10>
   </evidence>
 </V-M-050>

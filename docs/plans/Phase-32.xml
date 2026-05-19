@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Phase-32 NAME="Domain TLS and Shared 443 Edge" STATUS="partial-local" VERSION="1.1.0" UPDATED="2026-05-14">
+<Phase-32 NAME="Domain TLS and Shared 443 Edge" STATUS="passed-live" VERSION="1.2.0" UPDATED="2026-05-19">
   <Goal>Define and implement the krotpn.xyz production edge for HTTPS redirect, wildcard TLS, and shared 443 MTProto coexistence.</Goal>
   <Modules>M-046,M-012,M-044,M-001</Modules>
   <NonGoals>
@@ -12,14 +12,14 @@
     <step-3 STATUS="done-local">Design shared 443 routing: MTProto fake-TLS by issued SNI, normal HTTPS fallback to KrotPN nginx/frontend/backend/admin.</step-3>
     <step-4 STATUS="done-local">Create local/static verification for redirect, certificate path expectations, and no accidental deploy/install rewrite.</step-4>
     <step-5 STATUS="done-local">Prepare rollback notes and staging/live smoke checklist for krotpn.xyz cutover.</step-5>
-    <step-6 STATUS="blocked-live">Run production-like smoke only after operator provides wildcard certificate and DNS readiness.</step-6>
+    <step-6 STATUS="passed-live">Run production-like smoke only after operator provides wildcard certificate and DNS readiness.</step-6>
   </Steps>
   <Verification>
     <command>cd backend &amp;&amp; SECRET_KEY=test-secret-key-with-enough-length PYTHONPATH=. ../.venv/bin/python -m pytest -o addopts='' tests/test_domain_tls_edge_static.py -v</command>
     <command>sh -c 'if [ -e .env ]; then DB_PASSWORD=phase32-compose-check docker compose config; else ln -s .env.example .env &amp;&amp; trap "rm -f .env" EXIT &amp;&amp; DB_PASSWORD=phase32-compose-check docker compose config; fi'</command>
     <command>node scripts/phase32-edge-contract-smoke.mjs</command>
     <command>python3 -m xml.etree.ElementTree docs/plans/Phase-32.xml docs/modules/M-046.xml docs/verification/V-M-046.xml docs/edge/PHASE-32-CUTOVER.xml docs/verification-index.xml docs/graph-index.xml docs/plan-index.xml &amp;&amp; mygrace lint</command>
-    <command>blocked-live: http://krotpn.xyz redirects to https://krotpn.xyz and HTTPS/MTProto surfaces stay healthy after DNS and wildcard TLS readiness.</command>
+    <command status="pass-live">http://krotpn.xyz redirects to https://krotpn.xyz and HTTPS/MTProto surfaces stay healthy after DNS and wildcard TLS readiness.</command>
   </Verification>
   <AcceptanceCriteria>
     <item-1>HTTP requests to krotpn.xyz redirect permanently to HTTPS.</item-1>
@@ -38,7 +38,7 @@
     <item-4>M-044/M-043/M-040 regression tests passed for runtime bridge, scheduler, MTProto provisioning, email delivery, and email verification URL behavior.</item-4>
   </Completion>
   <BlockedLive>
-    <item-1>Production-like smoke remains blocked until DNS points at the intended edge and a trusted wildcard certificate for krotpn.xyz and *.krotpn.xyz is installed.</item-1>
-    <item-2>Actual MTProto shared 443 route must be enabled and verified during an operator rollback window; local execution only defines the safe contract and fallback.</item-2>
+    <item-1>2026-05-19: Production-like smoke passed after DNS pointed at the intended edge and a trusted wildcard certificate for krotpn.xyz and *.krotpn.xyz was installed.</item-1>
+    <item-2>Actual MTProto shared 443 route was enabled and verified during Phase-41 clean-deploy validation with operator rollback awareness.</item-2>
   </BlockedLive>
 </Phase-32>

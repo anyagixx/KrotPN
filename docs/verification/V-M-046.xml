@@ -1,12 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<V-M-046 MODULE="M-046" PRIORITY="critical" STATUS="partial-live" VERSION="1.6.1">
+<V-M-046 MODULE="M-046" PRIORITY="critical" STATUS="pass-live-phase41" VERSION="1.7.0">
   <module>krotpn-domain-tls-edge</module>
   <phase-scope>
-    <phase-32 status="partial-local">Domain, HTTPS redirect, wildcard TLS, and shared 443 routing verification for krotpn.xyz passed local/static gates; live smoke remains operator-required.</phase-32>
-    <phase-34 status="partial-local">Stabilization gate reuses local/static edge checks and keeps production DNS, wildcard TLS, shared 443, and real Telegram client smoke as explicit operator-live evidence.</phase-34>
-    <phase-35 status="partial-local">Approved installer wildcard TLS changes provide deploy-supported operator certificate reuse and runtime nginx domain rendering while preserving shared-443 live gates.</phase-35>
-    <phase-37 status="partial-live">Shared 443 is implemented by mtproto-edge owning public TCP 443 and forwarding normal HTTPS to nginx fallback on 8443.</phase-37>
-    <phase-38 status="pass-local">Shared 443 is redefined as RU SNI router ownership with web SNI to private RU nginx fallback on 9443, public admin on 8443, and issued MTProto SNI to the DE runtime.</phase-38>
+    <phase-32 status="pass-live">Domain, HTTPS redirect, wildcard TLS, and shared 443 routing verification for krotpn.xyz passed local/static gates and later live smoke through Phase-41.</phase-32>
+    <phase-34 status="pass-live">Stabilization gate reuses local/static edge checks and its production DNS, wildcard TLS, shared 443, and real Telegram client smoke are closed by Phase-41.</phase-34>
+    <phase-35 status="pass-live">Approved installer wildcard TLS changes provide deploy-supported operator certificate reuse and runtime nginx domain rendering; clean VPS wildcard TLS proof passed.</phase-35>
+    <phase-37 status="superseded-by-phase-38">Shared 443 RU-local mtproto-edge ownership was superseded by RU SNI router plus DE runtime.</phase-37>
+    <phase-38 status="pass-live">Shared 443 is redefined as RU SNI router ownership with web SNI to private RU nginx fallback on 9443, public admin on 8443, and issued MTProto SNI to the DE runtime.</phase-38>
+    <phase-41 status="pass-live">Phase-41 closes the production edge with KPprotoN fake-TLS, issued-link req_pq proof, and operator Telegram Desktop/mobile proof.</phase-41>
   </phase-scope>
   <test-files>
     <file>backend/tests/test_domain_tls_edge_static.py</file>
@@ -30,8 +31,8 @@
     <command-3>node scripts/phase32-edge-contract-smoke.mjs</command-3>
     <command-4>python3 -m xml.etree.ElementTree docs/plans/Phase-32.xml docs/modules/M-046.xml docs/verification/V-M-046.xml docs/verification-index.xml &amp;&amp; mygrace lint</command-4>
     <command-5>node scripts/phase37-mtproto-runtime-smoke.mjs</command-5>
-    <command-6>operator-live smoke after DNS and wildcard certificate readiness: HTTP redirect, HTTPS frontend/API through public 443, direct admin https://krotpn.xyz:8443/login, issued MTProto SNI route, Telegram Desktop available status, rollback rehearsal notes.</command-6>
-    <command-7 status="pass-local">node scripts/phase38-de-mtproto-edge-smoke.mjs</command-7>
+    <command-6 status="pass-live">operator-live smoke after DNS and wildcard certificate readiness: HTTP redirect, HTTPS frontend/API through public 443, direct admin https://krotpn.xyz:8443/login, issued MTProto SNI route, Telegram Desktop/mobile available status, rollback rehearsal notes.</command-6>
+    <command-7 status="pass-live">node scripts/phase38-de-mtproto-edge-smoke.mjs</command-7>
   </commands>
   <verification-levels>
     <module-local>M-046 static tests prove krotpn.xyz domain settings, redirect rules, wildcard certificate paths, single 443 owner contract, and protected deploy/install script boundaries.</module-local>
@@ -47,15 +48,15 @@
     <check-6 evidence="deterministic">MTProto SNI routing accepts only issued user SNI names from the M-044 runtime policy and never exposes base secrets or derived secrets in traces.</check-6>
     <check-7 evidence="static-guard">Phase-32/34 verification fails if deploy scripts or install.sh drift outside explicitly approved Phase-35 wildcard TLS installer scope.</check-7>
     <check-8 evidence="rollback">Rollback evidence shows how to restore previous nginx-only 443 behavior if shared edge routing fails.</check-8>
-    <check-9 evidence="phase-34-live-required">Phase-34 cannot claim production readiness until HTTPS, admin, API, one issued MTProto SNI, unknown SNI behavior, and rollback readiness are live-smoked.</check-9>
-    <check-10 evidence="phase-37-deterministic">nginx no longer binds listen 443 ssl; mtproto-edge is the public 443 owner and nginx HTTPS fallback listens on 8443.</check-10>
+    <check-9 evidence="operator-live" status="passed">Phase-34 production readiness requires HTTPS, admin, API, one issued MTProto SNI, unknown SNI behavior, and rollback readiness; Phase-41 supplies the live proof.</check-9>
+    <check-10 evidence="superseded">Phase-37 RU-local mtproto-edge public 443 ownership is superseded by Phase-38/41 RU SNI router ownership.</check-10>
     <check-11 evidence="phase-38-deterministic">RU SNI router is the only public TCP 443 owner, web SNI routes to private RU nginx 9443, and MTProto SNI routes to DE runtime.</check-11>
     <check-12 evidence="phase-38-rollback">Rollback path restores nginx-only public 443 before any failed Telegram retest is advertised to users.</check-12>
     <check-13 evidence="phase-38-deterministic">Public 8443 is reserved for the admin panel and must not serve the user frontend.</check-13>
   </module-checks>
   <phase-34-stabilization-gates>
     <gate-1>Local execution may run static edge checks only; no DNS, certificate, nginx, docker-compose, deploy, install, or live server changes are allowed without operator scope.</gate-1>
-    <gate-2>Release handoff must record whether live shared 443 smoke passed, remains blocked, or is explicitly waived with risk ownership.</gate-2>
+    <gate-2 status="passed">Release handoff records that live shared 443 smoke passed through Phase-41.</gate-2>
   </phase-34-stabilization-gates>
   <scenarios>
     <scenario-1 kind="success">http://krotpn.xyz and http://www.krotpn.xyz redirect permanently to https://krotpn.xyz.</scenario-1>
@@ -83,12 +84,12 @@
   <live-smoke-gates>
     <gate-1>DNS A or AAAA for krotpn.xyz and wildcard SNI test names points to the intended edge host before live smoke.</gate-1>
     <gate-2>Let's Encrypt or another trusted certificate validates krotpn.xyz and *.krotpn.xyz without browser or curl trust bypass.</gate-2>
-    <gate-3>HTTP redirect returns a permanent redirect to the canonical HTTPS host.</gate-3>
-    <gate-4>HTTPS frontend and backend API health return healthy responses through public 443, and the admin login returns the admin frontend through public 8443.</gate-4>
-    <gate-5>One issued MTProto SNI reaches the runtime bridge while unknown SNI remains safely rejected or falls back to HTTPS as designed.</gate-5>
+    <gate-3 status="passed">HTTP redirect returns a permanent redirect to the canonical HTTPS host.</gate-3>
+    <gate-4 status="passed">HTTPS frontend and backend API health return healthy responses through public 443, and the admin login returns the admin frontend through public 8443.</gate-4>
+    <gate-5 status="passed">One issued MTProto SNI reaches the runtime bridge while unknown SNI remains safely rejected or falls back to HTTPS as designed.</gate-5>
     <gate-6>Rollback procedure is documented and rehearsed enough to restore previous public behavior quickly.</gate-6>
-    <gate-7>Phase-37 live smoke confirms public TCP 443 owner, nginx 8443 fallback owner, local policy health, public HTTPS response, and Telegram Desktop proxy availability.</gate-7>
-    <gate-8>Phase-38 live smoke confirms RU SNI router public 443 owner, DE runtime target, private policy health, public HTTPS response, and Telegram Desktop proxy availability.</gate-8>
+    <gate-7 status="superseded">Phase-37 RU-local live smoke is superseded by the Phase-38/41 DE-backed edge.</gate-7>
+    <gate-8 status="passed">Phase-38/41 live smoke confirms RU SNI router public 443 owner, DE runtime target, private policy health, public HTTPS response, and Telegram Desktop/mobile proxy availability.</gate-8>
   </live-smoke-gates>
   <telemetry-requirements>
     <metric-1>edge_http_redirect_count tagged by host and status code.</metric-1>
@@ -98,9 +99,9 @@
     <metric-5>edge_rollback_trigger_count tagged by safe failure code.</metric-5>
   </telemetry-requirements>
   <autonomous-execution-safety>
-    <level>partial-local-only</level>
+    <level>local-plus-operator-live-verified</level>
     <safe-local>Static tests, docker compose config, XML parsing, MyGRACE lint, and secret-redaction checks are safe to run locally.</safe-local>
-    <requires-operator>Live DNS, wildcard certificate issuance, public 443 ownership changes, production smoke, and Telegram Desktop proof require explicit operator readiness and rollback window.</requires-operator>
+    <requires-operator>Future live DNS changes, wildcard certificate replacement, public 443 ownership changes, production smoke, and Telegram Desktop/mobile proof require explicit operator readiness and rollback window.</requires-operator>
   </autonomous-execution-safety>
   <evidence>
     <evidence-1>2026-05-14: backend/tests/test_domain_tls_edge_static.py passed locally with 7 tests.</evidence-1>
@@ -109,11 +110,12 @@
     <evidence-4>2026-05-14: M-044/M-043/M-040 regression pytest passed locally with 29 tests for runtime bridge, scheduler, MTProto provisioning, email delivery, and email verification guards.</evidence-4>
     <evidence-5>2026-05-14: XML parse, MyGRACE lint, and git diff whitespace checks passed.</evidence-5>
     <evidence-6>2026-05-14: Phase-34 handoff records V-M-046 live smoke as operator-required and the local static smoke keeps deploy/install/edge surfaces unchanged.</evidence-6>
-    <evidence-7>2026-05-17: Phase-35 updated the edge static guard to allow only approved M-048 installer wildcard TLS deploy surface changes; M-046 public shared-443 live smoke remains operator-required.</evidence-7>
-    <evidence-8>2026-05-18: Phase-37 corrected the live design so mtproto-edge owns public 443 and normal HTTPS fallback moves to nginx 8443.</evidence-8>
+    <evidence-7>2026-05-17: Phase-35 updated the edge static guard to allow only approved M-048 installer wildcard TLS deploy surface changes; public shared-443 live smoke is closed by Phase-41.</evidence-7>
+    <evidence-8>2026-05-18: Phase-37 corrected the RU-local live design so mtproto-edge owns public 443 and normal HTTPS fallback moves to nginx 8443, then Phase-38 superseded it with RU SNI router ownership.</evidence-8>
     <evidence-9>2026-05-18: Phase-38 verification redefines the public 443 live gate around RU SNI router plus DE runtime after RU-only mtproto_proxy stayed blocked-live.</evidence-9>
     <evidence-10>2026-05-18: Phase-38 local execution passed SNI router static coverage, compose public-443 ownership checks, nginx HTTPS fallback checks, and docker compose config with .env.example.</evidence-10>
     <evidence-11>2026-05-18: Follow-up static checks now require private nginx fallback on 127.0.0.1:9443, public admin on 8443, and explicit HAProxy low-port bind permissions before clean deploy is claimed healthy.</evidence-11>
     <evidence-12>2026-05-18: Live edge smoke confirmed public 443 serves the user frontend through HAProxy and direct public 8443/login serves the admin frontend.</evidence-12>
+    <evidence-13>2026-05-19: Phase-41 clean-deploy validation confirmed trusted HTTPS, admin 8443, registration email, VPN, and MTProto proxy work together.</evidence-13>
   </evidence>
 </V-M-046>

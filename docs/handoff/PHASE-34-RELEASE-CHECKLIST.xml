@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<PHASE-34-RELEASE-CHECKLIST NAME="MTProto Integration Stabilization Gates" STATUS="partial-local" CREATED="2026-05-14">
+<PHASE-34-RELEASE-CHECKLIST NAME="MTProto Integration Stabilization Gates" STATUS="passed-live" CREATED="2026-05-14" UPDATED="2026-05-19">
   <purpose>Record Phase-34 local stabilization evidence, live-only edge assumptions, rollback notes, and operator acceptance requirements for the verified-registration plus free MTProto release.</purpose>
   <scope>
     <included>Verified email registration, delayed KrotPN onboarding, owner-only MTProto assignment issuance, compact user/admin MTProto surfaces, backup/restore coverage, redaction review, and release handoff.</included>
@@ -22,9 +22,9 @@
       <summary>Emergency backup/restore documentation now covers MTProto assignment rows and rotation metadata.</summary>
       <evidence>docs/recovery/BACKUP-PHASE-22.xml includes mtproto_assignments counts and row invariants without exposing secret material.</evidence>
     </gate-4>
-    <gate-5 verification="V-M-046" status="blocked-live">
-      <summary>krotpn.xyz DNS, trusted wildcard TLS, shared 443 route, issued SNI routing, and public Telegram client smoke remain operator-live.</summary>
-      <evidence>Local/static edge contract exists, but production proof requires DNS/TLS readiness and rollback window.</evidence>
+    <gate-5 verification="V-M-046" status="passed-live">
+      <summary>krotpn.xyz DNS, trusted wildcard TLS, shared 443 route, issued SNI routing, and public Telegram client smoke passed through Phase-41 clean-deploy validation.</summary>
+      <evidence>Production proof now exists through Phase-41; future edge changes still require DNS/TLS readiness and rollback window.</evidence>
     </gate-5>
   </local-gates>
   <release-risk-ledger>
@@ -33,8 +33,8 @@
       <release-decision>Do not claim those legacy route gates closed unless they are fixed or explicitly waived outside Phase-34.</release-decision>
     </risk-1>
     <risk-2 severity="critical" owner="operator">
-      <summary>Production Telegram acceptance cannot be proven locally without real DNS, trusted wildcard TLS, and public edge routing.</summary>
-      <release-decision>Keep Phase-34 as partial-local until operator-live smoke passes.</release-decision>
+      <summary>Production Telegram acceptance requires real DNS, trusted wildcard TLS, and public edge routing.</summary>
+      <release-decision>Phase-41 operator-live smoke passed; keep the same proof standard for future releases.</release-decision>
     </risk-2>
     <risk-3 severity="high" owner="operator">
       <summary>Emergency relocation remains blocked-live until a trusted backup bundle and isolated restore target prove pg_dump/pg_restore and runtime state recovery.</summary>
@@ -75,7 +75,7 @@
   </redaction>
   <operator-acceptance>
     <item-1 status="local-required">All Phase-34 local commands pass from docs/plans/Phase-34.xml.</item-1>
-    <item-2 status="live-required">V-M-046 operator-live smoke is attached or explicitly deferred with risk ownership.</item-2>
+    <item-2 status="passed-live">V-M-046 operator-live smoke is closed through Phase-41 clean-deploy validation.</item-2>
     <item-3 status="risk-required">Phase-28 V-M-004 and V-M-022 partial-local findings are fixed, waived, or listed in release notes as residual risk.</item-3>
     <item-4 status="release-required">Release tag, commit hash, and rollback target are recorded before pushing a stable release.</item-4>
   </operator-acceptance>

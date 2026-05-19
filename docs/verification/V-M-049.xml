@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<V-M-049 MODULE="M-049" PRIORITY="critical" STATUS="fix-live-phase41" VERSION="1.3.3">
+<V-M-049 MODULE="M-049" PRIORITY="critical" STATUS="pass-live-phase41" VERSION="1.4.0">
   <module>mtproto-live-edge-runtime</module>
   <phase-scope>
-    <phase-37 status="blocked-live">Live MTProto edge runtime fix for clean-VPS Telegram proxy unavailability; local verification passed, but RU mtproto_proxy downstream handshakes still block TCP 443 ownership.</phase-37>
+    <phase-37 status="superseded-by-phase-38">Live MTProto edge runtime fix for clean-VPS Telegram proxy unavailability; local verification passed, but RU mtproto_proxy downstream handshakes were superseded by the DE-backed runtime path.</phase-37>
     <phase-38 status="superseded-by-M-050">Phase-38 keeps reusable runtime and policy bridge artifacts but replaces RU-only live traffic ownership with a DE-backed runtime behind an RU SNI router.</phase-38>
-    <phase-41 status="fix-live">Phase-41 reuses M-049 as the production KPprotoN fake-TLS data-plane on DE and updates the locked upstream proxy after live req_pq timeout evidence.</phase-41>
+    <phase-41 status="pass-live">Phase-41 reuses M-049 as the production KPprotoN fake-TLS data-plane on DE, updates the locked upstream proxy, enforces a non-empty ad tag, and has operator Telegram Desktop/mobile proof.</phase-41>
   </phase-scope>
   <test-files>
     <file>scripts/phase37-mtproto-runtime-smoke.mjs</file>
@@ -30,29 +30,29 @@
     <command-4>bash -n deploy/deploy-on-server.sh install.sh</command-4>
     <command-5>node scripts/phase32-edge-contract-smoke.mjs &amp;&amp; node scripts/phase34-mtproto-stabilization-smoke.mjs &amp;&amp; node scripts/phase35-installer-wildcard-tls-smoke.mjs &amp;&amp; node scripts/phase37-mtproto-runtime-smoke.mjs</command-5>
     <command-6>python3 -m xml.etree.ElementTree docs/plans/Phase-37.xml docs/modules/M-049.xml docs/verification/V-M-049.xml docs/graph-index.xml docs/plan-index.xml docs/verification-index.xml &amp;&amp; mygrace lint</command-6>
-    <command-7>operator-live: RU server mtproto-edge health, port ownership, HTTPS fallback, existing active SNI replay, and Telegram Desktop available status.</command-7>
+    <command-7 status="pass-live">operator-live: RU/DE edge health, port ownership, HTTPS fallback, existing active SNI replay, and Telegram Desktop/mobile available status passed after clean deploy.</command-7>
     <command-8 status="pass-live">live: mtp_ping req_pq probe passed against one issued fake-TLS link on DC +1 through +5 after DE runtime rebuild and non-empty PROXY_AD_TAG wiring.</command-8>
   </commands>
   <verification-levels>
     <module-local>Erlang compile/release, backend HTTP adapter pytest, provisioning live-apply pytest, static runtime smoke, bash syntax, compose config, XML parse, and MyGRACE lint.</module-local>
     <wave-level>M-044, M-046, and M-048 checks must pass together because runtime policy, port ownership, and deploy env are a single production behavior.</wave-level>
-    <phase-level>RU server smoke proves mtproto-edge owns public 443, nginx fallback remains reachable, and the issued SNI is loaded into live policy; Telegram client proof remains operator-observed.</phase-level>
+    <phase-level>RU/DE smoke proves the SNI router and DE mtproto-edge route are healthy, issued SNI is loaded into live policy, issued-link mtp_ping passes, and Telegram client proof is operator-confirmed.</phase-level>
   </verification-levels>
   <module-checks>
     <check-1 evidence="deterministic">mtproto-runtime builds and exposes token-protected apply, revoke, and health routes.</check-1>
     <check-2 evidence="deterministic">docker-compose defines mtproto-edge in host network mode with PROXY_PORT=443, cert mounts, policy token, and domain-fronting fallback.</check-2>
-    <check-3 evidence="deterministic">nginx no longer binds public 443 and instead serves HTTPS fallback on 8443.</check-3>
+    <check-3 evidence="deterministic">RU nginx no longer binds public 443 and instead serves the HTTPS fallback on private 9443 while admin remains public 8443.</check-3>
     <check-4 evidence="deterministic">deploy writes MTPROTO_RUNTIME_POLICY_URL, MTPROTO_RUNTIME_TOKEN, MTPROTO_POLICY_PORT, EDGE_SHARED_443_ENABLED, and EDGE_HTTPS_FALLBACK_PORT.</check-4>
     <check-5 evidence="deterministic">backend HTTP adapter posts apply/revoke and gets health with the token header while redacting token and proxy secrets.</check-5>
     <check-6 evidence="deterministic">provisioning applies the SNI to runtime before returning an active user payload.</check-6>
     <check-7 evidence="deterministic">Telegram core bootstrap fetches are bounded and static fallback artifacts are returned when core.telegram.org is slow, blocked, or yields no downstreams.</check-7>
     <check-8 evidence="deterministic">Deploy persists Telegram MTProto upstream routes through awg-client for 149.154.160.0/20, 91.108.4.0/22, 91.108.56.0/22, and 91.105.192.0/23.</check-8>
     <check-9 evidence="operator-live">RU server has mtproto-edge healthy, TCP 443 owned by the edge, TCP 8443 owned by nginx fallback, and policy_count includes issued active SNI after replay.</check-9>
-    <check-10 evidence="operator-live">Telegram Desktop marks the issued proxy available from the existing user dashboard link.</check-10>
+    <check-10 evidence="operator-live" status="passed">Telegram Desktop/mobile mark the issued proxy available from the existing user dashboard link.</check-10>
     <check-11 evidence="phase-38-design">Phase-38 must not delete Phase-37 runtime artifacts; it reuses policy API and runtime code while moving production traffic to DE.</check-11>
     <check-12 evidence="phase-41-deterministic">DE KPprotoN runtime accepts per-SNI fake-TLS policy and does not require official MTProxy secret manifests for user issuance.</check-12>
     <check-13 evidence="deterministic">mtproto_proxy is locked to commit 154a8fb8e6ef85460f502d4b74434a22a5836937 with modern fake-TLS ping/backpressure fixes needed for live req_pq diagnostics.</check-13>
-    <check-14 evidence="operator-live">DE KPprotoN runtime uses non-empty PROXY_AD_TAG; zero tag is accepted and live mtp_ping proves Telegram proxy_req responses are returned.</check-14>
+    <check-14 evidence="operator-live" status="passed">DE KPprotoN runtime uses non-empty PROXY_AD_TAG; zero tag is accepted and live mtp_ping proves Telegram proxy_req responses are returned.</check-14>
   </module-checks>
   <scenarios>
     <scenario-1 kind="success">Fresh deploy starts mtproto-edge with wildcard TLS and no public 443 conflict.</scenario-1>
@@ -80,19 +80,19 @@
   </redaction-rules>
   <live-smoke-gates>
     <gate-1>docker ps shows mtproto-edge and backend healthy.</gate-1>
-    <gate-2>ss output shows public TCP 443 owned by mtproto-edge/beam and nginx HTTPS fallback on 8443.</gate-2>
+    <gate-2>RU ss output shows public TCP 443 owned by the SNI router and nginx HTTPS fallback on 9443; DE ss output shows mtproto-edge/beam owns TCP 443.</gate-2>
     <gate-3>localhost policy health succeeds only with MTPROTO_RUNTIME_TOKEN.</gate-3>
     <gate-4>MTProto bootstrap secret/config endpoints respond within the configured proxy startup timeout.</gate-4>
     <gate-5>Existing active assignment SNI apply returns success through the local policy API or scheduler replay.</gate-5>
     <gate-6>curl https://krotpn.xyz returns a healthy frontend response without TLS bypass.</gate-6>
-    <gate-7>Operator Telegram Desktop retest marks the proxy available.</gate-7>
+    <gate-7 status="passed">Operator Telegram Desktop/mobile retest marks the proxy available and usable.</gate-7>
     <gate-8>Phase-38 handoff verifies M-050 owns the replacement live gates before M-049 is considered superseded in production.</gate-8>
     <gate-9>Phase-41 handoff verifies M-049 owns the KPprotoN fake-TLS runtime after official MTProxy is disabled from production.</gate-9>
   </live-smoke-gates>
   <autonomous-execution-safety>
     <level>local-plus-authorized-live-hotfix</level>
     <safe-local>Compile, release, pytest, bash syntax, static smoke, compose config, XML parse, and MyGRACE lint.</safe-local>
-    <requires-operator>Production RU compose restart, public 443 ownership change, and Telegram Desktop availability proof.</requires-operator>
+    <requires-operator>Future production RU/DE restarts, public 443 ownership changes, and Telegram Desktop/mobile availability proof for release-impacting changes.</requires-operator>
   </autonomous-execution-safety>
   <evidence>
     <evidence-1>2026-05-18: Local diagnosis confirmed issued assignment existed but no live MTProto runtime process owned public 443.</evidence-1>
@@ -104,5 +104,6 @@
     <evidence-7>2026-05-19: Phase-41 local execution passed rebar3 compile and static smoke proving the active production path uses KPprotoN runtime/policy semantics, with live Telegram proof still operator-required.</evidence-7>
     <evidence-8>2026-05-19: Live diagnosis showed assignment policy, public RU route, fake-TLS accept, and Telegram downstream nonce probe passed, but issued-link req_pq timed out on the old e343e30 mtproto_proxy lock. The fix updates the dependency lock to 154a8fb for rebuild and live retest.</evidence-8>
     <evidence-9>2026-05-19: Live diagnosis after the upstream lock update proved the remaining blocker was blank PROXY_AD_TAG. With zero 32-hex tag, scheduler replay applied assignment_id=1 and mtp_ping for the issued fake-TLS link returned OK on DC +1 through +5.</evidence-9>
+    <evidence-10>2026-05-19: Operator clean-deploy validation confirmed VPN and Telegram Desktop/mobile MTProto proxy work from the Phase-41 issued link.</evidence-10>
   </evidence>
 </V-M-049>

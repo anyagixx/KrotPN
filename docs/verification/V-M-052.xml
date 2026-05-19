@@ -53,7 +53,7 @@
     <level-3>Live proof last: public RU 443 req_pq and operator Telegram Desktop/mobile availability confirmation.</level-3>
   </evidence-levels>
   <failure-policy>
-    <policy-1>Any req_pq timeout keeps Phase-40 blocked-live.</policy-1>
+    <policy-1>Any req_pq timeout keeps the Phase-40 official MTProxy path superseded unless an explicit rollback phase reopens it.</policy-1>
     <policy-2>Any raw secret or full proxy link in logs, docker output, admin output, or smoke output fails verification.</policy-2>
     <policy-3>Any regression in web HTTPS, backend API, or admin 8443 fails release readiness.</policy-3>
     <policy-4>Any unchanged manifest apply that restarts mtproto-proxy fails live stability verification.</policy-4>

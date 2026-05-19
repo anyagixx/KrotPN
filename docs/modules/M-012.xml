@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<M-012 NAME="deploy-surface" TYPE="ENTRY_POINT" STATUS="pass-local-phase41">
+<M-012 NAME="deploy-surface" TYPE="ENTRY_POINT" STATUS="pass-live-phase41">
   <path>deploy install.sh nginx docker-compose.yml scripts/phase36-resend-deploy-smoke.mjs scripts/phase38-de-mtproto-edge-smoke.mjs scripts/phase39-mtproto-availability-smoke.mjs scripts/phase39-mtproto-live-smoke.sh scripts/phase40-official-mtproxy-live-smoke.sh scripts/phase41-kpproton-faketls-smoke.mjs docs/plans/Phase-36.xml docs/plans/Phase-38.xml docs/plans/Phase-39.xml docs/plans/Phase-40.xml docs/plans/Phase-41.xml</path>
   <owns>installation, deploy scripts, runtime composition, proxying, operator wildcard TLS install, Resend email provider env wiring, dev-only cert generation, host-tool preflight, AWG stealth profile generation, awg0 peer sync watchers, deploy-time secret handling, backup/restore, nginx hardening, DE-backed MTProto edge rollout, Phase-39 stale fallback guard, Phase-40 official MTProxy reference wiring, and Phase-41 KPprotoN fake-TLS runtime production wiring</owns>
   <depends>M-003, M-007, M-019, M-030, M-049, M-050, M-051, M-052, M-053</depends>
@@ -37,7 +37,7 @@
   <phase-38-plan>
     <step-1 STATUS="pass-local">Extend the deployment contract for a DE-hosted MTProto runtime while preserving the operator-approved install flow.</step-1>
     <step-2 STATUS="pass-local">Add RU SNI router and DE runtime wiring only after static smoke proves HTTPS fallback and policy API safety.</step-2>
-    <step-3 STATUS="operator-live-pending">Keep rollback to nginx-only public 443 documented before any public port ownership change.</step-3>
+    <step-3 STATUS="pass-live">Keep rollback to nginx-only public 443 documented before any public port ownership change.</step-3>
   </phase-38-plan>
   <phase-40-plan>
     <step-1 STATUS="planned">Replace the DE KPprotoN runtime container with an official MTProxy data-plane launcher while preserving the operator-approved install flow.</step-1>
@@ -45,9 +45,9 @@
     <step-3 STATUS="planned">Keep all Phase-40 smoke output redacted and require public req_pq proof before release.</step-3>
   </phase-40-plan>
   <phase-41-plan>
-    <step-1 STATUS="pass-local">Disable official MTProxy as the active production data-plane and restore DE KPprotoN fake-TLS runtime wiring.</step-1>
-    <step-2 STATUS="pass-local">Restore RU public 443 SNI routing so krotpn.xyz web traffic reaches nginx and issued u-*.krotpn.xyz traffic reaches DE KPprotoN runtime.</step-2>
-    <step-3 STATUS="pass-local">Keep deploy/install flow operator-approved and limit changes to MTProto runtime selection, env rendering, and redacted smoke gates.</step-3>
+    <step-1 STATUS="pass-live">Disable official MTProxy as the active production data-plane and restore DE KPprotoN fake-TLS runtime wiring.</step-1>
+    <step-2 STATUS="pass-live">Restore RU public 443 SNI routing so krotpn.xyz web traffic reaches nginx and issued u-*.krotpn.xyz traffic reaches DE KPprotoN runtime.</step-2>
+    <step-3 STATUS="pass-live">Keep deploy/install flow operator-approved and limit changes to MTProto runtime selection, env rendering, and redacted smoke gates.</step-3>
   </phase-41-plan>
   <evidence>
     <evidence-1>2026-05-17: Phase-35 changed the deploy surface so production installs consume validated operator wildcard TLS files instead of silently generating self-signed certificates.</evidence-1>
@@ -61,5 +61,6 @@
     <evidence-9>2026-05-19: Phase-40 planning records an official MTProxy runtime pivot after KPprotoN fake-TLS acceptance failed real client-level req_pq availability.</evidence-9>
     <evidence-10>2026-05-19: Phase-41 verification design records the operator-approved rollback from official MTProxy to the KPprotoN fake-TLS SNI model used by the reference CodexKPprotoN_for_KPN project.</evidence-10>
     <evidence-11>2026-05-19: Phase-41 local execution restored deploy/compose defaults to the KPprotoN DE runtime, selected deploy/haproxy-phase38.cfg as the active SNI router, and passed shell, compose, and static smoke verification.</evidence-11>
+    <evidence-12>2026-05-19: Operator clean-deploy validation from GitHub main confirmed install/deploy surface works for wildcard TLS, Resend registration email, VPN, and KPprotoN MTProto proxy.</evidence-12>
   </evidence>
 </M-012>

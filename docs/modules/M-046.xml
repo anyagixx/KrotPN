@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<M-046 NAME="krotpn-domain-tls-edge" TYPE="ENTRY_POINT" STATUS="partial-live">
+<M-046 NAME="krotpn-domain-tls-edge" TYPE="ENTRY_POINT" STATUS="pass-live-phase41">
   <path>backend/app/core/config.py nginx docker-compose.yml .env.example deploy/haproxy-phase38.cfg deploy/mtproto-de-compose.yml mtproto-runtime scripts docs/edge/PHASE-32-CUTOVER.xml docs/plans/Phase-32.xml docs/plans/Phase-37.xml docs/plans/Phase-38.xml</path>
   <owns>krotpn.xyz domain edge, HTTP to HTTPS redirect, public admin 8443, wildcard TLS expectations, and shared 443 routing contract for HTTPS plus MTProto.</owns>
   <purpose>Define the production edge model needed for https://krotpn.xyz and Telegram fake-TLS MTProto proxy to coexist safely.</purpose>
@@ -32,7 +32,7 @@
     <policy-1>Shared 443 design must be verified before replacing direct nginx ownership of 443.</policy-1>
     <policy-2>Wildcard certificate issuance may remain operator-driven; this module defines runtime expectations first.</policy-2>
     <policy-3>Existing deploy/install scripts are protected unless the operator explicitly approves edge deployment changes; Phase-35 is the approved installer wildcard TLS exception.</policy-3>
-    <policy-4>Phase-37 makes mtproto-edge the production TCP 443 owner and moves nginx HTTPS fallback to 8443.</policy-4>
+    <policy-4>Phase-37 tried the RU-local mtproto-edge TCP 443 owner model and is superseded by Phase-38/41.</policy-4>
     <policy-5>Phase-38 supersedes the RU-only 443 owner model with an RU SNI router plus DE-backed MTProto runtime after Phase-37 live blocking.</policy-5>
     <policy-6>Phase-38 public admin access stays on 8443; the SNI-router web fallback uses private loopback 9443.</policy-6>
   </edge-policy>
@@ -42,7 +42,7 @@
   </constraints>
   <evidence>
     <evidence-1>2026-05-14: Phase-32 local static verification passed for settings, nginx redirect/fallback, compose config, protected deploy/install guard, cutover runbook, XML parse, and MyGRACE lint.</evidence-1>
-    <evidence-2>Production smoke remains blocked-live until operator-provided DNS, trusted wildcard certificate, and rollback window are available.</evidence-2>
+    <evidence-2>2026-05-19: Production smoke passed with operator-provided DNS, trusted wildcard certificate, RU SNI router, and MTProto client proof through Phase-41.</evidence-2>
     <evidence-3>2026-05-14: Phase-34 release handoff records V-M-046 as operator-live and keeps deploy/install/edge surfaces protected during local stabilization.</evidence-3>
     <evidence-4>2026-05-17: Phase-35 added deploy-supported operator wildcard TLS reuse and runtime nginx domain rendering while preserving M-046 shared-443 live gate.</evidence-4>
     <evidence-5>2026-05-18: Phase-37 corrected the clean-VPS live failure where nginx owned public 443 and no MTProto edge was running; nginx now listens on 8443 behind mtproto-edge.</evidence-5>
@@ -50,6 +50,7 @@
     <evidence-7>2026-05-18: Phase-38 local execution added HAProxy SNI router config and compose wiring so public 443 is owned by krotpn-sni-router while nginx stays on 80/9443 private fallback, 8443 public admin, and 8080 legacy admin.</evidence-7>
     <evidence-8>2026-05-18: Clean VPS deploy exposed two live edge regressions: HAProxy could not bind public 443 without explicit low-port permissions, and direct https://krotpn.xyz:8443/login showed the user frontend until admin 8443 was separated from private fallback 9443.</evidence-8>
     <evidence-9>2026-05-18: Live curl through RU confirmed https://krotpn.xyz returns KrotPN and https://krotpn.xyz:8443/login returns KrotPN Admin after the port split.</evidence-9>
+    <evidence-10>2026-05-19: Phase-41 clean-deploy validation confirmed HTTP/HTTPS edge, admin 8443, Resend registration email, VPN, and MTProto proxy work together.</evidence-10>
   </evidence>
   <hotspot>H-032: Shared 443 edge can break both HTTPS and Telegram proxy if fallback routing or wildcard TLS is misconfigured</hotspot>
 </M-046>

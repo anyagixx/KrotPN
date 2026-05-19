@@ -33,14 +33,14 @@
   <Phase-29 NAME="MTProto Provisioning Core" STATUS="done-local" STEPS="6" MODULES="M-042,M-043,M-001,M-002,M-028" />
   <Phase-30 NAME="KPprotoN Runtime Bridge" STATUS="done-local" STEPS="6" MODULES="M-044,M-042,M-043,M-008,M-012" />
   <Phase-31 NAME="User Cabinet MTProto UX" STATUS="done-local" STEPS="5" MODULES="M-045,M-009,M-036,M-042,M-043" />
-  <Phase-32 NAME="Domain TLS and Shared 443 Edge" STATUS="partial-local" STEPS="6" MODULES="M-046,M-012,M-044,M-001" />
+  <Phase-32 NAME="Domain TLS and Shared 443 Edge" STATUS="passed-live" STEPS="6" MODULES="M-046,M-012,M-044,M-001" />
   <Phase-33 NAME="MTProto Admin Ops and Observability" STATUS="done-local" STEPS="5" MODULES="M-047,M-006,M-010,M-024,M-042,M-044" />
-  <Phase-34 NAME="MTProto Integration Stabilization Gates" STATUS="partial-local" STEPS="6" MODULES="M-040,M-041,M-042,M-043,M-044,M-045,M-046,M-047" />
-  <Phase-35 NAME="Operator Wildcard TLS Installer" STATUS="partial-local" STEPS="6" MODULES="M-048,M-012,M-046,M-001,M-044" />
-  <Phase-36 NAME="Resend Deploy Email Provider Wiring" STATUS="partial-local" STEPS="6" MODULES="M-040,M-041,M-012,M-001,M-048" />
-  <Phase-37 NAME="Live MTProto Shared-443 Runtime Fix" STATUS="blocked-live" STEPS="6" MODULES="M-049,M-044,M-046,M-048,M-012,M-043" />
-  <Phase-38 NAME="DE-backed MTProto Edge and RU SNI Router" STATUS="partial-live" STEPS="8" MODULES="M-050,M-049,M-044,M-046,M-048,M-012,M-043" />
-  <Phase-39 NAME="MTProto Telegram Availability Closure" STATUS="partial-live" STEPS="9" MODULES="M-051,M-045,M-050,M-044,M-043,M-012" />
-  <Phase-40 NAME="Official MTProxy data-plane and individual user secrets" STATUS="partial-live" STEPS="9" MODULES="M-052,M-053,M-042,M-043,M-045,M-047,M-050,M-051,M-012" />
-  <Phase-41 NAME="KPprotoN fake-TLS production data-plane rollback" STATUS="pass-local" STEPS="9" MODULES="M-043,M-044,M-049,M-050,M-051,M-052,M-053,M-012,M-045,M-047" />
+  <Phase-34 NAME="MTProto Integration Stabilization Gates" STATUS="passed-live" STEPS="6" MODULES="M-040,M-041,M-042,M-043,M-044,M-045,M-046,M-047" />
+  <Phase-35 NAME="Operator Wildcard TLS Installer" STATUS="passed-live" STEPS="6" MODULES="M-048,M-012,M-046,M-001,M-044" />
+  <Phase-36 NAME="Resend Deploy Email Provider Wiring" STATUS="passed-live" STEPS="6" MODULES="M-040,M-041,M-012,M-001,M-048" />
+  <Phase-37 NAME="Live MTProto Shared-443 Runtime Fix" STATUS="superseded-by-phase-38" STEPS="6" MODULES="M-049,M-044,M-046,M-048,M-012,M-043" />
+  <Phase-38 NAME="DE-backed MTProto Edge and RU SNI Router" STATUS="superseded-by-phase-41" STEPS="8" MODULES="M-050,M-049,M-044,M-046,M-048,M-012,M-043" />
+  <Phase-39 NAME="MTProto Telegram Availability Closure" STATUS="superseded-by-phase-41" STEPS="9" MODULES="M-051,M-045,M-050,M-044,M-043,M-012" />
+  <Phase-40 NAME="Official MTProxy data-plane and individual user secrets" STATUS="superseded-by-phase-41" STEPS="9" MODULES="M-052,M-053,M-042,M-043,M-045,M-047,M-050,M-051,M-012" />
+  <Phase-41 NAME="KPprotoN fake-TLS production data-plane rollback" STATUS="passed-live" STEPS="9" MODULES="M-043,M-044,M-049,M-050,M-051,M-052,M-053,M-012,M-045,M-047" />
 </PlanIndex>

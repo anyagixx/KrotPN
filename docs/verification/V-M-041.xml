@@ -4,7 +4,7 @@
     <phase-27 status="pass-local">Foundation evidence exists for pending-registration primitives, token hashing, TTL/replay protection, email risk checks, fake-provider email delivery, and unchanged active /register behavior.</phase-27>
     <phase-28 status="partial-local">Primary cutover verification proves that /register is a pending-email flow and that active KrotPN access exists only after verified email activation; full wave closure is partial until V-M-004 and V-M-022 complete gates pass.</phase-28>
     <phase-34 status="pass-local">Stabilization gate proves verified-email activation and the free MTProto owner path are linked without issuing MTProto, trial, VPN, referral, or JWT side effects before email proof.</phase-34>
-    <phase-36 status="partial-local">Resend deploy wiring verifies pending registration can send email in production after operator supplies a Resend API key; live mailbox proof remains operator-blocked.</phase-36>
+    <phase-36 status="pass-live">Resend deploy wiring verifies pending registration can send email in production after operator supplies a Resend API key; live clean-deploy registration email proof is operator-confirmed.</phase-36>
   </phase-scope>
   <test-files>
     <file phase="27-regression">backend/tests/test_email_verification_guard.py</file>
@@ -18,7 +18,7 @@
   <commands>
     <command-1>cd backend &amp;&amp; SECRET_KEY=test-secret-key-with-enough-length DATA_ENCRYPTION_KEY=dpFmfSVqfdAK3yx5MQV6Tcv35RZuw5MzaH0yhxJ01q0= PYTHONPATH=. ../.venv/bin/python -m pytest -o addopts='' tests/test_verified_registration.py tests/test_email_verification_guard.py -v</command-1>
     <command-2 status="planned">node scripts/phase36-resend-deploy-smoke.mjs</command-2>
-    <command-3 status="operator-live">After Resend domain verification, submit one controlled /register request and confirm check-email state plus delivered mailbox message.</command-3>
+    <command-3 status="pass-live">After Resend domain verification, submit one controlled /register request and confirm check-email state plus delivered mailbox message.</command-3>
   </commands>
   <verification-levels>
     <module-local>Risk checks, pending-token lifecycle, activation idempotency, and redaction run without live email provider, DNS mutability, VPN host mutation, or MTProto runtime.</module-local>
@@ -41,7 +41,7 @@
     <gate-1>/api/v1/auth/register with Resend configured returns pending/check-email and never returns access_token, refresh_token, user profile, or authenticated cookies.</gate-1>
     <gate-2>Provider-disabled regression gate fails if production deploy defaults leave EMAIL_PROVIDER disabled after an API key was provided.</gate-2>
     <gate-3>Resend auth, rate-limit, unavailable, and domain-not-verified errors return safe user/operator messages and no active access.</gate-3>
-    <gate-4>Live controlled-mailbox smoke is allowed only after krotpn.xyz verification is complete in Resend.</gate-4>
+    <gate-4 status="passed">Live controlled-mailbox smoke is allowed only after krotpn.xyz verification is complete in Resend.</gate-4>
   </phase-36-registration-gates>
   <phase-34-stabilization-gates>
     <gate-1>Unverified registration returns pending/check-email and leaves User, Subscription, UserDevice, Referral, and MTProtoAssignment counts unchanged.</gate-1>
@@ -81,7 +81,7 @@
   </redaction-rules>
   <autonomous-execution-safety>
     <level>guarded-runtime-change</level>
-    <reason>Automated Phase-36 registration checks must use fake email delivery, local DB isolation, no live email provider calls, and no host VPN mutation; live Resend proof is operator-only after domain verification.</reason>
+    <reason>Automated Phase-36 registration checks must use fake email delivery, local DB isolation, no live email provider calls, and no host VPN mutation; future live Resend proof remains operator-only after domain verification.</reason>
   </autonomous-execution-safety>
   <evidence>
     <evidence-1>2026-05-13: Phase-27 backend/tests/test_email_verification_guard.py passed locally, covering disposable-domain blocking before email send, allowlist override, env domain parsing, HMAC token storage, one-time consume, expiry, zero user side effects, and old active /register compatibility boundary.</evidence-1>
@@ -90,6 +90,7 @@
     <evidence-4>2026-05-14: Phase-34 backend/tests/test_phase34_mtproto_integration.py passed locally with 2 tests for pending no-access, verified activation, MTProto owner assignment idempotency, and token replay safety.</evidence-4>
     <evidence-5>2026-05-17: Phase-36 planning added production Resend deploy wiring after clean VPS registration reached M-040 provider_disabled.</evidence-5>
     <evidence-6>2026-05-17: Phase-36 verification design added provider_disabled regression, Resend failure side-effect, and live controlled-mailbox gates.</evidence-6>
-    <evidence-7>2026-05-17: Phase-36 local implementation preserves fake-provider registration verification and leaves live controlled-mailbox proof blocked until Resend domain verification completes.</evidence-7>
+    <evidence-7>2026-05-17: Phase-36 local implementation preserves fake-provider registration verification and defined live controlled-mailbox proof after Resend domain verification.</evidence-7>
+    <evidence-8>2026-05-19: Operator clean-deploy registration via email succeeded with Resend configured, closing the provider_disabled production blocker while preserving pending-registration semantics.</evidence-8>
   </evidence>
 </V-M-041>

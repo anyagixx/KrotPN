@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Phase-39 NAME="MTProto Telegram Availability Closure" STATUS="partial-live" VERSION="1.1.0">
+<Phase-39 NAME="MTProto Telegram Availability Closure" STATUS="superseded-by-phase-41" VERSION="1.2.0">
   <Goal>Close the remaining Telegram Desktop unavailable state by proving the full issued-link path, fixing stale DE runtime fallback config, and improving the user connection flow without rotating existing MTProto secrets or redesigning deployment scripts.</Goal>
   <Modules>M-051,M-045,M-050,M-044,M-043,M-012</Modules>
   <OperatorProblem>
@@ -35,8 +35,8 @@
     <step-5 STATUS="done-local">Improve user cabinet MTProto connection UX: primary Telegram open action, full-link copy, compact secondary manual fields, and clearer degraded/pending states.</step-5>
     <step-6 STATUS="done-live">Add redacted admin/operator diagnostics for masked SNI, policy apply state, fake-TLS path status, downstream status, and safe failure codes.</step-6>
     <step-7 STATUS="done-local">Run local verification: XML parse, MyGRACE lint, backend MTProto tests, frontend build, and Phase-39 static smoke.</step-7>
-    <step-8 STATUS="partial-live">Apply the narrow fix to RU/DE, run Phase-39 live smoke, then have the operator retest Telegram Desktop using the refreshed primary Telegram action.</step-8>
-    <step-9 STATUS="operator-live">Record Telegram Desktop available proof and update Phase-38/Phase-39 live status only after the client-level proof passes.</step-9>
+    <step-8 STATUS="done-live">Apply the narrow fix to RU/DE, run Phase-39 live smoke, then have the operator retest Telegram Desktop using the refreshed primary Telegram action.</step-8>
+    <step-9 STATUS="superseded-by-phase-41">Record Telegram Desktop available proof and update Phase-38/Phase-39 live status only after the client-level proof passes; final proof is recorded in Phase-41.</step-9>
   </Steps>
   <Verification>
     <command-1>bash -n install.sh deploy/deploy-on-server.sh</command-1>
@@ -51,7 +51,7 @@
     <item-2>One active assignment can be proven with redacted live smoke from DB row to fake-TLS accept through the public route.</item-2>
     <item-3>DE runtime stale fallback port 8443 is removed or corrected to 9443 by deploy guard.</item-3>
     <item-4>User dashboard connection action reduces manual secret-copy errors and remains compact on mobile.</item-4>
-    <item-5>Telegram Desktop marks the issued proxy available before MTProto edge is promoted to stable-live.</item-5>
+    <item-5>Telegram Desktop/mobile proof is required before MTProto edge is promoted to stable-live and is satisfied by Phase-41 pass-live evidence.</item-5>
   </AcceptanceCriteria>
   <Risks>
     <risk-1>Telegram Desktop may cache an old or manually entered bad secret; UX must guide the operator/user to use the freshly generated primary link.</risk-1>
@@ -61,11 +61,12 @@
   </Risks>
   <AutonomousExecutionSafety>
     <safe-local>Docs, static smoke, backend fake/private-adapter tests, frontend build, XML parse, and MyGRACE lint.</safe-local>
-    <requires-operator>Live RU/DE smoke, server-side deploy application, and Telegram Desktop availability proof.</requires-operator>
+    <requires-operator>Future live RU/DE smoke, server-side deploy application, and Telegram Desktop/mobile availability proof for release-impacting changes.</requires-operator>
   </AutonomousExecutionSafety>
   <ExecutionEvidence>
     <item-1>Local checks passed on 2026-05-18: bash syntax, Phase-39 static smoke, 34 backend MTProto regression tests, frontend build, XML parse, and MyGRACE lint.</item-1>
     <item-2>Redacted live smoke passed after applying the fallback guard: active assignment found, policy healthy with non-zero policy_count, RU public 443 reachable, fake-TLS response validated, DE fallback target private_9443, and Telegram downstream reachable.</item-2>
-    <item-3>Final Telegram Desktop available proof remains operator-live and must use the refreshed primary Telegram action in the user cabinet.</item-3>
+    <item-3>Final Telegram Desktop/mobile available proof is recorded in Phase-41 after the KPprotoN upstream lock and non-empty ad-tag fix.</item-3>
+    <item-4>2026-05-19: Phase-41 clean-deploy validation confirms the production Telegram availability closure for VPN plus MTProto proxy.</item-4>
   </ExecutionEvidence>
 </Phase-39>

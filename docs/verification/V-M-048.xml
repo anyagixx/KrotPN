@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<V-M-048 MODULE="M-048" PRIORITY="critical" STATUS="partial-live" VERSION="1.9.0">
+<V-M-048 MODULE="M-048" PRIORITY="critical" STATUS="pass-live-phase41" VERSION="2.0.0">
   <module>installer-wildcard-tls</module>
   <phase-scope>
-    <phase-35 status="partial-local">Installer flow for operator-provided wildcard TLS certificate paths, validation, env wiring, and reusable deploy installation passed local/static checks; clean VPS wildcard TLS deploy remains operator-live.</phase-35>
-    <phase-36 status="partial-local">Installer/deploy flow collects Resend API key and sender settings so clean VPS registration can send verification emails; real Resend delivery remains operator-live.</phase-36>
-    <phase-37 status="partial-live">Deploy flow generates MTProto runtime token and shared-443 env so clean VPS installs start the live mtproto-edge service.</phase-37>
-    <phase-38 status="pass-local">Deploy/install verification covers DE runtime TLS reuse, private policy API URL, and RU SNI router env wiring without secret leakage.</phase-38>
+    <phase-35 status="pass-live">Installer flow for operator-provided wildcard TLS certificate paths, validation, env wiring, and reusable deploy installation passed local/static checks and clean VPS wildcard TLS deploy.</phase-35>
+    <phase-36 status="pass-live">Installer/deploy flow collects Resend API key and sender settings so clean VPS registration sends verification emails through Resend.</phase-36>
+    <phase-37 status="superseded-by-phase-38">Deploy flow generated MTProto runtime token and shared-443 env for the RU-local runtime path, which Phase-38 superseded.</phase-37>
+    <phase-38 status="superseded-by-phase-41">Deploy/install verification covers DE runtime TLS reuse, private policy API URL, and RU SNI router env wiring without secret leakage; Phase-41 closes production proof.</phase-38>
   </phase-scope>
   <test-files>
     <file>install.sh</file>
@@ -31,10 +31,10 @@
     <command-3>cd backend &amp;&amp; SECRET_KEY=test-secret-key-with-enough-length PYTHONPATH=. ../.venv/bin/python -m pytest -o addopts='' tests/test_domain_tls_edge_static.py tests/test_mtproto_provisioning.py -v</command-3>
     <command-4>sh -c 'if [ -e .env ]; then DB_PASSWORD=phase35-compose-check docker compose config; else ln -s .env.example .env &amp;&amp; trap "rm -f .env" EXIT &amp;&amp; DB_PASSWORD=phase35-compose-check docker compose config; fi'</command-4>
     <command-5>python3 -m xml.etree.ElementTree docs/plans/Phase-35.xml docs/plans/Phase-36.xml docs/modules/M-048.xml docs/verification/V-M-048.xml docs/graph-index.xml docs/plan-index.xml docs/verification-index.xml &amp;&amp; mygrace lint</command-5>
-    <command-6>operator-live: prepared wildcard cert deploy on clean RU VPS, then HTTPS and MTProto-domain smoke with redacted evidence.</command-6>
+    <command-6 status="pass-live">operator-live: prepared wildcard cert deploy on clean RU VPS, then HTTPS and MTProto-domain smoke with redacted evidence.</command-6>
     <command-7 status="pass-local">node scripts/phase36-resend-deploy-smoke.mjs</command-7>
     <command-8 status="pass-local">node scripts/phase37-mtproto-runtime-smoke.mjs</command-8>
-    <command-9 status="operator-live">operator-live: after Resend verifies krotpn.xyz, run one controlled-mailbox registration smoke with redacted evidence.</command-9>
+    <command-9 status="pass-live">operator-live: after Resend verifies krotpn.xyz, run one controlled-mailbox registration smoke with redacted evidence.</command-9>
     <command-10 status="pass-local">node scripts/phase38-de-mtproto-edge-smoke.mjs</command-10>
   </commands>
   <verification-levels>
@@ -59,7 +59,7 @@
     <check-14 evidence="deterministic">nginx canonical host, wildcard host, and mounted cert paths match the operator-selected domain and /etc/nginx/ssl/server.* contract.</check-14>
     <check-15 evidence="static-redaction">No verification output, installer logs, deploy logs, XML files, or smoke scripts print private key contents or Resend API key.</check-15>
     <check-16 evidence="phase-37-deterministic">Generated .env includes MTPROTO_RUNTIME_POLICY_URL, MTPROTO_RUNTIME_TOKEN, MTPROTO_POLICY_PORT, EDGE_SHARED_443_ENABLED, and EDGE_HTTPS_FALLBACK_PORT.</check-16>
-    <check-17 evidence="live-required">Clean VPS smoke proves HTTP redirect, HTTPS frontend/API/admin, trusted cert chain, MTProto SNI readiness, and Resend-backed registration email delivery with prepared wildcard TLS.</check-17>
+    <check-17 evidence="operator-live" status="passed">Clean VPS smoke proves HTTP redirect, HTTPS frontend/API/admin, trusted cert chain, MTProto SNI readiness, and Resend-backed registration email delivery with prepared wildcard TLS.</check-17>
     <check-18 evidence="phase-38-deterministic">Generated or preserved env values include DE runtime policy URL, RU SNI router targets, DE runtime target, and redaction-safe TLS material handling.</check-18>
     <check-19 evidence="phase-38-security">Wildcard private key delivery to DE is validated as necessary for runtime TLS but never printed, embedded in XML, or echoed through installer/deploy output.</check-19>
   </module-checks>
@@ -68,9 +68,9 @@
     <gate-2 MODULES="M-048" EVIDENCE="deterministic">Invalid certificate material fails closed before /opt/KrotPN/ssl replacement and before compose/service mutation.</gate-2>
     <gate-3 MODULES="M-048,M-046" EVIDENCE="deterministic+static">Validated wildcard TLS is wired to backend/frontend/admin edge env and nginx cert mount paths.</gate-3>
     <gate-4 MODULES="M-048,M-012" EVIDENCE="static-redaction">Secret-bearing material is never printed or embedded in verification artifacts.</gate-4>
-    <gate-5 MODULES="M-048,M-046,M-044" EVIDENCE="live-required">Prepared wildcard TLS supports public HTTPS and leaves MTProto shared-443 proof under the existing live gate.</gate-5>
+    <gate-5 MODULES="M-048,M-046,M-044" EVIDENCE="operator-live" STATUS="passed">Prepared wildcard TLS supports public HTTPS and the Phase-41 MTProto shared-443 proof.</gate-5>
     <gate-6 MODULES="M-048,M-012,M-001" EVIDENCE="deterministic">Installer/deploy Resend env wiring is sufficient for backend Settings to enable email provider delivery.</gate-6>
-    <gate-7 MODULES="M-048,M-040,M-041" EVIDENCE="operator-live">Clean VPS registration sends a verification email through Resend after the domain is verified.</gate-7>
+    <gate-7 MODULES="M-048,M-040,M-041" EVIDENCE="operator-live" STATUS="passed">Clean VPS registration sends a verification email through Resend after the domain is verified.</gate-7>
     <gate-8 MODULES="M-048,M-049" EVIDENCE="deterministic">Installer/deploy runtime env wiring is sufficient for backend and mtproto-edge to share the local policy API token.</gate-8>
     <gate-9 MODULES="M-048,M-050" EVIDENCE="deterministic">Installer/deploy runtime env wiring is sufficient for backend to reach the private DE policy API and for RU SNI router to reach DE runtime.</gate-9>
   </verification-matrix>
@@ -116,14 +116,14 @@
     <gate-1>DNS for krotpn.xyz points to the target RU edge host.</gate-1>
     <gate-2>Wildcard certificate files are present on RU before install starts.</gate-2>
     <gate-3>Installer validation passes without printing private key contents.</gate-3>
-    <gate-4>openssl s_client or equivalent confirms the public certificate chain, issuer, SAN coverage, and expiry for the canonical host.</gate-4>
-    <gate-5>curl -I http://krotpn.xyz returns a redirect to https://krotpn.xyz.</gate-5>
-    <gate-6>HTTPS frontend, /api health, and /admin route respond with the trusted wildcard certificate.</gate-6>
-    <gate-7>One issued MTProto SNI under the wildcard domain is ready for the existing M-046/M-044 live smoke.</gate-7>
-    <gate-8>krotpn.xyz domain is verified in Resend and noreply@krotpn.xyz is accepted as the production sender.</gate-8>
-    <gate-9>A controlled mailbox receives one registration verification email and logs contain no Resend API key, verification token, or full verification URL.</gate-9>
-    <gate-10>mtproto-edge owns public TCP 443, nginx fallback owns 8443, and policy health succeeds with the deploy-generated token.</gate-10>
-    <gate-11>Phase-38 deploy smoke confirms RU SNI router ownership, DE runtime target, private policy URL, and wildcard TLS reuse before Telegram client proof.</gate-11>
+    <gate-4 status="passed">openssl s_client or equivalent confirms the public certificate chain, issuer, SAN coverage, and expiry for the canonical host.</gate-4>
+    <gate-5 status="passed">curl -I http://krotpn.xyz returns a redirect to https://krotpn.xyz.</gate-5>
+    <gate-6 status="passed">HTTPS frontend, /api health, and admin route respond with the trusted wildcard certificate.</gate-6>
+    <gate-7 status="passed">One issued MTProto SNI under the wildcard domain is ready for the existing M-046/M-044 live smoke.</gate-7>
+    <gate-8 status="passed">krotpn.xyz domain is verified in Resend and noreply@krotpn.xyz is accepted as the production sender.</gate-8>
+    <gate-9 status="passed">A controlled mailbox receives one registration verification email and logs contain no Resend API key, verification token, or full verification URL.</gate-9>
+    <gate-10 status="passed">RU SNI router owns public TCP 443, nginx fallback owns private 9443, DE mtproto-edge owns 443, and policy health succeeds with the deploy-generated token.</gate-10>
+    <gate-11 status="passed">Phase-38/41 deploy smoke confirms RU SNI router ownership, DE runtime target, private policy URL, wildcard TLS reuse, and Telegram client proof.</gate-11>
   </live-smoke-gates>
   <failure-handoff>
     <item-1>If local static smoke fails, fix installer/deploy contract drift before running any live VPS install.</item-1>
@@ -136,21 +136,22 @@
   <autonomous-execution-safety>
     <level>planned-static-plus-authorized-live-hotfix</level>
     <safe-local>bash syntax checks, source static smoke, Phase-36 Resend deploy smoke, XML parse, and MyGRACE lint are safe locally.</safe-local>
-    <requires-operator>Real cert files, live DNS, clean VPS install, public HTTPS smoke, verified Resend domain, live mailbox receipt, and MTProto client proof require operator control.</requires-operator>
+    <requires-operator>Future real cert replacement, live DNS changes, clean VPS install, public HTTPS smoke, verified Resend domain, live mailbox receipt, and MTProto client proof require operator control.</requires-operator>
   </autonomous-execution-safety>
   <evidence>
     <evidence-1>2026-05-17: bash -n install.sh deploy/deploy-on-server.sh passed locally.</evidence-1>
     <evidence-2>2026-05-17: node scripts/phase35-installer-wildcard-tls-smoke.mjs passed locally.</evidence-2>
     <evidence-3>2026-05-17: backend/tests/test_domain_tls_edge_static.py passed locally with 7 tests.</evidence-3>
     <evidence-4>2026-05-17: docker compose config passed using local env handling; Docker reported only the existing obsolete version warning.</evidence-4>
-    <evidence-5>Operator-live clean VPS deploy with prepared wildcard cert files remains required before full production closure.</evidence-5>
+    <evidence-5>2026-05-19: Operator-live clean VPS deploy with prepared wildcard cert files passed before stable production closure.</evidence-5>
     <evidence-6>2026-05-17: Reviewer follow-up added RU openssl bootstrap, /opt/KrotPN source-path rejection, and dynamic validator checks in scripts/phase35-installer-wildcard-tls-smoke.mjs.</evidence-6>
     <evidence-7>2026-05-17: Live clean VPS backend unhealthy failure fixed by generating MTProto secrets in deploy/deploy-on-server.sh and adding smoke guards against blank deploy values.</evidence-7>
     <evidence-8>2026-05-17: Phase-36 planning scoped Resend API key installer/deploy wiring after clean VPS registration hit Email provider is disabled.</evidence-8>
     <evidence-9>2026-05-17: Phase-36 verification design added Resend installer/deploy smoke, backend settings gate, and controlled-mailbox live gate.</evidence-9>
-    <evidence-10>2026-05-17: Phase-36 local execution passed bash syntax and scripts/phase36-resend-deploy-smoke.mjs; live clean VPS Resend mailbox smoke remains blocked on operator API key and domain verification.</evidence-10>
+    <evidence-10>2026-05-19: Phase-36 live clean VPS registration email succeeded with Resend configured, closing the provider_disabled blocker.</evidence-10>
     <evidence-11>2026-05-18: Phase-37 added MTProto runtime token/env wiring and static deploy smoke after clean-VPS Telegram Desktop reported unavailable proxy.</evidence-11>
     <evidence-12>2026-05-18: Phase-38 verification adds redaction-safe DE runtime TLS, private policy URL, and RU SNI router deploy gates.</evidence-12>
     <evidence-13>2026-05-18: Phase-38 local execution passed deploy/TLS redaction smoke for HAProxy runtime rendering, DE runtime compose/env delivery, private policy bind, backend policy URL, and secret-preserving MTProto env regeneration.</evidence-13>
+    <evidence-14>2026-05-19: Phase-41 clean-deploy validation confirms wildcard TLS reuse, Resend registration email, VPN, and MTProto proxy work together.</evidence-14>
   </evidence>
 </V-M-048>
