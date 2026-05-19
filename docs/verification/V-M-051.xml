@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<V-M-051 MODULE="M-051" PRIORITY="critical" STATUS="pass-local-phase41" VERSION="1.4.1">
+<V-M-051 MODULE="M-051" PRIORITY="critical" STATUS="fix-live-phase41" VERSION="1.4.2">
   <module>mtproto-availability-diagnostics</module>
   <phase-scope>
     <phase-39 status="partial-live">Close the remaining issued Telegram proxy unavailable state with redacted local/static and operator-live evidence.</phase-39>
-    <phase-41 status="pass-local">Availability diagnostics prove the KPprotoN fake-TLS SNI path locally and no longer treat official MTProxy req_pq as the production gate.</phase-41>
+    <phase-41 status="fix-live">Availability diagnostics now require issued-link req_pq proof after the mtproto_proxy upstream dependency update.</phase-41>
     <supersedes>M-050 remains the edge-routing module; M-051 adds the missing availability proof layer above routing and policy health.</supersedes>
   </phase-scope>
   <test-files>
@@ -18,6 +18,7 @@
     <file>frontend/src/pages/Dashboard.tsx</file>
     <file>frontend/src/lib/api.ts</file>
     <file phase="41-pass-local">scripts/phase41-kpproton-faketls-smoke.mjs</file>
+    <file>mtproto-runtime/rebar.lock</file>
   </test-files>
   <commands>
     <command-1>bash -n install.sh deploy/deploy-on-server.sh</command-1>
@@ -28,6 +29,7 @@
     <command-5>cd frontend &amp;&amp; npm run build</command-5>
     <command-6>python3 -m xml.etree.ElementTree docs/graph-index.xml docs/plan-index.xml docs/verification-index.xml docs/modules/M-051.xml docs/plans/Phase-39.xml docs/verification/V-M-051.xml &amp;&amp; mygrace lint</command-6>
     <command-7 status="pass-local">node scripts/phase41-kpproton-faketls-smoke.mjs</command-7>
+    <command-8 status="fix-live">live: mtp_ping --dc 2 or equivalent req_pq probe against the issued fake-TLS link, with proxy URL redacted from logs.</command-8>
   </commands>
   <verification-levels>
     <module-local>Static checks prove link format, redaction, fallback-port contracts, and diagnostic schema without live secrets.</module-local>
@@ -44,6 +46,7 @@
     <check-7 evidence="operator-live" status="passed">DE runtime can reach at least one Telegram downstream target or emits a separate downstream failure code.</check-7>
     <check-8 evidence="operator-live">Telegram Desktop marks the issued proxy available using the refreshed primary connection action.</check-8>
     <check-9 evidence="phase-41-deterministic">Diagnostics prove the issued owner payload uses ee fake-TLS secret, SNI route reaches KPprotoN runtime, and official MTProxy is not in the active route.</check-9>
+    <check-10 evidence="fix-live">req_pq must pass through the issued fake-TLS link after rebuilding DE runtime with mtproto_proxy 154a8fb.</check-10>
   </module-checks>
   <verification-matrix>
     <gate-1 MODULES="M-051,M-043" EVIDENCE="deterministic">Issued assignment payload, SNI, port, and link assembly remain stable and do not rotate existing user credentials.</gate-1>
@@ -99,6 +102,7 @@
     <item-3>Redacted live smoke passed with active assignment id 1, masked SNI only, policy_count non-zero, public RU 443 TCP connect, validated fake-TLS server response, and reachable Telegram downstream config.</item-3>
     <item-4>2026-05-19: Phase-41 verification design requires ee fake-TLS owner link proof, KPprotoN SNI route proof, no active official MTProxy route, and Telegram Desktop/mobile connected proof.</item-4>
     <item-5>2026-05-19: Phase-41 local smoke passed for ee owner payload shape, KPprotoN route selection, official runtime inactivity, and redaction; Telegram Desktop/mobile connected proof remains operator-live.</item-5>
+    <item-6>2026-05-19: Live req_pq probe timed out on the old mtproto_proxy lock while redacted downstream nonce probing succeeded; dependency update to 154a8fb is the current fix candidate and must be rebuilt on DE.</item-6>
   </execution-evidence>
   <failure-handoff>
     <item-1>If route fails, inspect RU HAProxy SNI match and wildcard DNS before changing secrets.</item-1>

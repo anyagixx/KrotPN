@@ -1,7 +1,7 @@
 version: '3.8'
 
 # FILE: docker-compose.yml
-# VERSION: 3.5.0
+# VERSION: 3.6.0
 # ROLE: CONFIG
 # MAP_MODE: SUMMARY
 # START_MODULE_CONTRACT
@@ -21,6 +21,7 @@ version: '3.8'
 # END_MODULE_MAP
 #
 # START_CHANGE_SUMMARY
+#   LAST_CHANGE: v3.6.0 - Added zero-tag default for optional local KPprotoN runtime to avoid blank Telegram proxy_req tag.
 #   LAST_CHANGE: v3.5.0 - Default RU public 443 router back to the KPprotoN fake-TLS SNI split for Phase-41.
 #   LAST_CHANGE: v3.4.0 - Default RU public 443 router to Phase-40 HTTPS-vs-official-MTProxy split.
 #   LAST_CHANGE: v3.3.2 - Keep admin public 8443 separate from the private SNI-router web fallback port.
@@ -237,6 +238,7 @@ services:
       PROXY_PORT: ${MTPROTO_PROXY_PORT:-443}
       PROXY_SECRET_HEX: ${MTPROTO_BASE_SECRET_HEX:?MTPROTO_BASE_SECRET_HEX must be set in .env}
       PROXY_SECRET_SALT: ${MTPROTO_SECRET_SALT:?MTPROTO_SECRET_SALT must be set in .env}
+      PROXY_AD_TAG: ${MTPROTO_AD_TAG:-00000000000000000000000000000000}
       PROXY_LISTEN_IP: 0.0.0.0
       PORTAL_HTTP_INTERNAL_PORT: ${MTPROTO_POLICY_PORT:-18080}
       PORTAL_TLS_INTERNAL_PORT: 18443

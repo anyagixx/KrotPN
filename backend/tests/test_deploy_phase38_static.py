@@ -96,6 +96,7 @@ def test_deploy_wires_de_runtime_and_private_policy_url():
     assert "[M-050][de_policy_api][DENY_PUBLIC]" in deploy
     assert "generate_or_preserve_secret MTPROTO_BASE_SECRET_HEX" in deploy
     assert "generate_or_preserve_secret MTPROTO_SECRET_SALT" in deploy
+    assert "generate_or_preserve_secret MTPROTO_AD_TAG" in deploy
     assert "cat \"$TLS_PRIVKEY_PATH\"" not in deploy
 
 
@@ -108,6 +109,7 @@ def test_de_runtime_compose_binds_policy_api_privately():
     assert "PROXY_PORT: ${MTPROTO_DE_RUNTIME_PORT:-443}" in de_compose
     assert "PROXY_SECRET_HEX: ${MTPROTO_BASE_SECRET_HEX:?MTPROTO_BASE_SECRET_HEX must be set}" in de_compose
     assert "PROXY_SECRET_SALT: ${MTPROTO_SECRET_SALT:?MTPROTO_SECRET_SALT must be set}" in de_compose
+    assert "PROXY_AD_TAG: ${MTPROTO_AD_TAG:-00000000000000000000000000000000}" in de_compose
     assert "PORTAL_DOMAIN_FRONTING: ${DE_MTPROTO_DOMAIN_FRONTING:-127.0.0.1:18443}" in de_compose
     assert "TLS_CERT_PATH: /certs/krotpn/server.crt" in de_compose
     assert "TLS_KEY_PATH: /certs/krotpn/server.key" in de_compose

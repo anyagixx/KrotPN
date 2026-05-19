@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 // FILE: scripts/phase41-kpproton-faketls-smoke.mjs
-// VERSION: 1.0.0
+// VERSION: 1.2.0
 // ROLE: SCRIPT
 // MAP_MODE: LOCALS
 // START_MODULE_CONTRACT
@@ -17,6 +17,8 @@
 // END_MODULE_MAP
 //
 // START_CHANGE_SUMMARY
+//   LAST_CHANGE: v1.2.0 - Guard the non-empty MTProto proxy ad tag required for Telegram proxy_req responses.
+//   LAST_CHANGE: v1.1.0 - Guard the mtproto_proxy dependency commit that contains modern fake-TLS ping/backpressure fixes.
 //   LAST_CHANGE: v1.0.0 - Added Phase-41 KPprotoN fake-TLS static smoke.
 // END_CHANGE_SUMMARY
 
@@ -46,6 +48,8 @@ function requireAbsent(file, marker) {
 
 // START_BLOCK_PHASE41_KPPROTON_FAKETLS_SMOKE
 requireText('docs/plans/Phase-41.xml', 'KPprotoN fake-TLS production data-plane rollback')
+requireText('mtproto-runtime/rebar.lock', '154a8fb8e6ef85460f502d4b74434a22a5836937')
+requireText('mtproto-runtime/rebar.lock', '{<<"ranch">>,{pkg,<<"ranch">>,<<"2.2.0">>},0}')
 requireText('backend/app/mtproto/provisioning.py', 'MTProtoCredentialMode.DERIVED_PER_SNI')
 requireText('backend/app/mtproto/provisioning.py', 'derive_fake_tls_secret(')
 requireText('backend/app/mtproto/provisioning.py', 'server=assignment.sni')
@@ -65,6 +69,8 @@ requireText('.env.example', 'SNI_ROUTER_CONF_PATH=./deploy/haproxy-phase38.cfg')
 requireText('deploy/deploy-on-server.sh', 'haproxy-phase38.cfg')
 requireText('deploy/deploy-on-server.sh', 'krotpn-mtproto-runtime.tgz')
 requireText('deploy/deploy-on-server.sh', 'DE_MTPROTO_DOMAIN_FRONTING=${domain_fronting_target}')
+requireText('deploy/deploy-on-server.sh', 'MTPROTO_AD_TAG=${MTPROTO_AD_TAG}')
+requireText('deploy/deploy-on-server.sh', 'generate_or_preserve_secret MTPROTO_AD_TAG')
 requireText('deploy/deploy-on-server.sh', '/opt/KrotPN/ssl/server.crt')
 requireText('deploy/deploy-on-server.sh', '/opt/KrotPN/ssl/server.key')
 requireAbsent('deploy/deploy-on-server.sh', 'krotpn-official-mtproxy.tgz')
@@ -73,6 +79,7 @@ requireAbsent('deploy/deploy-on-server.sh', 'MTPROXY_NAT_INFO')
 requireText('deploy/mtproto-de-compose.yml', 'context: ./mtproto-runtime')
 requireText('deploy/mtproto-de-compose.yml', 'PROXY_SECRET_HEX: ${MTPROTO_BASE_SECRET_HEX:?MTPROTO_BASE_SECRET_HEX must be set}')
 requireText('deploy/mtproto-de-compose.yml', 'PROXY_SECRET_SALT: ${MTPROTO_SECRET_SALT:?MTPROTO_SECRET_SALT must be set}')
+requireText('deploy/mtproto-de-compose.yml', 'PROXY_AD_TAG: ${MTPROTO_AD_TAG:-00000000000000000000000000000000}')
 requireText('deploy/mtproto-de-compose.yml', 'POLICY_LISTEN_IP: ${MTPROTO_POLICY_BIND_IP:-127.0.0.1}')
 requireText('deploy/mtproto-de-compose.yml', 'PORTAL_DOMAIN_FRONTING: ${DE_MTPROTO_DOMAIN_FRONTING:-127.0.0.1:18443}')
 requireText('deploy/mtproto-de-compose.yml', './ssl:/certs/krotpn:ro')

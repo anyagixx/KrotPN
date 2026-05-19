@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<M-051 NAME="mtproto-availability-diagnostics" TYPE="INTEGRATION" STATUS="pass-local-phase41">
+<M-051 NAME="mtproto-availability-diagnostics" TYPE="INTEGRATION" STATUS="fix-live-phase41">
   <path>backend/app/mtproto frontend scripts/phase39-mtproto-availability-smoke.mjs scripts/phase39-mtproto-live-smoke.sh scripts/phase40-official-mtproxy-live-smoke.sh scripts/phase41-kpproton-faketls-smoke.mjs docs/plans/Phase-39.xml docs/plans/Phase-40.xml docs/plans/Phase-41.xml</path>
   <owns>Secret-free MTProto availability proof from issued assignment through RU public 443, DE runtime acceptance, Telegram downstream reachability, req_pq proof, and user connection UX.</owns>
   <purpose>Close the remaining Telegram proxy unavailable state with deterministic diagnostics, safer user connection flow, and live proof before marking MTProto production-ready.</purpose>
@@ -7,6 +7,7 @@
     <phase39-live-smoke>Run an operator-safe issued-assignment availability smoke without printing tokens, proxy links, derived secrets, base secret, or salt.</phase39-live-smoke>
     <fake-tls-path-probe>Generate a Telegram-compatible fake-TLS ClientHello for one active assignment and prove RU-to-DE public route acceptance.</fake-tls-path-probe>
     <telegram-downstream-probe>Verify DE runtime can reach at least one Telegram downstream from bootstrap config or safe static fallback.</telegram-downstream-probe>
+    <req-pq-path-probe>Use mtproto_proxy/mtp_ping or equivalent req_pq proof after runtime rebuild before claiming Telegram availability.</req-pq-path-probe>
     <req-pq-path-probe planned="true">Verify that a real MTProto req_pq request receives resPQ through the public KrotPN edge.</req-pq-path-probe>
     <owner-link-ux>Prefer a single Telegram open link and full-link copy flow in the user cabinet, with manual fields as secondary fallback.</owner-link-ux>
     <redacted-operator-diagnostics>Expose only masked SNI, assignment id, policy status, route status, and safe failure codes for admin/operator triage.</redacted-operator-diagnostics>
@@ -31,6 +32,7 @@
     <finding-5>2026-05-19 follow-up diagnostics showed fake-TLS acceptance was insufficient: real req_pq timed out against the KPprotoN/Erlang data-plane.</finding-5>
     <finding-6>2026-05-19 temporary official MTProxy data-plane passed req_pq for official normal and secure secrets on the same DE host.</finding-6>
     <finding-7>2026-05-19 operator retest showed official MTProxy links can report available but remain unstable or unavailable for new users, so Phase-41 plans a return to the reference KPprotoN fake-TLS SNI model.</finding-7>
+    <finding-8>2026-05-19 live Phase-41 diagnostics showed old mtproto_proxy e343e30 accepted fake-TLS and had valid Telegram downstream nonce reachability, but issued-link req_pq timed out; dependency lock moved to upstream 154a8fb for rebuild/retest.</finding-8>
   </phase39-findings>
   <constraints>
     <constraint-1>Do not rotate MTPROTO_BASE_SECRET_HEX, MTPROTO_SECRET_SALT, user SNI, assignment ids, or existing tg links unless an explicit reissue phase is approved.</constraint-1>
@@ -58,6 +60,7 @@
     <item-4>2026-05-19 client-level diagnostics found req_pq timeout through KPprotoN/Erlang and selected Phase-40 official MTProxy as the closure path.</item-4>
     <item-5>2026-05-19 Phase-41 verification design supersedes the official closure path after operator Telegram retests showed the official runtime does not satisfy stable product behavior.</item-5>
     <item-6>2026-05-19 Phase-41 local smoke passed for ee owner payload shape, KPprotoN production route selection, official runtime inactivity, redaction, and static diagnostics; Telegram Desktop/mobile proof remains operator-live.</item-6>
+    <item-7>2026-05-19 live fix diagnosis added req_pq evidence as the required closure gate above fake-TLS accept/downstream TCP reachability.</item-7>
   </execution-evidence>
   <hotspot>H-038: Do not claim MTProto availability from policy health alone; issued-link and Telegram-client proof are required.</hotspot>
 </M-051>

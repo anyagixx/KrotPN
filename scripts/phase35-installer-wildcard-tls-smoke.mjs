@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 // FILE: scripts/phase35-installer-wildcard-tls-smoke.mjs
-// VERSION: 1.4.0
+// VERSION: 1.5.0
 // ROLE: SCRIPT
 // MAP_MODE: LOCALS
 // START_MODULE_CONTRACT
@@ -18,6 +18,7 @@
 // END_MODULE_MAP
 //
 // START_CHANGE_SUMMARY
+//   LAST_CHANGE: v1.5.0 - Guard MTPROTO_AD_TAG deploy generation for KPprotoN fake-TLS proxy_req compatibility.
 //   LAST_CHANGE: v1.4.0 - Updated MTProto env assertions for Phase-38 DE-backed policy URL and secret preservation.
 //   LAST_CHANGE: v1.3.0 - Added Phase-37 MTProto runtime token and shared-443 edge checks.
 //   LAST_CHANGE: v1.2.0 - Added deploy-generated MTProto secret regression guard.
@@ -107,10 +108,12 @@ requireText('deploy/deploy-on-server.sh', 'FRONTEND_URL=https://${PUBLIC_DOMAIN}
 requireText('deploy/deploy-on-server.sh', 'MTPROTO_BASE_DOMAIN=${PUBLIC_DOMAIN}')
 requireText('deploy/deploy-on-server.sh', 'MTPROTO_BASE_SECRET_HEX=${MTPROTO_BASE_SECRET_HEX}')
 requireText('deploy/deploy-on-server.sh', 'MTPROTO_SECRET_SALT=${MTPROTO_SECRET_SALT}')
+requireText('deploy/deploy-on-server.sh', 'MTPROTO_AD_TAG=${MTPROTO_AD_TAG}')
 requireText('deploy/deploy-on-server.sh', 'generate_or_preserve_secret MTPROTO_RUNTIME_TOKEN')
 requireText('deploy/deploy-on-server.sh', 'MTPROTO_RUNTIME_POLICY_URL=http://${MTPROTO_POLICY_BIND_IP}:${MTPROTO_POLICY_PORT}/krotpn/mtproto/policy')
 requireText('deploy/deploy-on-server.sh', 'generate_or_preserve_secret MTPROTO_BASE_SECRET_HEX')
 requireText('deploy/deploy-on-server.sh', 'generate_or_preserve_secret MTPROTO_SECRET_SALT')
+requireText('deploy/deploy-on-server.sh', 'generate_or_preserve_secret MTPROTO_AD_TAG')
 requireMatch('deploy/deploy-on-server.sh', /secrets\.token_hex\(16\)/, 'deploy-time MTProto secret generation')
 requireText('deploy/deploy-on-server.sh', 'EDGE_TLS_CERTIFICATE_MODE=${TLS_CERTIFICATE_MODE}')
 requireText('deploy/deploy-on-server.sh', 'EDGE_SHARED_443_ENABLED=true')

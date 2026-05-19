@@ -1,5 +1,5 @@
 %% FILE: src/kpproton_app.erl
-%% VERSION: 1.3.0
+%% VERSION: 1.4.0
 %% START_MODULE_CONTRACT
 %%   PURPOSE: Start the unified KPprotoN OTP application and configure upstream runtime integrations before supervision begins.
 %%   SCOPE: Read env-backed release settings, inject `mtproto_proxy` application config, seed the base domain, and start the top-level supervisor.
@@ -12,9 +12,11 @@
 %%   stop/1 - stops the OTP application
 %%   seed_base_domain/0 - inserts the apex domain into the MTProto policy table
 %%   mtproxy_boot_retry_ms/0 - returns the mtproto boot retry interval
+%%   proxy_ad_tag/0 - returns configured or zero MTProto proxy ad tag
 %% END_MODULE_MAP
 %%
 %% START_CHANGE_SUMMARY
+%%   LAST_CHANGE: v1.4.0 - Default the MTProto proxy ad tag to 32 zero hex chars so Telegram proxy_req receives a valid tag.
 %%   LAST_CHANGE: v1.3.0 - Build local bootstrap URLs from POLICY_LISTEN_IP so private-bound DE runtimes can start mtproto_proxy.
 %%   LAST_CHANGE: v1.2.0 - Enable per-SNI secret enforcement so the MTProto listener rejects raw-base-secret fake-TLS handshakes.
 %% END_CHANGE_SUMMARY
@@ -42,7 +44,7 @@ env_integer(Key, Default) ->
 configure_mtproto_proxy() ->
     Secret = env_binary("PROXY_SECRET_HEX", <<"0123456789abcdef0123456789abcdef">>),
     SecretSalt = kpproton_runtime:proxy_secret_salt(),
-    Tag = env_binary("PROXY_AD_TAG", <<>>),
+    Tag = proxy_ad_tag(),
     Port = env_integer("PROXY_PORT", 443),
     DomainFronting = env_string("PORTAL_DOMAIN_FRONTING", "127.0.0.1:9443"),
     PortalPort = env_integer("PORTAL_HTTP_INTERNAL_PORT", 8080),
@@ -70,6 +72,9 @@ configure_mtproto_proxy() ->
         {max_connections, [tls_domain], env_integer("MAX_CONNECTIONS_PER_DOMAIN", 100)}
     ]),
     ok = application:set_env(mtproto_proxy, per_sni_secrets, on).
+
+proxy_ad_tag() ->
+    env_binary("PROXY_AD_TAG", <<"00000000000000000000000000000000">>).
 
 seed_base_domain() ->
     case whereis(mtp_policy_table) of

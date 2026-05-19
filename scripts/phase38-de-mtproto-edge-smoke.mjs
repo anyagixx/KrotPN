@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 // FILE: scripts/phase38-de-mtproto-edge-smoke.mjs
-// VERSION: 1.3.0
+// VERSION: 1.4.0
 // ROLE: SCRIPT
 // MAP_MODE: LOCALS
 // START_MODULE_CONTRACT
@@ -17,6 +17,7 @@
 // END_MODULE_MAP
 //
 // START_CHANGE_SUMMARY
+//   LAST_CHANGE: v1.4.0 - Guard DE KPprotoN PROXY_AD_TAG zero default required for Telegram proxy_req responses.
 //   LAST_CHANGE: v1.3.0 - Restore DE runtime checks to KPprotoN fake-TLS fallback on private 18443.
 //   LAST_CHANGE: v1.2.0 - Guard DE runtime bootstrap URL against private POLICY_LISTEN_IP binding.
 //   LAST_CHANGE: v1.1.0 - Guard HAProxy low-port bind permissions and private fallback port 9443.
@@ -69,6 +70,7 @@ requireText('docker-compose.yml', '${SNI_ROUTER_CONF_PATH:-./deploy/haproxy-phas
 requireText('deploy/mtproto-de-compose.yml', 'container_name: krotpn-mtproto-de-runtime')
 requireText('deploy/mtproto-de-compose.yml', 'POLICY_LISTEN_IP: ${MTPROTO_POLICY_BIND_IP:-127.0.0.1}')
 requireText('deploy/mtproto-de-compose.yml', 'PROXY_LISTEN_IP: 0.0.0.0')
+requireText('deploy/mtproto-de-compose.yml', 'PROXY_AD_TAG: ${MTPROTO_AD_TAG:-00000000000000000000000000000000}')
 requireText('deploy/mtproto-de-compose.yml', 'context: ./mtproto-runtime')
 requireText('deploy/mtproto-de-compose.yml', 'PORTAL_DOMAIN_FRONTING: ${DE_MTPROTO_DOMAIN_FRONTING:-127.0.0.1:18443}')
 requireText('deploy/mtproto-de-compose.yml', './ssl:/certs/krotpn:ro')
@@ -99,6 +101,7 @@ requireText('deploy/deploy-on-server.sh', '[M-050][de_policy_api][DENY_PUBLIC]')
 requireText('deploy/deploy-on-server.sh', '[M-050][de_policy_api][HEALTH]')
 requireText('deploy/deploy-on-server.sh', 'generate_or_preserve_secret MTPROTO_BASE_SECRET_HEX')
 requireText('deploy/deploy-on-server.sh', 'generate_or_preserve_secret MTPROTO_SECRET_SALT')
+requireText('deploy/deploy-on-server.sh', 'generate_or_preserve_secret MTPROTO_AD_TAG')
 
 requireText('.env.example', 'MTPROTO_RUNTIME_POLICY_URL=http://172.29.255.1:18080/krotpn/mtproto/policy')
 requireText('.env.example', 'MTPROTO_POLICY_BIND_IP=172.29.255.1')

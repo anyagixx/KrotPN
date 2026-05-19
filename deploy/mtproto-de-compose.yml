@@ -1,5 +1,5 @@
 # FILE: deploy/mtproto-de-compose.yml
-# VERSION: 2.2.0
+# VERSION: 2.3.0
 # ROLE: CONFIG
 # MAP_MODE: SUMMARY
 # START_MODULE_CONTRACT
@@ -14,6 +14,7 @@
 # END_MODULE_MAP
 #
 # START_CHANGE_SUMMARY
+#   LAST_CHANGE: v2.3.0 - Wire PROXY_AD_TAG with a zero 32-hex default for Telegram proxy_req compatibility.
 #   LAST_CHANGE: v2.2.0 - Restored DE runtime to KPprotoN fake-TLS with per-SNI policy and wildcard TLS mount.
 #   LAST_CHANGE: v2.1.0 - Added official MTProxy HTTP stats and NAT info env wiring.
 #   LAST_CHANGE: v2.0.0 - Switched DE data-plane to official Telegram mtproto-proxy with KrotPN secret manifest API.
@@ -37,6 +38,7 @@ services:
       PROXY_PORT: ${MTPROTO_DE_RUNTIME_PORT:-443}
       PROXY_SECRET_HEX: ${MTPROTO_BASE_SECRET_HEX:?MTPROTO_BASE_SECRET_HEX must be set}
       PROXY_SECRET_SALT: ${MTPROTO_SECRET_SALT:?MTPROTO_SECRET_SALT must be set}
+      PROXY_AD_TAG: ${MTPROTO_AD_TAG:-00000000000000000000000000000000}
       PROXY_LISTEN_IP: 0.0.0.0
       PORTAL_HTTP_INTERNAL_PORT: ${MTPROTO_POLICY_PORT:-18080}
       PORTAL_TLS_INTERNAL_PORT: 18443

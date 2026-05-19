@@ -3,7 +3,7 @@
 # KrotPN Server Deployment Script v3.4.0 (Full Tunnel)
 # Run this script ON the RU server
 # FILE: deploy/deploy-on-server.sh
-# VERSION: 3.5.0
+# VERSION: 3.7.0
 # ROLE: SCRIPT
 # MAP_MODE: LOCALS
 # START_MODULE_CONTRACT
@@ -26,6 +26,7 @@
 # END_MODULE_MAP
 #
 # START_CHANGE_SUMMARY
+#   LAST_CHANGE: v3.7.0 - Defaulted MTPROTO_AD_TAG to zero 32-hex tag so DE KPprotoN runtime returns Telegram proxy_req responses.
 #   LAST_CHANGE: v3.6.0 - Restored DE MTProto deployment to KPprotoN fake-TLS and wildcard TLS runtime wiring.
 #   LAST_CHANGE: v3.5.0 - Added DE official MTProxy NAT info and HTTP stats env wiring.
 #   LAST_CHANGE: v3.4.0 - Switched DE MTProto deployment to official Telegram mtproto-proxy and Phase-40 HTTPS-vs-MTProxy router.
@@ -394,6 +395,7 @@ MTPROTO_POLICY_PORT=${MTPROTO_POLICY_PORT}
 MTPROTO_POLICY_BIND_IP=${MTPROTO_POLICY_BIND_IP}
 MTPROTO_BASE_SECRET_HEX=${MTPROTO_BASE_SECRET_HEX}
 MTPROTO_SECRET_SALT=${MTPROTO_SECRET_SALT}
+MTPROTO_AD_TAG=${MTPROTO_AD_TAG}
 DE_MTPROTO_DOMAIN_FRONTING=${domain_fronting_target}
 EOF
     normalize_de_mtproto_domain_fronting "$de_app_dir"
@@ -1023,6 +1025,7 @@ DATA_KEY=$(generate_or_preserve_secret DATA_ENCRYPTION_KEY "from cryptography.fe
 DB_PASSWORD=$(generate_or_preserve_secret DB_PASSWORD "import secrets; print(secrets.token_urlsafe(16))" '^[-A-Za-z0-9._~+/=]{16,}$')
 MTPROTO_BASE_SECRET_HEX=$(generate_or_preserve_secret MTPROTO_BASE_SECRET_HEX "import secrets; print(secrets.token_hex(16))" '^[0-9a-f]{32}$')
 MTPROTO_SECRET_SALT=$(generate_or_preserve_secret MTPROTO_SECRET_SALT "import secrets; print(secrets.token_hex(16))" '^[0-9a-f]{32}$')
+MTPROTO_AD_TAG=$(generate_or_preserve_secret MTPROTO_AD_TAG "print('00000000000000000000000000000000')" '^[0-9a-f]{32}$')
 MTPROTO_RUNTIME_TOKEN=$(generate_or_preserve_secret MTPROTO_RUNTIME_TOKEN "import secrets; print(secrets.token_urlsafe(32))" '^[-A-Za-z0-9._~+/=]{24,512}$')
 
 cat > .env << EOF
@@ -1125,6 +1128,7 @@ MTPROTO_BASE_DOMAIN=${PUBLIC_DOMAIN}
 MTPROTO_PROXY_PORT=443
 MTPROTO_BASE_SECRET_HEX=${MTPROTO_BASE_SECRET_HEX}
 MTPROTO_SECRET_SALT=${MTPROTO_SECRET_SALT}
+MTPROTO_AD_TAG=${MTPROTO_AD_TAG}
 MTPROTO_RUNTIME_POLICY_URL=http://${MTPROTO_POLICY_BIND_IP}:${MTPROTO_POLICY_PORT}/krotpn/mtproto/policy
 MTPROTO_RUNTIME_TOKEN=${MTPROTO_RUNTIME_TOKEN}
 MTPROTO_RUNTIME_TIMEOUT_SECONDS=3.0
