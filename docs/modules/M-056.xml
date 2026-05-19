@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<M-056 NAME="mtproto-analytics-service" TYPE="CORE_LOGIC" STATUS="planned">
+<M-056 NAME="mtproto-analytics-service" TYPE="CORE_LOGIC" STATUS="verification-designed">
   <path>backend/app/mtproto backend/app/tasks/scheduler.py docs/plans/Phase-42.xml</path>
   <owns>MTProto usage aggregation, top-user analytics, per-proxy summaries, runtime availability summaries, and observe-only abuse classification.</owns>
   <purpose>Convert raw MTProto telemetry into operator-safe analytics and abuse signals for the admin panel.</purpose>

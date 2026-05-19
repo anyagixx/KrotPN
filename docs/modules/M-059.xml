@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<M-059 NAME="mtproto-promotion-tag-control" TYPE="INTEGRATION" STATUS="planned">
+<M-059 NAME="mtproto-promotion-tag-control" TYPE="INTEGRATION" STATUS="verification-designed">
   <path>backend/app/admin backend/app/mtproto mtproto-runtime deploy/mtproto-de-compose.yml .env.example docs/plans/Phase-42.xml</path>
   <owns>Operator-managed MTProxyBot promotion tag storage, validation, redaction, audit trail, runtime apply state, and deploy env propagation.</owns>
   <purpose>Allow the KrotPN admin to configure the Telegram MTProxy promotion tag safely from the admin panel.</purpose>

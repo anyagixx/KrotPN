@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Phase-42 NAME="MTProto Usage Analytics and Promotion Tag Control" STATUS="planned" MODULES="M-054,M-055,M-056,M-057,M-058,M-059,M-042,M-044,M-047,M-049,M-050,M-051" CREATED="2026-05-19">
+<Phase-42 NAME="MTProto Usage Analytics and Promotion Tag Control" STATUS="verification-designed" VERSION="1.1.0" MODULES="M-054,M-055,M-056,M-057,M-058,M-059,M-042,M-044,M-047,M-049,M-050,M-051" CREATED="2026-05-19">
   <purpose>Give the KrotPN operator metadata-only MTProto usage analytics, abuse visibility, runtime availability proof, and safe @MTProxyBot promotion tag control without exposing proxy secrets or Telegram payload data.</purpose>
   <scope>
     <in>Usage events, sessions, rollups, last seen, traffic windows, errors, unknown/rejected SNI, active connections, top users, observe-only abuse signals, runtime health, req_pq proof, admin API, admin UI, and promotion tag control.</in>
@@ -45,7 +45,35 @@
     <risk-4 severity="medium">Promotion tag updates may require controlled runtime restart if hot-apply is unavailable.</risk-4>
   </risks>
   <verification>
-    <command status="planned">python3 -m xml.etree.ElementTree docs/plans/Phase-42.xml docs/modules/M-054.xml docs/modules/M-055.xml docs/modules/M-056.xml docs/modules/M-057.xml docs/modules/M-058.xml docs/modules/M-059.xml docs/verification/V-M-054.xml docs/verification/V-M-055.xml docs/verification/V-M-056.xml docs/verification/V-M-057.xml docs/verification/V-M-058.xml docs/verification/V-M-059.xml</command>
-    <command status="planned">mygrace lint</command>
+    <verification-design status="verification-designed">
+      <gate-1 MODULES="M-054,M-055">Runtime telemetry must become idempotent database evidence without blocking MTProto traffic or storing secrets.</gate-1>
+      <gate-2 MODULES="M-056">Analytics must expose issued totals, status counts, active connections, last seen, traffic windows, errors, session duration, top users, abuse signals, runtime health, and req_pq proof state.</gate-2>
+      <gate-3 MODULES="M-057,M-058">Admin API and UI must be admin-only, compact on mobile, filterable, paginated where needed, and redaction-guarded.</gate-3>
+      <gate-4 MODULES="M-059">Promotion tag control must accept valid 32-hex @MTProxyBot tags or zero fallback, reject blanks/malformed values, and never log or render the full tag.</gate-4>
+      <gate-5 MODULES="M-049,M-050,M-051">Any runtime change must preserve Phase-41 issued-link req_pq and Telegram Desktop/mobile availability proof.</gate-5>
+    </verification-design>
+    <evidence-levels>
+      <level-1>XML parse, MyGRACE lint, and documentation/index consistency for Phase-42 artifacts.</level-1>
+      <level-2>Local deterministic backend tests for M-054, M-056, M-057, and M-059.</level-2>
+      <level-3>Local runtime smoke for M-055 and promotion tag propagation using synthetic telemetry and fake tags.</level-3>
+      <level-4>Frontend-admin build plus static/mobile smoke for M-058.</level-4>
+      <level-5>Optional live proof after operator deploy: issued-link mtp_ping/req_pq, Telegram Desktop/mobile availability, and masked admin analytics inspection.</level-5>
+    </evidence-levels>
+    <redaction-gates>
+      <gate-1>No full tg links, fake-TLS secrets, base secret, salt, runtime token, private keys, raw public IPs, or full promotion tags in API responses, logs, telemetry, audit rows, or frontend bundles.</gate-1>
+      <gate-2>Telegram chats, channels, messages, contacts, Telegram account ids, or payload content are out of scope and must not be inferred.</gate-2>
+      <gate-3>Unknown/rejected SNI events are retained only with masked identifiers and safe reason codes.</gate-3>
+    </redaction-gates>
+    <commands>
+      <command status="pass-local">python3 -m xml.etree.ElementTree docs/plans/Phase-42.xml docs/modules/M-054.xml docs/modules/M-055.xml docs/modules/M-056.xml docs/modules/M-057.xml docs/modules/M-058.xml docs/modules/M-059.xml docs/verification/V-M-054.xml docs/verification/V-M-055.xml docs/verification/V-M-056.xml docs/verification/V-M-057.xml docs/verification/V-M-058.xml docs/verification/V-M-059.xml docs/graph-index.xml docs/plan-index.xml docs/verification-index.xml docs/current-status.xml</command>
+      <command status="pass-local">mygrace lint</command>
+      <command status="planned-local">cd backend &amp;&amp; SECRET_KEY=test-secret-key-with-enough-length PYTHONPATH=. ../.venv/bin/python -m pytest -o addopts='' tests/test_mtproto_usage_telemetry.py tests/test_mtproto_runtime_telemetry_bridge.py tests/test_mtproto_analytics_service.py tests/test_mtproto_admin_analytics_api.py tests/test_mtproto_promotion_tag.py -v</command>
+      <command status="planned-local">node scripts/phase42-mtproto-telemetry-smoke.mjs &amp;&amp; node scripts/phase42-mtproto-admin-analytics-smoke.mjs &amp;&amp; node scripts/phase42-mtproto-promotion-tag-smoke.mjs</command>
+      <command status="planned-local">cd frontend-admin &amp;&amp; npm run build</command>
+    </commands>
+    <autonomous-execution-safety>
+      <safe-local>Documentation, local unit tests, static smoke scripts, frontend build, and synthetic runtime fixtures are safe to execute autonomously.</safe-local>
+      <blocked-live>Production runtime restart, real promotion tag apply, retention pruning, or live traffic inspection require explicit operator approval and redacted evidence only.</blocked-live>
+    </autonomous-execution-safety>
   </verification>
 </Phase-42>

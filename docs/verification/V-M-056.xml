@@ -1,21 +1,46 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<V-M-056 MODULE="M-056" PRIORITY="high" STATUS="planned">
+<V-M-056 MODULE="M-056" PRIORITY="high" STATUS="verification-designed" VERSION="1.1.0">
   <module>mtproto-analytics-service</module>
-  <checks>Analytics service produces accurate summaries, top users, usage windows, and observe-only abuse signals from M-054 data.</checks>
+  <checks>Analytics service produces accurate summaries, top users, usage windows, runtime health, availability proof state, and observe-only abuse signals from M-054 data.</checks>
   <test-files>
     <file planned="true">backend/tests/test_mtproto_analytics_service.py</file>
     <file planned="true">backend/tests/test_scheduler.py</file>
   </test-files>
-  <commands>planned: cd backend &amp;&amp; SECRET_KEY=test-secret-key-with-enough-length PYTHONPATH=. ../.venv/bin/python -m pytest -o addopts='' tests/test_mtproto_analytics_service.py tests/test_scheduler.py -v</commands>
+  <commands>planned-local: cd backend &amp;&amp; SECRET_KEY=test-secret-key-with-enough-length PYTHONPATH=. ../.venv/bin/python -m pytest -o addopts='' tests/test_mtproto_analytics_service.py tests/test_scheduler.py -v</commands>
+  <verification-levels>
+    <module-local>Use deterministic M-054 fixtures to verify summaries, windowed rollups, top-user ordering, active sessions, stale telemetry, and observe-only abuse classifiers.</module-local>
+    <wave-level>Run after V-M-054/V-M-055 so analytics consumes the real planned persistence and runtime ingestion shapes.</wave-level>
+    <phase-level>Admin API and UI gates cannot close unless M-056 returns all metrics requested by the operator without raw secrets or payload-level Telegram data.</phase-level>
+  </verification-levels>
+  <module-checks>
+    <check-1>Global summary returns issued proxy total, active/disabled/reissue_required counts, active connections, runtime health, and availability proof state.</check-1>
+    <check-2>Per-assignment summary returns last_seen, traffic, duration, connection count, errors, active sessions, and current abuse signals.</check-2>
+    <check-3>Day, week, month, and custom time windows calculate stable totals from rollups and raw recent events.</check-3>
+    <check-4>Top users rank deterministically by traffic, duration, connection count, and error count with stable tie-breaking.</check-4>
+    <check-5>Abuse signals detect too many IP hashes, too many concurrent sessions, traffic spikes, and repeated failures without disabling access.</check-5>
+    <check-6>Missing or stale runtime telemetry is explicit and never rendered as false zero usage.</check-6>
+    <check-7>Queries avoid N+1 scans for summary, top users, and per-assignment drill-down.</check-7>
+  </module-checks>
   <scenarios>
     <scenario-1>Global summary returns issued proxy totals, active status counts, active connections, runtime health, and availability proof state.</scenario-1>
     <scenario-2>Per-assignment summary returns last seen, traffic, duration, connection count, errors, and active sessions.</scenario-2>
     <scenario-3>Top users ranking is stable for traffic, duration, connection count, and errors across selected time windows.</scenario-3>
     <scenario-4>Abuse signals detect many IP hashes, high concurrency, traffic spikes, and repeated failures without disabling access.</scenario-4>
+    <scenario-5>Unknown/rejected SNI activity is visible globally but cannot be misattributed to a user.</scenario-5>
   </scenarios>
-  <log-markers>
+  <redaction-rules>
+    <rule-1>Analytics outputs include only internal ids, masked SNI, counters, states, and safe timestamps.</rule-1>
+    <rule-2>No Telegram chats, channels, message contents, contacts, Telegram user ids, full proxy links, or secrets are inferred or returned.</rule-2>
+  </redaction-rules>
+  <required-log-markers>
     <marker>[M-056][build_global_summary][SUMMARY]</marker>
     <marker>[M-056][build_assignment_usage][USAGE_DETAIL]</marker>
+    <marker>[M-056][build_top_users][TOP_USERS]</marker>
     <marker>[M-056][detect_abuse_signals][OBSERVE_ONLY]</marker>
-  </log-markers>
+    <marker>[M-056][build_global_summary][STALE_TELEMETRY]</marker>
+  </required-log-markers>
+  <autonomous-execution-safety>
+    <safe-local>Pure service tests may use fixture-backed repositories and disposable databases.</safe-local>
+    <blocked-live>Threshold tuning that would affect enforcement is out of scope; Phase-42 classifiers are observe-only.</blocked-live>
+  </autonomous-execution-safety>
 </V-M-056>

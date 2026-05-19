@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<M-054 NAME="mtproto-usage-telemetry" TYPE="DATA_LAYER" STATUS="planned">
+<M-054 NAME="mtproto-usage-telemetry" TYPE="DATA_LAYER" STATUS="verification-designed">
   <path>backend/app/mtproto backend/alembic docs/plans/Phase-42.xml</path>
   <owns>PostgreSQL-backed MTProto usage events, connection sessions, traffic rollups, last-seen metadata, and abuse-signal records.</owns>
   <purpose>Persist metadata-only MTProto proxy usage so admins can analyze service activity without inspecting Telegram payloads.</purpose>

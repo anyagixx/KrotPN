@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<M-057 NAME="mtproto-admin-analytics-api" TYPE="ENTRY_POINT" STATUS="planned">
+<M-057 NAME="mtproto-admin-analytics-api" TYPE="ENTRY_POINT" STATUS="verification-designed">
   <path>backend/app/admin backend/app/mtproto docs/plans/Phase-42.xml</path>
   <owns>Admin-only HTTP API for MTProto global analytics, per-proxy usage, event logs, abuse signals, top users, runtime health, availability proof, and promotion tag state.</owns>
   <purpose>Expose MTProto analytics to authenticated admins with strict redaction and filterable time windows.</purpose>

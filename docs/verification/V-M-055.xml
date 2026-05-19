@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<V-M-055 MODULE="M-055" PRIORITY="critical" STATUS="planned">
+<V-M-055 MODULE="M-055" PRIORITY="critical" STATUS="verification-designed" VERSION="1.1.0">
   <module>mtproto-runtime-telemetry-bridge</module>
   <checks>Runtime emits and drains metadata-only telemetry through a private token-protected boundary without breaking MTProto traffic.</checks>
   <test-files>
@@ -7,16 +7,42 @@
     <file planned="true">scripts/phase42-mtproto-telemetry-smoke.mjs</file>
     <file planned="true">mtproto-runtime</file>
   </test-files>
-  <commands>planned: node scripts/phase42-mtproto-telemetry-smoke.mjs &amp;&amp; cd backend &amp;&amp; SECRET_KEY=test-secret-key-with-enough-length PYTHONPATH=. ../.venv/bin/python -m pytest -o addopts='' tests/test_mtproto_runtime_telemetry_bridge.py -v</commands>
+  <commands>planned-local: node scripts/phase42-mtproto-telemetry-smoke.mjs &amp;&amp; cd backend &amp;&amp; SECRET_KEY=test-secret-key-with-enough-length PYTHONPATH=. ../.venv/bin/python -m pytest -o addopts='' tests/test_mtproto_runtime_telemetry_bridge.py -v</commands>
+  <verification-levels>
+    <module-local>Use fake runtime events and private API fixtures to verify token checks, snapshot, drain, cursoring, overflow counters, redaction, and degraded runtime behavior.</module-local>
+    <wave-level>Run with V-M-054 to prove drained events become idempotent usage rows and with V-M-056 to prove stale runtime state is visible in analytics.</wave-level>
+    <phase-level>Live release remains blocked until Phase-41 req_pq and Telegram Desktop/mobile proof standards pass after telemetry hooks are enabled.</phase-level>
+  </verification-levels>
+  <module-checks>
+    <check-1>Handshake, close, bytes, error, active_connection, unknown_sni, rejected_sni, and req_pq proof events use safe metadata fields only.</check-1>
+    <check-2>Private telemetry endpoints reject missing or wrong runtime tokens and return no telemetry on unauthorized calls.</check-2>
+    <check-3>Snapshot reads current counters without draining events.</check-3>
+    <check-4>Drain returns cursor-ordered events and acknowledges only the returned batch.</check-4>
+    <check-5>Bounded buffer overflow increments dropped_events and never blocks policy apply or MTProto listener behavior.</check-5>
+    <check-6>Policy metadata maps known SNI to assignment_id and user_id while unknown SNI stays masked.</check-6>
+    <check-7>Backend ingestion tolerates runtime outage and marks analytics stale or degraded only.</check-7>
+  </module-checks>
   <scenarios>
     <scenario-1>Handshake, close, bytes, error, active_connection, unknown_sni, rejected_sni, and req_pq proof events are represented with safe fields.</scenario-1>
     <scenario-2>Missing or wrong runtime token returns unauthorized and no telemetry leaks.</scenario-2>
     <scenario-3>Buffer overflow increments dropped_events but does not block policy apply or MTProto listener behavior.</scenario-3>
     <scenario-4>Backend ingestion tolerates runtime outage and marks analytics stale/degraded only.</scenario-4>
+    <scenario-5>Telemetry hook changes do not alter the issued-link fake-TLS secret, SNI route, or Telegram client acceptance contract.</scenario-5>
   </scenarios>
-  <log-markers>
+  <redaction-rules>
+    <rule-1>Runtime telemetry must exclude full tg links, fake-TLS secrets, base secret, salt, runtime token, private keys, and full promotion tags.</rule-1>
+    <rule-2>Runtime logs may include stable counters and masked SNI only.</rule-2>
+    <rule-3>Unauthorized telemetry responses must not reveal whether an assignment exists.</rule-3>
+  </redaction-rules>
+  <required-log-markers>
     <marker>[M-055][runtime_telemetry][EMIT_EVENT]</marker>
+    <marker>[M-055][telemetry_snapshot][SNAPSHOT]</marker>
     <marker>[M-055][telemetry_drain][DRAIN_EVENTS]</marker>
     <marker>[M-055][telemetry_ingest][INGEST_SUMMARY]</marker>
-  </log-markers>
+    <marker>[M-055][runtime_telemetry][DROP_OVERFLOW]</marker>
+  </required-log-markers>
+  <autonomous-execution-safety>
+    <safe-local>Runtime smoke may use local synthetic fixtures and fake private tokens.</safe-local>
+    <blocked-live>Changing live runtime telemetry hooks or restarting DE runtime requires operator approval and post-change req_pq proof.</blocked-live>
+  </autonomous-execution-safety>
 </V-M-055>

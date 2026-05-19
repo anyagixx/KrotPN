@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<V-M-059 MODULE="M-059" PRIORITY="critical" STATUS="planned">
+<V-M-059 MODULE="M-059" PRIORITY="critical" STATUS="verification-designed" VERSION="1.1.0">
   <module>mtproto-promotion-tag-control</module>
-  <checks>Admin-configured @MTProxyBot promotion tag is validated, redacted, audited, and propagated to runtime safely.</checks>
+  <checks>Admin-configured @MTProxyBot promotion tag is validated, redacted, audited, and propagated to runtime safely without changing issued proxy links.</checks>
   <test-files>
     <file planned="true">backend/tests/test_mtproto_promotion_tag.py</file>
     <file planned="true">scripts/phase42-mtproto-promotion-tag-smoke.mjs</file>
@@ -9,7 +9,22 @@
     <file planned="true">deploy/mtproto-de-compose.yml</file>
     <file planned="true">.env.example</file>
   </test-files>
-  <commands>planned: node scripts/phase42-mtproto-promotion-tag-smoke.mjs &amp;&amp; cd backend &amp;&amp; SECRET_KEY=test-secret-key-with-enough-length PYTHONPATH=. ../.venv/bin/python -m pytest -o addopts='' tests/test_mtproto_promotion_tag.py -v</commands>
+  <commands>planned-local: node scripts/phase42-mtproto-promotion-tag-smoke.mjs &amp;&amp; cd backend &amp;&amp; SECRET_KEY=test-secret-key-with-enough-length PYTHONPATH=. ../.venv/bin/python -m pytest -o addopts='' tests/test_mtproto_promotion_tag.py -v</commands>
+  <verification-levels>
+    <module-local>Validate tag parser, masking, storage state, audit payloads, runtime apply state, env fallback, and redaction fixtures.</module-local>
+    <wave-level>Run with V-M-057 and V-M-058 to prove admin API/UI use the same masked state and confirmation contract.</wave-level>
+    <phase-level>Live promotion tag rollout requires operator-provided @MTProxyBot tag, runtime apply or planned restart state, and post-change req_pq proof.</phase-level>
+  </verification-levels>
+  <module-checks>
+    <check-1>Valid 32-hex tag from @MTProxyBot is accepted.</check-1>
+    <check-2>Zero 32-hex fallback remains valid when no promotion channel is configured.</check-2>
+    <check-3>Blank, malformed, non-hex, wrong-length, and whitespace-padded invalid tags are rejected before runtime config.</check-3>
+    <check-4>Stored and returned admin state contains masked tag only.</check-4>
+    <check-5>Audit records who changed the tag and when, without storing the full tag.</check-5>
+    <check-6>Runtime apply reports applied, pending_restart, or failed without rotating base secret, salt, SNI, assignment ownership, or issued links.</check-6>
+    <check-7>Deploy/runtime env paths keep a non-blank PROXY_AD_TAG/MTPROTO_AD_TAG value.</check-7>
+    <check-8>Redaction smoke fails if the full promotion tag appears in logs, API responses, admin UI fixtures, or runtime status.</check-8>
+  </module-checks>
   <scenarios>
     <scenario-1>Valid 32-hex tag from @MTProxyBot is accepted and stored masked in admin state.</scenario-1>
     <scenario-2>Blank or malformed tags are rejected before reaching runtime config.</scenario-2>
@@ -17,9 +32,19 @@
     <scenario-4>Runtime apply reports applied or pending_restart without rotating base secret, salt, SNI, or owner links.</scenario-4>
     <scenario-5>Audit and logs never contain the full promotion tag.</scenario-5>
   </scenarios>
-  <log-markers>
+  <redaction-rules>
+    <rule-1>Only masked promotion tag is exposed through API, UI, audit, logs, and runtime status.</rule-1>
+    <rule-2>The full tag may exist only in encrypted/config storage or runtime env material needed to operate the proxy.</rule-2>
+    <rule-3>Validation errors must not echo the submitted full tag.</rule-3>
+  </redaction-rules>
+  <required-log-markers>
     <marker>[M-059][validate_promotion_tag][VALIDATE_TAG]</marker>
     <marker>[M-059][update_promotion_tag][AUDIT_UPDATE]</marker>
     <marker>[M-059][apply_promotion_tag][RUNTIME_STATE]</marker>
-  </log-markers>
+    <marker>[M-059][promotion_tag_state][REDACTED_STATE]</marker>
+  </required-log-markers>
+  <autonomous-execution-safety>
+    <safe-local>Validator, backend API, smoke, and redaction tests may run locally with fake tags.</safe-local>
+    <blocked-live>Applying a real @MTProxyBot tag or restarting runtime on production requires operator approval and post-change Telegram availability proof.</blocked-live>
+  </autonomous-execution-safety>
 </V-M-059>

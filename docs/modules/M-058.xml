@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<M-058 NAME="mtproto-admin-analytics-ui" TYPE="UI_COMPONENT" STATUS="planned">
+<M-058 NAME="mtproto-admin-analytics-ui" TYPE="UI_COMPONENT" STATUS="verification-designed">
   <path>frontend-admin scripts/phase42-mtproto-admin-analytics-smoke.mjs docs/plans/Phase-42.xml</path>
   <owns>Compact admin UI for MTProto usage analytics, per-proxy details, abuse signals, runtime health, availability proof, and promotion tag controls.</owns>
   <purpose>Let the operator analyze MTProto usage from desktop or mobile admin panel without exposing secrets.</purpose>

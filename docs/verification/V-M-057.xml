@@ -1,21 +1,47 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<V-M-057 MODULE="M-057" PRIORITY="high" STATUS="planned">
+<V-M-057 MODULE="M-057" PRIORITY="high" STATUS="verification-designed" VERSION="1.1.0">
   <module>mtproto-admin-analytics-api</module>
-  <checks>Admin analytics endpoints expose useful MTProto statistics with strict redaction, pagination, filtering, and audit safety.</checks>
+  <checks>Admin analytics endpoints expose useful MTProto statistics with strict redaction, pagination, filtering, admin-only auth, and audit safety.</checks>
   <test-files>
     <file planned="true">backend/tests/test_mtproto_admin_analytics_api.py</file>
     <file planned="true">backend/tests/test_mtproto_admin_ops.py</file>
   </test-files>
-  <commands>planned: cd backend &amp;&amp; SECRET_KEY=test-secret-key-with-enough-length PYTHONPATH=. ../.venv/bin/python -m pytest -o addopts='' tests/test_mtproto_admin_analytics_api.py tests/test_mtproto_admin_ops.py -v</commands>
+  <commands>planned-local: cd backend &amp;&amp; SECRET_KEY=test-secret-key-with-enough-length PYTHONPATH=. ../.venv/bin/python -m pytest -o addopts='' tests/test_mtproto_admin_analytics_api.py tests/test_mtproto_admin_ops.py -v</commands>
+  <verification-levels>
+    <module-local>Use FastAPI tests with admin and non-admin clients to verify auth, filters, pagination, time clamping, redaction guards, and promotion tag delegation.</module-local>
+    <wave-level>Run with V-M-056 and V-M-059 to prove API schemas match analytics service outputs and promotion tag state.</wave-level>
+    <phase-level>Admin UI and release gates cannot close unless every API response passes secret-redaction assertions.</phase-level>
+  </verification-levels>
+  <module-checks>
+    <check-1>Summary endpoint returns total issued, active/disabled/reissue_required counts, active connections, runtime health, availability proof, and traffic windows.</check-1>
+    <check-2>Per-proxy endpoint returns only selected assignment usage, sessions, last seen, errors, abuse signals, and safe owner references.</check-2>
+    <check-3>Event list endpoint enforces pagination, time-window clamping, allowed filters, and stable ordering.</check-3>
+    <check-4>Top-users endpoint supports traffic, duration, connection count, and error count orderings.</check-4>
+    <check-5>Abuse endpoint returns observe-only signals and never changes assignment status.</check-5>
+    <check-6>Promotion tag endpoints delegate validation/state to M-059 and require explicit admin confirmation for mutation.</check-6>
+    <check-7>Non-admin users receive 401 or 403 and no analytics data.</check-7>
+    <check-8>Payload redaction guard rejects full tg links, secrets, raw IPs, runtime tokens, private keys, and full promotion tags.</check-8>
+  </module-checks>
   <scenarios>
     <scenario-1>Admin summary endpoint returns total issued, active/disabled/reissue counts, active connections, traffic windows, and runtime health.</scenario-1>
     <scenario-2>Per-proxy endpoint returns only the selected assignment's safe usage and error data.</scenario-2>
     <scenario-3>Events and top-users endpoints enforce pagination, time-window clamping, and admin-only auth.</scenario-3>
     <scenario-4>Payload redaction guard rejects full tg links, secrets, raw IPs, runtime tokens, and full promotion tags.</scenario-4>
+    <scenario-5>Promotion tag update writes audit evidence without logging the full tag.</scenario-5>
   </scenarios>
-  <log-markers>
+  <redaction-rules>
+    <rule-1>Admin APIs may expose masked SNI, masked promotion tag, safe ids, counts, timestamps, status codes, and aggregate bytes only.</rule-1>
+    <rule-2>Full proxy links, fake-TLS secrets, runtime tokens, raw IPs, private keys, and full promotion tags fail the response guard.</rule-2>
+  </redaction-rules>
+  <required-log-markers>
     <marker>[M-057][admin_mtproto_analytics][SUMMARY]</marker>
     <marker>[M-057][admin_mtproto_usage][ASSIGNMENT_DETAIL]</marker>
+    <marker>[M-057][admin_mtproto_events][EVENT_LIST]</marker>
+    <marker>[M-057][admin_mtproto_top_users][TOP_USERS]</marker>
     <marker>[M-057][admin_mtproto_analytics][REDACT_PAYLOAD]</marker>
-  </log-markers>
+  </required-log-markers>
+  <autonomous-execution-safety>
+    <safe-local>Backend API tests may run with fixture users and in-memory or disposable databases.</safe-local>
+    <blocked-live>Running analytics queries against production requires operator approval if raw event volume is unknown.</blocked-live>
+  </autonomous-execution-safety>
 </V-M-057>

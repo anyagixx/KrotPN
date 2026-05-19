@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<M-055 NAME="mtproto-runtime-telemetry-bridge" TYPE="INTEGRATION" STATUS="planned">
+<M-055 NAME="mtproto-runtime-telemetry-bridge" TYPE="INTEGRATION" STATUS="verification-designed">
   <path>mtproto-runtime backend/app/mtproto/runtime_bridge.py backend/app/tasks/scheduler.py scripts/phase42-mtproto-telemetry-smoke.mjs docs/plans/Phase-42.xml</path>
   <owns>Secret-free telemetry extraction from the KPprotoN runtime, private telemetry API, backend ingestion, and bounded runtime buffers.</owns>
   <purpose>Move runtime connection, traffic, error, unknown-SNI, and req_pq metadata from the DE edge into KrotPN analytics safely.</purpose>
