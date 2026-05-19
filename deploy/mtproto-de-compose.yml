@@ -14,6 +14,7 @@
 # END_MODULE_MAP
 #
 # START_CHANGE_SUMMARY
+#   LAST_CHANGE: v2.1.0 - Added official MTProxy HTTP stats and NAT info env wiring.
 #   LAST_CHANGE: v2.0.0 - Switched DE data-plane to official Telegram mtproto-proxy with KrotPN secret manifest API.
 #   LAST_CHANGE: v1.1.0 - Default DE domain-fronting fallback to private 9443 to match Phase-38 RU fallback split.
 #   LAST_CHANGE: v1.0.0 - Added Phase-38 DE runtime compose template with private policy bind.
@@ -34,6 +35,8 @@ services:
       MTPROXY_PORT: ${MTPROTO_DE_RUNTIME_PORT:-443}
       MTPROXY_STATS_PORT: ${MTPROXY_STATS_PORT:-2398}
       MTPROXY_WORKERS: ${MTPROXY_WORKERS:-1}
+      MTPROXY_HTTP_STATS: ${MTPROXY_HTTP_STATS:-1}
+      MTPROXY_NAT_INFO: ${MTPROXY_NAT_INFO:-}
       MTPROTO_POLICY_PORT: ${MTPROTO_POLICY_PORT:-18080}
       MTPROTO_POLICY_BIND_IP: ${MTPROTO_POLICY_BIND_IP:-127.0.0.1}
       KROTPN_MTPROTO_POLICY_TOKEN: ${MTPROTO_RUNTIME_TOKEN:?MTPROTO_RUNTIME_TOKEN must be set}

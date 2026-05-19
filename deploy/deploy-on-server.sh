@@ -26,6 +26,7 @@
 # END_MODULE_MAP
 #
 # START_CHANGE_SUMMARY
+#   LAST_CHANGE: v3.5.0 - Added DE official MTProxy NAT info and HTTP stats env wiring.
 #   LAST_CHANGE: v3.4.0 - Switched DE MTProto deployment to official Telegram mtproto-proxy and Phase-40 HTTPS-vs-MTProxy router.
 #   LAST_CHANGE: v3.3.2 - Normalize stale DE MTProto domain-fronting fallback to 127.0.0.1:9443 during deploy.
 #   LAST_CHANGE: v3.3.1 - Keep public admin 8443 separate from private Phase-38 web fallback on 9443.
@@ -368,6 +369,9 @@ deploy_de_mtproto_runtime() {
     local de_app_dir="/opt/krotpn-mtproto"
     local runtime_tar="/tmp/krotpn-official-mtproxy.tgz"
     local policy_health_url="http://${MTPROTO_POLICY_BIND_IP}:${MTPROTO_POLICY_PORT}/krotpn/mtproto/policy/health"
+    local mtproxy_nat_local_addr=""
+    local mtproxy_nat_global_addr="${MTPROXY_NAT_GLOBAL_IP:-$DE_IP}"
+    local mtproxy_nat_info="${MTPROXY_NAT_INFO:-}"
 
     echo -e "${BLUE}[M-052][de_mtproto_runtime][START_RUNTIME] Preparing DE official MTProxy runtime on ${DE_IP}...${NC}"
 
@@ -379,6 +383,15 @@ deploy_de_mtproto_runtime() {
 
     sshpass -p "$DE_PASS" scp -o StrictHostKeyChecking=accept-new -o LogLevel=ERROR /opt/KrotPN/deploy/mtproto-de-compose.yml "$DE_USER@$DE_IP:${de_app_dir}/docker-compose.yml"
 
+    if [ -z "$mtproxy_nat_info" ]; then
+        mtproxy_nat_local_addr="$(
+            ssh_de "ip -4 -o addr show docker0 scope global 2>/dev/null | awk '{split(\$4,a,\"/\"); print a[1]; exit}'" || true
+        )"
+        if [ -n "$mtproxy_nat_local_addr" ] && [ "$mtproxy_nat_local_addr" != "$mtproxy_nat_global_addr" ]; then
+            mtproxy_nat_info="${mtproxy_nat_local_addr}:${mtproxy_nat_global_addr}"
+        fi
+    fi
+
     sshpass -p "$DE_PASS" ssh -o StrictHostKeyChecking=accept-new -o LogLevel=ERROR "$DE_USER@$DE_IP" "cat > '${de_app_dir}/.env' && chmod 600 '${de_app_dir}/.env'" << EOF
 MTPROTO_DE_RUNTIME_PORT=${EDGE_MTPROTO_DE_TARGET_PORT}
 MTPROTO_RUNTIME_TOKEN=${MTPROTO_RUNTIME_TOKEN}
@@ -386,6 +399,8 @@ MTPROTO_POLICY_PORT=${MTPROTO_POLICY_PORT}
 MTPROTO_POLICY_BIND_IP=${MTPROTO_POLICY_BIND_IP}
 MTPROXY_STATS_PORT=2398
 MTPROXY_WORKERS=1
+MTPROXY_HTTP_STATS=1
+MTPROXY_NAT_INFO=${mtproxy_nat_info}
 EOF
 
     ssh_de "ufw allow proto tcp from '${RU_IP}' to any port '${EDGE_MTPROTO_DE_TARGET_PORT}' >/dev/null 2>&1 || true"

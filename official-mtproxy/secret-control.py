@@ -16,11 +16,13 @@
 #   RuntimeConfig - Environment-derived official MTProxy runtime settings
 #   SecretEntry - Validated raw official MTProxy secret row
 #   MTProxySupervisor - Manifest persistence and mtproto-proxy process manager
+#   MTProxyStats - Private official stats snapshot used for downstream readiness health
 #   PolicyHandler - Private KrotPN HTTP policy API
 #   main - Starts the token-protected HTTP server and supervisor
 # END_MODULE_MAP
 #
 # START_CHANGE_SUMMARY
+#   LAST_CHANGE: v1.1.0 - Made manifest apply idempotent, added HTTP stats readiness and NAT info launch support.
 #   LAST_CHANGE: v1.0.0 - Added Phase-40 official MTProxy data-plane supervisor.
 # END_CHANGE_SUMMARY
 """
@@ -63,6 +65,8 @@ class RuntimeConfig:
     proxy_config_path: Path
     proxy_user: str
     proxy_tag: str | None
+    nat_info: str | None
+    http_stats_enabled: bool
 
     @classmethod
     def from_env(cls) -> "RuntimeConfig":
@@ -85,6 +89,9 @@ class RuntimeConfig:
             proxy_config_path=data_dir / "proxy-multi.conf",
             proxy_user=os.getenv("MTPROXY_USER", "mtproxy"),
             proxy_tag=os.getenv("MTPROXY_PROXY_TAG", "").strip() or None,
+            nat_info=os.getenv("MTPROXY_NAT_INFO", "").strip() or None,
+            http_stats_enabled=os.getenv("MTPROXY_HTTP_STATS", "1").strip().lower()
+            not in {"0", "false", "no"},
         )
 # END_BLOCK_CONFIG
 
@@ -126,6 +133,44 @@ class SecretEntry:
     # END_BLOCK_SECRET_ENTRY
 
 
+@dataclass(frozen=True)
+class MTProxyStats:
+    ready_targets: int | None
+    active_targets: int | None
+    total_special_connections: int | None
+
+    # START_BLOCK_STATS_PARSE
+    @classmethod
+    def from_text(cls, text: str) -> "MTProxyStats":
+        values: dict[str, int] = {}
+        for line in text.splitlines():
+            parts = line.split()
+            if len(parts) < 2:
+                continue
+            if parts[0] in {
+                "ready_targets",
+                "active_targets",
+                "total_special_connections",
+            }:
+                try:
+                    values[parts[0]] = int(parts[1])
+                except ValueError:
+                    continue
+        return cls(
+            ready_targets=values.get("ready_targets"),
+            active_targets=values.get("active_targets"),
+            total_special_connections=values.get("total_special_connections"),
+        )
+
+    def to_safe_dict(self) -> dict[str, int | None]:
+        return {
+            "ready_targets": self.ready_targets,
+            "active_targets": self.active_targets,
+            "total_special_connections": self.total_special_connections,
+        }
+    # END_BLOCK_STATS_PARSE
+
+
 class MTProxySupervisor:
     # START_BLOCK_SUPERVISOR_INIT
     def __init__(self, config: RuntimeConfig) -> None:
@@ -133,6 +178,7 @@ class MTProxySupervisor:
         self._lock = threading.RLock()
         self._process: subprocess.Popen[bytes] | None = None
         self._entries: list[SecretEntry] = []
+        self._manifest_fingerprint: str | None = None
         self._last_error: str | None = None
         self.config.data_dir.mkdir(parents=True, exist_ok=True)
     # END_BLOCK_SUPERVISOR_INIT
@@ -146,14 +192,25 @@ class MTProxySupervisor:
             data = json.loads(self.config.manifest_path.read_text(encoding="utf-8"))
             entries = [SecretEntry.from_payload(item) for item in data.get("secrets", [])]
             self._entries = entries
+            self._manifest_fingerprint = self.fingerprint_entries(entries)
 
     def apply_manifest(self, payload: dict[str, Any]) -> dict[str, Any]:
         with self._lock:
             entries = [SecretEntry.from_payload(item) for item in payload.get("secrets", [])]
+            manifest_fingerprint = self.fingerprint_entries(entries)
+            process_running = self._process is not None and self._process.poll() is None
+            if self._manifest_fingerprint == manifest_fingerprint and process_running:
+                print(
+                    "[OfficialMTProxy][manifest][UNCHANGED] "
+                    f"active_count={len(entries)} fingerprint={manifest_fingerprint}",
+                    flush=True,
+                )
+                return self.health_payload_locked()
+
             safe_manifest = {
                 "generated_at": payload.get("generated_at"),
                 "active_count": len(entries),
-                "manifest_fingerprint": payload.get("manifest_fingerprint"),
+                "manifest_fingerprint": manifest_fingerprint,
                 "secrets": [entry.to_runtime_dict() for entry in entries],
             }
             fd, tmp_path = tempfile.mkstemp(
@@ -171,6 +228,7 @@ class MTProxySupervisor:
                 if os.path.exists(tmp_path):
                     os.unlink(tmp_path)
             self._entries = entries
+            self._manifest_fingerprint = manifest_fingerprint
             self.restart_proxy_locked()
             print(
                 "[OfficialMTProxy][manifest][REDACTED_COUNT] "
@@ -179,6 +237,10 @@ class MTProxySupervisor:
                 flush=True,
             )
             return self.health_payload_locked()
+
+    def fingerprint_entries(self, entries: list[SecretEntry]) -> str:
+        material = "|".join(entry.secret_fingerprint for entry in entries)
+        return hashlib.sha256(material.encode("utf-8")).hexdigest()[:16]
     # END_BLOCK_MANIFEST_IO
 
     # START_BLOCK_TELEGRAM_CONFIG
@@ -225,10 +287,14 @@ class MTProxySupervisor:
                 "-H",
                 str(self.config.proxy_port),
             ]
+            if self.config.http_stats_enabled:
+                command.append("--http-stats")
             for entry in self._entries:
                 command.extend(["-S", entry.secret_hex])
             if self.config.proxy_tag:
                 command.extend(["-P", self.config.proxy_tag])
+            if self.config.nat_info:
+                command.extend(["--nat-info", self.config.nat_info])
             command.extend(
                 [
                     "--aes-pwd",
@@ -242,7 +308,8 @@ class MTProxySupervisor:
             self._last_error = None
             print(
                 "[OfficialMTProxy][process][STARTED] "
-                f"active_count={len(self._entries)} port={self.config.proxy_port}",
+                f"active_count={len(self._entries)} port={self.config.proxy_port} "
+                f"nat_info_configured={bool(self.config.nat_info)}",
                 flush=True,
             )
         except Exception as exc:
@@ -259,14 +326,37 @@ class MTProxySupervisor:
     def health_payload_locked(self) -> dict[str, Any]:
         process_running = self._process is not None and self._process.poll() is None
         active_count = len(self._entries)
-        status = "healthy" if process_running and active_count > 0 else "degraded"
+        stats = self.fetch_stats_locked() if process_running else None
+        target_under_ready = (
+            stats is not None
+            and stats.ready_targets is not None
+            and stats.active_targets is not None
+            and stats.active_targets < stats.ready_targets
+        )
+        status = "healthy" if process_running and active_count > 0 and not target_under_ready else "degraded"
         return {
             "status": status,
             "active_count": active_count,
+            "manifest_fingerprint": self._manifest_fingerprint,
             "process_running": process_running,
+            "stats_available": stats is not None,
+            "stats": stats.to_safe_dict() if stats else None,
             "last_error": self._last_error,
             "checked_at": int(time.time()),
         }
+
+    def fetch_stats_locked(self) -> MTProxyStats | None:
+        if not self.config.http_stats_enabled:
+            return None
+        try:
+            with urllib.request.urlopen(
+                f"http://127.0.0.1:{self.config.stats_port}/stats",
+                timeout=2,
+            ) as response:
+                body = response.read(64 * 1024).decode("utf-8", errors="replace")
+            return MTProxyStats.from_text(body)
+        except Exception:
+            return None
     # END_BLOCK_HEALTH
 
     def shutdown(self) -> None:

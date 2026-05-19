@@ -3,6 +3,7 @@
   <purpose>Verify that the official MTProxy data-plane is reachable through KrotPN public 443 and proves real Telegram protocol availability without leaking secrets.</purpose>
   <test-files>
     <file implemented="true">backend/tests/test_deploy_phase38_static.py</file>
+    <file implemented="true">backend/tests/test_official_mtproxy_supervisor.py</file>
     <file implemented="true">scripts/phase40-official-mtproxy-live-smoke.sh</file>
     <file implemented="true">official-mtproxy/entrypoint.sh</file>
     <file implemented="true">official-mtproxy/secret-control.py</file>
@@ -13,7 +14,7 @@
   </test-files>
   <module-checks>
     <check-1 LEVEL="module-local">bash -n official-mtproxy/entrypoint.sh scripts/phase40-official-mtproxy-live-smoke.sh deploy/deploy-on-server.sh install.sh</check-1>
-    <check-2 LEVEL="module-local">cd backend &amp;&amp; SECRET_KEY=test-secret-key-with-enough-length PYTHONPATH=. ../.venv/bin/python -m pytest -o addopts='' tests/test_deploy_phase38_static.py tests/test_domain_tls_edge_static.py tests/test_mtproto_de_edge_contract.py -v</check-2>
+    <check-2 LEVEL="module-local">cd backend &amp;&amp; SECRET_KEY=test-secret-key-with-enough-length PYTHONPATH=. ../.venv/bin/python -m pytest -o addopts='' tests/test_official_mtproxy_supervisor.py tests/test_deploy_phase38_static.py tests/test_domain_tls_edge_static.py tests/test_mtproto_de_edge_contract.py -v</check-2>
     <check-3 LEVEL="wave">docker compose config with Phase-40 MTProxy services enabled, using redacted env fixtures only.</check-3>
     <check-4 LEVEL="phase-live">scripts/phase40-official-mtproxy-live-smoke.sh --redacted --require-req-pq</check-4>
   </module-checks>
@@ -22,17 +23,19 @@
     <scenario-2 kind="success">Runtime stats and health are bound privately or to loopback and expose no user secrets, tg links, or runtime tokens.</scenario-2>
     <scenario-3 kind="success">RU public 443 routes HTTPS ClientHello for krotpn.xyz to web and routes non-HTTPS MTProto traffic to DE official MTProxy.</scenario-3>
     <scenario-4 kind="success">Live req_pq through the public KrotPN endpoint receives resPQ for the issued secure secret.</scenario-4>
-    <scenario-5 kind="failure">Official config fetch failure uses documented cached files or marks runtime degraded without returning active user payloads.</scenario-5>
-    <scenario-6 kind="failure">Invalid or empty secret manifest prevents official runtime promotion and emits redacted degraded status.</scenario-6>
-    <scenario-7 kind="failure">Any web HTTPS, backend API, or admin 8443 regression blocks release readiness.</scenario-7>
+    <scenario-5 kind="success">Repeated apply of an unchanged active manifest returns health and emits UNCHANGED without restarting mtproto-proxy.</scenario-5>
+    <scenario-6 kind="failure">Official config fetch failure uses documented cached files or marks runtime degraded without returning active user payloads.</scenario-6>
+    <scenario-7 kind="failure">Invalid or empty secret manifest prevents official runtime promotion and emits redacted degraded status.</scenario-7>
+    <scenario-8 kind="failure">Any web HTTPS, backend API, or admin 8443 regression blocks release readiness.</scenario-8>
   </scenarios>
   <required-log-markers>
     <marker-1>[OfficialMTProxy][manifest][REDACTED_COUNT]</marker-1>
     <marker-2>[OfficialMTProxy][process][STARTED]</marker-2>
     <marker-3>[OfficialMTProxy][http][STARTED]</marker-3>
-    <marker-4>[Phase40Smoke][route][HTTPS_OK]</marker-4>
-    <marker-5>[Phase40Smoke][req_pq][PASS_REDACTED]</marker-5>
-    <marker-6>[Phase40Smoke][redaction][PASS]</marker-6>
+    <marker-4>[OfficialMTProxy][manifest][UNCHANGED]</marker-4>
+    <marker-5>[Phase40Smoke][route][HTTPS_OK]</marker-5>
+    <marker-6>[Phase40Smoke][req_pq][PASS_REDACTED]</marker-6>
+    <marker-7>[Phase40Smoke][redaction][PASS]</marker-7>
   </required-log-markers>
   <redaction-rules>
     <rule-1>Never print raw 32-hex secrets, dd-prefixed secrets, full tg links, proxy-secret file contents, runtime tokens, wildcard private keys, JWTs, API keys, or raw .env content.</rule-1>
@@ -47,5 +50,10 @@
     <policy-1>Any req_pq timeout keeps Phase-40 blocked-live.</policy-1>
     <policy-2>Any raw secret or full proxy link in logs, docker output, admin output, or smoke output fails verification.</policy-2>
     <policy-3>Any regression in web HTTPS, backend API, or admin 8443 fails release readiness.</policy-3>
+    <policy-4>Any unchanged manifest apply that restarts mtproto-proxy fails live stability verification.</policy-4>
   </failure-policy>
+  <evidence>
+    <evidence-1>2026-05-19: backend/tests/test_official_mtproxy_supervisor.py proves unchanged manifest apply skips restart while dead-process fallback still restarts.</evidence-1>
+    <evidence-2>2026-05-19: Live DE hotfix showed repeated scheduler/apply cycles emitted UNCHANGED without SIGTERM and health returned healthy with private stats available.</evidence-2>
+  </evidence>
 </V-M-052>

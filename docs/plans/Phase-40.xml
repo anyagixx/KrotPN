@@ -93,5 +93,6 @@
     <evidence-1>2026-05-19: Local Phase-40 verification passed 49 targeted backend/static tests covering official secret sync, provisioning, owner API, admin ops, assignment registry, verified-registration integration, deploy/static edge, and redaction.</evidence-1>
     <evidence-2>2026-05-19: Full backend suite is not clean for unrelated pre-existing gates: billing plan API/webhook 404 tests, device migration SQLite helpers, and VPN public compatibility wrapper 404 tests remain outside Phase-40 scope.</evidence-2>
     <evidence-3>2026-05-19: Live req_pq and Telegram Desktop/mobile available proof remain required before production MTProto readiness or release promotion.</evidence-3>
+    <evidence-4>2026-05-19: Live clean deploy revealed Telegram sessions dropped because repeated identical secret manifest applies restarted mtproto-proxy. Hotfix made manifest apply idempotent, added HTTP stats and DE NAT info, and live DE evidence showed repeated UNCHANGED applies without SIGTERM plus healthy private stats.</evidence-4>
   </execution-evidence>
 </Phase-40>

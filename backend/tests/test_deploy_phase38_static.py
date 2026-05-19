@@ -16,9 +16,11 @@
 #   test_compose_has_single_default_public_443_owner - Verifies sni-router owns 443 with bind permissions and local edge is profiled.
 #   test_deploy_wires_de_runtime_and_private_policy_url - Verifies deploy-generated Phase-40 env and DE official runtime startup.
 #   test_de_runtime_compose_binds_policy_api_privately - Verifies DE official runtime policy API bind and health path.
+#   test_official_supervisor_has_stable_runtime_flags - Verifies stats, NAT info, and unchanged-manifest guards.
 # END_MODULE_MAP
 #
 # START_CHANGE_SUMMARY
+#   LAST_CHANGE: v2.1.0 - Added static guards for stable official MTProxy runtime flags and idempotent manifests.
 #   LAST_CHANGE: v2.0.0 - Updated deploy static checks for Phase-40 official MTProxy data-plane.
 #   LAST_CHANGE: v1.2.0 - Guard DE mtproto_proxy bootstrap against private POLICY_LISTEN_IP binding.
 #   LAST_CHANGE: v1.1.0 - Guard low-port HAProxy bind permissions and admin/fallback port separation.
@@ -100,10 +102,27 @@ def test_de_runtime_compose_binds_policy_api_privately():
     assert "context: ./official-mtproxy" in de_compose
     assert "MTPROTO_POLICY_BIND_IP: ${MTPROTO_POLICY_BIND_IP:-127.0.0.1}" in de_compose
     assert "MTPROXY_PORT: ${MTPROTO_DE_RUNTIME_PORT:-443}" in de_compose
+    assert "MTPROXY_HTTP_STATS: ${MTPROXY_HTTP_STATS:-1}" in de_compose
+    assert "MTPROXY_NAT_INFO: ${MTPROXY_NAT_INFO:-}" in de_compose
     assert "KROTPN_MTPROTO_POLICY_TOKEN" in de_compose
     assert "/krotpn/mtproto/policy/health" in de_compose
     assert "PROXY_SECRET_HEX" not in de_compose
     assert "/krotpn/mtproto/policy/secrets/apply" in supervisor
     assert "secret_hex must be a 32-hex official MTProxy secret" in supervisor
     assert "TelegramMessenger/MTProxy" in dockerfile
+
+
+def test_official_supervisor_has_stable_runtime_flags():
+    supervisor = _read("official-mtproxy/secret-control.py")
+    deploy = _read("deploy/deploy-on-server.sh")
+
+    assert "[OfficialMTProxy][manifest][UNCHANGED]" in supervisor
+    assert "fingerprint_entries" in supervisor
+    assert "--http-stats" in supervisor
+    assert "--nat-info" in supervisor
+    assert "ready_targets" in supervisor
+    assert "active_targets" in supervisor
+    assert "MTPROXY_HTTP_STATS=1" in deploy
+    assert "MTPROXY_NAT_INFO=${mtproxy_nat_info}" in deploy
+    assert "ip -4 -o addr show docker0" in deploy
 # END_BLOCK_PHASE40_DEPLOY_STATIC_TESTS
