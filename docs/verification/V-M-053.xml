@@ -1,6 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<V-M-053 MODULE="M-053" PRIORITY="critical" STATUS="pass-local">
-  <purpose>Verify that KrotPN creates, syncs, revokes, and reissues individual official MTProxy secrets safely and idempotently.</purpose>
+<V-M-053 MODULE="M-053" PRIORITY="critical" STATUS="superseded-planned">
+  <purpose>Verify the Phase-40 official MTProxy secret-sync reference and, for Phase-41, verify that it no longer drives active production issuance.</purpose>
+  <phase-41-supersession>
+    <item-1>Phase-41 production issuance uses KPprotoN fake-TLS SNI policy via M-043/M-044 instead of official secret manifests.</item-1>
+    <item-2>M-053 may remain available only for rollback/reference behavior.</item-2>
+  </phase-41-supersession>
   <test-files>
     <file implemented="true">backend/tests/test_mtproxy_secret_sync.py</file>
     <file implemented="true">backend/tests/test_mtproto_provisioning.py</file>
@@ -14,6 +18,7 @@
     <check-1 LEVEL="module-local">cd backend &amp;&amp; SECRET_KEY=test-secret-key-with-enough-length DATA_ENCRYPTION_KEY=dpFmfSVqfdAK3yx5MQV6Tcv35RZuw5MzaH0yhxJ01q0= PYTHONPATH=. ../.venv/bin/python -m pytest -o addopts='' tests/test_mtproxy_secret_sync.py tests/test_mtproto_provisioning.py tests/test_mtproto_api.py tests/test_mtproto_admin_ops.py tests/test_mtproto_assignment_registry.py tests/test_phase34_mtproto_integration.py tests/test_scheduler.py -v</check-1>
     <check-2 LEVEL="wave">Run frontend and frontend-admin builds after payload/API shape changes.</check-2>
     <check-3 LEVEL="phase-live">Run Phase-40 live smoke against one newly verified user and one revoked/reissued user without printing secrets.</check-3>
+    <check-4 LEVEL="phase-41">Verify active issuance does not render or apply official secret manifests after KPprotoN rollback.</check-4>
   </module-checks>
   <scenarios>
     <scenario-1 kind="success">Verified user receives one canonical official credential-mode assignment and owner-only secure link with secret=dd&lt;32-hex-secret&gt;.</scenario-1>
@@ -25,6 +30,7 @@
     <scenario-7 kind="failure">Unverified user receives no MTProxy secret and no runtime apply attempt.</scenario-7>
     <scenario-8 kind="failure">Runtime apply failure returns degraded state, retries safely, and does not block normal KrotPN login.</scenario-8>
     <scenario-9 kind="failure">Oversized manifest or command-line guard prevents unsafe runtime launch and reports scale-out requirement.</scenario-9>
+    <scenario-10 kind="success">Phase-41 reissue creates a KPprotoN fake-TLS assignment payload and bypasses official manifest sync.</scenario-10>
   </scenarios>
   <required-log-markers>
     <marker-1>[MTProxySecretSync][derive][FINGERPRINT_ONLY]</marker-1>
@@ -49,5 +55,9 @@
     <policy-2>Any revoke or reissue operation affecting more than the target assignment fails verification.</policy-2>
     <policy-3>Any MTProxy issuance before email verification fails verification.</policy-3>
     <policy-4>Any active user payload returned before runtime apply succeeds or explicitly reports degraded state fails verification.</policy-4>
+    <policy-5>After Phase-41 execution, any official manifest apply during normal user issuance fails verification unless rollback is explicit.</policy-5>
   </failure-policy>
+  <evidence>
+    <evidence-1>2026-05-19: Phase-41 verification planning marks official secret sync as superseded for production and requires active issuance to use KPprotoN fake-TLS policy instead.</evidence-1>
+  </evidence>
 </V-M-053>

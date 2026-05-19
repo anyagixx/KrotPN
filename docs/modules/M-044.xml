@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<M-044 NAME="kpproton-runtime-bridge" TYPE="INTEGRATION" STATUS="partial-live">
-  <path>backend/app/mtproto backend/app/tasks/scheduler.py backend/app/core/config.py mtproto-runtime docs/plans/Phase-30.xml docs/plans/Phase-37.xml docs/plans/Phase-38.xml</path>
+<M-044 NAME="kpproton-runtime-bridge" TYPE="INTEGRATION" STATUS="planned-phase41">
+  <path>backend/app/mtproto backend/app/tasks/scheduler.py backend/app/core/config.py mtproto-runtime docs/plans/Phase-30.xml docs/plans/Phase-37.xml docs/plans/Phase-38.xml docs/plans/Phase-41.xml</path>
   <owns>Runtime bridge from KrotPN assignments to the KPprotoN/mtproto_proxy policy layer, startup policy replay, and explicit policy revoke.</owns>
   <purpose>Keep Telegram MTProto access aligned with issued assignment state by loading or removing SNI assignments at the runtime edge without blocking normal KrotPN auth.</purpose>
   <exports>
@@ -38,10 +38,11 @@
     <constraint-2>Do not expose raw tg://proxy links or secrets in runtime logs.</constraint-2>
     <constraint-3>Do not rotate MTPROTO_BASE_SECRET_HEX or MTPROTO_SECRET_SALT when enabling the live runtime for existing assignments.</constraint-3>
   </constraints>
-  <phase-40-supersession>
-    <item-1>Phase-40 plans to supersede the KPprotoN policy data-plane with M-052 official MTProxy runtime.</item-1>
-    <item-2>M-044 remains a reference for degraded-safe runtime apply/replay semantics, but production Telegram availability will be gated by official per-user secrets and req_pq proof.</item-2>
-  </phase-40-supersession>
+  <phase-41-reactivation>
+    <item-1>Phase-41 supersedes the Phase-40 official MTProxy production path and reactivates M-044 as the production SNI policy bridge.</item-1>
+    <item-2>Policy apply/revoke/replay must target the DE KPprotoN runtime and must not depend on official MTProxy secret manifests.</item-2>
+    <item-3>Adding a new SNI policy must not restart the MTProto data-plane when the runtime supports in-memory policy updates.</item-3>
+  </phase-41-reactivation>
   <evidence>
     <evidence-1>2026-05-14: Phase-30 target pytest passed for fake/local adapter policy apply, replay idempotency, degraded mode, runtime health redaction, and scheduler registration.</evidence-1>
     <evidence-2>2026-05-14: Phase-33 fix added runtime policy revoke regression coverage for admin assignment disable.</evidence-2>
@@ -51,6 +52,7 @@
     <evidence-6>2026-05-18: DE live smoke found mtproto_proxy bootstrap still hardcoded to 127.0.0.1 while policy API was privately bound to 172.29.255.1; runtime now builds bootstrap URLs from POLICY_LISTEN_IP.</evidence-6>
     <evidence-7>2026-05-18: DE live rebuild passed with mtproto_proxy listening on 0.0.0.0:443 and private policy health OK on 172.29.255.1:18080.</evidence-7>
     <evidence-8>2026-05-19: Phase-40 planning marks KPprotoN/Erlang data-plane as insufficient after req_pq timeout against issued user links.</evidence-8>
+    <evidence-9>2026-05-19: Phase-41 planning reopens the KPprotoN runtime bridge as the intended production policy plane after official MTProxy proved operationally mismatched for per-user issuance.</evidence-9>
   </evidence>
   <hotspot>H-030: MTProto runtime bridge must degrade safely when policy loading fails and must not block normal KrotPN login</hotspot>
 </M-044>

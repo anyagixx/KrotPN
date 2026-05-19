@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<M-052 NAME="official-mtproxy-data-plane" TYPE="INTEGRATION" STATUS="partial-live">
-  <path>official-mtproxy deploy docker-compose.yml deploy/deploy-on-server.sh deploy/haproxy-phase40.cfg deploy/mtproto-de-compose.yml scripts/phase40-official-mtproxy-live-smoke.sh docs/plans/Phase-40.xml</path>
+<M-052 NAME="official-mtproxy-data-plane" TYPE="INTEGRATION" STATUS="superseded-planned">
+  <path>official-mtproxy deploy docker-compose.yml deploy/deploy-on-server.sh deploy/haproxy-phase40.cfg deploy/mtproto-de-compose.yml scripts/phase40-official-mtproxy-live-smoke.sh docs/plans/Phase-40.xml docs/plans/Phase-41.xml</path>
   <owns>Official Telegram MTProxy runtime, redacted runtime launcher, local stats/health contract, and RU-to-DE MTProto data-plane routing.</owns>
-  <purpose>Provide the production MTProto data-plane that real Telegram clients can validate through req_pq while KrotPN remains the control-plane for users and secrets.</purpose>
+  <purpose>Provide the Phase-40 official MTProxy data-plane reference, now planned to be superseded by Phase-41 KPprotoN fake-TLS production routing.</purpose>
   <exports>
     <runtime-official-mtproxy>Runs the official mtproto-proxy binary on the DE MTProto node with generated -S user secrets.</runtime-official-mtproxy>
     <launcher-redacted>Starts the runtime from a secret manifest without printing full tg links or raw secrets.</launcher-redacted>
@@ -39,12 +39,18 @@
     <constraint-3>Public TCP 443 changes must preserve HTTPS reachability for krotpn.xyz and admin 8443 behavior.</constraint-3>
     <constraint-4>Restart-on-secret-manifest-change is acceptable in Phase-40, but apply failure must be visible as degraded and retryable.</constraint-4>
     <constraint-5>Any runtime token, private key, proxy-secret file, user secret, or full proxy link must be redacted from logs and smoke output.</constraint-5>
+    <constraint-6>Phase-41 must remove M-052 from the active production data-plane unless an explicit rollback requires it.</constraint-6>
   </constraints>
+  <phase-41-supersession>
+    <item-1>Official MTProxy remains useful as diagnostic reference, but it is not the selected production model for per-user SNI issuance.</item-1>
+    <item-2>Phase-41 execution must prevent the official runtime from owning the active DE MTProto service path.</item-2>
+  </phase-41-supersession>
   <evidence>
     <evidence-1>2026-05-19: Phase-39 client-level diagnostics found req_pq timeout through the current KPprotoN/Erlang runtime.</evidence-1>
     <evidence-2>2026-05-19: Temporary official MTProxy runtime on the DE host passed normal and secure req_pq smoke, proving the official runtime is the selected Phase-40 data-plane.</evidence-2>
     <evidence-3>2026-05-19: Local execution added official-mtproxy runtime scaffold, Phase-40 HAProxy router, DE compose wiring, deploy copy/env changes, redacted live-smoke gate, and deploy/static tests; clean-VPS live req_pq remains pending.</evidence-3>
     <evidence-4>2026-05-19: Live DE hotfix found repeated identical manifest apply was restarting mtproto-proxy and interrupting Telegram sessions; supervisor idempotency, HTTP stats, and NAT info were applied live, repeated scheduler sync produced UNCHANGED without SIGTERM, and policy health reported healthy.</evidence-4>
+    <evidence-5>2026-05-19: Phase-41 planning supersedes M-052 for production because official manifest/process semantics do not match the required no-restart per-user SNI model.</evidence-5>
   </evidence>
   <hotspot>H-039: Official MTProxy runtime must pass req_pq through public 443 and must not print generated links or secrets through default wrapper logs.</hotspot>
 </M-052>

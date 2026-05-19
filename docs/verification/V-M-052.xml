@@ -1,6 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<V-M-052 MODULE="M-052" PRIORITY="critical" STATUS="partial-live">
-  <purpose>Verify that the official MTProxy data-plane is reachable through KrotPN public 443 and proves real Telegram protocol availability without leaking secrets.</purpose>
+<V-M-052 MODULE="M-052" PRIORITY="critical" STATUS="superseded-planned">
+  <purpose>Verify the Phase-40 official MTProxy data-plane reference and, for Phase-41, verify that it is not the active production path unless rollback is explicit.</purpose>
+  <phase-41-supersession>
+    <item-1>Phase-41 planned production behavior removes official MTProxy from active DE MTProto routing.</item-1>
+    <item-2>Official runtime files may remain in the repository as reference/rollback artifacts, but active issuance must use KPprotoN fake-TLS policy.</item-2>
+  </phase-41-supersession>
   <test-files>
     <file implemented="true">backend/tests/test_deploy_phase38_static.py</file>
     <file implemented="true">backend/tests/test_official_mtproxy_supervisor.py</file>
@@ -17,6 +21,7 @@
     <check-2 LEVEL="module-local">cd backend &amp;&amp; SECRET_KEY=test-secret-key-with-enough-length PYTHONPATH=. ../.venv/bin/python -m pytest -o addopts='' tests/test_official_mtproxy_supervisor.py tests/test_deploy_phase38_static.py tests/test_domain_tls_edge_static.py tests/test_mtproto_de_edge_contract.py -v</check-2>
     <check-3 LEVEL="wave">docker compose config with Phase-40 MTProxy services enabled, using redacted env fixtures only.</check-3>
     <check-4 LEVEL="phase-live">scripts/phase40-official-mtproxy-live-smoke.sh --redacted --require-req-pq</check-4>
+    <check-5 LEVEL="phase-41">Verify official MTProxy is not the active production data-plane after KPprotoN fake-TLS rollback.</check-5>
   </module-checks>
   <scenarios>
     <scenario-1 kind="success">Launcher builds official mtproto-proxy arguments from active 32-hex secrets and passes them as -S values without echoing secrets.</scenario-1>
@@ -27,6 +32,7 @@
     <scenario-6 kind="failure">Official config fetch failure uses documented cached files or marks runtime degraded without returning active user payloads.</scenario-6>
     <scenario-7 kind="failure">Invalid or empty secret manifest prevents official runtime promotion and emits redacted degraded status.</scenario-7>
     <scenario-8 kind="failure">Any web HTTPS, backend API, or admin 8443 regression blocks release readiness.</scenario-8>
+    <scenario-9 kind="success">Phase-41 deploy keeps official runtime inactive while KPprotoN fake-TLS runtime serves issued SNI traffic.</scenario-9>
   </scenarios>
   <required-log-markers>
     <marker-1>[OfficialMTProxy][manifest][REDACTED_COUNT]</marker-1>
@@ -51,9 +57,11 @@
     <policy-2>Any raw secret or full proxy link in logs, docker output, admin output, or smoke output fails verification.</policy-2>
     <policy-3>Any regression in web HTTPS, backend API, or admin 8443 fails release readiness.</policy-3>
     <policy-4>Any unchanged manifest apply that restarts mtproto-proxy fails live stability verification.</policy-4>
+    <policy-5>After Phase-41 execution, any active production route to M-052 fails verification unless explicitly running rollback.</policy-5>
   </failure-policy>
   <evidence>
     <evidence-1>2026-05-19: backend/tests/test_official_mtproxy_supervisor.py proves unchanged manifest apply skips restart while dead-process fallback still restarts.</evidence-1>
     <evidence-2>2026-05-19: Live DE hotfix showed repeated scheduler/apply cycles emitted UNCHANGED without SIGTERM and health returned healthy with private stats available.</evidence-2>
+    <evidence-3>2026-05-19: Phase-41 verification planning marks official MTProxy as superseded for production and adds a gate that it is inactive in the KPprotoN rollback path.</evidence-3>
   </evidence>
 </V-M-052>

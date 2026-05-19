@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<M-051 NAME="mtproto-availability-diagnostics" TYPE="INTEGRATION" STATUS="partial-live">
-  <path>backend/app/mtproto frontend scripts/phase39-mtproto-availability-smoke.mjs scripts/phase39-mtproto-live-smoke.sh scripts/phase40-official-mtproxy-live-smoke.sh docs/plans/Phase-39.xml docs/plans/Phase-40.xml</path>
+<M-051 NAME="mtproto-availability-diagnostics" TYPE="INTEGRATION" STATUS="planned-phase41">
+  <path>backend/app/mtproto frontend scripts/phase39-mtproto-availability-smoke.mjs scripts/phase39-mtproto-live-smoke.sh scripts/phase40-official-mtproxy-live-smoke.sh scripts/phase41-kpproton-faketls-smoke.mjs docs/plans/Phase-39.xml docs/plans/Phase-40.xml docs/plans/Phase-41.xml</path>
   <owns>Secret-free MTProto availability proof from issued assignment through RU public 443, DE runtime acceptance, Telegram downstream reachability, req_pq proof, and user connection UX.</owns>
   <purpose>Close the remaining Telegram proxy unavailable state with deterministic diagnostics, safer user connection flow, and live proof before marking MTProto production-ready.</purpose>
   <exports>
@@ -30,6 +30,7 @@
     <finding-4>DE runtime had stale domain-fronting fallback value 127.0.0.1:8443 while Phase-38 contract requires private 9443 fallback.</finding-4>
     <finding-5>2026-05-19 follow-up diagnostics showed fake-TLS acceptance was insufficient: real req_pq timed out against the KPprotoN/Erlang data-plane.</finding-5>
     <finding-6>2026-05-19 temporary official MTProxy data-plane passed req_pq for official normal and secure secrets on the same DE host.</finding-6>
+    <finding-7>2026-05-19 operator retest showed official MTProxy links can report available but remain unstable or unavailable for new users, so Phase-41 plans a return to the reference KPprotoN fake-TLS SNI model.</finding-7>
   </phase39-findings>
   <constraints>
     <constraint-1>Do not rotate MTPROTO_BASE_SECRET_HEX, MTPROTO_SECRET_SALT, user SNI, assignment ids, or existing tg links unless an explicit reissue phase is approved.</constraint-1>
@@ -43,13 +44,19 @@
     <item-2 status="passed-local">User dashboard provides a primary Telegram connection action that avoids manual secret entry mistakes.</item-2>
     <item-3 status="passed-live">DE runtime no longer preserves stale 8443 domain-fronting fallback after the Phase-39 guard is applied.</item-3>
     <item-4 status="operator-required">Telegram Desktop availability proof is recorded before MTProto edge status is promoted from partial-live.</item-4>
-    <item-5 status="planned-phase-40">Official MTProxy req_pq smoke replaces fake-TLS-only proof as the automated production gate.</item-5>
+    <item-5 status="superseded-phase41">Official MTProxy req_pq smoke is superseded as the production gate; Phase-41 requires KPprotoN fake-TLS SNI proof plus Telegram Desktop/mobile proof.</item-5>
   </acceptance>
+  <phase-41-plan>
+    <step-1 STATUS="planned">Add a redacted smoke proving issued ee fake-TLS owner payload shape, SNI route, DE policy apply, and no official runtime dependency.</step-1>
+    <step-2 STATUS="planned">Track whether adding a new user SNI changes policy without restarting the DE MTProto data-plane.</step-2>
+    <step-3 STATUS="planned">Keep final acceptance tied to real Telegram Desktop and phone connectivity, not policy health alone.</step-3>
+  </phase-41-plan>
   <execution-evidence>
     <item-1>Local Phase-39 shell syntax, static smoke, backend MTProto regression tests, frontend build, XML parse, and MyGRACE lint passed on 2026-05-18.</item-1>
     <item-2>Redacted live smoke found active assignment id 1, healthy policy_count 2, public RU:443 TCP route, fake-TLS accept, private DE fallback 9443, and reachable Telegram downstream config.</item-2>
     <item-3>The live DE stale fallback value 127.0.0.1:8443 was corrected to 127.0.0.1:9443 without rotating MTProto secrets or assignments.</item-3>
     <item-4>2026-05-19 client-level diagnostics found req_pq timeout through KPprotoN/Erlang and selected Phase-40 official MTProxy as the closure path.</item-4>
+    <item-5>2026-05-19 Phase-41 planning supersedes the official closure path after operator Telegram retests showed the official runtime does not satisfy stable product behavior.</item-5>
   </execution-evidence>
   <hotspot>H-038: Do not claim MTProto availability from policy health alone; issued-link and Telegram-client proof are required.</hotspot>
 </M-051>

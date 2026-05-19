@@ -1,8 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<V-M-051 MODULE="M-051" PRIORITY="critical" STATUS="partial-live" VERSION="1.2.0">
+<V-M-051 MODULE="M-051" PRIORITY="critical" STATUS="planned-phase41" VERSION="1.3.0">
   <module>mtproto-availability-diagnostics</module>
   <phase-scope>
     <phase-39 status="partial-live">Close the remaining issued Telegram proxy unavailable state with redacted local/static and operator-live evidence.</phase-39>
+    <phase-41 status="planned">Availability diagnostics must prove the KPprotoN fake-TLS SNI path and no longer treat official MTProxy req_pq as the production gate.</phase-41>
     <supersedes>M-050 remains the edge-routing module; M-051 adds the missing availability proof layer above routing and policy health.</supersedes>
   </phase-scope>
   <test-files>
@@ -16,6 +17,7 @@
     <file>backend/tests/test_deploy_phase38_static.py</file>
     <file>frontend/src/pages/Dashboard.tsx</file>
     <file>frontend/src/lib/api.ts</file>
+    <file phase="41-planned">scripts/phase41-kpproton-faketls-smoke.mjs</file>
   </test-files>
   <commands>
     <command-1>bash -n install.sh deploy/deploy-on-server.sh</command-1>
@@ -25,6 +27,7 @@
     <command-4>cd backend &amp;&amp; SECRET_KEY=test-secret-key-with-enough-length DATA_ENCRYPTION_KEY=dpFmfSVqfdAK3yx5MQV6Tcv35RZuw5MzaH0yhxJ01q0= PYTHONPATH=. ../.venv/bin/python -m pytest -o addopts='' tests/test_mtproto_provisioning.py tests/test_kpproton_runtime_bridge.py tests/test_mtproto_api.py tests/test_mtproto_de_edge_contract.py tests/test_deploy_phase38_static.py tests/test_mtproto_availability_diagnostics.py -v</command-4>
     <command-5>cd frontend &amp;&amp; npm run build</command-5>
     <command-6>python3 -m xml.etree.ElementTree docs/graph-index.xml docs/plan-index.xml docs/verification-index.xml docs/modules/M-051.xml docs/plans/Phase-39.xml docs/verification/V-M-051.xml &amp;&amp; mygrace lint</command-6>
+    <command-7 status="planned">node scripts/phase41-kpproton-faketls-smoke.mjs</command-7>
   </commands>
   <verification-levels>
     <module-local>Static checks prove link format, redaction, fallback-port contracts, and diagnostic schema without live secrets.</module-local>
@@ -40,6 +43,7 @@
     <check-6 evidence="operator-live" status="passed">Fake-TLS probe receives a response through public RU 443 to DE runtime using the issued assignment derivation.</check-6>
     <check-7 evidence="operator-live" status="passed">DE runtime can reach at least one Telegram downstream target or emits a separate downstream failure code.</check-7>
     <check-8 evidence="operator-live">Telegram Desktop marks the issued proxy available using the refreshed primary connection action.</check-8>
+    <check-9 evidence="phase-41-deterministic">Diagnostics prove the issued owner payload uses ee fake-TLS secret, SNI route reaches KPprotoN runtime, and official MTProxy is not in the active route.</check-9>
   </module-checks>
   <verification-matrix>
     <gate-1 MODULES="M-051,M-043" EVIDENCE="deterministic">Issued assignment payload, SNI, port, and link assembly remain stable and do not rotate existing user credentials.</gate-1>
@@ -48,6 +52,7 @@
     <gate-4 MODULES="M-051,M-050,M-012" EVIDENCE="deterministic">Deploy/static smoke rejects stale DE fallback 8443 and preserves the Phase-38 private 9443 web fallback versus public admin 8443 split.</gate-4>
     <gate-5 MODULES="M-051,M-050" EVIDENCE="operator-live">Public RU 443 routes an issued MTProto SNI to DE and the fake-TLS probe receives a runtime response.</gate-5>
     <gate-6 MODULES="M-051" EVIDENCE="operator-live">Telegram Desktop marks the issued proxy available after using the refreshed primary connection action.</gate-6>
+    <gate-7 MODULES="M-051,M-049,M-050" EVIDENCE="phase-41-live">New verified user receives a Phase-41 ee link, DE policy applies without data-plane restart, and Telegram Desktop/mobile remain connected.</gate-7>
   </verification-matrix>
   <scenarios>
     <scenario-1 kind="success">Verified user opens cabinet, clicks the primary Telegram action, and Telegram Desktop marks the issued proxy available.</scenario-1>
@@ -55,6 +60,7 @@
     <scenario-3 kind="failure">Policy health is OK but fake-TLS accept fails; diagnostics classify secret/link mismatch instead of route failure.</scenario-3>
     <scenario-4 kind="failure">Fake-TLS accept succeeds but downstream Telegram connection fails; diagnostics classify Telegram DC/provider reachability separately.</scenario-4>
     <scenario-5 kind="failure">Stale DE fallback 8443 is detected and blocked from being treated as Phase-39-ready.</scenario-5>
+    <scenario-6 kind="success">Phase-41 smoke shows official MTProxy disabled from the active route and KPprotoN fake-TLS runtime serving issued SNI traffic.</scenario-6>
   </scenarios>
   <required-log-markers>
     <marker-1>[M-051][availability_smoke][LOAD_ACTIVE_ASSIGNMENT]</marker-1>
@@ -85,6 +91,7 @@
     <gate-4 status="passed">Fake-TLS probe receives a server response through public RU 443.</gate-4>
     <gate-5 status="passed">DE reaches at least one Telegram downstream target.</gate-5>
     <gate-6>Operator Telegram Desktop proof reports available.</gate-6>
+    <gate-7>Phase-41 operator proof reports Telegram Desktop and mobile connected with the issued ee fake-TLS link.</gate-7>
   </live-smoke-gates>
   <execution-evidence>
     <item-1>Local verification passed on 2026-05-18: shell syntax, static Phase-39 smoke, backend MTProto regression tests including availability diagnostics, frontend build, XML parse, and MyGRACE lint.</item-1>
@@ -96,6 +103,7 @@
     <item-2>If fake-TLS accept fails, compare redacted derivation fingerprints and user link source before rotating anything.</item-2>
     <item-3>If downstream fails, keep user link stable and investigate DE provider/Telegram DC reachability separately.</item-3>
     <item-4>If Telegram Desktop alone fails after fake-TLS probe passes, clear old proxy entries and retry with the refreshed primary Telegram link before code changes.</item-4>
+    <item-5>If Phase-41 smoke finds official MTProxy still active in production routing, stop rollout and correct deploy/runtime selection before user testing.</item-5>
   </failure-handoff>
   <autonomous-execution-safety>
     <safe-local>XML parse, MyGRACE lint, static smoke, backend fake/private adapter tests, frontend build, redaction checks, and deterministic link-format checks.</safe-local>

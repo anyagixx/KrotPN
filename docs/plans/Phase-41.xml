@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Phase-41 NAME="KPprotoN fake-TLS production data-plane rollback" STATUS="planned" VERSION="1.0.0">
+  <Goal>Replace the Phase-40 official MTProxy production path with the KPprotoN fake-TLS SNI data-plane while keeping KrotPN as the registration, assignment, dashboard, admin, and backup control-plane.</Goal>
+  <Modules>M-043,M-044,M-049,M-050,M-051,M-052,M-053,M-012,M-045,M-047</Modules>
+  <OperatorProblem>
+    <item-1>Clean VPS deploy starts, email registration works, and users receive MTProto links, but Telegram Desktop/mobile still reports unavailable or unstable proxy behavior.</item-1>
+    <item-2>Phase-40 official MTProxy requires active-secret manifest changes and process restart when a new user secret is added, which does not match the product requirement for per-user always-on proxy issuance.</item-2>
+    <item-3>The reference project CodexKPprotoN_for_KPN and the Habr architecture describe the intended model: per-user fake-TLS SNI policy under a wildcard domain, not official dd-secret manifest sync.</item-3>
+  </OperatorProblem>
+  <ArchitectureDecision>
+    <item-1>Phase-41 supersedes M-052/M-053 as the production MTProto path and returns the live data-plane to KPprotoN fake-TLS with per-SNI policy.</item-1>
+    <item-2>KrotPN remains the source of truth for verified users, assignments, owner payloads, admin revoke/reissue, and backup/restore metadata.</item-2>
+    <item-3>New owner payloads use server=u-*.krotpn.xyz, port=443, and a KPprotoN-compatible ee fake-TLS secret derived from assignment SNI, base secret, and private salt.</item-3>
+    <item-4>RU public TCP 443 uses SNI routing: web SNI goes to nginx fallback, issued user SNI goes to DE KPprotoN runtime, and unknown SNI takes an explicit safe fallback.</item-4>
+    <item-5>DE KPprotoN runtime accepts policy apply/revoke/replay over the private token-protected policy API without restarting the data-plane for each new user.</item-5>
+  </ArchitectureDecision>
+  <NonGoals>
+    <item-1>No redesign of install.sh or the operator-approved deploy workflow beyond the narrow KPprotoN runtime wiring needed to replace official MTProxy.</item-1>
+    <item-2>No Lets Encrypt automation change; the operator-provided wildcard TLS certificate model remains in force.</item-2>
+    <item-3>No billing, trial, VPN, Resend, or referral behavior changes.</item-3>
+    <item-4>No public exposure of policy API, runtime token, base secret, salt, derived secret, full tg link, wildcard private key, or provider secrets.</item-4>
+    <item-5>No claim of MTProto readiness from container health, policy_count, or fake-TLS accept alone; Telegram Desktop/mobile proof remains required.</item-5>
+  </NonGoals>
+  <DataFlow>
+    <flow-1>Verified email activation creates or reuses one canonical MTProto assignment in KrotPN Postgres.</flow-1>
+    <flow-2>M-043 derives the assignment SNI and fake-TLS owner secret and returns an owner-only tg://proxy or https://t.me/proxy payload.</flow-2>
+    <flow-3>M-044 applies the issued SNI to the DE KPprotoN policy API before the user sees active proxy status.</flow-3>
+    <flow-4>M-050 routes u-*.krotpn.xyz traffic from RU public 443 to the DE KPprotoN runtime while krotpn.xyz and www.krotpn.xyz continue to the web fallback.</flow-4>
+    <flow-5>M-049 serves fake-TLS Telegram MTProto traffic on DE and uses bounded Telegram bootstrap/static fallback behavior aligned with the reference KPprotoN implementation.</flow-5>
+    <flow-6>M-051 proves the issued user path with redacted diagnostics and operator Telegram Desktop/mobile evidence.</flow-6>
+  </DataFlow>
+  <Steps>
+    <step-1 STATUS="planned">Mark Phase-40 official MTProxy modules M-052/M-053 as superseded for production and keep them as rollback/reference only.</step-1>
+    <step-2 STATUS="planned">Restore M-043 provisioning to KPprotoN fake-TLS payloads with server=u-*.krotpn.xyz and secret=ee...; official dd assignments must be reissued explicitly.</step-2>
+    <step-3 STATUS="planned">Restore M-044 policy apply/revoke/replay as the production runtime bridge and remove official secret-manifest sync from active issuance.</step-3>
+    <step-4 STATUS="planned">Reconcile M-049 mtproto-runtime with CodexKPprotoN_for_KPN for per-SNI policy, fake-TLS secret handling, bounded Telegram bootstrap, and private policy API behavior.</step-4>
+    <step-5 STATUS="planned">Restore M-050 RU SNI routing so issued wildcard SNI goes to DE KPprotoN runtime and web/admin HTTPS remains stable.</step-5>
+    <step-6 STATUS="planned">Update M-012 deploy wiring to start the KPprotoN DE runtime as the active data-plane and disable official MTProxy services in the production compose path.</step-6>
+    <step-7 STATUS="planned">Update M-045/M-047 user/admin surfaces only as needed for reissue messaging, redaction, and fake-TLS status semantics.</step-7>
+    <step-8 STATUS="planned">Strengthen M-051 diagnostics with Phase-41 redacted smoke for issued ee link, SNI route, policy apply without restart, DE runtime logs, and Telegram proof.</step-8>
+    <step-9 STATUS="planned">Run local verification, MyGRACE reviewer/refresh, then clean VPS deploy and operator Telegram Desktop/mobile acceptance before any release tag.</step-9>
+  </Steps>
+  <Verification>
+    <command-1>bash -n install.sh deploy/deploy-on-server.sh scripts/phase39-mtproto-live-smoke.sh</command-1>
+    <command-2>node scripts/phase38-de-mtproto-edge-smoke.mjs</command-2>
+    <command-3>node scripts/phase39-mtproto-availability-smoke.mjs</command-3>
+    <command-4>planned: node scripts/phase41-kpproton-faketls-smoke.mjs</command-4>
+    <command-5>cd backend &amp;&amp; SECRET_KEY=test-secret-key-with-enough-length DATA_ENCRYPTION_KEY=dpFmfSVqfdAK3yx5MQV6Tcv35RZuw5MzaH0yhxJ01q0= PYTHONPATH=. ../.venv/bin/python -m pytest -o addopts='' tests/test_mtproto_provisioning.py tests/test_kpproton_runtime_bridge.py tests/test_mtproto_api.py tests/test_mtproto_admin_ops.py tests/test_mtproto_de_edge_contract.py tests/test_mtproto_availability_diagnostics.py -v</command-5>
+    <command-6>cd mtproto-runtime &amp;&amp; rebar3 compile</command-6>
+    <command-7>python3 -m xml.etree.ElementTree docs/graph-index.xml docs/plan-index.xml docs/verification-index.xml docs/plans/Phase-41.xml docs/modules/M-043.xml docs/modules/M-044.xml docs/modules/M-049.xml docs/modules/M-050.xml docs/modules/M-051.xml docs/modules/M-052.xml docs/modules/M-053.xml &amp;&amp; mygrace lint</command-7>
+    <command-8>operator-live: clean VPS deploy, new verified user receives ee fake-TLS link, RU routes issued SNI to DE, DE policy_count changes without data-plane restart, and Telegram Desktop/mobile works.</command-8>
+  </Verification>
+  <VerificationMatrix>
+    <gate-1 MODULES="M-043,M-045" EVIDENCE="deterministic">Owner payload uses fake-TLS ee secret and issued user SNI, not official dd secret on the base domain.</gate-1>
+    <gate-2 MODULES="M-044,M-049" EVIDENCE="deterministic">Policy apply/revoke/replay updates KPprotoN runtime policy without restarting the MTProto data-plane for unchanged or newly added SNI policy.</gate-2>
+    <gate-3 MODULES="M-049" EVIDENCE="deterministic">mtproto-runtime matches the reference KPprotoN semantics for per-SNI fake-TLS policy and bootstrap fallback.</gate-3>
+    <gate-4 MODULES="M-050,M-012" EVIDENCE="deterministic">RU public 443 classifies web SNI and issued wildcard SNI correctly while preserving admin 8443 and private nginx fallback.</gate-4>
+    <gate-5 MODULES="M-052,M-053" EVIDENCE="deterministic">Official MTProxy runtime and manifest sync are not active in the production data-plane after Phase-41 execution.</gate-5>
+    <gate-6 MODULES="M-051" EVIDENCE="operator-live">Telegram Desktop and mobile connect through a newly issued Phase-41 proxy and remain connected beyond the initial availability check.</gate-6>
+  </VerificationMatrix>
+  <AcceptanceCriteria>
+    <item-1>New verified users receive a stable personal KPprotoN fake-TLS proxy with server under u-*.krotpn.xyz and secret prefix ee.</item-1>
+    <item-2>Official dd-secret links are not issued as the production owner payload after Phase-41 execution.</item-2>
+    <item-3>Adding a user or replaying assignments does not restart the MTProto data-plane for unchanged policy state.</item-3>
+    <item-4>https://krotpn.xyz, https://krotpn.xyz:8443/login, backend API, registration email, and VPN provisioning remain healthy.</item-4>
+    <item-5>Admin revoke/reissue affects exactly one user SNI policy and keeps all raw proxy secrets redacted from admin tables, audit events, logs, and smoke output.</item-5>
+    <item-6>Telegram Desktop and phone both show the proxy available and traffic remains usable after initial connection, with evidence recorded as operator-live.</item-6>
+  </AcceptanceCriteria>
+  <Risks>
+    <risk-1>Misreading the KPprotoN reference can reproduce the earlier fake-TLS mismatch; Phase-41 must compare KrotPN runtime behavior against CodexKPprotoN_for_KPN before live deploy.</risk-1>
+    <risk-2>Changing public 443 routing can break web HTTPS or admin access if SNI classification or fallback ports drift.</risk-2>
+    <risk-3>Wildcard TLS private key handling on DE remains sensitive and must stay redacted in deploy logs and diagnostics.</risk-3>
+    <risk-4>Existing official-mode assignments need explicit reissue or migration messaging so users do not keep broken dd links.</risk-4>
+    <risk-5>Local fake-TLS probes are not enough; final readiness depends on real Telegram Desktop/mobile evidence.</risk-5>
+  </Risks>
+  <AutonomousExecutionSafety>
+    <safe-local>Planning docs, static smoke, XML parse, MyGRACE lint, backend tests with fake/private adapters, and Erlang compile from a safe ASCII temp path.</safe-local>
+    <requires-operator>Clean VPS deploy, public 443 cutover, wildcard certificate placement, RU/DE service restart, and Telegram Desktop/mobile proof.</requires-operator>
+    <blocked-action>Secret rotation, wildcard certificate replacement, or broad deploy workflow redesign without a separate approved fix phase.</blocked-action>
+  </AutonomousExecutionSafety>
+</Phase-41>
