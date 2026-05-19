@@ -1,8 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- V-M-029: Rebranding Verification — KrotPN → KrotPN migration -->
-<V-M-029 MODULE="M-012" PRIORITY="critical" STATUS="partial-local">
-  <description>Verify that the complete KrotPN → KrotPN rebranding produces zero breakage
-  across all deploy surfaces, container names, scripts, frontend UI, and live operations.</description>
+<!-- V-M-029: Historical Rebranding Verification — superseded by V-M-012/Phase-41 deploy-surface gates -->
+<V-M-029 MODULE="M-012" PRIORITY="critical" STATUS="superseded-pass-live-phase41" VERSION="1.1.0">
+  <description>Historical Phase-16 rebranding verification for KrotVPN to KrotPN migration. This is no longer an active deploy-surface debt because the current M-012 contract and live deploy evidence are tracked by V-M-012.</description>
+
+  <supersession>
+    <superseded-by>V-M-012</superseded-by>
+    <reason>Phase-16 expected an older six-container deploy surface and legacy rebranding checks. The current production deploy surface includes Phase-35 wildcard TLS, Phase-36 Resend wiring, Phase-38/41 SNI routing, and KPprotoN runtime ownership, all governed by M-012/V-M-012.</reason>
+    <current-status>Keep this file as historical evidence only. Use V-M-012 for active deploy/install verification and release gating.</current-status>
+  </supersession>
 
   <scenarios>
     <scenario-1 NAME="docker compose up -d (clean)">
@@ -100,10 +105,10 @@
     <check>DB snapshot path: /var/lib/krotpn/ru_ips_snapshot.json (not /var/lib/krotpn/)</check>
   </module-checks>
 
-  <execution-evidence updated="2026-04-19">
-    <local-passed>docker compose config --no-interpolate passed; all deploy shell syntax checks passed; frontend npm run build passed; frontend-admin npm run build passed; backend config import check passed with explicit test secrets.</local-passed>
-    <local-blocked>Exact docker compose config is blocked locally because deploy-generated .env is absent and docker-compose.yml intentionally requires env_file .env plus DB_PASSWORD.</local-blocked>
-    <live-gates>Not run locally: docker compose up health, backend HTTPS health, VPN client connect, admin HTTPS login, systemd unit checks, fresh VPS deploy.</live-gates>
+  <execution-evidence updated="2026-05-19">
+    <local-passed>Deploy/install shell syntax passed for deploy/deploy-on-server.sh, deploy/deploy-all.sh, deploy/quick-start.sh, deploy/create-client.sh, deploy/remove-client.sh, deploy/rollback.sh, deploy/backup-db.sh, deploy/lib/awg-obfuscation.sh, deploy/lib/vpn-network.sh, and install.sh. docker compose config passed with a temporary .env symlink to .env.example and DB_PASSWORD override. node scripts/phase41-kpproton-faketls-smoke.mjs passed. frontend npm run build passed. frontend-admin npm run build passed.</local-passed>
+    <superseded-live-gates>Old Phase-16 live gates are superseded. Current live deploy proof is V-M-012 Phase-41: operator clean-deploy validation from GitHub main confirmed wildcard TLS, Resend registration email, VPN, and KPprotoN MTProto proxy.</superseded-live-gates>
+    <historical-note>2026-04-19 evidence remains historical; exact old docker compose expectations and six-container assumptions no longer describe the active Phase-41 deploy surface.</historical-note>
   </execution-evidence>
 
   <log-markers>

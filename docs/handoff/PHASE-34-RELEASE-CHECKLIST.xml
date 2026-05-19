@@ -28,9 +28,9 @@
     </gate-5>
   </local-gates>
   <release-risk-ledger>
-    <risk-1 severity="high" owner="operator">
-      <summary>Phase-28 remains partial-local because V-M-004 billing route/API and V-M-022 VPN compatibility route full gates have known 404 findings.</summary>
-      <release-decision>Do not claim those legacy route gates closed unless they are fixed or explicitly waived outside Phase-34.</release-decision>
+    <risk-1 severity="medium" owner="operator">
+      <summary>Phase-28 legacy route/API findings are closed locally as of 2026-05-19 after V-M-004 billing route/API and V-M-022 VPN compatibility tests were aligned to canonical /api/v1 routes.</summary>
+      <release-decision>Keep /api/v1 billing and VPN compatibility route tests in the Phase-28/V-M-041 regression gate for future API-prefix changes.</release-decision>
     </risk-1>
     <risk-2 severity="critical" owner="operator">
       <summary>Production Telegram acceptance requires real DNS, trusted wildcard TLS, and public edge routing.</summary>
@@ -76,7 +76,7 @@
   <operator-acceptance>
     <item-1 status="local-required">All Phase-34 local commands pass from docs/plans/Phase-34.xml.</item-1>
     <item-2 status="passed-live">V-M-046 operator-live smoke is closed through Phase-41 clean-deploy validation.</item-2>
-    <item-3 status="risk-required">Phase-28 V-M-004 and V-M-022 partial-local findings are fixed, waived, or listed in release notes as residual risk.</item-3>
+    <item-3 status="passed-local">Phase-28 V-M-004 and V-M-022 route/API findings are fixed locally and covered by the V-M-041 regression gate.</item-3>
     <item-4 status="release-required">Release tag, commit hash, and rollback target are recorded before pushing a stable release.</item-4>
   </operator-acceptance>
 </PHASE-34-RELEASE-CHECKLIST>
