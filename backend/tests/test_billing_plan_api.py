@@ -12,6 +12,7 @@ MODULE_MAP
 
 CHANGE_SUMMARY
 - 2026-03-27: Added router-level coverage for plan device_limit visibility and admin mutation support.
+- 2026-05-19: Aligned plan route coverage with /api/v1 billing and admin billing router prefixes for Phase-28 debt closure.
 """
 
 from __future__ import annotations
@@ -102,8 +103,8 @@ def test_list_plan_endpoints_expose_device_limit(monkeypatch):
     monkeypatch.setattr(billing_router_module, "BillingService", StubBillingService)
     client = _build_client()
 
-    public_response = client.get("/api/billing/plans")
-    admin_response = client.get("/api/admin/billing/plans")
+    public_response = client.get("/api/v1/billing/plans")
+    admin_response = client.get("/api/v1/admin/billing/plans")
 
     assert public_response.status_code == 200
     assert public_response.json()[0]["device_limit"] == 3
@@ -116,7 +117,7 @@ def test_admin_plan_create_and_update_accept_device_limit(monkeypatch):
     client = _build_client()
 
     create_response = client.post(
-        "/api/admin/billing/plans",
+        "/api/v1/admin/billing/plans",
         json={
             "name": "Family",
             "description": "Family plan",
@@ -130,7 +131,7 @@ def test_admin_plan_create_and_update_accept_device_limit(monkeypatch):
         },
     )
     update_response = client.put(
-        "/api/admin/billing/plans/7",
+        "/api/v1/admin/billing/plans/7",
         json={
             "device_limit": 4,
             "features": ["priority-support", "bonus"],

@@ -26,7 +26,7 @@
     <matrix-4 module="M-041" level="phase-level">No MTProto proxy is issued before verified-email activation; automatic issuance remains deferred until later integration phases unless explicitly added to Phase-29 execution.</matrix-4>
   </VerificationMatrix>
   <PreflightGates>
-    <gate-1>Execution may stay module-local, but release-level closure must acknowledge Phase-28 partial-local V-M-004 and V-M-022 debt until those route/API gates pass.</gate-1>
+    <gate-1>Execution may stay module-local; Phase-28 cross-module V-M-004 and V-M-022 route/API debt is closed locally as of 2026-05-19.</gate-1>
     <gate-2>Automated tests must not call live Telegram, mutate host VPN state, or touch deploy/install scripts.</gate-2>
     <gate-3>All logs and admin-safe responses must redact base secret, salt, derived secret, token material, and full tg://proxy links.</gate-3>
   </PreflightGates>
@@ -42,7 +42,7 @@
     <item-3>Phase-29 backend verification passed locally: 14 targeted tests across assignment registry, provisioning, and migration evidence.</item-3>
   </Completion>
   <RefreshNotes>
-    <note-1>Release-level closure still inherits Phase-28 partial-local debt for V-M-004 and V-M-022 route/API gates; Phase-29 itself is module-local complete.</note-1>
+    <note-1>Phase-29 itself is module-local complete; the previous Phase-28 partial-local debt for V-M-004 and V-M-022 route/API gates was closed locally on 2026-05-19.</note-1>
   </RefreshNotes>
   <Risks>
     <risk-1>Wrong fake-TLS secret format will produce links Telegram rejects even if backend tests pass superficially.</risk-1>

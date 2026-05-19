@@ -1,3 +1,18 @@
+"""
+MODULE_CONTRACT
+- PURPOSE: Verify billing webhook security and idempotent YooKassa processing.
+- SCOPE: Router-level invalid-signature rejection and BillingService idempotency behavior.
+- DEPENDS: M-004 billing router/service, V-M-004 verification.
+- LINKS: docs/modules/M-004.xml, docs/verification/V-M-004.xml.
+
+MODULE_MAP
+- test_yookassa_webhook_rejects_invalid_signature: Verifies the versioned webhook route rejects invalid signatures before service processing.
+- test_process_yookassa_webhook_is_idempotent_for_succeeded: Verifies duplicate succeeded webhooks do not recreate subscriptions.
+
+CHANGE_SUMMARY
+- 2026-05-19: Aligned webhook route coverage with /api/v1 billing router prefix for Phase-28 debt closure.
+"""
+
 import hashlib
 import hmac
 
@@ -51,7 +66,7 @@ def test_yookassa_webhook_rejects_invalid_signature(build_client, monkeypatch):
     client = build_client(billing_router_module.router, object())
 
     response = client.post(
-        "/api/billing/webhooks/yookassa",
+        "/api/v1/billing/webhooks/yookassa",
         json={"event": "payment.succeeded", "object": {"id": "pay_1", "status": "succeeded"}},
         headers={"X-Content-Signature": "invalid"},
     )

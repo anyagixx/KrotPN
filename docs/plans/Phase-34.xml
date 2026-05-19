@@ -62,6 +62,6 @@
   <Risks>
     <risk-1>Future Live Telegram acceptance cannot be fully proven without production wildcard TLS and real client smoke.</risk-1>
     <risk-2>Large behavior change in registration requires staged release and rollback clarity.</risk-2>
-    <risk-3>Phase-28 remains partial-local until V-M-004 billing route/API and V-M-022 VPN compatibility route findings are closed or explicitly waived for Phase-34.</risk-3>
+    <risk-3>Phase-28 cross-module route/API findings were closed locally on 2026-05-19; future route-prefix changes must keep billing, device, and VPN compatibility tests aligned with /api/v1.</risk-3>
   </Risks>
 </Phase-34>

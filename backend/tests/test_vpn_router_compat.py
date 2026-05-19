@@ -1,3 +1,19 @@
+"""
+MODULE_CONTRACT
+- PURPOSE: Verify versioned VPN compatibility routes and primary-device provisioning behavior.
+- SCOPE: Public /api/v1/vpn servers/nodes wrappers and get_or_provision_user_client routing.
+- DEPENDS: M-022 device provisioning API, M-003 VPN router/service, V-M-022 verification.
+- LINKS: docs/modules/M-022.xml, docs/verification/V-M-022.xml.
+
+MODULE_MAP
+- test_public_servers_endpoint_is_compat_wrapper: Verifies /api/v1/vpn/servers projects entry nodes into legacy server shape.
+- test_public_nodes_endpoint_returns_route_aware_nodes: Verifies /api/v1/vpn/nodes returns active route-aware nodes.
+- test_get_or_provision_user_client_prefers_active_primary_device: Verifies active primary devices are preferred over legacy user clients.
+
+CHANGE_SUMMARY
+- 2026-05-19: Aligned compatibility route coverage with /api/v1 VPN router prefix for Phase-28 debt closure.
+"""
+
 import pytest
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
@@ -77,7 +93,7 @@ def test_public_servers_endpoint_is_compat_wrapper(monkeypatch):
     monkeypatch.setattr(vpn_router_module, "VPNService", StubVPNService)
     client = _build_app()
 
-    response = client.get("/api/vpn/servers")
+    response = client.get("/api/v1/vpn/servers")
 
     assert response.status_code == 200
     body = response.json()
@@ -90,7 +106,7 @@ def test_public_nodes_endpoint_returns_route_aware_nodes(monkeypatch):
     monkeypatch.setattr(vpn_router_module, "VPNService", StubVPNService)
     client = _build_app()
 
-    response = client.get("/api/vpn/nodes")
+    response = client.get("/api/v1/vpn/nodes")
 
     assert response.status_code == 200
     body = response.json()

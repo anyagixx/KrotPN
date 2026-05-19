@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Phase-28 NAME="Verified Registration Cutover" STATUS="partial-local" VERSION="1.2.1" UPDATED="2026-05-14">
+<Phase-28 NAME="Verified Registration Cutover" STATUS="done-local" VERSION="1.3.0" UPDATED="2026-05-19">
   <Goal>Switch KrotPN registration to verified-email activation while preserving trial, VPN provisioning, referrals, and frontend onboarding.</Goal>
   <Modules>M-041,M-002,M-004,M-005,M-022,M-009</Modules>
   <NonGoals>
@@ -17,6 +17,7 @@
   </Steps>
   <Verification>
     <command>cd backend &amp;&amp; SECRET_KEY=test-secret-key-with-enough-length DATA_ENCRYPTION_KEY=dpFmfSVqfdAK3yx5MQV6Tcv35RZuw5MzaH0yhxJ01q0= PYTHONPATH=. ../.venv/bin/python -m pytest -o addopts='' tests/test_verified_registration.py tests/test_email_verification_guard.py tests/test_manual_access_policy.py tests/test_device_api.py tests/test_referrals.py tests/test_telegram_auth.py tests/test_security.py -v</command>
+    <command status="pass-local">cd backend &amp;&amp; SECRET_KEY=test-secret-key-with-enough-length DATA_ENCRYPTION_KEY=dpFmfSVqfdAK3yx5MQV6Tcv35RZuw5MzaH0yhxJ01q0= PYTHONPATH=. ../.venv/bin/python -m pytest -o addopts='' tests/test_verified_registration.py tests/test_email_verification_guard.py tests/test_manual_access_policy.py tests/test_billing_security.py tests/test_billing_plan_api.py tests/test_device_api.py tests/test_vpn_router_compat.py tests/test_referrals.py tests/test_phase34_mtproto_integration.py -v</command>
     <command>node scripts/session-security-smoke.mjs</command>
     <command>node scripts/phase28-register-flow-smoke.mjs; cd frontend &amp;&amp; npm run build</command>
     <command>python3 -m xml.etree.ElementTree docs/plans/Phase-28.xml docs/verification/V-M-041.xml docs/verification/V-M-002.xml docs/verification/V-M-004.xml docs/verification/V-M-005.xml docs/verification/V-M-022.xml docs/verification/V-M-009.xml docs/verification-index.xml; mygrace lint</command>
@@ -34,7 +35,8 @@
     <item-4>Session smoke was updated so token storage starts at VerifyEmail success, not Register submit.</item-4>
   </Completion>
   <RefreshNotes>
-    <note-1>2026-05-14 MyGRACE reviewer/refresh kept primary cutover evidence, but downgraded full phase closure to partial-local because full V-M-004 and V-M-022 per-module commands currently fail on 404 route/API binding regressions.</note-1>
+    <note-1>2026-05-14 MyGRACE reviewer/refresh kept primary cutover evidence, but downgraded full phase closure to partial-local because full V-M-004 and V-M-022 per-module commands failed on stale /api route expectations.</note-1>
+    <note-2>2026-05-19 Phase-28 closure fixed stale /api route expectations in billing and VPN compatibility tests; full V-M-004, V-M-022, and V-M-041 local gates now pass against the canonical /api/v1 router prefixes.</note-2>
   </RefreshNotes>
   <Risks>
     <risk-1>Changing /register response shape can break frontend and external clients if not staged carefully.</risk-1>
