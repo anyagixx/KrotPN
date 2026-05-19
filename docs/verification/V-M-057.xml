@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<V-M-057 MODULE="M-057" PRIORITY="high" STATUS="planned">
+  <module>mtproto-admin-analytics-api</module>
+  <checks>Admin analytics endpoints expose useful MTProto statistics with strict redaction, pagination, filtering, and audit safety.</checks>
+  <test-files>
+    <file planned="true">backend/tests/test_mtproto_admin_analytics_api.py</file>
+    <file planned="true">backend/tests/test_mtproto_admin_ops.py</file>
+  </test-files>
+  <commands>planned: cd backend &amp;&amp; SECRET_KEY=test-secret-key-with-enough-length PYTHONPATH=. ../.venv/bin/python -m pytest -o addopts='' tests/test_mtproto_admin_analytics_api.py tests/test_mtproto_admin_ops.py -v</commands>
+  <scenarios>
+    <scenario-1>Admin summary endpoint returns total issued, active/disabled/reissue counts, active connections, traffic windows, and runtime health.</scenario-1>
+    <scenario-2>Per-proxy endpoint returns only the selected assignment's safe usage and error data.</scenario-2>
+    <scenario-3>Events and top-users endpoints enforce pagination, time-window clamping, and admin-only auth.</scenario-3>
+    <scenario-4>Payload redaction guard rejects full tg links, secrets, raw IPs, runtime tokens, and full promotion tags.</scenario-4>
+  </scenarios>
+  <log-markers>
+    <marker>[M-057][admin_mtproto_analytics][SUMMARY]</marker>
+    <marker>[M-057][admin_mtproto_usage][ASSIGNMENT_DETAIL]</marker>
+    <marker>[M-057][admin_mtproto_analytics][REDACT_PAYLOAD]</marker>
+  </log-markers>
+</V-M-057>

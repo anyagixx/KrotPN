@@ -14,7 +14,7 @@
     <actor-TelegramBot>Telegram bot client that mediates auth, config delivery, and subscription status for users</actor-TelegramBot>
     <actor-PaymentProvider>External YooKassa payment system processing subscriptions</actor-PaymentProvider>
     <actor-EmailProvider>External email delivery provider used for verification messages</actor-EmailProvider>
-    <actor-MTProtoRuntime>Official MTProxy data-plane plus KrotPN secret-sync control-plane responsible for Telegram proxy activation</actor-MTProtoRuntime>
+    <actor-MTProtoRuntime>KPprotoN fake-TLS data-plane plus KrotPN policy, telemetry, and diagnostics control-plane responsible for Telegram proxy activation</actor-MTProtoRuntime>
   </Actors>
 
   <UseCases>
@@ -167,10 +167,21 @@
       <Action>Receives an individual indefinite Telegram MTProto proxy in the KrotPN personal cabinet after email verification</Action>
       <Goal>Give every verified KrotPN account a free personal Telegram proxy while preserving KrotPN trial subscription semantics</Goal>
       <Preconditions>Email ownership is verified; MTProto provisioning settings are valid; wildcard TLS for krotpn.xyz and *.krotpn.xyz is ready before production links are advertised</Preconditions>
-      <AcceptanceCriteria>Each verified user has one canonical personal MTProto assignment with a stable public hostname, individual official MTProxy secret, owner-only tg://proxy visibility, real Telegram req_pq availability proof, and admin-safe redacted operations. The user dashboard shows proxy details compactly on mobile. HTTP traffic to krotpn.xyz redirects to HTTPS.</AcceptanceCriteria>
+      <AcceptanceCriteria>Each verified user has one canonical personal MTProto assignment with a stable public hostname, individual KPprotoN fake-TLS secret, owner-only tg://proxy visibility, real Telegram req_pq availability proof, and admin-safe redacted operations. The user dashboard shows proxy details compactly on mobile. HTTP traffic to krotpn.xyz redirects to HTTPS.</AcceptanceCriteria>
       <Priority>critical</Priority>
       <RelatedFlows>DF-MTPROTO-ISSUE, DF-MTPROTO-DASHBOARD, DF-MTPROTO-EDGE</RelatedFlows>
     </UC-014>
+
+    <UC-015>
+      <Name>MTProto proxy analytics and promotion tag control</Name>
+      <Actor>Administrator</Actor>
+      <Action>Reviews aggregate and per-proxy MTProto usage analytics, abuse signals, runtime health, Telegram availability proof, and configures the MTProxyBot promotion tag</Action>
+      <Goal>Give the operator actionable visibility into free Telegram proxy usage without exposing proxy secrets, Telegram messages, chat/channel activity, or raw high-risk identifiers</Goal>
+      <Preconditions>MTProto assignments exist; the KPprotoN runtime policy API is reachable through the private control-plane path; admin is authenticated</Preconditions>
+      <AcceptanceCriteria>Admin can see issued proxy totals, active/disabled/reissue_required counts, active connection count, last successful handshake per proxy, traffic for day/week/month, connection counts, session duration, top users by traffic, per-proxy errors, unknown/rejected SNI attempts, runtime health, and Telegram req_pq proof. Abuse signals are observe-only by default. Promotion tag can be stored and applied or marked pending restart without logging full tags, secrets, raw IPs, tg links, or private runtime tokens.</AcceptanceCriteria>
+      <Priority>high</Priority>
+      <RelatedFlows>DF-MTPROTO-USAGE, DF-MTPROTO-ABUSE, DF-MTPROTO-PROMOTION-TAG</RelatedFlows>
+    </UC-015>
   </UseCases>
 
   <NonGoals>
@@ -191,7 +202,7 @@
     <constraint-6>Existing deploy and install scripts are treated as operator-approved deployment surface and must not be redesigned by the recovery or UI cleanup phases</constraint-6>
     <constraint-7>Emergency recovery artifacts must protect secrets at rest and avoid printing credentials, tokens, private keys, or raw .env content into logs</constraint-7>
     <constraint-8>Email ownership verification is mandatory before issuing trial, VPN, referral, JWT session, or MTProto proxy access</constraint-8>
-    <constraint-9>Official MTProxy traffic and normal HTTPS must share the krotpn.xyz edge safely through explicit 443 routing that preserves web HTTPS and forwards Telegram MTProto traffic to the official data-plane</constraint-9>
+    <constraint-9>KPprotoN fake-TLS MTProto traffic and normal HTTPS must share the krotpn.xyz edge safely through explicit 443 routing that preserves web HTTPS and forwards issued wildcard SNI traffic to the MTProto data-plane</constraint-9>
   </Constraints>
 
   <Risks>

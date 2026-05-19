@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!-- MyGRACE Graph Index — lazy-loading entry point for module navigation -->
 <!-- MyGRACE index generated from per-module contracts; archived monoliths are reference-only -->
-<GraphIndex VERSION="1.0.0" PROJECT="KrotPN" MODULE-COUNT="48">
+<GraphIndex VERSION="1.0.0" PROJECT="KrotPN" MODULE-COUNT="54">
   <M-001 NAME="backend-core" TYPE="UTILITY" STATUS="stable" PATH="backend/app/core" DEPENDS="M-028" VERIFICATION-REF="V-M-001" />
   <M-002 NAME="users" TYPE="CORE_LOGIC" STATUS="stable" PATH="backend/app/users" DEPENDS="M-001,M-027" VERIFICATION-REF="V-M-002" />
   <M-003 NAME="vpn" TYPE="CORE_LOGIC" STATUS="stable" PATH="backend/app/vpn" DEPENDS="M-001,M-002,M-007,M-020,M-030" VERIFICATION-REF="V-M-003" />
@@ -50,6 +50,12 @@
   <M-051 NAME="mtproto-availability-diagnostics" TYPE="INTEGRATION" STATUS="pass-live-phase41" PATH="backend/app/mtproto frontend scripts/phase39-mtproto-availability-smoke.mjs scripts/phase39-mtproto-live-smoke.sh scripts/phase40-official-mtproxy-live-smoke.sh scripts/phase41-kpproton-faketls-smoke.mjs docs/plans/Phase-39.xml docs/plans/Phase-40.xml docs/plans/Phase-41.xml" DEPENDS="M-012,M-043,M-044,M-045,M-050,M-052,M-053" VERIFICATION-REF="V-M-051" />
   <M-052 NAME="official-mtproxy-data-plane" TYPE="INTEGRATION" STATUS="superseded-pass-local" PATH="official-mtproxy deploy docker-compose.yml deploy/deploy-on-server.sh deploy/haproxy-phase40.cfg deploy/mtproto-de-compose.yml scripts/phase40-official-mtproxy-live-smoke.sh backend/tests/test_official_mtproxy_supervisor.py docs/plans/Phase-40.xml docs/plans/Phase-41.xml" DEPENDS="M-001,M-012,M-050,M-051" VERIFICATION-REF="V-M-052" />
   <M-053 NAME="mtproxy-secret-sync" TYPE="INTEGRATION" STATUS="superseded-pass-local" PATH="backend/app/mtproto backend/app/tasks/scheduler.py backend/tests/test_mtproxy_secret_sync.py docs/plans/Phase-40.xml docs/plans/Phase-41.xml" DEPENDS="M-001,M-008,M-042,M-043,M-052" VERIFICATION-REF="V-M-053" />
+  <M-054 NAME="mtproto-usage-telemetry" TYPE="DATA_LAYER" STATUS="planned" PATH="backend/app/mtproto backend/alembic docs/plans/Phase-42.xml" DEPENDS="M-001,M-042,M-028" VERIFICATION-REF="V-M-054" />
+  <M-055 NAME="mtproto-runtime-telemetry-bridge" TYPE="INTEGRATION" STATUS="planned" PATH="mtproto-runtime backend/app/mtproto/runtime_bridge.py backend/app/tasks/scheduler.py scripts/phase42-mtproto-telemetry-smoke.mjs docs/plans/Phase-42.xml" DEPENDS="M-001,M-012,M-044,M-049,M-050,M-054" VERIFICATION-REF="V-M-055" />
+  <M-056 NAME="mtproto-analytics-service" TYPE="CORE_LOGIC" STATUS="planned" PATH="backend/app/mtproto backend/app/tasks/scheduler.py docs/plans/Phase-42.xml" DEPENDS="M-001,M-008,M-042,M-054,M-055" VERIFICATION-REF="V-M-056" />
+  <M-057 NAME="mtproto-admin-analytics-api" TYPE="ENTRY_POINT" STATUS="planned" PATH="backend/app/admin backend/app/mtproto docs/plans/Phase-42.xml" DEPENDS="M-006,M-047,M-054,M-056,M-059" VERIFICATION-REF="V-M-057" />
+  <M-058 NAME="mtproto-admin-analytics-ui" TYPE="UI_COMPONENT" STATUS="planned" PATH="frontend-admin scripts/phase42-mtproto-admin-analytics-smoke.mjs docs/plans/Phase-42.xml" DEPENDS="M-010,M-037,M-038,M-057,M-059" VERIFICATION-REF="V-M-058" />
+  <M-059 NAME="mtproto-promotion-tag-control" TYPE="INTEGRATION" STATUS="planned" PATH="backend/app/admin backend/app/mtproto mtproto-runtime deploy/mtproto-de-compose.yml .env.example docs/plans/Phase-42.xml" DEPENDS="M-001,M-006,M-012,M-047,M-049,M-050" VERIFICATION-REF="V-M-059" />
 
   <CrossLinks>
     <link from="M-002" to="M-001" />
@@ -267,6 +273,36 @@
     <link from="M-053" to="M-042" />
     <link from="M-053" to="M-043" />
     <link from="M-053" to="M-052" />
+    <link from="M-054" to="M-001" />
+    <link from="M-054" to="M-042" />
+    <link from="M-054" to="M-028" />
+    <link from="M-055" to="M-001" />
+    <link from="M-055" to="M-012" />
+    <link from="M-055" to="M-044" />
+    <link from="M-055" to="M-049" />
+    <link from="M-055" to="M-050" />
+    <link from="M-055" to="M-054" />
+    <link from="M-056" to="M-001" />
+    <link from="M-056" to="M-008" />
+    <link from="M-056" to="M-042" />
+    <link from="M-056" to="M-054" />
+    <link from="M-056" to="M-055" />
+    <link from="M-057" to="M-006" />
+    <link from="M-057" to="M-047" />
+    <link from="M-057" to="M-054" />
+    <link from="M-057" to="M-056" />
+    <link from="M-057" to="M-059" />
+    <link from="M-058" to="M-010" />
+    <link from="M-058" to="M-037" />
+    <link from="M-058" to="M-038" />
+    <link from="M-058" to="M-057" />
+    <link from="M-058" to="M-059" />
+    <link from="M-059" to="M-001" />
+    <link from="M-059" to="M-006" />
+    <link from="M-059" to="M-012" />
+    <link from="M-059" to="M-047" />
+    <link from="M-059" to="M-049" />
+    <link from="M-059" to="M-050" />
   </CrossLinks>
 
   <Hotspots>
@@ -310,5 +346,11 @@
     <H-038 module="M-051" text="MTProto must not be shown as production-available until issued-link, public route, KPprotoN runtime acceptance, and Telegram Desktop/mobile proof all pass without leaking secrets" />
     <H-039 module="M-052" text="Official MTProxy runtime is planned to be superseded by Phase-41 and must not remain in the production MTProto path after rollback" />
     <H-040 module="M-053" text="Official MTProxy secret sync is planned to be superseded by Phase-41 and must not drive active user issuance after rollback" />
+    <H-041 module="M-054" text="MTProto telemetry must support useful analytics without storing raw secrets, full proxy links, or unnecessary raw IP addresses" />
+    <H-042 module="M-055" text="Runtime telemetry must be secret-free, bounded, and resilient so analytics cannot break the MTProto data-plane" />
+    <H-043 module="M-056" text="Abuse signals start observe-only until thresholds are tuned against real mobile-network behavior" />
+    <H-044 module="M-057" text="Admin analytics APIs must redact tags, runtime tokens, SNI secrets, full tg links, and high-risk identifiers" />
+    <H-045 module="M-058" text="Admin analytics UI must remain compact on mobile while exposing enough filters for incident triage" />
+    <H-046 module="M-059" text="Promotion tag control must validate MTProxyBot tags, avoid blank runtime tags, and never log full tags" />
   </Hotspots>
 </GraphIndex>

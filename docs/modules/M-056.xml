@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<M-056 NAME="mtproto-analytics-service" TYPE="CORE_LOGIC" STATUS="planned">
+  <path>backend/app/mtproto backend/app/tasks/scheduler.py docs/plans/Phase-42.xml</path>
+  <owns>MTProto usage aggregation, top-user analytics, per-proxy summaries, runtime availability summaries, and observe-only abuse classification.</owns>
+  <purpose>Convert raw MTProto telemetry into operator-safe analytics and abuse signals for the admin panel.</purpose>
+  <exports>
+    <fn-build-global-summary>Return issued proxy totals, assignment status counts, active connections, runtime health, and availability proof state.</fn-build-global-summary>
+    <fn-build-assignment-usage>Return per-proxy last seen, connection count, duration, traffic, errors, active sessions, and abuse signals.</fn-build-assignment-usage>
+    <fn-build-top-users>Rank users by traffic, connection count, duration, or error count for a selected period.</fn-build-top-users>
+    <fn-rollup-usage-windows>Maintain hourly, daily, weekly, and monthly aggregate windows from M-054 events.</fn-rollup-usage-windows>
+    <fn-detect-abuse-signals>Detect many IP hashes, excessive concurrency, traffic spikes, and repeated failures in observe-only mode.</fn-detect-abuse-signals>
+  </exports>
+  <depends>M-001,M-008,M-042,M-054,M-055</depends>
+  <verification-ref>V-M-056</verification-ref>
+  <files>
+    <file planned="true">backend/app/mtproto/analytics_service.py</file>
+    <file planned="true">backend/app/tasks/scheduler.py</file>
+    <file planned="true">backend/tests/test_mtproto_analytics_service.py</file>
+  </files>
+  <analytics-policy>
+    <policy-1>Abuse output starts as observe-only and never automatically disables an assignment in Phase-42.</policy-1>
+    <policy-2>Traffic spikes are compared against prior local baselines, not fixed global limits only.</policy-2>
+    <policy-3>Reports distinguish known assignment traffic from unknown or rejected SNI traffic.</policy-3>
+  </analytics-policy>
+  <constraints>
+    <constraint-1>Aggregation must avoid N+1 database scans on admin pages.</constraint-1>
+    <constraint-2>Admin analytics must make missing telemetry explicit instead of silently showing zero usage.</constraint-2>
+  </constraints>
+  <hotspot>H-043: Abuse signals start observe-only until thresholds are tuned against real mobile-network behavior</hotspot>
+</M-056>

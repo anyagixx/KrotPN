@@ -164,11 +164,12 @@
 
   <immediate-priorities>
     <priority rank="1">Use the Phase-41 stable MTProto/VPN baseline for future frontend client/admin redesign work.</priority>
-    <priority rank="2">Run Phase-22 non-production restore rehearsal with a trusted backup bundle and isolated restore target.</priority>
-    <priority rank="3">Decide whether to approve cookie-only auth migration and provide HTTPS or production-like auth smoke target.</priority>
-    <priority rank="4">Keep deploy/install scripts unchanged unless the operator explicitly requests deployment-surface work.</priority>
-    <priority rank="5">Improve repeatable local verification for backend, user frontend, and admin frontend.</priority>
-    <priority rank="6">Tune false-positive thresholds before enabling any automatic anti-sharing block policy beyond admin-reviewed detect-first mode.</priority>
+    <priority rank="2">Execute Phase-42 MTProto usage analytics and promotion tag control after plan/verification approval.</priority>
+    <priority rank="3">Run Phase-22 non-production restore rehearsal with a trusted backup bundle and isolated restore target before production release.</priority>
+    <priority rank="4">Decide whether to approve cookie-only auth migration and provide HTTPS or production-like auth smoke target.</priority>
+    <priority rank="5">Keep deploy/install scripts unchanged unless the operator explicitly requests deployment-surface work.</priority>
+    <priority rank="6">Improve repeatable local verification for backend, user frontend, and admin frontend.</priority>
+    <priority rank="7">Tune false-positive thresholds before enabling any automatic anti-sharing block policy beyond admin-reviewed detect-first mode.</priority>
   </immediate-priorities>
 
   <known-risks>

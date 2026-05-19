@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<V-M-055 MODULE="M-055" PRIORITY="critical" STATUS="planned">
+  <module>mtproto-runtime-telemetry-bridge</module>
+  <checks>Runtime emits and drains metadata-only telemetry through a private token-protected boundary without breaking MTProto traffic.</checks>
+  <test-files>
+    <file planned="true">backend/tests/test_mtproto_runtime_telemetry_bridge.py</file>
+    <file planned="true">scripts/phase42-mtproto-telemetry-smoke.mjs</file>
+    <file planned="true">mtproto-runtime</file>
+  </test-files>
+  <commands>planned: node scripts/phase42-mtproto-telemetry-smoke.mjs &amp;&amp; cd backend &amp;&amp; SECRET_KEY=test-secret-key-with-enough-length PYTHONPATH=. ../.venv/bin/python -m pytest -o addopts='' tests/test_mtproto_runtime_telemetry_bridge.py -v</commands>
+  <scenarios>
+    <scenario-1>Handshake, close, bytes, error, active_connection, unknown_sni, rejected_sni, and req_pq proof events are represented with safe fields.</scenario-1>
+    <scenario-2>Missing or wrong runtime token returns unauthorized and no telemetry leaks.</scenario-2>
+    <scenario-3>Buffer overflow increments dropped_events but does not block policy apply or MTProto listener behavior.</scenario-3>
+    <scenario-4>Backend ingestion tolerates runtime outage and marks analytics stale/degraded only.</scenario-4>
+  </scenarios>
+  <log-markers>
+    <marker>[M-055][runtime_telemetry][EMIT_EVENT]</marker>
+    <marker>[M-055][telemetry_drain][DRAIN_EVENTS]</marker>
+    <marker>[M-055][telemetry_ingest][INGEST_SUMMARY]</marker>
+  </log-markers>
+</V-M-055>

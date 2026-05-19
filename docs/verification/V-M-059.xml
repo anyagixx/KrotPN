@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<V-M-059 MODULE="M-059" PRIORITY="critical" STATUS="planned">
+  <module>mtproto-promotion-tag-control</module>
+  <checks>Admin-configured @MTProxyBot promotion tag is validated, redacted, audited, and propagated to runtime safely.</checks>
+  <test-files>
+    <file planned="true">backend/tests/test_mtproto_promotion_tag.py</file>
+    <file planned="true">scripts/phase42-mtproto-promotion-tag-smoke.mjs</file>
+    <file planned="true">mtproto-runtime</file>
+    <file planned="true">deploy/mtproto-de-compose.yml</file>
+    <file planned="true">.env.example</file>
+  </test-files>
+  <commands>planned: node scripts/phase42-mtproto-promotion-tag-smoke.mjs &amp;&amp; cd backend &amp;&amp; SECRET_KEY=test-secret-key-with-enough-length PYTHONPATH=. ../.venv/bin/python -m pytest -o addopts='' tests/test_mtproto_promotion_tag.py -v</commands>
+  <scenarios>
+    <scenario-1>Valid 32-hex tag from @MTProxyBot is accepted and stored masked in admin state.</scenario-1>
+    <scenario-2>Blank or malformed tags are rejected before reaching runtime config.</scenario-2>
+    <scenario-3>Zero 32-hex fallback remains valid when no promotion channel is configured.</scenario-3>
+    <scenario-4>Runtime apply reports applied or pending_restart without rotating base secret, salt, SNI, or owner links.</scenario-4>
+    <scenario-5>Audit and logs never contain the full promotion tag.</scenario-5>
+  </scenarios>
+  <log-markers>
+    <marker>[M-059][validate_promotion_tag][VALIDATE_TAG]</marker>
+    <marker>[M-059][update_promotion_tag][AUDIT_UPDATE]</marker>
+    <marker>[M-059][apply_promotion_tag][RUNTIME_STATE]</marker>
+  </log-markers>
+</V-M-059>

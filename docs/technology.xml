@@ -16,8 +16,8 @@
     <dep name="python-telegram-bot" version="21.x" purpose="Telegram bot framework" />
     <dep name="httpx" version="0.27.x" purpose="Async HTTP client (Telegram, YooKassa)" />
     <dep name="fastapi-mail" version="1.x" purpose="Email verification delivery surface for registration activation" />
-    <dep name="TelegramMessenger/MTProxy" version="planned-pinned" purpose="Official Telegram MTProxy data-plane with KrotPN-managed individual user secrets" />
-    <dep name="KPprotoN/mtproto_proxy" version="legacy-superseded" purpose="Former fake-TLS policy bridge retained as reference until Phase-40 migration is executed" />
+    <dep name="TelegramMessenger/MTProxy" version="superseded-reference" purpose="Official Telegram MTProxy data-plane retained only as a rollback/reference path after Phase-41" />
+    <dep name="KPprotoN/mtproto_proxy" version="pinned-upstream-154a8fb" purpose="Production fake-TLS MTProto data-plane with KrotPN-managed per-SNI policy, planned usage telemetry, and promotion tag support" />
     <dep name="react" version="18.x" purpose="Frontend UI library" />
     <dep name="zustand" version="4.x" purpose="Frontend state management" />
     <dep name="axios" version="1.x" purpose="HTTP client for API calls" />
@@ -43,7 +43,7 @@
     <tool name="frontend-bundler" value="vite" version="5.x" />
     <tool name="container-runtime" value="docker compose" version="2.x" />
     <tool name="reverse-proxy" value="nginx" version="1.25.x" />
-    <tool name="mtproto-edge" value="Official MTProxy data-plane with KrotPN secret sync and shared 443 routing" version="planned-pinned" />
+    <tool name="mtproto-edge" value="KPprotoN fake-TLS data-plane with KrotPN policy bridge, shared 443 SNI routing, and planned telemetry ingestion" version="pinned-upstream-154a8fb" />
     <tool name="vpn-tools" value="awg, awg-quick, iptables, ipset, ip, ping" version="host-provided" />
     <tool name="secrets-manager" value=".env files + Docker secrets (planned)" version="n/a" />
   </Tooling>
@@ -78,8 +78,8 @@
   </Observability>
 
   <DeliveryShape>
-    <shape>Two-node Docker Compose deployment: RU entry node + DE exit node. Nginx reverse proxy, PostgreSQL primary database, Redis cache. Backend is containerized; VPN routing and host tools (awg, iptables, ipset) run on host with container mounts for config directories. Planned Phase-40 MTProto access uses official MTProxy on the DE data-plane, KrotPN-managed individual user secrets, and RU shared 443 routing that preserves krotpn.xyz HTTPS.</shape>
+    <shape>Two-node Docker Compose deployment: RU entry node + DE exit node. Nginx reverse proxy, PostgreSQL primary database, Redis cache. Backend is containerized; VPN routing and host tools (awg, iptables, ipset) run on host with container mounts for config directories. Phase-41 MTProto access uses KPprotoN fake-TLS on the DE data-plane, KrotPN-managed per-user SNI policy, and RU shared 443 routing that preserves krotpn.xyz HTTPS.</shape>
     <deployment>install.sh provisions host, docker-compose.yml orchestrates services, deploy/ scripts handle remote node setup</deployment>
-    <constraints>VPN and routing code is host-coupled — not purely containerized. Deployment security depends on manual secret management (no vault integration yet). MTProto production links require trusted wildcard TLS for krotpn.xyz and *.krotpn.xyz.</constraints>
+    <constraints>VPN and routing code is host-coupled — not purely containerized. Deployment security depends on manual secret management (no vault integration yet). MTProto production links require trusted wildcard TLS for krotpn.xyz and *.krotpn.xyz. MTProto telemetry must remain metadata-only and must not attempt payload, chat, channel, or Telegram account inspection.</constraints>
   </DeliveryShape>
 </TechnologyStack>

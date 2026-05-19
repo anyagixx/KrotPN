@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<V-M-056 MODULE="M-056" PRIORITY="high" STATUS="planned">
+  <module>mtproto-analytics-service</module>
+  <checks>Analytics service produces accurate summaries, top users, usage windows, and observe-only abuse signals from M-054 data.</checks>
+  <test-files>
+    <file planned="true">backend/tests/test_mtproto_analytics_service.py</file>
+    <file planned="true">backend/tests/test_scheduler.py</file>
+  </test-files>
+  <commands>planned: cd backend &amp;&amp; SECRET_KEY=test-secret-key-with-enough-length PYTHONPATH=. ../.venv/bin/python -m pytest -o addopts='' tests/test_mtproto_analytics_service.py tests/test_scheduler.py -v</commands>
+  <scenarios>
+    <scenario-1>Global summary returns issued proxy totals, active status counts, active connections, runtime health, and availability proof state.</scenario-1>
+    <scenario-2>Per-assignment summary returns last seen, traffic, duration, connection count, errors, and active sessions.</scenario-2>
+    <scenario-3>Top users ranking is stable for traffic, duration, connection count, and errors across selected time windows.</scenario-3>
+    <scenario-4>Abuse signals detect many IP hashes, high concurrency, traffic spikes, and repeated failures without disabling access.</scenario-4>
+  </scenarios>
+  <log-markers>
+    <marker>[M-056][build_global_summary][SUMMARY]</marker>
+    <marker>[M-056][build_assignment_usage][USAGE_DETAIL]</marker>
+    <marker>[M-056][detect_abuse_signals][OBSERVE_ONLY]</marker>
+  </log-markers>
+</V-M-056>

@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<V-M-054 MODULE="M-054" PRIORITY="critical" STATUS="planned">
+  <module>mtproto-usage-telemetry</module>
+  <checks>Usage event, session, rollup, last-seen, and abuse-signal persistence is idempotent, bounded, and secret-free.</checks>
+  <test-files>
+    <file planned="true">backend/tests/test_mtproto_usage_telemetry.py</file>
+    <file planned="true">backend/tests/test_db_migrations.py</file>
+  </test-files>
+  <commands>planned: cd backend &amp;&amp; SECRET_KEY=test-secret-key-with-enough-length PYTHONPATH=. ../.venv/bin/python -m pytest -o addopts='' tests/test_mtproto_usage_telemetry.py tests/test_db_migrations.py -v</commands>
+  <scenarios>
+    <scenario-1>Known assignment handshake updates last_seen and creates/updates a session without storing secrets.</scenario-1>
+    <scenario-2>Unknown and rejected SNI events are stored with safe reason codes and masked identifiers.</scenario-2>
+    <scenario-3>Hourly, daily, and monthly rollups preserve traffic, connection count, duration, and error counters.</scenario-3>
+    <scenario-4>Duplicate runtime event ids do not double-count usage.</scenario-4>
+  </scenarios>
+  <log-markers>
+    <marker>[M-054][ingest_telemetry_batch][WRITE_EVENTS]</marker>
+    <marker>[M-054][update_last_seen][LAST_SEEN]</marker>
+    <marker>[M-054][rollup_usage][ROLLUP_WINDOW]</marker>
+  </log-markers>
+</V-M-054>

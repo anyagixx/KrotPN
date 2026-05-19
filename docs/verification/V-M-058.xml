@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<V-M-058 MODULE="M-058" PRIORITY="high" STATUS="planned">
+  <module>mtproto-admin-analytics-ui</module>
+  <checks>Frontend-admin exposes compact MTProto analytics and promotion tag controls without secret leakage or mobile layout regressions.</checks>
+  <test-files>
+    <file planned="true">frontend-admin/src/pages/MTProtoAnalytics.tsx</file>
+    <file planned="true">frontend-admin/src/pages/MTProto.tsx</file>
+    <file planned="true">frontend-admin/src/lib/api.ts</file>
+    <file planned="true">frontend-admin/src/types/index.ts</file>
+    <file planned="true">scripts/phase42-mtproto-admin-analytics-smoke.mjs</file>
+  </test-files>
+  <commands>planned: cd frontend-admin &amp;&amp; npm run build; cd .. &amp;&amp; node scripts/phase42-mtproto-admin-analytics-smoke.mjs</commands>
+  <scenarios>
+    <scenario-1>Admin can scan global summary, traffic windows, top users, active connections, and error counts on mobile.</scenario-1>
+    <scenario-2>Per-proxy detail is reachable without hiding reissue/revoke controls.</scenario-2>
+    <scenario-3>Abuse signals are clearly labeled observe-only.</scenario-3>
+    <scenario-4>Static smoke confirms no full tg links, secrets, tokens, raw promotion tags, or raw IP values render in the UI.</scenario-4>
+  </scenarios>
+  <log-markers>
+    <marker>[M-058][admin_mtproto_analytics_ui][REDACTED_RENDER]</marker>
+    <marker>[M-058][admin_mtproto_analytics_ui][FILTER_USAGE]</marker>
+    <marker>[M-058][admin_mtproto_analytics_ui][PROMOTION_TAG_CONFIRM]</marker>
+  </log-markers>
+</V-M-058>

@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<M-057 NAME="mtproto-admin-analytics-api" TYPE="ENTRY_POINT" STATUS="planned">
+  <path>backend/app/admin backend/app/mtproto docs/plans/Phase-42.xml</path>
+  <owns>Admin-only HTTP API for MTProto global analytics, per-proxy usage, event logs, abuse signals, top users, runtime health, availability proof, and promotion tag state.</owns>
+  <purpose>Expose MTProto analytics to authenticated admins with strict redaction and filterable time windows.</purpose>
+  <exports>
+    <api-admin-mtproto-analytics-summary>GET /api/v1/admin/mtproto/analytics/summary</api-admin-mtproto-analytics-summary>
+    <api-admin-mtproto-assignment-usage>GET /api/v1/admin/mtproto/assignments/{id}/usage</api-admin-mtproto-assignment-usage>
+    <api-admin-mtproto-events>GET /api/v1/admin/mtproto/analytics/events with time, status, assignment, and event filters</api-admin-mtproto-events>
+    <api-admin-mtproto-top-users>GET /api/v1/admin/mtproto/analytics/top-users</api-admin-mtproto-top-users>
+    <api-admin-mtproto-abuse-signals>GET /api/v1/admin/mtproto/analytics/abuse-signals</api-admin-mtproto-abuse-signals>
+    <api-admin-mtproto-promotion-tag>GET/PUT promotion tag state through M-059</api-admin-mtproto-promotion-tag>
+  </exports>
+  <depends>M-006,M-047,M-054,M-056,M-059</depends>
+  <verification-ref>V-M-057</verification-ref>
+  <files>
+    <file planned="true">backend/app/admin/router.py</file>
+    <file planned="true">backend/app/mtproto/analytics_schemas.py</file>
+    <file planned="true">backend/tests/test_mtproto_admin_analytics_api.py</file>
+  </files>
+  <api-policy>
+    <policy-1>Admin analytics returns masked SNI, safe ids, counts, status codes, and aggregate byte counters only.</policy-1>
+    <policy-2>Response payloads must fail closed if they contain full tg links, secrets, runtime tokens, full promotion tags, or raw IP addresses.</policy-2>
+    <policy-3>Time filters must clamp large ranges and page event lists.</policy-3>
+  </api-policy>
+  <constraints>
+    <constraint-1>Analytics endpoints must not weaken existing MTProto admin reissue/revoke redaction.</constraint-1>
+    <constraint-2>All mutation endpoints require explicit confirmation and audit events.</constraint-2>
+  </constraints>
+  <hotspot>H-044: Admin analytics APIs must redact tags, runtime tokens, SNI secrets, full tg links, and high-risk identifiers</hotspot>
+</M-057>

@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Phase-42 NAME="MTProto Usage Analytics and Promotion Tag Control" STATUS="planned" MODULES="M-054,M-055,M-056,M-057,M-058,M-059,M-042,M-044,M-047,M-049,M-050,M-051" CREATED="2026-05-19">
+  <purpose>Give the KrotPN operator metadata-only MTProto usage analytics, abuse visibility, runtime availability proof, and safe @MTProxyBot promotion tag control without exposing proxy secrets or Telegram payload data.</purpose>
+  <scope>
+    <in>Usage events, sessions, rollups, last seen, traffic windows, errors, unknown/rejected SNI, active connections, top users, observe-only abuse signals, runtime health, req_pq proof, admin API, admin UI, and promotion tag control.</in>
+    <out>Telegram chat/channel/message visibility, Telegram account inspection, payload inspection, automatic punitive blocking, deploy/install redesign, and user-facing proxy reissue unless explicitly required.</out>
+  </scope>
+  <privacy-boundary>
+    <rule-1>MTProto analytics is transport metadata only.</rule-1>
+    <rule-2>Do not attempt to infer Telegram chats, channels, message content, contacts, or Telegram user ids.</rule-2>
+    <rule-3>Raw IP storage is avoided by default; use HMAC/hash or aggregate prefixes for distinct-client analytics.</rule-3>
+  </privacy-boundary>
+  <source-notes>
+    <note-1>Telegram MTProxy promotion tags are obtained through @MTProxyBot and configured on the server side; see https://core.telegram.org/proxy.</note-1>
+    <note-2>Existing KrotPN production path remains Phase-41 KPprotoN fake-TLS, not the superseded official MTProxy path.</note-2>
+  </source-notes>
+  <steps>
+    <step-1 MODULE="M-054" STATUS="planned">Design Alembic-backed usage event, session, rollup, last-seen, and abuse-signal tables with secret-free fields and bounded retention.</step-1>
+    <step-2 MODULE="M-055" STATUS="planned">Extend KPprotoN runtime policy metadata and private API to expose handshake, close, bytes, error, unknown_sni, rejected_sni, active connection, and req_pq proof telemetry.</step-2>
+    <step-3 MODULE="M-055,M-054" STATUS="planned">Add backend telemetry ingestion task with cursoring, idempotent event writes, failure-safe retries, and no impact on MTProto availability.</step-3>
+    <step-4 MODULE="M-056" STATUS="planned">Build aggregation service for global summary, per-proxy usage, top users, day/week/month traffic, session duration, connection count, and last seen.</step-4>
+    <step-5 MODULE="M-056" STATUS="planned">Add observe-only abuse classifiers for many IP hashes, high concurrent sessions, traffic spikes, and repeated handshake failures.</step-5>
+    <step-6 MODULE="M-057" STATUS="planned">Expose admin analytics APIs with filters, pagination, redaction guards, and per-assignment drill-down.</step-6>
+    <step-7 MODULE="M-058" STATUS="planned">Add compact frontend-admin analytics UI with mobile-safe summary, time filters, top users, per-proxy detail, abuse signal lists, and runtime proof status.</step-7>
+    <step-8 MODULE="M-059" STATUS="planned">Implement promotion tag validation, masked storage/state, explicit admin update, audit logging, and runtime apply or pending-restart semantics.</step-8>
+    <step-9 MODULE="M-059,M-049,M-050" STATUS="planned">Propagate non-blank MTPROTO_AD_TAG/PROXY_AD_TAG to the DE runtime without rotating user SNI, base secret, salt, or proxy links.</step-9>
+    <step-10 MODULE="M-054,M-055,M-056,M-057,M-058,M-059" STATUS="planned">Run backend, runtime smoke, admin UI build, redaction smoke, XML parse, MyGRACE lint, and live optional req_pq proof before release.</step-10>
+  </steps>
+  <data-flow>
+    <flow-1>Telegram client -> RU SNI router -> DE KPprotoN runtime -> Telegram DC.</flow-1>
+    <flow-2>DE runtime emits secret-free telemetry -> backend ingestion task -> Postgres M-054 tables -> M-056 aggregation -> M-057 admin API -> M-058 admin UI.</flow-2>
+    <flow-3>Admin promotion tag update -> M-059 validation/storage/audit -> runtime env/apply state -> M-057/M-058 masked status.</flow-3>
+  </data-flow>
+  <phase-gates>
+    <gate-1>All telemetry payloads and admin responses pass redaction checks.</gate-1>
+    <gate-2>Runtime telemetry buffer overflow cannot break MTProto traffic.</gate-2>
+    <gate-3>Admin can view global and per-proxy stats for issued, active, disabled, reissue_required, active connections, last seen, traffic, errors, sessions, top users, and abuse signals.</gate-3>
+    <gate-4>Promotion tag accepts valid 32-hex tag or zero fallback, rejects blanks/malformed values, and never logs full tag.</gate-4>
+    <gate-5>Existing Phase-41 issued-link req_pq and Telegram Desktop/mobile proof standard remains the release bar for MTProto edge changes.</gate-5>
+  </phase-gates>
+  <risks>
+    <risk-1 severity="high">Exact byte/session counters may require careful hooks inside or around mtproto_proxy internals.</risk-1>
+    <risk-2 severity="high">Telemetry volume can grow quickly; bounded raw event retention and rollups are required.</risk-2>
+    <risk-3 severity="medium">Mobile networks may trigger false abuse signals; Phase-42 remains observe-only.</risk-3>
+    <risk-4 severity="medium">Promotion tag updates may require controlled runtime restart if hot-apply is unavailable.</risk-4>
+  </risks>
+  <verification>
+    <command status="planned">python3 -m xml.etree.ElementTree docs/plans/Phase-42.xml docs/modules/M-054.xml docs/modules/M-055.xml docs/modules/M-056.xml docs/modules/M-057.xml docs/modules/M-058.xml docs/modules/M-059.xml docs/verification/V-M-054.xml docs/verification/V-M-055.xml docs/verification/V-M-056.xml docs/verification/V-M-057.xml docs/verification/V-M-058.xml docs/verification/V-M-059.xml</command>
+    <command status="planned">mygrace lint</command>
+  </verification>
+</Phase-42>
