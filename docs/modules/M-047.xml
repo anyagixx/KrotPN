@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<M-047 NAME="mtproto-admin-ops" TYPE="ENTRY_POINT" STATUS="done-local">
-  <path>backend/app/admin frontend-admin scripts/phase33-mtproto-admin-smoke.mjs docs/plans/Phase-33.xml</path>
+<M-047 NAME="mtproto-admin-ops" TYPE="ENTRY_POINT" STATUS="verification-designed-phase41">
+  <path>backend/app/admin frontend-admin scripts/phase33-mtproto-admin-smoke.mjs scripts/phase41-kpproton-faketls-smoke.mjs docs/plans/Phase-33.xml docs/plans/Phase-41.xml</path>
   <owns>Admin inspection and controlled operations for MTProto assignments, runtime bridge health, reissue, revoke, and audit-safe diagnostics.</owns>
   <purpose>Give the operator visibility and controlled recovery actions for user MTProto proxy assignments without exposing secrets broadly.</purpose>
   <exports>
@@ -21,6 +21,7 @@
     <file>frontend-admin/src/pages/MTProto.tsx</file>
     <file>scripts/phase33-mtproto-admin-smoke.mjs</file>
     <file>scripts/phase34-mtproto-stabilization-smoke.mjs</file>
+    <file phase="41-designed">scripts/phase41-kpproton-faketls-smoke.mjs</file>
     <file>backend/tests/test_mtproto_admin_ops.py</file>
   </files>
   <admin-policy>
@@ -31,13 +32,21 @@
   <constraints>
     <constraint-1>Audit events must not store full tg://proxy links, verification tokens, or raw secrets.</constraint-1>
     <constraint-2>Admin mobile UX must preserve confirmation-safe destructive actions.</constraint-2>
+    <constraint-3>Phase-41 admin operations must treat official dd credential-mode assignments as superseded/reissue-required and must not expose owner-only KPprotoN ee links or derived secrets.</constraint-3>
   </constraints>
+  <phase-41-verification-design>
+    <check-1>Admin list/detail show credential mode and superseded official state with safe identifiers only.</check-1>
+    <check-2>Admin reissue changes exactly one assignment back to KPprotoN fake-TLS SNI policy without returning owner credentials.</check-2>
+    <check-3>Admin revoke removes one KPprotoN SNI policy through M-044 and does not call official manifest sync as the production path.</check-3>
+    <check-4>Admin UI/smoke output contains no tg links, ee secrets, dd secrets, base secret, salt, runtime token, or private key material.</check-4>
+  </phase-41-verification-design>
   <completion>
     <item-1>Backend admin endpoints expose redacted list/detail/runtime health and explicit reissue/revoke operations under /api/v1/admin/mtproto.</item-1>
     <item-2>Reissue and revoke require confirmation, write safe audit events, remove runtime policy state on revoke, and do not return owner-only proxy links or derived secrets.</item-2>
     <item-3>Frontend-admin includes a compact /mtproto page with search, status filter, runtime health, and confirmation-safe actions.</item-3>
     <item-4>Local Phase-33 backend tests, frontend-admin build, static smoke, XML parse, and MyGRACE lint passed on 2026-05-14.</item-4>
     <item-5>Phase-34 static smoke keeps admin MTProto pages free of owner-only tg links, derived secrets, and console secret traces.</item-5>
+    <item-6>Phase-41 verification design adds admin gates for superseded official state, KPprotoN reissue/revoke policy behavior, and strict redaction.</item-6>
   </completion>
   <hotspot>H-033: Admin MTProto operations must never expose full secrets or proxy links in logs, tables, or audit payloads</hotspot>
 </M-047>

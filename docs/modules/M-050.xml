@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<M-050 NAME="mtproto-de-backed-edge" TYPE="INTEGRATION" STATUS="planned-phase41">
+<M-050 NAME="mtproto-de-backed-edge" TYPE="INTEGRATION" STATUS="verification-designed-phase41">
   <path>mtproto-runtime nginx docker-compose.yml deploy/deploy-on-server.sh deploy/haproxy-phase38.cfg deploy/haproxy-phase40.cfg deploy/mtproto-de-compose.yml backend/app/core/config.py backend/app/mtproto scripts/phase38-de-mtproto-edge-smoke.mjs scripts/phase41-kpproton-faketls-smoke.mjs docs/plans/Phase-38.xml docs/plans/Phase-40.xml docs/plans/Phase-41.xml</path>
   <owns>DE-hosted MTProto runtime, RU public TCP 443 router, private RU-to-DE policy/API reachability, superseded official MTProxy routing, planned Phase-41 KPprotoN SNI routing, and live Telegram availability gates.</owns>
   <purpose>Restore Telegram MTProto availability by routing issued user SNI traffic from the RU public edge to a DE-hosted MTProto runtime while keeping HTTPS on krotpn.xyz available.</purpose>
@@ -10,7 +10,7 @@
     <assignment-replay>Existing active assignment SNI policies are replayed to the DE runtime without rotating MTPROTO_BASE_SECRET_HEX or MTPROTO_SECRET_SALT.</assignment-replay>
     <phase38-smoke>Static and live smoke gates prove routing roles, policy redaction, HTTPS fallback, and Telegram Desktop availability.</phase38-smoke>
     <phase40-routing superseded="planned-phase41">Route HTTPS ClientHello traffic to web/admin fallbacks while routing non-HTTPS MTProto traffic to M-052 official MTProxy.</phase40-routing>
-    <phase41-routing planned="true">Restore issued wildcard SNI routing to the DE KPprotoN fake-TLS runtime while web SNI continues to nginx fallback.</phase41-routing>
+    <phase41-routing status="verification-designed">Restore issued wildcard SNI routing to the DE KPprotoN fake-TLS runtime while web SNI continues to nginx fallback.</phase41-routing>
   </exports>
   <depends>M-001,M-012,M-043,M-044,M-046,M-048,M-049,M-052</depends>
   <verification-ref>V-M-050</verification-ref>
@@ -37,7 +37,7 @@
     <policy-4>DE policy API binds privately and requires the existing runtime token or a deploy-generated replacement that is never logged.</policy-4>
     <policy-5>Existing assignment secrets, salts, SNI names, and tg links must be preserved unless an explicit reissue phase is approved.</policy-5>
     <policy-6 superseded="planned-phase41">Phase-40 treats official per-user secrets as the MTProto access primitive; user wildcard hostnames may remain stable labels but no longer drive fake-TLS SNI policy routing.</policy-6>
-    <policy-7 planned="true">Phase-41 restores issued wildcard hostnames as the routing and policy primitive for KPprotoN fake-TLS proxy access.</policy-7>
+    <policy-7 status="verification-designed">Phase-41 restores issued wildcard hostnames as the routing and policy primitive for KPprotoN fake-TLS proxy access.</policy-7>
   </edge-policy>
   <constraints>
     <constraint-1>No public exposure of the DE policy API, runtime token, private key, base secret, salt, derived secret, or full proxy link.</constraint-1>
@@ -59,7 +59,7 @@
     <evidence-6>2026-05-18: Live RU/DE checks passed for public web/admin titles, RU 443 HAProxy ownership, private nginx fallback 9443, public admin 8443, DE listener 443, private policy health, and HAProxy mtproto_de_runtime backend UP.</evidence-6>
     <evidence-7>2026-05-18: Phase-39 live smoke detected and corrected stale DE domain-fronting fallback 8443 to private 9443; rerun passed fake-TLS accept and Telegram downstream reachability.</evidence-7>
     <evidence-8>2026-05-19: Phase-40 plan changes the production route target from KPprotoN fake-TLS data-plane to official MTProxy after client-level req_pq failed.</evidence-8>
-    <evidence-9>2026-05-19: Phase-41 plan supersedes the Phase-40 routing target and restores DE KPprotoN fake-TLS routing for issued wildcard SNI names.</evidence-9>
+    <evidence-9>2026-05-19: Phase-41 verification design supersedes the Phase-40 routing target and restores DE KPprotoN fake-TLS routing for issued wildcard SNI names.</evidence-9>
   </evidence>
   <hotspot>H-037: DE-backed MTProto edge and RU SNI router can break HTTPS or expose policy/cert material unless routing, private API reachability, and redaction gates are strict.</hotspot>
 </M-050>

@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<M-053 NAME="mtproxy-secret-sync" TYPE="INTEGRATION" STATUS="superseded-planned">
+<M-053 NAME="mtproxy-secret-sync" TYPE="INTEGRATION" STATUS="superseded-verification-designed">
   <path>backend/app/mtproto backend/app/tasks/scheduler.py backend/tests/test_mtproxy_secret_sync.py docs/plans/Phase-40.xml docs/plans/Phase-41.xml</path>
   <owns>Per-user official MTProxy secret lifecycle, active-secret manifest generation, runtime apply/revoke/reissue, startup replay, and redacted sync health.</owns>
-  <purpose>Keep the Phase-40 official MTProxy secret sync reference, now planned to be removed from active production issuance by Phase-41 KPprotoN fake-TLS rollback.</purpose>
+  <purpose>Keep the Phase-40 official MTProxy secret sync reference, now verification-designed to be removed from active production issuance by Phase-41 KPprotoN fake-TLS rollback.</purpose>
   <exports>
     <fn-derive-official-secret>Derive or materialize one 16-byte official MTProxy secret for a verified user's canonical assignment.</fn-derive-official-secret>
     <fn-build-secure-official-link>Build the owner-only Telegram link with secret=dd&lt;hex-secret&gt;.</fn-build-secure-official-link>
@@ -47,7 +47,7 @@
   <evidence>
     <evidence-1>2026-05-19: Phase-40 plan selects official per-user secrets as the access primitive because KPprotoN fake-TLS SNI policy did not pass real client-level req_pq proof.</evidence-1>
     <evidence-2>2026-05-19: Local execution passed official dd-secret provisioning, owner API, admin revoke/reissue, manifest redaction, and assignment registry regression tests.</evidence-2>
-    <evidence-3>2026-05-19: Phase-41 plan supersedes M-053 for production because the official manifest model is not the required per-user SNI fake-TLS model.</evidence-3>
+    <evidence-3>2026-05-19: Phase-41 verification design supersedes M-053 for production because the official manifest model is not the required per-user SNI fake-TLS model.</evidence-3>
   </evidence>
   <hotspot>H-040: Per-user MTProxy secret sync must revoke and reissue exactly one user without leaking raw secrets or breaking unrelated active users.</hotspot>
 </M-053>

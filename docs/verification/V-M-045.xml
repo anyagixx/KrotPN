@@ -1,9 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<V-M-045 MODULE="M-045" PRIORITY="high" STATUS="pass-local" VERSION="1.3.0">
+<V-M-045 MODULE="M-045" PRIORITY="high" STATUS="verification-designed-phase41" VERSION="1.4.0">
   <module>mtproto-user-cabinet</module>
   <phase-scope>
     <phase-31 status="pass-local">User-facing backend API and compact mobile dashboard UX for personal MTProto proxy access passed local verification.</phase-31>
     <phase-34 status="pass-local">Stabilization gate proves the owner dashboard still shows free MTProto access after verified registration without hiding KrotPN trial or VPN actions.</phase-34>
+    <phase-40 status="pass-local">Official dd-secret payload support was verified locally but is superseded for production by Phase-41.</phase-40>
+    <phase-41 status="verification-designed">Owner cabinet must show the KPprotoN ee fake-TLS payload and never show stale official dd links as active production credentials.</phase-41>
   </phase-scope>
   <test-files>
     <file>backend/app/mtproto/router.py</file>
@@ -16,18 +18,21 @@
     <file>frontend/src/index.css</file>
     <file>scripts/phase31-mtproto-cabinet-smoke.mjs</file>
     <file phase="34-static">scripts/phase34-mtproto-stabilization-smoke.mjs</file>
+    <file phase="41-verification-designed">scripts/phase41-kpproton-faketls-smoke.mjs</file>
   </test-files>
   <commands>
     <command-1>cd backend &amp;&amp; SECRET_KEY=test-secret-key-with-enough-length DATA_ENCRYPTION_KEY=dpFmfSVqfdAK3yx5MQV6Tcv35RZuw5MzaH0yhxJ01q0= PYTHONPATH=. ../.venv/bin/python -m pytest -o addopts='' tests/test_mtproto_api.py tests/test_mtproto_assignment_registry.py tests/test_mtproto_provisioning.py -v</command-1>
     <command-2>cd frontend &amp;&amp; npm run build</command-2>
     <command-3>node scripts/phase31-mtproto-cabinet-smoke.mjs</command-3>
-    <command-4>python3 -m xml.etree.ElementTree docs/plans/Phase-31.xml docs/modules/M-045.xml docs/verification/V-M-045.xml docs/verification-index.xml &amp;&amp; mygrace lint</command-4>
+    <command-4>python3 -m xml.etree.ElementTree docs/plans/Phase-31.xml docs/plans/Phase-41.xml docs/modules/M-045.xml docs/verification/V-M-045.xml docs/verification-index.xml &amp;&amp; mygrace lint</command-4>
     <command-5>node scripts/phase34-mtproto-stabilization-smoke.mjs</command-5>
+    <command-6 status="planned-implementation">node scripts/phase41-kpproton-faketls-smoke.mjs</command-6>
   </commands>
   <verification-levels>
     <module-local>Backend API tests prove owner-only payload delivery, safe failure codes, and no unauthenticated or unverified proxy leakage.</module-local>
     <wave-level>M-042 and M-043 tests remain in the gate so dashboard payloads follow assignment persistence, deterministic SNI, and reissue policy truth.</wave-level>
     <phase-level>Frontend build and mobile smoke must prove the MTProto card fits the compact dashboard without hiding VPN trial/config actions.</phase-level>
+    <phase-41-level>Phase-41 gates must prove owner payloads use u-*.krotpn.xyz plus ee fake-TLS secret, and official dd assignments render reissue-required until reissued.</phase-41-level>
   </verification-levels>
   <module-checks>
     <check-1 evidence="deterministic">Authenticated verified owner can retrieve server, port, secret, tg link, status, and reissue guidance for their own assignment.</check-1>
@@ -37,11 +42,20 @@
     <check-5 evidence="ui-smoke">Dashboard MTProto card renders open Telegram, copy link, copy server, copy port, and copy secret actions without horizontal scroll.</check-5>
     <check-6 evidence="regression">VPN trial status, subscription CTA, and primary config action remain visible/reachable after adding MTProto dashboard content.</check-6>
     <check-7 evidence="phase-34-integration">Phase-34 user flow verifies the post-verify session can open the dashboard and retrieve the same canonical MTProto assignment without duplicate rows.</check-7>
+    <check-8 evidence="phase-41-deterministic">Owner payload uses server=u-*.krotpn.xyz, port=443, and secret=ee... after Phase-41 reissue or fresh issuance.</check-8>
+    <check-9 evidence="phase-41-failure-path">Official dd credential-mode assignments render reissue-required or unavailable state and are not copied/opened as active production links.</check-9>
+    <check-10 evidence="phase-41-redaction">Smoke output and frontend console traces contain no full tg links, ee secrets, dd secrets, base secret, salt, runtime token, or wildcard key material.</check-10>
   </module-checks>
   <phase-34-stabilization-gates>
     <gate-1>Owner-only MTProto secret/link fields remain visible only in authenticated user dashboard/API, never admin or smoke output.</gate-1>
     <gate-2>Mobile dashboard keeps MTProto, VPN trial, subscription, and config actions reachable at 360x740, 390x844, and 430x932.</gate-2>
   </phase-34-stabilization-gates>
+  <phase-41-kpproton-gates>
+    <gate-1>New verified user receives an ee fake-TLS owner link under issued wildcard SNI.</gate-1>
+    <gate-2>Existing official-mode assignment is not shown as active and prompts explicit reissue.</gate-2>
+    <gate-3>Open Telegram and copy full-link actions use the same owner-only Phase-41 payload.</gate-3>
+    <gate-4>Mobile dashboard keeps the Phase-41 MTProto state compact at 360x740, 390x844, and 430x932.</gate-4>
+  </phase-41-kpproton-gates>
   <scenarios>
     <scenario-1 kind="success">Verified user with an active assignment sees activated MTProto status and can open the tg://proxy link.</scenario-1>
     <scenario-2 kind="success">Repeated dashboard loads reuse the canonical assignment and do not create duplicate MTProto rows.</scenario-2>
@@ -49,6 +63,7 @@
     <scenario-4 kind="failure">Unverified user sees locked or pending verification state without trial/VPN/MTProto side effects.</scenario-4>
     <scenario-5 kind="failure">Bridge degraded or runtime pending state renders a compact unavailable state and never blocks normal VPN dashboard actions.</scenario-5>
     <scenario-6 kind="failure">Reissue-required assignment prompts explicit reissue guidance instead of silently showing stale proxy credentials.</scenario-6>
+    <scenario-7 kind="success">Phase-41 fresh user or reissued user sees https://t.me/proxy payload with server=u-*.krotpn.xyz, port=443, and secret=ee...</scenario-7>
   </scenarios>
   <required-log-markers>
     <marker-1>[M-045][get_my_mtproto_proxy][OWNER_LOOKUP]</marker-1>
@@ -57,10 +72,13 @@
     <marker-4>[M-045][get_my_mtproto_proxy][SAFE_FAILURE]</marker-4>
     <marker-5>[M-045][dashboard_mtproto_card][CARD_RENDER]</marker-5>
     <marker-6>[M-045][dashboard_mtproto_card][COPY_ACTION]</marker-6>
+    <marker-7>[M-045][get_my_mtproto_proxy][PHASE41_EE_PAYLOAD]</marker-7>
+    <marker-8>[M-045][get_my_mtproto_proxy][OFFICIAL_SUPERSEDED]</marker-8>
+    <marker-9>[M-045][dashboard_mtproto_card][OPEN_TELEGRAM]</marker-9>
   </required-log-markers>
   <redaction-rules>
     <rule-1>Backend logs may include user id, assignment id, SNI, status, safe failure code, and correlation id.</rule-1>
-    <rule-2>Backend logs, frontend console logs, smoke traces, and admin summaries must not print full tg://proxy links, derived secrets, base secret, salt, JWT/session tokens, or email verification tokens.</rule-2>
+    <rule-2>Backend logs, frontend console logs, smoke traces, and admin summaries must not print full tg://proxy links, https://t.me/proxy links, ee or dd secrets, base secret, salt, runtime tokens, wildcard private keys, JWT/session tokens, or email verification tokens.</rule-2>
     <rule-3>Full link and secret fields may appear only in authenticated owner API responses and owner dashboard UI.</rule-3>
   </redaction-rules>
   <ui-smoke-gates>
@@ -77,12 +95,13 @@
   </telemetry-requirements>
   <autonomous-execution-safety>
     <level>safe-local-ui-api-only</level>
-    <reason>Phase-31 can be executed locally with backend API tests, fake/local MTProto provisioning settings, frontend build, and mobile smoke. DNS, TLS, shared 443 edge, nginx, docker-compose, deploy scripts, and install scripts remain out of scope.</reason>
+    <reason>Phase-31 and Phase-41 cabinet verification can be executed locally with backend API tests, fake/private MTProto provisioning settings, frontend build, and static mobile smoke. DNS, TLS, shared 443 edge, nginx, docker-compose, deploy scripts, and install scripts remain owned by the Phase-41 deploy/runtime gates.</reason>
   </autonomous-execution-safety>
   <evidence>
     <evidence-1>2026-05-14: Backend V-M-045/M-042/M-043 pytest gate passed locally with 15 tests.</evidence-1>
     <evidence-2>2026-05-14: frontend npm run build passed and generated production assets without tracked dist changes.</evidence-2>
     <evidence-3>2026-05-14: scripts/phase31-mtproto-cabinet-smoke.mjs passed, including deploy/install surface guard.</evidence-3>
     <evidence-4>2026-05-14: Phase-34 integration/static smoke passed locally for verified-registration owner MTProto retrieval, dashboard anchors, and admin redaction boundaries.</evidence-4>
+    <evidence-5>2026-05-19: Phase-41 verification design adds owner-cabinet checks for ee fake-TLS payloads, official dd supersession, redaction, and compact mobile state.</evidence-5>
   </evidence>
 </V-M-045>

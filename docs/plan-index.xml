@@ -42,5 +42,5 @@
   <Phase-38 NAME="DE-backed MTProto Edge and RU SNI Router" STATUS="partial-live" STEPS="8" MODULES="M-050,M-049,M-044,M-046,M-048,M-012,M-043" />
   <Phase-39 NAME="MTProto Telegram Availability Closure" STATUS="partial-live" STEPS="9" MODULES="M-051,M-045,M-050,M-044,M-043,M-012" />
   <Phase-40 NAME="Official MTProxy data-plane and individual user secrets" STATUS="partial-live" STEPS="9" MODULES="M-052,M-053,M-042,M-043,M-045,M-047,M-050,M-051,M-012" />
-  <Phase-41 NAME="KPprotoN fake-TLS production data-plane rollback" STATUS="planned" STEPS="9" MODULES="M-043,M-044,M-049,M-050,M-051,M-052,M-053,M-012,M-045,M-047" />
+  <Phase-41 NAME="KPprotoN fake-TLS production data-plane rollback" STATUS="verification-designed" STEPS="9" MODULES="M-043,M-044,M-049,M-050,M-051,M-052,M-053,M-012,M-045,M-047" />
 </PlanIndex>

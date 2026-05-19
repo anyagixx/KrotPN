@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<V-M-049 MODULE="M-049" PRIORITY="critical" STATUS="planned-phase41" VERSION="1.2.0">
+<V-M-049 MODULE="M-049" PRIORITY="critical" STATUS="verification-designed-phase41" VERSION="1.3.0">
   <module>mtproto-live-edge-runtime</module>
   <phase-scope>
     <phase-37 status="blocked-live">Live MTProto edge runtime fix for clean-VPS Telegram proxy unavailability; local verification passed, but RU mtproto_proxy downstream handshakes still block TCP 443 ownership.</phase-37>
     <phase-38 status="superseded-by-M-050">Phase-38 keeps reusable runtime and policy bridge artifacts but replaces RU-only live traffic ownership with a DE-backed runtime behind an RU SNI router.</phase-38>
-    <phase-41 status="planned">Phase-41 reuses M-049 as the production KPprotoN fake-TLS data-plane on DE and validates it against the reference project semantics.</phase-41>
+    <phase-41 status="verification-designed">Phase-41 reuses M-049 as the production KPprotoN fake-TLS data-plane on DE and validates it against the reference project semantics.</phase-41>
   </phase-scope>
   <test-files>
     <file>scripts/phase37-mtproto-runtime-smoke.mjs</file>
@@ -19,7 +19,7 @@
     <file>docker-compose.yml</file>
     <file>nginx/nginx.conf</file>
     <file>deploy/deploy-on-server.sh</file>
-    <file phase="41-planned">scripts/phase41-kpproton-faketls-smoke.mjs</file>
+    <file phase="41-verification-designed">scripts/phase41-kpproton-faketls-smoke.mjs</file>
   </test-files>
   <commands>
     <command-1>cd mtproto-runtime &amp;&amp; rebar3 compile</command-1>
@@ -95,6 +95,6 @@
     <evidence-3>2026-05-18: Telegram upstream routes through awg-client restored TCP reachability, but mtproto_proxy downstream handshakes still closed; nginx public 443 rollback preserved web availability.</evidence-3>
     <evidence-4>2026-05-18: Phase-38 verification moves live availability proof to V-M-050 while preserving Phase-37 artifacts as reusable runtime components.</evidence-4>
     <evidence-5>2026-05-18: Phase-38 local execution keeps mtproto-runtime buildable and policy-handler tests intact while default compose no longer starts RU mtproto-edge as the public 443 owner.</evidence-5>
-    <evidence-6>2026-05-19: Phase-41 verification planning restores M-049 as the DE KPprotoN fake-TLS runtime and requires comparison against CodexKPprotoN_for_KPN behavior.</evidence-6>
+    <evidence-6>2026-05-19: Phase-41 verification design restores M-049 as the DE KPprotoN fake-TLS runtime and requires comparison against CodexKPprotoN_for_KPN behavior.</evidence-6>
   </evidence>
 </V-M-049>

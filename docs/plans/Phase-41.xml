@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Phase-41 NAME="KPprotoN fake-TLS production data-plane rollback" STATUS="planned" VERSION="1.0.0">
+<Phase-41 NAME="KPprotoN fake-TLS production data-plane rollback" STATUS="verification-designed" VERSION="1.1.0">
   <Goal>Replace the Phase-40 official MTProxy production path with the KPprotoN fake-TLS SNI data-plane while keeping KrotPN as the registration, assignment, dashboard, admin, and backup control-plane.</Goal>
   <Modules>M-043,M-044,M-049,M-050,M-051,M-052,M-053,M-012,M-045,M-047</Modules>
   <OperatorProblem>
@@ -44,12 +44,21 @@
     <command-1>bash -n install.sh deploy/deploy-on-server.sh scripts/phase39-mtproto-live-smoke.sh</command-1>
     <command-2>node scripts/phase38-de-mtproto-edge-smoke.mjs</command-2>
     <command-3>node scripts/phase39-mtproto-availability-smoke.mjs</command-3>
-    <command-4>planned: node scripts/phase41-kpproton-faketls-smoke.mjs</command-4>
+    <command-4 status="planned">node scripts/phase41-kpproton-faketls-smoke.mjs</command-4>
     <command-5>cd backend &amp;&amp; SECRET_KEY=test-secret-key-with-enough-length DATA_ENCRYPTION_KEY=dpFmfSVqfdAK3yx5MQV6Tcv35RZuw5MzaH0yhxJ01q0= PYTHONPATH=. ../.venv/bin/python -m pytest -o addopts='' tests/test_mtproto_provisioning.py tests/test_kpproton_runtime_bridge.py tests/test_mtproto_api.py tests/test_mtproto_admin_ops.py tests/test_mtproto_de_edge_contract.py tests/test_mtproto_availability_diagnostics.py -v</command-5>
     <command-6>cd mtproto-runtime &amp;&amp; rebar3 compile</command-6>
-    <command-7>python3 -m xml.etree.ElementTree docs/graph-index.xml docs/plan-index.xml docs/verification-index.xml docs/plans/Phase-41.xml docs/modules/M-043.xml docs/modules/M-044.xml docs/modules/M-049.xml docs/modules/M-050.xml docs/modules/M-051.xml docs/modules/M-052.xml docs/modules/M-053.xml &amp;&amp; mygrace lint</command-7>
+    <command-7>python3 -m xml.etree.ElementTree docs/graph-index.xml docs/plan-index.xml docs/verification-index.xml docs/current-status.xml docs/plans/Phase-41.xml docs/modules/M-012.xml docs/modules/M-043.xml docs/modules/M-044.xml docs/modules/M-045.xml docs/modules/M-047.xml docs/modules/M-049.xml docs/modules/M-050.xml docs/modules/M-051.xml docs/modules/M-052.xml docs/modules/M-053.xml docs/verification/V-M-012.xml docs/verification/V-M-043.xml docs/verification/V-M-044.xml docs/verification/V-M-045.xml docs/verification/V-M-047.xml docs/verification/V-M-049.xml docs/verification/V-M-050.xml docs/verification/V-M-051.xml docs/verification/V-M-052.xml docs/verification/V-M-053.xml &amp;&amp; mygrace lint</command-7>
     <command-8>operator-live: clean VPS deploy, new verified user receives ee fake-TLS link, RU routes issued SNI to DE, DE policy_count changes without data-plane restart, and Telegram Desktop/mobile works.</command-8>
   </Verification>
+  <VerificationDesign STATUS="designed" DATE="2026-05-19">
+    <item-1>V-M-043 verifies owner payload format, explicit official-dd reissue state, and no stale active production link.</item-1>
+    <item-2>V-M-044 and V-M-049 verify KPprotoN SNI policy apply/revoke/replay without official manifest sync or data-plane restart.</item-2>
+    <item-3>V-M-050 and V-M-012 verify RU public 443 SNI routing, DE KPprotoN runtime selection, web/admin HTTPS preservation, and secret-redacted deploy output.</item-3>
+    <item-4>V-M-045 verifies the user cabinet shows only the current ee fake-TLS owner link and keeps mobile UX compact.</item-4>
+    <item-5>V-M-047 verifies admin reissue/revoke, superseded official-mode state, audit safety, and no owner credential exposure.</item-5>
+    <item-6>V-M-051 verifies redacted availability diagnostics and requires real Telegram Desktop/mobile proof before release readiness.</item-6>
+    <item-7>V-M-052 and V-M-053 verify official MTProxy and official manifest sync stay inactive in the production path unless an explicit rollback phase is approved.</item-7>
+  </VerificationDesign>
   <VerificationMatrix>
     <gate-1 MODULES="M-043,M-045" EVIDENCE="deterministic">Owner payload uses fake-TLS ee secret and issued user SNI, not official dd secret on the base domain.</gate-1>
     <gate-2 MODULES="M-044,M-049" EVIDENCE="deterministic">Policy apply/revoke/replay updates KPprotoN runtime policy without restarting the MTProto data-plane for unchanged or newly added SNI policy.</gate-2>

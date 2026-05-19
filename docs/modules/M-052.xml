@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<M-052 NAME="official-mtproxy-data-plane" TYPE="INTEGRATION" STATUS="superseded-planned">
+<M-052 NAME="official-mtproxy-data-plane" TYPE="INTEGRATION" STATUS="superseded-verification-designed">
   <path>official-mtproxy deploy docker-compose.yml deploy/deploy-on-server.sh deploy/haproxy-phase40.cfg deploy/mtproto-de-compose.yml scripts/phase40-official-mtproxy-live-smoke.sh docs/plans/Phase-40.xml docs/plans/Phase-41.xml</path>
   <owns>Official Telegram MTProxy runtime, redacted runtime launcher, local stats/health contract, and RU-to-DE MTProto data-plane routing.</owns>
-  <purpose>Provide the Phase-40 official MTProxy data-plane reference, now planned to be superseded by Phase-41 KPprotoN fake-TLS production routing.</purpose>
+  <purpose>Provide the Phase-40 official MTProxy data-plane reference, now verification-designed to be superseded by Phase-41 KPprotoN fake-TLS production routing.</purpose>
   <exports>
     <runtime-official-mtproxy>Runs the official mtproto-proxy binary on the DE MTProto node with generated -S user secrets.</runtime-official-mtproxy>
     <launcher-redacted>Starts the runtime from a secret manifest without printing full tg links or raw secrets.</launcher-redacted>
@@ -50,7 +50,7 @@
     <evidence-2>2026-05-19: Temporary official MTProxy runtime on the DE host passed normal and secure req_pq smoke, proving the official runtime is the selected Phase-40 data-plane.</evidence-2>
     <evidence-3>2026-05-19: Local execution added official-mtproxy runtime scaffold, Phase-40 HAProxy router, DE compose wiring, deploy copy/env changes, redacted live-smoke gate, and deploy/static tests; clean-VPS live req_pq remains pending.</evidence-3>
     <evidence-4>2026-05-19: Live DE hotfix found repeated identical manifest apply was restarting mtproto-proxy and interrupting Telegram sessions; supervisor idempotency, HTTP stats, and NAT info were applied live, repeated scheduler sync produced UNCHANGED without SIGTERM, and policy health reported healthy.</evidence-4>
-    <evidence-5>2026-05-19: Phase-41 planning supersedes M-052 for production because official manifest/process semantics do not match the required no-restart per-user SNI model.</evidence-5>
+    <evidence-5>2026-05-19: Phase-41 verification design supersedes M-052 for production because official manifest/process semantics do not match the required no-restart per-user SNI model.</evidence-5>
   </evidence>
   <hotspot>H-039: Official MTProxy runtime must pass req_pq through public 443 and must not print generated links or secrets through default wrapper logs.</hotspot>
 </M-052>

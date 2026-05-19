@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<M-045 NAME="mtproto-user-cabinet" TYPE="UI_COMPONENT" STATUS="done-local">
-  <path>frontend backend/app/mtproto backend/app/main.py scripts docs/plans/Phase-31.xml</path>
+<M-045 NAME="mtproto-user-cabinet" TYPE="UI_COMPONENT" STATUS="verification-designed-phase41">
+  <path>frontend backend/app/mtproto backend/app/main.py scripts docs/plans/Phase-31.xml docs/plans/Phase-41.xml scripts/phase41-kpproton-faketls-smoke.mjs</path>
   <owns>User-facing API and compact dashboard UI for personal free Telegram MTProto proxy access.</owns>
   <purpose>Show every verified user their free indefinite MTProto proxy alongside KrotPN trial and VPN actions in the mobile cabinet.</purpose>
   <exports>
@@ -20,6 +20,7 @@
     <file>backend/tests/test_mtproto_api.py</file>
     <file>scripts/phase31-mtproto-cabinet-smoke.mjs</file>
     <file>scripts/phase34-mtproto-stabilization-smoke.mjs</file>
+    <file phase="41-designed">scripts/phase41-kpproton-faketls-smoke.mjs</file>
   </files>
   <ui-contract>
     <primary>MTProto proxy status and copy/open actions fit the first mobile dashboard screen without hiding VPN trial state.</primary>
@@ -28,11 +29,19 @@
   <constraints>
     <constraint-1>The MTProto card must not create horizontal scroll at 360x740, 390x844, or 430x932.</constraint-1>
     <constraint-2>Full proxy links are shown only to the authenticated owner and never in admin summary lists.</constraint-2>
+    <constraint-3>Phase-41 owner dashboard must show only the current KPprotoN ee fake-TLS link as active and must not present stale official dd links as usable production credentials.</constraint-3>
   </constraints>
+  <phase-41-verification-design>
+    <check-1>Owner API and dashboard payload use server=u-*.krotpn.xyz, port=443, and secret=ee... after reissue.</check-1>
+    <check-2>Official credential-mode assignments render reissue-required or unavailable state until Phase-41 reissue completes.</check-2>
+    <check-3>Dashboard copy/open actions remain full-link owner-only behavior, with no secret-bearing console or smoke output.</check-3>
+    <check-4>Mobile dashboard remains compact after adding Phase-41 reissue messaging.</check-4>
+  </phase-41-verification-design>
   <evidence>
     <evidence-1>2026-05-14: Phase-31 local backend tests, frontend build, static mobile/API smoke, XML parse, and MyGRACE lint passed.</evidence-1>
     <evidence-2>2026-05-14: Phase-34 local integration confirms post-verify owner dashboard/API reuses exactly one canonical MTProto assignment and keeps pending/unverified users secret-free.</evidence-2>
     <evidence-3>2026-05-18: Phase-39 keeps manual fields but makes the primary Telegram action a https://t.me/proxy link and copy action a full-link copy to reduce manual secret-entry mistakes.</evidence-3>
+    <evidence-4>2026-05-19: Phase-41 verification design adds owner-cabinet gates for ee fake-TLS payloads, official-dd reissue-required state, redaction, and mobile compactness.</evidence-4>
   </evidence>
   <hotspot>H-031: User dashboard must show MTProto access compactly without hiding VPN trial status or config actions</hotspot>
 </M-045>

@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<V-M-050 MODULE="M-050" PRIORITY="critical" STATUS="planned-phase41" VERSION="1.4.0">
+<V-M-050 MODULE="M-050" PRIORITY="critical" STATUS="verification-designed-phase41" VERSION="1.5.0">
   <module>mtproto-de-backed-edge</module>
   <phase-scope>
     <phase-38 status="partial-live">DE-hosted MTProto runtime plus RU public TCP 443 SNI router passed live RU/DE edge checks; assignment replay and Telegram Desktop proof remain operator-required.</phase-38>
-    <phase-41 status="planned">DE-backed edge must return to KPprotoN fake-TLS SNI routing and remove official MTProxy from the active production target.</phase-41>
+    <phase-41 status="verification-designed">DE-backed edge must return to KPprotoN fake-TLS SNI routing and remove official MTProxy from the active production target.</phase-41>
     <supersedes>M-049 remains blocked-live for the RU-only runtime path; Phase-38 verifies the replacement DE-backed traffic path.</supersedes>
   </phase-scope>
   <test-files>
@@ -21,8 +21,8 @@
     <file>nginx/nginx.conf</file>
     <file>mtproto-runtime</file>
     <file>docs/plans/Phase-38.xml</file>
-    <file phase="41-planned">docs/plans/Phase-41.xml</file>
-    <file phase="41-planned">scripts/phase41-kpproton-faketls-smoke.mjs</file>
+    <file phase="41-verification-designed">docs/plans/Phase-41.xml</file>
+    <file phase="41-verification-designed">scripts/phase41-kpproton-faketls-smoke.mjs</file>
   </test-files>
   <commands>
     <command-1>bash -n install.sh deploy/deploy-on-server.sh</command-1>
@@ -126,6 +126,6 @@
     <evidence-4>2026-05-18: Clean VPS follow-up fixed live regressions by adding HAProxy low-port bind permissions and separating admin 8443 from the SNI-router web fallback on private 9443.</evidence-4>
     <evidence-5>2026-05-18: DE runtime follow-up fixed mtproto_proxy startup against private policy bind by replacing the hardcoded 127.0.0.1 bootstrap URL with POLICY_LISTEN_IP-derived bootstrap URLs.</evidence-5>
     <evidence-6>2026-05-18: Live verification passed: RU public 443 serves KrotPN through HAProxy, RU public 8443/login serves KrotPN Admin, nginx private fallback listens on 127.0.0.1:9443, DE runtime listens on 0.0.0.0:443, private policy health returns OK, RU can reach DE 443, and HAProxy reports mtproto_de_runtime UP.</evidence-6>
-    <evidence-7>2026-05-19: Phase-41 verification planning restores M-050 to KPprotoN fake-TLS SNI routing and marks official MTProxy routing as superseded for production.</evidence-7>
+    <evidence-7>2026-05-19: Phase-41 verification design restores M-050 to KPprotoN fake-TLS SNI routing and marks official MTProxy routing as superseded for production.</evidence-7>
   </evidence>
 </V-M-050>
