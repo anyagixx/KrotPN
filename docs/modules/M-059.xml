@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<M-059 NAME="mtproto-promotion-tag-control" TYPE="INTEGRATION" STATUS="verification-designed">
-  <path>backend/app/admin backend/app/mtproto mtproto-runtime deploy/mtproto-de-compose.yml .env.example docs/plans/Phase-42.xml</path>
+<M-059 NAME="mtproto-promotion-tag-control" TYPE="INTEGRATION" STATUS="pass-local-phase42">
+  <path>backend/app/mtproto/promotion_tag.py backend/app/admin/router.py backend/app/core/config.py mtproto-runtime/src/kpproton_app.erl deploy/mtproto-de-compose.yml .env.example scripts/phase42-mtproto-promotion-tag-smoke.mjs backend/tests/test_mtproto_promotion_tag.py docs/plans/Phase-42.xml</path>
   <owns>Operator-managed MTProxyBot promotion tag storage, validation, redaction, audit trail, runtime apply state, and deploy env propagation.</owns>
   <purpose>Allow the KrotPN admin to configure the Telegram MTProxy promotion tag safely from the admin panel.</purpose>
   <exports>
@@ -13,15 +13,16 @@
   <depends>M-001,M-006,M-012,M-047,M-049,M-050</depends>
   <verification-ref>V-M-059</verification-ref>
   <files>
-    <file planned="true">backend/app/mtproto/promotion_tag.py</file>
-    <file planned="true">backend/app/admin/router.py</file>
-    <file planned="true">backend/app/admin/audit.py</file>
-    <file planned="true">mtproto-runtime/src/kpproton_app.erl</file>
-    <file planned="true">deploy/mtproto-de-compose.yml</file>
-    <file planned="true">.env.example</file>
-    <file planned="true">scripts/phase42-mtproto-promotion-tag-smoke.mjs</file>
-    <file planned="true">backend/tests/test_mtproto_promotion_tag.py</file>
+    <file status="implemented">backend/app/mtproto/promotion_tag.py</file>
+    <file status="implemented">backend/app/admin/router.py</file>
+    <file status="implemented">backend/app/core/config.py</file>
+    <file status="unchanged-existing">deploy/mtproto-de-compose.yml</file>
+    <file status="unchanged-existing">.env.example</file>
+    <file status="implemented">mtproto-runtime/src/kpproton_app.erl</file>
+    <file status="implemented">scripts/phase42-mtproto-promotion-tag-smoke.mjs</file>
+    <file status="implemented">backend/tests/test_mtproto_promotion_tag.py</file>
   </files>
+  <evidence>pass-local 2026-05-19: promotion tag validator/API tests, static smoke, and runtime compile passed.</evidence>
   <external-reference>
     <source-1>Telegram MTProxy setup documents promotion tags from @MTProxyBot and server-side proxy tag configuration at https://core.telegram.org/proxy.</source-1>
   </external-reference>

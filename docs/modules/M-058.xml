@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<M-058 NAME="mtproto-admin-analytics-ui" TYPE="UI_COMPONENT" STATUS="verification-designed">
-  <path>frontend-admin scripts/phase42-mtproto-admin-analytics-smoke.mjs docs/plans/Phase-42.xml</path>
+<M-058 NAME="mtproto-admin-analytics-ui" TYPE="UI_COMPONENT" STATUS="pass-local-phase42">
+  <path>frontend-admin/src/pages/MTProtoAnalytics.tsx frontend-admin/src/pages/MTProto.tsx frontend-admin/src/lib/api.ts frontend-admin/src/types/index.ts scripts/phase42-mtproto-admin-analytics-smoke.mjs docs/plans/Phase-42.xml</path>
   <owns>Compact admin UI for MTProto usage analytics, per-proxy details, abuse signals, runtime health, availability proof, and promotion tag controls.</owns>
   <purpose>Let the operator analyze MTProto usage from desktop or mobile admin panel without exposing secrets.</purpose>
   <exports>
@@ -12,12 +12,13 @@
   <depends>M-010,M-037,M-038,M-057,M-059</depends>
   <verification-ref>V-M-058</verification-ref>
   <files>
-    <file planned="true">frontend-admin/src/pages/MTProtoAnalytics.tsx</file>
-    <file planned="true">frontend-admin/src/pages/MTProto.tsx</file>
-    <file planned="true">frontend-admin/src/lib/api.ts</file>
-    <file planned="true">frontend-admin/src/types/index.ts</file>
-    <file planned="true">scripts/phase42-mtproto-admin-analytics-smoke.mjs</file>
+    <file status="implemented">frontend-admin/src/pages/MTProtoAnalytics.tsx</file>
+    <file status="implemented">frontend-admin/src/pages/MTProto.tsx</file>
+    <file status="implemented">frontend-admin/src/lib/api.ts</file>
+    <file status="implemented">frontend-admin/src/types/index.ts</file>
+    <file status="implemented">scripts/phase42-mtproto-admin-analytics-smoke.mjs</file>
   </files>
+  <evidence>pass-local 2026-05-19: frontend-admin build and Phase-42 admin analytics static smoke passed.</evidence>
   <ui-policy>
     <policy-1>Mobile layout uses dense summary rows, tabs, filters, and drill-down panels rather than large decorative dashboards.</policy-1>
     <policy-2>Promotion tag editing requires confirmation and never displays the full stored tag after save.</policy-2>

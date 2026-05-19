@@ -4,20 +4,22 @@
 // MAP_MODE: EXPORTS
 // START_MODULE_CONTRACT
 //   PURPOSE: Shared TypeScript interfaces for admin frontend API contracts
-//   SCOPE: AdminUser, AdminDevice, AdminPlan, AdminServer, AdminNode, AdminRoute, MTProto admin contracts, BillingStats, ReferralStats, SystemHealth, AnalyticsData, PaginatedResponse, NodeForm, RouteForm
-//   DEPENDS: M-010 (frontend-admin), M-047 (mtproto-admin-ops)
-//   LINKS: M-010 (frontend-admin), M-006 (admin-api), M-047
+//   SCOPE: AdminUser, AdminDevice, AdminPlan, AdminServer, AdminNode, AdminRoute, MTProto admin/analytics contracts, BillingStats, ReferralStats, SystemHealth, AnalyticsData, PaginatedResponse, NodeForm, RouteForm
+//   DEPENDS: M-010 (frontend-admin), M-047 (mtproto-admin-ops), M-058 (mtproto-admin-analytics-ui)
+//   LINKS: M-010 (frontend-admin), M-006 (admin-api), M-047, M-058
 // END_MODULE_CONTRACT
 //
 // START_MODULE_MAP
 //   AdminUser, AdminDevice, AdminPlan, AdminServer, AdminNode, AdminRoute - Admin entity interfaces
 //   AdminMTProtoAssignment, AdminMTProtoListResponse, AdminMTProtoHealth, AdminMTProtoActionResponse - Redacted MTProto admin interfaces
+//   AdminMTProtoAnalyticsSummary, AdminMTProtoAssignmentUsage, AdminMTProtoTopUsersResponse, AdminMTProtoPromotionTagState - MTProto analytics interfaces
 //   BillingStats, ReferralStats, SystemHealth, AnalyticsData - Analytics interfaces
 //   PaginatedResponse - Generic pagination wrapper
 //   NodeForm, RouteForm - Form state interfaces for CRUD
 // END_MODULE_MAP
 //
 // START_CHANGE_SUMMARY
+//   LAST_CHANGE: v3.3.0 - Added Phase-42 MTProto analytics and promotion tag admin contracts
 //   LAST_CHANGE: v3.2.1 - Added safe MTProto runtime revoke result to admin action responses
 //   LAST_CHANGE: v3.2.0 - Added Phase-33 redacted MTProto admin API contracts
 //   LAST_CHANGE: v2.8.0 - Converted to full GRACE MODULE_CONTRACT/MAP format with START/END blocks
@@ -177,6 +179,133 @@ export interface AdminMTProtoActionResponse {
     applied_at?: string | null
   }
   revoked?: boolean
+}
+
+export interface AdminMTProtoTrafficWindow {
+  bytes_in: number
+  bytes_out: number
+  traffic_bytes: number
+  connection_count: number
+  duration_ms: number
+  error_count: number
+}
+
+export interface AdminMTProtoAnalyticsSummary {
+  issued_total: number
+  status_counts: Record<string, number>
+  active_connections: number
+  last_seen_at?: string | null
+  traffic_windows: {
+    day: AdminMTProtoTrafficWindow
+    week: AdminMTProtoTrafficWindow
+    month: AdminMTProtoTrafficWindow
+    selected: AdminMTProtoTrafficWindow
+  }
+  error_count: number
+  unknown_sni_count: number
+  rejected_sni_count: number
+  abuse_signal_count: number
+  telemetry_status: string
+  availability_proof: {
+    req_pq_last_at?: string | null
+    status: string
+  }
+  runtime_health: AdminMTProtoHealth | { status: string }
+}
+
+export interface AdminMTProtoUsageEvent {
+  id: number
+  assignment_id?: number | null
+  user_id?: number | null
+  event_type: string
+  observed_at?: string | null
+  sni_masked?: string | null
+  ip_hash_prefix?: string | null
+  bytes_in: number
+  bytes_out: number
+  duration_ms: number
+  connection_count: number
+  error_code?: string | null
+  reason_code?: string | null
+}
+
+export interface AdminMTProtoAbuseSignal {
+  id: number
+  assignment_id?: number | null
+  user_id?: number | null
+  signal_type: string
+  severity: string
+  observe_only: boolean
+  window_start?: string | null
+  window_end?: string | null
+  metric_value: number
+  threshold_value: number
+  reason_code: string
+}
+
+export interface AdminMTProtoAssignmentUsage {
+  assignment: {
+    id: number
+    user_id: number
+    user_email?: string | null
+    user_display_name?: string | null
+    sni_masked?: string | null
+    status: string
+    rotation_marker: string
+  }
+  window_days: number
+  last_seen_at?: string | null
+  last_req_pq_at?: string | null
+  active_connections: number
+  connection_count: number
+  session_count: number
+  active_session_count: number
+  duration_ms: number
+  bytes_in: number
+  bytes_out: number
+  error_count: number
+  recent_events: AdminMTProtoUsageEvent[]
+  abuse_signals: AdminMTProtoAbuseSignal[]
+}
+
+export interface AdminMTProtoTopUser {
+  user_id: number
+  user_email?: string | null
+  user_display_name?: string | null
+  traffic_bytes: number
+  duration_ms: number
+  connection_count: number
+  error_count: number
+}
+
+export interface AdminMTProtoTopUsersResponse {
+  items: AdminMTProtoTopUser[]
+  metric: string
+  days: number
+  limit: number
+}
+
+export interface AdminMTProtoEventListResponse {
+  items: AdminMTProtoUsageEvent[]
+  total: number
+  offset: number
+  limit: number
+}
+
+export interface AdminMTProtoAbuseSignalListResponse {
+  items: AdminMTProtoAbuseSignal[]
+  total: number
+  offset: number
+  limit: number
+}
+
+export interface AdminMTProtoPromotionTagState {
+  masked_tag: string
+  source: string
+  runtime_status: string
+  pending_restart: boolean
+  updated_by_admin_id?: number | null
+  updated_at?: string | null
 }
 // END_BLOCK: AdminMTProto
 

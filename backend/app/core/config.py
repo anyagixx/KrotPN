@@ -24,6 +24,7 @@
 # END_MODULE_MAP
 #
 # START_CHANGE_SUMMARY
+#   LAST_CHANGE: v3.8.0 - Added Phase-42 MTProxy promotion tag setting validation.
 #   LAST_CHANGE: v3.7.0 - Allow Phase-38 private DE MTProto policy targets and edge SNI-router settings.
 #   LAST_CHANGE: v3.6.0 - Added Phase-37 MTProto runtime policy bridge URL and token validation.
 #   LAST_CHANGE: v3.5.2 - Added Phase-36 Resend API URL, sender, and key format validation.
@@ -261,6 +262,7 @@ class Settings(BaseSettings):
     mtproto_runtime_token: str | None = None
     mtproto_runtime_timeout_seconds: float = Field(default=3.0, gt=0, le=30)
     mtproto_policy_bind_ip: str = "127.0.0.1"
+    mtproto_ad_tag: str = "00000000000000000000000000000000"
 
     # Public domain/TLS edge contract
     edge_public_domain: str = "krotpn.xyz"
@@ -470,6 +472,16 @@ class Settings(BaseSettings):
             return None
         if not re.fullmatch(r"[-A-Za-z0-9._~+/=]{24,512}", normalized):
             raise ValueError("MTPROTO_RUNTIME_TOKEN contains unsupported characters")
+        return normalized
+
+    @field_validator("mtproto_ad_tag")
+    @classmethod
+    def validate_mtproto_ad_tag(cls, v: str) -> str:
+        if v != v.strip():
+            raise ValueError("MTPROTO_AD_TAG must not contain surrounding whitespace")
+        normalized = v.lower()
+        if not re.fullmatch(r"[0-9a-f]{32}", normalized):
+            raise ValueError("MTPROTO_AD_TAG must be exactly 32 hex characters")
         return normalized
 
     @field_validator("edge_public_domain", "edge_canonical_host")

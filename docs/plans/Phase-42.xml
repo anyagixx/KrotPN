@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Phase-42 NAME="MTProto Usage Analytics and Promotion Tag Control" STATUS="verification-designed" VERSION="1.1.0" MODULES="M-054,M-055,M-056,M-057,M-058,M-059,M-042,M-044,M-047,M-049,M-050,M-051" CREATED="2026-05-19">
+<Phase-42 NAME="MTProto Usage Analytics and Promotion Tag Control" STATUS="done-local" VERSION="1.3.0" MODULES="M-054,M-055,M-056,M-057,M-058,M-059,M-042,M-044,M-047,M-049,M-050,M-051" CREATED="2026-05-19" UPDATED="2026-05-19">
   <purpose>Give the KrotPN operator metadata-only MTProto usage analytics, abuse visibility, runtime availability proof, and safe @MTProxyBot promotion tag control without exposing proxy secrets or Telegram payload data.</purpose>
   <scope>
     <in>Usage events, sessions, rollups, last seen, traffic windows, errors, unknown/rejected SNI, active connections, top users, observe-only abuse signals, runtime health, req_pq proof, admin API, admin UI, and promotion tag control.</in>
@@ -15,16 +15,16 @@
     <note-2>Existing KrotPN production path remains Phase-41 KPprotoN fake-TLS, not the superseded official MTProxy path.</note-2>
   </source-notes>
   <steps>
-    <step-1 MODULE="M-054" STATUS="planned">Design Alembic-backed usage event, session, rollup, last-seen, and abuse-signal tables with secret-free fields and bounded retention.</step-1>
-    <step-2 MODULE="M-055" STATUS="planned">Extend KPprotoN runtime policy metadata and private API to expose handshake, close, bytes, error, unknown_sni, rejected_sni, active connection, and req_pq proof telemetry.</step-2>
-    <step-3 MODULE="M-055,M-054" STATUS="planned">Add backend telemetry ingestion task with cursoring, idempotent event writes, failure-safe retries, and no impact on MTProto availability.</step-3>
-    <step-4 MODULE="M-056" STATUS="planned">Build aggregation service for global summary, per-proxy usage, top users, day/week/month traffic, session duration, connection count, and last seen.</step-4>
-    <step-5 MODULE="M-056" STATUS="planned">Add observe-only abuse classifiers for many IP hashes, high concurrent sessions, traffic spikes, and repeated handshake failures.</step-5>
-    <step-6 MODULE="M-057" STATUS="planned">Expose admin analytics APIs with filters, pagination, redaction guards, and per-assignment drill-down.</step-6>
-    <step-7 MODULE="M-058" STATUS="planned">Add compact frontend-admin analytics UI with mobile-safe summary, time filters, top users, per-proxy detail, abuse signal lists, and runtime proof status.</step-7>
-    <step-8 MODULE="M-059" STATUS="planned">Implement promotion tag validation, masked storage/state, explicit admin update, audit logging, and runtime apply or pending-restart semantics.</step-8>
-    <step-9 MODULE="M-059,M-049,M-050" STATUS="planned">Propagate non-blank MTPROTO_AD_TAG/PROXY_AD_TAG to the DE runtime without rotating user SNI, base secret, salt, or proxy links.</step-9>
-    <step-10 MODULE="M-054,M-055,M-056,M-057,M-058,M-059" STATUS="planned">Run backend, runtime smoke, admin UI build, redaction smoke, XML parse, MyGRACE lint, and live optional req_pq proof before release.</step-10>
+    <step-1 MODULE="M-054" STATUS="done-local">Design Alembic-backed usage event, session, rollup, last-seen, and abuse-signal tables with secret-free fields and bounded retention.</step-1>
+    <step-2 MODULE="M-055" STATUS="done-local">Extend KPprotoN runtime policy metadata, mtproto_proxy metric backend, active-SNI sampler, and private API to expose handshake, close, bytes, error, unknown_sni, rejected_sni, active connection, and req_pq proof telemetry.</step-2>
+    <step-3 MODULE="M-055,M-054" STATUS="done-local">Add backend telemetry ingestion task with cursoring, idempotent event writes, failure-safe retries, and no impact on MTProto availability.</step-3>
+    <step-4 MODULE="M-056" STATUS="done-local">Build aggregation service for global summary, per-proxy usage, top users, day/week/month traffic, session duration, connection count, and last seen.</step-4>
+    <step-5 MODULE="M-056" STATUS="done-local">Add observe-only abuse classifiers for many IP hashes, high concurrent sessions, traffic spikes, and repeated handshake failures.</step-5>
+    <step-6 MODULE="M-057" STATUS="done-local">Expose admin analytics APIs with filters, pagination, redaction guards, and per-assignment drill-down.</step-6>
+    <step-7 MODULE="M-058" STATUS="done-local">Add compact frontend-admin analytics UI with mobile-safe summary, time filters, top users, per-proxy detail, abuse signal lists, and runtime proof status.</step-7>
+    <step-8 MODULE="M-059" STATUS="done-local">Implement promotion tag validation, masked storage/state, explicit admin update, audit logging, and runtime apply or pending-restart semantics.</step-8>
+    <step-9 MODULE="M-059,M-049,M-050" STATUS="done-local">Propagate non-blank MTPROTO_AD_TAG/PROXY_AD_TAG to the DE runtime without rotating user SNI, base secret, salt, or proxy links.</step-9>
+    <step-10 MODULE="M-054,M-055,M-056,M-057,M-058,M-059" STATUS="pass-local">Run backend, runtime smoke, admin UI build, redaction smoke, XML parse, MyGRACE lint, and live optional req_pq proof before release.</step-10>
   </steps>
   <data-flow>
     <flow-1>Telegram client -> RU SNI router -> DE KPprotoN runtime -> Telegram DC.</flow-1>
@@ -43,6 +43,7 @@
     <risk-2 severity="high">Telemetry volume can grow quickly; bounded raw event retention and rollups are required.</risk-2>
     <risk-3 severity="medium">Mobile networks may trigger false abuse signals; Phase-42 remains observe-only.</risk-3>
     <risk-4 severity="medium">Promotion tag updates may require controlled runtime restart if hot-apply is unavailable.</risk-4>
+    <risk-5 severity="medium">Live byte counters are exact globally; exact per-user byte attribution during concurrent active SNI domains still requires a deeper data-plane hook or live validation before enforcement use.</risk-5>
   </risks>
   <verification>
     <verification-design status="verification-designed">
@@ -55,7 +56,7 @@
     <evidence-levels>
       <level-1>XML parse, MyGRACE lint, and documentation/index consistency for Phase-42 artifacts.</level-1>
       <level-2>Local deterministic backend tests for M-054, M-056, M-057, and M-059.</level-2>
-      <level-3>Local runtime smoke for M-055 and promotion tag propagation using synthetic telemetry and fake tags.</level-3>
+      <level-3>Local runtime smoke for M-055 metric backend, active-SNI sampler, private telemetry API, and promotion tag propagation using synthetic telemetry and fake tags.</level-3>
       <level-4>Frontend-admin build plus static/mobile smoke for M-058.</level-4>
       <level-5>Optional live proof after operator deploy: issued-link mtp_ping/req_pq, Telegram Desktop/mobile availability, and masked admin analytics inspection.</level-5>
     </evidence-levels>
@@ -67,9 +68,11 @@
     <commands>
       <command status="pass-local">python3 -m xml.etree.ElementTree docs/plans/Phase-42.xml docs/modules/M-054.xml docs/modules/M-055.xml docs/modules/M-056.xml docs/modules/M-057.xml docs/modules/M-058.xml docs/modules/M-059.xml docs/verification/V-M-054.xml docs/verification/V-M-055.xml docs/verification/V-M-056.xml docs/verification/V-M-057.xml docs/verification/V-M-058.xml docs/verification/V-M-059.xml docs/graph-index.xml docs/plan-index.xml docs/verification-index.xml docs/current-status.xml</command>
       <command status="pass-local">mygrace lint</command>
-      <command status="planned-local">cd backend &amp;&amp; SECRET_KEY=test-secret-key-with-enough-length PYTHONPATH=. ../.venv/bin/python -m pytest -o addopts='' tests/test_mtproto_usage_telemetry.py tests/test_mtproto_runtime_telemetry_bridge.py tests/test_mtproto_analytics_service.py tests/test_mtproto_admin_analytics_api.py tests/test_mtproto_promotion_tag.py -v</command>
-      <command status="planned-local">node scripts/phase42-mtproto-telemetry-smoke.mjs &amp;&amp; node scripts/phase42-mtproto-admin-analytics-smoke.mjs &amp;&amp; node scripts/phase42-mtproto-promotion-tag-smoke.mjs</command>
-      <command status="planned-local">cd frontend-admin &amp;&amp; npm run build</command>
+      <command status="pass-local">cd backend &amp;&amp; SECRET_KEY=test-secret-key-with-enough-length PYTHONPATH=. ../.venv/bin/python -m pytest -o addopts='' tests/test_mtproto_usage_telemetry.py tests/test_mtproto_runtime_telemetry_bridge.py tests/test_mtproto_analytics_service.py tests/test_mtproto_admin_analytics_api.py tests/test_mtproto_promotion_tag.py tests/test_db_migrations.py -v</command>
+      <command status="pass-local">cd backend &amp;&amp; SECRET_KEY=test-secret-key-with-enough-length PYTHONPATH=. ../.venv/bin/python -m pytest -o addopts='' tests/test_scheduler.py tests/test_mtproto_admin_ops.py tests/test_kpproton_runtime_bridge.py -v</command>
+      <command status="pass-local">node scripts/phase42-mtproto-telemetry-smoke.mjs &amp;&amp; node scripts/phase42-mtproto-admin-analytics-smoke.mjs &amp;&amp; node scripts/phase42-mtproto-promotion-tag-smoke.mjs</command>
+      <command status="pass-local">cd frontend-admin &amp;&amp; npm run build</command>
+      <command status="pass-local">cd mtproto-runtime &amp;&amp; rebar3 compile</command>
     </commands>
     <autonomous-execution-safety>
       <safe-local>Documentation, local unit tests, static smoke scripts, frontend build, and synthetic runtime fixtures are safe to execute autonomously.</safe-local>

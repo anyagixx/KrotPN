@@ -4,9 +4,9 @@
 // MAP_MODE: SUMMARY
 // START_MODULE_CONTRACT
 //   PURPOSE: Compact admin page for redacted MTProto assignment observability and confirmation-safe lifecycle actions
-//   SCOPE: Runtime health, assignment search/status filters, redacted rows, reissue/revoke confirmation, and feedback
-//   DEPENDS: M-010 (frontend-admin), M-047 (mtproto-admin-ops), M-037 (mobile-admin-console), M-038 (compact-ui-system)
-//   LINKS: M-010, M-047, M-037, M-038, V-M-047
+//   SCOPE: Runtime health, assignment search/status filters, redacted rows, reissue/revoke confirmation, analytics panel, and feedback
+//   DEPENDS: M-010 (frontend-admin), M-047 (mtproto-admin-ops), M-058 (mtproto-admin-analytics-ui), M-037 (mobile-admin-console), M-038 (compact-ui-system)
+//   LINKS: M-010, M-047, M-058, M-037, M-038, V-M-047, V-M-058
 // END_MODULE_CONTRACT
 //
 // START_MODULE_MAP
@@ -18,6 +18,7 @@
 // END_MODULE_MAP
 //
 // START_CHANGE_SUMMARY
+//   LAST_CHANGE: v1.1.0 - Embedded Phase-42 compact MTProto analytics panel
 //   LAST_CHANGE: v1.0.0 - Added Phase-33 redacted MTProto admin operations UI
 // END_CHANGE_SUMMARY
 
@@ -35,6 +36,7 @@ import {
 } from 'lucide-react'
 import { adminApi } from '../lib/api'
 import type { AdminMTProtoAssignment } from '../types'
+import MTProtoAnalyticsPanel from './MTProtoAnalytics'
 
 type MTProtoAction = 'reissue' | 'revoke'
 
@@ -203,6 +205,8 @@ export default function MTProtoPage() {
           {healthQuery.isLoading ? 'loading' : health?.status || 'unknown'}
         </span>
       </section>
+
+      <MTProtoAnalyticsPanel />
 
       {feedback ? (
         <div className={feedback.tone === 'success' ? 'surface px-3 py-2 text-sm text-emerald-100' : 'surface px-3 py-2 text-sm text-amber-100'}>

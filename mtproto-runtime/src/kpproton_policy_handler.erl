@@ -1,17 +1,18 @@
 %% FILE: src/kpproton_policy_handler.erl
-%% VERSION: 1.0.0
+%% VERSION: 1.1.0
 %% START_MODULE_CONTRACT
-%%   PURPOSE: Expose a token-protected local HTTP bridge for KrotPN MTProto policy apply/revoke operations.
-%%   SCOPE: Authenticate local bridge requests, validate issued SNI domains, call mtproto policy table hooks, and return safe JSON.
+%%   PURPOSE: Expose a token-protected local HTTP bridge for KrotPN MTProto policy apply/revoke and telemetry operations.
+%%   SCOPE: Authenticate local bridge requests, validate issued SNI domains, call mtproto policy table hooks, expose safe telemetry, and return safe JSON.
 %%   DEPENDS: M-PROXY-BRIDGE, M-CONFIG
 %%   LINKS: M-PROXY-BRIDGE, M-RELEASE
 %% END_MODULE_CONTRACT
 %%
 %% START_MODULE_MAP
-%%   init/2 - Cowboy handler entry for apply, revoke, and health operations
+%%   init/2 - Cowboy handler entry for apply, revoke, health, telemetry snapshot, and telemetry drain operations
 %% END_MODULE_MAP
 %%
 %% START_CHANGE_SUMMARY
+%%   LAST_CHANGE: v1.1.0 - Added Phase-42 private telemetry snapshot/drain endpoints.
 %%   LAST_CHANGE: v1.0.0 - Added KrotPN live MTProto policy bridge endpoint.
 %% END_CHANGE_SUMMARY
 
@@ -27,6 +28,27 @@ init(Req0, #{operation := health} = State) ->
             reply_json(200, kpproton_proxy_bridge:health(), Req0, State);
         false ->
             reply_json(401, #{status => <<"unauthorized">>}, Req0, State)
+    end;
+init(Req0, #{operation := telemetry_snapshot} = State) ->
+    Method = cowboy_req:method(Req0),
+    case {Method, authorized(Req0)} of
+        {<<"GET">>, true} ->
+            reply_json(200, kpproton_usage_telemetry:snapshot(), Req0, State);
+        {<<"GET">>, false} ->
+            reply_json(401, #{status => <<"unauthorized">>}, Req0, State);
+        _ ->
+            reply_json(405, #{status => <<"method_not_allowed">>}, Req0, State)
+    end;
+init(Req0, #{operation := telemetry_drain} = State) ->
+    Method = cowboy_req:method(Req0),
+    case {Method, authorized(Req0)} of
+        {<<"GET">>, true} ->
+            {Cursor, Limit} = telemetry_query(Req0),
+            reply_json(200, kpproton_usage_telemetry:drain(Cursor, Limit), Req0, State);
+        {<<"GET">>, false} ->
+            reply_json(401, #{status => <<"unauthorized">>}, Req0, State);
+        _ ->
+            reply_json(405, #{status => <<"method_not_allowed">>}, Req0, State)
     end;
 init(Req0, #{operation := Operation} = State) ->
     Method = cowboy_req:method(Req0),
@@ -82,6 +104,20 @@ policy_token() ->
         [] -> <<>>;
         Value -> unicode:characters_to_binary(Value)
     end.
+
+telemetry_query(Req) ->
+    Qs = cowboy_req:parse_qs(Req),
+    Cursor = parse_int(proplists:get_value(<<"cursor">>, Qs, <<"0">>), 0),
+    Limit = parse_int(proplists:get_value(<<"limit">>, Qs, <<"500">>), 500),
+    {Cursor, Limit}.
+
+parse_int(Value, Default) when is_binary(Value) ->
+    case string:to_integer(binary_to_list(Value)) of
+        {Int, _} when Int >= 0 -> Int;
+        _ -> Default
+    end;
+parse_int(_, Default) ->
+    Default.
 
 read_policy_payload(Req0) ->
     case cowboy_req:read_body(Req0) of

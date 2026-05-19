@@ -1,12 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<V-M-054 MODULE="M-054" PRIORITY="critical" STATUS="verification-designed" VERSION="1.1.0">
+<V-M-054 MODULE="M-054" PRIORITY="critical" STATUS="pass-local-phase42" VERSION="1.3.0">
   <module>mtproto-usage-telemetry</module>
   <checks>Usage event, session, rollup, last-seen, and abuse-signal persistence is idempotent, bounded, restore-safe, and secret-free.</checks>
   <test-files>
-    <file planned="true">backend/tests/test_mtproto_usage_telemetry.py</file>
-    <file planned="true">backend/tests/test_db_migrations.py</file>
+    <file status="pass-local">backend/tests/test_mtproto_usage_telemetry.py</file>
+    <file status="pass-local">backend/tests/test_db_migrations.py</file>
   </test-files>
-  <commands>planned-local: cd backend &amp;&amp; SECRET_KEY=test-secret-key-with-enough-length PYTHONPATH=. ../.venv/bin/python -m pytest -o addopts='' tests/test_mtproto_usage_telemetry.py tests/test_db_migrations.py -v</commands>
+  <commands>pass-local 2026-05-19: cd backend &amp;&amp; SECRET_KEY=test-secret-key-with-enough-length PYTHONPATH=. ../.venv/bin/python -m pytest -o addopts='' tests/test_mtproto_usage_telemetry.py tests/test_db_migrations.py -v</commands>
+  <evidence>13-test Phase-42 backend wave passed with V-M-055/V-M-056/V-M-057/V-M-059; targeted M-054 migration, repository, and sampler close-delta checks passed.</evidence>
   <verification-levels>
     <module-local>Exercise Alembic migration metadata, repository idempotency, last-seen updates, session state transitions, rollup writes, and retention pruning with synthetic telemetry fixtures.</module-local>
     <wave-level>Run with V-M-055 and V-M-056 so runtime ingestion writes M-054 rows and analytics can consume them without schema drift.</wave-level>
@@ -16,7 +17,7 @@
     <check-1>Migration creates event, session, rollup, last-seen, and abuse-signal storage with indexes needed by admin filters.</check-1>
     <check-2>runtime_event_id uniqueness makes batch ingestion idempotent and prevents duplicate traffic/session counts.</check-2>
     <check-3>Known assignment handshake updates last_seen and opens or refreshes an active session without storing SNI secrets.</check-3>
-    <check-4>Close and error events end sessions, preserve duration, and increment safe error counters.</check-4>
+    <check-4>Close and error events end sessions, preserve duration, respect connection_count deltas, and increment safe error counters.</check-4>
     <check-5>Unknown and rejected SNI events store safe reason codes, masked SNI values, and no derived proxy secrets.</check-5>
     <check-6>Client address analytics use HMAC/hash or coarse prefix fields by default, not raw public IP values.</check-6>
     <check-7>Hourly, daily, weekly, and monthly rollups preserve byte counters, connection count, duration, and errors.</check-7>

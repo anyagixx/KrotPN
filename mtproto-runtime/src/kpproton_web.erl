@@ -2,9 +2,9 @@
 -behaviour(gen_server).
 
 %% FILE: src/kpproton_web.erl
-%% VERSION: 1.2.0
+%% VERSION: 1.3.0
 %% START_MODULE_CONTRACT
-%%   PURPOSE: Start Cowboy HTTP and HTTPS listeners that expose bootstrap, policy bridge, and health routes.
+%%   PURPOSE: Start Cowboy HTTP and HTTPS listeners that expose bootstrap, policy bridge, telemetry, and health routes.
 %%   SCOPE: Build the dispatch table, open private-bind policy/portal listeners, and stop them cleanly on termination.
 %%   DEPENDS: M-RELEASE
 %%   LINKS: M-RELEASE, M-WEB-API, M-WEB-UI
@@ -17,6 +17,7 @@
 %% END_MODULE_MAP
 %%
 %% START_CHANGE_SUMMARY
+%%   LAST_CHANGE: v1.3.0 - Added Phase-42 private MTProto telemetry routes.
 %%   LAST_CHANGE: v1.2.0 - Bind policy/portal listeners to POLICY_LISTEN_IP for Phase-38 DE runtime privacy.
 %%   LAST_CHANGE: v1.1.0 - Added KrotPN token-protected MTProto policy bridge routes.
 %%   LAST_CHANGE: v1.0.0 - Added MyGRACE source contract metadata for the Cowboy web runtime.
@@ -42,6 +43,8 @@ init([]) ->
             {"/krotpn/mtproto/policy/apply", kpproton_policy_handler, #{operation => apply}},
             {"/krotpn/mtproto/policy/revoke", kpproton_policy_handler, #{operation => revoke}},
             {"/krotpn/mtproto/policy/health", kpproton_policy_handler, #{operation => health}},
+            {"/krotpn/mtproto/policy/telemetry/snapshot", kpproton_policy_handler, #{operation => telemetry_snapshot}},
+            {"/krotpn/mtproto/policy/telemetry/drain", kpproton_policy_handler, #{operation => telemetry_drain}},
             {"/api/request", kpproton_request_handler, #{}},
             {"/verify", kpproton_verify_handler, #{}},
             {"/health", kpproton_health_handler, #{}}

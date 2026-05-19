@@ -1,14 +1,14 @@
 """MTProto runtime policy bridge.
 
 # FILE: backend/app/mtproto/runtime_bridge.py
-# VERSION: 1.3.0
+# VERSION: 1.4.0
 # ROLE: RUNTIME
 # MAP_MODE: EXPORTS
 # START_MODULE_CONTRACT
 #   PURPOSE: Apply and revoke KrotPN MTProto assignments at a private runtime policy boundary safely
-#   SCOPE: Domain policy adapter contract, HTTP live/private-DE adapter, policy apply/revoke, health, replay, reconciliation, degraded state
-#   DEPENDS: M-001 (DB session), M-042 (assignment registry), M-043 (provisioning)
-#   LINKS: M-044, V-M-044
+#   SCOPE: Domain policy adapter contract, HTTP live/private-DE adapter, policy apply/revoke, health, replay, telemetry drain, reconciliation, degraded state
+#   DEPENDS: M-001 (DB session), M-042 (assignment registry), M-043 (provisioning), M-055 (runtime telemetry)
+#   LINKS: M-044, M-055, V-M-044, V-M-055
 # END_MODULE_CONTRACT
 #
 # START_MODULE_MAP
@@ -21,11 +21,15 @@
 #   MTProtoPolicyAdapter - Adapter protocol for isolated KPprotoN runtime boundary
 #   InMemoryMTProtoPolicyAdapter - Local safe adapter used by tests and offline runtime
 #   HTTPMTProtoPolicyAdapter - Token-protected adapter for the live KPprotoN/mtproto_proxy sidecar
-#   MTProtoRuntimeBridge - Service for apply, revoke, replay and health operations
+#   MTProtoRuntimeTelemetryEvent - Secret-free runtime telemetry event contract
+#   MTProtoRuntimeTelemetrySnapshot - Secret-free runtime telemetry snapshot
+#   MTProtoRuntimeTelemetryBatch - Drained runtime telemetry batch
+#   MTProtoRuntimeBridge - Service for apply, revoke, replay, health, and telemetry operations
 #   sync_mtproto_policy - Scheduler-safe reconciliation entry point
 # END_MODULE_MAP
 #
 # START_CHANGE_SUMMARY
+#   LAST_CHANGE: v1.4.0 - Added Phase-42 runtime telemetry snapshot/drain adapter contract.
 #   LAST_CHANGE: v1.3.0 - Mark HTTP adapter operations for Phase-38 private DE runtime tracing.
 #   LAST_CHANGE: v1.2.0 - Added Phase-37 HTTP live adapter for the KPprotoN MTProto shared-443 runtime.
 #   LAST_CHANGE: v1.1.0 - Added explicit runtime policy revoke path for admin MTProto assignment disable
@@ -38,6 +42,7 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from enum import Enum
+from itertools import islice
 from typing import Protocol
 
 import httpx
@@ -157,6 +162,98 @@ class MTProtoReplayResult:
         }
 
 
+@dataclass(frozen=True)
+class MTProtoRuntimeTelemetryEvent:
+    """Secret-free telemetry event emitted by the MTProto runtime boundary."""
+
+    runtime_event_id: str
+    event_type: str
+    observed_at: datetime | None = None
+    assignment_id: int | None = None
+    user_id: int | None = None
+    sni: str | None = None
+    client_ip: str | None = None
+    ip_hash: str | None = None
+    ip_prefix: str | None = None
+    bytes_in: int = 0
+    bytes_out: int = 0
+    duration_ms: int = 0
+    connection_count: int = 0
+    error_code: str | None = None
+    reason_code: str | None = None
+    metadata: dict[str, object] | None = None
+
+    @classmethod
+    def from_payload(cls, payload: dict[str, object]) -> "MTProtoRuntimeTelemetryEvent":
+        """Build telemetry event from a safe runtime JSON object."""
+        observed_raw = payload.get("observed_at")
+        observed_at = None
+        if isinstance(observed_raw, str) and observed_raw:
+            try:
+                observed_at = datetime.fromisoformat(observed_raw.replace("Z", "+00:00"))
+            except ValueError:
+                observed_at = None
+        metadata = payload.get("metadata")
+        return cls(
+            runtime_event_id=str(payload.get("runtime_event_id") or ""),
+            event_type=str(payload.get("event_type") or "error"),
+            observed_at=observed_at,
+            assignment_id=int(payload["assignment_id"]) if payload.get("assignment_id") is not None else None,
+            user_id=int(payload["user_id"]) if payload.get("user_id") is not None else None,
+            sni=str(payload["sni"]) if payload.get("sni") is not None else None,
+            client_ip=str(payload["client_ip"]) if payload.get("client_ip") is not None else None,
+            ip_hash=str(payload["ip_hash"]) if payload.get("ip_hash") is not None else None,
+            ip_prefix=str(payload["ip_prefix"]) if payload.get("ip_prefix") is not None else None,
+            bytes_in=int(payload.get("bytes_in") or 0),
+            bytes_out=int(payload.get("bytes_out") or 0),
+            duration_ms=int(payload.get("duration_ms") or 0),
+            connection_count=int(payload.get("connection_count") or 0),
+            error_code=str(payload["error_code"]) if payload.get("error_code") is not None else None,
+            reason_code=str(payload["reason_code"]) if payload.get("reason_code") is not None else None,
+            metadata=metadata if isinstance(metadata, dict) else None,
+        )
+
+
+@dataclass(frozen=True)
+class MTProtoRuntimeTelemetrySnapshot:
+    """Secret-free runtime telemetry state."""
+
+    status: MTProtoBridgeStatus
+    buffered_events: int = 0
+    dropped_events: int = 0
+    active_connections: int = 0
+    policy_count: int = 0
+    last_event_id: str | None = None
+    checked_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+
+    def to_safe_dict(self) -> dict[str, object]:
+        return {
+            "status": self.status.value,
+            "buffered_events": self.buffered_events,
+            "dropped_events": self.dropped_events,
+            "active_connections": self.active_connections,
+            "policy_count": self.policy_count,
+            "last_event_id": self.last_event_id,
+            "checked_at": self.checked_at.isoformat(),
+        }
+
+
+@dataclass(frozen=True)
+class MTProtoRuntimeTelemetryBatch:
+    """Runtime telemetry events drained from the private adapter."""
+
+    events: list[MTProtoRuntimeTelemetryEvent]
+    next_cursor: int = 0
+    dropped_events: int = 0
+
+    def to_safe_dict(self) -> dict[str, object]:
+        return {
+            "events": [event.runtime_event_id for event in self.events],
+            "next_cursor": self.next_cursor,
+            "dropped_events": self.dropped_events,
+        }
+
+
 class MTProtoPolicyAdapter(Protocol):
     """Protocol for isolated MTProto runtime policy adapters."""
 
@@ -170,6 +267,17 @@ class MTProtoPolicyAdapter(Protocol):
 
     async def health(self) -> MTProtoRuntimeHealth:
         """Return adapter health without credentials."""
+
+    async def telemetry_snapshot(self) -> MTProtoRuntimeTelemetrySnapshot:
+        """Return current telemetry counters without draining events."""
+
+    async def telemetry_drain(
+        self,
+        *,
+        cursor: int = 0,
+        limit: int = 500,
+    ) -> MTProtoRuntimeTelemetryBatch:
+        """Return cursor-ordered telemetry events from the runtime boundary."""
 # END_BLOCK_RUNTIME_BRIDGE_TYPES
 
 
@@ -188,6 +296,8 @@ class InMemoryMTProtoPolicyAdapter:
         self.available = available
         self.rejected_snis = rejected_snis or set()
         self.policies: dict[str, MTProtoDomainPolicy] = {}
+        self.telemetry_events: list[MTProtoRuntimeTelemetryEvent] = []
+        self.dropped_events = 0
 
     async def apply_domain_policy(self, policy: MTProtoDomainPolicy) -> None:
         """Apply one policy to local memory, preserving idempotency by SNI."""
@@ -216,6 +326,66 @@ class InMemoryMTProtoPolicyAdapter:
         return MTProtoRuntimeHealth(
             status=MTProtoBridgeStatus.HEALTHY,
             adapter_name=self.adapter_name,
+        )
+
+    def emit_telemetry_event(self, event: MTProtoRuntimeTelemetryEvent) -> None:
+        """Append one synthetic runtime event for tests and local telemetry smoke."""
+        if len(self.telemetry_events) >= 1000:
+            self.dropped_events += 1
+            logger.warning("[M-055][runtime_telemetry][DROP_OVERFLOW] adapter=local-memory")
+            return
+        logger.info(
+            "[M-055][runtime_telemetry][EMIT_EVENT] "
+            f"event_type={event.event_type} assignment_id={event.assignment_id}"
+        )
+        self.telemetry_events.append(event)
+
+    async def telemetry_snapshot(self) -> MTProtoRuntimeTelemetrySnapshot:
+        """Return local telemetry counters without draining events."""
+        if not self.available:
+            return MTProtoRuntimeTelemetrySnapshot(
+                status=MTProtoBridgeStatus.DEGRADED,
+                dropped_events=self.dropped_events,
+            )
+        snapshot = MTProtoRuntimeTelemetrySnapshot(
+            status=MTProtoBridgeStatus.HEALTHY,
+            buffered_events=len(self.telemetry_events),
+            dropped_events=self.dropped_events,
+            active_connections=sum(
+                max(event.connection_count, 0)
+                for event in self.telemetry_events
+                if event.event_type == "active_connection"
+            ),
+            policy_count=len(self.policies),
+            last_event_id=self.telemetry_events[-1].runtime_event_id if self.telemetry_events else None,
+        )
+        logger.info(
+            "[M-055][telemetry_snapshot][SNAPSHOT] "
+            f"buffered={snapshot.buffered_events} dropped={snapshot.dropped_events}"
+        )
+        return snapshot
+
+    async def telemetry_drain(
+        self,
+        *,
+        cursor: int = 0,
+        limit: int = 500,
+    ) -> MTProtoRuntimeTelemetryBatch:
+        """Return local telemetry events from a numeric cursor."""
+        if not self.available:
+            raise MTProtoBridgeUnavailable("MTProto runtime bridge is unavailable")
+        safe_cursor = max(cursor, 0)
+        safe_limit = min(max(limit, 1), 1000)
+        events = list(islice(self.telemetry_events, safe_cursor, safe_cursor + safe_limit))
+        next_cursor = safe_cursor + len(events)
+        logger.info(
+            "[M-055][telemetry_drain][DRAIN_EVENTS] "
+            f"cursor={safe_cursor} returned={len(events)} next_cursor={next_cursor}"
+        )
+        return MTProtoRuntimeTelemetryBatch(
+            events=events,
+            next_cursor=next_cursor,
+            dropped_events=self.dropped_events,
         )
 # END_BLOCK_IN_MEMORY_ADAPTER
 
@@ -275,6 +445,73 @@ class HTTPMTProtoPolicyAdapter:
                 adapter_name=self.adapter_name,
                 last_failure_code=MTProtoBridgeFailureCode.BRIDGE_UNAVAILABLE,
             )
+
+    async def telemetry_snapshot(self) -> MTProtoRuntimeTelemetrySnapshot:
+        """Return live sidecar telemetry counters without draining events."""
+        try:
+            logger.info("[M-055][telemetry_snapshot][SNAPSHOT] adapter=kpproton-http")
+            async with httpx.AsyncClient(
+                timeout=self.timeout_seconds,
+                transport=self.transport,
+            ) as client:
+                response = await client.get(
+                    f"{self.base_url}/telemetry/snapshot",
+                    headers=self._headers(),
+                )
+            if response.status_code == 200:
+                payload = response.json()
+                return MTProtoRuntimeTelemetrySnapshot(
+                    status=MTProtoBridgeStatus.HEALTHY,
+                    buffered_events=int(payload.get("buffered_events") or 0),
+                    dropped_events=int(payload.get("dropped_events") or 0),
+                    active_connections=int(payload.get("active_connections") or 0),
+                    policy_count=int(payload.get("policy_count") or 0),
+                    last_event_id=payload.get("last_event_id"),
+                )
+            return MTProtoRuntimeTelemetrySnapshot(status=MTProtoBridgeStatus.DEGRADED)
+        except (httpx.HTTPError, ValueError, TypeError):
+            return MTProtoRuntimeTelemetrySnapshot(status=MTProtoBridgeStatus.DEGRADED)
+
+    async def telemetry_drain(
+        self,
+        *,
+        cursor: int = 0,
+        limit: int = 500,
+    ) -> MTProtoRuntimeTelemetryBatch:
+        """Drain live sidecar telemetry through the private token boundary."""
+        try:
+            logger.info(
+                "[M-055][telemetry_drain][DRAIN_EVENTS] "
+                f"adapter=kpproton-http cursor={cursor} limit={limit}"
+            )
+            async with httpx.AsyncClient(
+                timeout=self.timeout_seconds,
+                transport=self.transport,
+            ) as client:
+                response = await client.get(
+                    f"{self.base_url}/telemetry/drain",
+                    params={"cursor": max(cursor, 0), "limit": min(max(limit, 1), 1000)},
+                    headers=self._headers(),
+                )
+        except httpx.HTTPError as exc:
+            raise MTProtoBridgeUnavailable("MTProto runtime telemetry bridge is unavailable") from exc
+
+        if response.status_code == 401:
+            raise MTProtoBridgeUnavailable("MTProto runtime telemetry bridge rejected credentials")
+        if response.status_code >= 400:
+            raise ValueError("MTProto runtime telemetry adapter rejected the drain request")
+        payload = response.json()
+        raw_events = payload.get("events") if isinstance(payload, dict) else []
+        events = [
+            MTProtoRuntimeTelemetryEvent.from_payload(raw_event)
+            for raw_event in raw_events
+            if isinstance(raw_event, dict)
+        ]
+        return MTProtoRuntimeTelemetryBatch(
+            events=events,
+            next_cursor=int(payload.get("next_cursor") or cursor + len(events)),
+            dropped_events=int(payload.get("dropped_events") or 0),
+        )
 
     async def _post_policy(self, operation: str, policy: MTProtoDomainPolicy) -> None:
         payload = {

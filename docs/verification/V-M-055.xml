@@ -1,13 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<V-M-055 MODULE="M-055" PRIORITY="critical" STATUS="verification-designed" VERSION="1.1.0">
+<V-M-055 MODULE="M-055" PRIORITY="critical" STATUS="pass-local-phase42" VERSION="1.3.0">
   <module>mtproto-runtime-telemetry-bridge</module>
-  <checks>Runtime emits and drains metadata-only telemetry through a private token-protected boundary without breaking MTProto traffic.</checks>
+  <checks>Runtime emits and drains metadata-only telemetry through mtproto_proxy metrics, active-SNI sampling, and a private token-protected boundary without breaking MTProto traffic.</checks>
   <test-files>
-    <file planned="true">backend/tests/test_mtproto_runtime_telemetry_bridge.py</file>
-    <file planned="true">scripts/phase42-mtproto-telemetry-smoke.mjs</file>
-    <file planned="true">mtproto-runtime</file>
+    <file status="pass-local">backend/tests/test_mtproto_runtime_telemetry_bridge.py</file>
+    <file status="pass-local">scripts/phase42-mtproto-telemetry-smoke.mjs</file>
+    <file status="pass-local">mtproto-runtime</file>
   </test-files>
-  <commands>planned-local: node scripts/phase42-mtproto-telemetry-smoke.mjs &amp;&amp; cd backend &amp;&amp; SECRET_KEY=test-secret-key-with-enough-length PYTHONPATH=. ../.venv/bin/python -m pytest -o addopts='' tests/test_mtproto_runtime_telemetry_bridge.py -v</commands>
+  <commands>pass-local 2026-05-19: node scripts/phase42-mtproto-telemetry-smoke.mjs &amp;&amp; cd backend &amp;&amp; SECRET_KEY=test-secret-key-with-enough-length PYTHONPATH=. ../.venv/bin/python -m pytest -o addopts='' tests/test_mtproto_runtime_telemetry_bridge.py -v; cd mtproto-runtime &amp;&amp; rebar3 compile</commands>
+  <evidence>Runtime telemetry snapshot/drain tests, live metric-backend/sampler static smoke, scheduler regression, and mtproto-runtime compile passed locally.</evidence>
   <verification-levels>
     <module-local>Use fake runtime events and private API fixtures to verify token checks, snapshot, drain, cursoring, overflow counters, redaction, and degraded runtime behavior.</module-local>
     <wave-level>Run with V-M-054 to prove drained events become idempotent usage rows and with V-M-056 to prove stale runtime state is visible in analytics.</wave-level>
@@ -21,6 +22,8 @@
     <check-5>Bounded buffer overflow increments dropped_events and never blocks policy apply or MTProto listener behavior.</check-5>
     <check-6>Policy metadata maps known SNI to assignment_id and user_id while unknown SNI stays masked.</check-6>
     <check-7>Backend ingestion tolerates runtime outage and marks analytics stale or degraded only.</check-7>
+    <check-8>mtproto_proxy metric_backend records bytes, protocol errors, protocol-ok, and connection counters into bounded sampler counters.</check-8>
+    <check-9>Sampler records per-SNI active/handshake/close deltas from policy counters and avoids false per-user byte attribution when multiple domains are active.</check-9>
   </module-checks>
   <scenarios>
     <scenario-1>Handshake, close, bytes, error, active_connection, unknown_sni, rejected_sni, and req_pq proof events are represented with safe fields.</scenario-1>
@@ -28,6 +31,7 @@
     <scenario-3>Buffer overflow increments dropped_events but does not block policy apply or MTProto listener behavior.</scenario-3>
     <scenario-4>Backend ingestion tolerates runtime outage and marks analytics stale/degraded only.</scenario-4>
     <scenario-5>Telemetry hook changes do not alter the issued-link fake-TLS secret, SNI route, or Telegram client acceptance contract.</scenario-5>
+    <scenario-6>Concurrent-domain traffic remains global_runtime unless a deeper data-plane hook can provide exact per-SNI bytes.</scenario-6>
   </scenarios>
   <redaction-rules>
     <rule-1>Runtime telemetry must exclude full tg links, fake-TLS secrets, base secret, salt, runtime token, private keys, and full promotion tags.</rule-1>

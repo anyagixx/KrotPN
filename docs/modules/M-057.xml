@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<M-057 NAME="mtproto-admin-analytics-api" TYPE="ENTRY_POINT" STATUS="verification-designed">
-  <path>backend/app/admin backend/app/mtproto docs/plans/Phase-42.xml</path>
+<M-057 NAME="mtproto-admin-analytics-api" TYPE="ENTRY_POINT" STATUS="pass-local-phase42">
+  <path>backend/app/admin/router.py backend/app/mtproto/analytics_service.py backend/app/mtproto/promotion_tag.py backend/tests/test_mtproto_admin_analytics_api.py docs/plans/Phase-42.xml</path>
   <owns>Admin-only HTTP API for MTProto global analytics, per-proxy usage, event logs, abuse signals, top users, runtime health, availability proof, and promotion tag state.</owns>
   <purpose>Expose MTProto analytics to authenticated admins with strict redaction and filterable time windows.</purpose>
   <exports>
@@ -14,10 +14,12 @@
   <depends>M-006,M-047,M-054,M-056,M-059</depends>
   <verification-ref>V-M-057</verification-ref>
   <files>
-    <file planned="true">backend/app/admin/router.py</file>
-    <file planned="true">backend/app/mtproto/analytics_schemas.py</file>
-    <file planned="true">backend/tests/test_mtproto_admin_analytics_api.py</file>
+    <file status="implemented">backend/app/admin/router.py</file>
+    <file status="implemented">backend/app/mtproto/analytics_service.py</file>
+    <file status="not-needed">backend/app/mtproto/analytics_schemas.py</file>
+    <file status="implemented">backend/tests/test_mtproto_admin_analytics_api.py</file>
   </files>
+  <evidence>pass-local 2026-05-19: admin analytics API tests, existing MTProto admin ops regression, and redaction checks passed.</evidence>
   <api-policy>
     <policy-1>Admin analytics returns masked SNI, safe ids, counts, status codes, and aggregate byte counters only.</policy-1>
     <policy-2>Response payloads must fail closed if they contain full tg links, secrets, runtime tokens, full promotion tags, or raw IP addresses.</policy-2>

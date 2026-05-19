@@ -57,7 +57,7 @@
     <item>Phase-41 KPprotoN fake-TLS production data-plane rollback passed local and live verification on 2026-05-19: official MTProxy is superseded for production, owner payloads return to per-user u-*.krotpn.xyz with ee fake-TLS links, provisioning/admin/scheduler use KPprotoN runtime bridge again, deploy selects the DE KPprotoN runtime plus RU SNI router, and local backend/static/Erlang/compose verification passed.</item>
     <item>Phase-41 live MTProto fix on 2026-05-19 found two blockers: the old seriyps/mtproto_proxy lock and a blank proxy ad tag. mtproto-runtime now pins upstream commit 154a8fb, deploy defaults MTPROTO_AD_TAG to 32 zero hex chars, active assignment replay succeeded, issued-link mtp_ping passed through RU SNI router to DE KPprotoN runtime on DC +1 through +5, and operator clean-deploy testing confirmed both VPN and Telegram Desktop/mobile MTProto proxy work.</item>
     <item>Legacy V-M-029 Phase-16 rebranding verification is closed as superseded by V-M-012/Phase-41 as of 2026-05-19; current deploy-surface gates passed locally and Phase-41 clean-deploy live proof is the active release evidence.</item>
-    <item>Phase-42 MTProto usage analytics and promotion tag control now has verification-designed contracts for telemetry storage, runtime ingestion, analytics aggregation, admin API/UI redaction, and @MTProxyBot tag safety before implementation starts; XML parse, MyGRACE lint, and diff whitespace checks passed locally.</item>
+    <item>Phase-42 MTProto usage analytics and promotion tag control passed local execution on 2026-05-19: metadata-only usage storage, mtproto_proxy metric backend, active-SNI sampler, private runtime telemetry snapshot/drain, backend ingestion, analytics service, admin API, compact admin UI, observe-only abuse signals, and masked @MTProxyBot promotion tag control are implemented with redaction tests, smoke scripts, frontend build, scheduler/admin/runtime regressions, and mtproto-runtime compile passing.</item>
     <item>Release target v2.19.1-kpproton-faketls-stable is the current stable baseline for GitHub main/Releases after Phase-41 live confirmation.</item>
   </what-is-working>
 
@@ -75,6 +75,7 @@
     <item>Phase-38 and Phase-39 stay historical partial-live phases because their original acceptance gates were superseded; Phase-41 is now the production MTProto closure path.</item>
     <item>Phase-40 is partial-live and superseded by Phase-41: clean deploy, official runtime health, secret sync, unchanged-manifest stability, private stats, and DE NAT info were proven on VPS, but official MTProxy does not match the required per-user SNI/no-restart product model.</item>
     <item>Phase-41 is passed-live: KrotPN provisioning returns ee fake-TLS links and live diagnostics prove policy replay, RU SNI routing, fake-TLS accept, valid non-empty proxy ad tag, issued-link mtp_ping req_pq success, and operator-confirmed Telegram Desktop/mobile connectivity after clean deploy.</item>
+    <item>Phase-42 analytics are passed-local: active connections, handshakes, closes, protocol errors, req_pq hints, and global bytes are wired from the live runtime; exact per-user byte attribution under concurrent active SNI domains remains a live-validation/future data-plane-hook limitation.</item>
     <item>Emergency relocation is documented but still blocked until a trusted backup bundle and isolated restore target exist for dry-run evidence.</item>
     <item>Cookie-only auth migration is planned but not executed because it requires explicit approval and HTTPS or production-like smoke evidence.</item>
   </what-is-fragile>
@@ -161,14 +162,14 @@
     <gate id="phase-41-kpproton-faketls-rollback" status="passed-live">
       <summary>Local execution restores KPprotoN fake-TLS SNI as the production MTProto path; live diagnostics fixed the old mtproto_proxy lock and blank ad-tag req_pq blocker, issued-link mtp_ping passes, and operator clean-deploy testing confirms Telegram Desktop/mobile proxy connectivity plus VPN.</summary>
     </gate>
-    <gate id="phase-42-mtproto-analytics-promotion-tag" status="verification-designed">
-      <summary>Verification contracts are defined for metadata-only MTProto analytics, runtime telemetry, admin API/UI redaction, observe-only abuse signals, and safe @MTProxyBot promotion tag control; implementation is not yet executed.</summary>
+    <gate id="phase-42-mtproto-analytics-promotion-tag" status="passed-local">
+      <summary>Local Phase-42 execution passed for metadata-only MTProto analytics, runtime telemetry bridge, admin API/UI redaction, observe-only abuse signals, and safe @MTProxyBot promotion tag control; live traffic validation remains optional after operator deploy.</summary>
     </gate>
   </rollout-gates>
 
   <immediate-priorities>
-    <priority rank="1">Use the Phase-41 stable MTProto/VPN baseline for future frontend client/admin redesign work.</priority>
-    <priority rank="2">Execute Phase-42 MTProto usage analytics and promotion tag control against the verification-designed contracts.</priority>
+    <priority rank="1">Use the Phase-41 stable MTProto/VPN baseline plus Phase-42 local analytics/tag-control implementation for future deploy testing and frontend client/admin redesign work.</priority>
+    <priority rank="2">After operator deploy, validate Phase-42 admin analytics with real redacted runtime data and confirm promotion tag pending-restart/applied state.</priority>
     <priority rank="3">Run Phase-22 non-production restore rehearsal with a trusted backup bundle and isolated restore target before production release.</priority>
     <priority rank="4">Decide whether to approve cookie-only auth migration and provide HTTPS or production-like auth smoke target.</priority>
     <priority rank="5">Keep deploy/install scripts unchanged unless the operator explicitly requests deployment-surface work.</priority>

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<M-054 NAME="mtproto-usage-telemetry" TYPE="DATA_LAYER" STATUS="verification-designed">
-  <path>backend/app/mtproto backend/alembic docs/plans/Phase-42.xml</path>
+<M-054 NAME="mtproto-usage-telemetry" TYPE="DATA_LAYER" STATUS="pass-local-phase42">
+  <path>backend/app/mtproto/usage_models.py backend/app/mtproto/usage_repository.py backend/alembic/versions/phase42_add_mtproto_usage_telemetry.py backend/tests/test_mtproto_usage_telemetry.py docs/plans/Phase-42.xml</path>
   <owns>PostgreSQL-backed MTProto usage events, connection sessions, traffic rollups, last-seen metadata, and abuse-signal records.</owns>
   <purpose>Persist metadata-only MTProto proxy usage so admins can analyze service activity without inspecting Telegram payloads.</purpose>
   <exports>
@@ -14,11 +14,12 @@
   <depends>M-001,M-042,M-028</depends>
   <verification-ref>V-M-054</verification-ref>
   <files>
-    <file planned="true">backend/app/mtproto/usage_models.py</file>
-    <file planned="true">backend/app/mtproto/usage_repository.py</file>
-    <file planned="true">backend/alembic/versions/phase42_add_mtproto_usage_telemetry.py</file>
-    <file planned="true">backend/tests/test_mtproto_usage_telemetry.py</file>
+    <file status="implemented">backend/app/mtproto/usage_models.py</file>
+    <file status="implemented">backend/app/mtproto/usage_repository.py</file>
+    <file status="implemented">backend/alembic/versions/phase42_add_mtproto_usage_telemetry.py</file>
+    <file status="implemented">backend/tests/test_mtproto_usage_telemetry.py</file>
   </files>
+  <evidence>pass-local 2026-05-19: backend usage telemetry tests, sampler close-delta regression, and migration metadata guard passed.</evidence>
   <data-contract>
     <field-1>assignment_id links usage to MTProtoAssignment when SNI is known.</field-1>
     <field-2>Unknown or rejected SNI events may store masked SNI and safe reason codes but never derived secrets or tg links.</field-2>

@@ -4,9 +4,9 @@
 // MAP_MODE: SUMMARY
 // START_MODULE_CONTRACT
 //   PURPOSE: HTTP API client with JWT auth, refresh-token interceptor, and typed admin endpoint bindings
-//   SCOPE: Axios instance, request/response interceptors, adminApi facade for all backend endpoints including MTProto admin ops
-//   DEPENDS: M-010 (frontend-admin), M-006 (backend API), M-047 (MTProto admin ops), axios, types
-//   LINKS: M-010, M-006, M-047
+//   SCOPE: Axios instance, request/response interceptors, adminApi facade for all backend endpoints including MTProto admin ops and analytics
+//   DEPENDS: M-010 (frontend-admin), M-006 (backend API), M-047 (MTProto admin ops), M-058 (MTProto analytics UI), axios, types
+//   LINKS: M-010, M-006, M-047, M-058
 // END_MODULE_CONTRACT
 //
 // START_MODULE_MAP
@@ -16,6 +16,7 @@
 // END_MODULE_MAP
 //
 // START_CHANGE_SUMMARY
+//   LAST_CHANGE: v3.3.0 - Added Phase-42 MTProto analytics and promotion tag endpoint bindings
 //   LAST_CHANGE: v3.2.0 - Added Phase-33 MTProto admin endpoint bindings
 //   LAST_CHANGE: v2.8.0 - Added full GRACE MODULE_CONTRACT and MODULE_MAP per GRACE governance protocol
 //   LAST_CHANGE: v2.8.1 - Fixed admin login 404: API_BASE changed from '/api' to '/api/v1' to match backend router prefixes
@@ -25,8 +26,14 @@ import axios from 'axios'
 import type {
   AdminMTProtoAssignment,
   AdminMTProtoActionResponse,
+  AdminMTProtoAbuseSignalListResponse,
+  AdminMTProtoAnalyticsSummary,
+  AdminMTProtoAssignmentUsage,
+  AdminMTProtoEventListResponse,
   AdminMTProtoHealth,
   AdminMTProtoListResponse,
+  AdminMTProtoPromotionTagState,
+  AdminMTProtoTopUsersResponse,
   AdminNode,
   AdminRoute,
   AdminPlan,
@@ -216,6 +223,38 @@ export const adminApi = {
 
   getMTProtoHealth: () =>
     api.get<AdminMTProtoHealth>('/admin/mtproto/health'),
+
+  getMTProtoAnalyticsSummary: (days = 30) =>
+    api.get<AdminMTProtoAnalyticsSummary>(`/admin/mtproto/analytics/summary?days=${days}`),
+
+  getMTProtoAssignmentUsage: (id: number, days = 30) =>
+    api.get<AdminMTProtoAssignmentUsage>(`/admin/mtproto/assignments/${id}/usage?days=${days}`),
+
+  getMTProtoEvents: (params: { assignment_id?: number; event_type?: string; days?: number; offset?: number; limit?: number } = {}) => {
+    const query = new URLSearchParams()
+    if (params.assignment_id) query.set('assignment_id', String(params.assignment_id))
+    if (params.event_type) query.set('event_type', params.event_type)
+    if (params.days) query.set('days', String(params.days))
+    if (params.offset) query.set('offset', String(params.offset))
+    if (params.limit) query.set('limit', String(params.limit))
+    const suffix = query.toString()
+    return api.get<AdminMTProtoEventListResponse>(`/admin/mtproto/analytics/events${suffix ? `?${suffix}` : ''}`)
+  },
+
+  getMTProtoTopUsers: (metric = 'traffic', days = 30, limit = 10) =>
+    api.get<AdminMTProtoTopUsersResponse>(`/admin/mtproto/analytics/top-users?metric=${metric}&days=${days}&limit=${limit}`),
+
+  getMTProtoAbuseSignals: (days = 30, assignmentId?: number) => {
+    const query = new URLSearchParams({ days: String(days), limit: '20' })
+    if (assignmentId) query.set('assignment_id', String(assignmentId))
+    return api.get<AdminMTProtoAbuseSignalListResponse>(`/admin/mtproto/analytics/abuse-signals?${query.toString()}`)
+  },
+
+  getMTProtoPromotionTag: () =>
+    api.get<AdminMTProtoPromotionTagState>('/admin/mtproto/promotion-tag'),
+
+  updateMTProtoPromotionTag: (tag: string) =>
+    api.put<AdminMTProtoPromotionTagState>('/admin/mtproto/promotion-tag', { tag, confirm: true }),
 
   reissueMTProtoAssignment: (id: number) =>
     api.post<AdminMTProtoActionResponse>(`/admin/mtproto/assignments/${id}/reissue`, { confirm: true }),

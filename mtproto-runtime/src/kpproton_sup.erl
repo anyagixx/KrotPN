@@ -2,9 +2,9 @@
 -behaviour(supervisor).
 
 %% FILE: src/kpproton_sup.erl
-%% VERSION: 1.0.0
+%% VERSION: 1.1.0
 %% START_MODULE_CONTRACT
-%%   PURPOSE: Supervise the runtime, web, and MTProto boot workers for the unified application.
+%%   PURPOSE: Supervise the runtime, web, MTProto telemetry sampler, and MTProto boot workers for the unified application.
 %%   SCOPE: Start the top-level supervisor tree and define child restart semantics.
 %%   DEPENDS: M-RELEASE
 %%   LINKS: M-RELEASE
@@ -16,6 +16,7 @@
 %% END_MODULE_MAP
 %%
 %% START_CHANGE_SUMMARY
+%%   LAST_CHANGE: v1.1.0 - Supervise Phase-42 MTProto usage telemetry sampler.
 %%   LAST_CHANGE: v1.0.0 - Added MyGRACE source contract metadata for the top-level supervisor.
 %% END_CHANGE_SUMMARY
 
@@ -45,6 +46,14 @@ init([]) ->
         type => worker,
         modules => [kpproton_web]
     },
+    UsageSamplerChild = #{
+        id => kpproton_usage_sampler,
+        start => {kpproton_usage_sampler, start_link, []},
+        restart => permanent,
+        shutdown => 5000,
+        type => worker,
+        modules => [kpproton_usage_sampler]
+    },
     MtprotoBootChild = #{
         id => kpproton_mtproto_boot,
         start => {kpproton_mtproto_boot, start_link, []},
@@ -53,5 +62,5 @@ init([]) ->
         type => worker,
         modules => [kpproton_mtproto_boot]
     },
-    {ok, {{one_for_one, 5, 10}, [RuntimeChild, WebChild, MtprotoBootChild]}}.
+    {ok, {{one_for_one, 5, 10}, [RuntimeChild, WebChild, UsageSamplerChild, MtprotoBootChild]}}.
 %% END_BLOCK_INIT

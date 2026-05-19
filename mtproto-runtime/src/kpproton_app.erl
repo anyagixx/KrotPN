@@ -1,5 +1,5 @@
 %% FILE: src/kpproton_app.erl
-%% VERSION: 1.4.0
+%% VERSION: 1.6.0
 %% START_MODULE_CONTRACT
 %%   PURPOSE: Start the unified KPprotoN OTP application and configure upstream runtime integrations before supervision begins.
 %%   SCOPE: Read env-backed release settings, inject `mtproto_proxy` application config, seed the base domain, and start the top-level supervisor.
@@ -16,6 +16,8 @@
 %% END_MODULE_MAP
 %%
 %% START_CHANGE_SUMMARY
+%%   LAST_CHANGE: v1.6.0 - Enable KrotPN mtproto_proxy metric backend for Phase-42 runtime telemetry sampling.
+%%   LAST_CHANGE: v1.5.0 - Validate PROXY_AD_TAG and fall back to zero tag when runtime env is blank or malformed.
 %%   LAST_CHANGE: v1.4.0 - Default the MTProto proxy ad tag to 32 zero hex chars so Telegram proxy_req receives a valid tag.
 %%   LAST_CHANGE: v1.3.0 - Build local bootstrap URLs from POLICY_LISTEN_IP so private-bound DE runtimes can start mtproto_proxy.
 %%   LAST_CHANGE: v1.2.0 - Enable per-SNI secret enforcement so the MTProto listener rejects raw-base-secret fake-TLS handshakes.
@@ -24,7 +26,7 @@
 -module(kpproton_app).
 -behaviour(application).
 
--export([start/2, stop/1, seed_base_domain/0, mtproxy_boot_retry_ms/0]).
+-export([start/2, stop/1, seed_base_domain/0, mtproxy_boot_retry_ms/0, proxy_ad_tag/0]).
 
 env_string(Key, Default) ->
     case os:getenv(Key) of
@@ -64,6 +66,7 @@ configure_mtproto_proxy() ->
     ok = application:set_env(mtproto_proxy, domain_fronting, DomainFronting),
     ok = application:set_env(mtproto_proxy, domain_fronting_timeout_sec, env_integer("DOMAIN_FRONTING_TIMEOUT_SEC", 10)),
     ok = application:set_env(mtproto_proxy, core_api_http_timeout_ms, env_integer("CORE_API_HTTP_TIMEOUT_MS", 10000)),
+    ok = application:set_env(mtproto_proxy, metric_backend, kpproton_usage_metric_backend),
     ok = application:set_env(mtproto_proxy, proxy_secret_url, LocalBootstrapBase ++ "/proxy-secret"),
     ok = application:set_env(mtproto_proxy, proxy_config_url, LocalBootstrapBase ++ "/proxy-config"),
     ok = application:set_env(mtproto_proxy, per_sni_secret_salt, SecretSalt),
@@ -74,7 +77,13 @@ configure_mtproto_proxy() ->
     ok = application:set_env(mtproto_proxy, per_sni_secrets, on).
 
 proxy_ad_tag() ->
-    env_binary("PROXY_AD_TAG", <<"00000000000000000000000000000000">>).
+    Tag = env_binary("PROXY_AD_TAG", <<"00000000000000000000000000000000">>),
+    case re:run(Tag, <<"^[0-9A-Fa-f]{32}$">>, [{capture, none}]) of
+        match ->
+            unicode:characters_to_binary(string:lowercase(binary_to_list(Tag)));
+        nomatch ->
+            <<"00000000000000000000000000000000">>
+    end.
 
 seed_base_domain() ->
     case whereis(mtp_policy_table) of

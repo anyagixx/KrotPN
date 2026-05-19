@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<M-056 NAME="mtproto-analytics-service" TYPE="CORE_LOGIC" STATUS="verification-designed">
-  <path>backend/app/mtproto backend/app/tasks/scheduler.py docs/plans/Phase-42.xml</path>
+<M-056 NAME="mtproto-analytics-service" TYPE="CORE_LOGIC" STATUS="pass-local-phase42">
+  <path>backend/app/mtproto/analytics_service.py backend/app/tasks/scheduler.py backend/tests/test_mtproto_analytics_service.py docs/plans/Phase-42.xml</path>
   <owns>MTProto usage aggregation, top-user analytics, per-proxy summaries, runtime availability summaries, and observe-only abuse classification.</owns>
   <purpose>Convert raw MTProto telemetry into operator-safe analytics and abuse signals for the admin panel.</purpose>
   <exports>
@@ -13,10 +13,11 @@
   <depends>M-001,M-008,M-042,M-054,M-055</depends>
   <verification-ref>V-M-056</verification-ref>
   <files>
-    <file planned="true">backend/app/mtproto/analytics_service.py</file>
-    <file planned="true">backend/app/tasks/scheduler.py</file>
-    <file planned="true">backend/tests/test_mtproto_analytics_service.py</file>
+    <file status="implemented">backend/app/mtproto/analytics_service.py</file>
+    <file status="implemented">backend/app/tasks/scheduler.py</file>
+    <file status="implemented">backend/tests/test_mtproto_analytics_service.py</file>
   </files>
+  <evidence>pass-local 2026-05-19: analytics service tests and scheduler regression passed.</evidence>
   <analytics-policy>
     <policy-1>Abuse output starts as observe-only and never automatically disables an assignment in Phase-42.</policy-1>
     <policy-2>Traffic spikes are compared against prior local baselines, not fixed global limits only.</policy-2>

@@ -1,13 +1,13 @@
 # FILE: backend/app/tasks/scheduler.py
-# VERSION: 3.4.0
+# VERSION: 3.5.0
 # ROLE: RUNTIME
 # MAP_MODE: EXPORTS
 # START_MODULE_CONTRACT
 #   PURPOSE: Background task scheduler — recurring maintenance jobs started during FastAPI lifespan
 #   SCOPE: APScheduler-based job registration and execution: subscription expiry,
-#          VPN stats, anomaly detection, KPprotoN MTProto policy sync, cleanup, reporting
-#   DEPENDS: M-001, M-003, M-004, M-023, M-044
-#   LINKS: M-008, M-004, M-003, M-044, V-M-008, V-M-044
+#          VPN stats, anomaly detection, KPprotoN MTProto policy sync, telemetry ingestion, cleanup, reporting
+#   DEPENDS: M-001, M-003, M-004, M-023, M-044, M-055
+#   LINKS: M-008, M-004, M-003, M-044, M-055, V-M-008, V-M-044, V-M-055
 # END_MODULE_CONTRACT
 #
 # START_MODULE_MAP
@@ -18,10 +18,12 @@
 #   daily_cleanup - Daily at 3AM: clean old failed payments
 #   detect_handshake_anomalies - Configurable interval: observe peer handshakes for anomaly signals
 #   sync_mtproto_policy - Reconcile active KPprotoN SNI policies into runtime state
+#   ingest_mtproto_telemetry - Drain metadata-only KPprotoN runtime telemetry into analytics storage
 #   weekly_report - Weekly on Monday 9AM: generate subscription stats (placeholder)
 # END_MODULE_MAP
 #
 # START_CHANGE_SUMMARY
+#   LAST_CHANGE: v3.5.0 - Added Phase-42 scheduled MTProto telemetry ingestion.
 #   LAST_CHANGE: v3.4.0 - Restored scheduled MTProto reconciliation to KPprotoN runtime policy replay.
 #   LAST_CHANGE: v3.3.0 - Switched scheduled MTProto reconciliation to official MTProxy secret manifest sync.
 #   LAST_CHANGE: v3.2.0 - Added Phase-30 MTProto policy reconciliation job
@@ -68,6 +70,7 @@ from app.core.database import async_session_maker
 
 
 MTPROTO_POLICY_SYNC_INTERVAL_SECONDS = 60
+MTPROTO_TELEMETRY_INGEST_INTERVAL_SECONDS = 60
 
 
 # <!-- START_BLOCK: TaskScheduler -->
@@ -110,6 +113,13 @@ class TaskScheduler:
             sync_mtproto_policy,
             IntervalTrigger(seconds=MTPROTO_POLICY_SYNC_INTERVAL_SECONDS),
             id="sync_mtproto_policy",
+            replace_existing=True,
+        )
+
+        self.scheduler.add_job(
+            ingest_mtproto_telemetry,
+            IntervalTrigger(seconds=MTPROTO_TELEMETRY_INGEST_INTERVAL_SECONDS),
+            id="ingest_mtproto_telemetry",
             replace_existing=True,
         )
 
@@ -312,6 +322,18 @@ async def sync_mtproto_policy():
     )
     return result
 # <!-- END_BLOCK: sync_mtproto_policy -->
+
+
+# <!-- START_BLOCK: ingest_mtproto_telemetry -->
+async def ingest_mtproto_telemetry():
+    """
+    Drain metadata-only KPprotoN MTProto telemetry into analytics storage.
+    """
+    from app.mtproto.usage_ingestion import ingest_mtproto_runtime_telemetry
+
+    logger.info("[M-055][telemetry_ingest][INGEST_SUMMARY] scheduled=true")
+    return await ingest_mtproto_runtime_telemetry()
+# <!-- END_BLOCK: ingest_mtproto_telemetry -->
 
 
 # <!-- START_BLOCK: weekly_report -->

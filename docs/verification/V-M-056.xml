@@ -1,12 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<V-M-056 MODULE="M-056" PRIORITY="high" STATUS="verification-designed" VERSION="1.1.0">
+<V-M-056 MODULE="M-056" PRIORITY="high" STATUS="pass-local-phase42" VERSION="1.2.0">
   <module>mtproto-analytics-service</module>
   <checks>Analytics service produces accurate summaries, top users, usage windows, runtime health, availability proof state, and observe-only abuse signals from M-054 data.</checks>
   <test-files>
-    <file planned="true">backend/tests/test_mtproto_analytics_service.py</file>
-    <file planned="true">backend/tests/test_scheduler.py</file>
+    <file status="pass-local">backend/tests/test_mtproto_analytics_service.py</file>
+    <file status="pass-local">backend/tests/test_scheduler.py</file>
   </test-files>
-  <commands>planned-local: cd backend &amp;&amp; SECRET_KEY=test-secret-key-with-enough-length PYTHONPATH=. ../.venv/bin/python -m pytest -o addopts='' tests/test_mtproto_analytics_service.py tests/test_scheduler.py -v</commands>
+  <commands>pass-local 2026-05-19: cd backend &amp;&amp; SECRET_KEY=test-secret-key-with-enough-length PYTHONPATH=. ../.venv/bin/python -m pytest -o addopts='' tests/test_mtproto_analytics_service.py tests/test_scheduler.py -v</commands>
+  <evidence>Analytics service test covers summary, per-proxy usage, top users, req_pq proof, unknown SNI, and observe-only abuse signals; scheduler regression passed.</evidence>
   <verification-levels>
     <module-local>Use deterministic M-054 fixtures to verify summaries, windowed rollups, top-user ordering, active sessions, stale telemetry, and observe-only abuse classifiers.</module-local>
     <wave-level>Run after V-M-054/V-M-055 so analytics consumes the real planned persistence and runtime ingestion shapes.</wave-level>

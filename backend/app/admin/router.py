@@ -1,12 +1,12 @@
 # FILE: backend/app/admin/router.py
-# VERSION: 3.4.0
+# VERSION: 3.5.0
 # ROLE: ENTRY_POINT
 # MAP_MODE: SUMMARY
 # START_MODULE_CONTRACT
 #   PURPOSE: Expose privileged admin analytics, system endpoints, and operator recovery controls over current backend state
-#   SCOPE: Dashboard statistics, revenue analytics, user analytics, system health, device control, and MTProto assignment operations
-#   DEPENDS: M-001 (core database/auth), M-002 (user models), M-003 (vpn topology), M-004 (billing), M-005 (referrals), M-006 (admin-api graph surface), M-016 (route-policy observability), M-042/M-043/M-044 (MTProto assignment/provisioning/runtime bridge)
-#   LINKS: M-006 (admin-api), M-016 (route-decision-api), M-047 (mtproto-admin-ops), M-044, V-M-006, V-M-047, V-M-044
+#   SCOPE: Dashboard statistics, revenue analytics, user analytics, system health, device control, MTProto assignment operations, usage analytics, and promotion tag control
+#   DEPENDS: M-001 (core database/auth), M-002 (user models), M-003 (vpn topology), M-004 (billing), M-005 (referrals), M-006 (admin-api graph surface), M-016 (route-policy observability), M-042/M-043/M-044 (MTProto assignment/provisioning/runtime bridge), M-056/M-057/M-059 (MTProto analytics/tag control)
+#   LINKS: M-006 (admin-api), M-016 (route-decision-api), M-047 (mtproto-admin-ops), M-044, M-056, M-057, M-059, V-M-006, V-M-047, V-M-044, V-M-057, V-M-059
 # END_MODULE_CONTRACT
 #
 # START_MODULE_MAP
@@ -21,12 +21,20 @@
 #   list_admin_mtproto_assignments - Redacted MTProto assignment list with search/status/time filters
 #   get_admin_mtproto_assignment - Redacted MTProto assignment detail
 #   get_admin_mtproto_health - Secret-free KPprotoN runtime bridge health summary
+#   get_admin_mtproto_analytics_summary - Secret-free global MTProto usage analytics
+#   get_admin_mtproto_assignment_usage - Per-assignment MTProto usage drill-down
+#   list_admin_mtproto_events - Paginated MTProto usage event list
+#   list_admin_mtproto_top_users - Top users by traffic, duration, connections, or errors
+#   list_admin_mtproto_abuse_signals - Observe-only MTProto abuse signals
+#   get_admin_mtproto_promotion_tag - Masked promotion tag state
+#   update_admin_mtproto_promotion_tag - Explicit audited promotion tag update
 #   reissue_admin_mtproto_assignment - Explicit audited MTProto reissue without admin secret disclosure
 #   revoke_admin_mtproto_assignment - Explicit audited MTProto assignment disable without VPN/account side effects
 #   get_system_health - Coarse host health metrics for privileged operators
 # END_MODULE_MAP
 #
 # START_CHANGE_SUMMARY
+#   LAST_CHANGE: v3.5.0 - Added Phase-42 MTProto analytics and promotion tag admin APIs.
 #   LAST_CHANGE: v3.4.0 - Restored MTProto admin runtime actions to the KPprotoN policy bridge.
 #   LAST_CHANGE: v3.3.0 - Switched MTProto admin runtime actions to official MTProxy manifest sync.
 #   LAST_CHANGE: v3.2.1 - MTProto revoke now removes the runtime SNI policy and returns a safe revoke result
@@ -52,13 +60,21 @@ from app.billing.models import Payment, PaymentStatus, Plan, Subscription
 from app.devices.models import DeviceSecurityEvent, DeviceSecurityEventType, UserDevice
 from app.devices.service import DeviceAccessPolicyService
 from app.mtproto.health import build_runtime_health_summary
+from app.mtproto.analytics_service import MTProtoAnalyticsService
 from app.mtproto.models import MTProtoAssignment, MTProtoAssignmentStatus
+from app.mtproto.promotion_tag import (
+    MTProtoPromotionTagError,
+    get_promotion_tag_state,
+    safe_promotion_tag_state,
+    update_promotion_tag,
+)
 from app.mtproto.provisioning import (
     MTProtoProvisioningError,
     MTProtoProvisioningErrorCode,
     MTProtoProvisioningService,
 )
 from app.mtproto.runtime_bridge import MTProtoRuntimeBridge
+from app.mtproto.usage_models import MTProtoUsageEventType
 from app.referrals.models import Referral, ReferralCode
 # NOTE: routing models/observer removed in Phase-17 (Full Tunnel)
 from app.users.models import User, UserRole
@@ -82,12 +98,21 @@ MTPROTO_ADMIN_FORBIDDEN_MARKERS = (
     "secret=",
     "MTPROTO_BASE_SECRET_HEX",
     "MTPROTO_SECRET_SALT",
+    "MTPROTO_RUNTIME_TOKEN",
+    "x-krotpn-mtproto-token",
 )
 
 
 class MTProtoAdminActionRequest(BaseModel):
     """Confirmation body for destructive MTProto admin actions."""
 
+    confirm: bool = False
+
+
+class MTProtoPromotionTagUpdateRequest(BaseModel):
+    """Confirmation body for promotion tag updates."""
+
+    tag: str | None = None
     confirm: bool = False
 
 
@@ -247,6 +272,27 @@ def _parse_mtproto_status_filter(value: str | None) -> MTProtoAssignmentStatus |
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Invalid MTProto assignment status",
         ) from exc
+
+
+def _parse_mtproto_event_type_filter(value: str | None) -> MTProtoUsageEventType | None:
+    if not value:
+        return None
+    try:
+        return MTProtoUsageEventType(value)
+    except ValueError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Invalid MTProto usage event type",
+        ) from exc
+
+
+def _parse_mtproto_top_user_metric(value: str) -> str:
+    if value not in {"traffic", "duration", "connections", "errors"}:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Invalid MTProto top-user metric",
+        )
+    return value
 
 
 def _safe_mtproto_audit_details(
@@ -718,6 +764,191 @@ async def get_admin_mtproto_health(
     )
     return payload
 # END_BLOCK: get_admin_mtproto_health
+
+
+# START_BLOCK: get_admin_mtproto_analytics_summary
+@router.get("/mtproto/analytics/summary")
+async def get_admin_mtproto_analytics_summary(
+    admin: CurrentAdmin,
+    session: DBSession,
+    days: int = Query(default=30, ge=1, le=365),
+):
+    """Return secret-free global MTProto usage analytics."""
+    runtime_health = build_runtime_health_summary(await MTProtoRuntimeBridge(session).runtime_health())
+    payload = await MTProtoAnalyticsService(session).build_global_summary(
+        window_days=days,
+        runtime_health=runtime_health,
+    )
+    _assert_mtproto_admin_payload_redacted(payload)
+    logger.info(
+        "[M-057][admin_mtproto_analytics][SUMMARY] "
+        f"days={days} issued={payload.get('issued_total')}"
+    )
+    return payload
+# END_BLOCK: get_admin_mtproto_analytics_summary
+
+
+# START_BLOCK: get_admin_mtproto_assignment_usage
+@router.get("/mtproto/assignments/{assignment_id}/usage")
+async def get_admin_mtproto_assignment_usage(
+    assignment_id: int,
+    admin: CurrentAdmin,
+    session: DBSession,
+    days: int = Query(default=30, ge=1, le=365),
+):
+    """Return one MTProto assignment's usage drill-down."""
+    payload = await MTProtoAnalyticsService(session).build_assignment_usage(
+        assignment_id=assignment_id,
+        window_days=days,
+    )
+    if payload is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="MTProto assignment not found",
+        )
+    _assert_mtproto_admin_payload_redacted(payload)
+    logger.info(
+        "[M-057][admin_mtproto_usage][ASSIGNMENT_DETAIL] "
+        f"assignment_id={assignment_id} days={days}"
+    )
+    return payload
+# END_BLOCK: get_admin_mtproto_assignment_usage
+
+
+# START_BLOCK: list_admin_mtproto_events
+@router.get("/mtproto/analytics/events")
+async def list_admin_mtproto_events(
+    admin: CurrentAdmin,
+    session: DBSession,
+    assignment_id: int | None = Query(default=None),
+    event_type: str | None = Query(default=None),
+    days: int = Query(default=30, ge=1, le=365),
+    offset: int = Query(default=0, ge=0),
+    limit: int = Query(default=100, ge=1, le=500),
+):
+    """Return paginated secret-free MTProto usage events."""
+    payload = await MTProtoAnalyticsService(session).list_events(
+        assignment_id=assignment_id,
+        event_type=_parse_mtproto_event_type_filter(event_type),
+        window_days=days,
+        offset=offset,
+        limit=limit,
+    )
+    _assert_mtproto_admin_payload_redacted(payload)
+    logger.info(
+        "[M-057][admin_mtproto_events][EVENT_LIST] "
+        f"assignment_id={assignment_id} event_type={event_type or 'all'} returned={len(payload.get('items', []))}"
+    )
+    return payload
+# END_BLOCK: list_admin_mtproto_events
+
+
+# START_BLOCK: list_admin_mtproto_top_users
+@router.get("/mtproto/analytics/top-users")
+async def list_admin_mtproto_top_users(
+    admin: CurrentAdmin,
+    session: DBSession,
+    metric: str = Query(default="traffic"),
+    days: int = Query(default=30, ge=1, le=365),
+    limit: int = Query(default=10, ge=1, le=100),
+):
+    """Return top MTProto users by selected metadata-only metric."""
+    safe_metric = _parse_mtproto_top_user_metric(metric)
+    items = await MTProtoAnalyticsService(session).build_top_users(
+        metric=safe_metric,
+        window_days=days,
+        limit=limit,
+    )
+    payload = {"items": items, "metric": safe_metric, "days": days, "limit": limit}
+    _assert_mtproto_admin_payload_redacted(payload)
+    logger.info(
+        "[M-057][admin_mtproto_top_users][TOP_USERS] "
+        f"metric={safe_metric} returned={len(items)}"
+    )
+    return payload
+# END_BLOCK: list_admin_mtproto_top_users
+
+
+# START_BLOCK: list_admin_mtproto_abuse_signals
+@router.get("/mtproto/analytics/abuse-signals")
+async def list_admin_mtproto_abuse_signals(
+    admin: CurrentAdmin,
+    session: DBSession,
+    assignment_id: int | None = Query(default=None),
+    days: int = Query(default=30, ge=1, le=365),
+    offset: int = Query(default=0, ge=0),
+    limit: int = Query(default=100, ge=1, le=500),
+):
+    """Return observe-only MTProto abuse signals."""
+    payload = await MTProtoAnalyticsService(session).list_abuse_signals(
+        assignment_id=assignment_id,
+        window_days=days,
+        offset=offset,
+        limit=limit,
+    )
+    _assert_mtproto_admin_payload_redacted(payload)
+    return payload
+# END_BLOCK: list_admin_mtproto_abuse_signals
+
+
+# START_BLOCK: get_admin_mtproto_promotion_tag
+@router.get("/mtproto/promotion-tag")
+async def get_admin_mtproto_promotion_tag(
+    admin: CurrentAdmin,
+    session: DBSession,
+):
+    """Return masked MTProxy promotion tag state."""
+    row = await get_promotion_tag_state(session)
+    payload = safe_promotion_tag_state(row)
+    _assert_mtproto_admin_payload_redacted(payload)
+    return payload
+# END_BLOCK: get_admin_mtproto_promotion_tag
+
+
+# START_BLOCK: update_admin_mtproto_promotion_tag
+@router.put("/mtproto/promotion-tag")
+async def update_admin_mtproto_promotion_tag(
+    admin: CurrentAdmin,
+    session: DBSession,
+    request: MTProtoPromotionTagUpdateRequest,
+):
+    """Update MTProxy promotion tag after explicit admin confirmation."""
+    try:
+        row = await update_promotion_tag(
+            session,
+            admin_id=int(admin.id),
+            tag_value=request.tag,
+            confirm=request.confirm,
+        )
+    except MTProtoPromotionTagError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=str(exc),
+        ) from exc
+    payload = safe_promotion_tag_state(row)
+    _assert_mtproto_admin_payload_redacted(payload)
+    await log_admin_action(
+        session,
+        int(admin.id),
+        "mtproto.promotion_tag.update",
+        resource_type="mtproto_promotion_tag",
+        resource_id=1,
+        details=json.dumps(
+            {
+                "action": "promotion_tag.update",
+                "masked_tag": payload["masked_tag"],
+                "runtime_status": payload["runtime_status"],
+                "pending_restart": payload["pending_restart"],
+            },
+            sort_keys=True,
+        ),
+    )
+    logger.info(
+        "[M-059][update_promotion_tag][AUDIT_UPDATE] "
+        f"admin_id={admin.id} status={payload.get('runtime_status')}"
+    )
+    return payload
+# END_BLOCK: update_admin_mtproto_promotion_tag
 
 
 # START_BLOCK: reissue_admin_mtproto_assignment
