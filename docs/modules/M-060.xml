@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<M-060 NAME="mtproto-admin-alerts" TYPE="CORE_LOGIC" STATUS="planned-phase43">
+  <path>backend/app/mtproto/admin_alerts.py backend/app/admin/router.py frontend-admin/src/pages/MTProtoAnalytics.tsx backend/tests/test_mtproto_admin_alerts.py docs/plans/Phase-43.xml</path>
+  <owns>Durable admin notification inbox for MTProto abuse signals, review state, acknowledgements, resolutions, and confirmation-safe enforcement actions.</owns>
+  <purpose>Notify the operator about clear MTProto abuse without automatically blocking users before admin review.</purpose>
+  <exports>
+    <model-MTProtoAdminAlert>Persistent alert row linked to an abuse signal, assignment, user, severity, state, and dedupe key.</model-MTProtoAdminAlert>
+    <fn-create-abuse-alert>Create or update a deduplicated admin alert when abuse severity reaches high or critical thresholds.</fn-create-abuse-alert>
+    <fn-list-admin-alerts>Return paginated open/resolved MTProto alerts for the admin panel.</fn-list-admin-alerts>
+    <fn-acknowledge-alert>Mark one alert as seen by an admin without changing runtime access.</fn-acknowledge-alert>
+    <fn-resolve-alert>Resolve an alert after the admin takes or declines enforcement.</fn-resolve-alert>
+  </exports>
+  <depends>M-001,M-006,M-026,M-047,M-056</depends>
+  <verification-ref>V-M-060</verification-ref>
+  <files>
+    <file status="planned">backend/app/mtproto/admin_alerts.py</file>
+    <file status="planned">backend/alembic/versions/phase43_add_mtproto_admin_alerts.py</file>
+    <file status="planned">backend/tests/test_mtproto_admin_alerts.py</file>
+    <file status="planned">scripts/phase43-mtproto-admin-analytics-smoke.mjs</file>
+  </files>
+  <alert-policy>
+    <policy-1>Alert creation is deduplicated by signal type, assignment, severity window, and review state.</policy-1>
+    <policy-2>Alerts do not automatically disable proxies or block IP addresses.</policy-2>
+    <policy-3>Admin enforcement actions require explicit confirmation and write M-026 audit events.</policy-3>
+    <policy-4>Alert details may reference raw IP observation ids, but must not copy raw IP strings into audit logs or general alert payloads.</policy-4>
+  </alert-policy>
+  <constraints>
+    <constraint-1>Proxy disable is safer than IP blocking and should remain the primary enforcement action.</constraint-1>
+    <constraint-2>IP block actions require TTL, double confirmation, and verification that the address came from M-061 client IP evidence.</constraint-2>
+    <constraint-3>Mobile-network NAT and carrier-grade NAT can make IP blocking overbroad; the UI must make this risk visible to the operator.</constraint-3>
+  </constraints>
+  <hotspot>H-047: MTProto abuse alerts must notify admins without automatically punishing users before operator review</hotspot>
+</M-060>

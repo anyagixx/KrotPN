@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<V-M-060 MODULE="M-060" PRIORITY="high" STATUS="planned-phase43">
+  <purpose>Verify MTProto admin abuse alerts, operator review states, and confirmation-safe enforcement actions.</purpose>
+  <module-ref>M-060</module-ref>
+  <test-files>
+    <file status="planned">backend/tests/test_mtproto_admin_alerts.py</file>
+    <file status="planned">backend/tests/test_mtproto_admin_analytics_api.py</file>
+    <file status="planned">scripts/phase43-mtproto-admin-analytics-smoke.mjs</file>
+  </test-files>
+  <scenarios>
+    <scenario-1>High or critical abuse signals create exactly one open admin alert per dedupe key.</scenario-1>
+    <scenario-2>Repeated scanner runs update the existing alert instead of flooding the inbox.</scenario-2>
+    <scenario-3>Admin can acknowledge and resolve alerts without changing runtime access.</scenario-3>
+    <scenario-4>Disable proxy action requires confirmation, revokes only the selected assignment, and writes an audit-safe event.</scenario-4>
+    <scenario-5>TTL IP block action requires double confirmation and refuses to run without trusted M-061 client IP evidence.</scenario-5>
+    <scenario-6>Alert payloads do not contain tg links, proxy secrets, runtime tokens, private keys, or copied raw IP strings.</scenario-6>
+  </scenarios>
+  <commands>
+    <command status="planned">cd backend &amp;&amp; SECRET_KEY=test-secret-key-with-enough-length PYTHONPATH=. ../.venv/bin/python -m pytest -o addopts='' tests/test_mtproto_admin_alerts.py tests/test_mtproto_admin_analytics_api.py -v</command>
+    <command status="planned">node scripts/phase43-mtproto-admin-analytics-smoke.mjs</command>
+    <command status="planned">python3 -m xml.etree.ElementTree docs/verification/V-M-060.xml docs/modules/M-060.xml docs/plans/Phase-43.xml docs/verification-index.xml docs/graph-index.xml docs/plan-index.xml</command>
+  </commands>
+  <log-markers>
+    <marker>[M-060][create_abuse_alert][ALERT_CREATED]</marker>
+    <marker>[M-060][create_abuse_alert][ALERT_DEDUPED]</marker>
+    <marker>[M-060][acknowledge_alert][ALERT_ACKNOWLEDGED]</marker>
+    <marker>[M-060][resolve_alert][ALERT_RESOLVED]</marker>
+    <marker>[M-047][admin_mtproto_alert_action][CONFIRM_ACTION]</marker>
+  </log-markers>
+  <acceptance>
+    <item-1>Admin alert inbox shows open high/critical abuse signals dynamically.</item-1>
+    <item-2>Alert actions never auto-punish without explicit admin confirmation.</item-2>
+    <item-3>Audit records contain safe identifiers and action reasons, not raw secrets or copied raw IP payloads.</item-3>
+  </acceptance>
+</V-M-060>

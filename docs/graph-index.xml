@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!-- MyGRACE Graph Index — lazy-loading entry point for module navigation -->
 <!-- MyGRACE index generated from per-module contracts; archived monoliths are reference-only -->
-<GraphIndex VERSION="1.0.0" PROJECT="KrotPN" MODULE-COUNT="54">
+<GraphIndex VERSION="1.0.0" PROJECT="KrotPN" MODULE-COUNT="56">
   <M-001 NAME="backend-core" TYPE="UTILITY" STATUS="stable" PATH="backend/app/core" DEPENDS="M-028" VERIFICATION-REF="V-M-001" />
   <M-002 NAME="users" TYPE="CORE_LOGIC" STATUS="stable" PATH="backend/app/users" DEPENDS="M-001,M-027" VERIFICATION-REF="V-M-002" />
   <M-003 NAME="vpn" TYPE="CORE_LOGIC" STATUS="stable" PATH="backend/app/vpn" DEPENDS="M-001,M-002,M-007,M-020,M-030" VERIFICATION-REF="V-M-003" />
@@ -56,6 +56,8 @@
   <M-057 NAME="mtproto-admin-analytics-api" TYPE="ENTRY_POINT" STATUS="pass-local-phase42" PATH="backend/app/admin/router.py backend/app/mtproto/analytics_service.py backend/app/mtproto/promotion_tag.py backend/tests/test_mtproto_admin_analytics_api.py docs/plans/Phase-42.xml" DEPENDS="M-006,M-047,M-054,M-056,M-059" VERIFICATION-REF="V-M-057" />
   <M-058 NAME="mtproto-admin-analytics-ui" TYPE="UI_COMPONENT" STATUS="pass-local-phase42" PATH="frontend-admin/src/pages/MTProtoAnalytics.tsx frontend-admin/src/pages/MTProto.tsx frontend-admin/src/lib/api.ts frontend-admin/src/types/index.ts scripts/phase42-mtproto-admin-analytics-smoke.mjs docs/plans/Phase-42.xml" DEPENDS="M-010,M-037,M-038,M-057,M-059" VERIFICATION-REF="V-M-058" />
   <M-059 NAME="mtproto-promotion-tag-control" TYPE="INTEGRATION" STATUS="pass-local-phase42" PATH="backend/app/mtproto/promotion_tag.py backend/app/admin/router.py backend/app/core/config.py mtproto-runtime/src/kpproton_app.erl deploy/mtproto-de-compose.yml .env.example scripts/phase42-mtproto-promotion-tag-smoke.mjs backend/tests/test_mtproto_promotion_tag.py docs/plans/Phase-42.xml" DEPENDS="M-001,M-006,M-012,M-047,M-049,M-050" VERIFICATION-REF="V-M-059" />
+  <M-060 NAME="mtproto-admin-alerts" TYPE="CORE_LOGIC" STATUS="planned-phase43" PATH="backend/app/mtproto/admin_alerts.py backend/app/admin/router.py frontend-admin/src/pages/MTProtoAnalytics.tsx backend/tests/test_mtproto_admin_alerts.py docs/plans/Phase-43.xml" DEPENDS="M-001,M-006,M-026,M-047,M-056" VERIFICATION-REF="V-M-060" />
+  <M-061 NAME="mtproto-ip-observability" TYPE="DATA_LAYER" STATUS="planned-phase43" PATH="backend/app/mtproto/ip_observability.py backend/app/mtproto/usage_models.py backend/app/mtproto/usage_repository.py backend/alembic/versions/phase43_add_mtproto_ip_observability.py backend/tests/test_mtproto_ip_observability.py docs/plans/Phase-43.xml" DEPENDS="M-001,M-028,M-042,M-054,M-055" VERIFICATION-REF="V-M-061" />
 
   <CrossLinks>
     <link from="M-002" to="M-001" />
@@ -303,6 +305,16 @@
     <link from="M-059" to="M-047" />
     <link from="M-059" to="M-049" />
     <link from="M-059" to="M-050" />
+    <link from="M-060" to="M-001" />
+    <link from="M-060" to="M-006" />
+    <link from="M-060" to="M-026" />
+    <link from="M-060" to="M-047" />
+    <link from="M-060" to="M-056" />
+    <link from="M-061" to="M-001" />
+    <link from="M-061" to="M-028" />
+    <link from="M-061" to="M-042" />
+    <link from="M-061" to="M-054" />
+    <link from="M-061" to="M-055" />
   </CrossLinks>
 
   <Hotspots>
@@ -352,5 +364,7 @@
     <H-044 module="M-057" text="Admin analytics APIs must redact tags, runtime tokens, SNI secrets, full tg links, and high-risk identifiers" />
     <H-045 module="M-058" text="Admin analytics UI must remain compact on mobile while exposing enough filters for incident triage" />
     <H-046 module="M-059" text="Promotion tag control must validate MTProxyBot tags, avoid blank runtime tags, and never log full tags" />
+    <H-047 module="M-060" text="MTProto abuse alerts must notify admins without automatically punishing users before operator review" />
+    <H-048 module="M-061" text="Raw client IP observability is admin-only, encrypted at rest, retention-bound, and never logged or exposed to users" />
   </Hotspots>
 </GraphIndex>

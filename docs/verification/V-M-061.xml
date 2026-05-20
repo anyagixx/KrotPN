@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<V-M-061 MODULE="M-061" PRIORITY="critical" STATUS="planned-phase43">
+  <purpose>Verify encrypted admin-only MTProto client IP observability and 90-day retention.</purpose>
+  <module-ref>M-061</module-ref>
+  <test-files>
+    <file status="planned">backend/tests/test_mtproto_ip_observability.py</file>
+    <file status="planned">backend/tests/test_mtproto_usage_telemetry.py</file>
+    <file status="planned">backend/tests/test_db_migrations.py</file>
+  </test-files>
+  <scenarios>
+    <scenario-1>Handshake telemetry with client IP creates or updates one encrypted IP observation for the assignment and user.</scenario-1>
+    <scenario-2>Current active IPs and last connected IP are derived from active/close events without guessing when source IP is unavailable.</scenario-2>
+    <scenario-3>Admin-only user detail can return decrypted IPs, but general analytics, logs, audit details, and user APIs never expose raw IP strings.</scenario-3>
+    <scenario-4>IP hash and coarse prefix remain available for abuse detection without decrypting raw IP.</scenario-4>
+    <scenario-5>Retention prunes exact IP observations older than 90 days and preserves rollups needed for three-month graphs.</scenario-5>
+    <scenario-6>Backup and XML/test smoke output do not include decrypted IP material.</scenario-6>
+  </scenarios>
+  <commands>
+    <command status="planned">cd backend &amp;&amp; SECRET_KEY=test-secret-key-with-enough-length DATA_ENCRYPTION_KEY=dpFmfSVqfdAK3yx5MQV6Tcv35RZuw5MzaH0yhxJ01q0= PYTHONPATH=. ../.venv/bin/python -m pytest -o addopts='' tests/test_mtproto_ip_observability.py tests/test_mtproto_usage_telemetry.py tests/test_db_migrations.py -v</command>
+    <command status="planned">python3 -m xml.etree.ElementTree docs/verification/V-M-061.xml docs/modules/M-061.xml docs/plans/Phase-43.xml docs/verification-index.xml docs/graph-index.xml docs/plan-index.xml</command>
+  </commands>
+  <log-markers>
+    <marker>[M-061][record_ip_observation][OBSERVATION_UPSERT]</marker>
+    <marker>[M-061][list_user_ip_observations][ADMIN_SCOPE]</marker>
+    <marker>[M-061][apply_ip_retention][RETENTION_PRUNE]</marker>
+    <marker>[M-061][current_ip_summary][SOURCE_UNAVAILABLE]</marker>
+  </log-markers>
+  <acceptance>
+    <item-1>Exact IP history is available to admins for the requested 90-day window.</item-1>
+    <item-2>Raw IP storage is encrypted and redaction tests fail closed on accidental non-admin exposure.</item-2>
+    <item-3>Retention bounds storage growth while preserving operational history through rollups.</item-3>
+  </acceptance>
+</V-M-061>

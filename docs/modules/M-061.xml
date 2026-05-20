@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<M-061 NAME="mtproto-ip-observability" TYPE="DATA_LAYER" STATUS="planned-phase43">
+  <path>backend/app/mtproto/ip_observability.py backend/app/mtproto/usage_models.py backend/app/mtproto/usage_repository.py backend/alembic/versions/phase43_add_mtproto_ip_observability.py backend/tests/test_mtproto_ip_observability.py docs/plans/Phase-43.xml</path>
+  <owns>Admin-only exact client IP observability for MTProto sessions, including encrypted raw IP storage, current/last IP state, historical IP list, and 90-day retention.</owns>
+  <purpose>Let the KrotPN operator investigate MTProto abuse by real client IP while keeping IP data encrypted, retention-bound, and hidden from users and logs.</purpose>
+  <exports>
+    <model-MTProtoIPObservation>Encrypted raw client IP observation linked to assignment, user, first_seen, last_seen, active state, hash, prefix, and connection counters.</model-MTProtoIPObservation>
+    <fn-record-ip-observation>Upsert encrypted IP evidence from runtime handshake, active connection, and close telemetry.</fn-record-ip-observation>
+    <fn-list-user-ip-observations>Return admin-only IP history for one user or assignment with current and last connection context.</fn-list-user-ip-observations>
+    <fn-current-ip-summary>Return current active IPs and last connected IP for the user detail drawer.</fn-current-ip-summary>
+    <fn-apply-ip-retention>Prune exact IP observations after 90 days while preserving aggregate rollups.</fn-apply-ip-retention>
+  </exports>
+  <depends>M-001,M-028,M-042,M-054,M-055</depends>
+  <verification-ref>V-M-061</verification-ref>
+  <files>
+    <file status="planned">backend/app/mtproto/ip_observability.py</file>
+    <file status="planned">backend/alembic/versions/phase43_add_mtproto_ip_observability.py</file>
+    <file status="planned">backend/tests/test_mtproto_ip_observability.py</file>
+  </files>
+  <data-contract>
+    <field-1>Exact client IP is encrypted at rest using the existing application data-encryption boundary.</field-1>
+    <field-2>IP hash and coarse prefix remain available for analytics and abuse detection without decrypting raw IPs.</field-2>
+    <field-3>Exact IP observation retention is 90 days; raw event retention remains shorter and rollups preserve older aggregate history.</field-3>
+    <field-4>If runtime cannot provide a trustworthy client IP, the UI must show source_ip_unavailable instead of guessing.</field-4>
+  </data-contract>
+  <constraints>
+    <constraint-1>Raw IP strings must not appear in non-admin APIs, user APIs, logs, audit details, frontend bundles, or telemetry smoke output.</constraint-1>
+    <constraint-2>Admin API responses exposing raw IPs must be explicit, authenticated, paginated, and narrowly scoped to user/proxy investigation.</constraint-2>
+    <constraint-3>Backup/restore must preserve encrypted rows without requiring decrypted IP material in backup logs or manifests.</constraint-3>
+  </constraints>
+  <hotspot>H-048: Raw client IP observability is admin-only, encrypted at rest, retention-bound, and never logged or exposed to users</hotspot>
+</M-061>
