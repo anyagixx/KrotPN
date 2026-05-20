@@ -7,8 +7,8 @@
     <file status="pass-local">backend/tests/test_mtproto_ip_observability.py</file>
     <file status="pass-local">backend/tests/test_db_migrations.py</file>
   </test-files>
-  <commands>pass-local 2026-05-20: cd backend &amp;&amp; SECRET_KEY=test-secret-key-with-enough-length DATA_ENCRYPTION_KEY=dpFmfSVqfdAK3yx5MQV6Tcv35RZuw5MzaH0yhxJ01q0= PYTHONPATH=. ../.venv/bin/python -m pytest -o addopts='' tests/test_mtproto_usage_telemetry.py tests/test_mtproto_ip_observability.py tests/test_db_migrations.py -v</commands>
-  <evidence>Phase-43 backend wave passed with V-M-061 encrypted IP handoff, M-054 retention budget checks, migration metadata guard, and existing usage telemetry regressions.</evidence>
+  <commands>pass-local 2026-05-20: cd backend &amp;&amp; SECRET_KEY=test-secret-key-with-enough-length DATA_ENCRYPTION_KEY=dpFmfSVqfdAK3yx5MQV6Tcv35RZuw5MzaH0yhxJ01q0= PYTHONPATH=. ../.venv/bin/python -m pytest -o addopts='' tests/test_mtproto_analytics_service.py tests/test_mtproto_admin_analytics_api.py tests/test_mtproto_ip_observability.py tests/test_mtproto_runtime_telemetry_bridge.py -v</commands>
+  <evidence>Phase-43 live-feedback backend wave passed with V-M-061 encrypted IP handoff, IP_OBSERVATION no-inflation guards, runtime client_ip parsing, M-054 retention budget checks, and existing usage telemetry regressions.</evidence>
   <verification-levels>
     <module-local>Exercise Alembic migration metadata, repository idempotency, last-seen updates, session state transitions, rollup writes, and retention pruning with synthetic telemetry fixtures.</module-local>
     <wave-level>Run with V-M-055 and V-M-056 so runtime ingestion writes M-054 rows and analytics can consume them without schema drift.</wave-level>
@@ -43,10 +43,11 @@
     <field-runtime-event-id>Stable opaque id from runtime for idempotency.</field-runtime-event-id>
     <field-assignment-id>Known assignment id when SNI maps to an issued proxy.</field-assignment-id>
     <field-user-id>Safe internal user id when assignment is known.</field-user-id>
-    <field-event-type>handshake, close, bytes, error, unknown_sni, rejected_sni, active_connection, or req_pq_proof.</field-event-type>
+    <field-event-type>handshake, close, bytes, error, unknown_sni, rejected_sni, active_connection, req_pq_proof, or ip_observation.</field-event-type>
     <field-counters>bytes_in, bytes_out, duration_ms, connection_count, error_code, and observed_at.</field-counters>
     <field-client-identity>ip_hash or ip_prefix only; raw public IP is excluded by default.</field-client-identity>
     <field-phase43-raw-ip-handoff>Encrypted raw IP is outside M-054 storage and must be written through M-061 admin-only observability.</field-phase43-raw-ip-handoff>
+    <field-ip-observation-scope>ip_observation events update M-061 IP state and abuse evidence but are excluded from traffic, session, top-user, and timeseries usage counters.</field-ip-observation-scope>
   </telemetry-requirements>
   <redaction-rules>
     <rule-1>No full tg links, fake-TLS secrets, base secret, salt, runtime token, private keys, or full promotion tags.</rule-1>

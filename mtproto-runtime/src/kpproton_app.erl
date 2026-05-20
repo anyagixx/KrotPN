@@ -16,6 +16,7 @@
 %% END_MODULE_MAP
 %%
 %% START_CHANGE_SUMMARY
+%%   LAST_CHANGE: v1.7.0 - Add tls_domain/client_ipv4 counters for admin-only IP observability without lowering runtime limits.
 %%   LAST_CHANGE: v1.6.0 - Enable KrotPN mtproto_proxy metric backend for Phase-42 runtime telemetry sampling.
 %%   LAST_CHANGE: v1.5.0 - Validate PROXY_AD_TAG and fall back to zero tag when runtime env is blank or malformed.
 %%   LAST_CHANGE: v1.4.0 - Default the MTProto proxy ad tag to 32 zero hex chars so Telegram proxy_req receives a valid tag.
@@ -72,7 +73,8 @@ configure_mtproto_proxy() ->
     ok = application:set_env(mtproto_proxy, per_sni_secret_salt, SecretSalt),
     ok = application:set_env(mtproto_proxy, policy, [
         {in_table, tls_domain, personal_domains},
-        {max_connections, [tls_domain], env_integer("MAX_CONNECTIONS_PER_DOMAIN", 100)}
+        {max_connections, [tls_domain], env_integer("MAX_CONNECTIONS_PER_DOMAIN", 100)},
+        {max_connections, [tls_domain, client_ipv4], env_integer("MAX_CONNECTIONS_PER_DOMAIN_IP", 1000)}
     ]),
     ok = application:set_env(mtproto_proxy, per_sni_secrets, on).
 

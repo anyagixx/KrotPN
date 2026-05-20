@@ -50,5 +50,5 @@
     <item-2>Alert actions never auto-punish without explicit admin confirmation.</item-2>
     <item-3>Audit records contain safe identifiers and action reasons, not raw secrets or copied raw IP payloads.</item-3>
   </acceptance>
-  <evidence>pass-local 2026-05-20: alert lifecycle, dedupe, acknowledge/resolve, stale-IP block rejection, recorded TTL block, admin API action routes, frontend-admin build, and Phase-43 static smoke passed.</evidence>
+  <evidence>pass-local 2026-05-20: alert lifecycle, dedupe, acknowledge/resolve, hard-abuse handoff, mobile-IP false-positive guard, stale-IP block rejection, recorded TTL block, admin API action routes, frontend-admin build, and Phase-43 static smoke passed.</evidence>
 </V-M-060>

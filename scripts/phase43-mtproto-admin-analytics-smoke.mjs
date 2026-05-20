@@ -1,5 +1,5 @@
 // FILE: scripts/phase43-mtproto-admin-analytics-smoke.mjs
-// VERSION: 1.0.0
+// VERSION: 1.1.0
 // ROLE: SCRIPT
 // MAP_MODE: LOCALS
 // START_MODULE_CONTRACT
@@ -16,6 +16,7 @@
 // END_MODULE_MAP
 //
 // START_CHANGE_SUMMARY
+//   LAST_CHANGE: v1.1.0 - Added Phase-43 live-feedback checks for pagination, area chart, hardened abuse copy, and IP observation events.
 //   LAST_CHANGE: v1.0.0 - Added Phase-43 MTProto admin analytics static smoke
 // END_CHANGE_SUMMARY
 
@@ -47,6 +48,8 @@ const adminRouterPath = 'backend/app/admin/router.py'
 const analyticsPath = 'backend/app/mtproto/analytics_service.py'
 const alertsPath = 'backend/app/mtproto/admin_alerts.py'
 const ipPath = 'backend/app/mtproto/ip_observability.py'
+const usageModelsPath = 'backend/app/mtproto/usage_models.py'
+const runtimeSamplerPath = 'mtproto-runtime/apps/kpproton_proxy/src/mtproto/kpproton_usage_sampler.erl'
 
 const ui = read(uiPath)
 const api = read(apiPath)
@@ -55,6 +58,8 @@ const adminRouter = read(adminRouterPath)
 const analytics = read(analyticsPath)
 const alerts = read(alertsPath)
 const ip = read(ipPath)
+const usageModels = read(usageModelsPath)
+const runtimeSampler = read(runtimeSamplerPath)
 
 for (const marker of [
   'data-phase43-mtproto-analytics',
@@ -67,6 +72,9 @@ for (const marker of [
   'Abuse',
   'Settings',
   'IP history',
+  'MetricAreaChart',
+  'SourceIPNotice',
+  'Обычная смена сети остается signal без тревоги',
 ]) {
   assertContains(ui, marker, uiPath)
 }
@@ -74,6 +82,7 @@ assertForbiddenAbsent(ui, 'Recent events', uiPath)
 for (const marker of [
   'getMTProtoTimeseries',
   'searchMTProtoUsers',
+  'offset',
   'getMTProtoUserUsage',
   'getMTProtoResourceMetrics',
   'getMTProtoStorageBudget',
@@ -105,6 +114,7 @@ for (const marker of [
   assertContains(adminRouter, marker, adminRouterPath)
 }
 assertContains(analytics, '[M-057][admin_mtproto_user_usage][IP_INVESTIGATION_SCOPE]', analyticsPath)
+assertContains(analytics, 'IP_OBSERVATION', analyticsPath)
 for (const marker of [
   '[M-060][create_abuse_alert][ALERT_CREATED]',
   '[M-060][acknowledge_alert][ALERT_ACKNOWLEDGED]',
@@ -120,6 +130,9 @@ for (const marker of [
 ]) {
   assertContains(ip, marker, ipPath)
 }
+assertContains(usageModels, 'IP_OBSERVATION = "ip_observation"', usageModelsPath)
+assertContains(runtimeSampler, 'policy_counter_client_sample', runtimeSamplerPath)
+assertContains(runtimeSampler, 'client_ip', runtimeSamplerPath)
 for (const [path, text] of [[uiPath, ui], [apiPath, api], [adminRouterPath, adminRouter], [analyticsPath, analytics], [alertsPath, alerts], [ipPath, ip]]) {
   for (const forbidden of [
     'https://t.me/proxy?',

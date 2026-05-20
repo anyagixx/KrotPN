@@ -1,7 +1,7 @@
 """MTProto admin analytics service.
 
 # FILE: backend/app/mtproto/analytics_service.py
-# VERSION: 1.1.0
+# VERSION: 1.2.0
 # ROLE: RUNTIME
 # MAP_MODE: EXPORTS
 # START_MODULE_CONTRACT
@@ -25,6 +25,7 @@
 # END_MODULE_MAP
 #
 # START_CHANGE_SUMMARY
+#   LAST_CHANGE: v1.2.0 - Hardened abuse thresholds and excluded IP-observation samples from traffic/session counters.
 #   LAST_CHANGE: v1.1.0 - Added Phase-43 timeseries, user investigation, storage budget, and alert handoff.
 #   LAST_CHANGE: v1.0.0 - Added Phase-42 MTProto analytics service
 # END_CHANGE_SUMMARY
@@ -92,6 +93,10 @@ def _traffic_total(event: MTProtoUsageEvent) -> int:
     return int(event.bytes_in or 0) + int(event.bytes_out or 0)
 
 
+def _is_usage_counter_event(event: MTProtoUsageEvent) -> bool:
+    return _event_type_value(event.event_type) != MTProtoUsageEventType.IP_OBSERVATION.value
+
+
 def _event_type_value(value: object) -> str:
     return value.value if hasattr(value, "value") else str(value)
 
@@ -111,6 +116,41 @@ def _severity_for(metric_value: int, threshold_value: int) -> str:
     if metric_value >= threshold_value * 2:
         return "high"
     return "medium"
+
+
+def _abuse_severity(
+    *,
+    signal_type: MTProtoAbuseSignalType,
+    metric_value: int,
+    threshold_value: int,
+    ip_count: int,
+    concurrency: int,
+) -> str:
+    """Classify only hard MTProto abuse as high/critical admin-alert material."""
+    baseline = _severity_for(metric_value, threshold_value)
+    if signal_type == MTProtoAbuseSignalType.MANY_IP_HASHES:
+        if ip_count >= max(threshold_value * 3, 36) and concurrency >= 8:
+            return "critical"
+        if ip_count >= max(threshold_value * 2, 24) and concurrency >= 6:
+            return "high"
+        return "medium"
+    if signal_type == MTProtoAbuseSignalType.HIGH_CONCURRENCY:
+        if concurrency >= max(threshold_value * 3, 60):
+            return "critical"
+        if concurrency >= max(threshold_value * 2, 40) or (concurrency >= threshold_value and ip_count >= 6):
+            return "high"
+        return "medium"
+    if signal_type == MTProtoAbuseSignalType.TRAFFIC_SPIKE:
+        if baseline == "critical" and (ip_count >= 6 or concurrency >= 20):
+            return "critical"
+        if baseline in {"high", "critical"} and (ip_count >= 4 or concurrency >= 12):
+            return "high"
+        return "medium"
+    if signal_type == MTProtoAbuseSignalType.REPEATED_ERRORS:
+        if baseline == "critical" and concurrency >= 20:
+            return "high"
+        return "medium"
+    return baseline
 # END_BLOCK_ANALYTICS_HELPERS
 
 
@@ -256,6 +296,7 @@ class MTProtoAnalyticsService:
         ).scalar_one_or_none()
         start = _window_start(window_days)
         events = await self._events_for_assignment(assignment_id=assignment_id, start=start)
+        usage_events = [event for event in events if _is_usage_counter_event(event)]
         sessions = await self._sessions_for_assignment(assignment_id=assignment_id, start=start)
         abuse_signals = await self.list_abuse_signals(assignment_id=assignment_id, limit=20)
         payload = {
@@ -272,13 +313,13 @@ class MTProtoAnalyticsService:
             "last_seen_at": _iso(state.last_seen_at if state else None),
             "last_req_pq_at": _iso(state.last_req_pq_at if state else None),
             "active_connections": int(state.active_connections if state else 0),
-            "connection_count": int(sum(max(event.connection_count, 0) for event in events)),
+            "connection_count": int(sum(max(event.connection_count, 0) for event in usage_events)),
             "session_count": len(sessions),
             "active_session_count": len([session for session in sessions if session.active]),
             "duration_ms": int(sum(session.duration_ms for session in sessions)),
-            "bytes_in": int(sum(event.bytes_in for event in events)),
-            "bytes_out": int(sum(event.bytes_out for event in events)),
-            "error_count": len([event for event in events if _event_type_value(event.event_type) == MTProtoUsageEventType.ERROR.value]),
+            "bytes_in": int(sum(event.bytes_in for event in usage_events)),
+            "bytes_out": int(sum(event.bytes_out for event in usage_events)),
+            "error_count": len([event for event in usage_events if _event_type_value(event.event_type) == MTProtoUsageEventType.ERROR.value]),
             "recent_events": [self._serialize_event(event) for event in events[:50]],
             "abuse_signals": abuse_signals["items"],
         }
@@ -312,7 +353,7 @@ class MTProtoAnalyticsService:
                 MTProtoUsageEvent.observed_at >= start,
             )
         )
-        events = list(result.scalars().all())
+        events = [event for event in result.scalars().all() if _is_usage_counter_event(event)]
         aggregates: dict[int, dict[str, int]] = defaultdict(
             lambda: {"traffic": 0, "duration": 0, "connections": 0, "errors": 0}
         )
@@ -372,10 +413,10 @@ class MTProtoAnalyticsService:
         self,
         *,
         window_days: int = 1,
-        ip_threshold: int = 8,
+        ip_threshold: int = 12,
         concurrency_threshold: int = 20,
         traffic_threshold_bytes: int = 5 * 1024 * 1024 * 1024,
-        error_threshold: int = 20,
+        error_threshold: int = 50,
     ) -> list[dict[str, object]]:
         """Create observe-only abuse signals for current telemetry."""
         start = _window_start(window_days)
@@ -393,11 +434,22 @@ class MTProtoAnalyticsService:
 
         created: list[dict[str, object]] = []
         for assignment_id, events in events_by_assignment.items():
+            usage_events = [event for event in events if _is_usage_counter_event(event)]
             user_id = next((event.user_id for event in events if event.user_id is not None), None)
             ip_count = len({event.ip_hash for event in events if event.ip_hash})
-            traffic = sum(_traffic_total(event) for event in events)
-            errors = len([event for event in events if _event_type_value(event.event_type) == MTProtoUsageEventType.ERROR.value])
-            concurrency = max((event.connection_count for event in events), default=0)
+            traffic = sum(_traffic_total(event) for event in usage_events)
+            errors = len([event for event in usage_events if _event_type_value(event.event_type) == MTProtoUsageEventType.ERROR.value])
+            concurrency = max((event.connection_count for event in usage_events), default=0)
+            latest_ip_counts: dict[str, tuple[datetime, int]] = {}
+            for event in events:
+                if _event_type_value(event.event_type) != MTProtoUsageEventType.IP_OBSERVATION.value or not event.ip_hash:
+                    continue
+                observed = _coerce_aware(event.observed_at) or start
+                current = latest_ip_counts.get(event.ip_hash)
+                if current is None or observed >= current[0]:
+                    latest_ip_counts[event.ip_hash] = (observed, max(event.connection_count, 0))
+            ip_observation_concurrency = sum(count for _observed, count in latest_ip_counts.values())
+            concurrency = max(concurrency, ip_observation_concurrency)
             checks = [
                 (MTProtoAbuseSignalType.MANY_IP_HASHES, ip_count, ip_threshold),
                 (MTProtoAbuseSignalType.HIGH_CONCURRENCY, concurrency, concurrency_threshold),
@@ -407,7 +459,13 @@ class MTProtoAnalyticsService:
             for signal_type, metric_value, threshold_value in checks:
                 if metric_value <= threshold_value:
                     continue
-                severity = _severity_for(int(metric_value), int(threshold_value))
+                severity = _abuse_severity(
+                    signal_type=signal_type,
+                    metric_value=int(metric_value),
+                    threshold_value=int(threshold_value),
+                    ip_count=ip_count,
+                    concurrency=concurrency,
+                )
                 signal = MTProtoAbuseSignal(
                     assignment_id=assignment_id,
                     user_id=int(user_id) if user_id is not None else None,
@@ -463,6 +521,8 @@ class MTProtoAnalyticsService:
         result = await self.session.execute(select(MTProtoUsageEvent).where(*conditions))
         buckets: dict[datetime, dict[str, int | str]] = {}
         for event in result.scalars().all():
+            if not _is_usage_counter_event(event):
+                continue
             key = _bucket_start(event.observed_at, safe_bucket)
             item = buckets.setdefault(
                 key,
@@ -614,6 +674,7 @@ class MTProtoAnalyticsService:
         ).scalar_one_or_none()
         start = _window_start(window_days)
         events = await self._events_for_assignment(assignment_id=assignment_id, start=start)
+        usage_events = [event for event in events if _is_usage_counter_event(event)]
         sessions = await self._sessions_for_assignment(assignment_id=assignment_id, start=start)
         ip_summary = await current_ip_summary(
             self.session,
@@ -651,13 +712,13 @@ class MTProtoAnalyticsService:
             "last_seen_at": _iso(state.last_seen_at if state else None),
             "last_req_pq_at": _iso(state.last_req_pq_at if state else None),
             "active_connections": int(state.active_connections if state else 0),
-            "connection_count": int(sum(max(event.connection_count, 0) for event in events)),
+            "connection_count": int(sum(max(event.connection_count, 0) for event in usage_events)),
             "session_count": len(sessions),
             "active_session_count": len([session for session in sessions if session.active]),
             "duration_ms": int(sum(session.duration_ms for session in sessions)),
-            "bytes_in": int(sum(event.bytes_in for event in events)),
-            "bytes_out": int(sum(event.bytes_out for event in events)),
-            "error_count": len([event for event in events if _event_type_value(event.event_type) == MTProtoUsageEventType.ERROR.value]),
+            "bytes_in": int(sum(event.bytes_in for event in usage_events)),
+            "bytes_out": int(sum(event.bytes_out for event in usage_events)),
+            "error_count": len([event for event in usage_events if _event_type_value(event.event_type) == MTProtoUsageEventType.ERROR.value]),
             "current_ips": ip_summary["current_ips"],
             "last_ip": ip_summary["last_ip"],
             "ip_source_status": ip_summary["source_status"],
@@ -792,7 +853,7 @@ class MTProtoAnalyticsService:
         result = await self.session.execute(
             select(MTProtoUsageEvent).where(MTProtoUsageEvent.observed_at >= start)
         )
-        events = list(result.scalars().all())
+        events = [event for event in result.scalars().all() if _is_usage_counter_event(event)]
         return {
             "bytes_in": int(sum(event.bytes_in for event in events)),
             "bytes_out": int(sum(event.bytes_out for event in events)),

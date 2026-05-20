@@ -2,10 +2,10 @@
 -behaviour(gen_server).
 
 %% FILE: apps/kpproton_proxy/src/mtproto/kpproton_usage_sampler.erl
-%% VERSION: 1.0.0
+%% VERSION: 1.1.0
 %% START_MODULE_CONTRACT
 %%   PURPOSE: Sample live mtproto_proxy runtime counters into secret-free KrotPN usage events.
-%%   SCOPE: Active per-SNI connection deltas, global/single-active-domain traffic attribution, protocol error events, and req_pq proof hints.
+%%   SCOPE: Active per-SNI connection deltas, per-SNI/client-IP observation samples, global/single-active-domain traffic attribution, protocol error events, and req_pq proof hints.
 %%   DEPENDS: M-PROXY-BRIDGE, M-055
 %%   LINKS: M-055
 %% END_MODULE_CONTRACT
@@ -17,6 +17,7 @@
 %% END_MODULE_MAP
 %%
 %% START_CHANGE_SUMMARY
+%%   LAST_CHANGE: v1.1.0 - Emit IP_OBSERVATION events from tls_domain/client_ipv4 counters without inflating usage counters.
 %%   LAST_CHANGE: v1.0.0 - Added Phase-42 live runtime sampler for mtproto_proxy counters.
 %% END_CHANGE_SUMMARY
 
@@ -34,7 +35,7 @@ start_link() ->
 init([]) ->
     Interval = sample_interval_ms(),
     erlang:send_after(1000, self(), sample),
-    {ok, #{interval => Interval, active_counts => #{}, starts => #{}}}.
+    {ok, #{interval => Interval, active_counts => #{}, active_client_counts => #{}, starts => #{}}}.
 %% END_BLOCK_INIT
 
 %% START_BLOCK_GEN_SERVER_CALLBACKS
@@ -71,12 +72,16 @@ code_change(_OldVsn, State, _Extra) ->
 sample(State) ->
     NowMs = erlang:system_time(millisecond),
     ActivePairs = kpproton_usage_telemetry:active_domain_counts(),
+    ActiveClientPairs = kpproton_usage_telemetry:active_domain_client_counts(),
     ActiveCounts = maps:from_list(ActivePairs),
+    ActiveClientCounts = maps:from_list(ActiveClientPairs),
     PrevCounts = maps:get(active_counts, State, #{}),
+    PrevClientCounts = maps:get(active_client_counts, State, #{}),
     Starts0 = maps:get(starts, State, #{}),
     Starts1 = emit_domain_deltas(ActiveCounts, PrevCounts, Starts0, NowMs),
+    emit_client_ip_observations(ActiveClientCounts, PrevClientCounts),
     emit_metric_events(kpproton_usage_telemetry:drain_metric_counters(), ActiveCounts),
-    State#{active_counts => ActiveCounts, starts => Starts1}.
+    State#{active_counts => ActiveCounts, active_client_counts => ActiveClientCounts, starts => Starts1}.
 %% END_BLOCK_SAMPLE
 
 %% START_BLOCK_DOMAIN_DELTAS
@@ -152,6 +157,29 @@ split_count(_Count, [], Acc) ->
 split_count(Count, [Item | Rest], Acc) ->
     split_count(Count - 1, Rest, [Item | Acc]).
 %% END_BLOCK_DOMAIN_DELTAS
+
+%% START_BLOCK_CLIENT_IP_OBSERVATIONS
+emit_client_ip_observations(ActiveClientCounts, PrevClientCounts) ->
+    Keys = ordsets:union(ordsets:from_list(maps:keys(ActiveClientCounts)), ordsets:from_list(maps:keys(PrevClientCounts))),
+    lists:foreach(
+      fun({Domain, ClientIp}) ->
+              Curr = maps:get({Domain, ClientIp}, ActiveClientCounts, 0),
+              Prev = maps:get({Domain, ClientIp}, PrevClientCounts, 0),
+              case Curr > 0 orelse Curr =/= Prev of
+                  true ->
+                      emit_event(#{
+                          event_type => <<"ip_observation">>,
+                          sni => Domain,
+                          client_ip => ClientIp,
+                          connection_count => Curr,
+                          reason_code => <<"policy_counter_client_sample">>
+                      });
+                  false ->
+                      ok
+              end
+      end,
+      Keys).
+%% END_BLOCK_CLIENT_IP_OBSERVATIONS
 
 %% START_BLOCK_METRIC_EVENTS
 emit_metric_events(Counters, ActiveCounts) ->

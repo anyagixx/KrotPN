@@ -7,8 +7,8 @@
     <file status="pass-local">backend/tests/test_mtproto_admin_alerts.py</file>
     <file status="pass-local">backend/tests/test_scheduler.py</file>
   </test-files>
-  <commands>pass-local 2026-05-20: cd backend &amp;&amp; SECRET_KEY=test-secret-key-with-enough-length DATA_ENCRYPTION_KEY=dpFmfSVqfdAK3yx5MQV6Tcv35RZuw5MzaH0yhxJ01q0= PYTHONPATH=. ../.venv/bin/python -m pytest -o addopts='' tests/test_mtproto_analytics_service.py tests/test_mtproto_admin_alerts.py tests/test_scheduler.py -v</commands>
-  <evidence>Analytics service tests cover summary/top users/timeseries/storage budget and high/critical alert handoff; scheduler maintenance regression passed.</evidence>
+  <commands>pass-local 2026-05-20: cd backend &amp;&amp; SECRET_KEY=test-secret-key-with-enough-length DATA_ENCRYPTION_KEY=dpFmfSVqfdAK3yx5MQV6Tcv35RZuw5MzaH0yhxJ01q0= PYTHONPATH=. ../.venv/bin/python -m pytest -o addopts='' tests/test_mtproto_analytics_service.py tests/test_mtproto_admin_alerts.py tests/test_mtproto_admin_analytics_api.py -v</commands>
+  <evidence>Analytics service tests cover summary/top users/timeseries/storage budget, IP_OBSERVATION no-inflation, hard-abuse alert handoff, and mobile-IP false-positive guard; alert regression passed.</evidence>
   <verification-levels>
     <module-local>Use deterministic M-054 fixtures to verify summaries, windowed rollups, top-user ordering, active sessions, stale telemetry, and observe-only abuse classifiers.</module-local>
     <wave-level>Run after V-M-054/V-M-055 so analytics consumes the real planned persistence and runtime ingestion shapes.</wave-level>
@@ -21,6 +21,7 @@
     <check-3>High/critical abuse signals call M-060 alert creation once per dedupe key.</check-3>
     <check-4>Storage-budget summary reports raw event, session, rollup, alert, and IP-observation retention windows.</check-4>
     <check-5>Current/last IP summaries come from M-061 and are absent rather than guessed when source data is unavailable.</check-5>
+    <check-6>Many-IP churn without strong concurrent multi-IP activity remains a medium signal and does not create an admin alert.</check-6>
   </phase-43-checks>
   <module-checks>
     <check-1>Global summary returns issued proxy total, active/disabled/reissue_required counts, active connections, runtime health, and availability proof state.</check-1>

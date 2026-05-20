@@ -16,6 +16,7 @@
 // END_MODULE_MAP
 //
 // START_CHANGE_SUMMARY
+//   LAST_CHANGE: v3.5.0 - Added pagination offsets for MTProto assignment inventory and user investigation search.
 //   LAST_CHANGE: v3.4.0 - Added Phase-43 MTProto alert, user investigation, timeseries, resource, and storage endpoint bindings
 //   LAST_CHANGE: v3.3.0 - Added Phase-42 MTProto analytics and promotion tag endpoint bindings
 //   LAST_CHANGE: v3.2.0 - Added Phase-33 MTProto admin endpoint bindings
@@ -218,10 +219,12 @@ export const adminApi = {
     api.delete(`/admin/devices/${id}`),
 
   // MTProto admin ops
-  getMTProtoAssignments: (search = '', status = '') => {
+  getMTProtoAssignments: (search = '', status = '', offset = 0, limit = 50) => {
     const params = new URLSearchParams()
     if (search.trim()) params.set('search', search.trim())
     if (status) params.set('status', status)
+    params.set('offset', String(offset))
+    params.set('limit', String(limit))
     const query = params.toString()
     return api.get<AdminMTProtoListResponse>(`/admin/mtproto/assignments${query ? `?${query}` : ''}`)
   },
@@ -266,8 +269,8 @@ export const adminApi = {
     return api.get<AdminMTProtoTimeseriesResponse>(`/admin/mtproto/analytics/timeseries?${query.toString()}`)
   },
 
-  searchMTProtoUsers: (queryText = '', limit = 25) => {
-    const query = new URLSearchParams({ limit: String(limit) })
+  searchMTProtoUsers: (queryText = '', limit = 25, offset = 0) => {
+    const query = new URLSearchParams({ limit: String(limit), offset: String(offset) })
     if (queryText.trim()) query.set('query', queryText.trim())
     return api.get<AdminMTProtoUserSearchResponse>(`/admin/mtproto/analytics/users/search?${query.toString()}`)
   },

@@ -1,17 +1,17 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <M-054 NAME="mtproto-usage-telemetry" TYPE="DATA_LAYER" STATUS="pass-local-phase43">
   <path>backend/app/mtproto/usage_models.py backend/app/mtproto/usage_repository.py backend/alembic/versions/phase42_add_mtproto_usage_telemetry.py backend/tests/test_mtproto_usage_telemetry.py docs/plans/Phase-42.xml docs/plans/Phase-43.xml</path>
-  <owns>PostgreSQL-backed MTProto usage events, connection sessions, traffic rollups, last-seen metadata, and abuse-signal records.</owns>
+  <owns>PostgreSQL-backed MTProto usage events, IP-observation samples, connection sessions, traffic rollups, last-seen metadata, and abuse-signal records.</owns>
   <purpose>Persist metadata-only MTProto proxy usage so admins can analyze service activity without inspecting Telegram payloads.</purpose>
   <exports>
-    <model-MTProtoUsageEvent>Append-only event row for handshake, close, bytes, error, unknown_sni, rejected_sni, and req_pq proof events.</model-MTProtoUsageEvent>
+    <model-MTProtoUsageEvent>Append-only event row for handshake, close, bytes, error, unknown_sni, rejected_sni, active_connection, req_pq proof, and ip_observation events.</model-MTProtoUsageEvent>
     <model-MTProtoUsageSession>Per-assignment session row with start, end, duration, status, byte counters, and active flag.</model-MTProtoUsageSession>
     <model-MTProtoUsageRollup>Hourly, daily, and monthly aggregate counters by assignment and global scope.</model-MTProtoUsageRollup>
     <model-MTProtoAbuseSignal>Observe-only abuse signal row for many IPs, high concurrency, traffic spikes, and repeated failures.</model-MTProtoAbuseSignal>
     <fn-ingest-telemetry-batch>Store runtime telemetry batches idempotently by runtime event id.</fn-ingest-telemetry-batch>
     <fn-update-last-seen>Update last successful MTProto handshake timestamp per assignment.</fn-update-last-seen>
   </exports>
-  <depends>M-001,M-042,M-028</depends>
+  <depends>M-001,M-042,M-028,M-061</depends>
   <verification-ref>V-M-054</verification-ref>
   <files>
     <file status="implemented">backend/app/mtproto/usage_models.py</file>
@@ -19,12 +19,13 @@
     <file status="implemented">backend/alembic/versions/phase42_add_mtproto_usage_telemetry.py</file>
     <file status="implemented">backend/tests/test_mtproto_usage_telemetry.py</file>
   </files>
-  <evidence>pass-local 2026-05-20: usage telemetry regression, encrypted IP handoff, 30-day raw event retention, scheduler maintenance, migration metadata guard, and Phase-43 backend wave passed.</evidence>
+  <evidence>pass-local 2026-05-20: usage telemetry regression, encrypted IP handoff, IP_OBSERVATION no-inflation guards, 30-day raw event retention, scheduler maintenance, migration metadata guard, and Phase-43 backend wave passed.</evidence>
   <data-contract>
     <field-1>assignment_id links usage to MTProtoAssignment when SNI is known.</field-1>
     <field-2>Unknown or rejected SNI events may store masked SNI and safe reason codes but never derived secrets or tg links.</field-2>
     <field-3>Client IP is stored as HMAC/hash or prefix-based aggregate by default; Phase-43 permits encrypted raw IP only through M-061 admin-only observability with 90-day retention.</field-3>
     <field-4>Rollups must be sufficient for day, week, month, top users, last seen, connection count, duration, and traffic views.</field-4>
+    <field-5>IP_OBSERVATION events update M-061 current/last IP evidence and abuse classifiers but must not inflate traffic, sessions, top-user, or timeseries usage counters.</field-5>
   </data-contract>
   <constraints>
     <constraint-1>Telemetry persistence must not block live MTProto proxy traffic.</constraint-1>

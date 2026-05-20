@@ -1,7 +1,7 @@
 -module(kpproton_usage_telemetry).
 
 %% FILE: apps/kpproton_proxy/src/mtproto/kpproton_usage_telemetry.erl
-%% VERSION: 1.2.0
+%% VERSION: 1.3.0
 %% START_MODULE_CONTRACT
 %%   PURPOSE: Keep bounded, secret-free MTProto runtime telemetry for KrotPN admin analytics.
 %%   SCOPE: Safe event emission, mtproto_proxy metric counters, active-SNI sampling helpers, cursor-based drain, overflow accounting.
@@ -14,17 +14,19 @@
 %%   add_metric/2 - records hot-path mtproto_proxy counters for sampler draining
 %%   drain_metric_counters/0 - returns and clears accumulated runtime counters
 %%   active_domain_counts/0 - reads current per-SNI active connection counters
+%%   active_domain_client_counts/0 - reads current per-SNI/client-IP active connection counters
 %%   snapshot/0 - returns current telemetry counters without draining events
 %%   drain/2 - returns cursor-ordered events and next cursor
 %% END_MODULE_MAP
 %%
 %% START_CHANGE_SUMMARY
+%%   LAST_CHANGE: v1.3.0 - Added client_ip-safe IP observation event support from tls_domain/client_ipv4 counters.
 %%   LAST_CHANGE: v1.2.0 - Added Phase-43 runtime CPU/RAM resource metrics to telemetry snapshots.
 %%   LAST_CHANGE: v1.1.0 - Added metric counter drain and active-SNI snapshot helpers for live runtime telemetry.
 %%   LAST_CHANGE: v1.0.0 - Added Phase-42 bounded telemetry buffer contract.
 %% END_CHANGE_SUMMARY
 
--export([emit_event/1, add_metric/2, drain_metric_counters/0, active_domain_counts/0, snapshot/0, drain/2]).
+-export([emit_event/1, add_metric/2, drain_metric_counters/0, active_domain_counts/0, active_domain_client_counts/0, snapshot/0, drain/2]).
 
 -define(TABLE, kpproton_usage_telemetry).
 -define(METRIC_TABLE, kpproton_usage_metric_counters).
@@ -118,6 +120,24 @@ active_domain_counts() ->
               end,
               ets:tab2list(mtp_policy_counter))
     end.
+
+active_domain_client_counts() ->
+    case ets:info(mtp_policy_counter) of
+        undefined ->
+            [];
+        _Info ->
+            lists:filtermap(
+              fun
+                  ({[Domain, ClientIp], Count}) when is_binary(Domain), is_integer(Count), Count >= 0 ->
+                      case counter_ip_to_binary(ClientIp) of
+                          <<>> -> false;
+                          ClientIpBin -> {true, {{Domain, ClientIpBin}, Count}}
+                      end;
+                  (_) ->
+                      false
+              end,
+              ets:tab2list(mtp_policy_counter))
+    end.
 %% END_BLOCK_METRIC_COUNTERS
 
 %% START_BLOCK_SNAPSHOT
@@ -194,6 +214,7 @@ safe_event(Cursor, Event) ->
         assignment_id => safe_integer(maps:get(assignment_id, Event, null)),
         user_id => safe_integer(maps:get(user_id, Event, null)),
         sni => safe_binary(maps:get(sni, Event, <<"">>)),
+        client_ip => safe_client_ip(maps:get(client_ip, Event, <<"">>)),
         ip_hash => safe_binary(maps:get(ip_hash, Event, <<"">>)),
         ip_prefix => safe_binary(maps:get(ip_prefix, Event, <<"">>)),
         bytes_in => safe_integer(maps:get(bytes_in, Event, 0)),
@@ -229,6 +250,24 @@ safe_integer(Value) when is_binary(Value) ->
     end;
 safe_integer(_) ->
     0.
+
+safe_client_ip(Value) ->
+    Candidate = safe_binary(Value),
+    case byte_size(Candidate) =< 64 andalso re:run(Candidate, <<"^[0-9A-Fa-f:.]{3,64}$">>, [{capture, none}]) =:= match of
+        true -> Candidate;
+        false -> <<>>
+    end.
+
+counter_ip_to_binary(Value) when is_binary(Value) ->
+    safe_client_ip(Value);
+counter_ip_to_binary({A, B, C, D}) when is_integer(A), is_integer(B), is_integer(C), is_integer(D) ->
+    safe_client_ip(iolist_to_binary([
+        integer_to_list(A), ".", integer_to_list(B), ".", integer_to_list(C), ".", integer_to_list(D)
+    ]));
+counter_ip_to_binary(Value) when is_list(Value) ->
+    safe_client_ip(unicode:characters_to_binary(Value));
+counter_ip_to_binary(_) ->
+    <<>>.
 
 policy_count() ->
     case whereis(mtp_policy_table) of

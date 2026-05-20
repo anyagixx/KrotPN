@@ -1,7 +1,7 @@
 """MTProto admin-only IP observability.
 
 # FILE: backend/app/mtproto/ip_observability.py
-# VERSION: 1.0.0
+# VERSION: 1.1.0
 # ROLE: RUNTIME
 # MAP_MODE: EXPORTS
 # START_MODULE_CONTRACT
@@ -22,6 +22,7 @@
 # END_MODULE_MAP
 #
 # START_CHANGE_SUMMARY
+#   LAST_CHANGE: v1.1.0 - Added idempotent runtime IP observation samples for per-client active/last IP state.
 #   LAST_CHANGE: v1.0.0 - Added Phase-43 encrypted MTProto IP observability service
 # END_CHANGE_SUMMARY
 """
@@ -149,11 +150,23 @@ async def record_ip_observation(
     row.last_event_type = event_name[:50]
     row.updated_at = now
 
+    previous_active_connections = int(row.active_connections or 0)
+    was_active = bool(row.current_active)
+
     if event_name == "handshake":
         row.current_active = True
         row.active_connections = max(active_count, 1)
         row.connection_count += max(active_count, 1)
         row.last_active_at = observed
+    elif event_name == "ip_observation":
+        row.active_connections = active_count
+        row.current_active = active_count > 0
+        if active_count > 0:
+            row.last_active_at = observed
+            if not was_active:
+                row.connection_count += max(active_count, 1)
+            elif active_count > previous_active_connections:
+                row.connection_count += active_count - previous_active_connections
     elif event_name == "active_connection":
         row.active_connections = active_count
         row.current_active = active_count > 0

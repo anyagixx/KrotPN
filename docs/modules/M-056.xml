@@ -11,19 +11,20 @@
     <fn-rollup-usage-windows>Maintain hourly, daily, weekly, and monthly aggregate windows from M-054 events.</fn-rollup-usage-windows>
     <fn-detect-abuse-signals>Detect many IP hashes, excessive concurrency, traffic spikes, and repeated failures in observe-only mode.</fn-detect-abuse-signals>
   </exports>
-  <depends>M-001,M-008,M-042,M-054,M-055</depends>
+  <depends>M-001,M-008,M-042,M-054,M-055,M-060</depends>
   <verification-ref>V-M-056</verification-ref>
   <files>
     <file status="implemented">backend/app/mtproto/analytics_service.py</file>
     <file status="implemented">backend/app/tasks/scheduler.py</file>
     <file status="implemented">backend/tests/test_mtproto_analytics_service.py</file>
   </files>
-  <evidence>pass-local 2026-05-20: analytics service tests cover summary/top users/timeseries/storage budget/alert handoff; scheduler maintenance regression passed.</evidence>
+  <evidence>pass-local 2026-05-20: analytics service tests cover summary/top users/timeseries/storage budget/hard-abuse alert handoff and mobile-IP false-positive guard; scheduler maintenance regression passed.</evidence>
   <analytics-policy>
     <policy-1>Abuse output starts as observe-only and never automatically disables an assignment in Phase-42.</policy-1>
     <policy-2>Traffic spikes are compared against prior local baselines, not fixed global limits only.</policy-2>
     <policy-3>Reports distinguish known assignment traffic from unknown or rejected SNI traffic.</policy-3>
     <policy-4>Phase-43 high/critical abuse signals create M-060 admin alerts but still do not auto-disable access.</policy-4>
+    <policy-5>Phase-43 live-feedback hardens alert severity: many-IP roaming stays medium unless paired with strong concurrent multi-IP activity or extreme traffic/error evidence.</policy-5>
   </analytics-policy>
   <constraints>
     <constraint-1>Aggregation must avoid N+1 database scans on admin pages.</constraint-1>

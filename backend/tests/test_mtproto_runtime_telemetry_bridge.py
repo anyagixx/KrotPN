@@ -1,7 +1,7 @@
 """MTProto runtime telemetry bridge tests.
 
 # FILE: backend/tests/test_mtproto_runtime_telemetry_bridge.py
-# VERSION: 1.0.0
+# VERSION: 1.1.0
 # ROLE: TEST
 # MAP_MODE: LOCALS
 # START_MODULE_CONTRACT
@@ -17,6 +17,7 @@
 # END_MODULE_MAP
 #
 # START_CHANGE_SUMMARY
+#   LAST_CHANGE: v1.1.0 - Added client_ip parsing coverage for runtime IP_OBSERVATION events.
 #   LAST_CHANGE: v1.0.0 - Added Phase-42 runtime telemetry bridge tests
 # END_CHANGE_SUMMARY
 """
@@ -87,10 +88,12 @@ async def test_http_runtime_telemetry_adapter_uses_private_token_and_paths():
                     "events": [
                         {
                             "runtime_event_id": "http-1",
-                            "event_type": "req_pq_proof",
+                            "event_type": "ip_observation",
                             "observed_at": "2026-05-19T20:00:00+00:00",
                             "assignment_id": 7,
                             "user_id": 9,
+                            "client_ip": "10.46.0.7",
+                            "connection_count": 1,
                         }
                     ],
                     "next_cursor": 6,
@@ -110,7 +113,8 @@ async def test_http_runtime_telemetry_adapter_uses_private_token_and_paths():
 
     assert snapshot.buffered_events == 1
     assert batch.next_cursor == 6
-    assert batch.events[0].event_type == "req_pq_proof"
+    assert batch.events[0].event_type == "ip_observation"
+    assert batch.events[0].client_ip == "10.46.0.7"
     assert [request.url.path for request in requests] == [
         "/krotpn/mtproto/policy/telemetry/snapshot",
         "/krotpn/mtproto/policy/telemetry/drain",

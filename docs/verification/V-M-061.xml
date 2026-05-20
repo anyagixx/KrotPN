@@ -49,5 +49,5 @@
     <item-2>Raw IP storage is encrypted and redaction tests fail closed on accidental non-admin exposure.</item-2>
     <item-3>Retention bounds storage growth while preserving operational history through rollups.</item-3>
   </acceptance>
-  <evidence>pass-local 2026-05-20: encrypted IP observation tests, current/last/all IP derivation, 90-day prune, source_ip_unavailable handling, admin-only detail route, usage telemetry handoff, and migration metadata guard passed.</evidence>
+  <evidence>pass-local 2026-05-20: encrypted IP observation tests, runtime ip_observation client_ip handoff, current/last/all IP derivation, 90-day prune, source_ip_unavailable handling, admin-only detail route, usage telemetry no-inflation handoff, and migration metadata guard passed.</evidence>
 </V-M-061>

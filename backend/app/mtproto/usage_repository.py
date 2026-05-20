@@ -1,7 +1,7 @@
 """MTProto usage telemetry repository.
 
 # FILE: backend/app/mtproto/usage_repository.py
-# VERSION: 1.2.0
+# VERSION: 1.3.0
 # ROLE: RUNTIME
 # MAP_MODE: EXPORTS
 # START_MODULE_CONTRACT
@@ -23,6 +23,7 @@
 # END_MODULE_MAP
 #
 # START_CHANGE_SUMMARY
+#   LAST_CHANGE: v1.3.0 - Route IP_OBSERVATION runtime samples into encrypted IP state without inflating usage counters.
 #   LAST_CHANGE: v1.2.0 - Added Phase-43 encrypted IP observation handoff and 30-day raw-event retention default.
 #   LAST_CHANGE: v1.1.0 - Respect connection_count deltas on sampler close events.
 #   LAST_CHANGE: v1.0.0 - Added Phase-42 MTProto telemetry ingestion repository
@@ -286,6 +287,7 @@ async def _apply_known_event_effects(
         MTProtoUsageEventType.HANDSHAKE,
         MTProtoUsageEventType.ACTIVE_CONNECTION,
         MTProtoUsageEventType.CLOSE,
+        MTProtoUsageEventType.IP_OBSERVATION,
     }:
         await record_ip_observation(
             session,
@@ -296,6 +298,9 @@ async def _apply_known_event_effects(
             event_type=event_type.value,
             connection_count=max(_non_negative(event.connection_count), 1 if event_type == MTProtoUsageEventType.HANDSHAKE else 0),
         )
+        if event_type == MTProtoUsageEventType.IP_OBSERVATION:
+            state.updated_at = now
+            return
 
     if event_type == MTProtoUsageEventType.HANDSHAKE:
         await update_last_seen(

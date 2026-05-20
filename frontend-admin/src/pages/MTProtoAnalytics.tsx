@@ -1,5 +1,5 @@
 // FILE: frontend-admin/src/pages/MTProtoAnalytics.tsx
-// VERSION: 2.0.0
+// VERSION: 2.1.0
 // ROLE: UI_COMPONENT
 // MAP_MODE: SUMMARY
 // START_MODULE_CONTRACT
@@ -14,16 +14,17 @@
 //   formatBytes - Helper: render byte counters
 //   formatDuration - Helper: render millisecond durations
 //   formatDate - Helper: render ISO timestamps
-//   MetricLineChart - Lightweight responsive graph for Phase-43 metrics
+//   MetricAreaChart - Compact responsive area graph for Phase-43 metrics
 //   default - React component (default export)
 // END_MODULE_MAP
 //
 // START_CHANGE_SUMMARY
+//   LAST_CHANGE: v2.1.0 - Added paginated user investigation, clearer IP-source states, harder-abuse UI copy, and richer compact area graphs.
 //   LAST_CHANGE: v2.0.0 - Rebuilt for Phase-43 compact tabs, alert inbox, IP investigation, graphs, resource metrics, and auto-refresh
 //   LAST_CHANGE: v1.0.0 - Added Phase-42 MTProto analytics and promotion tag panel
 // END_CHANGE_SUMMARY
 
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from 'react-query'
 import {
   Activity,
@@ -45,9 +46,9 @@ import {
   XCircle,
 } from 'lucide-react'
 import {
+  Area,
+  AreaChart,
   CartesianGrid,
-  Line,
-  LineChart,
   ResponsiveContainer,
   Tooltip,
   XAxis,
@@ -110,30 +111,60 @@ function metricValue(row: AdminMTProtoTimeseriesBucket, metric: MetricKey) {
 }
 // END_BLOCK: formatters
 
-// START_BLOCK: MetricLineChart
-function MetricLineChart({ data, metric }: { data: AdminMTProtoTimeseriesBucket[]; metric: MetricKey }) {
+// START_BLOCK: MetricAreaChart
+function MetricAreaChart({ data, metric }: { data: AdminMTProtoTimeseriesBucket[]; metric: MetricKey }) {
   const chartData = data.map((row) => ({
     label: formatDate(row.bucket_start),
     value: metricValue(row, metric),
+    traffic: row.traffic_bytes,
+    connects: row.connection_count,
+    active: row.active_connections,
+    errors: row.error_count,
   }))
+  const total = chartData.reduce((sum, row) => sum + row.value, 0)
+  const peak = chartData.reduce((max, row) => Math.max(max, row.value), 0)
+  const latest = chartData[chartData.length - 1]?.value || 0
   return (
-    <div className="h-56 w-full" data-log-marker="[M-058][admin_mtproto_analytics_ui][AUTO_REFRESH]">
+    <div className="grid gap-2" data-log-marker="[M-058][admin_mtproto_analytics_ui][AUTO_REFRESH]">
+      <div className="grid grid-cols-3 gap-2 text-xs">
+        <div className="rounded-lg border border-white/10 bg-white/5 px-3 py-2">
+          <span className="metric-label">Total</span>
+          <strong className="block text-white">{metric === 'traffic' ? formatBytes(total) : total}</strong>
+        </div>
+        <div className="rounded-lg border border-white/10 bg-white/5 px-3 py-2">
+          <span className="metric-label">Peak</span>
+          <strong className="block text-white">{metric === 'traffic' ? formatBytes(peak) : peak}</strong>
+        </div>
+        <div className="rounded-lg border border-white/10 bg-white/5 px-3 py-2">
+          <span className="metric-label">Last</span>
+          <strong className="block text-white">{metric === 'traffic' ? formatBytes(latest) : latest}</strong>
+        </div>
+      </div>
+      <div className="h-64 w-full">
       <ResponsiveContainer width="100%" height="100%">
-        <LineChart data={chartData} margin={{ top: 10, right: 8, left: 0, bottom: 0 }}>
-          <CartesianGrid stroke="rgba(255,255,255,.08)" vertical={false} />
-          <XAxis dataKey="label" tick={{ fill: '#9ca3af', fontSize: 11 }} minTickGap={24} />
-          <YAxis tick={{ fill: '#9ca3af', fontSize: 11 }} width={48} />
+        <AreaChart data={chartData} margin={{ top: 12, right: 10, left: 0, bottom: 0 }}>
+          <defs>
+            <linearGradient id={`mtproto-${metric}-fill`} x1="0" y1="0" x2="0" y2="1">
+              <stop offset="5%" stopColor="#22d3ee" stopOpacity={0.42} />
+              <stop offset="95%" stopColor="#22d3ee" stopOpacity={0.02} />
+            </linearGradient>
+          </defs>
+          <CartesianGrid stroke="rgba(148,163,184,.16)" vertical={false} />
+          <XAxis dataKey="label" tick={{ fill: '#9ca3af', fontSize: 11 }} minTickGap={24} tickLine={false} axisLine={false} />
+          <YAxis tick={{ fill: '#9ca3af', fontSize: 11 }} width={54} tickLine={false} axisLine={false} />
           <Tooltip
-            contentStyle={{ background: '#111827', border: '1px solid rgba(255,255,255,.12)', borderRadius: 8 }}
+            formatter={(value: number) => [metric === 'traffic' ? formatBytes(value) : value, metric]}
+            contentStyle={{ background: '#0f172a', border: '1px solid rgba(255,255,255,.14)', borderRadius: 8 }}
             labelStyle={{ color: '#e5e7eb' }}
           />
-          <Line type="monotone" dataKey="value" stroke="#22d3ee" strokeWidth={2} dot={false} />
-        </LineChart>
+          <Area type="monotone" dataKey="value" stroke="#22d3ee" strokeWidth={2.5} fill={`url(#mtproto-${metric}-fill)`} dot={false} activeDot={{ r: 4 }} />
+        </AreaChart>
       </ResponsiveContainer>
+      </div>
     </div>
   )
 }
-// END_BLOCK: MetricLineChart
+// END_BLOCK: MetricAreaChart
 
 // START_BLOCK: MTProtoAnalyticsPanel
 export default function MTProtoAnalyticsPanel() {
@@ -142,18 +173,25 @@ export default function MTProtoAnalyticsPanel() {
   const [topLimit, setTopLimit] = useState(25)
   const [activeTab, setActiveTab] = useState<TabKey>('overview')
   const [search, setSearch] = useState('')
+  const [userPageSize, setUserPageSize] = useState(50)
+  const [userPage, setUserPage] = useState(0)
   const [selectedAssignmentId, setSelectedAssignmentId] = useState<number | null>(null)
   const [selectedAlertId, setSelectedAlertId] = useState<number | null>(null)
   const [tagValue, setTagValue] = useState('')
   const [feedback, setFeedback] = useState<{ tone: 'success' | 'error'; text: string } | null>(null)
   const queryClient = useQueryClient()
+  const userOffset = userPage * userPageSize
 
   const summaryQuery = useQuery(['admin-mtproto-analytics-summary', days], () => adminApi.getMTProtoAnalyticsSummary(days), { refetchInterval: 15000 })
   const topUsersQuery = useQuery(['admin-mtproto-top-users', metric, days, topLimit], () => adminApi.getMTProtoTopUsers(metric, days, topLimit), { refetchInterval: 30000 })
   const timeseriesQuery = useQuery(['admin-mtproto-timeseries', metric, days], () => adminApi.getMTProtoTimeseries({ bucket: days <= 1 ? 'hour' : 'day', days }), { refetchInterval: 30000 })
   const alertsQuery = useQuery(['admin-mtproto-alerts'], () => adminApi.getMTProtoAlerts('', 50), { refetchInterval: 10000 })
   const abuseQuery = useQuery(['admin-mtproto-abuse', days], () => adminApi.getMTProtoAbuseSignals(days), { refetchInterval: 30000 })
-  const usersQuery = useQuery(['admin-mtproto-user-search', search], () => adminApi.searchMTProtoUsers(search, 50), { refetchInterval: 20000 })
+  const usersQuery = useQuery(
+    ['admin-mtproto-user-search', search, userOffset, userPageSize],
+    () => adminApi.searchMTProtoUsers(search, userPageSize, userOffset),
+    { refetchInterval: 20000, keepPreviousData: true }
+  )
   const selectedUsageQuery = useQuery(
     ['admin-mtproto-user-usage', selectedAssignmentId],
     () => adminApi.getMTProtoUserUsage(selectedAssignmentId || 0, 90),
@@ -162,6 +200,10 @@ export default function MTProtoAnalyticsPanel() {
   const resourcesQuery = useQuery('admin-mtproto-resources', () => adminApi.getMTProtoResourceMetrics(), { refetchInterval: 10000 })
   const storageQuery = useQuery('admin-mtproto-storage-budget', () => adminApi.getMTProtoStorageBudget(), { refetchInterval: 60000 })
   const promotionTagQuery = useQuery('admin-mtproto-promotion-tag', () => adminApi.getMTProtoPromotionTag(), { refetchInterval: 60000 })
+
+  useEffect(() => {
+    setUserPage(0)
+  }, [search, userPageSize])
 
   const updateTagMutation = useMutation((tag: string) => adminApi.updateMTProtoPromotionTag(tag), {
     onSuccess: () => {
@@ -204,6 +246,9 @@ export default function MTProtoAnalyticsPanel() {
   const alerts = alertsQuery.data?.data?.items || []
   const abuseSignals = abuseQuery.data?.data?.items || []
   const users = usersQuery.data?.data?.items || []
+  const userTotal = usersQuery.data?.data?.total || 0
+  const userTotalPages = Math.max(Math.ceil(userTotal / userPageSize), 1)
+  const userCurrentPage = Math.min(userPage + 1, userTotalPages)
   const selectedUsage = selectedUsageQuery.data?.data
   const resources = resourcesQuery.data?.data
   const storage = storageQuery.data?.data
@@ -313,7 +358,7 @@ export default function MTProtoAnalyticsPanel() {
                 <option value="errors">Errors</option>
               </select>
             </div>
-            <MetricLineChart data={timeseries} metric={metric} />
+            <MetricAreaChart data={timeseries} metric={metric} />
           </div>
 
           <div className="surface p-3">
@@ -355,12 +400,30 @@ export default function MTProtoAnalyticsPanel() {
                 <Users className="h-4 w-4 text-cyan-200" />
                 <h3 className="text-sm font-semibold text-white">Users</h3>
               </div>
-              <div className="relative min-w-[220px] flex-1 sm:flex-none">
-                <Search className="pointer-events-none absolute left-3 top-2.5 h-4 w-4 text-slate-400" />
-                <input className="input w-full pl-9" value={search} onChange={(event) => setSearch(event.target.value)} placeholder="email, SNI, id" />
+              <div className="flex min-w-[240px] flex-1 flex-wrap gap-2 sm:flex-none">
+                <div className="relative min-w-[220px] flex-1">
+                  <Search className="pointer-events-none absolute left-3 top-2.5 h-4 w-4 text-slate-400" />
+                  <input className="input w-full pl-9" value={search} onChange={(event) => setSearch(event.target.value)} placeholder="email, SNI, id" />
+                </div>
+                <select className="input max-w-[110px]" value={userPageSize} onChange={(event) => setUserPageSize(Number(event.target.value))}>
+                  <option value={25}>25</option>
+                  <option value={50}>50</option>
+                  <option value={100}>100</option>
+                </select>
               </div>
             </div>
-            <div className="mt-3 compact-list max-h-[520px] overflow-y-auto">
+            <div className="mt-3 flex flex-wrap items-center justify-between gap-2 text-xs muted">
+              <span>Найдено {userTotal} · страница {userCurrentPage}/{userTotalPages}</span>
+              <div className="flex gap-2">
+                <button type="button" className="btn-secondary px-3 py-2" onClick={() => setUserPage((value) => Math.max(value - 1, 0))} disabled={userPage === 0}>
+                  Назад
+                </button>
+                <button type="button" className="btn-secondary px-3 py-2" onClick={() => setUserPage((value) => Math.min(value + 1, userTotalPages - 1))} disabled={userPage >= userTotalPages - 1}>
+                  Далее
+                </button>
+              </div>
+            </div>
+            <div className="mt-3 compact-list max-h-[68vh] overflow-y-auto">
               {users.length === 0 ? (
                 <p className="py-4 text-sm muted">Нет данных.</p>
               ) : users.map((item: AdminMTProtoUserSearchItem) => (
@@ -388,7 +451,7 @@ export default function MTProtoAnalyticsPanel() {
             </div>
           </div>
 
-          <div className="surface p-3">
+          <div className="surface p-3 xl:sticky xl:top-3 xl:self-start">
             {!selectedUsage ? (
               <div className="flex min-h-[300px] items-center justify-center text-sm muted">
                 <Eye className="mr-2 h-4 w-4" />
@@ -417,6 +480,9 @@ export default function MTProtoAnalyticsPanel() {
                     <span className="text-xs muted">{formatDate(selectedUsage.last_ip?.last_seen_at)}</span>
                   </div>
                 </div>
+                {selectedUsage.ip_source_status === 'source_ip_unavailable' ? (
+                  <SourceIPNotice />
+                ) : null}
                 <div className="grid gap-2">
                   <div className="flex items-center justify-between gap-2">
                     <h4 className="text-sm font-semibold text-white">IP history</h4>
@@ -466,6 +532,7 @@ export default function MTProtoAnalyticsPanel() {
               <AlertTriangle className="h-4 w-4 text-cyan-200" />
               <h3 className="text-sm font-semibold text-white">Alerts</h3>
             </div>
+            <p className="mt-2 text-xs muted">В inbox попадает только жесткий abuse: высокая одновременная активность, много разных IP и сильные всплески. Обычная смена сети остается signal без тревоги.</p>
             <div className="mt-3 compact-list max-h-[560px] overflow-y-auto">
               {alerts.length === 0 ? (
                 <p className="py-4 text-sm muted">Нет открытых alerts.</p>
@@ -533,7 +600,7 @@ export default function MTProtoAnalyticsPanel() {
                 <option value={100}>100</option>
               </select>
             </div>
-            <div className="mt-3 compact-list max-h-[520px] overflow-y-auto">
+            <div className="mt-3 compact-list max-h-[70vh] overflow-y-auto">
               {topUsers.length === 0 ? (
                 <p className="py-4 text-sm muted">Нет данных.</p>
               ) : topUsers.map((user: AdminMTProtoTopUser) => (
@@ -622,6 +689,14 @@ function IPPanel({ title, items }: { title: string; items: AdminMTProtoIPObserva
           ))}
         </div>
       )}
+    </div>
+  )
+}
+
+function SourceIPNotice() {
+  return (
+    <div className="rounded-lg border border-amber-300/20 bg-amber-400/10 p-3 text-xs text-amber-100">
+      Runtime еще не прислал доверенный client IP для этого proxy. После обновленного runtime-хука IP появится при следующем подключении пользователя.
     </div>
   )
 }

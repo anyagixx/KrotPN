@@ -1,10 +1,10 @@
 // FILE: frontend-admin/src/pages/MTProto.tsx
-// VERSION: 1.0.0
+// VERSION: 1.2.0
 // ROLE: UI_COMPONENT
 // MAP_MODE: SUMMARY
 // START_MODULE_CONTRACT
 //   PURPOSE: Compact admin page for redacted MTProto assignment observability and confirmation-safe lifecycle actions
-//   SCOPE: Runtime health, assignment search/status filters, redacted rows, reissue/revoke confirmation, analytics panel, and feedback
+//   SCOPE: Runtime health, paginated assignment search/status filters, redacted rows, reissue/revoke confirmation, analytics panel, and feedback
 //   DEPENDS: M-010 (frontend-admin), M-047 (mtproto-admin-ops), M-058 (mtproto-admin-analytics-ui), M-037 (mobile-admin-console), M-038 (compact-ui-system)
 //   LINKS: M-010, M-047, M-058, M-037, M-038, V-M-047, V-M-058
 // END_MODULE_CONTRACT
@@ -18,11 +18,12 @@
 // END_MODULE_MAP
 //
 // START_CHANGE_SUMMARY
+//   LAST_CHANGE: v1.2.0 - Added paginated compact assignment inventory for large MTProto user sets.
 //   LAST_CHANGE: v1.1.0 - Embedded Phase-42 compact MTProto analytics panel
 //   LAST_CHANGE: v1.0.0 - Added Phase-33 redacted MTProto admin operations UI
 // END_CHANGE_SUMMARY
 
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from 'react-query'
 import {
   AlertTriangle,
@@ -88,15 +89,23 @@ function statusClass(status: string) {
 export default function MTProtoPage() {
   const [search, setSearch] = useState('')
   const [statusFilter, setStatusFilter] = useState('')
+  const [pageSize, setPageSize] = useState(50)
+  const [page, setPage] = useState(0)
   const [feedback, setFeedback] = useState<{ tone: 'success' | 'error'; text: string } | null>(null)
   const [pendingAction, setPendingAction] = useState<PendingAction | null>(null)
   const queryClient = useQueryClient()
+  const assignmentOffset = page * pageSize
 
   const assignmentsQuery = useQuery(
-    ['admin-mtproto-assignments', search, statusFilter],
-    () => adminApi.getMTProtoAssignments(search, statusFilter)
+    ['admin-mtproto-assignments', search, statusFilter, assignmentOffset, pageSize],
+    () => adminApi.getMTProtoAssignments(search, statusFilter, assignmentOffset, pageSize),
+    { keepPreviousData: true }
   )
   const healthQuery = useQuery('admin-mtproto-health', () => adminApi.getMTProtoHealth())
+
+  useEffect(() => {
+    setPage(0)
+  }, [search, statusFilter, pageSize])
 
   const mutateAndRefresh = (message: string) => ({
     onSuccess: () => {
@@ -117,6 +126,9 @@ export default function MTProtoPage() {
   const revokeMutation = useMutation((id: number) => adminApi.revokeMTProtoAssignment(id), mutateAndRefresh('MTProto выдача отключена'))
   const isMutating = reissueMutation.isLoading || revokeMutation.isLoading
   const items = assignmentsQuery.data?.data?.items || []
+  const total = assignmentsQuery.data?.data?.total || 0
+  const totalPages = Math.max(Math.ceil(total / pageSize), 1)
+  const currentPage = Math.min(page + 1, totalPages)
   const health = healthQuery.data?.data
 
   const counters = useMemo(() => {
@@ -157,20 +169,20 @@ export default function MTProtoPage() {
         <div className="grid gap-2 sm:min-w-[460px]">
           <div className="metric-strip">
             <div className="metric-strip-item">
-              <span className="metric-label">Active</span>
+              <span className="metric-label">Page active</span>
               <span className="block text-base font-bold">{counters.active}</span>
             </div>
             <div className="metric-strip-item">
-              <span className="metric-label">Reissue</span>
+              <span className="metric-label">Page reissue</span>
               <span className="block text-base font-bold">{counters.reissue}</span>
             </div>
             <div className="metric-strip-item">
-              <span className="metric-label">Disabled</span>
-              <span className="block text-base font-bold">{counters.disabled}</span>
+              <span className="metric-label">Found</span>
+              <span className="block text-base font-bold">{total}</span>
             </div>
           </div>
 
-          <div className="grid gap-2 sm:grid-cols-[1fr_150px]">
+          <div className="grid gap-2 sm:grid-cols-[1fr_150px_110px]">
             <div className="relative">
               <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500" />
               <input
@@ -187,6 +199,11 @@ export default function MTProtoPage() {
               <option value="reissue_required">Reissue</option>
               <option value="disabled">Disabled</option>
               <option value="superseded">Superseded</option>
+            </select>
+            <select className="input" value={pageSize} onChange={(event) => setPageSize(Number(event.target.value))}>
+              <option value={25}>25</option>
+              <option value={50}>50</option>
+              <option value={100}>100</option>
             </select>
           </div>
         </div>
@@ -231,9 +248,21 @@ export default function MTProtoPage() {
           </div>
         </div>
       ) : (
-        <div className="compact-list">
-          {items.map((item: AdminMTProtoAssignment) => (
-            <article key={item.id} className="list-row">
+        <section className="surface p-3">
+          <div className="mb-3 flex flex-wrap items-center justify-between gap-2 text-xs muted">
+            <span>Показаны {items.length} из {total} · страница {currentPage}/{totalPages}</span>
+            <div className="flex gap-2">
+              <button type="button" className="btn-secondary px-3 py-2" onClick={() => setPage((value) => Math.max(value - 1, 0))} disabled={page === 0}>
+                Назад
+              </button>
+              <button type="button" className="btn-secondary px-3 py-2" onClick={() => setPage((value) => Math.min(value + 1, totalPages - 1))} disabled={page >= totalPages - 1}>
+                Далее
+              </button>
+            </div>
+          </div>
+          <div className="compact-list max-h-[70vh] overflow-y-auto">
+            {items.map((item: AdminMTProtoAssignment) => (
+              <article key={item.id} className="list-row">
               <div className="row-main">
                 <div className="min-w-0">
                   <h2 className="row-title">{item.user_display_name || item.user_email || `User #${item.user_id}`}</h2>
@@ -275,9 +304,10 @@ export default function MTProtoPage() {
                   Revoke
                 </button>
               </div>
-            </article>
-          ))}
-        </div>
+              </article>
+            ))}
+          </div>
+        </section>
       )}
 
       {pendingAction ? (

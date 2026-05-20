@@ -9,8 +9,8 @@
     <file status="pass-local">scripts/phase42-mtproto-telemetry-smoke.mjs</file>
     <file status="pass-local">mtproto-runtime</file>
   </test-files>
-  <commands>pass-local 2026-05-20: node scripts/phase43-mtproto-admin-analytics-smoke.mjs; cd mtproto-runtime &amp;&amp; rebar3 compile</commands>
-  <evidence>Runtime resource metrics are included in the telemetry snapshot adapter; Phase-43 static smoke and mtproto-runtime compile passed locally.</evidence>
+  <commands>pass-local 2026-05-20: node scripts/phase43-mtproto-admin-analytics-smoke.mjs; cd mtproto-runtime &amp;&amp; rebar3 compile; cd backend &amp;&amp; SECRET_KEY=test-secret-key-with-enough-length DATA_ENCRYPTION_KEY=dpFmfSVqfdAK3yx5MQV6Tcv35RZuw5MzaH0yhxJ01q0= PYTHONPATH=. ../.venv/bin/python -m pytest -o addopts='' tests/test_mtproto_runtime_telemetry_bridge.py -v</commands>
+  <evidence>Runtime resource metrics and tls_domain/client_ipv4 ip_observation events are included in the telemetry boundary; Phase-43 static smoke, backend runtime bridge tests, and mtproto-runtime compile passed locally.</evidence>
   <verification-levels>
     <module-local>Use fake runtime events and private API fixtures to verify token checks, snapshot, drain, cursoring, overflow counters, redaction, and degraded runtime behavior.</module-local>
     <wave-level>Run with V-M-054 to prove drained events become idempotent usage rows and with V-M-056 to prove stale runtime state is visible in analytics.</wave-level>
@@ -22,6 +22,7 @@
     <check-2>When client IP is unavailable or untrusted, telemetry carries source_ip_unavailable and no guessed address.</check-2>
     <check-3>Runtime resource metrics include proxy CPU percent, RAM bytes, uptime, dropped_events, and buffer status.</check-3>
     <check-4>Resource metric collection failure degrades admin health only and does not restart or block the MTProto listener.</check-4>
+    <check-5>tls_domain/client_ipv4 counters emit ip_observation events with client_ip for M-061 and do not alter aggregate usage counters.</check-5>
   </phase-43-checks>
   <module-checks>
     <check-1>Handshake, close, bytes, error, active_connection, unknown_sni, rejected_sni, and req_pq proof events use safe metadata fields only.</check-1>

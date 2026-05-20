@@ -1,7 +1,7 @@
 """MTProto admin analytics API tests.
 
 # FILE: backend/tests/test_mtproto_admin_analytics_api.py
-# VERSION: 1.0.0
+# VERSION: 1.1.0
 # ROLE: TEST
 # MAP_MODE: LOCALS
 # START_MODULE_CONTRACT
@@ -21,6 +21,7 @@
 # END_MODULE_MAP
 #
 # START_CHANGE_SUMMARY
+#   LAST_CHANGE: v1.2.0 - Added hard-abuse IP-observation fixture so alerts require clear multi-IP concurrency evidence.
 #   LAST_CHANGE: v1.1.0 - Added Phase-43 alert, timeseries, search, IP investigation, resource, and storage API checks
 #   LAST_CHANGE: v1.0.0 - Added Phase-42 MTProto admin analytics API tests
 # END_CHANGE_SUMMARY
@@ -127,14 +128,25 @@ async def test_admin_mtproto_analytics_api_is_admin_only_and_redacted(db_session
                 bytes_in=10,
                 bytes_out=20,
             ),
+            *[
+                MTProtoTelemetryEvent(
+                    runtime_event_id=f"api-ip-{index}",
+                    event_type=MTProtoUsageEventType.IP_OBSERVATION,
+                    observed_at=datetime.now(timezone.utc),
+                    assignment_id=int(assignment.id),
+                    client_ip=f"10.44.0.{index}",
+                    connection_count=1,
+                )
+                for index in range(1, 7)
+            ],
         ],
     )
     await MTProtoAnalyticsService(db_session).detect_abuse_signals(
         window_days=1,
-        ip_threshold=0,
-        concurrency_threshold=0,
+        ip_threshold=2,
+        concurrency_threshold=2,
         traffic_threshold_bytes=1,
-        error_threshold=0,
+        error_threshold=1,
     )
     client = _build_client(db_session)
 
@@ -162,7 +174,7 @@ async def test_admin_mtproto_analytics_api_is_admin_only_and_redacted(db_session
     assert usage.status_code == 200
     assert usage.json()["assignment"]["sni_masked"] != assignment.sni
     assert events.status_code == 200
-    assert events.json()["total"] == 2
+    assert events.json()["total"] == 8
     assert top_users.status_code == 200
     assert top_users.json()["items"][0]["user_id"] == owner.id
     assert abuse.status_code == 200
@@ -171,7 +183,9 @@ async def test_admin_mtproto_analytics_api_is_admin_only_and_redacted(db_session
     assert search.status_code == 200
     assert search.json()["items"][0]["assignment_id"] == assignment.id
     assert investigation.status_code == 200
-    assert investigation.json()["last_ip"]["ip_address"] == "203.0.113.99"
+    investigation_payload = investigation.json()
+    assert "203.0.113.99" in {row["ip_address"] for row in investigation_payload["ip_observations"]}
+    assert len(investigation_payload["current_ips"]) >= 6
     assert resources.status_code == 200
     assert "resource_metrics" in resources.json()
     assert storage.status_code == 200

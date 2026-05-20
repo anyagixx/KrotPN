@@ -33,7 +33,8 @@
     <item-3>Events include assignment_id/user_id only when policy metadata is known; unknown SNI stays safe and masked.</item-3>
     <item-4>Live sampler emits per-SNI active_connection, handshake, and close events from mtproto_proxy policy counters.</item-4>
     <item-5>Traffic bytes are exact globally; per-SNI byte attribution is emitted only when one active domain is visible, otherwise events remain global_runtime to avoid false user attribution.</item-5>
-    <item-6>Phase-43 client IP metadata is emitted only when the runtime can provide a trustworthy source address; otherwise source_ip_unavailable must be explicit.</item-6>
+    <item-6>Phase-43 client IP metadata is emitted only from mtproto_proxy tls_domain/client_ipv4 policy counters as ip_observation events; otherwise source_ip_unavailable must be explicit.</item-6>
+    <item-7>ip_observation events are for M-061 admin-only IP state and must not be treated as usage traffic or session counters.</item-7>
   </runtime-contract>
   <constraints>
     <constraint-1>No full tg links, derived secrets, base secret, salt, runtime token, or private keys in runtime events.</constraint-1>

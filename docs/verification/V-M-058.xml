@@ -11,7 +11,7 @@
     <file status="pass-local">scripts/phase42-mtproto-admin-analytics-smoke.mjs</file>
   </test-files>
   <commands>pass-local 2026-05-20: cd frontend-admin &amp;&amp; npm run build; cd .. &amp;&amp; node scripts/phase42-mtproto-admin-analytics-smoke.mjs; node scripts/phase43-mtproto-admin-analytics-smoke.mjs</commands>
-  <evidence>Frontend-admin build passed and Phase-42/Phase-43 static smokes confirm compact Overview/Users/Abuse/Settings UI, removed Recent events, API bindings, auto-refresh markers, alert review actions, and redaction guards.</evidence>
+  <evidence>Frontend-admin build passed and Phase-42/Phase-43 static smokes confirm compact Overview/Users/Abuse/Settings UI, removed Recent events, paginated proxy/user lists, compact area graphs, source-IP unavailable state, auto-refresh markers, alert review actions, and redaction guards.</evidence>
   <verification-levels>
     <module-local>Build frontend-admin and run static UI smoke for route wiring, API names, redaction strings, confirmation flows, and mobile viewport overflow.</module-local>
     <wave-level>Run after V-M-057 to prove UI contracts match backend schemas for analytics and promotion tag state.</wave-level>
@@ -26,6 +26,7 @@
     <check-5>Graphs render traffic, connections, active connections, duration, and errors without layout shift during auto-refresh.</check-5>
     <check-6>CPU/RAM/runtime metric tiles auto-refresh and show stale/unavailable states clearly.</check-6>
     <check-7>Raw IP strings render only inside the admin investigation drawer and are excluded from static smoke fixtures, summaries, and logs.</check-7>
+    <check-8>Assignment inventory and user investigation search expose bounded page sizes with next/previous controls for large proxy sets.</check-8>
   </phase-43-checks>
   <module-checks>
     <check-1>Admin can scan global summary, traffic windows, top users, active connections, errors, runtime health, and availability proof on mobile.</check-1>

@@ -1,7 +1,7 @@
 """MTProto usage telemetry persistence models.
 
 # FILE: backend/app/mtproto/usage_models.py
-# VERSION: 1.1.0
+# VERSION: 1.2.0
 # ROLE: RUNTIME
 # MAP_MODE: EXPORTS
 # START_MODULE_CONTRACT
@@ -13,7 +13,7 @@
 # END_MODULE_CONTRACT
 #
 # START_MODULE_MAP
-#   MTProtoUsageEventType - Supported secret-free telemetry event types
+#   MTProtoUsageEventType - Supported secret-free telemetry and IP-observation event types
 #   MTProtoUsageWindow - Aggregate rollup window names
 #   MTProtoAbuseSignalType - Observe-only abuse signal categories
 #   MTProtoAdminAlertStatus - Operator review lifecycle for durable MTProto alerts
@@ -29,6 +29,7 @@
 # END_MODULE_MAP
 #
 # START_CHANGE_SUMMARY
+#   LAST_CHANGE: v1.2.0 - Added IP_OBSERVATION event type for runtime client-IP samples that must not inflate usage counters.
 #   LAST_CHANGE: v1.1.0 - Added Phase-43 encrypted IP observability and admin alert models
 #   LAST_CHANGE: v1.0.0 - Added Phase-42 MTProto usage telemetry persistence models
 # END_CHANGE_SUMMARY
@@ -53,6 +54,7 @@ class MTProtoUsageEventType(str, Enum):
     REJECTED_SNI = "rejected_sni"
     ACTIVE_CONNECTION = "active_connection"
     REQ_PQ_PROOF = "req_pq_proof"
+    IP_OBSERVATION = "ip_observation"
 
 
 class MTProtoUsageWindow(str, Enum):

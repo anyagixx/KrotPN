@@ -1,7 +1,7 @@
 """MTProto analytics service tests.
 
 # FILE: backend/tests/test_mtproto_analytics_service.py
-# VERSION: 1.0.0
+# VERSION: 1.1.0
 # ROLE: TEST
 # MAP_MODE: LOCALS
 # START_MODULE_CONTRACT
@@ -14,9 +14,11 @@
 # START_MODULE_MAP
 #   _create_assignment - Build one user and MTProto assignment
 #   test_analytics_summary_usage_top_users_and_abuse_signals - Covers Phase-42 analytics service outputs
+#   test_mobile_ip_churn_does_not_create_hard_abuse_alert - Covers Phase-43 false-positive guard
 # END_MODULE_MAP
 #
 # START_CHANGE_SUMMARY
+#   LAST_CHANGE: v1.2.0 - Added hard-abuse IP-observation fixtures and asserted they do not inflate usage counters.
 #   LAST_CHANGE: v1.1.0 - Added Phase-43 timeseries, storage budget, and alert handoff checks
 #   LAST_CHANGE: v1.0.0 - Added Phase-42 MTProto analytics service tests
 # END_CHANGE_SUMMARY
@@ -99,6 +101,17 @@ async def test_analytics_summary_usage_top_users_and_abuse_signals(db_session: A
                 observed_at=now,
                 assignment_id=int(assignment_one.id),
             ),
+            *[
+                MTProtoTelemetryEvent(
+                    runtime_event_id=f"a-ip-{index}",
+                    event_type=MTProtoUsageEventType.IP_OBSERVATION,
+                    observed_at=now,
+                    assignment_id=int(assignment_one.id),
+                    client_ip=f"10.43.0.{index}",
+                    connection_count=1,
+                )
+                for index in range(1, 7)
+            ],
             MTProtoTelemetryEvent(
                 runtime_event_id="b-1",
                 event_type=MTProtoUsageEventType.BYTES,
@@ -121,10 +134,10 @@ async def test_analytics_summary_usage_top_users_and_abuse_signals(db_session: A
     service = MTProtoAnalyticsService(db_session)
     created_signals = await service.detect_abuse_signals(
         window_days=1,
-        ip_threshold=0,
+        ip_threshold=2,
         concurrency_threshold=2,
         traffic_threshold_bytes=1,
-        error_threshold=0,
+        error_threshold=1,
     )
     summary = await service.build_global_summary(window_days=1, runtime_health={"status": "healthy"})
     usage = await service.build_assignment_usage(assignment_id=int(assignment_one.id), window_days=1)
@@ -143,6 +156,7 @@ async def test_analytics_summary_usage_top_users_and_abuse_signals(db_session: A
     assert usage is not None
     assert usage["assignment"]["user_email"] == user_one.email
     assert usage["bytes_out"] >= 8192
+    assert usage["connection_count"] == 3
     assert usage["error_count"] == 1
     assert top_users[0]["user_id"] == user_one.id
     assert len(created_signals) >= 1
@@ -154,4 +168,36 @@ async def test_analytics_summary_usage_top_users_and_abuse_signals(db_session: A
     assert storage_budget["retention"]["raw_events_days"] == 30
     assert storage_budget["counts"]["raw_events"] >= 6
     assert "unknown-analytics.krotpn.xyz" not in str(events)
+
+
+@pytest.mark.asyncio
+async def test_mobile_ip_churn_does_not_create_hard_abuse_alert(db_session: AsyncSession):
+    _user, assignment = await _create_assignment(
+        db_session,
+        "analytics-roaming@example.com",
+        "u-roaming.krotpn.xyz",
+    )
+    now = datetime.now(timezone.utc)
+    await ingest_telemetry_batch(
+        db_session,
+        [
+            MTProtoTelemetryEvent(
+                runtime_event_id=f"roam-ip-{index}",
+                event_type=MTProtoUsageEventType.IP_OBSERVATION,
+                observed_at=now,
+                assignment_id=int(assignment.id),
+                client_ip=f"10.45.0.{index}",
+                connection_count=1,
+            )
+            for index in range(1, 15)
+        ],
+    )
+
+    service = MTProtoAnalyticsService(db_session)
+    signals = await service.detect_abuse_signals(window_days=1)
+    alerts = await list_admin_alerts(db_session)
+
+    assert any(signal["signal_type"] == "many_ip_hashes" for signal in signals)
+    assert all(signal["severity"] == "medium" for signal in signals)
+    assert alerts["open_count"] == 0
 # END_BLOCK_ANALYTICS_SERVICE_TESTS

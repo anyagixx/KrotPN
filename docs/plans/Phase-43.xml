@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Phase-43 NAME="MTProto Admin Analytics UX, Abuse Alerts and 90-day IP Observability" STATUS="pass-local" VERSION="1.2.0" MODULES="M-001,M-008,M-026,M-028,M-042,M-047,M-054,M-055,M-056,M-057,M-058,M-060,M-061" CREATED="2026-05-20" UPDATED="2026-05-20">
+<Phase-43 NAME="MTProto Admin Analytics UX, Abuse Alerts and 90-day IP Observability" STATUS="pass-local" VERSION="1.3.0" MODULES="M-001,M-008,M-026,M-028,M-042,M-047,M-054,M-055,M-056,M-057,M-058,M-060,M-061" CREATED="2026-05-20" UPDATED="2026-05-20">
   <purpose>Upgrade MTProto admin analytics into a compact operational console with abuse notifications, 90-day admin-only IP history, user search, graphs, proxy CPU/RAM metrics, and bounded storage retention.</purpose>
   <scope>
     <in>Remove visible Recent events, add abuse alert inbox, collect admin-only encrypted raw client IP observations for 90 days, add user/proxy search, current/last/all IP views, top-user expansion, timeseries graphs, runtime CPU/RAM metrics, auto-refresh, storage-budget retention, and confirmation-safe admin actions.</in>
@@ -22,13 +22,13 @@
   <steps>
     <step-1 MODULE="M-054,M-061" STATUS="done-local">Update telemetry privacy and retention contract so raw IP is admin-only, encrypted, and retained for 90 days while raw usage events remain bounded to 30 days.</step-1>
     <step-2 MODULE="M-061,M-028" STATUS="done-local">Design Alembic-backed IP observation storage with encrypted raw IP, HMAC hash, prefix, current_active, first_seen, last_seen, and assignment/user indexes.</step-2>
-    <step-3 MODULE="M-055,M-061" STATUS="done-local">Extend KPprotoN runtime telemetry and backend ingestion to carry trustworthy client IP and proxy process resource metrics when available.</step-3>
+    <step-3 MODULE="M-055,M-061" STATUS="done-local">Extend KPprotoN runtime telemetry and backend ingestion to carry trustworthy client IP from tls_domain/client_ipv4 counters and proxy process resource metrics when available.</step-3>
     <step-4 MODULE="M-054,M-061" STATUS="done-local">Record IP observations from handshake, active connection, and close events without logging raw IP strings.</step-4>
     <step-5 MODULE="M-056,M-054" STATUS="done-local">Add timeseries aggregation for traffic, connections, active connections, errors, and duration across hour/day buckets.</step-5>
     <step-6 MODULE="M-056,M-060" STATUS="done-local">Upgrade abuse detection to create deduplicated high/critical admin alerts while keeping observe-first behavior.</step-6>
     <step-7 MODULE="M-057,M-060,M-061" STATUS="done-local">Expose admin-only APIs for alerts, user/proxy search, user usage detail, all IPs, current IPs, last IP, sessions, timeseries, resource metrics, and storage budget.</step-7>
     <step-8 MODULE="M-047,M-026,M-060" STATUS="done-local">Add confirmation-safe alert actions: acknowledge, resolve, disable proxy, and optional TTL-bound IP block with audit events.</step-8>
-    <step-9 MODULE="M-058" STATUS="done-local">Rebuild the admin MTProto analytics UI: remove Recent events, add Overview/Users/Abuse/Settings, longer Top users, user detail drawer, graphs, resource tiles, and compact mobile layout.</step-9>
+    <step-9 MODULE="M-058" STATUS="done-local">Rebuild the admin MTProto analytics UI: remove Recent events, add Overview/Users/Abuse/Settings, paginated proxy/user lists, longer Top users, user detail drawer, compact area graphs, resource tiles, and compact mobile layout.</step-9>
     <step-10 MODULE="M-058,M-057" STATUS="done-local">Add auto-refresh with separate intervals for summary/resources/alerts, top users, graph data, and slow-changing settings.</step-10>
     <step-11 MODULE="M-008,M-054,M-056,M-060,M-061" STATUS="done-local">Schedule abuse scan, rollup rebuild, raw event prune, IP observation prune, and storage-budget health checks.</step-11>
     <step-12 MODULE="M-054,M-055,M-056,M-057,M-058,M-060,M-061" STATUS="done-local">Run backend, migration, runtime, UI build, static redaction, XML parse, MyGRACE lint, and optional live analytics smoke after operator deploy.</step-12>
@@ -44,6 +44,12 @@
     <walkthrough-2>Normal mobile roaming: a user changes networks but remains below tuned thresholds, M-061 records IP history, no high alert is generated, and the admin can still see last/current IP context.</walkthrough-2>
     <walkthrough-3>Storage pressure: raw events older than 30 days and exact IP observations older than 90 days are pruned, while hourly/daily/monthly rollups still power three-month and older trend graphs.</walkthrough-3>
   </mental-walkthroughs>
+  <live-feedback-fix status="pass-local" date="2026-05-20">
+    <fix-1>User/admin large lists now use bounded page sizes and next/previous controls so thousands of proxy rows do not require one long scroll.</fix-1>
+    <fix-2>Charts use compact area visualization with total/peak/last summary chips instead of the earlier thin line graph.</fix-2>
+    <fix-3>Runtime emits ip_observation events from tls_domain/client_ipv4 counters; backend records current/last IP through M-061 without inflating traffic, sessions, top users, or timeseries.</fix-3>
+    <fix-4>Abuse alert severity is hardened so normal mobile IP churn stays a medium signal and only clear multi-IP/concurrency evidence creates admin alerts.</fix-4>
+  </live-feedback-fix>
   <phase-gates>
     <gate-1>Recent events are not visible in the admin MTProto analytics panel.</gate-1>
     <gate-2>Admin can search a user/proxy and see issued_at, last_seen_at, all IPs for 90 days, current IPs, last IP, sessions, traffic, duration, and errors.</gate-2>
