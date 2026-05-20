@@ -19,6 +19,7 @@
 // END_MODULE_MAP
 //
 // START_CHANGE_SUMMARY
+//   LAST_CHANGE: v3.4.0 - Added Phase-43 MTProto alerts, IP investigation, timeseries, resource, and storage contracts
 //   LAST_CHANGE: v3.3.0 - Added Phase-42 MTProto analytics and promotion tag admin contracts
 //   LAST_CHANGE: v3.2.1 - Added safe MTProto runtime revoke result to admin action responses
 //   LAST_CHANGE: v3.2.0 - Added Phase-33 redacted MTProto admin API contracts
@@ -205,6 +206,11 @@ export interface AdminMTProtoAnalyticsSummary {
   unknown_sni_count: number
   rejected_sni_count: number
   abuse_signal_count: number
+  open_alert_count?: number
+  alert_counts?: {
+    open: number
+    high_critical: number
+  }
   telemetry_status: string
   availability_proof: {
     req_pq_last_at?: string | null
@@ -306,6 +312,170 @@ export interface AdminMTProtoPromotionTagState {
   pending_restart: boolean
   updated_by_admin_id?: number | null
   updated_at?: string | null
+}
+
+export interface AdminMTProtoTimeseriesBucket {
+  bucket_start: string
+  bytes_in: number
+  bytes_out: number
+  traffic_bytes: number
+  connection_count: number
+  active_connections: number
+  duration_ms: number
+  error_count: number
+  event_count: number
+}
+
+export interface AdminMTProtoTimeseriesResponse {
+  bucket: string
+  days: number
+  assignment_id?: number | null
+  items: AdminMTProtoTimeseriesBucket[]
+}
+
+export interface AdminMTProtoUserSearchItem {
+  assignment_id: number
+  user_id: number
+  user_email?: string | null
+  user_display_name?: string | null
+  sni_masked?: string | null
+  status: string
+  rotation_marker: string
+  issued_at?: string | null
+  last_seen_at?: string | null
+  active_connections: number
+}
+
+export interface AdminMTProtoUserSearchResponse {
+  items: AdminMTProtoUserSearchItem[]
+  total: number
+  offset: number
+  limit: number
+}
+
+export interface AdminMTProtoIPObservation {
+  id: number
+  assignment_id: number
+  user_id: number
+  ip_address?: string | null
+  ip_hash_prefix: string
+  ip_prefix?: string | null
+  source_status: string
+  first_seen_at?: string | null
+  last_seen_at?: string | null
+  last_active_at?: string | null
+  current_active: boolean
+  active_connections: number
+  connection_count: number
+  last_event_type?: string | null
+}
+
+export interface AdminMTProtoSessionSummary {
+  id: number
+  assignment_id: number
+  user_id: number
+  started_at?: string | null
+  ended_at?: string | null
+  duration_ms: number
+  bytes_in: number
+  bytes_out: number
+  connection_count: number
+  error_count: number
+  active: boolean
+  client_ip_hash_prefix?: string | null
+}
+
+export interface AdminMTProtoUserInvestigation {
+  assignment: {
+    id: number
+    assignment_id: number
+    user_id: number
+    user_email?: string | null
+    user_display_name?: string | null
+    sni_masked?: string | null
+    status: string
+    rotation_marker: string
+    issued_at?: string | null
+    created_at?: string | null
+    updated_at?: string | null
+  }
+  window_days: number
+  last_seen_at?: string | null
+  last_req_pq_at?: string | null
+  active_connections: number
+  connection_count: number
+  session_count: number
+  active_session_count: number
+  duration_ms: number
+  bytes_in: number
+  bytes_out: number
+  error_count: number
+  current_ips: AdminMTProtoIPObservation[]
+  last_ip?: AdminMTProtoIPObservation | null
+  ip_source_status: string
+  ip_observations: AdminMTProtoIPObservation[]
+  sessions: AdminMTProtoSessionSummary[]
+  timeseries: AdminMTProtoTimeseriesBucket[]
+  abuse_signals: AdminMTProtoAbuseSignal[]
+}
+
+export interface AdminMTProtoAlert {
+  id: number
+  assignment_id?: number | null
+  user_id?: number | null
+  user_email?: string | null
+  user_display_name?: string | null
+  sni_masked?: string | null
+  signal_type: string
+  severity: string
+  status: string
+  title: string
+  reason_code: string
+  metric_value: number
+  threshold_value: number
+  window_start?: string | null
+  window_end?: string | null
+  first_seen_at?: string | null
+  last_seen_at?: string | null
+  occurrence_count: number
+  acknowledged_at?: string | null
+  resolved_at?: string | null
+  action_taken?: string | null
+  action_result?: string | null
+}
+
+export interface AdminMTProtoAlertListResponse {
+  items: AdminMTProtoAlert[]
+  total: number
+  open_count: number
+  offset: number
+  limit: number
+}
+
+export interface AdminMTProtoRuntimeResourceSnapshot {
+  status: string
+  buffered_events: number
+  dropped_events: number
+  active_connections: number
+  policy_count: number
+  last_event_id?: string | number | null
+  resource_metrics: {
+    status: string
+    cpu_percent?: number | null
+    memory_rss_bytes?: number | null
+    memory_total_bytes?: number | null
+    memory_processes_bytes?: number | null
+    process_count?: number | null
+    run_queue?: number | null
+    uptime_seconds?: number | null
+  }
+  checked_at?: string | null
+}
+
+export interface AdminMTProtoStorageBudget {
+  retention: Record<string, number>
+  counts: Record<string, number>
+  estimated_bytes: number
 }
 // END_BLOCK: AdminMTProto
 

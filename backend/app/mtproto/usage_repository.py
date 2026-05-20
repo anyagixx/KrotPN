@@ -1,14 +1,14 @@
 """MTProto usage telemetry repository.
 
 # FILE: backend/app/mtproto/usage_repository.py
-# VERSION: 1.1.0
+# VERSION: 1.2.0
 # ROLE: RUNTIME
 # MAP_MODE: EXPORTS
 # START_MODULE_CONTRACT
 #   PURPOSE: Store and query metadata-only MTProto runtime telemetry idempotently
-#   SCOPE: Telemetry normalization, SNI masking, IP hashing, event/session/state writes, rollups, and retention
-#   DEPENDS: M-001 (DB/session), M-042 (assignments), M-054 (usage models)
-#   LINKS: M-054, V-M-054
+#   SCOPE: Telemetry normalization, SNI masking, IP hashing, event/session/state writes, encrypted IP handoff, rollups, and retention
+#   DEPENDS: M-001 (DB/session), M-042 (assignments), M-054 (usage models), M-061 (IP observability)
+#   LINKS: M-054, M-061, V-M-054, V-M-061
 # END_MODULE_CONTRACT
 #
 # START_MODULE_MAP
@@ -23,6 +23,7 @@
 # END_MODULE_MAP
 #
 # START_CHANGE_SUMMARY
+#   LAST_CHANGE: v1.2.0 - Added Phase-43 encrypted IP observation handoff and 30-day raw-event retention default.
 #   LAST_CHANGE: v1.1.0 - Respect connection_count deltas on sampler close events.
 #   LAST_CHANGE: v1.0.0 - Added Phase-42 MTProto telemetry ingestion repository
 # END_CHANGE_SUMMARY
@@ -44,6 +45,7 @@ from sqlalchemy import delete, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.config import settings
+from app.mtproto.ip_observability import record_ip_observation
 from app.mtproto.models import MTProtoAssignment
 from app.mtproto.usage_models import (
     MTProtoUsageEvent,
@@ -280,6 +282,20 @@ async def _apply_known_event_effects(
     user_id = int(event.user_id or assignment.user_id)
     state = await _get_or_create_state(session, assignment_id=assignment_id, user_id=user_id)
     now = _utcnow()
+    if event_type in {
+        MTProtoUsageEventType.HANDSHAKE,
+        MTProtoUsageEventType.ACTIVE_CONNECTION,
+        MTProtoUsageEventType.CLOSE,
+    }:
+        await record_ip_observation(
+            session,
+            assignment_id=assignment_id,
+            user_id=user_id,
+            client_ip=event.client_ip,
+            observed_at=observed_at,
+            event_type=event_type.value,
+            connection_count=max(_non_negative(event.connection_count), 1 if event_type == MTProtoUsageEventType.HANDSHAKE else 0),
+        )
 
     if event_type == MTProtoUsageEventType.HANDSHAKE:
         await update_last_seen(
@@ -335,7 +351,8 @@ async def _apply_known_event_effects(
             active_session.ended_at = observed_at
             duration_ms = _non_negative(event.duration_ms)
             if duration_ms == 0 and active_session.started_at:
-                duration_ms = max(int((observed_at - active_session.started_at).total_seconds() * 1000), 0)
+                started_at = _coerce_aware(active_session.started_at)
+                duration_ms = max(int((observed_at - started_at).total_seconds() * 1000), 0)
             active_session.duration_ms = max(active_session.duration_ms, duration_ms)
             active_session.bytes_in += _non_negative(event.bytes_in)
             active_session.bytes_out += _non_negative(event.bytes_out)
@@ -577,7 +594,7 @@ async def rollup_usage(
 async def apply_retention(
     session: AsyncSession,
     *,
-    raw_event_retention_days: int = 90,
+    raw_event_retention_days: int = 30,
     now: datetime | None = None,
 ) -> int:
     """Delete old raw events while preserving aggregate rollups."""
@@ -591,6 +608,10 @@ async def apply_retention(
     logger.info(
         "[M-054][apply_retention][RETENTION_PRUNE] "
         f"deleted={deleted_count} retention_days={raw_event_retention_days}"
+    )
+    logger.info(
+        "[M-054][apply_retention][PHASE43_STORAGE_BUDGET] "
+        f"raw_event_retention_days={raw_event_retention_days} deleted={deleted_count}"
     )
     return deleted_count
 # END_BLOCK_RETENTION

@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<M-060 NAME="mtproto-admin-alerts" TYPE="CORE_LOGIC" STATUS="verification-designed-phase43">
+<M-060 NAME="mtproto-admin-alerts" TYPE="CORE_LOGIC" STATUS="pass-local-phase43">
   <path>backend/app/mtproto/admin_alerts.py backend/app/admin/router.py frontend-admin/src/pages/MTProtoAnalytics.tsx backend/tests/test_mtproto_admin_alerts.py docs/plans/Phase-43.xml</path>
   <owns>Durable admin notification inbox for MTProto abuse signals, review state, acknowledgements, resolutions, and confirmation-safe enforcement actions.</owns>
   <purpose>Notify the operator about clear MTProto abuse without automatically blocking users before admin review.</purpose>
@@ -13,11 +13,12 @@
   <depends>M-001,M-006,M-026,M-047,M-056</depends>
   <verification-ref>V-M-060</verification-ref>
   <files>
-    <file status="planned">backend/app/mtproto/admin_alerts.py</file>
-    <file status="planned">backend/alembic/versions/phase43_add_mtproto_admin_alerts.py</file>
-    <file status="planned">backend/tests/test_mtproto_admin_alerts.py</file>
-    <file status="planned">scripts/phase43-mtproto-admin-analytics-smoke.mjs</file>
+    <file status="implemented">backend/app/mtproto/admin_alerts.py</file>
+    <file status="implemented">backend/alembic/versions/phase43_add_mtproto_ip_observability.py</file>
+    <file status="implemented">backend/tests/test_mtproto_admin_alerts.py</file>
+    <file status="implemented">scripts/phase43-mtproto-admin-analytics-smoke.mjs</file>
   </files>
+  <evidence>pass-local 2026-05-20: alert lifecycle/dedupe/IP-block tests, admin analytics API tests, scheduler maintenance regression, frontend-admin build, and Phase-43 static smoke passed.</evidence>
   <alert-policy>
     <policy-1>Alert creation is deduplicated by signal type, assignment, severity window, and review state.</policy-1>
     <policy-2>Alerts do not automatically disable proxies or block IP addresses.</policy-2>

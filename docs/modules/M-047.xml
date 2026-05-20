@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<M-047 NAME="mtproto-admin-ops" TYPE="ENTRY_POINT" STATUS="pass-local-phase41">
-  <path>backend/app/admin frontend-admin scripts/phase33-mtproto-admin-smoke.mjs scripts/phase41-kpproton-faketls-smoke.mjs docs/plans/Phase-33.xml docs/plans/Phase-41.xml</path>
+<M-047 NAME="mtproto-admin-ops" TYPE="ENTRY_POINT" STATUS="pass-local-phase43">
+  <path>backend/app/admin frontend-admin scripts/phase33-mtproto-admin-smoke.mjs scripts/phase41-kpproton-faketls-smoke.mjs scripts/phase43-mtproto-admin-analytics-smoke.mjs docs/plans/Phase-33.xml docs/plans/Phase-41.xml docs/plans/Phase-43.xml</path>
   <owns>Admin inspection and controlled operations for MTProto assignments, runtime bridge health, reissue, revoke, and audit-safe diagnostics.</owns>
   <purpose>Give the operator visibility and controlled recovery actions for user MTProto proxy assignments without exposing secrets broadly.</purpose>
   <exports>
@@ -23,6 +23,7 @@
     <file>scripts/phase33-mtproto-admin-smoke.mjs</file>
     <file>scripts/phase34-mtproto-stabilization-smoke.mjs</file>
     <file phase="41-pass-local">scripts/phase41-kpproton-faketls-smoke.mjs</file>
+    <file phase="43-pass-local">scripts/phase43-mtproto-admin-analytics-smoke.mjs</file>
     <file>backend/tests/test_mtproto_admin_ops.py</file>
   </files>
   <admin-policy>
@@ -51,6 +52,7 @@
     <item-5>Phase-34 static smoke keeps admin MTProto pages free of owner-only tg links, derived secrets, and console secret traces.</item-5>
     <item-6>Phase-41 local execution restores admin reissue/revoke to KPprotoN runtime policy behavior and keeps superseded official state redacted.</item-6>
     <item-7>Phase-41 backend admin tests passed for KPprotoN bridge health, single-assignment reissue/revoke, audit-safe payloads, and no official manifest sync calls in the production path.</item-7>
+    <item-8>Phase-43 local execution adds alert acknowledge/resolve, confirmation-safe proxy disable, and TTL IP-block record actions with audit-safe details and no decrypted raw IP strings in audit payloads.</item-8>
   </completion>
   <hotspot>H-033: Admin MTProto operations must never expose full secrets or proxy links in logs, tables, or audit payloads</hotspot>
 </M-047>

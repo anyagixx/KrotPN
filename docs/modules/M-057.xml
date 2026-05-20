@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<M-057 NAME="mtproto-admin-analytics-api" TYPE="ENTRY_POINT" STATUS="pass-local-phase42">
-  <path>backend/app/admin/router.py backend/app/mtproto/analytics_service.py backend/app/mtproto/promotion_tag.py backend/tests/test_mtproto_admin_analytics_api.py docs/plans/Phase-42.xml</path>
+<M-057 NAME="mtproto-admin-analytics-api" TYPE="ENTRY_POINT" STATUS="pass-local-phase43">
+  <path>backend/app/admin/router.py backend/app/mtproto/analytics_service.py backend/app/mtproto/admin_alerts.py backend/app/mtproto/ip_observability.py backend/app/mtproto/promotion_tag.py backend/tests/test_mtproto_admin_analytics_api.py scripts/phase43-mtproto-admin-analytics-smoke.mjs docs/plans/Phase-42.xml docs/plans/Phase-43.xml</path>
   <owns>Admin-only HTTP API for MTProto global analytics, per-proxy usage, event logs, abuse signals, top users, runtime health, availability proof, and promotion tag state.</owns>
   <purpose>Expose MTProto analytics to authenticated admins with strict redaction and filterable time windows.</purpose>
   <exports>
@@ -14,15 +14,18 @@
     <api-admin-mtproto-alerts>Phase-43 admin alert inbox and acknowledgement/resolution actions.</api-admin-mtproto-alerts>
     <api-admin-mtproto-promotion-tag>GET/PUT promotion tag state through M-059</api-admin-mtproto-promotion-tag>
   </exports>
-  <depends>M-006,M-047,M-054,M-056,M-059</depends>
+  <depends>M-006,M-047,M-054,M-056,M-059,M-060,M-061</depends>
   <verification-ref>V-M-057</verification-ref>
   <files>
     <file status="implemented">backend/app/admin/router.py</file>
     <file status="implemented">backend/app/mtproto/analytics_service.py</file>
+    <file status="implemented">backend/app/mtproto/admin_alerts.py</file>
+    <file status="implemented">backend/app/mtproto/ip_observability.py</file>
     <file status="not-needed">backend/app/mtproto/analytics_schemas.py</file>
     <file status="implemented">backend/tests/test_mtproto_admin_analytics_api.py</file>
+    <file status="implemented">scripts/phase43-mtproto-admin-analytics-smoke.mjs</file>
   </files>
-  <evidence>pass-local 2026-05-19: admin analytics API tests, existing MTProto admin ops regression, and redaction checks passed.</evidence>
+  <evidence>pass-local 2026-05-20: admin analytics API tests cover summary, timeseries, user search/detail, raw-IP investigation scope, resource metrics, storage budget, alert actions, redaction guards, and non-admin rejection; Phase-43 static smoke passed.</evidence>
   <api-policy>
     <policy-1>Admin analytics returns masked SNI, safe ids, counts, status codes, and aggregate byte counters only.</policy-1>
     <policy-2>Response payloads must fail closed if they contain full tg links, secrets, runtime tokens, or full promotion tags.</policy-2>

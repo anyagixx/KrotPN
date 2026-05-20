@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<V-M-058 MODULE="M-058" PRIORITY="high" STATUS="pass-local-phase42" PHASE-43="verification-designed" VERSION="1.3.0">
+<V-M-058 MODULE="M-058" PRIORITY="high" STATUS="pass-local-phase43" PHASE-43="pass-local" VERSION="1.4.0">
   <module>mtproto-admin-analytics-ui</module>
   <checks>Frontend-admin exposes compact MTProto analytics and promotion tag controls without secret leakage, hidden existing controls, or mobile layout regressions.</checks>
   <test-files>
@@ -7,11 +7,11 @@
     <file status="pass-local">frontend-admin/src/pages/MTProto.tsx</file>
     <file status="pass-local">frontend-admin/src/lib/api.ts</file>
     <file status="pass-local">frontend-admin/src/types/index.ts</file>
-    <file status="planned-phase43">scripts/phase43-mtproto-admin-analytics-smoke.mjs</file>
+    <file status="pass-local">scripts/phase43-mtproto-admin-analytics-smoke.mjs</file>
     <file status="pass-local">scripts/phase42-mtproto-admin-analytics-smoke.mjs</file>
   </test-files>
-  <commands>pass-local 2026-05-19: cd frontend-admin &amp;&amp; npm run build; cd .. &amp;&amp; node scripts/phase42-mtproto-admin-analytics-smoke.mjs</commands>
-  <evidence>Frontend-admin build passed and static smoke confirms MTProto analytics panel, API bindings, route wiring, redaction markers, and promotion tag UI.</evidence>
+  <commands>pass-local 2026-05-20: cd frontend-admin &amp;&amp; npm run build; cd .. &amp;&amp; node scripts/phase42-mtproto-admin-analytics-smoke.mjs; node scripts/phase43-mtproto-admin-analytics-smoke.mjs</commands>
+  <evidence>Frontend-admin build passed and Phase-42/Phase-43 static smokes confirm compact Overview/Users/Abuse/Settings UI, removed Recent events, API bindings, auto-refresh markers, alert review actions, and redaction guards.</evidence>
   <verification-levels>
     <module-local>Build frontend-admin and run static UI smoke for route wiring, API names, redaction strings, confirmation flows, and mobile viewport overflow.</module-local>
     <wave-level>Run after V-M-057 to prove UI contracts match backend schemas for analytics and promotion tag state.</wave-level>

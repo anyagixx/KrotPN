@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<M-055 NAME="mtproto-runtime-telemetry-bridge" TYPE="INTEGRATION" STATUS="pass-local-phase42">
-  <path>mtproto-runtime/apps/kpproton_proxy/src/mtproto/kpproton_usage_telemetry.erl mtproto-runtime/apps/kpproton_proxy/src/mtproto/kpproton_usage_metric_backend.erl mtproto-runtime/apps/kpproton_proxy/src/mtproto/kpproton_usage_sampler.erl mtproto-runtime/src/kpproton_app.erl mtproto-runtime/src/kpproton_sup.erl mtproto-runtime/src/kpproton_policy_handler.erl mtproto-runtime/src/kpproton_web.erl backend/app/mtproto/runtime_bridge.py backend/app/mtproto/usage_ingestion.py backend/app/tasks/scheduler.py scripts/phase42-mtproto-telemetry-smoke.mjs docs/plans/Phase-42.xml</path>
+<M-055 NAME="mtproto-runtime-telemetry-bridge" TYPE="INTEGRATION" STATUS="pass-local-phase43">
+  <path>mtproto-runtime/apps/kpproton_proxy/src/mtproto/kpproton_usage_telemetry.erl mtproto-runtime/apps/kpproton_proxy/src/mtproto/kpproton_usage_metric_backend.erl mtproto-runtime/apps/kpproton_proxy/src/mtproto/kpproton_usage_sampler.erl mtproto-runtime/src/kpproton_app.erl mtproto-runtime/src/kpproton_sup.erl mtproto-runtime/src/kpproton_policy_handler.erl mtproto-runtime/src/kpproton_web.erl backend/app/mtproto/runtime_bridge.py backend/app/mtproto/usage_ingestion.py backend/app/tasks/scheduler.py scripts/phase42-mtproto-telemetry-smoke.mjs scripts/phase43-mtproto-admin-analytics-smoke.mjs docs/plans/Phase-42.xml docs/plans/Phase-43.xml</path>
   <owns>Secret-free telemetry extraction from the KPprotoN runtime, mtproto_proxy metric backend, active-SNI sampler, private telemetry API, backend ingestion, and bounded runtime buffers.</owns>
   <purpose>Move runtime connection, traffic, error, unknown-SNI, and req_pq metadata from the DE edge into KrotPN analytics safely.</purpose>
   <exports>
@@ -23,9 +23,10 @@
     <file status="implemented">backend/app/mtproto/usage_ingestion.py</file>
     <file status="implemented">backend/app/tasks/scheduler.py</file>
     <file status="implemented">scripts/phase42-mtproto-telemetry-smoke.mjs</file>
+    <file status="implemented">scripts/phase43-mtproto-admin-analytics-smoke.mjs</file>
     <file status="implemented">backend/tests/test_mtproto_runtime_telemetry_bridge.py</file>
   </files>
-  <evidence>pass-local 2026-05-19: runtime telemetry adapter tests, live metric-backend/sampler static smoke, scheduler regression, and mtproto-runtime rebar3 compile passed.</evidence>
+  <evidence>pass-local 2026-05-20: runtime telemetry resource metrics, backend snapshot adapter, scheduler regression, Phase-43 static smoke, and mtproto-runtime rebar3 compile passed.</evidence>
   <runtime-contract>
     <item-1>Telemetry API is private and protected by the existing runtime token or a dedicated telemetry token.</item-1>
     <item-2>Runtime buffers are bounded and loss-tolerant; overflow increments a dropped_events counter rather than blocking proxy traffic.</item-2>

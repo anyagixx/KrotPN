@@ -1,12 +1,13 @@
 # FILE: backend/app/admin/router.py
-# VERSION: 3.5.0
+# VERSION: 3.6.0
 # ROLE: ENTRY_POINT
 # MAP_MODE: SUMMARY
 # START_MODULE_CONTRACT
 #   PURPOSE: Expose privileged admin analytics, system endpoints, and operator recovery controls over current backend state
-#   SCOPE: Dashboard statistics, revenue analytics, user analytics, system health, device control, MTProto assignment operations, usage analytics, and promotion tag control
-#   DEPENDS: M-001 (core database/auth), M-002 (user models), M-003 (vpn topology), M-004 (billing), M-005 (referrals), M-006 (admin-api graph surface), M-016 (route-policy observability), M-042/M-043/M-044 (MTProto assignment/provisioning/runtime bridge), M-056/M-057/M-059 (MTProto analytics/tag control)
-#   LINKS: M-006 (admin-api), M-016 (route-decision-api), M-047 (mtproto-admin-ops), M-044, M-056, M-057, M-059, V-M-006, V-M-047, V-M-044, V-M-057, V-M-059
+#   SCOPE: Dashboard statistics, revenue analytics, user analytics, system health, device control, MTProto assignment operations,
+#          usage analytics, explicit IP investigation, alert actions, resource metrics, storage budget, and promotion tag control
+#   DEPENDS: M-001 (core database/auth), M-002 (user models), M-003 (vpn topology), M-004 (billing), M-005 (referrals), M-006 (admin-api graph surface), M-016 (route-policy observability), M-042/M-043/M-044 (MTProto assignment/provisioning/runtime bridge), M-056/M-057/M-059/M-060/M-061 (MTProto analytics/tag/alerts/IP control)
+#   LINKS: M-006 (admin-api), M-016 (route-decision-api), M-047 (mtproto-admin-ops), M-044, M-056, M-057, M-059, M-060, M-061, V-M-006, V-M-047, V-M-044, V-M-057, V-M-059, V-M-060, V-M-061
 # END_MODULE_CONTRACT
 #
 # START_MODULE_MAP
@@ -26,6 +27,16 @@
 #   list_admin_mtproto_events - Paginated MTProto usage event list
 #   list_admin_mtproto_top_users - Top users by traffic, duration, connections, or errors
 #   list_admin_mtproto_abuse_signals - Observe-only MTProto abuse signals
+#   list_admin_mtproto_alerts - Durable high/critical MTProto abuse alert inbox
+#   acknowledge_admin_mtproto_alert - Mark one alert as acknowledged
+#   resolve_admin_mtproto_alert - Resolve one alert after admin review
+#   disable_admin_mtproto_alert_proxy - Disable the alert assignment after explicit confirmation
+#   block_admin_mtproto_alert_ip - Record TTL IP block from trusted observation evidence
+#   search_admin_mtproto_users - Search users/proxies for investigation
+#   get_admin_mtproto_user_usage - Explicit admin-only IP investigation detail
+#   get_admin_mtproto_timeseries - Graph-ready usage buckets
+#   get_admin_mtproto_resource_metrics - Runtime CPU/RAM and telemetry resource metrics
+#   get_admin_mtproto_storage_budget - Retention and storage counters
 #   get_admin_mtproto_promotion_tag - Masked promotion tag state
 #   update_admin_mtproto_promotion_tag - Explicit audited promotion tag update
 #   reissue_admin_mtproto_assignment - Explicit audited MTProto reissue without admin secret disclosure
@@ -34,6 +45,7 @@
 # END_MODULE_MAP
 #
 # START_CHANGE_SUMMARY
+#   LAST_CHANGE: v3.6.0 - Added Phase-43 MTProto alert, IP investigation, timeseries, resource, and storage APIs.
 #   LAST_CHANGE: v3.5.0 - Added Phase-42 MTProto analytics and promotion tag admin APIs.
 #   LAST_CHANGE: v3.4.0 - Restored MTProto admin runtime actions to the KPprotoN policy bridge.
 #   LAST_CHANGE: v3.3.0 - Switched MTProto admin runtime actions to official MTProxy manifest sync.
@@ -46,6 +58,7 @@
 # <!-- GRACE: module="M-006" api-group="Admin API" -->
 
 import json
+import re
 from datetime import datetime, timedelta, timezone
 
 from fastapi import APIRouter, HTTPException, Query, status
@@ -60,6 +73,13 @@ from app.billing.models import Payment, PaymentStatus, Plan, Subscription
 from app.devices.models import DeviceSecurityEvent, DeviceSecurityEventType, UserDevice
 from app.devices.service import DeviceAccessPolicyService
 from app.mtproto.health import build_runtime_health_summary
+from app.mtproto.admin_alerts import (
+    acknowledge_alert,
+    block_ip_for_alert,
+    get_alert_or_none,
+    list_admin_alerts,
+    resolve_alert,
+)
 from app.mtproto.analytics_service import MTProtoAnalyticsService
 from app.mtproto.models import MTProtoAssignment, MTProtoAssignmentStatus
 from app.mtproto.promotion_tag import (
@@ -74,7 +94,7 @@ from app.mtproto.provisioning import (
     MTProtoProvisioningService,
 )
 from app.mtproto.runtime_bridge import MTProtoRuntimeBridge
-from app.mtproto.usage_models import MTProtoUsageEventType
+from app.mtproto.usage_models import MTProtoAdminAlertStatus, MTProtoUsageEventType
 from app.referrals.models import Referral, ReferralCode
 # NOTE: routing models/observer removed in Phase-17 (Full Tunnel)
 from app.users.models import User, UserRole
@@ -101,6 +121,7 @@ MTPROTO_ADMIN_FORBIDDEN_MARKERS = (
     "MTPROTO_RUNTIME_TOKEN",
     "x-krotpn-mtproto-token",
 )
+RAW_IPV4_RE = re.compile(r"\b(?:\d{1,3}\.){3}\d{1,3}\b")
 
 
 class MTProtoAdminActionRequest(BaseModel):
@@ -114,6 +135,22 @@ class MTProtoPromotionTagUpdateRequest(BaseModel):
 
     tag: str | None = None
     confirm: bool = False
+
+
+class MTProtoAlertActionRequest(BaseModel):
+    """Confirmation body for MTProto alert review actions."""
+
+    confirm: bool = False
+    note: str | None = None
+
+
+class MTProtoAlertIPBlockRequest(BaseModel):
+    """Confirmation body for reviewed TTL-bound IP block records."""
+
+    ip_observation_id: int
+    ttl_hours: int = 24
+    confirm: bool = False
+    confirm_risk: bool = False
 
 
 # START_BLOCK: _serialize_admin_device
@@ -247,14 +284,26 @@ def _serialize_mtproto_admin_assignment(
 
 
 # START_BLOCK: _mtproto_admin_helpers
-def _assert_mtproto_admin_payload_redacted(payload: dict | list[dict]) -> None:
+def _contains_raw_ipv4(value: str) -> bool:
+    for match in RAW_IPV4_RE.findall(value):
+        parts = match.split(".")
+        if len(parts) == 4 and all(0 <= int(part) <= 255 for part in parts):
+            return True
+    return False
+
+
+def _assert_mtproto_admin_payload_redacted(
+    payload: dict | list[dict],
+    *,
+    allow_raw_ip: bool = False,
+) -> None:
     """Fail closed if a future schema change accidentally includes owner secrets."""
     payload_text = str(payload)
     leaked_marker = next(
         (marker for marker in MTPROTO_ADMIN_FORBIDDEN_MARKERS if marker in payload_text),
         None,
     )
-    if leaked_marker:
+    if leaked_marker or (not allow_raw_ip and _contains_raw_ipv4(payload_text)):
         logger.error("[M-047][admin_list_mtproto][REDACT_PAYLOAD] leaked_marker=blocked")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -295,6 +344,18 @@ def _parse_mtproto_top_user_metric(value: str) -> str:
     return value
 
 
+def _parse_mtproto_alert_status(value: str | None) -> MTProtoAdminAlertStatus | None:
+    if not value:
+        return None
+    try:
+        return MTProtoAdminAlertStatus(value)
+    except ValueError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Invalid MTProto alert status",
+        ) from exc
+
+
 def _safe_mtproto_audit_details(
     *,
     action: str,
@@ -311,6 +372,31 @@ def _safe_mtproto_audit_details(
             "result_status": result_status,
             "failure_code": failure_code,
             "rotation_marker": assignment.rotation_marker,
+        },
+        sort_keys=True,
+    )
+    _assert_mtproto_admin_payload_redacted({"details": details})
+    return details
+
+
+def _safe_mtproto_alert_audit_details(
+    *,
+    action: str,
+    alert_id: int,
+    assignment_id: int | None = None,
+    result_status: str | None = None,
+    ip_observation_id: int | None = None,
+    ip_hash_prefix: str | None = None,
+) -> str:
+    """Build alert action audit details without raw IP or runtime secrets."""
+    details = json.dumps(
+        {
+            "action": action,
+            "alert_id": alert_id,
+            "assignment_id": assignment_id,
+            "result_status": result_status,
+            "ip_observation_id": ip_observation_id,
+            "ip_hash_prefix": ip_hash_prefix,
         },
         sort_keys=True,
     )
@@ -889,6 +975,302 @@ async def list_admin_mtproto_abuse_signals(
     _assert_mtproto_admin_payload_redacted(payload)
     return payload
 # END_BLOCK: list_admin_mtproto_abuse_signals
+
+
+# START_BLOCK: get_admin_mtproto_timeseries
+@router.get("/mtproto/analytics/timeseries")
+async def get_admin_mtproto_timeseries(
+    admin: CurrentAdmin,
+    session: DBSession,
+    bucket: str = Query(default="day"),
+    days: int = Query(default=30, ge=1, le=365),
+    assignment_id: int | None = Query(default=None),
+):
+    """Return graph-ready MTProto usage buckets for admin charts."""
+    payload = await MTProtoAnalyticsService(session).build_timeseries(
+        bucket="hour" if bucket == "hour" else "day",
+        window_days=days,
+        assignment_id=assignment_id,
+    )
+    _assert_mtproto_admin_payload_redacted(payload)
+    logger.info(
+        "[M-057][admin_mtproto_timeseries][TIMESERIES] "
+        f"bucket={payload.get('bucket')} days={days} assignment_id={assignment_id or 'global'}"
+    )
+    return payload
+# END_BLOCK: get_admin_mtproto_timeseries
+
+
+# START_BLOCK: search_admin_mtproto_users
+@router.get("/mtproto/analytics/users/search")
+async def search_admin_mtproto_users(
+    admin: CurrentAdmin,
+    session: DBSession,
+    query: str = Query(default=""),
+    offset: int = Query(default=0, ge=0),
+    limit: int = Query(default=25, ge=1, le=100),
+):
+    """Search issued proxies by user, email, SNI, status, or id."""
+    payload = await MTProtoAnalyticsService(session).search_user_proxies(
+        query=query,
+        offset=offset,
+        limit=limit,
+    )
+    _assert_mtproto_admin_payload_redacted(payload)
+    return payload
+# END_BLOCK: search_admin_mtproto_users
+
+
+# START_BLOCK: get_admin_mtproto_user_usage
+@router.get("/mtproto/analytics/users/{assignment_id}/usage")
+async def get_admin_mtproto_user_usage(
+    assignment_id: int,
+    admin: CurrentAdmin,
+    session: DBSession,
+    days: int = Query(default=90, ge=1, le=365),
+):
+    """Return explicit admin-only user/proxy detail with retained IP evidence."""
+    payload = await MTProtoAnalyticsService(session).build_user_investigation(
+        assignment_id=assignment_id,
+        window_days=days,
+        admin_id=int(admin.id),
+    )
+    if payload is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="MTProto assignment not found",
+        )
+    _assert_mtproto_admin_payload_redacted(payload, allow_raw_ip=True)
+    return payload
+# END_BLOCK: get_admin_mtproto_user_usage
+
+
+# START_BLOCK: get_admin_mtproto_resource_metrics
+@router.get("/mtproto/analytics/resource-metrics")
+async def get_admin_mtproto_resource_metrics(
+    admin: CurrentAdmin,
+    session: DBSession,
+):
+    """Return secret-free runtime telemetry and CPU/RAM metric snapshot."""
+    snapshot = await MTProtoRuntimeBridge(session).telemetry_snapshot()
+    payload = snapshot.to_safe_dict()
+    _assert_mtproto_admin_payload_redacted(payload)
+    return payload
+# END_BLOCK: get_admin_mtproto_resource_metrics
+
+
+# START_BLOCK: get_admin_mtproto_storage_budget
+@router.get("/mtproto/analytics/storage-budget")
+async def get_admin_mtproto_storage_budget(
+    admin: CurrentAdmin,
+    session: DBSession,
+):
+    """Return retention windows and storage-growth counters."""
+    payload = await MTProtoAnalyticsService(session).build_storage_budget()
+    _assert_mtproto_admin_payload_redacted(payload)
+    return payload
+# END_BLOCK: get_admin_mtproto_storage_budget
+
+
+# START_BLOCK: list_admin_mtproto_alerts
+@router.get("/mtproto/analytics/alerts")
+async def list_admin_mtproto_alerts(
+    admin: CurrentAdmin,
+    session: DBSession,
+    alert_status: str | None = Query(default=None, alias="status"),
+    severity: str | None = Query(default=None),
+    offset: int = Query(default=0, ge=0),
+    limit: int = Query(default=100, ge=1, le=500),
+):
+    """Return durable high/critical MTProto abuse alerts."""
+    payload = await list_admin_alerts(
+        session,
+        status_filter=_parse_mtproto_alert_status(alert_status),
+        severity=severity,
+        offset=offset,
+        limit=limit,
+    )
+    _assert_mtproto_admin_payload_redacted(payload)
+    logger.info(
+        "[M-057][admin_mtproto_alerts][ALERT_LIST] "
+        f"returned={len(payload.get('items', []))} open={payload.get('open_count')}"
+    )
+    return payload
+# END_BLOCK: list_admin_mtproto_alerts
+
+
+# START_BLOCK: acknowledge_admin_mtproto_alert
+@router.post("/mtproto/analytics/alerts/{alert_id}/acknowledge")
+async def acknowledge_admin_mtproto_alert(
+    alert_id: int,
+    admin: CurrentAdmin,
+    session: DBSession,
+    request: MTProtoAlertActionRequest | None = None,
+):
+    """Acknowledge one alert after explicit admin confirmation."""
+    if request is None or not request.confirm:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Explicit MTProto alert acknowledgement confirmation required",
+        )
+    payload = await acknowledge_alert(session, alert_id=alert_id, admin_id=int(admin.id))
+    if payload is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="MTProto alert not found")
+    await log_admin_action(
+        session,
+        int(admin.id),
+        "mtproto.alert.acknowledge",
+        resource_type="mtproto_admin_alert",
+        resource_id=alert_id,
+        details=_safe_mtproto_alert_audit_details(action="acknowledge", alert_id=alert_id),
+    )
+    _assert_mtproto_admin_payload_redacted(payload)
+    return payload
+# END_BLOCK: acknowledge_admin_mtproto_alert
+
+
+# START_BLOCK: resolve_admin_mtproto_alert
+@router.post("/mtproto/analytics/alerts/{alert_id}/resolve")
+async def resolve_admin_mtproto_alert(
+    alert_id: int,
+    admin: CurrentAdmin,
+    session: DBSession,
+    request: MTProtoAlertActionRequest | None = None,
+):
+    """Resolve one alert after explicit admin confirmation."""
+    if request is None or not request.confirm:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Explicit MTProto alert resolution confirmation required",
+        )
+    payload = await resolve_alert(
+        session,
+        alert_id=alert_id,
+        admin_id=int(admin.id),
+        action_taken="reviewed",
+        action_result=(request.note or "resolved_by_admin")[:120],
+    )
+    if payload is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="MTProto alert not found")
+    await log_admin_action(
+        session,
+        int(admin.id),
+        "mtproto.alert.resolve",
+        resource_type="mtproto_admin_alert",
+        resource_id=alert_id,
+        details=_safe_mtproto_alert_audit_details(action="resolve", alert_id=alert_id),
+    )
+    _assert_mtproto_admin_payload_redacted(payload)
+    return payload
+# END_BLOCK: resolve_admin_mtproto_alert
+
+
+# START_BLOCK: disable_admin_mtproto_alert_proxy
+@router.post("/mtproto/analytics/alerts/{alert_id}/disable-proxy")
+async def disable_admin_mtproto_alert_proxy(
+    alert_id: int,
+    admin: CurrentAdmin,
+    session: DBSession,
+    request: MTProtoAlertActionRequest | None = None,
+):
+    """Disable the selected alert assignment after explicit confirmation."""
+    if request is None or not request.confirm:
+        logger.warning(
+            "[M-047][admin_mtproto_alert_action][CONFIRM_ACTION] "
+            f"alert_id={alert_id} action=disable_proxy confirmed=false"
+        )
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Explicit MTProto proxy disable confirmation required",
+        )
+    alert = await get_alert_or_none(session, alert_id)
+    if alert is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="MTProto alert not found")
+    if alert.assignment_id is None:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Alert is not linked to an assignment")
+    assignment, user = await _get_mtproto_assignment_and_user(session, int(alert.assignment_id))
+    now = datetime.now(timezone.utc)
+    assignment.status = MTProtoAssignmentStatus.DISABLED
+    assignment.updated_at = now
+    assignment.superseded_at = now
+    await session.flush()
+    await session.refresh(assignment)
+    revoke_result = await MTProtoRuntimeBridge(session).revoke_domain_policy(assignment)
+    alert_payload = await resolve_alert(
+        session,
+        alert_id=alert_id,
+        admin_id=int(admin.id),
+        action_taken="disable_proxy",
+        action_result=revoke_result.status.value,
+    )
+    await log_admin_action(
+        session,
+        int(admin.id),
+        "mtproto.alert.disable_proxy",
+        resource_type="mtproto_admin_alert",
+        resource_id=alert_id,
+        details=_safe_mtproto_alert_audit_details(
+            action="disable_proxy",
+            alert_id=alert_id,
+            assignment_id=int(assignment.id),
+            result_status=revoke_result.status.value,
+        ),
+    )
+    logger.info(
+        "[M-047][admin_mtproto_alert_action][CONFIRM_ACTION] "
+        f"alert_id={alert_id} action=disable_proxy assignment_id={assignment.id} confirmed=true"
+    )
+    payload = {
+        "alert": alert_payload,
+        "assignment": _serialize_mtproto_admin_assignment(assignment=assignment, user=user),
+        "runtime_revoke": revoke_result.to_safe_dict(),
+    }
+    _assert_mtproto_admin_payload_redacted(payload)
+    return payload
+# END_BLOCK: disable_admin_mtproto_alert_proxy
+
+
+# START_BLOCK: block_admin_mtproto_alert_ip
+@router.post("/mtproto/analytics/alerts/{alert_id}/block-ip")
+async def block_admin_mtproto_alert_ip(
+    alert_id: int,
+    admin: CurrentAdmin,
+    session: DBSession,
+    request: MTProtoAlertIPBlockRequest,
+):
+    """Record a TTL-bound IP block after explicit risk confirmation."""
+    try:
+        payload = await block_ip_for_alert(
+            session,
+            alert_id=alert_id,
+            ip_observation_id=request.ip_observation_id,
+            admin_id=int(admin.id),
+            ttl_hours=request.ttl_hours,
+            confirm=request.confirm,
+            confirm_risk=request.confirm_risk,
+        )
+    except ValueError as exc:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc)) from exc
+    if payload is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="MTProto alert or IP evidence not found")
+    await log_admin_action(
+        session,
+        int(admin.id),
+        "mtproto.alert.block_ip",
+        resource_type="mtproto_admin_alert",
+        resource_id=alert_id,
+        details=_safe_mtproto_alert_audit_details(
+            action="block_ip",
+            alert_id=alert_id,
+            assignment_id=payload.get("assignment_id"),
+            result_status=payload.get("enforcement_status"),
+            ip_observation_id=payload.get("ip_observation_id"),
+            ip_hash_prefix=payload.get("ip_hash_prefix"),
+        ),
+    )
+    _assert_mtproto_admin_payload_redacted(payload)
+    return payload
+# END_BLOCK: block_admin_mtproto_alert_ip
 
 
 # START_BLOCK: get_admin_mtproto_promotion_tag

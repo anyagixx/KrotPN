@@ -1,16 +1,16 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<V-M-055 MODULE="M-055" PRIORITY="critical" STATUS="pass-local-phase42" PHASE-43="verification-designed" VERSION="1.4.0">
+<V-M-055 MODULE="M-055" PRIORITY="critical" STATUS="pass-local-phase43" PHASE-43="pass-local" VERSION="1.5.0">
   <module>mtproto-runtime-telemetry-bridge</module>
   <checks>Runtime emits and drains metadata-only telemetry through mtproto_proxy metrics, active-SNI sampling, and a private token-protected boundary without breaking MTProto traffic.</checks>
   <test-files>
     <file status="pass-local">backend/tests/test_mtproto_runtime_telemetry_bridge.py</file>
-    <file status="planned-phase43">backend/tests/test_mtproto_ip_observability.py</file>
-    <file status="planned-phase43">scripts/phase43-mtproto-admin-analytics-smoke.mjs</file>
+    <file status="pass-local">backend/tests/test_mtproto_ip_observability.py</file>
+    <file status="pass-local">scripts/phase43-mtproto-admin-analytics-smoke.mjs</file>
     <file status="pass-local">scripts/phase42-mtproto-telemetry-smoke.mjs</file>
     <file status="pass-local">mtproto-runtime</file>
   </test-files>
-  <commands>pass-local 2026-05-19: node scripts/phase42-mtproto-telemetry-smoke.mjs &amp;&amp; cd backend &amp;&amp; SECRET_KEY=test-secret-key-with-enough-length PYTHONPATH=. ../.venv/bin/python -m pytest -o addopts='' tests/test_mtproto_runtime_telemetry_bridge.py -v; cd mtproto-runtime &amp;&amp; rebar3 compile</commands>
-  <evidence>Runtime telemetry snapshot/drain tests, live metric-backend/sampler static smoke, scheduler regression, and mtproto-runtime compile passed locally.</evidence>
+  <commands>pass-local 2026-05-20: node scripts/phase43-mtproto-admin-analytics-smoke.mjs; cd mtproto-runtime &amp;&amp; rebar3 compile</commands>
+  <evidence>Runtime resource metrics are included in the telemetry snapshot adapter; Phase-43 static smoke and mtproto-runtime compile passed locally.</evidence>
   <verification-levels>
     <module-local>Use fake runtime events and private API fixtures to verify token checks, snapshot, drain, cursoring, overflow counters, redaction, and degraded runtime behavior.</module-local>
     <wave-level>Run with V-M-054 to prove drained events become idempotent usage rows and with V-M-056 to prove stale runtime state is visible in analytics.</wave-level>

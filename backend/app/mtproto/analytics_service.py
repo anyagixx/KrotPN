@@ -1,14 +1,15 @@
 """MTProto admin analytics service.
 
 # FILE: backend/app/mtproto/analytics_service.py
-# VERSION: 1.0.0
+# VERSION: 1.1.0
 # ROLE: RUNTIME
 # MAP_MODE: EXPORTS
 # START_MODULE_CONTRACT
 #   PURPOSE: Build operator-safe MTProto usage analytics from metadata-only telemetry
-#   SCOPE: Global summaries, per-assignment usage, top users, event listings, and observe-only abuse signals
-#   DEPENDS: M-001 (DB), M-042 (assignments), M-054 (usage telemetry), M-055 (runtime telemetry)
-#   LINKS: M-056, V-M-056
+#   SCOPE: Global summaries, per-assignment usage, top users, timeseries, user investigation details,
+#          storage budget, event listings, and observe-first abuse signals with admin alert handoff
+#   DEPENDS: M-001 (DB), M-042 (assignments), M-054 (usage telemetry), M-055 (runtime telemetry), M-060 (alerts), M-061 (IP observability)
+#   LINKS: M-056, M-060, M-061, V-M-056, V-M-060, V-M-061
 # END_MODULE_CONTRACT
 #
 # START_MODULE_MAP
@@ -16,10 +17,15 @@
 #   build_global_summary - Return issued totals, status counts, runtime proof, traffic windows, and abuse counts
 #   build_assignment_usage - Return one assignment's usage, sessions, errors, last seen, and abuse signals
 #   build_top_users - Rank users by traffic, duration, connection count, or error count
+#   build_timeseries - Build graph-ready traffic/connection/duration/error buckets
+#   search_user_proxies - Search issued proxies by user, email, SNI, status, or id
+#   build_user_investigation - Explicit admin-only user/proxy usage detail with IP evidence
+#   build_storage_budget - Return retention windows and storage-growth counters
 #   detect_abuse_signals - Write observe-only abuse signals from usage windows
 # END_MODULE_MAP
 #
 # START_CHANGE_SUMMARY
+#   LAST_CHANGE: v1.1.0 - Added Phase-43 timeseries, user investigation, storage budget, and alert handoff.
 #   LAST_CHANGE: v1.0.0 - Added Phase-42 MTProto analytics service
 # END_CHANGE_SUMMARY
 """
@@ -31,23 +37,34 @@ from datetime import datetime, timedelta, timezone
 from typing import Literal
 
 from loguru import logger
-from sqlalchemy import func, select
+from sqlalchemy import String, cast, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.mtproto.models import MTProtoAssignment, MTProtoAssignmentStatus
 from app.mtproto.usage_models import (
     MTProtoAbuseSignal,
     MTProtoAbuseSignalType,
+    MTProtoAdminAlert,
+    MTProtoAdminAlertStatus,
+    MTProtoBlockedIP,
+    MTProtoIPObservation,
     MTProtoUsageEvent,
     MTProtoUsageEventType,
+    MTProtoUsageRollup,
     MTProtoUsageSession,
     MTProtoUsageState,
+)
+from app.mtproto.ip_observability import (
+    current_ip_summary,
+    ip_observation_count,
+    list_user_ip_observations,
 )
 from app.mtproto.usage_repository import mask_sni
 from app.users.models import User
 
 
 TopUserMetric = Literal["traffic", "duration", "connections", "errors"]
+TimeseriesBucket = Literal["hour", "day"]
 
 
 # START_BLOCK_ANALYTICS_HELPERS
@@ -77,6 +94,23 @@ def _traffic_total(event: MTProtoUsageEvent) -> int:
 
 def _event_type_value(value: object) -> str:
     return value.value if hasattr(value, "value") else str(value)
+
+
+def _bucket_start(value: datetime, bucket: TimeseriesBucket) -> datetime:
+    value = _coerce_aware(value) or _utcnow()
+    if bucket == "hour":
+        return value.replace(minute=0, second=0, microsecond=0)
+    return value.replace(hour=0, minute=0, second=0, microsecond=0)
+
+
+def _severity_for(metric_value: int, threshold_value: int) -> str:
+    if threshold_value <= 0:
+        return "critical" if metric_value > 0 else "low"
+    if metric_value >= threshold_value * 3:
+        return "critical"
+    if metric_value >= threshold_value * 2:
+        return "high"
+    return "medium"
 # END_BLOCK_ANALYTICS_HELPERS
 
 
@@ -148,6 +182,16 @@ class MTProtoAnalyticsService:
             ).scalar()
             or 0
         )
+        open_alert_count = int(
+            (
+                await self.session.execute(
+                    select(func.count(MTProtoAdminAlert.id)).where(
+                        MTProtoAdminAlert.status == MTProtoAdminAlertStatus.OPEN
+                    )
+                )
+            ).scalar()
+            or 0
+        )
         telemetry_status = self._telemetry_status(latest_event)
         if telemetry_status == "stale":
             logger.warning("[M-056][build_global_summary][STALE_TELEMETRY] status=stale")
@@ -162,6 +206,11 @@ class MTProtoAnalyticsService:
             "unknown_sni_count": unknown_sni_count,
             "rejected_sni_count": rejected_sni_count,
             "abuse_signal_count": abuse_count,
+            "open_alert_count": open_alert_count,
+            "alert_counts": {
+                "open": open_alert_count,
+                "high_critical": open_alert_count,
+            },
             "telemetry_status": telemetry_status,
             "availability_proof": {
                 "req_pq_last_at": _iso(_coerce_aware(latest_req_pq)),
@@ -358,11 +407,12 @@ class MTProtoAnalyticsService:
             for signal_type, metric_value, threshold_value in checks:
                 if metric_value <= threshold_value:
                     continue
+                severity = _severity_for(int(metric_value), int(threshold_value))
                 signal = MTProtoAbuseSignal(
                     assignment_id=assignment_id,
                     user_id=int(user_id) if user_id is not None else None,
                     signal_type=signal_type,
-                    severity="medium" if metric_value < threshold_value * 2 else "high",
+                    severity=severity,
                     observe_only=True,
                     window_start=start,
                     window_end=end,
@@ -371,6 +421,14 @@ class MTProtoAnalyticsService:
                 )
                 self.session.add(signal)
                 await self.session.flush()
+                if severity in {"high", "critical"}:
+                    from app.mtproto.admin_alerts import create_abuse_alert
+
+                    await create_abuse_alert(self.session, signal)
+                    logger.info(
+                        "[M-056][detect_abuse_signals][ALERT_HANDOFF] "
+                        f"assignment_id={assignment_id} signal_type={signal_type.value} severity={severity}"
+                    )
                 created.append(self._serialize_abuse_signal(signal))
 
         logger.info(
@@ -379,6 +437,295 @@ class MTProtoAnalyticsService:
         )
         return created
     # END_BLOCK_DETECT_ABUSE
+
+    # START_CONTRACT: build_timeseries
+    #   PURPOSE: Return graph-ready buckets for MTProto usage metrics
+    #   INPUTS: bucket; window_days; assignment_id
+    #   OUTPUTS: dict with ordered bucket rows
+    #   SIDE_EFFECTS: database reads and redacted log marker
+    #   LINKS: M-056, M-057, V-M-056
+    # END_CONTRACT: build_timeseries
+    # START_BLOCK_TIMESERIES
+    async def build_timeseries(
+        self,
+        *,
+        bucket: TimeseriesBucket = "day",
+        window_days: int = 30,
+        assignment_id: int | None = None,
+    ) -> dict[str, object]:
+        """Return graph-ready usage buckets for the admin UI."""
+        safe_bucket: TimeseriesBucket = "hour" if bucket == "hour" else "day"
+        safe_days = min(max(window_days, 1), 365)
+        start = _window_start(safe_days)
+        conditions = [MTProtoUsageEvent.observed_at >= start]
+        if assignment_id is not None:
+            conditions.append(MTProtoUsageEvent.assignment_id == assignment_id)
+        result = await self.session.execute(select(MTProtoUsageEvent).where(*conditions))
+        buckets: dict[datetime, dict[str, int | str]] = {}
+        for event in result.scalars().all():
+            key = _bucket_start(event.observed_at, safe_bucket)
+            item = buckets.setdefault(
+                key,
+                {
+                    "bucket_start": key.isoformat(),
+                    "bytes_in": 0,
+                    "bytes_out": 0,
+                    "traffic_bytes": 0,
+                    "connection_count": 0,
+                    "active_connections": 0,
+                    "duration_ms": 0,
+                    "error_count": 0,
+                    "event_count": 0,
+                },
+            )
+            item["bytes_in"] = int(item["bytes_in"]) + int(event.bytes_in or 0)
+            item["bytes_out"] = int(item["bytes_out"]) + int(event.bytes_out or 0)
+            item["traffic_bytes"] = int(item["traffic_bytes"]) + _traffic_total(event)
+            item["connection_count"] = int(item["connection_count"]) + int(event.connection_count or 0)
+            item["duration_ms"] = int(item["duration_ms"]) + int(event.duration_ms or 0)
+            item["event_count"] = int(item["event_count"]) + 1
+            if _event_type_value(event.event_type) == MTProtoUsageEventType.ACTIVE_CONNECTION.value:
+                item["active_connections"] = max(int(item["active_connections"]), int(event.connection_count or 0))
+            if _event_type_value(event.event_type) == MTProtoUsageEventType.ERROR.value:
+                item["error_count"] = int(item["error_count"]) + 1
+        items = [buckets[key] for key in sorted(buckets)]
+        logger.info(
+            "[M-056][build_timeseries][TIMESERIES] "
+            f"bucket={safe_bucket} days={safe_days} assignment_id={assignment_id or 'global'} buckets={len(items)}"
+        )
+        return {
+            "bucket": safe_bucket,
+            "days": safe_days,
+            "assignment_id": assignment_id,
+            "items": items,
+        }
+    # END_BLOCK_TIMESERIES
+
+    # START_CONTRACT: search_user_proxies
+    #   PURPOSE: Search issued MTProto proxies by user, email, SNI, status, or id
+    #   INPUTS: query; offset; limit
+    #   OUTPUTS: paginated redacted assignment rows with last seen context
+    #   SIDE_EFFECTS: database reads and redacted log marker
+    #   LINKS: M-057, M-058, V-M-057
+    # END_CONTRACT: search_user_proxies
+    # START_BLOCK_USER_SEARCH
+    async def search_user_proxies(
+        self,
+        *,
+        query: str = "",
+        offset: int = 0,
+        limit: int = 25,
+    ) -> dict[str, object]:
+        """Search MTProto assignments with compact user context."""
+        conditions = []
+        search_value = query.strip()
+        if search_value:
+            needle = f"%{search_value.lower()}%"
+            clauses = [
+                func.lower(func.coalesce(User.email, "")).like(needle),
+                func.lower(func.coalesce(User.name, "")).like(needle),
+                func.lower(MTProtoAssignment.sni).like(needle),
+                func.lower(cast(MTProtoAssignment.status, String)).like(needle),
+            ]
+            if search_value.isdigit():
+                numeric_value = int(search_value)
+                clauses.extend(
+                    [
+                        MTProtoAssignment.id == numeric_value,
+                        MTProtoAssignment.user_id == numeric_value,
+                    ]
+                )
+            from sqlalchemy import or_
+
+            conditions.append(or_(*clauses))
+        safe_offset = max(offset, 0)
+        safe_limit = min(max(limit, 1), 100)
+        total = int(
+            (
+                await self.session.execute(
+                    select(func.count(MTProtoAssignment.id))
+                    .join(User, User.id == MTProtoAssignment.user_id)
+                    .where(*conditions)
+                )
+            ).scalar()
+            or 0
+        )
+        result = await self.session.execute(
+            select(MTProtoAssignment, User, MTProtoUsageState)
+            .join(User, User.id == MTProtoAssignment.user_id)
+            .outerjoin(MTProtoUsageState, MTProtoUsageState.assignment_id == MTProtoAssignment.id)
+            .where(*conditions)
+            .order_by(MTProtoAssignment.issued_at.desc(), MTProtoAssignment.id.desc())
+            .offset(safe_offset)
+            .limit(safe_limit)
+        )
+        items = []
+        for assignment, user, state in result.all():
+            items.append(
+                {
+                    "assignment_id": assignment.id,
+                    "user_id": assignment.user_id,
+                    "user_email": user.email,
+                    "user_display_name": user.display_name,
+                    "sni_masked": mask_sni(assignment.sni),
+                    "status": assignment.status.value,
+                    "rotation_marker": assignment.rotation_marker,
+                    "issued_at": _iso(assignment.issued_at),
+                    "last_seen_at": _iso(state.last_seen_at if state else None),
+                    "active_connections": int(state.active_connections if state else 0),
+                }
+            )
+        logger.info(
+            "[M-057][admin_mtproto_user_search][USER_SEARCH] "
+            f"query={bool(search_value)} returned={len(items)} total={total}"
+        )
+        return {"items": items, "total": total, "offset": safe_offset, "limit": safe_limit}
+    # END_BLOCK_USER_SEARCH
+
+    # START_CONTRACT: build_user_investigation
+    #   PURPOSE: Return explicit admin-only user/proxy detail with decrypted IP evidence
+    #   INPUTS: assignment_id; window_days; admin_id
+    #   OUTPUTS: dict with assignment, usage, sessions, current IPs, last IP, IP observations, and graph buckets
+    #   SIDE_EFFECTS: database reads and M-061 admin-only decrypt markers
+    #   LINKS: M-057, M-058, M-061, V-M-057, V-M-061
+    # END_CONTRACT: build_user_investigation
+    # START_BLOCK_USER_INVESTIGATION
+    async def build_user_investigation(
+        self,
+        *,
+        assignment_id: int,
+        window_days: int = 90,
+        admin_id: int | None = None,
+    ) -> dict[str, object] | None:
+        """Return one assignment's explicit admin investigation payload."""
+        result = await self.session.execute(
+            select(MTProtoAssignment, User)
+            .join(User, User.id == MTProtoAssignment.user_id)
+            .where(MTProtoAssignment.id == assignment_id)
+        )
+        row = result.first()
+        if row is None:
+            return None
+        assignment, user = row
+        state = (
+            await self.session.execute(
+                select(MTProtoUsageState).where(MTProtoUsageState.assignment_id == assignment_id)
+            )
+        ).scalar_one_or_none()
+        start = _window_start(window_days)
+        events = await self._events_for_assignment(assignment_id=assignment_id, start=start)
+        sessions = await self._sessions_for_assignment(assignment_id=assignment_id, start=start)
+        ip_summary = await current_ip_summary(
+            self.session,
+            assignment_id=assignment_id,
+            user_id=int(assignment.user_id),
+            admin_id=admin_id,
+        )
+        ip_history = await list_user_ip_observations(
+            self.session,
+            assignment_id=assignment_id,
+            user_id=int(assignment.user_id),
+            limit=100,
+            admin_id=admin_id,
+        )
+        timeseries = await self.build_timeseries(
+            bucket="day",
+            window_days=window_days,
+            assignment_id=assignment_id,
+        )
+        payload = {
+            "assignment": {
+                "id": assignment.id,
+                "assignment_id": assignment.id,
+                "user_id": assignment.user_id,
+                "user_email": user.email,
+                "user_display_name": user.display_name,
+                "sni_masked": mask_sni(assignment.sni),
+                "status": assignment.status.value,
+                "rotation_marker": assignment.rotation_marker,
+                "issued_at": _iso(assignment.issued_at),
+                "created_at": _iso(assignment.created_at),
+                "updated_at": _iso(assignment.updated_at),
+            },
+            "window_days": min(max(window_days, 1), 365),
+            "last_seen_at": _iso(state.last_seen_at if state else None),
+            "last_req_pq_at": _iso(state.last_req_pq_at if state else None),
+            "active_connections": int(state.active_connections if state else 0),
+            "connection_count": int(sum(max(event.connection_count, 0) for event in events)),
+            "session_count": len(sessions),
+            "active_session_count": len([session for session in sessions if session.active]),
+            "duration_ms": int(sum(session.duration_ms for session in sessions)),
+            "bytes_in": int(sum(event.bytes_in for event in events)),
+            "bytes_out": int(sum(event.bytes_out for event in events)),
+            "error_count": len([event for event in events if _event_type_value(event.event_type) == MTProtoUsageEventType.ERROR.value]),
+            "current_ips": ip_summary["current_ips"],
+            "last_ip": ip_summary["last_ip"],
+            "ip_source_status": ip_summary["source_status"],
+            "ip_observations": ip_history["items"],
+            "sessions": [self._serialize_session(session) for session in sessions[:100]],
+            "timeseries": timeseries["items"],
+            "abuse_signals": (await self.list_abuse_signals(assignment_id=assignment_id, limit=20))["items"],
+        }
+        logger.info(
+            "[M-057][admin_mtproto_user_usage][IP_INVESTIGATION_SCOPE] "
+            f"assignment_id={assignment_id} admin_id={admin_id or 'unknown'}"
+        )
+        return payload
+    # END_BLOCK_USER_INVESTIGATION
+
+    # START_CONTRACT: build_storage_budget
+    #   PURPOSE: Report storage counters and retention windows for MTProto analytics data
+    #   INPUTS: none
+    #   OUTPUTS: dict
+    #   SIDE_EFFECTS: database reads and redacted log marker
+    #   LINKS: M-056, M-054, M-060, M-061, V-M-056
+    # END_CONTRACT: build_storage_budget
+    # START_BLOCK_STORAGE_BUDGET
+    async def build_storage_budget(self) -> dict[str, object]:
+        """Return row counts and retention windows for MTProto analytics storage."""
+        raw_events = int((await self.session.execute(select(func.count(MTProtoUsageEvent.id)))).scalar() or 0)
+        sessions = int((await self.session.execute(select(func.count(MTProtoUsageSession.id)))).scalar() or 0)
+        rollups = int((await self.session.execute(select(func.count(MTProtoUsageRollup.id)))).scalar() or 0)
+        signals = int((await self.session.execute(select(func.count(MTProtoAbuseSignal.id)))).scalar() or 0)
+        alerts = int((await self.session.execute(select(func.count(MTProtoAdminAlert.id)))).scalar() or 0)
+        blocked_ips = int((await self.session.execute(select(func.count(MTProtoBlockedIP.id)))).scalar() or 0)
+        ip_rows = await ip_observation_count(self.session)
+        estimated_bytes = (
+            raw_events * 900
+            + sessions * 700
+            + rollups * 400
+            + signals * 500
+            + alerts * 900
+            + ip_rows * 650
+            + blocked_ips * 600
+        )
+        payload = {
+            "retention": {
+                "raw_events_days": 30,
+                "sessions_days": 90,
+                "ip_observations_days": 90,
+                "hourly_rollups_days": 90,
+                "daily_rollups_days": 365,
+                "monthly_rollups_months": 24,
+                "alerts_days": 180,
+            },
+            "counts": {
+                "raw_events": raw_events,
+                "sessions": sessions,
+                "rollups": rollups,
+                "abuse_signals": signals,
+                "admin_alerts": alerts,
+                "ip_observations": ip_rows,
+                "blocked_ips": blocked_ips,
+            },
+            "estimated_bytes": estimated_bytes,
+        }
+        logger.info(
+            "[M-056][build_storage_budget][RETENTION_BUDGET] "
+            f"raw_events={raw_events} ip_observations={ip_rows} estimated_bytes={estimated_bytes}"
+        )
+        return payload
+    # END_BLOCK_STORAGE_BUDGET
 
     # START_BLOCK_EVENT_AND_SIGNAL_LISTS
     async def list_events(
@@ -535,6 +882,22 @@ class MTProtoAnalyticsService:
             "connection_count": event.connection_count,
             "error_code": event.error_code,
             "reason_code": event.reason_code,
+        }
+
+    def _serialize_session(self, session: MTProtoUsageSession) -> dict[str, object]:
+        return {
+            "id": session.id,
+            "assignment_id": session.assignment_id,
+            "user_id": session.user_id,
+            "started_at": _iso(session.started_at),
+            "ended_at": _iso(session.ended_at),
+            "duration_ms": session.duration_ms,
+            "bytes_in": session.bytes_in,
+            "bytes_out": session.bytes_out,
+            "connection_count": session.connection_count,
+            "error_count": session.error_count,
+            "active": session.active,
+            "client_ip_hash_prefix": session.client_ip_hash[:12] if session.client_ip_hash else None,
         }
 
     def _serialize_abuse_signal(self, signal: MTProtoAbuseSignal) -> dict[str, object]:

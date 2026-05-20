@@ -1,7 +1,7 @@
 -module(kpproton_usage_telemetry).
 
 %% FILE: apps/kpproton_proxy/src/mtproto/kpproton_usage_telemetry.erl
-%% VERSION: 1.1.0
+%% VERSION: 1.2.0
 %% START_MODULE_CONTRACT
 %%   PURPOSE: Keep bounded, secret-free MTProto runtime telemetry for KrotPN admin analytics.
 %%   SCOPE: Safe event emission, mtproto_proxy metric counters, active-SNI sampling helpers, cursor-based drain, overflow accounting.
@@ -19,6 +19,7 @@
 %% END_MODULE_MAP
 %%
 %% START_CHANGE_SUMMARY
+%%   LAST_CHANGE: v1.2.0 - Added Phase-43 runtime CPU/RAM resource metrics to telemetry snapshots.
 %%   LAST_CHANGE: v1.1.0 - Added metric counter drain and active-SNI snapshot helpers for live runtime telemetry.
 %%   LAST_CHANGE: v1.0.0 - Added Phase-42 bounded telemetry buffer contract.
 %% END_CHANGE_SUMMARY
@@ -135,7 +136,8 @@ snapshot() ->
         active_connections => ActiveConnections,
         active_domain_count => length(ActiveDomains),
         policy_count => policy_count(),
-        last_event_id => Last
+        last_event_id => Last,
+        resource_metrics => resource_metrics()
     },
     io:format("[M-055][telemetry_snapshot][SNAPSHOT] buffered=~p dropped=~p~n", [
         maps:get(buffered_events, Snapshot),
@@ -233,4 +235,23 @@ policy_count() ->
         undefined -> 0;
         _Pid -> mtp_policy_table:table_size(personal_domains)
     end.
+
+resource_metrics() ->
+    {RuntimeTotal, RuntimeDelta} = erlang:statistics(runtime),
+    {WallTotal, WallDelta} = erlang:statistics(wall_clock),
+    Schedulers = max(erlang:system_info(schedulers_online), 1),
+    CpuPercent = case WallDelta > 0 of
+        true -> min(100, round((RuntimeDelta * 100) / (WallDelta * Schedulers)));
+        false -> 0
+    end,
+    #{
+        cpu_percent => CpuPercent,
+        runtime_total_ms => RuntimeTotal,
+        memory_rss_bytes => erlang:memory(total),
+        memory_total_bytes => erlang:memory(total),
+        memory_processes_bytes => erlang:memory(processes),
+        process_count => erlang:system_info(process_count),
+        run_queue => erlang:statistics(run_queue),
+        uptime_seconds => WallTotal div 1000
+    }.
 %% END_BLOCK_SAFE_EVENT

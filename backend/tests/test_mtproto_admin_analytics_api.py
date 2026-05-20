@@ -5,10 +5,10 @@
 # ROLE: TEST
 # MAP_MODE: LOCALS
 # START_MODULE_CONTRACT
-#   PURPOSE: Verify admin-only MTProto analytics and promotion tag API responses are useful and redacted
-#   SCOPE: Summary, assignment usage, event list, top users, abuse signals, promotion tag state/update, and role gates
-#   DEPENDS: M-057, M-056, M-059
-#   LINKS: V-M-057, V-M-059
+#   PURPOSE: Verify admin-only MTProto analytics, alerts, IP investigation, and promotion tag API responses are useful and redacted
+#   SCOPE: Summary, assignment usage, event list, top users, abuse signals, timeseries, search, alerts, resource metrics, storage budget, promotion tag state/update, and role gates
+#   DEPENDS: M-057, M-056, M-059, M-060, M-061
+#   LINKS: V-M-057, V-M-059, V-M-060, V-M-061
 # END_MODULE_CONTRACT
 #
 # START_MODULE_MAP
@@ -21,6 +21,7 @@
 # END_MODULE_MAP
 #
 # START_CHANGE_SUMMARY
+#   LAST_CHANGE: v1.1.0 - Added Phase-43 alert, timeseries, search, IP investigation, resource, and storage API checks
 #   LAST_CHANGE: v1.0.0 - Added Phase-42 MTProto admin analytics API tests
 # END_CHANGE_SUMMARY
 """
@@ -36,6 +37,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.admin import router as admin_router_module
 from app.core.database import get_session
 from app.core.security import create_access_token
+from app.mtproto.analytics_service import MTProtoAnalyticsService
 from app.mtproto.models import MTProtoAssignment
 from app.mtproto.usage_models import MTProtoUsageEventType
 from app.mtproto.usage_repository import MTProtoTelemetryEvent, ingest_telemetry_batch
@@ -87,13 +89,15 @@ def _headers(user: User) -> dict[str, str]:
     return {"Authorization": f"Bearer {token}"}
 
 
-def _assert_redacted(payload: object) -> None:
+def _assert_redacted(payload: object, *, forbidden_ip: str | None = None) -> None:
     payload_text = str(payload)
     assert "tg://proxy" not in payload_text
     assert "https://t.me/proxy" not in payload_text
     assert "secret=" not in payload_text
     assert "MTPROTO_RUNTIME_TOKEN" not in payload_text
     assert FULL_TAG not in payload_text
+    if forbidden_ip:
+        assert forbidden_ip not in payload_text
 # END_BLOCK_TEST_HELPERS
 
 
@@ -125,6 +129,13 @@ async def test_admin_mtproto_analytics_api_is_admin_only_and_redacted(db_session
             ),
         ],
     )
+    await MTProtoAnalyticsService(db_session).detect_abuse_signals(
+        window_days=1,
+        ip_threshold=0,
+        concurrency_threshold=0,
+        traffic_threshold_bytes=1,
+        error_threshold=0,
+    )
     client = _build_client(db_session)
 
     summary = client.get("/api/v1/admin/mtproto/analytics/summary?days=1", headers=_headers(admin))
@@ -132,6 +143,12 @@ async def test_admin_mtproto_analytics_api_is_admin_only_and_redacted(db_session
     events = client.get("/api/v1/admin/mtproto/analytics/events?days=1", headers=_headers(admin))
     top_users = client.get("/api/v1/admin/mtproto/analytics/top-users?metric=traffic&days=1", headers=_headers(admin))
     abuse = client.get("/api/v1/admin/mtproto/analytics/abuse-signals?days=1", headers=_headers(admin))
+    timeseries = client.get("/api/v1/admin/mtproto/analytics/timeseries?bucket=hour&days=1", headers=_headers(admin))
+    search = client.get("/api/v1/admin/mtproto/analytics/users/search?query=phase42-owner", headers=_headers(admin))
+    investigation = client.get(f"/api/v1/admin/mtproto/analytics/users/{assignment.id}/usage?days=90", headers=_headers(admin))
+    resources = client.get("/api/v1/admin/mtproto/analytics/resource-metrics", headers=_headers(admin))
+    storage = client.get("/api/v1/admin/mtproto/analytics/storage-budget", headers=_headers(admin))
+    alerts = client.get("/api/v1/admin/mtproto/analytics/alerts", headers=_headers(admin))
     tag_state = client.get("/api/v1/admin/mtproto/promotion-tag", headers=_headers(admin))
     tag_update = client.put(
         "/api/v1/admin/mtproto/promotion-tag",
@@ -149,6 +166,31 @@ async def test_admin_mtproto_analytics_api_is_admin_only_and_redacted(db_session
     assert top_users.status_code == 200
     assert top_users.json()["items"][0]["user_id"] == owner.id
     assert abuse.status_code == 200
+    assert timeseries.status_code == 200
+    assert timeseries.json()["items"]
+    assert search.status_code == 200
+    assert search.json()["items"][0]["assignment_id"] == assignment.id
+    assert investigation.status_code == 200
+    assert investigation.json()["last_ip"]["ip_address"] == "203.0.113.99"
+    assert resources.status_code == 200
+    assert "resource_metrics" in resources.json()
+    assert storage.status_code == 200
+    assert storage.json()["retention"]["ip_observations_days"] == 90
+    assert alerts.status_code == 200
+    assert alerts.json()["open_count"] >= 1
+    alert_id = alerts.json()["items"][0]["id"]
+    acknowledge = client.post(
+        f"/api/v1/admin/mtproto/analytics/alerts/{alert_id}/acknowledge",
+        json={"confirm": True},
+        headers=_headers(admin),
+    )
+    resolve = client.post(
+        f"/api/v1/admin/mtproto/analytics/alerts/{alert_id}/resolve",
+        json={"confirm": True, "note": "reviewed"},
+        headers=_headers(admin),
+    )
+    assert acknowledge.status_code == 200
+    assert resolve.status_code == 200
     assert tag_state.status_code == 200
     assert tag_update.status_code == 200
     assert tag_update.json()["masked_tag"] == "aaaa...aaaa"
@@ -159,8 +201,16 @@ async def test_admin_mtproto_analytics_api_is_admin_only_and_redacted(db_session
         events.json(),
         top_users.json(),
         abuse.json(),
+        timeseries.json(),
+        search.json(),
+        resources.json(),
+        storage.json(),
+        alerts.json(),
+        acknowledge.json(),
+        resolve.json(),
         tag_state.json(),
         tag_update.json(),
     ]:
-        _assert_redacted(payload)
+        _assert_redacted(payload, forbidden_ip="203.0.113.99")
+    _assert_redacted(investigation.json())
 # END_BLOCK_ADMIN_ANALYTICS_API_TESTS

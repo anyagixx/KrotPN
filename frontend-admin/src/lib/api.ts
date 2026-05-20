@@ -16,6 +16,7 @@
 // END_MODULE_MAP
 //
 // START_CHANGE_SUMMARY
+//   LAST_CHANGE: v3.4.0 - Added Phase-43 MTProto alert, user investigation, timeseries, resource, and storage endpoint bindings
 //   LAST_CHANGE: v3.3.0 - Added Phase-42 MTProto analytics and promotion tag endpoint bindings
 //   LAST_CHANGE: v3.2.0 - Added Phase-33 MTProto admin endpoint bindings
 //   LAST_CHANGE: v2.8.0 - Added full GRACE MODULE_CONTRACT and MODULE_MAP per GRACE governance protocol
@@ -26,6 +27,8 @@ import axios from 'axios'
 import type {
   AdminMTProtoAssignment,
   AdminMTProtoActionResponse,
+  AdminMTProtoAlert,
+  AdminMTProtoAlertListResponse,
   AdminMTProtoAbuseSignalListResponse,
   AdminMTProtoAnalyticsSummary,
   AdminMTProtoAssignmentUsage,
@@ -33,7 +36,12 @@ import type {
   AdminMTProtoHealth,
   AdminMTProtoListResponse,
   AdminMTProtoPromotionTagState,
+  AdminMTProtoRuntimeResourceSnapshot,
+  AdminMTProtoStorageBudget,
+  AdminMTProtoTimeseriesResponse,
   AdminMTProtoTopUsersResponse,
+  AdminMTProtoUserInvestigation,
+  AdminMTProtoUserSearchResponse,
   AdminNode,
   AdminRoute,
   AdminPlan,
@@ -249,6 +257,52 @@ export const adminApi = {
     if (assignmentId) query.set('assignment_id', String(assignmentId))
     return api.get<AdminMTProtoAbuseSignalListResponse>(`/admin/mtproto/analytics/abuse-signals?${query.toString()}`)
   },
+
+  getMTProtoTimeseries: (params: { bucket?: string; days?: number; assignment_id?: number } = {}) => {
+    const query = new URLSearchParams()
+    query.set('bucket', params.bucket || 'day')
+    query.set('days', String(params.days || 30))
+    if (params.assignment_id) query.set('assignment_id', String(params.assignment_id))
+    return api.get<AdminMTProtoTimeseriesResponse>(`/admin/mtproto/analytics/timeseries?${query.toString()}`)
+  },
+
+  searchMTProtoUsers: (queryText = '', limit = 25) => {
+    const query = new URLSearchParams({ limit: String(limit) })
+    if (queryText.trim()) query.set('query', queryText.trim())
+    return api.get<AdminMTProtoUserSearchResponse>(`/admin/mtproto/analytics/users/search?${query.toString()}`)
+  },
+
+  getMTProtoUserUsage: (assignmentId: number, days = 90) =>
+    api.get<AdminMTProtoUserInvestigation>(`/admin/mtproto/analytics/users/${assignmentId}/usage?days=${days}`),
+
+  getMTProtoResourceMetrics: () =>
+    api.get<AdminMTProtoRuntimeResourceSnapshot>('/admin/mtproto/analytics/resource-metrics'),
+
+  getMTProtoStorageBudget: () =>
+    api.get<AdminMTProtoStorageBudget>('/admin/mtproto/analytics/storage-budget'),
+
+  getMTProtoAlerts: (status = '', limit = 50) => {
+    const query = new URLSearchParams({ limit: String(limit) })
+    if (status) query.set('status', status)
+    return api.get<AdminMTProtoAlertListResponse>(`/admin/mtproto/analytics/alerts?${query.toString()}`)
+  },
+
+  acknowledgeMTProtoAlert: (alertId: number) =>
+    api.post<AdminMTProtoAlert>(`/admin/mtproto/analytics/alerts/${alertId}/acknowledge`, { confirm: true }),
+
+  resolveMTProtoAlert: (alertId: number) =>
+    api.post<AdminMTProtoAlert>(`/admin/mtproto/analytics/alerts/${alertId}/resolve`, { confirm: true }),
+
+  disableMTProtoAlertProxy: (alertId: number) =>
+    api.post(`/admin/mtproto/analytics/alerts/${alertId}/disable-proxy`, { confirm: true }),
+
+  blockMTProtoAlertIP: (alertId: number, ipObservationId: number, ttlHours = 24) =>
+    api.post(`/admin/mtproto/analytics/alerts/${alertId}/block-ip`, {
+      ip_observation_id: ipObservationId,
+      ttl_hours: ttlHours,
+      confirm: true,
+      confirm_risk: true,
+    }),
 
   getMTProtoPromotionTag: () =>
     api.get<AdminMTProtoPromotionTagState>('/admin/mtproto/promotion-tag'),

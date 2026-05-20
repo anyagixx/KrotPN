@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<M-008 NAME="tasks" TYPE="UTILITY" STATUS="pass-local-phase41">
+<M-008 NAME="tasks" TYPE="UTILITY" STATUS="pass-local-phase43">
   <path>backend/app/tasks docs/plans/Phase-43.xml</path>
   <owns>scheduler and recurring maintenance jobs including subscription expiry, daily cleanup, configurable anti-abuse handshake scans, KPprotoN MTProto policy replay, and Phase-43 MTProto analytics maintenance jobs</owns>
   <exports>
@@ -16,5 +16,6 @@
   </files>
   <evidence>
     <evidence-1>2026-05-19: Phase-41 restored scheduler MTProto reconciliation to M-044 KPprotoN runtime replay and local scheduler regression passed.</evidence-1>
+    <evidence-2>2026-05-20: Phase-43 scheduler regression passed for MTProto telemetry ingest, rollup rebuild, abuse alert scan, raw event/IP retention, and storage-budget health job registration.</evidence-2>
   </evidence>
 </M-008>

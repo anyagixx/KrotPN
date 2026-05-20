@@ -44,5 +44,5 @@
   <Phase-40 NAME="Official MTProxy data-plane and individual user secrets" STATUS="superseded-by-phase-41" STEPS="9" MODULES="M-052,M-053,M-042,M-043,M-045,M-047,M-050,M-051,M-012" />
   <Phase-41 NAME="KPprotoN fake-TLS production data-plane rollback" STATUS="passed-live" STEPS="9" MODULES="M-043,M-044,M-049,M-050,M-051,M-052,M-053,M-012,M-045,M-047" />
   <Phase-42 NAME="MTProto Usage Analytics and Promotion Tag Control" STATUS="done-local" STEPS="10" MODULES="M-054,M-055,M-056,M-057,M-058,M-059,M-042,M-044,M-047,M-049,M-050,M-051" />
-  <Phase-43 NAME="MTProto Admin Analytics UX, Abuse Alerts and 90-day IP Observability" STATUS="verification-designed" STEPS="12" MODULES="M-001,M-008,M-026,M-028,M-042,M-047,M-054,M-055,M-056,M-057,M-058,M-060,M-061" />
+  <Phase-43 NAME="MTProto Admin Analytics UX, Abuse Alerts and 90-day IP Observability" STATUS="pass-local" STEPS="12" MODULES="M-001,M-008,M-026,M-028,M-042,M-047,M-054,M-055,M-056,M-057,M-058,M-060,M-061" />
 </PlanIndex>

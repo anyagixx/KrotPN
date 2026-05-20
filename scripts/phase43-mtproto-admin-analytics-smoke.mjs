@@ -1,0 +1,136 @@
+// FILE: scripts/phase43-mtproto-admin-analytics-smoke.mjs
+// VERSION: 1.0.0
+// ROLE: SCRIPT
+// MAP_MODE: LOCALS
+// START_MODULE_CONTRACT
+//   PURPOSE: Static smoke for Phase-43 MTProto admin analytics UX/API wiring and redaction boundaries
+//   SCOPE: Frontend tabs, removed visible events panel, auto-refresh markers, API bindings, backend routes, and forbidden literal checks
+//   DEPENDS: M-058, M-057, M-060, M-061
+//   LINKS: V-M-058, V-M-057, V-M-060, V-M-061
+// END_MODULE_CONTRACT
+//
+// START_MODULE_MAP
+//   assertContains - Helper: fail on missing markers
+//   assertForbiddenAbsent - Helper: fail on forbidden high-risk literals
+//   main - Runs static Phase-43 UI/API checks
+// END_MODULE_MAP
+//
+// START_CHANGE_SUMMARY
+//   LAST_CHANGE: v1.0.0 - Added Phase-43 MTProto admin analytics static smoke
+// END_CHANGE_SUMMARY
+
+import { readFileSync } from 'node:fs'
+
+// START_BLOCK_SMOKE_HELPERS
+function read(path) {
+  return readFileSync(path, 'utf8')
+}
+
+function assertContains(text, marker, path) {
+  if (!text.includes(marker)) {
+    throw new Error(`Missing ${marker} in ${path}`)
+  }
+}
+
+function assertForbiddenAbsent(text, marker, path) {
+  if (text.includes(marker)) {
+    throw new Error(`Forbidden marker ${marker} present in ${path}`)
+  }
+}
+// END_BLOCK_SMOKE_HELPERS
+
+// START_BLOCK_MAIN
+const uiPath = 'frontend-admin/src/pages/MTProtoAnalytics.tsx'
+const apiPath = 'frontend-admin/src/lib/api.ts'
+const typesPath = 'frontend-admin/src/types/index.ts'
+const adminRouterPath = 'backend/app/admin/router.py'
+const analyticsPath = 'backend/app/mtproto/analytics_service.py'
+const alertsPath = 'backend/app/mtproto/admin_alerts.py'
+const ipPath = 'backend/app/mtproto/ip_observability.py'
+
+const ui = read(uiPath)
+const api = read(apiPath)
+const types = read(typesPath)
+const adminRouter = read(adminRouterPath)
+const analytics = read(analyticsPath)
+const alerts = read(alertsPath)
+const ip = read(ipPath)
+
+for (const marker of [
+  'data-phase43-mtproto-analytics',
+  '[M-058][admin_mtproto_analytics_ui][RECENT_EVENTS_REMOVED]',
+  '[M-058][admin_mtproto_analytics_ui][USER_DETAIL_DRAWER]',
+  '[M-058][admin_mtproto_analytics_ui][AUTO_REFRESH]',
+  '[M-058][admin_mtproto_analytics_ui][ALERT_REVIEW]',
+  'Overview',
+  'Users',
+  'Abuse',
+  'Settings',
+  'IP history',
+]) {
+  assertContains(ui, marker, uiPath)
+}
+assertForbiddenAbsent(ui, 'Recent events', uiPath)
+for (const marker of [
+  'getMTProtoTimeseries',
+  'searchMTProtoUsers',
+  'getMTProtoUserUsage',
+  'getMTProtoResourceMetrics',
+  'getMTProtoStorageBudget',
+  'getMTProtoAlerts',
+  'acknowledgeMTProtoAlert',
+  'resolveMTProtoAlert',
+  'disableMTProtoAlertProxy',
+  'blockMTProtoAlertIP',
+]) {
+  assertContains(api, marker, apiPath)
+}
+for (const marker of [
+  'AdminMTProtoTimeseriesResponse',
+  'AdminMTProtoUserInvestigation',
+  'AdminMTProtoAlertListResponse',
+  'AdminMTProtoRuntimeResourceSnapshot',
+  'AdminMTProtoStorageBudget',
+]) {
+  assertContains(types, marker, typesPath)
+}
+for (const marker of [
+  '/mtproto/analytics/timeseries',
+  '/mtproto/analytics/users/search',
+  '/mtproto/analytics/users/{assignment_id}/usage',
+  '/mtproto/analytics/resource-metrics',
+  '/mtproto/analytics/storage-budget',
+  '/mtproto/analytics/alerts',
+]) {
+  assertContains(adminRouter, marker, adminRouterPath)
+}
+assertContains(analytics, '[M-057][admin_mtproto_user_usage][IP_INVESTIGATION_SCOPE]', analyticsPath)
+for (const marker of [
+  '[M-060][create_abuse_alert][ALERT_CREATED]',
+  '[M-060][acknowledge_alert][ALERT_ACKNOWLEDGED]',
+  '[M-060][resolve_alert][ALERT_RESOLVED]',
+  '[M-060][block_ip][CONFIRM_TTL_BLOCK]',
+]) {
+  assertContains(alerts, marker, alertsPath)
+}
+for (const marker of [
+  '[M-061][record_ip_observation][OBSERVATION_UPSERT]',
+  '[M-061][list_user_ip_observations][ADMIN_SCOPE]',
+  '[M-061][current_ip_summary][SOURCE_UNAVAILABLE]',
+]) {
+  assertContains(ip, marker, ipPath)
+}
+for (const [path, text] of [[uiPath, ui], [apiPath, api], [adminRouterPath, adminRouter], [analyticsPath, analytics], [alertsPath, alerts], [ipPath, ip]]) {
+  for (const forbidden of [
+    'https://t.me/proxy?',
+    'tg://proxy?server=',
+    'MTPROTO_BASE_SECRET_HEX=',
+    'MTPROTO_RUNTIME_TOKEN=',
+    '203.0.113.',
+    '198.51.100.',
+  ]) {
+    assertForbiddenAbsent(text, forbidden, path)
+  }
+}
+console.log('phase43 mtproto admin analytics smoke: ok')
+// END_BLOCK_MAIN

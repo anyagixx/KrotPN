@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<M-061 NAME="mtproto-ip-observability" TYPE="DATA_LAYER" STATUS="verification-designed-phase43">
+<M-061 NAME="mtproto-ip-observability" TYPE="DATA_LAYER" STATUS="pass-local-phase43">
   <path>backend/app/mtproto/ip_observability.py backend/app/mtproto/usage_models.py backend/app/mtproto/usage_repository.py backend/alembic/versions/phase43_add_mtproto_ip_observability.py backend/tests/test_mtproto_ip_observability.py docs/plans/Phase-43.xml</path>
   <owns>Admin-only exact client IP observability for MTProto sessions, including encrypted raw IP storage, current/last IP state, historical IP list, and 90-day retention.</owns>
   <purpose>Let the KrotPN operator investigate MTProto abuse by real client IP while keeping IP data encrypted, retention-bound, and hidden from users and logs.</purpose>
@@ -13,10 +13,11 @@
   <depends>M-001,M-028,M-042,M-054,M-055</depends>
   <verification-ref>V-M-061</verification-ref>
   <files>
-    <file status="planned">backend/app/mtproto/ip_observability.py</file>
-    <file status="planned">backend/alembic/versions/phase43_add_mtproto_ip_observability.py</file>
-    <file status="planned">backend/tests/test_mtproto_ip_observability.py</file>
+    <file status="implemented">backend/app/mtproto/ip_observability.py</file>
+    <file status="implemented">backend/alembic/versions/phase43_add_mtproto_ip_observability.py</file>
+    <file status="implemented">backend/tests/test_mtproto_ip_observability.py</file>
   </files>
+  <evidence>pass-local 2026-05-20: encrypted IP observability tests, usage telemetry regression, migration metadata guard, admin API investigation route, frontend-admin build, and Phase-43 static smoke passed.</evidence>
   <data-contract>
     <field-1>Exact client IP is encrypted at rest using the existing application data-encryption boundary.</field-1>
     <field-2>IP hash and coarse prefix remain available for analytics and abuse detection without decrypting raw IPs.</field-2>

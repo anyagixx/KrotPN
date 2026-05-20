@@ -1,7 +1,7 @@
 """MTProto runtime policy bridge.
 
 # FILE: backend/app/mtproto/runtime_bridge.py
-# VERSION: 1.4.0
+# VERSION: 1.5.0
 # ROLE: RUNTIME
 # MAP_MODE: EXPORTS
 # START_MODULE_CONTRACT
@@ -29,6 +29,7 @@
 # END_MODULE_MAP
 #
 # START_CHANGE_SUMMARY
+#   LAST_CHANGE: v1.5.0 - Added Phase-43 runtime resource metric fields to telemetry snapshots.
 #   LAST_CHANGE: v1.4.0 - Added Phase-42 runtime telemetry snapshot/drain adapter contract.
 #   LAST_CHANGE: v1.3.0 - Mark HTTP adapter operations for Phase-38 private DE runtime tracing.
 #   LAST_CHANGE: v1.2.0 - Added Phase-37 HTTP live adapter for the KPprotoN MTProto shared-443 runtime.
@@ -224,9 +225,26 @@ class MTProtoRuntimeTelemetrySnapshot:
     active_connections: int = 0
     policy_count: int = 0
     last_event_id: str | None = None
+    cpu_percent: float | None = None
+    memory_rss_bytes: int | None = None
+    memory_total_bytes: int | None = None
+    memory_processes_bytes: int | None = None
+    process_count: int | None = None
+    run_queue: int | None = None
+    uptime_seconds: int | None = None
     checked_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
 
     def to_safe_dict(self) -> dict[str, object]:
+        resource_values = {
+            "cpu_percent": self.cpu_percent,
+            "memory_rss_bytes": self.memory_rss_bytes,
+            "memory_total_bytes": self.memory_total_bytes,
+            "memory_processes_bytes": self.memory_processes_bytes,
+            "process_count": self.process_count,
+            "run_queue": self.run_queue,
+            "uptime_seconds": self.uptime_seconds,
+        }
+        has_resource_metrics = any(value is not None for value in resource_values.values())
         return {
             "status": self.status.value,
             "buffered_events": self.buffered_events,
@@ -234,6 +252,10 @@ class MTProtoRuntimeTelemetrySnapshot:
             "active_connections": self.active_connections,
             "policy_count": self.policy_count,
             "last_event_id": self.last_event_id,
+            "resource_metrics": {
+                "status": "available" if has_resource_metrics else "unavailable",
+                **resource_values,
+            },
             "checked_at": self.checked_at.isoformat(),
         }
 
@@ -460,6 +482,27 @@ class HTTPMTProtoPolicyAdapter:
                 )
             if response.status_code == 200:
                 payload = response.json()
+                resource_payload = payload.get("resource_metrics") if isinstance(payload.get("resource_metrics"), dict) else {}
+
+                def safe_int(name: str) -> int | None:
+                    raw = resource_payload.get(name, payload.get(name))
+                    if raw is None:
+                        return None
+                    try:
+                        return max(int(raw), 0)
+                    except (TypeError, ValueError):
+                        return None
+
+                def safe_float(name: str) -> float | None:
+                    raw = resource_payload.get(name, payload.get(name))
+                    if raw is None:
+                        return None
+                    try:
+                        return max(float(raw), 0.0)
+                    except (TypeError, ValueError):
+                        return None
+
+                memory_total = safe_int("memory_total_bytes")
                 return MTProtoRuntimeTelemetrySnapshot(
                     status=MTProtoBridgeStatus.HEALTHY,
                     buffered_events=int(payload.get("buffered_events") or 0),
@@ -467,6 +510,13 @@ class HTTPMTProtoPolicyAdapter:
                     active_connections=int(payload.get("active_connections") or 0),
                     policy_count=int(payload.get("policy_count") or 0),
                     last_event_id=payload.get("last_event_id"),
+                    cpu_percent=safe_float("cpu_percent"),
+                    memory_rss_bytes=safe_int("memory_rss_bytes") or memory_total,
+                    memory_total_bytes=memory_total,
+                    memory_processes_bytes=safe_int("memory_processes_bytes"),
+                    process_count=safe_int("process_count"),
+                    run_queue=safe_int("run_queue"),
+                    uptime_seconds=safe_int("uptime_seconds"),
                 )
             return MTProtoRuntimeTelemetrySnapshot(status=MTProtoBridgeStatus.DEGRADED)
         except (httpx.HTTPError, ValueError, TypeError):
@@ -804,6 +854,27 @@ class MTProtoRuntimeBridge:
             last_failure_code=adapter_health.last_failure_code or self._last_failure_code,
         )
     # END_BLOCK_BRIDGE_HEALTH
+
+    # START_CONTRACT: telemetry_snapshot
+    #   PURPOSE: Return secret-free runtime telemetry and resource counters
+    #   INPUTS: none
+    #   OUTPUTS: MTProtoRuntimeTelemetrySnapshot
+    #   SIDE_EFFECTS: adapter snapshot read and redacted log marker
+    #   LINKS: M-055, M-057, V-M-055, V-M-057
+    # END_CONTRACT: telemetry_snapshot
+    # START_BLOCK_TELEMETRY_SNAPSHOT
+    async def telemetry_snapshot(self) -> MTProtoRuntimeTelemetrySnapshot:
+        """Return secret-free runtime telemetry and resource metrics."""
+        try:
+            snapshot = await self.adapter.telemetry_snapshot()
+        except Exception:
+            snapshot = MTProtoRuntimeTelemetrySnapshot(status=MTProtoBridgeStatus.DEGRADED)
+        logger.info(
+            "[M-055][telemetry_snapshot][SNAPSHOT] "
+            f"status={snapshot.status.value} active={snapshot.active_connections}"
+        )
+        return snapshot
+    # END_BLOCK_TELEMETRY_SNAPSHOT
 
     # START_BLOCK_RUNTIME_BRIDGE_HELPERS
     def _policy_from_assignment(

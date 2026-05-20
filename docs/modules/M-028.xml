@@ -1,21 +1,24 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<M-028 NAME="alembic-migrations" TYPE="UTILITY" STATUS="stable">
-  <path>backend/alembic/ backend/app/core/migrations.py</path>
+<M-028 NAME="alembic-migrations" TYPE="UTILITY" STATUS="pass-local-phase43">
+  <path>backend/alembic/ backend/app/core/migrations.py docs/plans/Phase-43.xml</path>
   <owns>database schema migration infrastructure, nullable VPN client preshared-key migration, MTProto assignment migration, and migration helper functions extracted from database.py</owns>
   <exports>
     <fn-alembic-env>Async Alembic environment configured with SQLModel metadata</fn-alembic-env>
     <fn-migration-helpers>Database migration utilities for schema introspection and data migration</fn-migration-helpers>
     <fn-vpn-client-psk-migration>Adds nullable encrypted preshared-key storage without invalidating existing clients</fn-vpn-client-psk-migration>
     <fn-mtproto-assignment-migration>Adds mtproto_assignments with unique user and SNI indexes</fn-mtproto-assignment-migration>
+    <fn-mtproto-phase43-observability-migration>Adds MTProto encrypted IP observations, admin alerts, and TTL IP block record tables.</fn-mtproto-phase43-observability-migration>
   </exports>
   <depends>M-001, M-020</depends>
   <verification-ref>V-M-028</verification-ref>
   <files>
     <file>backend/alembic/env.py</file>
     <file>backend/alembic/versions/b3f1e0d2c9a4_add_mtproto_assignments.py</file>
+    <file>backend/alembic/versions/phase43_add_mtproto_ip_observability.py</file>
     <file>backend/app/core/migrations.py</file>
     <file>backend/tests/test_db_migrations.py</file>
   </files>
+  <evidence>pass-local 2026-05-20: Phase-43 migration metadata guard passed and verifies mtproto_ip_observations, mtproto_admin_alerts, and mtproto_blocked_ips schema ownership.</evidence>
   <disaster-recovery-role>
     <role-1>Phase-22 restore validation must compare source and restored migration state before cutover.</role-1>
     <role-2>Schema or migration-state mismatch blocks emergency relocation until the operator resolves or explicitly waives the risk.</role-2>

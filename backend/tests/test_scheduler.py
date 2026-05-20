@@ -2,7 +2,7 @@
 MODULE_CONTRACT
 - PURPOSE: Verify background scheduler tasks for subscription expiry, cleanup, and anomaly detection.
 - SCOPE: Subscription expiry deactivation, server.current_clients decrement, daily cleanup,
-  handshake anomaly detection, MTProto policy sync registration.
+  handshake anomaly detection, MTProto policy sync and Phase-43 analytics maintenance registration.
 - DEPENDS: app.tasks.scheduler, app.billing.models, app.vpn.models.
 - LINKS: V-M-008.
 
@@ -13,10 +13,12 @@ MODULE_MAP
 - test_handshake_anomaly_detection_runs_without_errors: Verifies anomaly detection task runs.
 - test_scheduler_registers_configured_handshake_interval: Verifies anti-abuse scan interval is seconds-based and configurable.
 - test_mtproto_policy_sync_runs_without_errors: Verifies KPprotoN policy replay task delegates safely.
+- test_mtproto_analytics_maintenance_runs_without_errors: Verifies Phase-43 analytics maintenance task delegates safely.
 
 CHANGE_SUMMARY
 - 2026-04-20: Added scheduler interval coverage for anti-ping-pong scans.
 - 2026-05-14: Added Phase-30 MTProto policy sync scheduler coverage.
+- 2026-05-20: Added Phase-43 MTProto analytics maintenance scheduler coverage.
 - 2026-04-05: Added scheduler task tests for Phase 5.
 """
 
@@ -201,6 +203,19 @@ async def test_mtproto_policy_sync_runs_without_errors(session: AsyncSession, mo
     assert result.degraded_count == 0
 
 
+@pytest.mark.asyncio
+async def test_mtproto_analytics_maintenance_runs_without_errors(session: AsyncSession, monkeypatch):
+    monkeypatch.setattr(scheduler_mod, "async_session_maker", FakeSessionMaker(session))
+
+    result = await scheduler_mod.maintain_mtproto_analytics()
+
+    assert result["hour_rollups"] == 0
+    assert result["day_rollups"] == 0
+    assert result["raw_deleted"] == 0
+    assert result["ip_deleted"] == 0
+    assert result["storage_budget"]["retention"]["raw_events_days"] == 30
+
+
 def test_scheduler_registers_configured_handshake_interval(monkeypatch):
     class FakeScheduler:
         def __init__(self):
@@ -229,6 +244,7 @@ def test_scheduler_registers_configured_handshake_interval(monkeypatch):
 
     handshake_jobs = [job for job in fake_scheduler.jobs if job["id"] == "detect_handshake_anomalies"]
     mtproto_jobs = [job for job in fake_scheduler.jobs if job["id"] == "sync_mtproto_policy"]
+    mtproto_maintenance_jobs = [job for job in fake_scheduler.jobs if job["id"] == "maintain_mtproto_analytics"]
 
     assert fake_scheduler.started is True
     assert len(handshake_jobs) == 1
@@ -238,4 +254,9 @@ def test_scheduler_registers_configured_handshake_interval(monkeypatch):
     assert mtproto_jobs[0]["replace_existing"] is True
     assert mtproto_jobs[0]["trigger"].interval.total_seconds() == (
         scheduler_mod.MTPROTO_POLICY_SYNC_INTERVAL_SECONDS
+    )
+    assert len(mtproto_maintenance_jobs) == 1
+    assert mtproto_maintenance_jobs[0]["replace_existing"] is True
+    assert mtproto_maintenance_jobs[0]["trigger"].interval.total_seconds() == (
+        scheduler_mod.MTPROTO_ANALYTICS_MAINTENANCE_INTERVAL_SECONDS
     )

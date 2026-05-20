@@ -1,13 +1,14 @@
 # FILE: backend/app/tasks/scheduler.py
-# VERSION: 3.5.0
+# VERSION: 3.6.0
 # ROLE: RUNTIME
 # MAP_MODE: EXPORTS
 # START_MODULE_CONTRACT
 #   PURPOSE: Background task scheduler — recurring maintenance jobs started during FastAPI lifespan
 #   SCOPE: APScheduler-based job registration and execution: subscription expiry,
-#          VPN stats, anomaly detection, KPprotoN MTProto policy sync, telemetry ingestion, cleanup, reporting
-#   DEPENDS: M-001, M-003, M-004, M-023, M-044, M-055
-#   LINKS: M-008, M-004, M-003, M-044, M-055, V-M-008, V-M-044, V-M-055
+#          VPN stats, anomaly detection, KPprotoN MTProto policy sync, telemetry ingestion,
+#          MTProto analytics retention/alerts, cleanup, reporting
+#   DEPENDS: M-001, M-003, M-004, M-023, M-044, M-055, M-056, M-060, M-061
+#   LINKS: M-008, M-004, M-003, M-044, M-055, M-056, M-060, M-061, V-M-008, V-M-044, V-M-055
 # END_MODULE_CONTRACT
 #
 # START_MODULE_MAP
@@ -19,10 +20,12 @@
 #   detect_handshake_anomalies - Configurable interval: observe peer handshakes for anomaly signals
 #   sync_mtproto_policy - Reconcile active KPprotoN SNI policies into runtime state
 #   ingest_mtproto_telemetry - Drain metadata-only KPprotoN runtime telemetry into analytics storage
+#   maintain_mtproto_analytics - Roll up usage, create alerts, and enforce analytics retention windows
 #   weekly_report - Weekly on Monday 9AM: generate subscription stats (placeholder)
 # END_MODULE_MAP
 #
 # START_CHANGE_SUMMARY
+#   LAST_CHANGE: v3.6.0 - Added Phase-43 MTProto analytics retention and alert maintenance job.
 #   LAST_CHANGE: v3.5.0 - Added Phase-42 scheduled MTProto telemetry ingestion.
 #   LAST_CHANGE: v3.4.0 - Restored scheduled MTProto reconciliation to KPprotoN runtime policy replay.
 #   LAST_CHANGE: v3.3.0 - Switched scheduled MTProto reconciliation to official MTProxy secret manifest sync.
@@ -71,6 +74,7 @@ from app.core.database import async_session_maker
 
 MTPROTO_POLICY_SYNC_INTERVAL_SECONDS = 60
 MTPROTO_TELEMETRY_INGEST_INTERVAL_SECONDS = 60
+MTPROTO_ANALYTICS_MAINTENANCE_INTERVAL_SECONDS = 15 * 60
 
 
 # <!-- START_BLOCK: TaskScheduler -->
@@ -120,6 +124,13 @@ class TaskScheduler:
             ingest_mtproto_telemetry,
             IntervalTrigger(seconds=MTPROTO_TELEMETRY_INGEST_INTERVAL_SECONDS),
             id="ingest_mtproto_telemetry",
+            replace_existing=True,
+        )
+
+        self.scheduler.add_job(
+            maintain_mtproto_analytics,
+            IntervalTrigger(seconds=MTPROTO_ANALYTICS_MAINTENANCE_INTERVAL_SECONDS),
+            id="maintain_mtproto_analytics",
             replace_existing=True,
         )
 
@@ -334,6 +345,46 @@ async def ingest_mtproto_telemetry():
     logger.info("[M-055][telemetry_ingest][INGEST_SUMMARY] scheduled=true")
     return await ingest_mtproto_runtime_telemetry()
 # <!-- END_BLOCK: ingest_mtproto_telemetry -->
+
+
+# <!-- START_BLOCK: maintain_mtproto_analytics -->
+async def maintain_mtproto_analytics():
+    """
+    Maintain MTProto analytics rollups, alert handoff, and retention windows.
+    """
+    from app.mtproto.admin_alerts import apply_alert_retention
+    from app.mtproto.analytics_service import MTProtoAnalyticsService
+    from app.mtproto.ip_observability import apply_ip_retention
+    from app.mtproto.usage_models import MTProtoUsageWindow
+    from app.mtproto.usage_repository import apply_retention, rollup_usage
+
+    logger.info("[M-056][maintain_mtproto_analytics][RETENTION_BUDGET] scheduled=true")
+    async with async_session_maker() as session:
+        hour_rollups = await rollup_usage(session, window_type=MTProtoUsageWindow.HOUR)
+        day_rollups = await rollup_usage(session, window_type=MTProtoUsageWindow.DAY)
+        service = MTProtoAnalyticsService(session)
+        alerts = await service.detect_abuse_signals(window_days=1)
+        raw_deleted = await apply_retention(session, raw_event_retention_days=30)
+        ip_deleted = await apply_ip_retention(session, retention_days=90)
+        alert_deleted = await apply_alert_retention(session, retention_days=180)
+        storage_budget = await service.build_storage_budget()
+        await session.commit()
+
+    logger.info(
+        "[M-056][maintain_mtproto_analytics][RETENTION_BUDGET] "
+        f"hour_rollups={hour_rollups} day_rollups={day_rollups} alerts={len(alerts)} "
+        f"raw_deleted={raw_deleted} ip_deleted={ip_deleted} alert_deleted={alert_deleted}"
+    )
+    return {
+        "hour_rollups": hour_rollups,
+        "day_rollups": day_rollups,
+        "alerts": len(alerts),
+        "raw_deleted": raw_deleted,
+        "ip_deleted": ip_deleted,
+        "alert_deleted": alert_deleted,
+        "storage_budget": storage_budget,
+    }
+# <!-- END_BLOCK: maintain_mtproto_analytics -->
 
 
 # <!-- START_BLOCK: weekly_report -->

@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<V-M-008 MODULE="M-008" PRIORITY="medium" STATUS="pass-local-phase41" PHASE-43="verification-designed">
+<V-M-008 MODULE="M-008" PRIORITY="medium" STATUS="pass-local-phase43" PHASE-43="pass-local">
   <module>tasks</module>
   <checks>Background jobs do not auto-assign complimentary internal access or mutate manually managed clients unexpectedly. Subscription expiry task correctly deactivates expired subscriptions and decrements server.current_clients counter. Daily cleanup, configurable anti-abuse handshake detection, and KPprotoN MTProto policy replay tasks run without errors.</checks>
   <test-files>backend/tests/test_scheduler.py</test-files>
-  <commands>cd backend &amp;&amp; SECRET_KEY=test-secret-key-with-enough-length DATA_ENCRYPTION_KEY=dpFmfSVqfdAK3yx5MQV6Tcv35RZuw5MzaH0yhxJ01q0= PYTHONPATH=. ../.venv/bin/python -m pytest -o addopts='' tests/test_scheduler.py -v</commands>
+  <commands>pass-local 2026-05-20: cd backend &amp;&amp; SECRET_KEY=test-secret-key-with-enough-length DATA_ENCRYPTION_KEY=dpFmfSVqfdAK3yx5MQV6Tcv35RZuw5MzaH0yhxJ01q0= PYTHONPATH=. ../.venv/bin/python -m pytest -o addopts='' tests/test_scheduler.py -v</commands>
   <anchors>SUBSCRIPTION_EXPIRED COUNTER_DECREMENTED DAILY_CLEANUP_COMPLETED detect_handshake_anomalies</anchors>
   <scenarios>
     <scenario kind="success" trace="SUBSCRIPTION_EXPIRED">Expired subscription deactivated by scheduler</scenario>
@@ -28,5 +28,6 @@
   <evidence>
     <evidence-1>2026-05-14: tests/test_scheduler.py passed as part of Phase-30 target pytest gate.</evidence-1>
     <evidence-2>2026-05-19: Phase-41 scheduler regression passed after removing official manifest sync from the active reconciliation path.</evidence-2>
+    <evidence-3>2026-05-20: Phase-43 scheduler regression passed for MTProto analytics maintenance job registration and safe retention/abuse-scan delegation.</evidence-3>
   </evidence>
 </V-M-008>

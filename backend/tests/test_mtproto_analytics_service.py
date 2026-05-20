@@ -5,10 +5,10 @@
 # ROLE: TEST
 # MAP_MODE: LOCALS
 # START_MODULE_CONTRACT
-#   PURPOSE: Verify MTProto analytics summaries, top users, per-proxy detail, and observe-only abuse signals
-#   SCOPE: Usage fixtures, summary counters, ranking metrics, assignment drill-down, and signal creation
-#   DEPENDS: M-056, M-054
-#   LINKS: V-M-056
+#   PURPOSE: Verify MTProto analytics summaries, top users, per-proxy detail, timeseries, storage budget, and observe-first abuse signals
+#   SCOPE: Usage fixtures, summary counters, ranking metrics, assignment drill-down, graph buckets, storage counters, and alert handoff
+#   DEPENDS: M-056, M-054, M-060
+#   LINKS: V-M-056, V-M-060
 # END_MODULE_CONTRACT
 #
 # START_MODULE_MAP
@@ -17,6 +17,7 @@
 # END_MODULE_MAP
 #
 # START_CHANGE_SUMMARY
+#   LAST_CHANGE: v1.1.0 - Added Phase-43 timeseries, storage budget, and alert handoff checks
 #   LAST_CHANGE: v1.0.0 - Added Phase-42 MTProto analytics service tests
 # END_CHANGE_SUMMARY
 """
@@ -27,6 +28,7 @@ import pytest
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.mtproto.analytics_service import MTProtoAnalyticsService
+from app.mtproto.admin_alerts import list_admin_alerts
 from app.mtproto.models import MTProtoAssignment
 from app.mtproto.usage_models import MTProtoUsageEventType
 from app.mtproto.usage_repository import MTProtoTelemetryEvent, ingest_telemetry_batch
@@ -128,6 +130,10 @@ async def test_analytics_summary_usage_top_users_and_abuse_signals(db_session: A
     usage = await service.build_assignment_usage(assignment_id=int(assignment_one.id), window_days=1)
     top_users = await service.build_top_users(metric="traffic", window_days=1, limit=5)
     events = await service.list_events(window_days=1, limit=10)
+    timeseries = await service.build_timeseries(bucket="hour", window_days=1)
+    search = await service.search_user_proxies(query="analytics-one", limit=10)
+    storage_budget = await service.build_storage_budget()
+    alerts = await list_admin_alerts(db_session)
 
     assert summary["issued_total"] == 2
     assert summary["status_counts"]["active"] == 2
@@ -141,6 +147,11 @@ async def test_analytics_summary_usage_top_users_and_abuse_signals(db_session: A
     assert top_users[0]["user_id"] == user_one.id
     assert len(created_signals) >= 1
     assert all(signal["observe_only"] is True for signal in created_signals)
+    assert alerts["open_count"] >= 1
     assert events["total"] >= 6
+    assert timeseries["items"]
+    assert search["items"][0]["assignment_id"] == assignment_one.id
+    assert storage_budget["retention"]["raw_events_days"] == 30
+    assert storage_budget["counts"]["raw_events"] >= 6
     assert "unknown-analytics.krotpn.xyz" not in str(events)
 # END_BLOCK_ANALYTICS_SERVICE_TESTS

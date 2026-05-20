@@ -3,7 +3,7 @@
 <current-status>
   <meta>
     <project-name>KrotPN</project-name>
-    <updated>2026-05-19</updated>
+    <updated>2026-05-20</updated>
     <status>active-development</status>
   </meta>
 
@@ -58,6 +58,7 @@
     <item>Phase-41 live MTProto fix on 2026-05-19 found two blockers: the old seriyps/mtproto_proxy lock and a blank proxy ad tag. mtproto-runtime now pins upstream commit 154a8fb, deploy defaults MTPROTO_AD_TAG to 32 zero hex chars, active assignment replay succeeded, issued-link mtp_ping passed through RU SNI router to DE KPprotoN runtime on DC +1 through +5, and operator clean-deploy testing confirmed both VPN and Telegram Desktop/mobile MTProto proxy work.</item>
     <item>Legacy V-M-029 Phase-16 rebranding verification is closed as superseded by V-M-012/Phase-41 as of 2026-05-19; current deploy-surface gates passed locally and Phase-41 clean-deploy live proof is the active release evidence.</item>
     <item>Phase-42 MTProto usage analytics and promotion tag control passed local execution on 2026-05-19: metadata-only usage storage, mtproto_proxy metric backend, active-SNI sampler, private runtime telemetry snapshot/drain, backend ingestion, analytics service, admin API, compact admin UI, observe-only abuse signals, and masked @MTProxyBot promotion tag control are implemented with redaction tests, smoke scripts, frontend build, scheduler/admin/runtime regressions, and mtproto-runtime compile passing.</item>
+    <item>Phase-43 MTProto admin analytics UX, abuse alerts, and 90-day IP observability passed local execution on 2026-05-20: encrypted admin-only IP history, user/proxy search and detail, current/last/all IP views, timeseries graphs, CPU/RAM runtime metrics, abuse alert inbox, acknowledge/resolve/disable/block actions, storage-budget retention jobs, compact frontend-admin UI, backend tests, frontend build, Erlang compile, XML parse, MyGRACE lint, and Phase-43 static smoke passed.</item>
     <item>Release target v2.19.1-kpproton-faketls-stable is the current stable baseline for GitHub main/Releases after Phase-41 live confirmation.</item>
   </what-is-working>
 
@@ -76,6 +77,7 @@
     <item>Phase-40 is partial-live and superseded by Phase-41: clean deploy, official runtime health, secret sync, unchanged-manifest stability, private stats, and DE NAT info were proven on VPS, but official MTProxy does not match the required per-user SNI/no-restart product model.</item>
     <item>Phase-41 is passed-live: KrotPN provisioning returns ee fake-TLS links and live diagnostics prove policy replay, RU SNI routing, fake-TLS accept, valid non-empty proxy ad tag, issued-link mtp_ping req_pq success, and operator-confirmed Telegram Desktop/mobile connectivity after clean deploy.</item>
     <item>Phase-42 analytics are passed-local: active connections, handshakes, closes, protocol errors, req_pq hints, and global bytes are wired from the live runtime; exact per-user byte attribution under concurrent active SNI domains remains a live-validation/future data-plane-hook limitation.</item>
+    <item>Phase-43 analytics are passed-local: raw IP data is encrypted and admin-only with 90-day retention, but live validation is still needed after deploy for real runtime source-IP availability, graph refresh behavior, resource metrics, and alert tuning thresholds. TTL IP block actions currently record controlled block intent and remain pending runtime enforcement integration.</item>
     <item>Emergency relocation is documented but still blocked until a trusted backup bundle and isolated restore target exist for dry-run evidence.</item>
     <item>Cookie-only auth migration is planned but not executed because it requires explicit approval and HTTPS or production-like smoke evidence.</item>
   </what-is-fragile>
@@ -165,11 +167,14 @@
     <gate id="phase-42-mtproto-analytics-promotion-tag" status="passed-local">
       <summary>Local Phase-42 execution passed for metadata-only MTProto analytics, runtime telemetry bridge, admin API/UI redaction, observe-only abuse signals, and safe @MTProxyBot promotion tag control; live traffic validation remains optional after operator deploy.</summary>
     </gate>
+    <gate id="phase-43-mtproto-admin-analytics-alerts-ip-observability" status="passed-local">
+      <summary>Local Phase-43 execution passed for compact admin analytics UX, encrypted 90-day admin-only IP observability, alert inbox/actions, storage retention jobs, backend/API/UI regressions, Erlang compile, XML parse, MyGRACE lint, and static redaction smoke; live deployment validation remains the next evidence step.</summary>
+    </gate>
   </rollout-gates>
 
   <immediate-priorities>
-    <priority rank="1">Use the Phase-41 stable MTProto/VPN baseline plus Phase-42 local analytics/tag-control implementation for future deploy testing and frontend client/admin redesign work.</priority>
-    <priority rank="2">After operator deploy, validate Phase-42 admin analytics with real redacted runtime data and confirm promotion tag pending-restart/applied state.</priority>
+    <priority rank="1">Use the Phase-41 stable MTProto/VPN baseline plus Phase-42/Phase-43 local admin analytics implementation for future deploy testing and frontend client/admin redesign work.</priority>
+    <priority rank="2">After operator deploy, validate Phase-43 admin analytics with real redacted runtime data: user detail IP history, graph refresh, resource metrics, alert notifications, and promotion tag pending-restart/applied state.</priority>
     <priority rank="3">Run Phase-22 non-production restore rehearsal with a trusted backup bundle and isolated restore target before production release.</priority>
     <priority rank="4">Decide whether to approve cookie-only auth migration and provide HTTPS or production-like auth smoke target.</priority>
     <priority rank="5">Keep deploy/install scripts unchanged unless the operator explicitly requests deployment-surface work.</priority>
