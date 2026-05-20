@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<V-M-061 MODULE="M-061" PRIORITY="critical" STATUS="planned-phase43">
+<V-M-061 MODULE="M-061" PRIORITY="critical" STATUS="verification-designed-phase43" VERSION="1.1.0">
   <purpose>Verify encrypted admin-only MTProto client IP observability and 90-day retention.</purpose>
   <module-ref>M-061</module-ref>
   <test-files>
@@ -7,6 +7,19 @@
     <file status="planned">backend/tests/test_mtproto_usage_telemetry.py</file>
     <file status="planned">backend/tests/test_db_migrations.py</file>
   </test-files>
+  <verification-levels>
+    <module-local>Repository/model tests prove encryption, upsert, active/current/last derivation, redaction, and 90-day retention.</module-local>
+    <wave-level>Run with V-M-054/V-M-055 so runtime IP telemetry flows into encrypted IP observation storage without breaking usage events.</wave-level>
+    <phase-level>Run with V-M-057/V-M-058 so only explicit admin investigation APIs and UI drawer can show decrypted IP values.</phase-level>
+  </verification-levels>
+  <module-checks>
+    <check-1>Encrypted IP ciphertext differs from plaintext and cannot be queried through general analytics serializers.</check-1>
+    <check-2>HMAC hash and coarse prefix remain available for abuse detection without decrypting raw IP.</check-2>
+    <check-3>Handshake, active_connection, and close events update first_seen, last_seen, current_active, and connection counters deterministically.</check-3>
+    <check-4>source_ip_unavailable events do not create fake IP observations.</check-4>
+    <check-5>90-day prune deletes expired exact IP rows and logs only counts.</check-5>
+    <check-6>Admin-only list decrypts only the requested user's/proxy's observations with pagination.</check-6>
+  </module-checks>
   <scenarios>
     <scenario-1>Handshake telemetry with client IP creates or updates one encrypted IP observation for the assignment and user.</scenario-1>
     <scenario-2>Current active IPs and last connected IP are derived from active/close events without guessing when source IP is unavailable.</scenario-2>
@@ -19,11 +32,17 @@
     <command status="planned">cd backend &amp;&amp; SECRET_KEY=test-secret-key-with-enough-length DATA_ENCRYPTION_KEY=dpFmfSVqfdAK3yx5MQV6Tcv35RZuw5MzaH0yhxJ01q0= PYTHONPATH=. ../.venv/bin/python -m pytest -o addopts='' tests/test_mtproto_ip_observability.py tests/test_mtproto_usage_telemetry.py tests/test_db_migrations.py -v</command>
     <command status="planned">python3 -m xml.etree.ElementTree docs/verification/V-M-061.xml docs/modules/M-061.xml docs/plans/Phase-43.xml docs/verification-index.xml docs/graph-index.xml docs/plan-index.xml</command>
   </commands>
+  <redaction-rules>
+    <rule-1>Raw IP plaintext may appear only in the explicit admin investigation response and in controlled test assertions.</rule-1>
+    <rule-2>Logs, audit details, general analytics, top users, event lists, user APIs, XML fixtures, and smoke output must not contain decrypted raw IP strings.</rule-2>
+    <rule-3>Backup and restore artifacts preserve encrypted rows only and do not require decrypted IP material.</rule-3>
+  </redaction-rules>
   <log-markers>
     <marker>[M-061][record_ip_observation][OBSERVATION_UPSERT]</marker>
     <marker>[M-061][list_user_ip_observations][ADMIN_SCOPE]</marker>
     <marker>[M-061][apply_ip_retention][RETENTION_PRUNE]</marker>
     <marker>[M-061][current_ip_summary][SOURCE_UNAVAILABLE]</marker>
+    <marker>[M-061][decrypt_ip_observation][ADMIN_ONLY]</marker>
   </log-markers>
   <acceptance>
     <item-1>Exact IP history is available to admins for the requested 90-day window.</item-1>

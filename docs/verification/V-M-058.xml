@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<V-M-058 MODULE="M-058" PRIORITY="high" STATUS="pass-local-phase42" VERSION="1.2.0">
+<V-M-058 MODULE="M-058" PRIORITY="high" STATUS="pass-local-phase42" PHASE-43="verification-designed" VERSION="1.3.0">
   <module>mtproto-admin-analytics-ui</module>
   <checks>Frontend-admin exposes compact MTProto analytics and promotion tag controls without secret leakage, hidden existing controls, or mobile layout regressions.</checks>
   <test-files>
@@ -7,6 +7,7 @@
     <file status="pass-local">frontend-admin/src/pages/MTProto.tsx</file>
     <file status="pass-local">frontend-admin/src/lib/api.ts</file>
     <file status="pass-local">frontend-admin/src/types/index.ts</file>
+    <file status="planned-phase43">scripts/phase43-mtproto-admin-analytics-smoke.mjs</file>
     <file status="pass-local">scripts/phase42-mtproto-admin-analytics-smoke.mjs</file>
   </test-files>
   <commands>pass-local 2026-05-19: cd frontend-admin &amp;&amp; npm run build; cd .. &amp;&amp; node scripts/phase42-mtproto-admin-analytics-smoke.mjs</commands>
@@ -15,7 +16,17 @@
     <module-local>Build frontend-admin and run static UI smoke for route wiring, API names, redaction strings, confirmation flows, and mobile viewport overflow.</module-local>
     <wave-level>Run after V-M-057 to prove UI contracts match backend schemas for analytics and promotion tag state.</wave-level>
     <phase-level>Phase-42 cannot close unless admin can scan global and per-proxy analytics from mobile without exposing secrets or losing existing MTProto ops controls.</phase-level>
+    <phase-43-level>Phase-43 cannot execute unless UI gates cover removed Recent events, Overview/Users/Abuse/Settings layout, long Top users, graphs, auto-refresh, raw-IP investigation scope, and mobile compactness.</phase-43-level>
   </verification-levels>
+  <phase-43-checks>
+    <check-1>Recent events section is absent from the visible admin MTProto analytics page.</check-1>
+    <check-2>Overview, Users, Abuse, and Settings surfaces fit mobile widths without nested cards or horizontal overflow.</check-2>
+    <check-3>Top users supports 25, 50, and 100 item views with scrollable compact rows.</check-3>
+    <check-4>User detail drawer shows issued_at, last_seen_at, current IP, last IP, all IPs for 90 days, sessions, traffic, duration, and errors.</check-4>
+    <check-5>Graphs render traffic, connections, active connections, duration, and errors without layout shift during auto-refresh.</check-5>
+    <check-6>CPU/RAM/runtime metric tiles auto-refresh and show stale/unavailable states clearly.</check-6>
+    <check-7>Raw IP strings render only inside the admin investigation drawer and are excluded from static smoke fixtures, summaries, and logs.</check-7>
+  </phase-43-checks>
   <module-checks>
     <check-1>Admin can scan global summary, traffic windows, top users, active connections, errors, runtime health, and availability proof on mobile.</check-1>
     <check-2>Per-proxy detail exposes last seen, session count, duration, traffic, errors, and abuse signals without hiding reissue/revoke controls.</check-2>
@@ -30,16 +41,22 @@
     <scenario-3>Abuse signals are clearly labeled observe-only.</scenario-3>
     <scenario-4>Static smoke confirms no full tg links, secrets, tokens, raw promotion tags, or raw IP values render in the UI.</scenario-4>
     <scenario-5>Promotion tag form handles valid, invalid, pending_restart, applied, and failed states.</scenario-5>
+    <scenario-6>Phase-43 admin opens a high-abuse alert, reviews user/IP/session detail, and disables the selected proxy through confirmation UI.</scenario-6>
+    <scenario-7>Auto-refresh updates summary, alerts, top users, graph data, and resource metrics without duplicating requests or resizing controls.</scenario-7>
   </scenarios>
   <redaction-rules>
     <rule-1>UI renders masked SNI and masked promotion tags only.</rule-1>
     <rule-2>Full proxy links remain limited to user-owned cabinet flows, not admin analytics lists.</rule-2>
-    <rule-3>No raw IP, runtime token, full tag, base secret, salt, or private key text may appear in generated bundles or page render fixtures.</rule-3>
+    <rule-3>Raw IP values may appear only in explicit admin investigation drawer fixtures; runtime token, full tag, base secret, salt, private keys, and proxy secrets may never appear in generated bundles or page render fixtures.</rule-3>
   </redaction-rules>
   <required-log-markers>
     <marker>[M-058][admin_mtproto_analytics_ui][REDACTED_RENDER]</marker>
     <marker>[M-058][admin_mtproto_analytics_ui][FILTER_USAGE]</marker>
     <marker>[M-058][admin_mtproto_analytics_ui][PROMOTION_TAG_CONFIRM]</marker>
+    <marker>[M-058][admin_mtproto_analytics_ui][RECENT_EVENTS_REMOVED]</marker>
+    <marker>[M-058][admin_mtproto_analytics_ui][USER_DETAIL_DRAWER]</marker>
+    <marker>[M-058][admin_mtproto_analytics_ui][AUTO_REFRESH]</marker>
+    <marker>[M-058][admin_mtproto_analytics_ui][ALERT_REVIEW]</marker>
   </required-log-markers>
   <autonomous-execution-safety>
     <safe-local>Frontend build and static smoke are safe to run locally.</safe-local>

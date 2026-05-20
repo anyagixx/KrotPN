@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<V-M-060 MODULE="M-060" PRIORITY="high" STATUS="planned-phase43">
+<V-M-060 MODULE="M-060" PRIORITY="high" STATUS="verification-designed-phase43" VERSION="1.1.0">
   <purpose>Verify MTProto admin abuse alerts, operator review states, and confirmation-safe enforcement actions.</purpose>
   <module-ref>M-060</module-ref>
   <test-files>
@@ -7,6 +7,18 @@
     <file status="planned">backend/tests/test_mtproto_admin_analytics_api.py</file>
     <file status="planned">scripts/phase43-mtproto-admin-analytics-smoke.mjs</file>
   </test-files>
+  <verification-levels>
+    <module-local>Alert model/service tests prove dedupe, state transitions, severity mapping, and safe payloads.</module-local>
+    <wave-level>Run with V-M-056 to prove high/critical abuse signals create alerts and with V-M-047/V-M-026 to prove actions are audited.</wave-level>
+    <phase-level>Admin UI cannot close until open alert badges, alert list, review drawer, and confirmation actions are visible on mobile.</phase-level>
+  </verification-levels>
+  <module-checks>
+    <check-1>Only high and critical abuse signals create operator alerts by default; low/medium remain visible as signals.</check-1>
+    <check-2>Dedupe key prevents repeated scheduler runs from flooding the admin inbox.</check-2>
+    <check-3>Acknowledge and resolve state transitions record admin id and timestamps without changing runtime access.</check-3>
+    <check-4>Disable proxy delegates to M-047 revoke and marks the alert action outcome after confirmation.</check-4>
+    <check-5>TTL IP block refuses untrusted or stale IP evidence and requires double confirmation.</check-5>
+  </module-checks>
   <scenarios>
     <scenario-1>High or critical abuse signals create exactly one open admin alert per dedupe key.</scenario-1>
     <scenario-2>Repeated scanner runs update the existing alert instead of flooding the inbox.</scenario-2>
@@ -20,12 +32,18 @@
     <command status="planned">node scripts/phase43-mtproto-admin-analytics-smoke.mjs</command>
     <command status="planned">python3 -m xml.etree.ElementTree docs/verification/V-M-060.xml docs/modules/M-060.xml docs/plans/Phase-43.xml docs/verification-index.xml docs/graph-index.xml docs/plan-index.xml</command>
   </commands>
+  <redaction-rules>
+    <rule-1>Alert list payloads may include assignment id, user id, user email under admin policy, signal type, metric, threshold, severity, and timestamps.</rule-1>
+    <rule-2>Alert payloads must not copy raw IP strings, tg links, proxy secrets, runtime tokens, or private keys.</rule-2>
+    <rule-3>Audit details must reference IP observation ids or hash prefixes, not decrypted raw IP strings.</rule-3>
+  </redaction-rules>
   <log-markers>
     <marker>[M-060][create_abuse_alert][ALERT_CREATED]</marker>
     <marker>[M-060][create_abuse_alert][ALERT_DEDUPED]</marker>
     <marker>[M-060][acknowledge_alert][ALERT_ACKNOWLEDGED]</marker>
     <marker>[M-060][resolve_alert][ALERT_RESOLVED]</marker>
     <marker>[M-047][admin_mtproto_alert_action][CONFIRM_ACTION]</marker>
+    <marker>[M-060][block_ip][CONFIRM_TTL_BLOCK]</marker>
   </log-markers>
   <acceptance>
     <item-1>Admin alert inbox shows open high/critical abuse signals dynamically.</item-1>

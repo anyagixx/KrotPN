@@ -6,6 +6,8 @@
   <exports>
     <view-mtproto-analytics>Admin page or MTProto tab for global metrics, traffic windows, active connections, top users, and error summaries.</view-mtproto-analytics>
     <view-mtproto-assignment-detail>Per-proxy detail panel with last seen, session count, duration, traffic, errors, and abuse flags.</view-mtproto-assignment-detail>
+    <view-mtproto-user-investigation>Phase-43 compact user/proxy drawer with issued time, last seen, current IP, last IP, 90-day IP history, sessions, graphs, and errors.</view-mtproto-user-investigation>
+    <view-mtproto-alert-inbox>Phase-43 admin alert inbox for high/critical abuse signals with acknowledge, resolve, disable proxy, and TTL IP block actions.</view-mtproto-alert-inbox>
     <view-mtproto-promotion-tag>Promotion tag form showing masked current tag, validation state, apply status, and pending restart state.</view-mtproto-promotion-tag>
     <smoke-admin-analytics-redaction>Static smoke ensuring UI bundles do not render full tg links, secrets, tokens, or raw tags.</smoke-admin-analytics-redaction>
   </exports>
@@ -23,6 +25,8 @@
     <policy-1>Mobile layout uses dense summary rows, tabs, filters, and drill-down panels rather than large decorative dashboards.</policy-1>
     <policy-2>Promotion tag editing requires confirmation and never displays the full stored tag after save.</policy-2>
     <policy-3>Abuse signals are visibly observe-only in Phase-42.</policy-3>
+    <policy-4>Phase-43 removes the visible Recent events panel and replaces it with compact Overview, Users, Abuse, and Settings surfaces.</policy-4>
+    <policy-5>Raw IP values may render only inside the explicit admin investigation drawer and must never appear in general analytics cards or static smoke output.</policy-5>
   </ui-policy>
   <constraints>
     <constraint-1>Admin UI must not hide existing MTProto reissue/revoke controls.</constraint-1>

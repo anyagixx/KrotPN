@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Phase-43 NAME="MTProto Admin Analytics UX, Abuse Alerts and 90-day IP Observability" STATUS="planned" VERSION="1.0.0" MODULES="M-001,M-008,M-026,M-028,M-042,M-047,M-054,M-055,M-056,M-057,M-058,M-060,M-061" CREATED="2026-05-20" UPDATED="2026-05-20">
+<Phase-43 NAME="MTProto Admin Analytics UX, Abuse Alerts and 90-day IP Observability" STATUS="verification-designed" VERSION="1.1.0" MODULES="M-001,M-008,M-026,M-028,M-042,M-047,M-054,M-055,M-056,M-057,M-058,M-060,M-061" CREATED="2026-05-20" UPDATED="2026-05-20">
   <purpose>Upgrade MTProto admin analytics into a compact operational console with abuse notifications, 90-day admin-only IP history, user search, graphs, proxy CPU/RAM metrics, and bounded storage retention.</purpose>
   <scope>
     <in>Remove visible Recent events, add abuse alert inbox, collect admin-only encrypted raw client IP observations for 90 days, add user/proxy search, current/last/all IP views, top-user expansion, timeseries graphs, runtime CPU/RAM metrics, auto-refresh, storage-budget retention, and confirmation-safe admin actions.</in>
@@ -61,7 +61,7 @@
     <risk-5 severity="medium">Exact per-user byte attribution under concurrent SNI activity remains limited until deeper data-plane hooks are proven live.</risk-5>
   </risks>
   <verification>
-    <verification-design status="planned">
+    <verification-design status="verification-designed">
       <gate-1 MODULES="M-061">Encrypted IP storage must decrypt only through admin-only code paths and prune exact observations after 90 days.</gate-1>
       <gate-2 MODULES="M-060">Abuse alert creation must dedupe, notify, acknowledge, resolve, and never auto-block.</gate-2>
       <gate-3 MODULES="M-057,M-058">Admin search, detail, top users, graphs, resource metrics, and auto-refresh must work on compact desktop and mobile layouts.</gate-3>
@@ -76,5 +76,11 @@
       <command status="planned">cd frontend-admin &amp;&amp; npm run build</command>
       <command status="planned">cd mtproto-runtime &amp;&amp; rebar3 compile</command>
     </commands>
+    <evidence-matrix>
+      <module-local>M-061 encryption/retention, M-060 alert lifecycle, M-056 timeseries/abuse, M-057 admin-only APIs, and M-058 compact UI smokes are verified independently first.</module-local>
+      <wave-level>M-054/M-055/M-056 prove telemetry -> rollup -> analytics; M-060/M-047/M-026 prove alert -> action -> audit; M-057/M-058 prove API -> UI contract.</wave-level>
+      <phase-level>Phase-43 closes only after redaction, retention, mobile UI, storage budget, and no-regression MTProto availability checks pass.</phase-level>
+      <live-optional>After clean deploy, operator can validate live alert visibility, graph refresh, resource metrics, and Telegram proxy continuity with redacted evidence.</live-optional>
+    </evidence-matrix>
   </verification>
 </Phase-43>

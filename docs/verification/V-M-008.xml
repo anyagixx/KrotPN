@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<V-M-008 MODULE="M-008" PRIORITY="medium" STATUS="pass-local-phase41">
+<V-M-008 MODULE="M-008" PRIORITY="medium" STATUS="pass-local-phase41" PHASE-43="verification-designed">
   <module>tasks</module>
   <checks>Background jobs do not auto-assign complimentary internal access or mutate manually managed clients unexpectedly. Subscription expiry task correctly deactivates expired subscriptions and decrements server.current_clients counter. Daily cleanup, configurable anti-abuse handshake detection, and KPprotoN MTProto policy replay tasks run without errors.</checks>
   <test-files>backend/tests/test_scheduler.py</test-files>
@@ -10,7 +10,21 @@
     <scenario kind="success" trace="COUNTER_DECREMENTED">server.current_clients counter decremented on expiry</scenario>
     <scenario kind="success" trace="detect_handshake_anomalies">Handshake anomaly job interval is configured from ANTI_ABUSE_SCAN_INTERVAL_SECONDS</scenario>
     <scenario kind="success" trace="SCHEDULER_SYNC">MTProto policy sync job is registered once and delegates active KPprotoN SNI replay to M-044 safely</scenario>
+    <scenario kind="success" trace="PHASE43_MTPROTO_ANALYTICS_JOBS">Phase-43 registers MTProto telemetry ingest, abuse scan, rollup rebuild, raw event prune, IP observation prune, and storage-budget health checks without duplicate job ids</scenario>
+    <scenario kind="failure" trace="PHASE43_RETENTION_SAFE_FAIL">Retention job failure is logged and does not stop MTProto policy replay or subscription expiry jobs</scenario>
   </scenarios>
+  <phase-43-checks>
+    <check-1>Scheduler registers Phase-43 jobs exactly once with deterministic ids.</check-1>
+    <check-2>Abuse scan delegates high/critical alert creation to M-056/M-060 without automatic enforcement.</check-2>
+    <check-3>Retention jobs delegate raw event pruning to M-054 and exact IP pruning to M-061.</check-3>
+    <check-4>Storage-budget checks report health state and do not log raw IPs or secrets.</check-4>
+  </phase-43-checks>
+  <required-log-markers>
+    <marker>[M-008][phase43_mtproto_jobs][REGISTERED]</marker>
+    <marker>[M-008][phase43_abuse_scan][SCAN_COMPLETE]</marker>
+    <marker>[M-008][phase43_retention][PRUNE_COMPLETE]</marker>
+    <marker>[M-008][phase43_storage_budget][HEALTH]</marker>
+  </required-log-markers>
   <evidence>
     <evidence-1>2026-05-14: tests/test_scheduler.py passed as part of Phase-30 target pytest gate.</evidence-1>
     <evidence-2>2026-05-19: Phase-41 scheduler regression passed after removing official manifest sync from the active reconciliation path.</evidence-2>

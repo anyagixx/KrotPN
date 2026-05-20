@@ -1,9 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<V-M-057 MODULE="M-057" PRIORITY="high" STATUS="pass-local-phase42" VERSION="1.2.0">
+<V-M-057 MODULE="M-057" PRIORITY="high" STATUS="pass-local-phase42" PHASE-43="verification-designed" VERSION="1.3.0">
   <module>mtproto-admin-analytics-api</module>
   <checks>Admin analytics endpoints expose useful MTProto statistics with strict redaction, pagination, filtering, admin-only auth, and audit safety.</checks>
   <test-files>
     <file status="pass-local">backend/tests/test_mtproto_admin_analytics_api.py</file>
+    <file status="planned-phase43">backend/tests/test_mtproto_admin_alerts.py</file>
+    <file status="planned-phase43">backend/tests/test_mtproto_ip_observability.py</file>
     <file status="pass-local">backend/tests/test_mtproto_admin_ops.py</file>
   </test-files>
   <commands>pass-local 2026-05-19: cd backend &amp;&amp; SECRET_KEY=test-secret-key-with-enough-length PYTHONPATH=. ../.venv/bin/python -m pytest -o addopts='' tests/test_mtproto_admin_analytics_api.py tests/test_mtproto_admin_ops.py -v</commands>
@@ -12,7 +14,16 @@
     <module-local>Use FastAPI tests with admin and non-admin clients to verify auth, filters, pagination, time clamping, redaction guards, and promotion tag delegation.</module-local>
     <wave-level>Run with V-M-056 and V-M-059 to prove API schemas match analytics service outputs and promotion tag state.</wave-level>
     <phase-level>Admin UI and release gates cannot close unless every API response passes secret-redaction assertions.</phase-level>
+    <phase-43-level>Phase-43 requires admin-only search/detail, alerts, timeseries, resource metrics, storage budget, and explicit IP-investigation APIs with scoped raw IP exposure.</phase-43-level>
   </verification-levels>
+  <phase-43-checks>
+    <check-1>User/proxy search returns paginated assignments by email, user id, display name, SNI, and status.</check-1>
+    <check-2>User detail returns issued_at, last_seen_at, sessions, traffic, duration, errors, current IPs, last IP, and all IP observations for 90 days.</check-2>
+    <check-3>Timeseries endpoint clamps bucket size/range and returns graph-ready buckets for the selected metric.</check-3>
+    <check-4>Alerts endpoints list, acknowledge, resolve, and expose open high/critical counts without automatic enforcement.</check-4>
+    <check-5>Resource metrics endpoint exposes proxy CPU/RAM/uptime/dropped telemetry state without host secrets.</check-5>
+    <check-6>Explicit IP endpoints are admin-only and audited; general analytics endpoints still reject raw IP values.</check-6>
+  </phase-43-checks>
   <module-checks>
     <check-1>Summary endpoint returns total issued, active/disabled/reissue_required counts, active connections, runtime health, availability proof, and traffic windows.</check-1>
     <check-2>Per-proxy endpoint returns only selected assignment usage, sessions, last seen, errors, abuse signals, and safe owner references.</check-2>
@@ -29,10 +40,13 @@
     <scenario-3>Events and top-users endpoints enforce pagination, time-window clamping, and admin-only auth.</scenario-3>
     <scenario-4>Payload redaction guard rejects full tg links, secrets, raw IPs, runtime tokens, and full promotion tags.</scenario-4>
     <scenario-5>Promotion tag update writes audit evidence without logging the full tag.</scenario-5>
+    <scenario-6>Phase-43 admin user detail exposes raw IP only through the explicit investigation route and never through summary/top-user/general analytics responses.</scenario-6>
+    <scenario-7>Alert acknowledge/resolve and proxy disable/IP block routes require confirmation and audit-safe details.</scenario-7>
   </scenarios>
   <redaction-rules>
-    <rule-1>Admin APIs may expose masked SNI, masked promotion tag, safe ids, counts, timestamps, status codes, and aggregate bytes only.</rule-1>
-    <rule-2>Full proxy links, fake-TLS secrets, runtime tokens, raw IPs, private keys, and full promotion tags fail the response guard.</rule-2>
+    <rule-1>General admin analytics APIs may expose masked SNI, masked promotion tag, safe ids, counts, timestamps, status codes, and aggregate bytes only.</rule-1>
+    <rule-2>Full proxy links, fake-TLS secrets, runtime tokens, private keys, and full promotion tags fail the response guard everywhere.</rule-2>
+    <rule-3>Raw IP values are allowed only in explicit Phase-43 admin-only investigation responses backed by M-061 and must be absent from logs, audit details, top users, summaries, and general events.</rule-3>
   </redaction-rules>
   <required-log-markers>
     <marker>[M-057][admin_mtproto_analytics][SUMMARY]</marker>
@@ -40,6 +54,10 @@
     <marker>[M-057][admin_mtproto_events][EVENT_LIST]</marker>
     <marker>[M-057][admin_mtproto_top_users][TOP_USERS]</marker>
     <marker>[M-057][admin_mtproto_analytics][REDACT_PAYLOAD]</marker>
+    <marker>[M-057][admin_mtproto_user_search][USER_SEARCH]</marker>
+    <marker>[M-057][admin_mtproto_user_usage][IP_INVESTIGATION_SCOPE]</marker>
+    <marker>[M-057][admin_mtproto_alerts][ALERT_LIST]</marker>
+    <marker>[M-057][admin_mtproto_timeseries][TIMESERIES]</marker>
   </required-log-markers>
   <autonomous-execution-safety>
     <safe-local>Backend API tests may run with fixture users and in-memory or disposable databases.</safe-local>

@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<M-061 NAME="mtproto-ip-observability" TYPE="DATA_LAYER" STATUS="planned-phase43">
+<M-061 NAME="mtproto-ip-observability" TYPE="DATA_LAYER" STATUS="verification-designed-phase43">
   <path>backend/app/mtproto/ip_observability.py backend/app/mtproto/usage_models.py backend/app/mtproto/usage_repository.py backend/alembic/versions/phase43_add_mtproto_ip_observability.py backend/tests/test_mtproto_ip_observability.py docs/plans/Phase-43.xml</path>
   <owns>Admin-only exact client IP observability for MTProto sessions, including encrypted raw IP storage, current/last IP state, historical IP list, and 90-day retention.</owns>
   <purpose>Let the KrotPN operator investigate MTProto abuse by real client IP while keeping IP data encrypted, retention-bound, and hidden from users and logs.</purpose>

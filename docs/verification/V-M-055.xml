@@ -1,9 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<V-M-055 MODULE="M-055" PRIORITY="critical" STATUS="pass-local-phase42" VERSION="1.3.0">
+<V-M-055 MODULE="M-055" PRIORITY="critical" STATUS="pass-local-phase42" PHASE-43="verification-designed" VERSION="1.4.0">
   <module>mtproto-runtime-telemetry-bridge</module>
   <checks>Runtime emits and drains metadata-only telemetry through mtproto_proxy metrics, active-SNI sampling, and a private token-protected boundary without breaking MTProto traffic.</checks>
   <test-files>
     <file status="pass-local">backend/tests/test_mtproto_runtime_telemetry_bridge.py</file>
+    <file status="planned-phase43">backend/tests/test_mtproto_ip_observability.py</file>
+    <file status="planned-phase43">scripts/phase43-mtproto-admin-analytics-smoke.mjs</file>
     <file status="pass-local">scripts/phase42-mtproto-telemetry-smoke.mjs</file>
     <file status="pass-local">mtproto-runtime</file>
   </test-files>
@@ -13,7 +15,14 @@
     <module-local>Use fake runtime events and private API fixtures to verify token checks, snapshot, drain, cursoring, overflow counters, redaction, and degraded runtime behavior.</module-local>
     <wave-level>Run with V-M-054 to prove drained events become idempotent usage rows and with V-M-056 to prove stale runtime state is visible in analytics.</wave-level>
     <phase-level>Live release remains blocked until Phase-41 req_pq and Telegram Desktop/mobile proof standards pass after telemetry hooks are enabled.</phase-level>
+    <phase-43-level>Runtime changes must prove trustworthy client IP source handling, source_ip_unavailable fallback, proxy CPU/RAM/uptime metrics, and unchanged Telegram proxy availability.</phase-43-level>
   </verification-levels>
+  <phase-43-checks>
+    <check-1>Client IP is emitted only when runtime can identify the real client endpoint, not RU/DE router internals.</check-1>
+    <check-2>When client IP is unavailable or untrusted, telemetry carries source_ip_unavailable and no guessed address.</check-2>
+    <check-3>Runtime resource metrics include proxy CPU percent, RAM bytes, uptime, dropped_events, and buffer status.</check-3>
+    <check-4>Resource metric collection failure degrades admin health only and does not restart or block the MTProto listener.</check-4>
+  </phase-43-checks>
   <module-checks>
     <check-1>Handshake, close, bytes, error, active_connection, unknown_sni, rejected_sni, and req_pq proof events use safe metadata fields only.</check-1>
     <check-2>Private telemetry endpoints reject missing or wrong runtime tokens and return no telemetry on unauthorized calls.</check-2>
@@ -32,6 +41,7 @@
     <scenario-4>Backend ingestion tolerates runtime outage and marks analytics stale/degraded only.</scenario-4>
     <scenario-5>Telemetry hook changes do not alter the issued-link fake-TLS secret, SNI route, or Telegram client acceptance contract.</scenario-5>
     <scenario-6>Concurrent-domain traffic remains global_runtime unless a deeper data-plane hook can provide exact per-SNI bytes.</scenario-6>
+    <scenario-7>Phase-43 client IP and resource metrics are emitted with safe source confidence and do not change issued-link fake-TLS behavior.</scenario-7>
   </scenarios>
   <redaction-rules>
     <rule-1>Runtime telemetry must exclude full tg links, fake-TLS secrets, base secret, salt, runtime token, private keys, and full promotion tags.</rule-1>
@@ -44,6 +54,8 @@
     <marker>[M-055][telemetry_drain][DRAIN_EVENTS]</marker>
     <marker>[M-055][telemetry_ingest][INGEST_SUMMARY]</marker>
     <marker>[M-055][runtime_telemetry][DROP_OVERFLOW]</marker>
+    <marker>[M-055][runtime_resource_metrics][RESOURCE_SNAPSHOT]</marker>
+    <marker>[M-055][runtime_telemetry][SOURCE_IP_UNAVAILABLE]</marker>
   </required-log-markers>
   <autonomous-execution-safety>
     <safe-local>Runtime smoke may use local synthetic fixtures and fake private tokens.</safe-local>

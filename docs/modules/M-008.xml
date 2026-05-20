@@ -1,13 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <M-008 NAME="tasks" TYPE="UTILITY" STATUS="pass-local-phase41">
-  <path>backend/app/tasks</path>
-  <owns>scheduler and recurring maintenance jobs including subscription expiry, daily cleanup, configurable anti-abuse handshake scans, and KPprotoN MTProto policy replay</owns>
+  <path>backend/app/tasks docs/plans/Phase-43.xml</path>
+  <owns>scheduler and recurring maintenance jobs including subscription expiry, daily cleanup, configurable anti-abuse handshake scans, KPprotoN MTProto policy replay, and Phase-43 MTProto analytics maintenance jobs</owns>
   <exports>
     <fn-scheduler>APScheduler-based recurring job runner</fn-scheduler>
     <fn-detect-handshake-anomalies>Configurable seconds-based job that delegates live peer observations to M-023/M-031</fn-detect-handshake-anomalies>
     <task-mtproto-policy-sync>Fixed-interval job that delegates active KPprotoN SNI policy replay to M-044</task-mtproto-policy-sync>
+    <task-mtproto-phase43-analytics-maintenance>Phase-43 jobs for telemetry ingest, abuse scan, rollup rebuild, raw event retention, IP observation retention, and storage-budget health checks.</task-mtproto-phase43-analytics-maintenance>
   </exports>
-  <depends>M-001,M-044</depends>
+  <depends>M-001,M-044,M-054,M-056,M-060,M-061</depends>
   <verification-ref>V-M-008</verification-ref>
   <files>
     <file>backend/app/tasks/scheduler.py</file>

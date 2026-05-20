@@ -1,9 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<V-M-054 MODULE="M-054" PRIORITY="critical" STATUS="pass-local-phase42" VERSION="1.3.0">
+<V-M-054 MODULE="M-054" PRIORITY="critical" STATUS="pass-local-phase42" PHASE-43="verification-designed" VERSION="1.4.0">
   <module>mtproto-usage-telemetry</module>
   <checks>Usage event, session, rollup, last-seen, and abuse-signal persistence is idempotent, bounded, restore-safe, and secret-free.</checks>
   <test-files>
     <file status="pass-local">backend/tests/test_mtproto_usage_telemetry.py</file>
+    <file status="planned-phase43">backend/tests/test_mtproto_ip_observability.py</file>
     <file status="pass-local">backend/tests/test_db_migrations.py</file>
   </test-files>
   <commands>pass-local 2026-05-19: cd backend &amp;&amp; SECRET_KEY=test-secret-key-with-enough-length PYTHONPATH=. ../.venv/bin/python -m pytest -o addopts='' tests/test_mtproto_usage_telemetry.py tests/test_db_migrations.py -v</commands>
@@ -12,7 +13,14 @@
     <module-local>Exercise Alembic migration metadata, repository idempotency, last-seen updates, session state transitions, rollup writes, and retention pruning with synthetic telemetry fixtures.</module-local>
     <wave-level>Run with V-M-055 and V-M-056 so runtime ingestion writes M-054 rows and analytics can consume them without schema drift.</wave-level>
     <phase-level>Phase-42 cannot pass unless M-054 proves day, week, month, top-user, last-seen, traffic, error, and active-session evidence without storing raw secrets or full proxy links.</phase-level>
+    <phase-43-level>Phase-43 requires 30-day raw event retention, 90-day session/history support, rollup preservation, and M-061 encrypted IP handoff without raw IP leakage in M-054 logs or general analytics.</phase-43-level>
   </verification-levels>
+  <phase-43-checks>
+    <check-1>Raw MTProto usage events older than 30 days are pruned only after rollup windows are preserved.</check-1>
+    <check-2>Session summaries remain available for 90 days so user detail can show duration, connection count, and last/current activity.</check-2>
+    <check-3>IP-bearing telemetry is normalized into hash/prefix fields in M-054 and delegated to M-061 for encrypted raw IP storage.</check-3>
+    <check-4>Retention jobs report deleted counts and storage-budget status without printing raw IPs or secrets.</check-4>
+  </phase-43-checks>
   <module-checks>
     <check-1>Migration creates event, session, rollup, last-seen, and abuse-signal storage with indexes needed by admin filters.</check-1>
     <check-2>runtime_event_id uniqueness makes batch ingestion idempotent and prevents duplicate traffic/session counts.</check-2>
@@ -29,6 +37,7 @@
     <scenario-3>Hourly, daily, weekly, and monthly rollups preserve traffic, connection count, duration, and error counters.</scenario-3>
     <scenario-4>Duplicate runtime event ids do not double-count usage.</scenario-4>
     <scenario-5>Retention pruning deletes old raw events but leaves aggregate rollups intact.</scenario-5>
+    <scenario-6>Phase-43 retention keeps three-month operational history through sessions, rollups, and M-061 IP observations while bounding raw event volume.</scenario-6>
   </scenarios>
   <telemetry-requirements>
     <field-runtime-event-id>Stable opaque id from runtime for idempotency.</field-runtime-event-id>
@@ -37,6 +46,7 @@
     <field-event-type>handshake, close, bytes, error, unknown_sni, rejected_sni, active_connection, or req_pq_proof.</field-event-type>
     <field-counters>bytes_in, bytes_out, duration_ms, connection_count, error_code, and observed_at.</field-counters>
     <field-client-identity>ip_hash or ip_prefix only; raw public IP is excluded by default.</field-client-identity>
+    <field-phase43-raw-ip-handoff>Encrypted raw IP is outside M-054 storage and must be written through M-061 admin-only observability.</field-phase43-raw-ip-handoff>
   </telemetry-requirements>
   <redaction-rules>
     <rule-1>No full tg links, fake-TLS secrets, base secret, salt, runtime token, private keys, or full promotion tags.</rule-1>
@@ -49,6 +59,7 @@
     <marker>[M-054][update_last_seen][LAST_SEEN]</marker>
     <marker>[M-054][rollup_usage][ROLLUP_WINDOW]</marker>
     <marker>[M-054][apply_retention][RETENTION_PRUNE]</marker>
+    <marker>[M-054][apply_retention][PHASE43_STORAGE_BUDGET]</marker>
   </required-log-markers>
   <autonomous-execution-safety>
     <safe-local>Local migrations and repository tests may run against disposable test databases.</safe-local>

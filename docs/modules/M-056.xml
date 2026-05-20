@@ -7,6 +7,7 @@
     <fn-build-global-summary>Return issued proxy totals, assignment status counts, active connections, runtime health, and availability proof state.</fn-build-global-summary>
     <fn-build-assignment-usage>Return per-proxy last seen, connection count, duration, traffic, errors, active sessions, and abuse signals.</fn-build-assignment-usage>
     <fn-build-top-users>Rank users by traffic, connection count, duration, or error count for a selected period.</fn-build-top-users>
+    <fn-build-timeseries>Phase-43 graph buckets for traffic, connections, active connections, duration, and errors.</fn-build-timeseries>
     <fn-rollup-usage-windows>Maintain hourly, daily, weekly, and monthly aggregate windows from M-054 events.</fn-rollup-usage-windows>
     <fn-detect-abuse-signals>Detect many IP hashes, excessive concurrency, traffic spikes, and repeated failures in observe-only mode.</fn-detect-abuse-signals>
   </exports>
@@ -22,6 +23,7 @@
     <policy-1>Abuse output starts as observe-only and never automatically disables an assignment in Phase-42.</policy-1>
     <policy-2>Traffic spikes are compared against prior local baselines, not fixed global limits only.</policy-2>
     <policy-3>Reports distinguish known assignment traffic from unknown or rejected SNI traffic.</policy-3>
+    <policy-4>Phase-43 high/critical abuse signals create M-060 admin alerts but still do not auto-disable access.</policy-4>
   </analytics-policy>
   <constraints>
     <constraint-1>Aggregation must avoid N+1 database scans on admin pages.</constraint-1>

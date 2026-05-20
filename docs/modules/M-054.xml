@@ -23,13 +23,14 @@
   <data-contract>
     <field-1>assignment_id links usage to MTProtoAssignment when SNI is known.</field-1>
     <field-2>Unknown or rejected SNI events may store masked SNI and safe reason codes but never derived secrets or tg links.</field-2>
-    <field-3>Client IP is stored as HMAC/hash or prefix-based aggregate by default, not raw public IP unless an explicit future privacy decision allows it.</field-3>
+    <field-3>Client IP is stored as HMAC/hash or prefix-based aggregate by default; Phase-43 permits encrypted raw IP only through M-061 admin-only observability with 90-day retention.</field-3>
     <field-4>Rollups must be sufficient for day, week, month, top users, last seen, connection count, duration, and traffic views.</field-4>
   </data-contract>
   <constraints>
     <constraint-1>Telemetry persistence must not block live MTProto proxy traffic.</constraint-1>
     <constraint-2>Retention policy must keep raw events bounded while preserving rollups.</constraint-2>
     <constraint-3>Backup/restore must preserve rollups and assignments without exposing secrets.</constraint-3>
+    <constraint-4>Phase-43 raw event retention is 30 days, while sessions and rollups must preserve the operator's three-month investigation window.</constraint-4>
   </constraints>
   <hotspot>H-041: MTProto telemetry must support useful analytics without storing raw secrets, full proxy links, or unnecessary raw IP addresses</hotspot>
 </M-054>

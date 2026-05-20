@@ -9,6 +9,9 @@
     <api-admin-mtproto-events>GET /api/v1/admin/mtproto/analytics/events with time, status, assignment, and event filters</api-admin-mtproto-events>
     <api-admin-mtproto-top-users>GET /api/v1/admin/mtproto/analytics/top-users</api-admin-mtproto-top-users>
     <api-admin-mtproto-abuse-signals>GET /api/v1/admin/mtproto/analytics/abuse-signals</api-admin-mtproto-abuse-signals>
+    <api-admin-mtproto-timeseries>Phase-43 graph buckets for traffic, active connections, errors, duration, and connection count.</api-admin-mtproto-timeseries>
+    <api-admin-mtproto-user-search>Phase-43 admin-only user/proxy search and user detail with issued_at, last_seen, sessions, current IP, last IP, and 90-day IP history.</api-admin-mtproto-user-search>
+    <api-admin-mtproto-alerts>Phase-43 admin alert inbox and acknowledgement/resolution actions.</api-admin-mtproto-alerts>
     <api-admin-mtproto-promotion-tag>GET/PUT promotion tag state through M-059</api-admin-mtproto-promotion-tag>
   </exports>
   <depends>M-006,M-047,M-054,M-056,M-059</depends>
@@ -22,7 +25,8 @@
   <evidence>pass-local 2026-05-19: admin analytics API tests, existing MTProto admin ops regression, and redaction checks passed.</evidence>
   <api-policy>
     <policy-1>Admin analytics returns masked SNI, safe ids, counts, status codes, and aggregate byte counters only.</policy-1>
-    <policy-2>Response payloads must fail closed if they contain full tg links, secrets, runtime tokens, full promotion tags, or raw IP addresses.</policy-2>
+    <policy-2>Response payloads must fail closed if they contain full tg links, secrets, runtime tokens, or full promotion tags.</policy-2>
+    <policy-4>Raw IP addresses are allowed only in explicit Phase-43 admin-only investigation endpoints backed by M-061; general analytics and logs must not expose them.</policy-4>
     <policy-3>Time filters must clamp large ranges and page event lists.</policy-3>
   </api-policy>
   <constraints>

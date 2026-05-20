@@ -7,9 +7,10 @@
     <api-admin-list-mtproto>List assignments by user, SNI, status, and timestamps with redacted sensitive fields.</api-admin-list-mtproto>
     <api-admin-reissue-mtproto>Force explicit reissue after secret rotation or runtime repair.</api-admin-reissue-mtproto>
     <api-admin-revoke-mtproto>Disable one user's MTProto assignment and remove its runtime SNI policy without disabling VPN account access.</api-admin-revoke-mtproto>
+    <api-admin-alert-actions>Phase-43 acknowledge, resolve, disable-proxy, and TTL IP block actions from MTProto abuse alerts.</api-admin-alert-actions>
     <view-admin-mtproto>Admin UI surface for health, assignment search, reissue, revoke, and recent failures.</view-admin-mtproto>
   </exports>
-  <depends>M-006,M-010,M-024,M-042,M-043,M-044</depends>
+  <depends>M-006,M-010,M-024,M-026,M-042,M-043,M-044,M-060,M-061</depends>
   <verification-ref>V-M-047</verification-ref>
   <files>
     <file>backend/app/admin/router.py</file>
@@ -28,11 +29,13 @@
     <policy-1>Admin list views show redacted or derived-safe assignment fields by default.</policy-1>
     <policy-2>Reissue and revoke are explicit audited actions with confirmation in the frontend.</policy-2>
     <policy-3>MTProto revoke does not implicitly cancel KrotPN subscription or VPN device access.</policy-3>
+    <policy-4>Phase-43 alert actions require explicit confirmation, audit, and safe evidence from M-060/M-061 before enforcement.</policy-4>
   </admin-policy>
   <constraints>
     <constraint-1>Audit events must not store full tg://proxy links, verification tokens, or raw secrets.</constraint-1>
     <constraint-2>Admin mobile UX must preserve confirmation-safe destructive actions.</constraint-2>
     <constraint-3>Phase-41 admin operations must treat official dd credential-mode assignments as superseded/reissue-required and must not expose owner-only KPprotoN ee links or derived secrets.</constraint-3>
+    <constraint-4>Phase-43 IP block actions are TTL-bound and must never store decrypted raw IP strings in audit details.</constraint-4>
   </constraints>
   <phase-41-verification-design>
     <check-1>Admin list/detail show credential mode and superseded official state with safe identifiers only.</check-1>

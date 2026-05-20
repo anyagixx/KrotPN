@@ -1,11 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<V-M-047 MODULE="M-047" PRIORITY="high" STATUS="pass-local-phase41" VERSION="1.5.1">
+<V-M-047 MODULE="M-047" PRIORITY="high" STATUS="pass-local-phase41" PHASE-43="verification-designed" VERSION="1.6.0">
   <module>mtproto-admin-ops</module>
   <phase-scope>
     <phase-33 status="pass-local">Admin MTProto operations and observability are implemented behind admin-only APIs and compact frontend-admin screens with strict secret redaction.</phase-33>
     <phase-34 status="pass-local">Stabilization gate keeps admin MTProto operations in the release-readiness suite and verifies they do not expose owner-only proxy secrets.</phase-34>
     <phase-40 status="pass-local">Official dd-secret admin revoke/reissue sync was verified locally but is superseded for production by Phase-41.</phase-40>
     <phase-41 status="pass-local">Admin operations show official-mode assignments as superseded/reissue-required and target KPprotoN SNI policy for revoke/reissue.</phase-41>
+    <phase-43 status="verification-designed">Admin operations add alert review actions, confirmation-safe proxy disable, and TTL IP block guardrails backed by M-060/M-061.</phase-43>
   </phase-scope>
   <test-files>
     <file>backend/app/admin/router.py</file>
@@ -26,6 +27,9 @@
     <file>scripts/phase33-mtproto-admin-smoke.mjs</file>
     <file phase="34-static">scripts/phase34-mtproto-stabilization-smoke.mjs</file>
     <file phase="41-pass-local">scripts/phase41-kpproton-faketls-smoke.mjs</file>
+    <file phase="43-planned">backend/tests/test_mtproto_admin_alerts.py</file>
+    <file phase="43-planned">backend/tests/test_mtproto_ip_observability.py</file>
+    <file phase="43-planned">scripts/phase43-mtproto-admin-analytics-smoke.mjs</file>
   </test-files>
   <commands>
     <command-1>cd backend &amp;&amp; SECRET_KEY=test-secret-key-with-enough-length DATA_ENCRYPTION_KEY=dpFmfSVqfdAK3yx5MQV6Tcv35RZuw5MzaH0yhxJ01q0= PYTHONPATH=. ../.venv/bin/python -m pytest -o addopts='' tests/test_mtproto_admin_ops.py tests/test_admin_device_control.py tests/test_mtproto_assignment_registry.py tests/test_kpproton_runtime_bridge.py -v</command-1>
@@ -40,6 +44,7 @@
     <wave-level>M-042, M-043, M-044, and M-024 regression tests stay in the gate so admin operations preserve assignment persistence, provisioning reissue policy, runtime bridge health, and confirmation-safe admin mutation patterns.</wave-level>
     <phase-level>Frontend-admin build and smoke prove the MTProto operator page is compact on mobile, exposes only redacted data, and requires explicit confirmation for destructive actions.</phase-level>
     <phase-41-level>Phase-41 gates must prove admin reissue/revoke targets KPprotoN SNI policy, official dd state is marked superseded, and admin output remains credential-free.</phase-41-level>
+    <phase-43-level>Phase-43 gates must prove alert actions are confirmation-safe, audited, scoped to one assignment/IP evidence item, and do not expose decrypted IPs in audit details.</phase-43-level>
   </verification-levels>
   <module-checks>
     <check-1 evidence="deterministic">Only authenticated admins can access MTProto admin endpoints; normal users and unauthenticated requests are rejected.</check-1>
@@ -56,6 +61,10 @@
     <check-12 evidence="phase-41-deterministic">Admin reissue converts exactly one official-mode or stale assignment to KPprotoN fake-TLS SNI policy and returns only redacted state.</check-12>
     <check-13 evidence="phase-41-deterministic">Admin revoke removes exactly one KPprotoN SNI policy through M-044 and does not call official manifest sync as the normal production path.</check-13>
     <check-14 evidence="phase-41-redaction">Admin API, audit records, DOM snapshots, console traces, and smoke output contain no tg links, ee secrets, dd secrets, base secret, salt, runtime token, or private key material.</check-14>
+    <check-15 evidence="phase-43-deterministic">Alert acknowledge and resolve actions update only M-060 review state and write safe audit records.</check-15>
+    <check-16 evidence="phase-43-deterministic">Disable proxy from an alert delegates to the existing revoke path and affects exactly one MTProto assignment.</check-16>
+    <check-17 evidence="phase-43-deterministic">TTL IP block refuses missing, stale, untrusted, or non-M-061 IP evidence and requires double confirmation.</check-17>
+    <check-18 evidence="phase-43-redaction">Audit details for IP-related actions contain observation ids/hash prefixes, not decrypted raw IP strings.</check-18>
   </module-checks>
   <phase-34-stabilization-gates>
     <gate-1>Admin surfaces must not disclose owner-only tg://proxy links or derived fake-TLS secrets even when Phase-34 creates real owner assignments in test fixtures.</gate-1>
@@ -76,6 +85,9 @@
     <scenario-6 kind="failure">Runtime bridge degraded or unavailable state is visible as a safe admin warning and does not block list/detail reads or leak runtime internals.</scenario-6>
     <scenario-7 kind="failure">Secret rotation stale state prompts reissue-required handling and never shows stale tg links in admin output.</scenario-7>
     <scenario-8 kind="success">Phase-41 admin reissue converts one superseded official assignment to KPprotoN fake-TLS SNI policy without returning owner credentials.</scenario-8>
+    <scenario-9 kind="success">Phase-43 admin acknowledges and resolves an abuse alert without changing runtime access.</scenario-9>
+    <scenario-10 kind="success">Phase-43 admin disables a proxy from a reviewed alert with confirmation and safe audit evidence.</scenario-10>
+    <scenario-11 kind="failure">Phase-43 IP block fails closed when IP evidence is unavailable, stale, untrusted, or missing TTL confirmation.</scenario-11>
   </scenarios>
   <required-log-markers>
     <marker-1>[M-047][admin_list_mtproto][FILTER_ASSIGNMENTS]</marker-1>
@@ -91,12 +103,16 @@
     <marker-11>[M-044][revoke_domain_policy][POLICY_REVOKED]</marker-11>
     <marker-12>[M-047][admin_reissue_mtproto][PHASE41_REISSUE_SNI]</marker-12>
     <marker-13>[M-047][admin_mtproto_ui][SUPERSEDED_OFFICIAL]</marker-13>
+    <marker-14>[M-047][admin_mtproto_alert_action][CONFIRM_ACTION]</marker-14>
+    <marker-15>[M-047][admin_mtproto_alert_action][AUDIT_ALERT_ACTION]</marker-15>
+    <marker-16>[M-047][admin_mtproto_ip_block][CONFIRM_TTL_BLOCK]</marker-16>
   </required-log-markers>
   <redaction-rules>
     <rule-1>Admin API responses may include assignment id, user id, redacted or explicit user email per existing admin policy, SNI, status, credential mode, rotation marker, timestamps, safe bridge status, and safe failure codes.</rule-1>
     <rule-2>Admin API responses, audit records, backend logs, frontend console logs, smoke traces, and analytics labels must not include full tg://proxy links, https://t.me/proxy links, ee or dd secrets, MTPROTO_BASE_SECRET_HEX, MTPROTO_SECRET_SALT, runtime tokens, email verification tokens, JWT/session tokens, or certificate private keys.</rule-2>
     <rule-3>Owner-only MTProto secret and link payloads remain limited to the authenticated user cabinet contract in M-045; M-047 must not create an admin backdoor for reading those credentials.</rule-3>
     <rule-4>Reissue/revoke audit details must use safe identifiers and action outcomes, not raw request bodies that could contain future secret-bearing fields.</rule-4>
+    <rule-5>Phase-43 alert/IP action audit details must not include decrypted raw IP strings; use M-061 observation ids and hash/prefix evidence only.</rule-5>
   </redaction-rules>
   <ui-smoke-gates>
     <gate-1>MTProto admin page at 360x740, 390x844, and 430x932 has document scrollWidth &lt;= innerWidth.</gate-1>

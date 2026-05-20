@@ -5,6 +5,7 @@
   <purpose>Move runtime connection, traffic, error, unknown-SNI, and req_pq metadata from the DE edge into KrotPN analytics safely.</purpose>
   <exports>
     <runtime-telemetry-event>Handshake, close, bytes, error, unknown_sni, rejected_sni, active_connection, and req_pq proof metadata event.</runtime-telemetry-event>
+    <runtime-resource-snapshot>Phase-43 proxy CPU, RAM, uptime, dropped telemetry, and buffer health summary for admin runtime health.</runtime-resource-snapshot>
     <api-runtime-telemetry-snapshot>Token-protected private runtime endpoint returning current counters without draining them.</api-runtime-telemetry-snapshot>
     <api-runtime-telemetry-drain>Token-protected private runtime endpoint returning and acknowledging new events by cursor.</api-runtime-telemetry-drain>
     <task-mtproto-telemetry-ingest>Scheduled backend task that polls the runtime and writes M-054 records.</task-mtproto-telemetry-ingest>
@@ -31,6 +32,7 @@
     <item-3>Events include assignment_id/user_id only when policy metadata is known; unknown SNI stays safe and masked.</item-3>
     <item-4>Live sampler emits per-SNI active_connection, handshake, and close events from mtproto_proxy policy counters.</item-4>
     <item-5>Traffic bytes are exact globally; per-SNI byte attribution is emitted only when one active domain is visible, otherwise events remain global_runtime to avoid false user attribution.</item-5>
+    <item-6>Phase-43 client IP metadata is emitted only when the runtime can provide a trustworthy source address; otherwise source_ip_unavailable must be explicit.</item-6>
   </runtime-contract>
   <constraints>
     <constraint-1>No full tg links, derived secrets, base secret, salt, runtime token, or private keys in runtime events.</constraint-1>

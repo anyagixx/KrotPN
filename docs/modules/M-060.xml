@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<M-060 NAME="mtproto-admin-alerts" TYPE="CORE_LOGIC" STATUS="planned-phase43">
+<M-060 NAME="mtproto-admin-alerts" TYPE="CORE_LOGIC" STATUS="verification-designed-phase43">
   <path>backend/app/mtproto/admin_alerts.py backend/app/admin/router.py frontend-admin/src/pages/MTProtoAnalytics.tsx backend/tests/test_mtproto_admin_alerts.py docs/plans/Phase-43.xml</path>
   <owns>Durable admin notification inbox for MTProto abuse signals, review state, acknowledgements, resolutions, and confirmation-safe enforcement actions.</owns>
   <purpose>Notify the operator about clear MTProto abuse without automatically blocking users before admin review.</purpose>
