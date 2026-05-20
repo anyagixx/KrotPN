@@ -1,5 +1,5 @@
 // FILE: scripts/phase42-mtproto-telemetry-smoke.mjs
-// VERSION: 1.1.0
+// VERSION: 1.2.0
 // ROLE: SCRIPT
 // MAP_MODE: LOCALS
 // START_MODULE_CONTRACT
@@ -15,6 +15,7 @@
 // END_MODULE_MAP
 //
 // START_CHANGE_SUMMARY
+//   LAST_CHANGE: v1.2.0 - Guard integer client_ipv4 decoding for live mtproto_proxy IP observations.
 //   LAST_CHANGE: v1.1.0 - Guard live mtproto_proxy metric backend and sampler wiring.
 //   LAST_CHANGE: v1.0.0 - Added Phase-42 runtime telemetry static smoke
 // END_CHANGE_SUMMARY
@@ -57,6 +58,9 @@ const ingestion = read(ingestionPath)
 const scheduler = read(schedulerPath)
 
 for (const marker of ['emit_event/1', 'add_metric/2', 'active_domain_counts/0', 'snapshot/0', 'drain/2', '[M-055][runtime_telemetry][EMIT_EVENT]']) {
+  assertContains(runtimeModule, marker, runtimeModulePath)
+}
+for (const marker of ['active_domain_client_counts/0', 'Value =< 16#FFFFFFFF', '<<Value:32/unsigned-little>>']) {
   assertContains(runtimeModule, marker, runtimeModulePath)
 }
 for (const marker of ['notify/4', 'received, upstream, bytes', 'protocol_error']) {

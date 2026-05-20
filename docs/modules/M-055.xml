@@ -26,14 +26,14 @@
     <file status="implemented">scripts/phase43-mtproto-admin-analytics-smoke.mjs</file>
     <file status="implemented">backend/tests/test_mtproto_runtime_telemetry_bridge.py</file>
   </files>
-  <evidence>pass-local 2026-05-20: runtime telemetry resource metrics, backend snapshot adapter, scheduler regression, Phase-43 static smoke, and mtproto-runtime rebar3 compile passed.</evidence>
+  <evidence>pass-local 2026-05-20: runtime telemetry resource metrics, backend snapshot adapter, integer client_ipv4 counter decoding, scheduler regression, Phase-42/43 static smokes, targeted backend tests, and mtproto-runtime rebar3 compile passed.</evidence>
   <runtime-contract>
     <item-1>Telemetry API is private and protected by the existing runtime token or a dedicated telemetry token.</item-1>
     <item-2>Runtime buffers are bounded and loss-tolerant; overflow increments a dropped_events counter rather than blocking proxy traffic.</item-2>
     <item-3>Events include assignment_id/user_id only when policy metadata is known; unknown SNI stays safe and masked.</item-3>
     <item-4>Live sampler emits per-SNI active_connection, handshake, and close events from mtproto_proxy policy counters.</item-4>
     <item-5>Traffic bytes are exact globally; per-SNI byte attribution is emitted only when one active domain is visible, otherwise events remain global_runtime to avoid false user attribution.</item-5>
-    <item-6>Phase-43 client IP metadata is emitted only from mtproto_proxy tls_domain/client_ipv4 policy counters as ip_observation events; otherwise source_ip_unavailable must be explicit.</item-6>
+    <item-6>Phase-43 client IP metadata is emitted only from mtproto_proxy tls_domain/client_ipv4 policy counters as ip_observation events, including mtproto_proxy integer IPv4 counter keys; otherwise source_ip_unavailable must be explicit.</item-6>
     <item-7>ip_observation events are for M-061 admin-only IP state and must not be treated as usage traffic or session counters.</item-7>
   </runtime-contract>
   <constraints>

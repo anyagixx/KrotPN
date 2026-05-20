@@ -1,7 +1,7 @@
 -module(kpproton_usage_telemetry).
 
 %% FILE: apps/kpproton_proxy/src/mtproto/kpproton_usage_telemetry.erl
-%% VERSION: 1.3.0
+%% VERSION: 1.3.1
 %% START_MODULE_CONTRACT
 %%   PURPOSE: Keep bounded, secret-free MTProto runtime telemetry for KrotPN admin analytics.
 %%   SCOPE: Safe event emission, mtproto_proxy metric counters, active-SNI sampling helpers, cursor-based drain, overflow accounting.
@@ -20,6 +20,7 @@
 %% END_MODULE_MAP
 %%
 %% START_CHANGE_SUMMARY
+%%   LAST_CHANGE: v1.3.1 - Decode mtproto_proxy integer client_ipv4 counters into trusted IP observation samples.
 %%   LAST_CHANGE: v1.3.0 - Added client_ip-safe IP observation event support from tls_domain/client_ipv4 counters.
 %%   LAST_CHANGE: v1.2.0 - Added Phase-43 runtime CPU/RAM resource metrics to telemetry snapshots.
 %%   LAST_CHANGE: v1.1.0 - Added metric counter drain and active-SNI snapshot helpers for live runtime telemetry.
@@ -260,6 +261,11 @@ safe_client_ip(Value) ->
 
 counter_ip_to_binary(Value) when is_binary(Value) ->
     safe_client_ip(Value);
+counter_ip_to_binary(Value) when is_integer(Value), Value >= 0, Value =< 16#FFFFFFFF ->
+    <<A, B, C, D>> = <<Value:32/unsigned-little>>,
+    safe_client_ip(iolist_to_binary([
+        integer_to_list(A), ".", integer_to_list(B), ".", integer_to_list(C), ".", integer_to_list(D)
+    ]));
 counter_ip_to_binary({A, B, C, D}) when is_integer(A), is_integer(B), is_integer(C), is_integer(D) ->
     safe_client_ip(iolist_to_binary([
         integer_to_list(A), ".", integer_to_list(B), ".", integer_to_list(C), ".", integer_to_list(D)
