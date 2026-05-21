@@ -9,6 +9,7 @@
     <fn-list-admin-alerts>Return paginated open/resolved MTProto alerts for the admin panel.</fn-list-admin-alerts>
     <fn-acknowledge-alert>Mark one alert as seen by an admin without changing runtime access.</fn-acknowledge-alert>
     <fn-resolve-alert>Resolve an alert after the admin takes or declines enforcement.</fn-resolve-alert>
+    <fn-block-ip-for-alert>Create a TTL-bound reviewed IP block and resolve the alert into archive history.</fn-block-ip-for-alert>
   </exports>
   <depends>M-001,M-006,M-026,M-047,M-056</depends>
   <verification-ref>V-M-060</verification-ref>
@@ -18,12 +19,13 @@
     <file status="implemented">backend/tests/test_mtproto_admin_alerts.py</file>
     <file status="implemented">scripts/phase43-mtproto-admin-analytics-smoke.mjs</file>
   </files>
-  <evidence>pass-local 2026-05-20: alert lifecycle/dedupe/IP-block tests, admin analytics API tests, scheduler maintenance regression, frontend-admin build, and Phase-43 static smoke passed.</evidence>
+  <evidence>pass-local 2026-05-21: alert lifecycle/dedupe/IP-block archive tests, admin analytics API tests, scheduler maintenance regression, frontend-admin build, and Phase-43 static smoke passed.</evidence>
   <alert-policy>
     <policy-1>Alert creation is deduplicated by signal type, assignment, severity window, and review state.</policy-1>
     <policy-2>Alerts do not automatically disable proxies or block IP addresses.</policy-2>
     <policy-3>Admin enforcement actions require explicit confirmation and write M-026 audit events.</policy-3>
     <policy-4>Alert details may reference raw IP observation ids, but must not copy raw IP strings into audit logs or general alert payloads.</policy-4>
+    <policy-5>Reviewed enforcement actions resolve alerts out of the open inbox while preserving history for archive review.</policy-5>
   </alert-policy>
   <constraints>
     <constraint-1>Proxy disable is safer than IP blocking and should remain the primary enforcement action.</constraint-1>

@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<V-M-048 MODULE="M-048" PRIORITY="critical" STATUS="pass-live-phase41" VERSION="2.0.0">
+<V-M-048 MODULE="M-048" PRIORITY="critical" STATUS="pass-live-phase41" VERSION="2.1.0">
   <module>installer-wildcard-tls</module>
   <phase-scope>
     <phase-35 status="pass-live">Installer flow for operator-provided wildcard TLS certificate paths, validation, env wiring, and reusable deploy installation passed local/static checks and clean VPS wildcard TLS deploy.</phase-35>
@@ -62,6 +62,7 @@
     <check-17 evidence="operator-live" status="passed">Clean VPS smoke proves HTTP redirect, HTTPS frontend/API/admin, trusted cert chain, MTProto SNI readiness, and Resend-backed registration email delivery with prepared wildcard TLS.</check-17>
     <check-18 evidence="phase-38-deterministic">Generated or preserved env values include DE runtime policy URL, RU SNI router targets, DE runtime target, and redaction-safe TLS material handling.</check-18>
     <check-19 evidence="phase-38-security">Wildcard private key delivery to DE is validated as necessary for runtime TLS but never printed, embedded in XML, or echoed through installer/deploy output.</check-19>
+    <check-20 evidence="deterministic">Installer and deploy fallbacks default ADMIN_EMAIL to admin@krotpn.xyz, not the old admin@krotpn.com value.</check-20>
   </module-checks>
   <verification-matrix>
     <gate-1 MODULES="M-048,M-012" EVIDENCE="deterministic">Installer UX collects domain and certificate paths only after RU SSH connectivity can support remote validation.</gate-1>
@@ -153,5 +154,6 @@
     <evidence-12>2026-05-18: Phase-38 verification adds redaction-safe DE runtime TLS, private policy URL, and RU SNI router deploy gates.</evidence-12>
     <evidence-13>2026-05-18: Phase-38 local execution passed deploy/TLS redaction smoke for HAProxy runtime rendering, DE runtime compose/env delivery, private policy bind, backend policy URL, and secret-preserving MTProto env regeneration.</evidence-13>
     <evidence-14>2026-05-19: Phase-41 clean-deploy validation confirms wildcard TLS reuse, Resend registration email, VPN, and MTProto proxy work together.</evidence-14>
+    <evidence-15>2026-05-21: Phase-35 installer smoke guards admin@krotpn.xyz as the default admin email for install.sh and deploy/deploy-on-server.sh.</evidence-15>
   </evidence>
 </V-M-048>

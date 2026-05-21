@@ -1,5 +1,5 @@
 // FILE: frontend-admin/src/pages/MTProtoAnalytics.tsx
-// VERSION: 2.1.0
+// VERSION: 2.2.0
 // ROLE: UI_COMPONENT
 // MAP_MODE: SUMMARY
 // START_MODULE_CONTRACT
@@ -19,6 +19,7 @@
 // END_MODULE_MAP
 //
 // START_CHANGE_SUMMARY
+//   LAST_CHANGE: v2.2.0 - Split Abuse into open inbox and archive, and standardized icon input padding.
 //   LAST_CHANGE: v2.1.0 - Added paginated user investigation, clearer IP-source states, harder-abuse UI copy, and richer compact area graphs.
 //   LAST_CHANGE: v2.0.0 - Rebuilt for Phase-43 compact tabs, alert inbox, IP investigation, graphs, resource metrics, and auto-refresh
 //   LAST_CHANGE: v1.0.0 - Added Phase-42 MTProto analytics and promotion tag panel
@@ -185,7 +186,9 @@ export default function MTProtoAnalyticsPanel() {
   const summaryQuery = useQuery(['admin-mtproto-analytics-summary', days], () => adminApi.getMTProtoAnalyticsSummary(days), { refetchInterval: 15000 })
   const topUsersQuery = useQuery(['admin-mtproto-top-users', metric, days, topLimit], () => adminApi.getMTProtoTopUsers(metric, days, topLimit), { refetchInterval: 30000 })
   const timeseriesQuery = useQuery(['admin-mtproto-timeseries', metric, days], () => adminApi.getMTProtoTimeseries({ bucket: days <= 1 ? 'hour' : 'day', days }), { refetchInterval: 30000 })
-  const alertsQuery = useQuery(['admin-mtproto-alerts'], () => adminApi.getMTProtoAlerts('', 50), { refetchInterval: 10000 })
+  const alertsQuery = useQuery(['admin-mtproto-alerts', 'open'], () => adminApi.getMTProtoAlerts('open', 50), { refetchInterval: 10000 })
+  const acknowledgedAlertsQuery = useQuery(['admin-mtproto-alerts', 'acknowledged'], () => adminApi.getMTProtoAlerts('acknowledged', 50), { refetchInterval: 30000 })
+  const resolvedAlertsQuery = useQuery(['admin-mtproto-alerts', 'resolved'], () => adminApi.getMTProtoAlerts('resolved', 50), { refetchInterval: 30000 })
   const abuseQuery = useQuery(['admin-mtproto-abuse', days], () => adminApi.getMTProtoAbuseSignals(days), { refetchInterval: 30000 })
   const usersQuery = useQuery(
     ['admin-mtproto-user-search', search, userOffset, userPageSize],
@@ -244,6 +247,14 @@ export default function MTProtoAnalyticsPanel() {
   const topUsers = topUsersQuery.data?.data?.items || []
   const timeseries = timeseriesQuery.data?.data?.items || []
   const alerts = alertsQuery.data?.data?.items || []
+  const archivedAlerts = [
+    ...(acknowledgedAlertsQuery.data?.data?.items || []),
+    ...(resolvedAlertsQuery.data?.data?.items || []),
+  ].sort((a, b) => {
+    const left = a.resolved_at || a.acknowledged_at || a.last_seen_at || a.first_seen_at || ''
+    const right = b.resolved_at || b.acknowledged_at || b.last_seen_at || b.first_seen_at || ''
+    return right.localeCompare(left)
+  })
   const abuseSignals = abuseQuery.data?.data?.items || []
   const users = usersQuery.data?.data?.items || []
   const userTotal = usersQuery.data?.data?.total || 0
@@ -402,8 +413,8 @@ export default function MTProtoAnalyticsPanel() {
               </div>
               <div className="flex min-w-[240px] flex-1 flex-wrap gap-2 sm:flex-none">
                 <div className="relative min-w-[220px] flex-1">
-                  <Search className="pointer-events-none absolute left-3 top-2.5 h-4 w-4 text-slate-400" />
-                  <input className="input w-full pl-9" value={search} onChange={(event) => setSearch(event.target.value)} placeholder="email, SNI, id" />
+                  <Search className="input-icon-left" />
+                  <input className="input input-with-icon-left w-full" value={search} onChange={(event) => setSearch(event.target.value)} placeholder="email, SNI, id" />
                 </div>
                 <select className="input max-w-[110px]" value={userPageSize} onChange={(event) => setUserPageSize(Number(event.target.value))}>
                   <option value={25}>25</option>
@@ -533,9 +544,13 @@ export default function MTProtoAnalyticsPanel() {
               <h3 className="text-sm font-semibold text-white">Alerts</h3>
             </div>
             <p className="mt-2 text-xs muted">В inbox попадает только жесткий abuse: высокая одновременная активность, много разных IP и сильные всплески. Обычная смена сети остается signal без тревоги.</p>
-            <div className="mt-3 compact-list max-h-[560px] overflow-y-auto">
+            <div className="mt-3 flex items-center justify-between gap-2">
+              <h4 className="text-xs font-semibold uppercase text-slate-400">Open</h4>
+              <span className="neutral-pill">{alerts.length}</span>
+            </div>
+            <div className="mt-2 compact-list max-h-[320px] overflow-y-auto">
               {alerts.length === 0 ? (
-                <p className="py-4 text-sm muted">Нет открытых alerts.</p>
+                <p className="py-4 pl-4 text-sm muted">Нет открытых alerts</p>
               ) : alerts.map((alert: AdminMTProtoAlert) => (
                 <div key={alert.id} className="list-row py-3">
                   <div className="row-main">
@@ -547,9 +562,32 @@ export default function MTProtoAnalyticsPanel() {
                   </div>
                   <div className="mt-2 flex flex-wrap gap-2">
                     <button type="button" className="btn-secondary px-3 py-2" onClick={() => reviewUser(alert.assignment_id, alert.id)}>Review</button>
-                    <button type="button" className="btn-secondary px-3 py-2" onClick={() => alertMutation.mutate({ id: alert.id, action: 'ack' })}><CheckCircle2 className="h-4 w-4" />Ack</button>
-                    <button type="button" className="btn-secondary px-3 py-2" onClick={() => alertMutation.mutate({ id: alert.id, action: 'resolve' })}>Resolve</button>
-                    <button type="button" className="btn-secondary px-3 py-2" onClick={() => alertMutation.mutate({ id: alert.id, action: 'disable' })}><XCircle className="h-4 w-4" />Disable</button>
+                    <button type="button" className="btn-secondary px-3 py-2" onClick={() => alertMutation.mutate({ id: alert.id, action: 'ack' })} disabled={alertMutation.isLoading}><CheckCircle2 className="h-4 w-4" />Ack</button>
+                    <button type="button" className="btn-secondary px-3 py-2" onClick={() => alertMutation.mutate({ id: alert.id, action: 'resolve' })} disabled={alertMutation.isLoading}>Resolve</button>
+                    <button type="button" className="btn-secondary px-3 py-2" onClick={() => alertMutation.mutate({ id: alert.id, action: 'disable' })} disabled={alertMutation.isLoading}><XCircle className="h-4 w-4" />Disable</button>
+                  </div>
+                </div>
+              ))}
+            </div>
+            <div className="mt-4 flex items-center justify-between gap-2">
+              <h4 className="text-xs font-semibold uppercase text-slate-400">Archive</h4>
+              <span className="neutral-pill">{archivedAlerts.length}</span>
+            </div>
+            <div className="mt-2 compact-list max-h-[260px] overflow-y-auto" data-log-marker="[M-058][admin_mtproto_analytics_ui][ALERT_ARCHIVE]">
+              {archivedAlerts.length === 0 ? (
+                <p className="py-4 pl-4 text-sm muted">Архив пуст</p>
+              ) : archivedAlerts.map((alert: AdminMTProtoAlert) => (
+                <div key={`archive-${alert.id}-${alert.status}`} className="list-row py-3">
+                  <div className="row-main">
+                    <div className="min-w-0">
+                      <p className="row-title">{alert.signal_type}</p>
+                      <p className="row-subtitle">{alert.user_email || `Assignment #${alert.assignment_id || 'unknown'}`} · {formatDate(alert.resolved_at || alert.acknowledged_at || alert.last_seen_at)}</p>
+                    </div>
+                    <span className="neutral-pill">{alert.status}</span>
+                  </div>
+                  <div className="row-meta">
+                    <span className="meta-cell"><span className="meta-label">Action</span><span className="meta-value">{alert.action_taken || 'review'}</span></span>
+                    <span className="meta-cell"><span className="meta-label">Result</span><span className="meta-value">{alert.action_result || alert.status}</span></span>
                   </div>
                 </div>
               ))}
@@ -563,7 +601,7 @@ export default function MTProtoAnalyticsPanel() {
             </div>
             <div className="mt-3 compact-list max-h-[560px] overflow-y-auto">
               {abuseSignals.length === 0 ? (
-                <p className="py-4 text-sm muted">Нет signals.</p>
+                <p className="py-4 pl-4 text-sm muted">Нет signals</p>
               ) : abuseSignals.map((signal) => (
                 <div key={signal.id} className="list-row py-3">
                   <div className="row-main">

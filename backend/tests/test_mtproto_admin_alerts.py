@@ -1,7 +1,7 @@
 """MTProto admin alert tests.
 
 # FILE: backend/tests/test_mtproto_admin_alerts.py
-# VERSION: 1.0.0
+# VERSION: 1.1.0
 # ROLE: TEST
 # MAP_MODE: LOCALS
 # START_MODULE_CONTRACT
@@ -18,6 +18,7 @@
 # END_MODULE_MAP
 #
 # START_CHANGE_SUMMARY
+#   LAST_CHANGE: v1.1.0 - Assert reviewed IP block actions archive the alert.
 #   LAST_CHANGE: v1.0.0 - Added Phase-43 MTProto admin alert verification
 # END_CHANGE_SUMMARY
 """
@@ -178,4 +179,8 @@ async def test_ip_block_requires_confirmation_and_trusted_observation(db_session
     block = result.scalar_one()
     assert block.ip_hash == observation.ip_hash
     assert block.encrypted_ip != raw_ip
+    alert_row = await db_session.get(MTProtoAdminAlert, int(alert.id))
+    assert alert_row.status == MTProtoAdminAlertStatus.RESOLVED
+    assert alert_row.action_taken == "ip_block"
+    assert alert_row.resolved_by_admin_id == admin.id
 # END_BLOCK_ADMIN_ALERT_TESTS

@@ -1,5 +1,5 @@
 // FILE: scripts/phase43-mtproto-admin-analytics-smoke.mjs
-// VERSION: 1.1.0
+// VERSION: 1.2.0
 // ROLE: SCRIPT
 // MAP_MODE: LOCALS
 // START_MODULE_CONTRACT
@@ -16,6 +16,7 @@
 // END_MODULE_MAP
 //
 // START_CHANGE_SUMMARY
+//   LAST_CHANGE: v1.2.0 - Guard Abuse open inbox/archive split and empty-state copy.
 //   LAST_CHANGE: v1.1.0 - Added Phase-43 live-feedback checks for pagination, area chart, hardened abuse copy, and IP observation events.
 //   LAST_CHANGE: v1.0.0 - Added Phase-43 MTProto admin analytics static smoke
 // END_CHANGE_SUMMARY
@@ -67,6 +68,7 @@ for (const marker of [
   '[M-058][admin_mtproto_analytics_ui][USER_DETAIL_DRAWER]',
   '[M-058][admin_mtproto_analytics_ui][AUTO_REFRESH]',
   '[M-058][admin_mtproto_analytics_ui][ALERT_REVIEW]',
+  '[M-058][admin_mtproto_analytics_ui][ALERT_ARCHIVE]',
   'Overview',
   'Users',
   'Abuse',
@@ -75,10 +77,17 @@ for (const marker of [
   'MetricAreaChart',
   'SourceIPNotice',
   'Обычная смена сети остается signal без тревоги',
+  "getMTProtoAlerts('open'",
+  "getMTProtoAlerts('acknowledged'",
+  "getMTProtoAlerts('resolved'",
+  'Нет открытых alerts',
+  'Нет signals',
 ]) {
   assertContains(ui, marker, uiPath)
 }
 assertForbiddenAbsent(ui, 'Recent events', uiPath)
+assertForbiddenAbsent(ui, 'Нет открытых alerts.', uiPath)
+assertForbiddenAbsent(ui, 'Нет signals.', uiPath)
 for (const marker of [
   'getMTProtoTimeseries',
   'searchMTProtoUsers',

@@ -40,5 +40,9 @@
     <constraint-1>Frontend-admin must continue to call existing M-006 and M-024 API contracts unless an API change is separately approved.</constraint-1>
     <constraint-2>Admin auth/session hardening belongs to Phase-25 and must not be bundled into Phase-24 UI simplification.</constraint-2>
     <constraint-3>Deployment and install scripts are out of scope for this UI module phase.</constraint-3>
+    <constraint-4>Admin login inputs must not prefill or hint stale default credentials; icon-bearing inputs must reserve enough padding so icons and placeholder text never overlap.</constraint-4>
   </constraints>
+  <evidence>
+    <evidence-1>2026-05-21: Local admin UI fix removed login email/password placeholders, removed stale admin@krotpn.com fallback copy, and standardized left-icon input padding.</evidence-1>
+  </evidence>
 </M-010>

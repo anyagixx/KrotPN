@@ -125,7 +125,7 @@ export default function Layout() {
           <div className="operator-chip">
             <span className="operator-avatar">{adminInitial}</span>
             <span className="hidden min-w-0 sm:block">
-              <span className="block truncate text-sm font-semibold">{user?.email || 'admin@krotpn.com'}</span>
+              <span className="block truncate text-sm font-semibold">{user?.email || 'Администратор'}</span>
               <span className="block text-xs muted">{adminRole}</span>
             </span>
           </div>

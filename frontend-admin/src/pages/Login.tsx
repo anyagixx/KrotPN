@@ -1,5 +1,5 @@
 // FILE: frontend-admin/src/pages/Login.tsx
-// VERSION: 1.0.0
+// VERSION: 2.8.2
 // ROLE: UI_COMPONENT
 // MAP_MODE: SUMMARY
 // START_MODULE_CONTRACT
@@ -15,6 +15,7 @@
 // END_MODULE_MAP
 //
 // START_CHANGE_SUMMARY
+//   LAST_CHANGE: v2.8.2 - Removed login field placeholders and standardized icon input padding.
 //   LAST_CHANGE: v2.8.0 - Added full GRACE MODULE_CONTRACT and MODULE_MAP per GRACE governance protocol
 //   LAST_CHANGE: v2.8.1 - Phase-25 stores admin refresh token so existing 401 refresh retry can operate
 // END_CHANGE_SUMMARY
@@ -121,11 +122,11 @@ export default function Login() {
               <label className="block">
                 <span className="mb-2 block text-sm muted">Email</span>
                 <div className="relative">
-                  <Mail className="absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-500" />
+                  <Mail className="input-icon-left h-5 w-5" />
                   <input
                     type="email"
-                    className="input pl-12"
-                    placeholder="admin@krotpn.com"
+                    className="input input-with-icon-left"
+                    aria-label="Email"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     required
@@ -136,11 +137,11 @@ export default function Login() {
               <label className="block">
                 <span className="mb-2 block text-sm muted">Пароль</span>
                 <div className="relative">
-                  <Lock className="absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-500" />
+                  <Lock className="input-icon-left h-5 w-5" />
                   <input
                     type="password"
-                    className="input pl-12"
-                    placeholder="Введите пароль"
+                    className="input input-with-icon-left"
+                    aria-label="Пароль"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     required

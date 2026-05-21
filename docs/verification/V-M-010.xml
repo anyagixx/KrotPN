@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<V-M-010 MODULE="M-010" PRIORITY="high" STATUS="pass">
+<V-M-010 MODULE="M-010" PRIORITY="high" STATUS="pass" VERSION="1.1.0">
   <module>frontend-admin</module>
   <checks>Admin frontend builds and reflects current admin, Full Tunnel, system, analytics, and device-control surfaces without auth regression.</checks>
   <test-files>frontend-admin/src/main.tsx frontend-admin/src/components/Layout.tsx frontend-admin/src/pages/Login.tsx frontend-admin/src/pages/Dashboard.tsx frontend-admin/src/pages/Users.tsx frontend-admin/src/pages/Devices.tsx frontend-admin/src/pages/Analytics.tsx frontend-admin/src/pages/Servers.tsx frontend-admin/src/pages/Plans.tsx frontend-admin/src/lib/api.ts frontend-admin/src/stores/auth.ts frontend-admin/src/types/index.ts frontend-admin/src/index.css</test-files>
@@ -16,6 +16,8 @@
     <check-4>Device API binding names remain getDevices, blockDevice, unblockDevice, rotateDevice, and revokeDevice.</check-4>
     <check-5>Phase-24 does not change auth/session storage behavior; M-039 owns that in Phase-25.</check-5>
     <check-6>Admin auth store clears admin_refresh_token whenever admin_token is cleared.</check-6>
+    <check-7>Admin login email/password fields do not expose stale default credential placeholders.</check-7>
+    <check-8>Admin inputs with left icons use shared icon padding so the icon and placeholder/value text cannot overlap.</check-8>
   </module-checks>
   <scenarios>
     <scenario-1 kind="success">Admin login route and protected layout still build after compact UI changes.</scenario-1>
@@ -32,5 +34,6 @@
     <evidence-2>2026-05-10: Route/API binding static guard confirmed /users, /devices, /analytics, /api/v1, and existing device endpoint names.</evidence-2>
     <evidence-3>2026-05-10: Phase-25 admin refresh compatibility fix added; rebuild required by V-M-039/V-M-010.</evidence-3>
     <evidence-4>2026-05-10: cd frontend-admin &amp;&amp; npm run build passed after admin refresh-token persistence cleanup.</evidence-4>
+    <evidence-5>2026-05-21: Local admin UI fix removed login placeholders, removed stale admin@krotpn.com fallback copy, and passed frontend-admin build.</evidence-5>
   </evidence>
 </V-M-010>

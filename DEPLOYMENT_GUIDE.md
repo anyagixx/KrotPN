@@ -222,7 +222,7 @@ DATA_ENCRYPTION_KEY=Z7Y8x9w0v1u2t3s4r5q6p7o8n9m0l1k2j3i4h5g6f7e8=
 CORS_ORIGINS=["https://krotpn.com","https://admin.krotpn.com"]
 
 # Admin
-ADMIN_EMAIL=admin@krotpn.com
+ADMIN_EMAIL=admin@krotpn.xyz
 ADMIN_PASSWORD=ChangeMeImmediately123!
 
 # VPN Configuration

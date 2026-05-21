@@ -442,7 +442,7 @@ else
     exit 1
 fi
 
-ADMIN_EMAIL="${ADMIN_EMAIL:-admin@krotpn.com}"
+ADMIN_EMAIL="${ADMIN_EMAIL:-admin@krotpn.xyz}"
 PUBLIC_DOMAIN="$(printf '%s' "${PUBLIC_DOMAIN:-krotpn.xyz}" | tr '[:upper:]' '[:lower:]')"
 TLS_FULLCHAIN_PATH="${TLS_FULLCHAIN_PATH:-/root/krotpn-ssl/fullchain1.pem}"
 TLS_PRIVKEY_PATH="${TLS_PRIVKEY_PATH:-/root/krotpn-ssl/privkey1.pem}"

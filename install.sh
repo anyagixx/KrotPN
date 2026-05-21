@@ -413,7 +413,7 @@ get_admin_config() {
     echo -e "${BLUE}Set production admin credentials for KrotPN:${NC}"
     echo ""
 
-    ask "Admin email" "admin@krotpn.com" ADMIN_EMAIL
+    ask "Admin email" "admin@krotpn.xyz" ADMIN_EMAIL
     if [ -z "$ADMIN_EMAIL" ]; then
         print_error "Admin email is required"
         exit 1

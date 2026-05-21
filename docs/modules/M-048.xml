@@ -8,6 +8,7 @@
     <installer-fullchain-prompt>Prompt for the absolute RU-server fullchain path with /root/krotpn-ssl/fullchain1.pem as the default.</installer-fullchain-prompt>
     <installer-privkey-prompt>Prompt for the absolute RU-server private key path with /root/krotpn-ssl/privkey1.pem as the default.</installer-privkey-prompt>
     <installer-resend-prompt>Prompt for the Resend API key and sender address for production verification emails.</installer-resend-prompt>
+    <installer-admin-email-prompt>Prompt for the production admin email with admin@krotpn.xyz as the default.</installer-admin-email-prompt>
     <remote-cert-validator>Bootstrap openssl when needed, then verify existence, readability, expiry, cert/key match, and SAN coverage before deploy mutates the runtime TLS directory.</remote-cert-validator>
     <edge-env-wiring>Generate DOMAIN, FRONTEND_URL, MTPROTO_BASE_DOMAIN, MTPROTO_BASE_SECRET_HEX, MTPROTO_SECRET_SALT, EMAIL_PROVIDER, RESEND_API_KEY, EMAIL_FROM, and EDGE_TLS_* values for the deployed .env.</edge-env-wiring>
     <mtproto-runtime-env-wiring>Generate MTPROTO_RUNTIME_POLICY_URL, MTPROTO_RUNTIME_TOKEN, MTPROTO_POLICY_PORT, EDGE_SHARED_443_ENABLED, and EDGE_HTTPS_FALLBACK_PORT for the live edge runtime.</mtproto-runtime-env-wiring>
@@ -37,6 +38,7 @@
     <input-3>TLS_PRIVKEY_PATH defaults to /root/krotpn-ssl/privkey1.pem on the RU server.</input-3>
     <input-4>RESEND_API_KEY is entered by the operator and must never be echoed.</input-4>
     <input-5>EMAIL_FROM defaults to noreply@krotpn.xyz.</input-5>
+    <input-6>ADMIN_EMAIL defaults to admin@krotpn.xyz.</input-6>
   </operator-inputs>
   <constraints>
     <constraint-1>Production installs must not fall back to self-signed TLS unless the operator explicitly selects a dev/self-signed mode.</constraint-1>
@@ -70,6 +72,7 @@
     <evidence-7>2026-05-18: Phase-38 plan requires DE runtime TLS/key handling and private policy URL wiring to stay redaction-safe before execution.</evidence-7>
     <evidence-8>2026-05-18: Phase-38 local execution copies wildcard TLS material to DE through scp without printing PEM contents, writes redacted DE runtime env, renders HAProxy runtime config, and sets backend policy URL to the private relay address.</evidence-8>
     <evidence-9>2026-05-19: Clean VPS registration via email and MTProto proxy validation confirm Resend env wiring and wildcard TLS reuse work in production deployment.</evidence-9>
+    <evidence-10>2026-05-21: Local fix updates installer and deploy fallback default admin email to admin@krotpn.xyz.</evidence-10>
   </evidence>
   <hotspot>H-034: Installer-provided wildcard TLS must validate cert/key/domain before deploy and must never log private key material.</hotspot>
 </M-048>

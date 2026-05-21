@@ -168,10 +168,10 @@ export default function Devices() {
           </div>
 
           <div className="relative">
-            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500" />
+            <Search className="input-icon-left" />
             <input
               type="text"
-              className="input pl-10"
+              className="input input-with-icon-left"
               placeholder="Поиск по email, имени, платформе"
               value={search}
               onChange={(event) => setSearch(event.target.value)}

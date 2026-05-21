@@ -184,10 +184,10 @@ export default function MTProtoPage() {
 
           <div className="grid gap-2 sm:grid-cols-[1fr_150px_110px]">
             <div className="relative">
-              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500" />
+              <Search className="input-icon-left" />
               <input
                 type="text"
-                className="input pl-10"
+                className="input input-with-icon-left"
                 placeholder="Email, user id, assignment id, SNI"
                 value={search}
                 onChange={(event) => setSearch(event.target.value)}

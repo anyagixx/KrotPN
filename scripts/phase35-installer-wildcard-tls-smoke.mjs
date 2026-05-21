@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 // FILE: scripts/phase35-installer-wildcard-tls-smoke.mjs
-// VERSION: 1.5.0
+// VERSION: 1.6.0
 // ROLE: SCRIPT
 // MAP_MODE: LOCALS
 // START_MODULE_CONTRACT
@@ -18,6 +18,7 @@
 // END_MODULE_MAP
 //
 // START_CHANGE_SUMMARY
+//   LAST_CHANGE: v1.6.0 - Guard krotpn.xyz default admin email across installer and deploy fallbacks.
 //   LAST_CHANGE: v1.5.0 - Guard MTPROTO_AD_TAG deploy generation for KPprotoN fake-TLS proxy_req compatibility.
 //   LAST_CHANGE: v1.4.0 - Updated MTProto env assertions for Phase-38 DE-backed policy URL and secret preservation.
 //   LAST_CHANGE: v1.3.0 - Added Phase-37 MTProto runtime token and shared-443 edge checks.
@@ -70,6 +71,7 @@ requireText('install.sh', 'START_MODULE_CONTRACT')
 requireText('install.sh', 'DEFAULT_PUBLIC_DOMAIN="krotpn.xyz"')
 requireText('install.sh', 'DEFAULT_TLS_FULLCHAIN_PATH="/root/krotpn-ssl/fullchain1.pem"')
 requireText('install.sh', 'DEFAULT_TLS_PRIVKEY_PATH="/root/krotpn-ssl/privkey1.pem"')
+requireText('install.sh', 'ask "Admin email" "admin@krotpn.xyz" ADMIN_EMAIL')
 requireText('install.sh', 'PUBLIC_DOMAIN) PUBLIC_DOMAIN="$value"')
 requireText('install.sh', 'TLS_FULLCHAIN_PATH) TLS_FULLCHAIN_PATH="$value"')
 requireText('install.sh', 'TLS_PRIVKEY_PATH) TLS_PRIVKEY_PATH="$value"')
@@ -88,6 +90,7 @@ requireText('install.sh', 'get_tls_config')
 requireAbsent('install.sh', 'Note: Browser will warn about self-signed certificate.')
 
 requireText('deploy/deploy-on-server.sh', 'START_MODULE_CONTRACT')
+requireText('deploy/deploy-on-server.sh', 'ADMIN_EMAIL="${ADMIN_EMAIL:-admin@krotpn.xyz}"')
 requireText('deploy/deploy-on-server.sh', 'TLS_CERTIFICATE_MODE="${TLS_CERTIFICATE_MODE:-operator-wildcard}"')
 requireText('deploy/deploy-on-server.sh', 'validate_operator_tls_certificate')
 requireText('deploy/deploy-on-server.sh', 'install_operator_tls_certificate')

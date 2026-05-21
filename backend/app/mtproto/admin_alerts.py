@@ -1,7 +1,7 @@
 """MTProto admin abuse alerts.
 
 # FILE: backend/app/mtproto/admin_alerts.py
-# VERSION: 1.0.0
+# VERSION: 1.1.0
 # ROLE: RUNTIME
 # MAP_MODE: EXPORTS
 # START_MODULE_CONTRACT
@@ -18,11 +18,12 @@
 #   acknowledge_alert - Mark one alert reviewed by admin without enforcement
 #   resolve_alert - Resolve one alert after action or dismissal
 #   mark_alert_action - Persist action outcome on an alert without raw payloads
-#   block_ip_for_alert - Create a TTL-bound IP block record from trusted M-061 evidence
+#   block_ip_for_alert - Create a TTL-bound IP block record from trusted M-061 evidence and archive the alert
 #   apply_alert_retention - Prune old resolved alert history
 # END_MODULE_MAP
 #
 # START_CHANGE_SUMMARY
+#   LAST_CHANGE: v1.1.0 - Resolve reviewed IP-block alerts so actions leave the open inbox and remain archived.
 #   LAST_CHANGE: v1.0.0 - Added Phase-43 MTProto admin abuse alert service
 # END_CHANGE_SUMMARY
 """
@@ -357,7 +358,7 @@ async def mark_alert_action(
 #   PURPOSE: Create a TTL-bound IP block record only from trusted M-061 observation evidence
 #   INPUTS: session; alert_id; ip_observation_id; admin_id; ttl_hours; confirm; confirm_risk
 #   OUTPUTS: safe block dict | None
-#   SIDE_EFFECTS: inserts block record and updates alert action fields
+#   SIDE_EFFECTS: inserts block record and resolves the reviewed alert with action fields
 #   LINKS: M-060, M-061, V-M-060
 # END_CONTRACT: block_ip_for_alert
 # START_BLOCK_BLOCK_IP
@@ -384,7 +385,8 @@ async def block_ip_for_alert(
     if _coerce_aware(observation.last_seen_at) < _utcnow() - timedelta(days=90):
         raise ValueError("IP observation is outside the trusted retention window")
 
-    expires_at = _utcnow() + timedelta(hours=min(max(ttl_hours, 1), 24 * 30))
+    now = _utcnow()
+    expires_at = now + timedelta(hours=min(max(ttl_hours, 1), 24 * 30))
     block = MTProtoBlockedIP(
         assignment_id=observation.assignment_id,
         user_id=observation.user_id,
@@ -398,12 +400,12 @@ async def block_ip_for_alert(
         metadata_json=_safe_metadata(alert_id=alert_id, reason="admin_reviewed_abuse"),
     )
     session.add(block)
-    await mark_alert_action(
-        session,
-        alert_id=alert_id,
-        action_taken="ip_block",
-        action_result="recorded_pending_runtime_enforcement",
-    )
+    alert.status = MTProtoAdminAlertStatus.RESOLVED
+    alert.resolved_at = now
+    alert.resolved_by_admin_id = admin_id
+    alert.action_taken = "ip_block"
+    alert.action_result = "recorded_pending_runtime_enforcement"
+    alert.updated_at = now
     await session.flush()
     logger.info(
         "[M-060][block_ip][CONFIRM_TTL_BLOCK] "

@@ -477,7 +477,7 @@ cd /opt/KrotPN
 SECRET_KEY=$(python3 -c "import secrets; print(secrets.token_urlsafe(32))")
 DATA_KEY=$(python3 -c "from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())")
 DB_PASSWORD=$(python3 -c "import secrets; print(secrets.token_urlsafe(16))")
-ADMIN_EMAIL="${ADMIN_EMAIL:-admin@krotpn.com}"
+ADMIN_EMAIL="${ADMIN_EMAIL:-admin@krotpn.xyz}"
 ADMIN_PASSWORD="${ADMIN_PASSWORD:-$(python3 -c "import secrets; print(secrets.token_urlsafe(24))")}"
 
 cat > .env << EOF
