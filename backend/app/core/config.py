@@ -5,7 +5,8 @@
 # START_MODULE_CONTRACT
 #   PURPOSE: Application configuration and environment variable parsing with validation
 #   SCOPE: Settings model, environment parsing, secret validation, VPN network settings,
-#          AmneziaWG params, anti-abuse, email verification, MTProto knobs, and edge domain/TLS/SNI-router settings
+#          AmneziaWG params, anti-abuse, email verification, MTProto knobs,
+#          edge domain/TLS/SNI-router settings, and router telemetry trust boundaries
 #   DEPENDS: M-032 (vpn-network-addressing-capacity)
 #   LINKS: M-001 (backend-core), M-032, V-M-001, V-M-032
 # END_MODULE_CONTRACT
@@ -24,6 +25,7 @@
 # END_MODULE_MAP
 #
 # START_CHANGE_SUMMARY
+#   LAST_CHANGE: v3.9.0 - Added RU SNI-router telemetry trust settings for real MTProto client IP capture.
 #   LAST_CHANGE: v3.8.0 - Added Phase-42 MTProxy promotion tag setting validation.
 #   LAST_CHANGE: v3.7.0 - Allow Phase-38 private DE MTProto policy targets and edge SNI-router settings.
 #   LAST_CHANGE: v3.6.0 - Added Phase-37 MTProto runtime policy bridge URL and token validation.
@@ -263,6 +265,8 @@ class Settings(BaseSettings):
     mtproto_runtime_timeout_seconds: float = Field(default=3.0, gt=0, le=30)
     mtproto_policy_bind_ip: str = "127.0.0.1"
     mtproto_ad_tag: str = "00000000000000000000000000000000"
+    mtproto_router_trusted_proxy_ips: str = ""
+    mtproto_router_observer_endpoint: str = "http://127.0.0.1:8000/api/v1/mtproto/router-observations"
 
     # Public domain/TLS edge contract
     edge_public_domain: str = "krotpn.xyz"
@@ -484,6 +488,36 @@ class Settings(BaseSettings):
             raise ValueError("MTPROTO_AD_TAG must be exactly 32 hex characters")
         return normalized
 
+    @field_validator("mtproto_router_trusted_proxy_ips")
+    @classmethod
+    def validate_mtproto_router_trusted_proxy_ips(cls, v: str) -> str:
+        normalized_values: list[str] = []
+        for item in (v or "").replace(";", ",").split(","):
+            candidate = item.strip()
+            if not candidate:
+                continue
+            try:
+                address = ipaddress.ip_address(candidate)
+            except ValueError as exc:
+                raise ValueError("MTPROTO_ROUTER_TRUSTED_PROXY_IPS must contain IP addresses only") from exc
+            if address.is_unspecified or address.is_multicast:
+                raise ValueError("MTPROTO_ROUTER_TRUSTED_PROXY_IPS must not include wildcard or multicast addresses")
+            normalized_values.append(str(address))
+        return ",".join(dict.fromkeys(normalized_values))
+
+    @field_validator("mtproto_router_observer_endpoint")
+    @classmethod
+    def validate_mtproto_router_observer_endpoint(cls, v: str) -> str:
+        normalized = v.strip()
+        parsed = urlparse(normalized)
+        if parsed.scheme != "http":
+            raise ValueError("MTPROTO_ROUTER_OBSERVER_ENDPOINT must use http on the private host boundary")
+        if parsed.hostname not in {"127.0.0.1", "localhost"}:
+            raise ValueError("MTPROTO_ROUTER_OBSERVER_ENDPOINT must target localhost")
+        if not parsed.path.startswith("/api/v1/mtproto/router-observations"):
+            raise ValueError("MTPROTO_ROUTER_OBSERVER_ENDPOINT must target the router-observations API")
+        return normalized.rstrip("/")
+
     @field_validator("edge_public_domain", "edge_canonical_host")
     @classmethod
     def validate_edge_domain(cls, v: str) -> str:
@@ -565,6 +599,11 @@ class Settings(BaseSettings):
     def edge_wildcard_domain(self) -> str:
         """Return the wildcard DNS name expected in the trusted edge certificate."""
         return f"*.{self.edge_public_domain}"
+
+    @property
+    def mtproto_trusted_proxy_ip_set(self) -> set[str]:
+        """Return RU/DE router hop IPs that must not be shown as user device IPs."""
+        return {item for item in self.mtproto_router_trusted_proxy_ips.split(",") if item}
 
     @property
     def active_vpn_client_subnet(self) -> str:

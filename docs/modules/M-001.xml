@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <M-001 NAME="backend-core" TYPE="UTILITY" STATUS="stable">
   <path>backend/app/core</path>
-  <owns>settings, security (JWT, password hashing, Fernet encryption, token blacklist), DB sessions, dependency injection, admin bootstrap, topology bootstrap, database migrations, AWG stealth profile settings, anti-abuse runtime settings, verified-registration email settings, and MTProto provisioning settings</owns>
+  <owns>settings, security (JWT, password hashing, Fernet encryption, token blacklist), DB sessions, dependency injection, admin bootstrap, topology bootstrap, database migrations, AWG stealth profile settings, anti-abuse runtime settings, verified-registration email settings, MTProto provisioning settings, and MTProto router telemetry trust settings</owns>
   <exports>
     <fn-settings>Runtime configuration values and environment parsing</fn-settings>
     <fn-init-db>Database initialization and session lifecycle</fn-init-db>
@@ -11,7 +11,7 @@
     <fn-awg-profile-settings>Validated environment settings for CLIENT_PROFILE and RELAY_PROFILE obfuscation values</fn-awg-profile-settings>
     <fn-anti-abuse-settings>Validated ANTI_ABUSE_* mode, scan interval, history window, ping-pong window and cooldown values</fn-anti-abuse-settings>
     <fn-email-verification-settings>EMAIL_PROVIDER, RESEND_API_KEY, RESEND_API_URL, EMAIL_FROM, verification TTL, provider timeout, SMTP credentials, verification URL base, allow/deny/disposable domain knobs, and DNS guard toggle</fn-email-verification-settings>
-    <fn-mtproto-settings>MTPROTO_BASE_DOMAIN, MTPROTO_PROXY_PORT, MTPROTO_BASE_SECRET_HEX, MTPROTO_SECRET_SALT, MTPROTO_SNI_PREFIX, and MTPROTO_ROTATION_MARKER validation with blank optional secrets normalized to unset</fn-mtproto-settings>
+    <fn-mtproto-settings>MTPROTO_BASE_DOMAIN, MTPROTO_PROXY_PORT, MTPROTO_BASE_SECRET_HEX, MTPROTO_SECRET_SALT, MTPROTO_SNI_PREFIX, MTPROTO_ROTATION_MARKER, MTPROTO_ROUTER_TRUSTED_PROXY_IPS, and MTPROTO_ROUTER_OBSERVER_ENDPOINT validation with blank optional secrets normalized to unset</fn-mtproto-settings>
     <fn-edge-domain-settings>EDGE_PUBLIC_DOMAIN, EDGE_CANONICAL_HOST, EDGE_TLS_CERTIFICATE_PATH, EDGE_TLS_CERTIFICATE_KEY_PATH, EDGE_TLS_CERTIFICATE_MODE, and EDGE_SHARED_443_ENABLED validation</fn-edge-domain-settings>
   </exports>
   <depends>M-028</depends>
@@ -43,5 +43,6 @@
   <evidence>
     <evidence-1>2026-05-17: Clean VPS Phase-35 hotfix normalized blank MTProto secret env values to None so backend startup can degrade MTProto provisioning instead of crashing normal KrotPN runtime.</evidence-1>
     <evidence-2>2026-05-17: Phase-36 added Settings validators for Resend API key format, canonical Resend API URL, and EMAIL_FROM sender syntax.</evidence-2>
+    <evidence-3>2026-05-21: Local fix added localhost-only router-observer endpoint validation and trusted router-hop IP parsing for MTProto real client IP telemetry.</evidence-3>
   </evidence>
 </M-001>

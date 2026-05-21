@@ -1,13 +1,15 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <M-055 NAME="mtproto-runtime-telemetry-bridge" TYPE="INTEGRATION" STATUS="pass-local-phase43">
-  <path>mtproto-runtime/apps/kpproton_proxy/src/mtproto/kpproton_usage_telemetry.erl mtproto-runtime/apps/kpproton_proxy/src/mtproto/kpproton_usage_metric_backend.erl mtproto-runtime/apps/kpproton_proxy/src/mtproto/kpproton_usage_sampler.erl mtproto-runtime/src/kpproton_app.erl mtproto-runtime/src/kpproton_sup.erl mtproto-runtime/src/kpproton_policy_handler.erl mtproto-runtime/src/kpproton_web.erl backend/app/mtproto/runtime_bridge.py backend/app/mtproto/usage_ingestion.py backend/app/tasks/scheduler.py scripts/phase42-mtproto-telemetry-smoke.mjs scripts/phase43-mtproto-admin-analytics-smoke.mjs docs/plans/Phase-42.xml docs/plans/Phase-43.xml</path>
-  <owns>Secret-free telemetry extraction from the KPprotoN runtime, mtproto_proxy metric backend, active-SNI sampler, private telemetry API, backend ingestion, and bounded runtime buffers.</owns>
-  <purpose>Move runtime connection, traffic, error, unknown-SNI, and req_pq metadata from the DE edge into KrotPN analytics safely.</purpose>
+  <path>mtproto-runtime/apps/kpproton_proxy/src/mtproto/kpproton_usage_telemetry.erl mtproto-runtime/apps/kpproton_proxy/src/mtproto/kpproton_usage_metric_backend.erl mtproto-runtime/apps/kpproton_proxy/src/mtproto/kpproton_usage_sampler.erl mtproto-runtime/src/kpproton_app.erl mtproto-runtime/src/kpproton_sup.erl mtproto-runtime/src/kpproton_policy_handler.erl mtproto-runtime/src/kpproton_web.erl backend/app/mtproto/runtime_bridge.py backend/app/mtproto/router.py backend/app/mtproto/usage_ingestion.py backend/app/tasks/scheduler.py deploy/sni-router-telemetry.py deploy/haproxy-phase38.cfg scripts/phase42-mtproto-telemetry-smoke.mjs scripts/phase43-mtproto-admin-analytics-smoke.mjs docs/plans/Phase-42.xml docs/plans/Phase-43.xml</path>
+  <owns>Secret-free telemetry extraction from the KPprotoN runtime, RU SNI-router real client IP observations, mtproto_proxy metric backend, active-SNI sampler, private telemetry API, backend ingestion, and bounded runtime buffers.</owns>
+  <purpose>Move runtime connection, traffic, error, unknown-SNI, req_pq, and trusted real client IP metadata into KrotPN analytics safely.</purpose>
   <exports>
     <runtime-telemetry-event>Handshake, close, bytes, error, unknown_sni, rejected_sni, active_connection, and req_pq proof metadata event.</runtime-telemetry-event>
     <runtime-resource-snapshot>Phase-43 proxy CPU, RAM, uptime, dropped telemetry, and buffer health summary for admin runtime health.</runtime-resource-snapshot>
     <api-runtime-telemetry-snapshot>Token-protected private runtime endpoint returning current counters without draining them.</api-runtime-telemetry-snapshot>
     <api-runtime-telemetry-drain>Token-protected private runtime endpoint returning and acknowledging new events by cursor.</api-runtime-telemetry-drain>
+    <api-router-observations>Token-protected backend endpoint for RU SNI-router real client IP observations before RU-to-DE proxying.</api-router-observations>
+    <ru-sni-router-telemetry>Local UDP syslog collector forwarding SNI/client-IP observations without persisting raw IP logs.</ru-sni-router-telemetry>
     <task-mtproto-telemetry-ingest>Scheduled backend task that polls the runtime and writes M-054 records.</task-mtproto-telemetry-ingest>
   </exports>
   <depends>M-001,M-012,M-044,M-049,M-050,M-054</depends>
@@ -20,13 +22,16 @@
     <file status="implemented">mtproto-runtime/src/kpproton_sup.erl</file>
     <file status="implemented">mtproto-runtime/src/kpproton_policy_handler.erl</file>
     <file status="implemented">mtproto-runtime/src/kpproton_web.erl</file>
+    <file status="implemented">backend/app/mtproto/router.py</file>
     <file status="implemented">backend/app/mtproto/usage_ingestion.py</file>
     <file status="implemented">backend/app/tasks/scheduler.py</file>
+    <file status="implemented">deploy/sni-router-telemetry.py</file>
+    <file status="implemented">deploy/haproxy-phase38.cfg</file>
     <file status="implemented">scripts/phase42-mtproto-telemetry-smoke.mjs</file>
     <file status="implemented">scripts/phase43-mtproto-admin-analytics-smoke.mjs</file>
     <file status="implemented">backend/tests/test_mtproto_runtime_telemetry_bridge.py</file>
   </files>
-  <evidence>pass-local 2026-05-20: runtime telemetry resource metrics, backend snapshot adapter, integer client_ipv4 counter decoding, scheduler regression, Phase-42/43 static smokes, targeted backend tests, and mtproto-runtime rebar3 compile passed.</evidence>
+  <evidence>pass-local 2026-05-21: runtime telemetry resource metrics, backend snapshot adapter, integer client_ipv4 counter decoding, RU SNI-router real-IP collector handoff, scheduler regression, Phase-38/43 static smokes, targeted backend tests, and mtproto-runtime rebar3 compile passed.</evidence>
   <runtime-contract>
     <item-1>Telemetry API is private and protected by the existing runtime token or a dedicated telemetry token.</item-1>
     <item-2>Runtime buffers are bounded and loss-tolerant; overflow increments a dropped_events counter rather than blocking proxy traffic.</item-2>
@@ -35,6 +40,7 @@
     <item-5>Traffic bytes are exact globally; per-SNI byte attribution is emitted only when one active domain is visible, otherwise events remain global_runtime to avoid false user attribution.</item-5>
     <item-6>Phase-43 client IP metadata is emitted only from mtproto_proxy tls_domain/client_ipv4 policy counters as ip_observation events, including mtproto_proxy integer IPv4 counter keys; otherwise source_ip_unavailable must be explicit.</item-6>
     <item-7>ip_observation events are for M-061 admin-only IP state and must not be treated as usage traffic or session counters.</item-7>
+    <item-8>In DE-backed mode, RU SNI-router observations are the authoritative real client IP source; DE runtime router-hop IPs must be filtered as trusted proxy hops.</item-8>
   </runtime-contract>
   <constraints>
     <constraint-1>No full tg links, derived secrets, base secret, salt, runtime token, or private keys in runtime events.</constraint-1>

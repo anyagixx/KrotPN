@@ -1,11 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<V-M-061 MODULE="M-061" PRIORITY="critical" STATUS="pass-local-phase43" VERSION="1.2.0">
+<V-M-061 MODULE="M-061" PRIORITY="critical" STATUS="pass-local-phase43" VERSION="1.3.0">
   <purpose>Verify encrypted admin-only MTProto client IP observability and 90-day retention.</purpose>
   <module-ref>M-061</module-ref>
   <test-files>
     <file status="pass-local">backend/tests/test_mtproto_ip_observability.py</file>
     <file status="pass-local">backend/tests/test_mtproto_usage_telemetry.py</file>
     <file status="pass-local">backend/tests/test_db_migrations.py</file>
+    <file status="pass-local">deploy/sni-router-telemetry.py</file>
   </test-files>
   <verification-levels>
     <module-local>Repository/model tests prove encryption, upsert, active/current/last derivation, redaction, and 90-day retention.</module-local>
@@ -19,6 +20,8 @@
     <check-4>source_ip_unavailable events do not create fake IP observations.</check-4>
     <check-5>90-day prune deletes expired exact IP rows and logs only counts.</check-5>
     <check-6>Admin-only list decrypts only the requested user's/proxy's observations with pagination.</check-6>
+    <check-7>Configured router-hop IPs are ignored on write and filtered before Current IP, Last IP, IP history count, and pagination.</check-7>
+    <check-8>RU SNI-router token endpoint can ingest real client IP observations by SNI and write encrypted M-061 rows.</check-8>
   </module-checks>
   <scenarios>
     <scenario-1>Handshake telemetry with client IP creates or updates one encrypted IP observation for the assignment and user.</scenario-1>
@@ -27,9 +30,11 @@
     <scenario-4>IP hash and coarse prefix remain available for abuse detection without decrypting raw IP.</scenario-4>
     <scenario-5>Retention prunes exact IP observations older than 90 days and preserves rollups needed for three-month graphs.</scenario-5>
     <scenario-6>Backup and XML/test smoke output do not include decrypted IP material.</scenario-6>
+    <scenario-7>DE runtime reports the RU router public IP, but M-061 filters it and prefers the RU SNI-router real client observation.</scenario-7>
   </scenarios>
   <commands>
     <command status="pass-local">cd backend &amp;&amp; SECRET_KEY=test-secret-key-with-enough-length DATA_ENCRYPTION_KEY=dpFmfSVqfdAK3yx5MQV6Tcv35RZuw5MzaH0yhxJ01q0= PYTHONPATH=. ../.venv/bin/python -m pytest -o addopts='' tests/test_mtproto_ip_observability.py tests/test_mtproto_usage_telemetry.py tests/test_db_migrations.py -v</command>
+    <command status="pass-local">python3 -m py_compile deploy/sni-router-telemetry.py &amp;&amp; node scripts/phase43-mtproto-admin-analytics-smoke.mjs</command>
     <command status="pass-local">python3 -m xml.etree.ElementTree docs/verification/V-M-061.xml docs/modules/M-061.xml docs/plans/Phase-43.xml docs/verification-index.xml docs/graph-index.xml docs/plan-index.xml</command>
   </commands>
   <redaction-rules>
@@ -43,11 +48,12 @@
     <marker>[M-061][apply_ip_retention][RETENTION_PRUNE]</marker>
     <marker>[M-061][current_ip_summary][SOURCE_UNAVAILABLE]</marker>
     <marker>[M-061][decrypt_ip_observation][ADMIN_ONLY]</marker>
+    <marker>[M-061][record_ip_observation][TRUSTED_PROXY_HOP_SKIP]</marker>
   </log-markers>
   <acceptance>
     <item-1>Exact IP history is available to admins for the requested 90-day window.</item-1>
     <item-2>Raw IP storage is encrypted and redaction tests fail closed on accidental non-admin exposure.</item-2>
     <item-3>Retention bounds storage growth while preserving operational history through rollups.</item-3>
   </acceptance>
-  <evidence>pass-local 2026-05-20: encrypted IP observation tests, runtime ip_observation client_ip handoff, current/last/all IP derivation, 90-day prune, source_ip_unavailable handling, admin-only detail route, usage telemetry no-inflation handoff, and migration metadata guard passed.</evidence>
+  <evidence>pass-local 2026-05-21: encrypted IP observation tests, RU SNI-router real client IP handoff, trusted router-hop filtering, runtime ip_observation client_ip handoff, current/last/all IP derivation, 90-day prune, source_ip_unavailable handling, admin-only detail route, usage telemetry no-inflation handoff, and migration metadata guard passed.</evidence>
 </V-M-061>

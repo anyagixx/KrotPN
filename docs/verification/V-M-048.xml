@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<V-M-048 MODULE="M-048" PRIORITY="critical" STATUS="pass-live-phase41" VERSION="2.1.0">
+<V-M-048 MODULE="M-048" PRIORITY="critical" STATUS="pass-live-phase41" VERSION="2.2.0">
   <module>installer-wildcard-tls</module>
   <phase-scope>
     <phase-35 status="pass-live">Installer flow for operator-provided wildcard TLS certificate paths, validation, env wiring, and reusable deploy installation passed local/static checks and clean VPS wildcard TLS deploy.</phase-35>
@@ -10,6 +10,7 @@
   <test-files>
     <file>install.sh</file>
     <file>deploy/deploy-on-server.sh</file>
+    <file>deploy/sni-router-telemetry.py</file>
     <file>nginx/nginx.conf</file>
     <file>docker-compose.yml</file>
     <file>.env.example</file>
@@ -36,6 +37,7 @@
     <command-8 status="pass-local">node scripts/phase37-mtproto-runtime-smoke.mjs</command-8>
     <command-9 status="pass-live">operator-live: after Resend verifies krotpn.xyz, run one controlled-mailbox registration smoke with redacted evidence.</command-9>
     <command-10 status="pass-local">node scripts/phase38-de-mtproto-edge-smoke.mjs</command-10>
+    <command-11 status="pass-local">python3 -m py_compile deploy/sni-router-telemetry.py</command-11>
   </commands>
   <verification-levels>
     <module-local>M-048 source smoke proves prompts, dynamic input validators, default paths, RU openssl bootstrap, remote certificate validation, production self-signed guard, safe cert install, deploy-generated MTProto secrets, MTProto runtime token, Resend email env, and edge env wiring.</module-local>
@@ -63,6 +65,7 @@
     <check-18 evidence="phase-38-deterministic">Generated or preserved env values include DE runtime policy URL, RU SNI router targets, DE runtime target, and redaction-safe TLS material handling.</check-18>
     <check-19 evidence="phase-38-security">Wildcard private key delivery to DE is validated as necessary for runtime TLS but never printed, embedded in XML, or echoed through installer/deploy output.</check-19>
     <check-20 evidence="deterministic">Installer and deploy fallbacks default ADMIN_EMAIL to admin@krotpn.xyz, not the old admin@krotpn.com value.</check-20>
+    <check-21 evidence="deterministic">Deploy writes MTPROTO_ROUTER_TRUSTED_PROXY_IPS and installs krotpn-sni-router-telemetry.service for real client IP observation.</check-21>
   </module-checks>
   <verification-matrix>
     <gate-1 MODULES="M-048,M-012" EVIDENCE="deterministic">Installer UX collects domain and certificate paths only after RU SSH connectivity can support remote validation.</gate-1>
@@ -74,6 +77,7 @@
     <gate-7 MODULES="M-048,M-040,M-041" EVIDENCE="operator-live" STATUS="passed">Clean VPS registration sends a verification email through Resend after the domain is verified.</gate-7>
     <gate-8 MODULES="M-048,M-049" EVIDENCE="deterministic">Installer/deploy runtime env wiring is sufficient for backend and mtproto-edge to share the local policy API token.</gate-8>
     <gate-9 MODULES="M-048,M-050" EVIDENCE="deterministic">Installer/deploy runtime env wiring is sufficient for backend to reach the private DE policy API and for RU SNI router to reach DE runtime.</gate-9>
+    <gate-10 MODULES="M-048,M-055,M-061" EVIDENCE="deterministic">Installer/deploy wires the RU router observer without exposing raw IPs or runtime tokens in deploy logs.</gate-10>
   </verification-matrix>
   <scenarios>
     <scenario-1 kind="success">Operator places /root/krotpn-ssl/fullchain1.pem and /root/krotpn-ssl/privkey1.pem on RU, accepts default krotpn.xyz prompts, and deploy completes with trusted TLS paths.</scenario-1>
@@ -98,6 +102,7 @@
     <marker-6>[M-048][deploy_tls][INSTALL_CERT]</marker-6>
     <marker-7>[M-048][deploy_tls][ABORT_BEFORE_DEPLOY]</marker-7>
     <marker-8>[M-048][deploy_tls][ENV_WIRING]</marker-8>
+    <marker-9>[M-055][sni_router_telemetry][LISTEN]</marker-9>
   </required-log-markers>
   <redaction-rules>
     <rule-1>Never print private key contents, certificate PEM bodies, .env secrets, RESEND_API_KEY, MTPROTO_BASE_SECRET_HEX, MTPROTO_SECRET_SALT, JWTs, refresh tokens, or email verification tokens.</rule-1>
@@ -112,6 +117,7 @@
     <metric-5>self_signed_fallback_attempt_count tagged dev-mode or blocked-production.</metric-5>
     <metric-6>deploy_resend_config_result tagged configured, missing-key, invalid-sender, or redacted without API key value.</metric-6>
     <metric-7>deploy_mtproto_runtime_config_result tagged configured, missing-token, invalid-url, or redacted without token value.</metric-7>
+    <metric-8>deploy_router_observer_config_result tagged configured, missing-token, or service-failed without raw IP values.</metric-8>
   </telemetry-requirements>
   <live-smoke-gates>
     <gate-1>DNS for krotpn.xyz points to the target RU edge host.</gate-1>

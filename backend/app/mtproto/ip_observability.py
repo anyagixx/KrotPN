@@ -1,7 +1,7 @@
 """MTProto admin-only IP observability.
 
 # FILE: backend/app/mtproto/ip_observability.py
-# VERSION: 1.1.0
+# VERSION: 1.3.0
 # ROLE: RUNTIME
 # MAP_MODE: EXPORTS
 # START_MODULE_CONTRACT
@@ -22,6 +22,8 @@
 # END_MODULE_MAP
 #
 # START_CHANGE_SUMMARY
+#   LAST_CHANGE: v1.3.0 - Apply trusted proxy-hop filtering before IP history count and pagination.
+#   LAST_CHANGE: v1.2.0 - Ignore configured RU/DE router hop IPs so admin IP history shows user devices only.
 #   LAST_CHANGE: v1.1.0 - Added idempotent runtime IP observation samples for per-client active/last IP state.
 #   LAST_CHANGE: v1.0.0 - Added Phase-43 encrypted MTProto IP observability service
 # END_CHANGE_SUMMARY
@@ -74,6 +76,17 @@ def _hash_client_ip(client_ip: str) -> str:
     return digest[:40]
 
 
+def _trusted_proxy_ip_hashes() -> set[str]:
+    return {
+        _hash_client_ip(proxy_ip)
+        for proxy_ip in settings.mtproto_trusted_proxy_ip_set
+    }
+
+
+def _is_trusted_proxy_hop(client_ip: str) -> bool:
+    return client_ip in settings.mtproto_trusted_proxy_ip_set
+
+
 def _coarse_ip_prefix(client_ip: str) -> str:
     address = ipaddress.ip_address(client_ip)
     if address.version == 4:
@@ -115,6 +128,12 @@ async def record_ip_observation(
     """Persist one exact client IP observation encrypted at rest."""
     normalized_ip = _normalize_ip(client_ip)
     if normalized_ip is None:
+        return None
+    if _is_trusted_proxy_hop(normalized_ip):
+        logger.info(
+            "[M-061][record_ip_observation][TRUSTED_PROXY_HOP_SKIP] "
+            f"assignment_id={assignment_id} user_id={user_id}"
+        )
         return None
 
     ip_hash = _hash_client_ip(normalized_ip)
@@ -262,6 +281,9 @@ async def list_user_ip_observations(
         conditions.append(MTProtoIPObservation.user_id == user_id)
     if assignment_id is not None:
         conditions.append(MTProtoIPObservation.assignment_id == assignment_id)
+    trusted_proxy_hashes = _trusted_proxy_ip_hashes()
+    if trusted_proxy_hashes:
+        conditions.append(MTProtoIPObservation.ip_hash.notin_(trusted_proxy_hashes))
 
     safe_offset = max(offset, 0)
     safe_limit = min(max(limit, 1), 500)
@@ -273,9 +295,10 @@ async def list_user_ip_observations(
         .offset(safe_offset)
         .limit(safe_limit)
     )
+    observations = list(result.scalars().all())
     items = [
         _serialize_observation(row, admin_id=admin_id, include_decrypted=include_decrypted)
-        for row in result.scalars().all()
+        for row in observations
     ]
     logger.info(
         "[M-061][list_user_ip_observations][ADMIN_SCOPE] "
@@ -308,6 +331,9 @@ async def current_ip_summary(
         conditions.append(MTProtoIPObservation.assignment_id == assignment_id)
     if user_id is not None:
         conditions.append(MTProtoIPObservation.user_id == user_id)
+    trusted_proxy_hashes = _trusted_proxy_ip_hashes()
+    if trusted_proxy_hashes:
+        conditions.append(MTProtoIPObservation.ip_hash.notin_(trusted_proxy_hashes))
 
     result = await session.execute(
         select(MTProtoIPObservation)

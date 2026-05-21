@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 // FILE: scripts/phase38-de-mtproto-edge-smoke.mjs
-// VERSION: 1.4.0
+// VERSION: 1.5.0
 // ROLE: SCRIPT
 // MAP_MODE: LOCALS
 // START_MODULE_CONTRACT
@@ -17,6 +17,7 @@
 // END_MODULE_MAP
 //
 // START_CHANGE_SUMMARY
+//   LAST_CHANGE: v1.5.0 - Guard local SNI-router syslog handoff for real client IP observations.
 //   LAST_CHANGE: v1.4.0 - Guard DE KPprotoN PROXY_AD_TAG zero default required for Telegram proxy_req responses.
 //   LAST_CHANGE: v1.3.0 - Restore DE runtime checks to KPprotoN fake-TLS fallback on private 18443.
 //   LAST_CHANGE: v1.2.0 - Guard DE runtime bootstrap URL against private POLICY_LISTEN_IP binding.
@@ -53,6 +54,10 @@ requireText('deploy/haproxy-phase38.cfg', 'bind *:443')
 requireText('deploy/haproxy-phase38.cfg', '[M-050][ru_sni_router][ROUTE_WEB]')
 requireText('deploy/haproxy-phase38.cfg', '[M-050][ru_sni_router][ROUTE_MTPROTO]')
 requireText('deploy/haproxy-phase38.cfg', '[M-050][ru_sni_router][ROUTE_UNKNOWN_SNI]')
+requireText('deploy/haproxy-phase38.cfg', '[M-055][ru_sni_router][CLIENT_IP_OBSERVATION]')
+requireText('deploy/haproxy-phase38.cfg', 'log 127.0.0.1:1514 local0 info')
+requireText('deploy/haproxy-phase38.cfg', 'option logasap')
+requireText('deploy/haproxy-phase38.cfg', 'tcp-request content capture req.ssl_sni len 128')
 requireText('deploy/haproxy-phase38.cfg', 'acl sni_web req.ssl_sni -i krotpn.xyz www.krotpn.xyz')
 requireText('deploy/haproxy-phase38.cfg', '^u-[0-9a-f]{12}\\.krotpn\\.xyz$')
 requireText('deploy/haproxy-phase38.cfg', 'server ru_nginx_9443 127.0.0.1:9443 check')
@@ -102,9 +107,13 @@ requireText('deploy/deploy-on-server.sh', '[M-050][de_policy_api][HEALTH]')
 requireText('deploy/deploy-on-server.sh', 'generate_or_preserve_secret MTPROTO_BASE_SECRET_HEX')
 requireText('deploy/deploy-on-server.sh', 'generate_or_preserve_secret MTPROTO_SECRET_SALT')
 requireText('deploy/deploy-on-server.sh', 'generate_or_preserve_secret MTPROTO_AD_TAG')
+requireText('deploy/deploy-on-server.sh', 'MTPROTO_ROUTER_TRUSTED_PROXY_IPS=${RU_IP}')
+requireText('deploy/deploy-on-server.sh', 'krotpn-sni-router-telemetry.service')
+requireText('deploy/deploy-on-server.sh', 'deploy/sni-router-telemetry.py')
 
 requireText('.env.example', 'MTPROTO_RUNTIME_POLICY_URL=http://172.29.255.1:18080/krotpn/mtproto/policy')
 requireText('.env.example', 'MTPROTO_POLICY_BIND_IP=172.29.255.1')
+requireText('.env.example', 'MTPROTO_ROUTER_OBSERVER_ENDPOINT=http://127.0.0.1:8000/api/v1/mtproto/router-observations')
 requireText('.env.example', 'EDGE_HTTPS_FALLBACK_PORT=9443')
 requireText('.env.example', 'EDGE_MTPROTO_MODE=de-backed')
 requireText('.env.example', 'EDGE_MTPROTO_DE_TARGET_HOST=203.0.113.10')

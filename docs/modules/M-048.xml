@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <M-048 NAME="installer-wildcard-tls" TYPE="ENTRY_POINT" STATUS="pass-live-phase41">
-  <path>install.sh deploy/deploy-on-server.sh nginx docker-compose.yml .env.example scripts/phase35-installer-wildcard-tls-smoke.mjs scripts/phase36-resend-deploy-smoke.mjs scripts/phase37-mtproto-runtime-smoke.mjs scripts/phase38-de-mtproto-edge-smoke.mjs docs/plans/Phase-35.xml docs/plans/Phase-36.xml docs/plans/Phase-37.xml docs/plans/Phase-38.xml</path>
+  <path>install.sh deploy/deploy-on-server.sh deploy/sni-router-telemetry.py nginx docker-compose.yml .env.example scripts/phase35-installer-wildcard-tls-smoke.mjs scripts/phase36-resend-deploy-smoke.mjs scripts/phase37-mtproto-runtime-smoke.mjs scripts/phase38-de-mtproto-edge-smoke.mjs docs/plans/Phase-35.xml docs/plans/Phase-36.xml docs/plans/Phase-37.xml docs/plans/Phase-38.xml</path>
   <owns>installer prompts, remote wildcard certificate validation, deploy-time certificate installation, production edge env wiring, Phase-36 Resend email env prompts, Phase-37 MTProto runtime token/env wiring, planned Phase-38 DE-backed edge wiring, and operator-safe TLS reuse.</owns>
   <purpose>Make fresh deploys accept an operator-provided wildcard certificate instead of reissuing or silently generating production self-signed TLS material.</purpose>
   <exports>
@@ -13,12 +13,14 @@
     <edge-env-wiring>Generate DOMAIN, FRONTEND_URL, MTPROTO_BASE_DOMAIN, MTPROTO_BASE_SECRET_HEX, MTPROTO_SECRET_SALT, EMAIL_PROVIDER, RESEND_API_KEY, EMAIL_FROM, and EDGE_TLS_* values for the deployed .env.</edge-env-wiring>
     <mtproto-runtime-env-wiring>Generate MTPROTO_RUNTIME_POLICY_URL, MTPROTO_RUNTIME_TOKEN, MTPROTO_POLICY_PORT, EDGE_SHARED_443_ENABLED, and EDGE_HTTPS_FALLBACK_PORT for the live edge runtime.</mtproto-runtime-env-wiring>
     <phase38-de-edge-env-wiring>Plan DE runtime policy URL, RU SNI router targets, and cert reuse without printing token, private key, or proxy secrets.</phase38-de-edge-env-wiring>
+    <router-observer-service-wiring>Install the local RU SNI-router telemetry systemd service and trusted router-hop env values.</router-observer-service-wiring>
   </exports>
   <depends>M-001,M-012,M-044,M-046,M-049,M-050</depends>
   <verification-ref>V-M-048</verification-ref>
   <files>
     <file>install.sh</file>
     <file>deploy/deploy-on-server.sh</file>
+    <file>deploy/sni-router-telemetry.py</file>
     <file>deploy/haproxy-phase38.cfg</file>
     <file>deploy/mtproto-de-compose.yml</file>
     <file>nginx/nginx.conf</file>
@@ -51,6 +53,7 @@
     <constraint-8>Fresh deploys must generate an MTPROTO_RUNTIME_TOKEN and must not print it or reuse it outside the localhost policy bridge.</constraint-8>
     <constraint-9>Hotfix deploys must preserve existing MTPROTO_BASE_SECRET_HEX and MTPROTO_SECRET_SALT so already-issued Telegram proxy links remain valid.</constraint-9>
     <constraint-10>Phase-38 must not expose the DE policy API publicly and must not print wildcard private key material while preparing DE runtime TLS.</constraint-10>
+    <constraint-11>Router client-IP telemetry must use localhost-only handoff and must not print raw user IPs into deploy logs.</constraint-11>
   </constraints>
   <planned-execution>
     <step-1 STATUS="pass-local">Extend install.sh prompt allowlist and interactive flow for domain, fullchain path, and privkey path after RU SSH credentials are known.</step-1>
@@ -73,6 +76,7 @@
     <evidence-8>2026-05-18: Phase-38 local execution copies wildcard TLS material to DE through scp without printing PEM contents, writes redacted DE runtime env, renders HAProxy runtime config, and sets backend policy URL to the private relay address.</evidence-8>
     <evidence-9>2026-05-19: Clean VPS registration via email and MTProto proxy validation confirm Resend env wiring and wildcard TLS reuse work in production deployment.</evidence-9>
     <evidence-10>2026-05-21: Local fix updates installer and deploy fallback default admin email to admin@krotpn.xyz.</evidence-10>
+    <evidence-11>2026-05-21: Local fix wires MTPROTO_ROUTER_TRUSTED_PROXY_IPS and krotpn-sni-router-telemetry.service for clean deploys.</evidence-11>
   </evidence>
   <hotspot>H-034: Installer-provided wildcard TLS must validate cert/key/domain before deploy and must never log private key material.</hotspot>
 </M-048>

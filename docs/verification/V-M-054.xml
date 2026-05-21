@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<V-M-054 MODULE="M-054" PRIORITY="critical" STATUS="pass-local-phase43" PHASE-43="pass-local" VERSION="1.5.0">
+<V-M-054 MODULE="M-054" PRIORITY="critical" STATUS="pass-local-phase43" PHASE-43="pass-local" VERSION="1.6.0">
   <module>mtproto-usage-telemetry</module>
   <checks>Usage event, session, rollup, last-seen, and abuse-signal persistence is idempotent, bounded, restore-safe, and secret-free.</checks>
   <test-files>
@@ -7,8 +7,8 @@
     <file status="pass-local">backend/tests/test_mtproto_ip_observability.py</file>
     <file status="pass-local">backend/tests/test_db_migrations.py</file>
   </test-files>
-  <commands>pass-local 2026-05-20: cd backend &amp;&amp; SECRET_KEY=test-secret-key-with-enough-length DATA_ENCRYPTION_KEY=dpFmfSVqfdAK3yx5MQV6Tcv35RZuw5MzaH0yhxJ01q0= PYTHONPATH=. ../.venv/bin/python -m pytest -o addopts='' tests/test_mtproto_analytics_service.py tests/test_mtproto_admin_analytics_api.py tests/test_mtproto_ip_observability.py tests/test_mtproto_runtime_telemetry_bridge.py -v</commands>
-  <evidence>Phase-43 live-feedback backend wave passed with V-M-061 encrypted IP handoff, IP_OBSERVATION no-inflation guards, runtime client_ip parsing, M-054 retention budget checks, and existing usage telemetry regressions.</evidence>
+  <commands>pass-local 2026-05-21: cd backend &amp;&amp; SECRET_KEY=test-secret-key-with-enough-length DATA_ENCRYPTION_KEY=dpFmfSVqfdAK3yx5MQV6Tcv35RZuw5MzaH0yhxJ01q0= PYTHONPATH=. ../.venv/bin/python -m pytest -o addopts='' tests/test_mtproto_ip_observability.py tests/test_mtproto_runtime_telemetry_bridge.py tests/test_mtproto_admin_analytics_api.py tests/test_mtproto_usage_telemetry.py -v</commands>
+  <evidence>Phase-43 live-feedback backend wave passed with V-M-061 encrypted IP handoff, RU SNI-router real-client-IP ingestion, trusted router-hop skip before persistence, IP_OBSERVATION no-inflation guards, runtime client_ip parsing, M-054 retention budget checks, and existing usage telemetry regressions.</evidence>
   <verification-levels>
     <module-local>Exercise Alembic migration metadata, repository idempotency, last-seen updates, session state transitions, rollup writes, and retention pruning with synthetic telemetry fixtures.</module-local>
     <wave-level>Run with V-M-055 and V-M-056 so runtime ingestion writes M-054 rows and analytics can consume them without schema drift.</wave-level>
@@ -20,6 +20,7 @@
     <check-2>Session summaries remain available for 90 days so user detail can show duration, connection count, and last/current activity.</check-2>
     <check-3>IP-bearing telemetry is normalized into hash/prefix fields in M-054 and delegated to M-061 for encrypted raw IP storage.</check-3>
     <check-4>Retention jobs report deleted counts and storage-budget status without printing raw IPs or secrets.</check-4>
+    <check-5>Configured trusted router-hop IPs are skipped for IP_OBSERVATION before raw-event persistence and encrypted admin IP handoff.</check-5>
   </phase-43-checks>
   <module-checks>
     <check-1>Migration creates event, session, rollup, last-seen, and abuse-signal storage with indexes needed by admin filters.</check-1>
@@ -30,6 +31,7 @@
     <check-6>Client address analytics use HMAC/hash or coarse prefix fields by default, not raw public IP values.</check-6>
     <check-7>Hourly, daily, weekly, and monthly rollups preserve byte counters, connection count, duration, and errors.</check-7>
     <check-8>Raw event retention is bounded while rollups remain available for admin reporting and future restore checks.</check-8>
+    <check-9>Trusted RU/DE proxy-hop addresses never become user-visible IP evidence or general distinct-user IP telemetry.</check-9>
   </module-checks>
   <scenarios>
     <scenario-1>Known assignment handshake updates last_seen and creates or updates a session without storing secrets.</scenario-1>
@@ -38,6 +40,7 @@
     <scenario-4>Duplicate runtime event ids do not double-count usage.</scenario-4>
     <scenario-5>Retention pruning deletes old raw events but leaves aggregate rollups intact.</scenario-5>
     <scenario-6>Phase-43 retention keeps three-month operational history through sessions, rollups, and M-061 IP observations while bounding raw event volume.</scenario-6>
+    <scenario-7>RU SNI-router sends both a real client IP and the router's own IP; only the real client IP is written and surfaced.</scenario-7>
   </scenarios>
   <telemetry-requirements>
     <field-runtime-event-id>Stable opaque id from runtime for idempotency.</field-runtime-event-id>
@@ -48,6 +51,7 @@
     <field-client-identity>ip_hash or ip_prefix only; raw public IP is excluded by default.</field-client-identity>
     <field-phase43-raw-ip-handoff>Encrypted raw IP is outside M-054 storage and must be written through M-061 admin-only observability.</field-phase43-raw-ip-handoff>
     <field-ip-observation-scope>ip_observation events update M-061 IP state and abuse evidence but are excluded from traffic, session, top-user, and timeseries usage counters.</field-ip-observation-scope>
+    <field-trusted-router-hop-scope>ip_observation events from configured trusted proxy-hop IPs are skipped before row persistence.</field-trusted-router-hop-scope>
   </telemetry-requirements>
   <redaction-rules>
     <rule-1>No full tg links, fake-TLS secrets, base secret, salt, runtime token, private keys, or full promotion tags.</rule-1>
@@ -57,6 +61,7 @@
   <required-log-markers>
     <marker>[M-054][ingest_telemetry_batch][WRITE_EVENTS]</marker>
     <marker>[M-054][ingest_telemetry_batch][IDEMPOTENT_SKIP]</marker>
+    <marker>[M-054][ingest_telemetry_batch][TRUSTED_PROXY_HOP_SKIP]</marker>
     <marker>[M-054][update_last_seen][LAST_SEEN]</marker>
     <marker>[M-054][rollup_usage][ROLLUP_WINDOW]</marker>
     <marker>[M-054][apply_retention][RETENTION_PRUNE]</marker>

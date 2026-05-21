@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <M-057 NAME="mtproto-admin-analytics-api" TYPE="ENTRY_POINT" STATUS="pass-local-phase43">
-  <path>backend/app/admin/router.py backend/app/mtproto/analytics_service.py backend/app/mtproto/admin_alerts.py backend/app/mtproto/ip_observability.py backend/app/mtproto/promotion_tag.py backend/tests/test_mtproto_admin_analytics_api.py scripts/phase43-mtproto-admin-analytics-smoke.mjs docs/plans/Phase-42.xml docs/plans/Phase-43.xml</path>
+  <path>backend/app/admin/router.py backend/app/mtproto/router.py backend/app/mtproto/analytics_service.py backend/app/mtproto/admin_alerts.py backend/app/mtproto/ip_observability.py backend/app/mtproto/promotion_tag.py backend/tests/test_mtproto_admin_analytics_api.py backend/tests/test_mtproto_ip_observability.py scripts/phase43-mtproto-admin-analytics-smoke.mjs docs/plans/Phase-42.xml docs/plans/Phase-43.xml</path>
   <owns>Admin-only HTTP API for MTProto global analytics, per-proxy usage, event logs, abuse signals, top users, runtime health, availability proof, and promotion tag state.</owns>
   <purpose>Expose MTProto analytics to authenticated admins with strict redaction and filterable time windows.</purpose>
   <exports>
@@ -13,11 +13,13 @@
     <api-admin-mtproto-user-search>Phase-43 admin-only user/proxy search and user detail with issued_at, last_seen, sessions, current IP, last IP, and 90-day IP history.</api-admin-mtproto-user-search>
     <api-admin-mtproto-alerts>Phase-43 admin alert inbox and acknowledgement/resolution actions.</api-admin-mtproto-alerts>
     <api-admin-mtproto-promotion-tag>GET/PUT promotion tag state through M-059</api-admin-mtproto-promotion-tag>
+    <api-private-router-observations>POST /api/v1/mtproto/router-observations for token-protected RU SNI-router IP telemetry ingestion.</api-private-router-observations>
   </exports>
   <depends>M-006,M-047,M-054,M-056,M-059,M-060,M-061</depends>
   <verification-ref>V-M-057</verification-ref>
   <files>
     <file status="implemented">backend/app/admin/router.py</file>
+    <file status="implemented">backend/app/mtproto/router.py</file>
     <file status="implemented">backend/app/mtproto/analytics_service.py</file>
     <file status="implemented">backend/app/mtproto/admin_alerts.py</file>
     <file status="implemented">backend/app/mtproto/ip_observability.py</file>
@@ -25,11 +27,12 @@
     <file status="implemented">backend/tests/test_mtproto_admin_analytics_api.py</file>
     <file status="implemented">scripts/phase43-mtproto-admin-analytics-smoke.mjs</file>
   </files>
-  <evidence>pass-local 2026-05-20: admin analytics API tests cover summary, timeseries, user search/detail, raw-IP investigation scope, resource metrics, storage budget, alert actions, redaction guards, and non-admin rejection; Phase-43 static smoke passed.</evidence>
+  <evidence>pass-local 2026-05-21: admin analytics API tests cover summary, timeseries, user search/detail, raw-IP investigation scope, router-observation ingestion, resource metrics, storage budget, alert actions, redaction guards, and non-admin rejection; Phase-43 static smoke passed.</evidence>
   <api-policy>
     <policy-1>Admin analytics returns masked SNI, safe ids, counts, status codes, and aggregate byte counters only.</policy-1>
     <policy-2>Response payloads must fail closed if they contain full tg links, secrets, runtime tokens, or full promotion tags.</policy-2>
     <policy-4>Raw IP addresses are allowed only in explicit Phase-43 admin-only investigation endpoints backed by M-061; general analytics and logs must not expose them.</policy-4>
+    <policy-5>Router observation ingestion is token-protected by the MTProto runtime token and accepts only metadata needed for encrypted M-061 storage.</policy-5>
     <policy-3>Time filters must clamp large ranges and page event lists.</policy-3>
   </api-policy>
   <constraints>

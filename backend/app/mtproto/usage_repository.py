@@ -1,12 +1,12 @@
 """MTProto usage telemetry repository.
 
 # FILE: backend/app/mtproto/usage_repository.py
-# VERSION: 1.3.0
+# VERSION: 1.4.0
 # ROLE: RUNTIME
 # MAP_MODE: EXPORTS
 # START_MODULE_CONTRACT
 #   PURPOSE: Store and query metadata-only MTProto runtime telemetry idempotently
-#   SCOPE: Telemetry normalization, SNI masking, IP hashing, event/session/state writes, encrypted IP handoff, rollups, and retention
+#   SCOPE: Telemetry normalization, SNI masking, IP hashing, trusted proxy-hop filtering, event/session/state writes, encrypted IP handoff, rollups, and retention
 #   DEPENDS: M-001 (DB/session), M-042 (assignments), M-054 (usage models), M-061 (IP observability)
 #   LINKS: M-054, M-061, V-M-054, V-M-061
 # END_MODULE_CONTRACT
@@ -16,6 +16,7 @@
 #   MTProtoTelemetryIngestResult - Batch ingestion counters
 #   mask_sni - Helper: redact SNI labels for unknown/rejected telemetry
 #   hash_client_ip - Helper: HMAC client address without raw IP persistence
+#   is_trusted_proxy_hop - Helper: detect RU/DE router hop addresses that must not become user evidence
 #   ingest_telemetry_batch - Idempotently persist runtime telemetry events
 #   update_last_seen - Update per-assignment last successful handshake timestamp
 #   rollup_usage - Rebuild aggregate usage windows from raw events
@@ -23,6 +24,7 @@
 # END_MODULE_MAP
 #
 # START_CHANGE_SUMMARY
+#   LAST_CHANGE: v1.4.0 - Filter trusted router-hop IPs before telemetry persistence and encrypted IP handoff.
 #   LAST_CHANGE: v1.3.0 - Route IP_OBSERVATION runtime samples into encrypted IP state without inflating usage counters.
 #   LAST_CHANGE: v1.2.0 - Added Phase-43 encrypted IP observation handoff and 30-day raw-event retention default.
 #   LAST_CHANGE: v1.1.0 - Respect connection_count deltas on sampler close events.
@@ -32,7 +34,7 @@
 
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from datetime import datetime, timedelta, timezone
 import hashlib
 import hmac
@@ -166,28 +168,37 @@ def mask_sni(sni: str | None) -> str | None:
     return ".".join([masked_first, *labels[1:]])
 
 
-def hash_client_ip(client_ip: str | None, *, secret: str | None = None) -> str | None:
-    """Return stable HMAC for client IP without persisting the raw address."""
+def _normalize_client_ip(client_ip: str | None) -> str | None:
     if not client_ip:
         return None
-    normalized = client_ip.strip()
     try:
-        address = ipaddress.ip_address(normalized)
+        return str(ipaddress.ip_address(client_ip.strip()))
     except ValueError:
         return None
+
+
+def is_trusted_proxy_hop(client_ip: str | None) -> bool:
+    """Return whether a telemetry address is an infrastructure router hop."""
+    normalized = _normalize_client_ip(client_ip)
+    return normalized is not None and normalized in settings.mtproto_trusted_proxy_ip_set
+
+
+def hash_client_ip(client_ip: str | None, *, secret: str | None = None) -> str | None:
+    """Return stable HMAC for client IP without persisting the raw address."""
+    normalized = _normalize_client_ip(client_ip)
+    if not normalized:
+        return None
     key = (secret or settings.secret_key).encode("utf-8")
-    digest = hmac.new(key, str(address).encode("utf-8"), hashlib.sha256).hexdigest()
+    digest = hmac.new(key, normalized.encode("utf-8"), hashlib.sha256).hexdigest()
     return digest[:40]
 
 
 def coarse_ip_prefix(client_ip: str | None) -> str | None:
     """Return a coarse client prefix for aggregate distinct-network analytics."""
-    if not client_ip:
+    normalized = _normalize_client_ip(client_ip)
+    if not normalized:
         return None
-    try:
-        address = ipaddress.ip_address(client_ip.strip())
-    except ValueError:
-        return None
+    address = ipaddress.ip_address(normalized)
     if address.version == 4:
         return str(ipaddress.ip_network(f"{address}/24", strict=False))
     return str(ipaddress.ip_network(f"{address}/48", strict=False))
@@ -408,11 +419,20 @@ async def ingest_telemetry_batch(
             event_type = MTProtoUsageEventType.ERROR
 
         observed_at = _coerce_aware(event.observed_at)
+        if event_type == MTProtoUsageEventType.IP_OBSERVATION and is_trusted_proxy_hop(event.client_ip):
+            skipped_count += 1
+            logger.info("[M-054][ingest_telemetry_batch][TRUSTED_PROXY_HOP_SKIP] source=router")
+            continue
+
+        event_for_effects = event
+        if is_trusted_proxy_hop(event.client_ip):
+            event_for_effects = replace(event, client_ip=None, ip_hash=None, ip_prefix=None)
+
         assignment = await _resolve_assignment(session, event)
         assignment_id = int(assignment.id) if assignment and assignment.id is not None else None
         user_id = int(event.user_id or assignment.user_id) if assignment else event.user_id
-        ip_hash = event.ip_hash or hash_client_ip(event.client_ip)
-        ip_prefix = event.ip_prefix or coarse_ip_prefix(event.client_ip)
+        ip_hash = event_for_effects.ip_hash or hash_client_ip(event_for_effects.client_ip)
+        ip_prefix = event_for_effects.ip_prefix or coarse_ip_prefix(event_for_effects.client_ip)
 
         row = MTProtoUsageEvent(
             runtime_event_id=runtime_event_id,
@@ -435,7 +455,7 @@ async def ingest_telemetry_batch(
         if assignment is not None:
             await _apply_known_event_effects(
                 session,
-                event=event,
+                event=event_for_effects,
                 event_type=event_type,
                 assignment=assignment,
                 observed_at=observed_at,

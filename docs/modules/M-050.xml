@@ -12,6 +12,7 @@
     <phase40-routing superseded="planned-phase41">Route HTTPS ClientHello traffic to web/admin fallbacks while routing non-HTTPS MTProto traffic to M-052 official MTProxy.</phase40-routing>
     <phase41-routing status="pass-live">Restore issued wildcard SNI routing to the DE KPprotoN fake-TLS runtime while web SNI continues to nginx fallback.</phase41-routing>
     <de-mtproto-ad-tag>DE runtime propagates MTPROTO_AD_TAG/PROXY_AD_TAG and defaults it to 32 zero hex chars so Telegram proxy_req receives a valid tag.</de-mtproto-ad-tag>
+    <ru-client-ip-observation>RU SNI router emits local-only syslog observations with source IP and issued SNI before proxying traffic to DE.</ru-client-ip-observation>
   </exports>
   <depends>M-001,M-012,M-043,M-044,M-046,M-048,M-049,M-052</depends>
   <verification-ref>V-M-050</verification-ref>
@@ -40,6 +41,7 @@
     <policy-6 superseded="planned-phase41">Phase-40 treats official per-user secrets as the MTProto access primitive; user wildcard hostnames may remain stable labels but no longer drive fake-TLS SNI policy routing.</policy-6>
     <policy-7 status="pass-local">Phase-41 restores issued wildcard hostnames as the routing and policy primitive for KPprotoN fake-TLS proxy access.</policy-7>
     <policy-8 status="pass-live">DE KPprotoN runtime must not start with a blank proxy ad tag; use a real MTProxyBot tag or the zero 32-hex tag.</policy-8>
+    <policy-9 status="pass-local">DE-backed mode must not treat the RU router public IP as the user device IP; real client IP is captured at the RU SNI router boundary.</policy-9>
   </edge-policy>
   <constraints>
     <constraint-1>No public exposure of the DE policy API, runtime token, private key, base secret, salt, derived secret, or full proxy link.</constraint-1>
@@ -65,6 +67,7 @@
     <evidence-10>2026-05-19: Phase-41 local execution restored the active compose/deploy surface to deploy/haproxy-phase38.cfg plus deploy/mtproto-de-compose.yml KPprotoN runtime, with static deploy/edge tests and smoke passing.</evidence-10>
     <evidence-11>2026-05-19: Live DE runtime with blank tag reproduced issued-link req_pq timeout; adding PROXY_AD_TAG=00000000000000000000000000000000 and replaying active policy made mtp_ping pass for the issued u-*.krotpn.xyz proxy across DC +1 through +5.</evidence-11>
     <evidence-12>2026-05-19: Operator clean-deploy validation confirmed RU public HTTPS, admin access, VPN, and Telegram Desktop/mobile MTProto proxy behavior are working from the Phase-41 edge.</evidence-12>
+    <evidence-13>2026-05-21: Local fix changed HAProxy to emit local syslog SNI/client-IP observations and added a host collector so admin IP history uses RU-edge real client IPs instead of the RU router hop.</evidence-13>
   </evidence>
   <hotspot>H-037: DE-backed MTProto edge and RU SNI router can break HTTPS or expose policy/cert material unless routing, private API reachability, and redaction gates are strict.</hotspot>
 </M-050>

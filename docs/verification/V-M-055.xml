@@ -1,16 +1,18 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<V-M-055 MODULE="M-055" PRIORITY="critical" STATUS="pass-local-phase43" PHASE-43="pass-local" VERSION="1.5.1">
+<V-M-055 MODULE="M-055" PRIORITY="critical" STATUS="pass-local-phase43" PHASE-43="pass-local" VERSION="1.6.0">
   <module>mtproto-runtime-telemetry-bridge</module>
   <checks>Runtime emits and drains metadata-only telemetry through mtproto_proxy metrics, active-SNI sampling, and a private token-protected boundary without breaking MTProto traffic.</checks>
   <test-files>
     <file status="pass-local">backend/tests/test_mtproto_runtime_telemetry_bridge.py</file>
     <file status="pass-local">backend/tests/test_mtproto_ip_observability.py</file>
     <file status="pass-local">scripts/phase43-mtproto-admin-analytics-smoke.mjs</file>
+    <file status="pass-local">scripts/phase38-de-mtproto-edge-smoke.mjs</file>
+    <file status="pass-local">deploy/sni-router-telemetry.py</file>
     <file status="pass-local">scripts/phase42-mtproto-telemetry-smoke.mjs</file>
     <file status="pass-local">mtproto-runtime</file>
   </test-files>
-  <commands>pass-local 2026-05-20: node scripts/phase42-mtproto-telemetry-smoke.mjs; node scripts/phase43-mtproto-admin-analytics-smoke.mjs; cd mtproto-runtime &amp;&amp; rebar3 compile; erl integer client_ipv4 active_domain_client_counts smoke; cd backend &amp;&amp; SECRET_KEY=test-secret-key-with-enough-length DATA_ENCRYPTION_KEY=dpFmfSVqfdAK3yx5MQV6Tcv35RZuw5MzaH0yhxJ01q0= PYTHONPATH=. ../.venv/bin/python -m pytest -o addopts='' tests/test_mtproto_runtime_telemetry_bridge.py tests/test_mtproto_ip_observability.py -v</commands>
-  <evidence>Runtime resource metrics and tls_domain/client_ipv4 ip_observation events are included in the telemetry boundary; integer-form mtproto_proxy client_ipv4 counters decode to trusted IP samples; Phase-42/43 static smokes, backend runtime/IP tests, and mtproto-runtime compile passed locally.</evidence>
+  <commands>pass-local 2026-05-21: python3 -m py_compile deploy/sni-router-telemetry.py; node scripts/phase38-de-mtproto-edge-smoke.mjs; node scripts/phase42-mtproto-telemetry-smoke.mjs; node scripts/phase43-mtproto-admin-analytics-smoke.mjs; cd mtproto-runtime &amp;&amp; rebar3 compile; erl integer client_ipv4 active_domain_client_counts smoke; cd backend &amp;&amp; SECRET_KEY=test-secret-key-with-enough-length DATA_ENCRYPTION_KEY=dpFmfSVqfdAK3yx5MQV6Tcv35RZuw5MzaH0yhxJ01q0= PYTHONPATH=. ../.venv/bin/python -m pytest -o addopts='' tests/test_mtproto_runtime_telemetry_bridge.py tests/test_mtproto_ip_observability.py -v</commands>
+  <evidence>Runtime resource metrics and tls_domain/client_ipv4 ip_observation events are included in the telemetry boundary; integer-form mtproto_proxy client_ipv4 counters decode to trusted IP samples; RU SNI-router syslog collector forwards real client IP observations before DE proxying; Phase-38/42/43 static smokes, backend runtime/IP tests, and mtproto-runtime compile passed locally.</evidence>
   <verification-levels>
     <module-local>Use fake runtime events and private API fixtures to verify token checks, snapshot, drain, cursoring, overflow counters, redaction, and degraded runtime behavior.</module-local>
     <wave-level>Run with V-M-054 to prove drained events become idempotent usage rows and with V-M-056 to prove stale runtime state is visible in analytics.</wave-level>
@@ -23,6 +25,7 @@
     <check-3>Runtime resource metrics include proxy CPU percent, RAM bytes, uptime, dropped_events, and buffer status.</check-3>
     <check-4>Resource metric collection failure degrades admin health only and does not restart or block the MTProto listener.</check-4>
     <check-5>tls_domain/client_ipv4 counters emit ip_observation events with client_ip for M-061, including integer IPv4 counter keys from mtproto_proxy, and do not alter aggregate usage counters.</check-5>
+    <check-6>DE-backed RU SNI-router emits real client IP observations to localhost-only collector before HAProxy connects to DE.</check-6>
   </phase-43-checks>
   <module-checks>
     <check-1>Handshake, close, bytes, error, active_connection, unknown_sni, rejected_sni, and req_pq proof events use safe metadata fields only.</check-1>
@@ -35,6 +38,7 @@
     <check-8>mtproto_proxy metric_backend records bytes, protocol errors, protocol-ok, and connection counters into bounded sampler counters.</check-8>
     <check-9>Sampler records per-SNI active/handshake/close deltas from policy counters and avoids false per-user byte attribution when multiple domains are active.</check-9>
     <check-10>Sampler decodes mtproto_proxy integer client_ipv4 counter keys into dotted IPv4 strings before emitting ip_observation client_ip.</check-10>
+    <check-11>Router-observation endpoint rejects wrong runtime tokens and writes only metadata needed by M-061.</check-11>
   </module-checks>
   <scenarios>
     <scenario-1>Handshake, close, bytes, error, active_connection, unknown_sni, rejected_sni, and req_pq proof events are represented with safe fields.</scenario-1>
@@ -44,6 +48,7 @@
     <scenario-5>Telemetry hook changes do not alter the issued-link fake-TLS secret, SNI route, or Telegram client acceptance contract.</scenario-5>
     <scenario-6>Concurrent-domain traffic remains global_runtime unless a deeper data-plane hook can provide exact per-SNI bytes.</scenario-6>
     <scenario-7>Phase-43 client IP and resource metrics are emitted with safe source confidence and do not change issued-link fake-TLS behavior.</scenario-7>
+    <scenario-8>RU SNI-router observation for u-*.krotpn.xyz stores the public user-device IP while configured router-hop IPs are skipped.</scenario-8>
   </scenarios>
   <redaction-rules>
     <rule-1>Runtime telemetry must exclude full tg links, fake-TLS secrets, base secret, salt, runtime token, private keys, and full promotion tags.</rule-1>
@@ -58,6 +63,9 @@
     <marker>[M-055][runtime_telemetry][DROP_OVERFLOW]</marker>
     <marker>[M-055][runtime_resource_metrics][RESOURCE_SNAPSHOT]</marker>
     <marker>[M-055][runtime_telemetry][SOURCE_IP_UNAVAILABLE]</marker>
+    <marker>[M-055][ru_sni_router][CLIENT_IP_OBSERVATION]</marker>
+    <marker>[M-055][router_observation_ingest][INGEST_SUMMARY]</marker>
+    <marker>[M-055][sni_router_telemetry][FORWARD_SUMMARY]</marker>
   </required-log-markers>
   <autonomous-execution-safety>
     <safe-local>Runtime smoke may use local synthetic fixtures and fake private tokens.</safe-local>

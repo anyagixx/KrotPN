@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<V-M-057 MODULE="M-057" PRIORITY="high" STATUS="pass-local-phase43" PHASE-43="pass-local" VERSION="1.4.0">
+<V-M-057 MODULE="M-057" PRIORITY="high" STATUS="pass-local-phase43" PHASE-43="pass-local" VERSION="1.5.0">
   <module>mtproto-admin-analytics-api</module>
   <checks>Admin analytics endpoints expose useful MTProto statistics with strict redaction, pagination, filtering, admin-only auth, and audit safety.</checks>
   <test-files>
@@ -8,8 +8,8 @@
     <file status="pass-local">backend/tests/test_mtproto_ip_observability.py</file>
     <file status="pass-local">backend/tests/test_mtproto_admin_ops.py</file>
   </test-files>
-  <commands>pass-local 2026-05-20: cd backend &amp;&amp; SECRET_KEY=test-secret-key-with-enough-length DATA_ENCRYPTION_KEY=dpFmfSVqfdAK3yx5MQV6Tcv35RZuw5MzaH0yhxJ01q0= PYTHONPATH=. ../.venv/bin/python -m pytest -o addopts='' tests/test_mtproto_admin_analytics_api.py tests/test_mtproto_admin_alerts.py tests/test_mtproto_ip_observability.py tests/test_mtproto_runtime_telemetry_bridge.py -v</commands>
-  <evidence>Admin analytics API tests pass for Phase-43 summary, timeseries, paginated user/proxy search, explicit raw-IP investigation route, resource metrics, storage budget, hard-abuse alert list/actions, redaction, and non-admin rejection.</evidence>
+  <commands>pass-local 2026-05-21: cd backend &amp;&amp; SECRET_KEY=test-secret-key-with-enough-length DATA_ENCRYPTION_KEY=dpFmfSVqfdAK3yx5MQV6Tcv35RZuw5MzaH0yhxJ01q0= PYTHONPATH=. ../.venv/bin/python -m pytest -o addopts='' tests/test_mtproto_admin_analytics_api.py tests/test_mtproto_admin_alerts.py tests/test_mtproto_ip_observability.py tests/test_mtproto_runtime_telemetry_bridge.py -v; node scripts/phase43-mtproto-admin-analytics-smoke.mjs</commands>
+  <evidence>Admin analytics API tests pass for Phase-43 summary, timeseries, paginated user/proxy search, explicit raw-IP investigation route, token-protected router-observation ingestion, resource metrics, storage budget, hard-abuse alert list/actions, redaction, and non-admin rejection.</evidence>
   <verification-levels>
     <module-local>Use FastAPI tests with admin and non-admin clients to verify auth, filters, pagination, time clamping, redaction guards, and promotion tag delegation.</module-local>
     <wave-level>Run with V-M-056 and V-M-059 to prove API schemas match analytics service outputs and promotion tag state.</wave-level>
@@ -23,6 +23,7 @@
     <check-4>Alerts endpoints list, acknowledge, resolve, and expose open high/critical counts without automatic enforcement.</check-4>
     <check-5>Resource metrics endpoint exposes proxy CPU/RAM/uptime/dropped telemetry state without host secrets.</check-5>
     <check-6>Explicit IP endpoints are admin-only and audited; general analytics endpoints still reject raw IP values.</check-6>
+    <check-7>Private router-observation endpoint accepts only the MTProto runtime token and never requires admin/user credentials.</check-7>
   </phase-43-checks>
   <module-checks>
     <check-1>Summary endpoint returns total issued, active/disabled/reissue_required counts, active connections, runtime health, availability proof, and traffic windows.</check-1>
@@ -33,6 +34,7 @@
     <check-6>Promotion tag endpoints delegate validation/state to M-059 and require explicit admin confirmation for mutation.</check-6>
     <check-7>Non-admin users receive 401 or 403 and no analytics data.</check-7>
     <check-8>Payload redaction guard rejects full tg links, secrets, raw IPs, runtime tokens, private keys, and full promotion tags.</check-8>
+    <check-9>Router-observation ingestion resolves assignment by SNI and hands real client IP to encrypted M-061 storage.</check-9>
   </module-checks>
   <scenarios>
     <scenario-1>Admin summary endpoint returns total issued, active/disabled/reissue counts, active connections, traffic windows, and runtime health.</scenario-1>
@@ -42,6 +44,7 @@
     <scenario-5>Promotion tag update writes audit evidence without logging the full tag.</scenario-5>
     <scenario-6>Phase-43 admin user detail exposes raw IP only through the explicit investigation route and never through summary/top-user/general analytics responses.</scenario-6>
     <scenario-7>Alert acknowledge/resolve and proxy disable/IP block routes require confirmation and audit-safe details.</scenario-7>
+    <scenario-8>RU SNI-router observation for an issued proxy appears in user detail Current IP, Last IP, and IP history while the RU router public IP is filtered.</scenario-8>
   </scenarios>
   <redaction-rules>
     <rule-1>General admin analytics APIs may expose masked SNI, masked promotion tag, safe ids, counts, timestamps, status codes, and aggregate bytes only.</rule-1>
@@ -58,6 +61,7 @@
     <marker>[M-057][admin_mtproto_user_usage][IP_INVESTIGATION_SCOPE]</marker>
     <marker>[M-057][admin_mtproto_alerts][ALERT_LIST]</marker>
     <marker>[M-057][admin_mtproto_timeseries][TIMESERIES]</marker>
+    <marker>[M-055][router_observation_ingest][INGEST_SUMMARY]</marker>
   </required-log-markers>
   <autonomous-execution-safety>
     <safe-local>Backend API tests may run with fixture users and in-memory or disposable databases.</safe-local>

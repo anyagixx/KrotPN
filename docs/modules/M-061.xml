@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <M-061 NAME="mtproto-ip-observability" TYPE="DATA_LAYER" STATUS="pass-local-phase43">
-  <path>backend/app/mtproto/ip_observability.py backend/app/mtproto/usage_models.py backend/app/mtproto/usage_repository.py backend/alembic/versions/phase43_add_mtproto_ip_observability.py backend/tests/test_mtproto_ip_observability.py docs/plans/Phase-43.xml</path>
+  <path>backend/app/mtproto/ip_observability.py backend/app/mtproto/router.py backend/app/mtproto/usage_models.py backend/app/mtproto/usage_repository.py deploy/sni-router-telemetry.py backend/alembic/versions/phase43_add_mtproto_ip_observability.py backend/tests/test_mtproto_ip_observability.py docs/plans/Phase-43.xml</path>
   <owns>Admin-only exact client IP observability for MTProto sessions, including encrypted raw IP storage, current/last IP state, historical IP list, and 90-day retention.</owns>
   <purpose>Let the KrotPN operator investigate MTProto abuse by real client IP while keeping IP data encrypted, retention-bound, and hidden from users and logs.</purpose>
   <exports>
@@ -9,21 +9,25 @@
     <fn-list-user-ip-observations>Return admin-only IP history for one user or assignment with current and last connection context.</fn-list-user-ip-observations>
     <fn-current-ip-summary>Return current active IPs and last connected IP for the user detail drawer.</fn-current-ip-summary>
     <fn-apply-ip-retention>Prune exact IP observations after 90 days while preserving aggregate rollups.</fn-apply-ip-retention>
+    <fn-router-hop-filter>Ignore configured RU/DE router hop IPs so Current IP, Last IP, and IP history show user devices.</fn-router-hop-filter>
   </exports>
   <depends>M-001,M-028,M-042,M-054,M-055</depends>
   <verification-ref>V-M-061</verification-ref>
   <files>
     <file status="implemented">backend/app/mtproto/ip_observability.py</file>
+    <file status="implemented">backend/app/mtproto/router.py</file>
+    <file status="implemented">deploy/sni-router-telemetry.py</file>
     <file status="implemented">backend/alembic/versions/phase43_add_mtproto_ip_observability.py</file>
     <file status="implemented">backend/tests/test_mtproto_ip_observability.py</file>
   </files>
-  <evidence>pass-local 2026-05-20: encrypted IP observability tests, runtime ip_observation handoff, usage telemetry regression, migration metadata guard, admin API investigation route, frontend-admin build, and Phase-43 static smoke passed.</evidence>
+  <evidence>pass-local 2026-05-21: encrypted IP observability tests, RU SNI-router real client IP handoff, trusted router-hop filtering, runtime ip_observation handoff, usage telemetry regression, migration metadata guard, admin API investigation route, frontend-admin build, and Phase-43 static smoke passed.</evidence>
   <data-contract>
     <field-1>Exact client IP is encrypted at rest using the existing application data-encryption boundary.</field-1>
     <field-2>IP hash and coarse prefix remain available for analytics and abuse detection without decrypting raw IPs.</field-2>
     <field-3>Exact IP observation retention is 90 days; raw event retention remains shorter and rollups preserve older aggregate history.</field-3>
     <field-4>If runtime cannot provide a trustworthy client IP, the UI must show source_ip_unavailable instead of guessing.</field-4>
     <field-5>Runtime ip_observation samples update current_active, last_ip, and per-IP connection_count idempotently from tls_domain/client_ipv4 policy counters.</field-5>
+    <field-6>Configured router hop IPs such as the RU public entry address must be filtered before write, count, pagination, Current IP, Last IP, and IP history serialization.</field-6>
   </data-contract>
   <constraints>
     <constraint-1>Raw IP strings must not appear in non-admin APIs, user APIs, logs, audit details, frontend bundles, or telemetry smoke output.</constraint-1>

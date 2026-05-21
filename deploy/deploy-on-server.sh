@@ -1134,6 +1134,8 @@ MTPROTO_RUNTIME_TOKEN=${MTPROTO_RUNTIME_TOKEN}
 MTPROTO_RUNTIME_TIMEOUT_SECONDS=3.0
 MTPROTO_POLICY_PORT=${MTPROTO_POLICY_PORT}
 MTPROTO_POLICY_BIND_IP=${MTPROTO_POLICY_BIND_IP}
+MTPROTO_ROUTER_TRUSTED_PROXY_IPS=${RU_IP}
+MTPROTO_ROUTER_OBSERVER_ENDPOINT=http://127.0.0.1:8000/api/v1/mtproto/router-observations
 EDGE_PUBLIC_DOMAIN=${PUBLIC_DOMAIN}
 EDGE_CANONICAL_HOST=${PUBLIC_DOMAIN}
 EDGE_TLS_CERTIFICATE_PATH=/etc/nginx/ssl/server.crt
@@ -1176,9 +1178,29 @@ PathModified=/etc/amnezia/amneziawg/awg0.conf
 WantedBy=multi-user.target
 PATHUNIT
 
+chmod 750 /opt/KrotPN/deploy/sni-router-telemetry.py
+cat > /etc/systemd/system/krotpn-sni-router-telemetry.service << 'SERVICE'
+[Unit]
+Description=Forward KrotPN SNI router client IP observations
+After=network-online.target docker.service
+Wants=network-online.target docker.service
+
+[Service]
+Type=simple
+WorkingDirectory=/opt/KrotPN
+ExecStart=/usr/bin/python3 /opt/KrotPN/deploy/sni-router-telemetry.py --env /opt/KrotPN/.env
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target
+SERVICE
+
 systemctl daemon-reload
 systemctl enable krotpn-sync-awg0.path
 systemctl start krotpn-sync-awg0.path
+systemctl enable krotpn-sni-router-telemetry.service
+systemctl restart krotpn-sni-router-telemetry.service
 echo -e "${GREEN}✓ Systemd services created${NC}"
 
 # DE MTProto runtime
