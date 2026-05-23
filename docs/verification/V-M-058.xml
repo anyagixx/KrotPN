@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<V-M-058 MODULE="M-058" PRIORITY="high" STATUS="pass-local-phase43" PHASE-43="pass-local" VERSION="1.6.0">
+<V-M-058 MODULE="M-058" PRIORITY="high" STATUS="pass-local-phase43" PHASE-43="pass-local" VERSION="1.7.0">
   <module>mtproto-admin-analytics-ui</module>
   <checks>Frontend-admin exposes compact MTProto analytics, alert review, and promotion tag controls without secret leakage, visible technical Signals noise, hidden existing controls, or mobile layout regressions.</checks>
   <test-files>
@@ -11,7 +11,7 @@
     <file status="pass-local">scripts/phase42-mtproto-admin-analytics-smoke.mjs</file>
   </test-files>
   <commands>pass-local 2026-05-23: cd frontend-admin &amp;&amp; npm run build; cd .. &amp;&amp; node scripts/phase42-mtproto-admin-analytics-smoke.mjs; node scripts/phase43-mtproto-admin-analytics-smoke.mjs</commands>
-  <evidence>Frontend-admin build passed and Phase-42/Phase-43 static smokes confirm compact Overview/Users/Abuse/Settings UI, removed Recent events, hidden visible Signals panel/count, paginated proxy/user lists, compact area graphs, source-IP unavailable state, auto-refresh markers, Russian hover help for alert review actions, open inbox/archive split, no-dot empty states, and redaction guards.</evidence>
+  <evidence>Frontend-admin build passed and Phase-42/Phase-43 static smokes confirm compact Overview/Users/Abuse/Settings UI, removed Recent events, hidden visible Signals panel/count, paginated proxy/user lists, compact area graphs, source-IP unavailable state, auto-refresh markers, Russian hover help for alert review actions, compact scrollable IP history without visible CIDR prefixes, open inbox/archive split, no-dot empty states, and redaction guards.</evidence>
   <verification-levels>
     <module-local>Build frontend-admin and run static UI smoke for route wiring, API names, redaction strings, confirmation flows, and mobile viewport overflow.</module-local>
     <wave-level>Run after V-M-057 to prove UI contracts match backend schemas for analytics and promotion tag state.</wave-level>
@@ -31,6 +31,7 @@
     <check-10>Abuse empty states are padded for readability and do not end with stray punctuation.</check-10>
     <check-11>Visible technical Signals panel/count is absent from the admin MTProto UI while alert APIs remain wired.</check-11>
     <check-12>Open alert action buttons expose short Russian hover descriptions for review, acknowledge, resolve, disable, and follow-up TTL IP block decisions.</check-12>
+    <check-13>IP history uses a bounded internal scroll area and renders only address/hash rows, not address/prefix mask rows.</check-13>
   </phase-43-checks>
   <module-checks>
     <check-1>Admin can scan global summary, traffic windows, top users, active connections, errors, runtime health, and availability proof on mobile.</check-1>
@@ -65,6 +66,7 @@
     <marker>[M-058][admin_mtproto_analytics_ui][ALERT_REVIEW]</marker>
     <marker>[M-058][admin_mtproto_analytics_ui][ALERT_ARCHIVE]</marker>
     <marker>[M-058][admin_mtproto_analytics_ui][ALERT_ACTION_TOOLTIP]</marker>
+    <marker>[M-058][admin_mtproto_analytics_ui][COMPACT_IP_HISTORY]</marker>
   </required-log-markers>
   <autonomous-execution-safety>
     <safe-local>Frontend build and static smoke are safe to run locally.</safe-local>

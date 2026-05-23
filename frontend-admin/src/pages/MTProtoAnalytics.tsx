@@ -1,5 +1,5 @@
 // FILE: frontend-admin/src/pages/MTProtoAnalytics.tsx
-// VERSION: 2.3.0
+// VERSION: 2.4.0
 // ROLE: UI_COMPONENT
 // MAP_MODE: SUMMARY
 // START_MODULE_CONTRACT
@@ -19,6 +19,7 @@
 // END_MODULE_MAP
 //
 // START_CHANGE_SUMMARY
+//   LAST_CHANGE: v2.4.0 - Made IP history compact, scrollable, and removed visible CIDR prefix rows.
 //   LAST_CHANGE: v2.3.0 - Removed visible technical Signals panel/count and added Russian hover help for alert actions.
 //   LAST_CHANGE: v2.2.0 - Split Abuse into open inbox and archive, and standardized icon input padding.
 //   LAST_CHANGE: v2.1.0 - Added paginated user investigation, clearer IP-source states, harder-abuse UI copy, and richer compact area graphs.
@@ -509,20 +510,18 @@ export default function MTProtoAnalyticsPanel() {
                       </button>
                     ) : null}
                   </div>
-                  <div className="compact-list max-h-[260px] overflow-y-auto">
+                  <div className="compact-list max-h-[180px] overflow-y-auto overscroll-contain pr-1" data-log-marker="[M-058][admin_mtproto_analytics_ui][COMPACT_IP_HISTORY]" data-mtproto-ip-history-scroll>
                     {selectedUsage.ip_observations.length === 0 ? (
-                      <p className="py-3 text-sm muted">Нет IP history.</p>
+                      <p className="py-2 text-sm muted">Нет IP history.</p>
                     ) : selectedUsage.ip_observations.map((ip: AdminMTProtoIPObservation) => (
-                      <div key={ip.id} className="list-row py-3">
+                      <div key={ip.id} className="list-row py-2">
                         <div className="row-main">
                           <div className="min-w-0">
-                            <p className="row-title">{ip.ip_address || ip.ip_hash_prefix}</p>
-                            <p className="row-subtitle">{ip.ip_prefix || ip.source_status}</p>
+                            <p className="row-title truncate font-mono text-xs">{ip.ip_address || ip.ip_hash_prefix}</p>
                           </div>
                           <span className={ip.current_active ? 'metric-pill' : 'neutral-pill'}>{ip.current_active ? 'active' : 'seen'}</span>
                         </div>
                         <div className="row-meta">
-                          <span className="meta-cell"><span className="meta-label">First</span><span className="meta-value">{formatDate(ip.first_seen_at)}</span></span>
                           <span className="meta-cell"><span className="meta-label">Last</span><span className="meta-value">{formatDate(ip.last_seen_at)}</span></span>
                           <span className="meta-cell"><span className="meta-label">Connects</span><span className="meta-value">{ip.connection_count}</span></span>
                         </div>

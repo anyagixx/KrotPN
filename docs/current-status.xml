@@ -62,6 +62,7 @@
     <item>Phase-43 live-feedback fix on 2026-05-20 passed local verification: MTProto runtime now emits tls_domain/client_ipv4 ip_observation events, backend stores current/last IP without inflating usage counters, abuse alerts require hard multi-IP/concurrency evidence, and admin MTProto UI adds paginated large-list navigation plus compact area graphs.</item>
     <item>MTProto reboot hotfix on 2026-05-23 diagnosed DE awg0 missing after host reboot, enabled awg-quick@awg0 live, restored private policy health, replayed both active user SNI assignments, and added local deploy/runtime/UI regression guards.</item>
     <item>MTProto admin UI fix on 2026-05-23 passed local verification: visible technical Signals panel/count was removed from the Abuse screen while alert APIs stay wired, and open alert actions now expose Russian hover descriptions for review, acknowledge, resolve, disable, and IP-block decisions.</item>
+    <item>MTProto admin IP history UI fix on 2026-05-23 passed local verification: the investigation drawer no longer renders visible CIDR network masks, and the IP history list is more compact with internal mouse scrolling for long address history.</item>
     <item>Release target v2.21.3-mtproto-real-client-ip-stable is the current stable baseline for GitHub main/Releases after clean-deploy confirmation that VPN, individual MTProto proxies, real client IP observability, and MTProto promotion tag application work.</item>
   </what-is-working>
 

@@ -1,5 +1,5 @@
 // FILE: scripts/phase43-mtproto-admin-analytics-smoke.mjs
-// VERSION: 1.5.0
+// VERSION: 1.6.0
 // ROLE: SCRIPT
 // MAP_MODE: LOCALS
 // START_MODULE_CONTRACT
@@ -17,6 +17,7 @@
 // END_MODULE_MAP
 //
 // START_CHANGE_SUMMARY
+//   LAST_CHANGE: v1.6.0 - Guard compact scrollable IP history without visible CIDR prefixes.
 //   LAST_CHANGE: v1.5.0 - Guard hidden technical signal UI and Russian alert-action hover help.
 //   LAST_CHANGE: v1.4.0 - Guard M-054 trusted router-hop skip before persistence.
 //   LAST_CHANGE: v1.3.0 - Guard RU SNI-router real client IP ingestion and trusted router-hop filtering.
@@ -80,6 +81,9 @@ for (const marker of [
   '[M-058][admin_mtproto_analytics_ui][ALERT_REVIEW]',
   '[M-058][admin_mtproto_analytics_ui][ALERT_ARCHIVE]',
   '[M-058][admin_mtproto_analytics_ui][ALERT_ACTION_TOOLTIP]',
+  '[M-058][admin_mtproto_analytics_ui][COMPACT_IP_HISTORY]',
+  'data-mtproto-ip-history-scroll',
+  'max-h-[180px] overflow-y-auto overscroll-contain',
   'Overview',
   'Users',
   'Abuse',
@@ -106,6 +110,7 @@ assertForbiddenAbsent(ui, '<h3 className="text-sm font-semibold text-white">Sign
 assertForbiddenAbsent(ui, 'Нет signals', uiPath)
 assertForbiddenAbsent(ui, ' signals</span>', uiPath)
 assertForbiddenAbsent(ui, 'getMTProtoAbuseSignals(days)', uiPath)
+assertForbiddenAbsent(ui, 'ip.ip_prefix || ip.source_status', uiPath)
 for (const marker of [
   'getMTProtoTimeseries',
   'searchMTProtoUsers',

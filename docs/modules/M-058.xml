@@ -21,7 +21,7 @@
     <file status="implemented">scripts/phase42-mtproto-admin-analytics-smoke.mjs</file>
     <file status="implemented">scripts/phase43-mtproto-admin-analytics-smoke.mjs</file>
   </files>
-  <evidence>pass-local 2026-05-23: frontend-admin build and Phase-42/Phase-43 admin analytics static smokes passed; UI removes Recent events and visible technical Signals surfaces, paginates large proxy/user lists, exposes compact area graphs, clarifies source-IP unavailable states, splits Abuse into open inbox plus archive, adds Russian alert-action hover help, and standardizes icon input padding.</evidence>
+  <evidence>pass-local 2026-05-23: frontend-admin build and Phase-42/Phase-43 admin analytics static smokes passed; UI removes Recent events and visible technical Signals surfaces, paginates large proxy/user lists, exposes compact area graphs, clarifies source-IP unavailable states, splits Abuse into open inbox plus archive, adds Russian alert-action hover help, renders IP history without visible CIDR prefixes, and standardizes icon input padding.</evidence>
   <ui-policy>
     <policy-1>Mobile layout uses dense summary rows, tabs, filters, and drill-down panels rather than large decorative dashboards.</policy-1>
     <policy-2>Promotion tag editing requires confirmation and never displays the full stored tag after save.</policy-2>
@@ -31,6 +31,7 @@
     <policy-6>Large assignment/user inventories must use compact paging and bounded scroll panes so the admin panel remains usable with thousands of proxies.</policy-6>
     <policy-7>Abuse actions remove items from the open inbox by querying only open alerts, while acknowledged/resolved alerts remain visible in an archive list.</policy-7>
     <policy-8>Alert action buttons must expose short Russian hover descriptions so operator decisions are clear before clicking.</policy-8>
+    <policy-9>IP history in the investigation drawer must stay compact, scroll internally, and render only the observed address/hash value without the network prefix mask.</policy-9>
   </ui-policy>
   <constraints>
     <constraint-1>Admin UI must not hide existing MTProto reissue/revoke controls.</constraint-1>
