@@ -45,6 +45,7 @@
     <check-8 evidence="phase-41-deterministic">Owner payload uses server=u-*.krotpn.xyz, port=443, and secret=ee... after Phase-41 reissue or fresh issuance.</check-8>
     <check-9 evidence="phase-41-failure-path">Official dd credential-mode assignments render reissue-required or unavailable state and are not copied/opened as active production links.</check-9>
     <check-10 evidence="phase-41-redaction">Smoke output and frontend console traces contain no full tg links, ee secrets, dd secrets, base secret, salt, runtime token, or wildcard key material.</check-10>
+    <check-11 evidence="ui-smoke">Pending/degraded dashboard state renders backend safe_message once and does not duplicate the same text in the card header and detail row.</check-11>
   </module-checks>
   <phase-34-stabilization-gates>
     <gate-1>Owner-only MTProto secret/link fields remain visible only in authenticated user dashboard/API, never admin or smoke output.</gate-1>
@@ -104,5 +105,6 @@
     <evidence-4>2026-05-14: Phase-34 integration/static smoke passed locally for verified-registration owner MTProto retrieval, dashboard anchors, and admin redaction boundaries.</evidence-4>
     <evidence-5>2026-05-19: Phase-41 verification design adds owner-cabinet checks for ee fake-TLS payloads, official dd supersession, redaction, and compact mobile state.</evidence-5>
     <evidence-6>2026-05-19: Phase-41 local owner API tests and static smoke passed for ee payloads, official-mode reissue-required behavior, and no stale official link exposure.</evidence-6>
+    <evidence-7>2026-05-23: Static cabinet smoke guards exactly one mtproto safe_message rendering during the cross-module reboot hotfix.</evidence-7>
   </evidence>
 </V-M-045>

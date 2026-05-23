@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <V-M-012 MODULE="M-012" PRIORITY="critical" STATUS="pass-live-phase41" VERSION="1.4.1">
   <module>deploy-surface</module>
-  <checks>Deploy and nginx changes do not introduce weak defaults or unsafe routing assumptions. Deploy creates /var/lib/krotpn/ directory for RU IP snapshots. Snapshot directory permissions are correct (root:root, 755). Phase-36 deploy changes enable Resend email provider without logging RESEND_API_KEY. Phase-38 deploy changes wire DE-backed MTProto edge roles without exposing policy tokens or wildcard private keys. Phase-41 restores KPprotoN fake-TLS runtime as the active data-plane while keeping official MTProxy disabled from production routing and has clean-deploy live proof.</checks>
+  <checks>Deploy and nginx changes do not introduce weak defaults or unsafe routing assumptions. Deploy creates /var/lib/krotpn/ directory for RU IP snapshots. Snapshot directory permissions are correct (root:root, 755). Phase-36 deploy changes enable Resend email provider without logging RESEND_API_KEY. Phase-38 deploy changes wire DE-backed MTProto edge roles without exposing policy tokens or wildcard private keys. Phase-41 restores KPprotoN fake-TLS runtime as the active data-plane while keeping official MTProxy disabled from production routing and has clean-deploy live proof. Reboot hotfix keeps DE awg0 boot-persistent so the private MTProto policy bind survives host restart.</checks>
   <test-files>
     <file>install.sh</file>
     <file>deploy/deploy-on-server.sh</file>
@@ -45,6 +45,7 @@
     <scenario kind="success" trace="RESEND_ENV_WRITTEN">Clean deploy writes EMAIL_PROVIDER=resend and redacted Resend configuration when operator provides an API key</scenario>
     <scenario kind="success" trace="PHASE38_DE_EDGE_WIRED">Deploy can materialize DE-backed MTProto edge roles while keeping HTTPS rollback available</scenario>
     <scenario kind="success" trace="PHASE41_KPPROTON_EDGE_WIRED">Deploy can materialize DE KPprotoN fake-TLS edge roles while official MTProxy remains inactive in production</scenario>
+    <scenario kind="success" trace="DE_AWG0_BOOT_PERSISTENT">DE awg0 is enabled for boot before the DE KPprotoN runtime depends on the private policy bind IP</scenario>
   </scenarios>
   <evidence>
     <evidence-1>2026-05-17: bash -n install.sh deploy/deploy-on-server.sh passed after Phase-36 Resend config wiring.</evidence-1>
@@ -57,5 +58,6 @@
     <evidence-8>2026-05-19: Phase-41 local deploy verification passed for shell syntax, docker compose config, Phase-38/39/41 smoke scripts, and active KPprotoN DE runtime selection.</evidence-8>
     <evidence-9>2026-05-19: Operator clean-deploy validation from GitHub main confirmed deploy surface works for wildcard TLS, Resend registration email, VPN, and KPprotoN MTProto proxy.</evidence-9>
     <evidence-10>2026-05-19: Legacy V-M-029 Phase-16 rebranding verification is closed as superseded by V-M-012 after current deploy shell syntax, compose config, Phase-41 static smoke, frontend build, admin build, and Phase-41 live deploy proof.</evidence-10>
+    <evidence-11>2026-05-23: Live reboot hotfix enabled DE awg-quick@awg0 and local deploy/static gates now assert the boot persistence marker.</evidence-11>
   </evidence>
 </V-M-012>

@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 // FILE: scripts/phase38-de-mtproto-edge-smoke.mjs
-// VERSION: 1.5.0
+// VERSION: 1.6.0
 // ROLE: SCRIPT
 // MAP_MODE: LOCALS
 // START_MODULE_CONTRACT
@@ -17,6 +17,7 @@
 // END_MODULE_MAP
 //
 // START_CHANGE_SUMMARY
+//   LAST_CHANGE: v1.6.0 - Guard DE awg0 boot persistence and runtime policy-bind wait for reboot recovery.
 //   LAST_CHANGE: v1.5.0 - Guard local SNI-router syslog handoff for real client IP observations.
 //   LAST_CHANGE: v1.4.0 - Guard DE KPprotoN PROXY_AD_TAG zero default required for Telegram proxy_req responses.
 //   LAST_CHANGE: v1.3.0 - Restore DE runtime checks to KPprotoN fake-TLS fallback on private 18443.
@@ -104,12 +105,17 @@ requireText('deploy/deploy-on-server.sh', 'krotpn-mtproto-runtime.tgz')
 requireText('deploy/deploy-on-server.sh', 'DE_MTPROTO_DOMAIN_FRONTING=${domain_fronting_target}')
 requireText('deploy/deploy-on-server.sh', '[M-050][de_policy_api][DENY_PUBLIC]')
 requireText('deploy/deploy-on-server.sh', '[M-050][de_policy_api][HEALTH]')
+requireText('deploy/deploy-on-server.sh', '[M-050][de_awg0_boot_persistence][ENABLE_AWG_SERVICE]')
 requireText('deploy/deploy-on-server.sh', 'generate_or_preserve_secret MTPROTO_BASE_SECRET_HEX')
 requireText('deploy/deploy-on-server.sh', 'generate_or_preserve_secret MTPROTO_SECRET_SALT')
 requireText('deploy/deploy-on-server.sh', 'generate_or_preserve_secret MTPROTO_AD_TAG')
 requireText('deploy/deploy-on-server.sh', 'MTPROTO_ROUTER_TRUSTED_PROXY_IPS=${RU_IP}')
 requireText('deploy/deploy-on-server.sh', 'krotpn-sni-router-telemetry.service')
 requireText('deploy/deploy-on-server.sh', 'deploy/sni-router-telemetry.py')
+requireText('mtproto-runtime/docker/entrypoint.sh', 'wait_for_policy_listen_ip')
+requireText('mtproto-runtime/docker/entrypoint.sh', 'POLICY_LISTEN_IP_WAIT_SECONDS')
+requireText('mtproto-runtime/docker/entrypoint.sh', 'WAIT_POLICY_IP')
+requireText('mtproto-runtime/apps/kpproton_proxy/src/mtproto/kpproton_proxy_bridge.erl', 'mtp_policy_table:del(personal_domains, tls_domain, SniDomain)')
 
 requireText('.env.example', 'MTPROTO_RUNTIME_POLICY_URL=http://172.29.255.1:18080/krotpn/mtproto/policy')
 requireText('.env.example', 'MTPROTO_POLICY_BIND_IP=172.29.255.1')

@@ -1,5 +1,5 @@
 // FILE: frontend/src/pages/Dashboard.tsx
-// VERSION: 1.2.0
+// VERSION: 1.2.1
 // ROLE: UI_COMPONENT
 // MAP_MODE: SUMMARY
 // START_MODULE_CONTRACT
@@ -12,11 +12,13 @@
 // START_MODULE_MAP
 //   DashboardPage - Compact dashboard component with mobile-first primary actions, MTProto owner card, and device summary
 //   buildMtprotoTelegramWebLink - Builds the primary https://t.me/proxy action link from the owner payload
+//   mtprotoIntroText - Builds a non-duplicating MTProto card intro line
 //   BLOCK_DASHBOARD_PAGE - DashboardPage default export with VPN, subscription, MTProto, config, and device surfaces
 //   default - React component (default export)
 // END_MODULE_MAP
 //
 // START_CHANGE_SUMMARY
+//   LAST_CHANGE: v3.1.1 - Avoid rendering pending/degraded MTProto safe_message twice in the dashboard card.
 //   LAST_CHANGE: v3.1.0 - Added Phase-39 primary Telegram web-link action and full-link copy flow
 //   LAST_CHANGE: v3.0.0 - Added Phase-31 compact MTProto proxy owner card
 //   LAST_CHANGE: v2.8.0 - Added full GRACE MODULE_CONTRACT and MODULE_MAP per GRACE governance protocol
@@ -93,6 +95,14 @@ function buildMtprotoTelegramWebLink(payload?: MTProtoProxyResponse) {
     secret: payload.secret,
   })
   return `https://t.me/proxy?${params.toString()}`
+}
+
+function mtprotoIntroText(payload?: MTProtoProxyResponse, isLoading?: boolean, isError?: boolean) {
+  if (isLoading) return 'Проверяем выданный proxy.'
+  if (isError) return 'Telegram proxy временно недоступен, VPN действия остаются на месте.'
+  if (payload?.status === 'activated') return 'Индивидуальный Telegram proxy готов к использованию.'
+  if (payload?.status) return 'Состояние Telegram proxy отображается ниже.'
+  return 'Proxy будет доступен после подготовки.'
 }
 
 export default function Dashboard() {
@@ -239,11 +249,7 @@ export default function Dashboard() {
             <p className="text-xs font-bold uppercase text-cyan-100/70">Telegram MTProto</p>
             <h2 className="mt-1 text-xl font-extrabold text-white">Личный proxy</h2>
             <p className="mt-1 text-sm muted">
-              {mtprotoLoading
-                ? 'Проверяем выданный proxy.'
-                : mtprotoError
-                  ? 'Telegram proxy временно недоступен, VPN действия остаются на месте.'
-                  : mtproto?.safe_message || 'Proxy будет доступен после подготовки.'}
+              {mtprotoIntroText(mtproto, mtprotoLoading, mtprotoError)}
             </p>
           </div>
           <span className={mtprotoStatusClass(mtproto, mtprotoLoading, mtprotoError)}>

@@ -1,7 +1,7 @@
 -module(kpproton_proxy_bridge).
 
 %% FILE: apps/kpproton_proxy/src/mtproto/kpproton_proxy_bridge.erl
-%% VERSION: 1.1.0
+%% VERSION: 1.3.0
 %% START_MODULE_CONTRACT
 %%   PURPOSE: Provide the runtime bridge contract that applies a newly issued SNI policy into the MTProto edge layer.
 %%   SCOPE: Observable policy apply/revoke hooks and health state used by KrotPN runtime policy sync.
@@ -16,6 +16,7 @@
 %% END_MODULE_MAP
 %%
 %% START_CHANGE_SUMMARY
+%%   LAST_CHANGE: v1.3.0 - Make policy apply idempotent by replacing an existing SNI entry before add.
 %%   LAST_CHANGE: v1.2.0 - Added KrotPN HTTP policy bridge support for apply, revoke, and health.
 %%   LAST_CHANGE: v1.1.0 - Replaced log-only bridge with live mtp_policy_table integration.
 %% END_CHANGE_SUMMARY
@@ -29,6 +30,7 @@ apply_domain_policy(SniDomain) ->
         undefined ->
             {error, mtproto_policy_table_unavailable};
         _Pid ->
+            _ = catch mtp_policy_table:del(personal_domains, tls_domain, SniDomain),
             ok = mtp_policy_table:add(personal_domains, tls_domain, SniDomain),
             io:format("[M-PROXY-BRIDGE][apply_domain_policy][APPLY_POLICY] ~ts~n", [SniDomain]),
             ok

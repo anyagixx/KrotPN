@@ -43,6 +43,7 @@
     <evidence-3>2026-05-18: Phase-39 keeps manual fields but makes the primary Telegram action a https://t.me/proxy link and copy action a full-link copy to reduce manual secret-entry mistakes.</evidence-3>
     <evidence-4>2026-05-19: Phase-41 verification design adds owner-cabinet gates for ee fake-TLS payloads, official-dd reissue-required state, redaction, and mobile compactness.</evidence-4>
     <evidence-5>2026-05-19: Phase-41 local API tests passed for owner ee payloads, server=SNI behavior, and official-mode reissue-required responses without leaking stale dd links.</evidence-5>
+    <evidence-6>2026-05-23: Dashboard pending/degraded state now renders backend safe_message once; header text is neutral while the detailed state owns the user-actionable message.</evidence-6>
   </evidence>
   <hotspot>H-031: User dashboard must show MTProto access compactly without hiding VPN trial status or config actions</hotspot>
 </M-045>

@@ -3,7 +3,7 @@
 # KrotPN Server Deployment Script v3.4.0 (Full Tunnel)
 # Run this script ON the RU server
 # FILE: deploy/deploy-on-server.sh
-# VERSION: 3.7.0
+# VERSION: 3.7.1
 # ROLE: SCRIPT
 # MAP_MODE: LOCALS
 # START_MODULE_CONTRACT
@@ -23,9 +23,11 @@
 #   render_nginx_domain_config - Render ignored runtime nginx fallback and Phase-41 HAProxy router configs for the selected domain/DE target.
 #   normalize_de_mtproto_domain_fronting - Force stale DE domain-fronting fallback to the private KPprotoN HTTPS listener.
 #   deploy_de_mtproto_runtime - Copy KPprotoN artifacts, wildcard TLS material, and redacted env to DE and start the private policy runtime.
+#   de_awg0_boot_persistence - Enable DE awg-quick@awg0 so the private MTProto policy bind IP survives reboot.
 # END_MODULE_MAP
 #
 # START_CHANGE_SUMMARY
+#   LAST_CHANGE: v3.7.1 - Enable DE awg-quick@awg0 at deploy time so MTProto private policy API survives host reboot.
 #   LAST_CHANGE: v3.7.0 - Defaulted MTPROTO_AD_TAG to zero 32-hex tag so DE KPprotoN runtime returns Telegram proxy_req responses.
 #   LAST_CHANGE: v3.6.0 - Restored DE MTProto deployment to KPprotoN fake-TLS and wildcard TLS runtime wiring.
 #   LAST_CHANGE: v3.5.0 - Added DE official MTProxy NAT info and HTTP stats env wiring.
@@ -748,6 +750,8 @@ echo -e "${GREEN}✓ Firewall configured${NC}"
 echo -e "${BLUE}[DE] Starting AmneziaWG...${NC}"
 awg-quick down awg0 2>/dev/null || true
 awg-quick up awg0
+systemctl enable awg-quick@awg0 >/dev/null 2>&1 || true
+echo -e "${GREEN}[M-050][de_awg0_boot_persistence][ENABLE_AWG_SERVICE] awg-quick@awg0 enabled for reboot recovery${NC}"
 
 sleep 1
 if ip link show awg0 > /dev/null 2>&1; then

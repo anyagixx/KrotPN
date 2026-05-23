@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 // FILE: scripts/phase41-kpproton-faketls-smoke.mjs
-// VERSION: 1.2.0
+// VERSION: 1.3.0
 // ROLE: SCRIPT
 // MAP_MODE: LOCALS
 // START_MODULE_CONTRACT
@@ -17,6 +17,7 @@
 // END_MODULE_MAP
 //
 // START_CHANGE_SUMMARY
+//   LAST_CHANGE: v1.3.0 - Guard DE reboot recovery for awg0-backed KPprotoN policy binding.
 //   LAST_CHANGE: v1.2.0 - Guard the non-empty MTProto proxy ad tag required for Telegram proxy_req responses.
 //   LAST_CHANGE: v1.1.0 - Guard the mtproto_proxy dependency commit that contains modern fake-TLS ping/backpressure fixes.
 //   LAST_CHANGE: v1.0.0 - Added Phase-41 KPprotoN fake-TLS static smoke.
@@ -71,6 +72,7 @@ requireText('deploy/deploy-on-server.sh', 'krotpn-mtproto-runtime.tgz')
 requireText('deploy/deploy-on-server.sh', 'DE_MTPROTO_DOMAIN_FRONTING=${domain_fronting_target}')
 requireText('deploy/deploy-on-server.sh', 'MTPROTO_AD_TAG=${MTPROTO_AD_TAG}')
 requireText('deploy/deploy-on-server.sh', 'generate_or_preserve_secret MTPROTO_AD_TAG')
+requireText('deploy/deploy-on-server.sh', '[M-050][de_awg0_boot_persistence][ENABLE_AWG_SERVICE]')
 requireText('deploy/deploy-on-server.sh', '/opt/KrotPN/ssl/server.crt')
 requireText('deploy/deploy-on-server.sh', '/opt/KrotPN/ssl/server.key')
 requireAbsent('deploy/deploy-on-server.sh', 'krotpn-official-mtproxy.tgz')
@@ -83,6 +85,9 @@ requireText('deploy/mtproto-de-compose.yml', 'PROXY_AD_TAG: ${MTPROTO_AD_TAG:-00
 requireText('deploy/mtproto-de-compose.yml', 'POLICY_LISTEN_IP: ${MTPROTO_POLICY_BIND_IP:-127.0.0.1}')
 requireText('deploy/mtproto-de-compose.yml', 'PORTAL_DOMAIN_FRONTING: ${DE_MTPROTO_DOMAIN_FRONTING:-127.0.0.1:18443}')
 requireText('deploy/mtproto-de-compose.yml', './ssl:/certs/krotpn:ro')
+requireText('mtproto-runtime/docker/entrypoint.sh', 'wait_for_policy_listen_ip')
+requireText('mtproto-runtime/docker/entrypoint.sh', 'WAIT_POLICY_IP')
+requireText('mtproto-runtime/apps/kpproton_proxy/src/mtproto/kpproton_proxy_bridge.erl', 'mtp_policy_table:del(personal_domains, tls_domain, SniDomain)')
 requireAbsent('deploy/mtproto-de-compose.yml', 'official-mtproxy')
 requireAbsent('deploy/mtproto-de-compose.yml', 'MTPROXY_NAT_INFO')
 // END_BLOCK_PHASE41_KPPROTON_FAKETLS_SMOKE

@@ -63,5 +63,6 @@
     <evidence-11>2026-05-19: Phase-41 local execution restored deploy/compose defaults to the KPprotoN DE runtime, selected deploy/haproxy-phase38.cfg as the active SNI router, and passed shell, compose, and static smoke verification.</evidence-11>
     <evidence-12>2026-05-19: Operator clean-deploy validation from GitHub main confirmed install/deploy surface works for wildcard TLS, Resend registration email, VPN, and KPprotoN MTProto proxy.</evidence-12>
     <evidence-13>2026-05-21: Local fix changed installer/deploy default admin email to admin@krotpn.xyz and removed stale admin@krotpn.com defaults from deployment docs.</evidence-13>
+    <evidence-14>2026-05-23: Reboot hotfix enables DE awg-quick@awg0 during deploy so the private MTProto policy bind address survives host restart.</evidence-14>
   </evidence>
 </M-012>

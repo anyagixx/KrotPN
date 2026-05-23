@@ -5,7 +5,7 @@
   <purpose>Make issued KrotPN MTProto assignments reachable by Telegram clients by running a real fake-TLS MTProto edge instead of only generating proxy links.</purpose>
   <exports>
     <runtime-mtproto-edge>Host-network mtproto-edge service owns public TCP 443 and loads KPprotoN-compatible fake-TLS policy.</runtime-mtproto-edge>
-    <runtime-policy-api>Local HTTP policy API applies, revokes, and health-checks issued SNI domains using a deploy-generated bearer token.</runtime-policy-api>
+    <runtime-policy-api>Private HTTP policy API applies, revokes, and health-checks issued SNI domains using a deploy-generated bearer token.</runtime-policy-api>
     <https-fallback>Normal HTTPS requests are domain-fronted from the MTProto edge to the configured private frontend fallback.</https-fallback>
     <provisioning-live-apply>Backend provisioning applies an issued SNI to the live edge before returning an active proxy payload.</provisioning-live-apply>
     <runtime-smoke>Phase-37 static and local runtime smoke checks protect service wiring, nginx port ownership, and secret redaction.</runtime-smoke>
@@ -34,17 +34,18 @@
   </files>
   <runtime-policy>
     <policy-1>Production Phase-41 keeps RU public TCP 443 on the SNI router and routes issued MTProto SNI traffic to the DE mtproto-edge; legacy local-ru fallback must not collide with nginx/admin ports.</policy-1>
-    <policy-2>The edge must accept issued SNI policies only through the localhost policy API with MTPROTO_RUNTIME_TOKEN.</policy-2>
+    <policy-2>The edge must accept issued SNI policies only through the localhost or private policy API with MTPROTO_RUNTIME_TOKEN.</policy-2>
     <policy-3>Existing MTPROTO_BASE_SECRET_HEX and MTPROTO_SECRET_SALT values must be preserved across hotfix deploys.</policy-3>
     <policy-4>Normal HTTPS, /api, and /admin traffic must continue working through the fallback path after mtproto-edge starts.</policy-4>
     <policy-5>Logs and health payloads may expose status and counts, but never base secret, salt, derived secrets, full tg:// links, private keys, JWTs, or email tokens.</policy-5>
     <policy-6>MTProto bootstrap must use bounded Telegram core fetches with static fallback artifacts so the edge can start when core.telegram.org is slow or blocked.</policy-6>
     <policy-7>RU host routes for Telegram upstream ranges must be scoped to Telegram networks only and use awg-client, not a broad default-route mutation.</policy-7>
     <policy-8>PROXY_AD_TAG must never be blank; deploy defaults MTPROTO_AD_TAG to 32 zero hex chars unless an operator supplies a real MTProxyBot tag.</policy-8>
+    <policy-9>Runtime startup must wait for a private POLICY_LISTEN_IP before binding the policy API, and repeated policy apply must replace the same SNI rather than growing duplicate policy rows.</policy-9>
   </runtime-policy>
   <constraints>
     <constraint-1>Host-network public 443 changes are production-sensitive and must be paired with rollback-ready nginx fallback validation.</constraint-1>
-    <constraint-2>Policy API must bind to localhost only and reject missing or wrong tokens.</constraint-2>
+    <constraint-2>Policy API must bind to localhost or a private interface only and reject missing or wrong tokens.</constraint-2>
     <constraint-3>Telegram availability cannot be fully proven by local unit tests; final proof requires a real Telegram client or protocol-compatible live smoke.</constraint-3>
     <constraint-4>Phase-38 must preserve Phase-37 local runtime work while avoiding RU-only live handshakes as the production dependency.</constraint-4>
     <constraint-5>Phase-41 must reconcile runtime behavior against CodexKPprotoN_for_KPN before claiming fake-TLS production readiness.</constraint-5>
@@ -67,6 +68,7 @@
     <evidence-10>2026-05-19: Live req_pq diagnostics found the old locked mtproto_proxy e343e30 data-plane timed out after fake-TLS accept; lock now moves to upstream 154a8fb, which adds modern fake-TLS ping support and downstream passive backpressure handling.</evidence-10>
     <evidence-11>2026-05-19: Live comparison against vanilla seriyps/mtproto_proxy isolated empty PROXY_AD_TAG as the remaining req_pq blocker; zero 32-hex tag made the issued-link mtp_ping pass through the RU SNI router and DE runtime for DC +1 through +5.</evidence-11>
     <evidence-12>2026-05-19: Operator clean-deploy validation confirmed Telegram Desktop/mobile use the issued KPprotoN fake-TLS proxy successfully while VPN remains working.</evidence-12>
+    <evidence-13>2026-05-23: Reboot hotfix added POLICY_LISTEN_IP wait logging and idempotent SNI replacement before add to prevent post-restart crash loops and replay policy-count growth.</evidence-13>
   </evidence>
   <hotspot>H-036: Phase-41 MTProto live edge must keep RU public TCP 443 on the SNI router, route web fallback to nginx 9443, and load issued SNI policies without rotating existing secrets.</hotspot>
 </M-049>

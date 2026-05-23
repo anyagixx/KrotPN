@@ -60,6 +60,7 @@
     <item>Phase-42 MTProto usage analytics and promotion tag control passed local execution on 2026-05-19 and operator clean-deploy validation on 2026-05-23: metadata-only usage storage, mtproto_proxy metric backend, active-SNI sampler, private runtime telemetry snapshot/drain, backend ingestion, analytics service, admin API, compact admin UI, observe-only abuse signals, and masked @MTProxyBot promotion tag control are implemented; the operator confirmed registration via @MTProxybot, MTPROTO_AD_TAG restart application, and applied status.</item>
     <item>Phase-43 MTProto admin analytics UX, abuse alerts, and 90-day IP observability passed local execution on 2026-05-20: encrypted admin-only IP history, user/proxy search and detail, current/last/all IP views, timeseries graphs, CPU/RAM runtime metrics, abuse alert inbox, acknowledge/resolve/disable/block actions, storage-budget retention jobs, compact frontend-admin UI, backend tests, frontend build, Erlang compile, XML parse, MyGRACE lint, and Phase-43 static smoke passed.</item>
     <item>Phase-43 live-feedback fix on 2026-05-20 passed local verification: MTProto runtime now emits tls_domain/client_ipv4 ip_observation events, backend stores current/last IP without inflating usage counters, abuse alerts require hard multi-IP/concurrency evidence, and admin MTProto UI adds paginated large-list navigation plus compact area graphs.</item>
+    <item>MTProto reboot hotfix on 2026-05-23 diagnosed DE awg0 missing after host reboot, enabled awg-quick@awg0 live, restored private policy health, replayed both active user SNI assignments, and added local deploy/runtime/UI regression guards.</item>
     <item>Release target v2.21.3-mtproto-real-client-ip-stable is the current stable baseline for GitHub main/Releases after clean-deploy confirmation that VPN, individual MTProto proxies, real client IP observability, and MTProto promotion tag application work.</item>
   </what-is-working>
 
@@ -164,6 +165,9 @@
     </gate>
     <gate id="phase-41-kpproton-faketls-rollback" status="passed-live">
       <summary>Local execution restores KPprotoN fake-TLS SNI as the production MTProto path; live diagnostics fixed the old mtproto_proxy lock and blank ad-tag req_pq blocker, issued-link mtp_ping passes, and operator clean-deploy testing confirms Telegram Desktop/mobile proxy connectivity plus VPN.</summary>
+    </gate>
+    <gate id="mtproto-reboot-policy-replay-hotfix" status="passed-live-hotfix">
+      <summary>Live RU/DE reboot diagnosis found DE awg0 was not enabled for boot; enabling awg-quick@awg0 restored private policy health, and active assignment replay applied both existing user SNIs. Local code now guards DE awg0 boot persistence, runtime POLICY_LISTEN_IP wait, idempotent policy apply, and single-message pending UI.</summary>
     </gate>
     <gate id="phase-42-mtproto-analytics-promotion-tag" status="passed-live">
       <summary>Local Phase-42 execution passed for metadata-only MTProto analytics, runtime telemetry bridge, admin API/UI redaction, observe-only abuse signals, and safe @MTProxyBot promotion tag control; operator clean-deploy validation on 2026-05-23 confirmed promo tag registration/application with applied state.</summary>

@@ -53,6 +53,7 @@
     <check-12 evidence="phase-41-deterministic">DE KPprotoN runtime accepts per-SNI fake-TLS policy and does not require official MTProxy secret manifests for user issuance.</check-12>
     <check-13 evidence="deterministic">mtproto_proxy is locked to commit 154a8fb8e6ef85460f502d4b74434a22a5836937 with modern fake-TLS ping/backpressure fixes needed for live req_pq diagnostics.</check-13>
     <check-14 evidence="operator-live" status="passed">DE KPprotoN runtime uses non-empty PROXY_AD_TAG; zero tag is accepted and live mtp_ping proves Telegram proxy_req responses are returned.</check-14>
+    <check-15 evidence="deterministic">Runtime entrypoint waits for POLICY_LISTEN_IP before release boot, and policy apply replaces an existing SNI before adding it again.</check-15>
   </module-checks>
   <scenarios>
     <scenario-1 kind="success">Fresh deploy starts mtproto-edge with wildcard TLS and no public 443 conflict.</scenario-1>
@@ -81,7 +82,7 @@
   <live-smoke-gates>
     <gate-1>docker ps shows mtproto-edge and backend healthy.</gate-1>
     <gate-2>RU ss output shows public TCP 443 owned by the SNI router and nginx HTTPS fallback on 9443; DE ss output shows mtproto-edge/beam owns TCP 443.</gate-2>
-    <gate-3>localhost policy health succeeds only with MTPROTO_RUNTIME_TOKEN.</gate-3>
+    <gate-3>Local/private policy health succeeds only with MTPROTO_RUNTIME_TOKEN.</gate-3>
     <gate-4>MTProto bootstrap secret/config endpoints respond within the configured proxy startup timeout.</gate-4>
     <gate-5>Existing active assignment SNI apply returns success through the local policy API or scheduler replay.</gate-5>
     <gate-6>curl https://krotpn.xyz returns a healthy frontend response without TLS bypass.</gate-6>
@@ -105,5 +106,6 @@
     <evidence-8>2026-05-19: Live diagnosis showed assignment policy, public RU route, fake-TLS accept, and Telegram downstream nonce probe passed, but issued-link req_pq timed out on the old e343e30 mtproto_proxy lock. The fix updates the dependency lock to 154a8fb for rebuild and live retest.</evidence-8>
     <evidence-9>2026-05-19: Live diagnosis after the upstream lock update proved the remaining blocker was blank PROXY_AD_TAG. With zero 32-hex tag, scheduler replay applied assignment_id=1 and mtp_ping for the issued fake-TLS link returned OK on DC +1 through +5.</evidence-9>
     <evidence-10>2026-05-19: Operator clean-deploy validation confirmed VPN and Telegram Desktop/mobile MTProto proxy work from the Phase-41 issued link.</evidence-10>
+    <evidence-11>2026-05-23: Local smoke and static pytest cover POLICY_LISTEN_IP wait and idempotent SNI replace-before-add after live reboot diagnosis.</evidence-11>
   </evidence>
 </V-M-049>

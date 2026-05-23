@@ -315,6 +315,8 @@ ufw --force enable > /dev/null
 echo -e "${BLUE}[DE] Starting AmneziaWG...${NC}"
 awg-quick down awg0 2>/dev/null || true
 awg-quick up awg0
+systemctl enable awg-quick@awg0 >/dev/null 2>&1 || true
+echo -e "${GREEN}[M-050][de_awg0_boot_persistence][ENABLE_AWG_SERVICE] awg-quick@awg0 enabled for reboot recovery${NC}"
 
 echo -e "${GREEN}[DE] Server ready!${NC}"
 REMOTE_SCRIPT

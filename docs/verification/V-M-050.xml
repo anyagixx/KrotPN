@@ -56,6 +56,7 @@
     <check-14 evidence="phase-41-deterministic">Issued u-*.krotpn.xyz SNI routes to DE KPprotoN fake-TLS runtime while official MTProxy is not the active target.</check-14>
     <check-15 evidence="operator-live" status="passed">MTPROTO_AD_TAG/PROXY_AD_TAG is non-empty and defaults to zero 32-hex tag; issued-link mtp_ping returns OK across DC +1 through +5 after policy replay.</check-15>
     <check-16 evidence="deterministic">RU SNI router emits local syslog observations to 127.0.0.1:1514 with issued SNI capture so M-055 can store real client IPs before DE proxying.</check-16>
+    <check-17 evidence="live-hotfix">DE awg-quick@awg0 is enabled for boot and the runtime waits for POLICY_LISTEN_IP before binding the private policy API.</check-17>
   </module-checks>
   <verification-matrix>
     <gate-1 MODULES="M-050,M-046" EVIDENCE="deterministic">SNI router target map separates web, issued MTProto SNI, and unknown SNI behavior.</gate-1>
@@ -78,6 +79,7 @@
     <scenario-8 kind="failure">Missing TLS material, expired wildcard certificate, or key mismatch aborts before replacing live edge roles.</scenario-8>
     <scenario-9 kind="success">Phase-41 routes a newly issued fake-TLS SNI to DE KPprotoN runtime and keeps krotpn.xyz HTTPS on web fallback.</scenario-9>
     <scenario-10 kind="success">RU SNI router observes the user device IP and issued SNI locally while the DE runtime may only see the RU router hop.</scenario-10>
+    <scenario-11 kind="success">After RU/DE reboot, DE awg0 returns automatically, policy health becomes reachable, and scheduler replay reapplies all active SNI policies without reissue.</scenario-11>
   </scenarios>
   <required-log-markers>
     <marker-1>[M-050][ru_sni_router][ROUTE_WEB]</marker-1>
@@ -138,5 +140,6 @@
     <evidence-9>2026-05-19: Live fix on DE showed vanilla mtproto_proxy passes req_pq only with a valid tag; KrotPN DE runtime with zero 32-hex tag, active assignment replay, RU SNI route, and issued u-*.krotpn.xyz link passed mtp_ping on DC +1 through +5.</evidence-9>
     <evidence-10>2026-05-19: Operator clean-deploy validation confirmed RU public web, admin, VPN, and Telegram Desktop/mobile MTProto proxy behavior work from the Phase-41 edge.</evidence-10>
     <evidence-11>2026-05-21: Local fix added HAProxy local syslog SNI/client-IP observation, host collector service, static smoke coverage, and backend IP observability tests for real client IP history.</evidence-11>
+    <evidence-12>2026-05-23: Live RU/DE reboot diagnosis found DE awg0 was not enabled for boot; enabling awg-quick@awg0 restored policy health and active assignment replay applied both existing user SNIs.</evidence-12>
   </evidence>
 </V-M-050>

@@ -1,7 +1,7 @@
 """Phase-41 deploy surface static verification.
 
 # FILE: backend/tests/test_deploy_phase38_static.py
-# VERSION: 2.2.0
+# VERSION: 2.3.0
 # ROLE: TEST
 # MAP_MODE: LOCALS
 # START_MODULE_CONTRACT
@@ -16,10 +16,12 @@
 #   test_compose_has_single_default_public_443_owner - Verifies sni-router owns 443 with bind permissions and local edge is profiled.
 #   test_deploy_wires_de_runtime_and_private_policy_url - Verifies deploy-generated Phase-40 env and DE official runtime startup.
 #   test_de_runtime_compose_binds_policy_api_privately - Verifies DE KPprotoN runtime policy API bind, health path, and TLS mount.
+#   test_de_reboot_recovery_keeps_policy_bind_ip_available - Verifies DE awg0, runtime reboot guards, and idempotent SNI apply.
 #   test_official_mtproxy_remains_reference_only - Verifies official MTProxy artifacts are no longer production deploy wiring.
 # END_MODULE_MAP
 #
 # START_CHANGE_SUMMARY
+#   LAST_CHANGE: v2.3.0 - Added static guards for DE awg0 boot persistence and runtime policy-bind wait.
 #   LAST_CHANGE: v2.2.0 - Restored deploy static checks for KPprotoN fake-TLS production runtime.
 #   LAST_CHANGE: v2.1.0 - Added static guards for stable official MTProxy runtime flags and idempotent manifests.
 #   LAST_CHANGE: v2.0.0 - Updated deploy static checks for Phase-40 official MTProxy data-plane.
@@ -116,6 +118,22 @@ def test_de_runtime_compose_binds_policy_api_privately():
     assert "./ssl:/certs/krotpn:ro" in de_compose
     assert "KROTPN_MTPROTO_POLICY_TOKEN" in de_compose
     assert "/krotpn/mtproto/policy/health" in de_compose
+
+
+def test_de_reboot_recovery_keeps_policy_bind_ip_available():
+    deploy = _read("deploy/deploy-on-server.sh")
+    deploy_all = _read("deploy/deploy-all.sh")
+    entrypoint = _read("mtproto-runtime/docker/entrypoint.sh")
+    proxy_bridge = _read("mtproto-runtime/apps/kpproton_proxy/src/mtproto/kpproton_proxy_bridge.erl")
+
+    assert "systemctl enable awg-quick@awg0" in deploy
+    assert "[M-050][de_awg0_boot_persistence][ENABLE_AWG_SERVICE]" in deploy
+    assert "systemctl enable awg-quick@awg0" in deploy_all
+    assert "wait_for_policy_listen_ip" in entrypoint
+    assert "POLICY_LISTEN_IP_WAIT_SECONDS" in entrypoint
+    assert "WAIT_POLICY_IP" in entrypoint
+    assert "/proc/net/fib_trie" in entrypoint
+    assert "mtp_policy_table:del(personal_domains, tls_domain, SniDomain)" in proxy_bridge
 
 
 def test_official_mtproxy_remains_reference_only():
