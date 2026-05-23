@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<V-M-049 MODULE="M-049" PRIORITY="critical" STATUS="pass-live-phase41" VERSION="1.5.0">
+<V-M-049 MODULE="M-049" PRIORITY="critical" STATUS="pass-live-phase41" VERSION="1.5.1">
   <module>mtproto-live-edge-runtime</module>
   <phase-scope>
     <phase-37 status="superseded-by-phase-38">Live MTProto edge runtime fix for clean-VPS Telegram proxy unavailability; local verification passed, but RU mtproto_proxy downstream handshakes were superseded by the DE-backed runtime path.</phase-37>
@@ -109,5 +109,6 @@
     <evidence-10>2026-05-19: Operator clean-deploy validation confirmed VPN and Telegram Desktop/mobile MTProto proxy work from the Phase-41 issued link.</evidence-10>
     <evidence-11>2026-05-23: Local smoke and static pytest cover POLICY_LISTEN_IP wait and idempotent SNI replace-before-add after live reboot diagnosis.</evidence-11>
     <evidence-12>2026-05-23: Live promo-tag/reboot diagnosis found no_pool,2 in DE runtime logs; kpproton_core_api now requires complete common Telegram DC pools and uses an expanded static fallback plus a 1000ms downstream probe timeout. The current DE runtime was rebuilt and redacted Phase-39 live smoke passed fake-TLS accept with Telegram downstream proxy_for_count=24.</evidence-12>
+    <evidence-13>2026-05-24: Operator clean-deployed the release candidate from GitHub, rebooted both RU/DE hosts, and confirmed issued KPprotoN fake-TLS proxies recovered and worked after the normal startup delay. Complete Telegram downstream fallback is accepted as the stable production runtime path.</evidence-13>
   </evidence>
 </V-M-049>

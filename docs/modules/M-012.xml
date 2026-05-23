@@ -66,5 +66,6 @@
     <evidence-13>2026-05-21: Local fix changed installer/deploy default admin email to admin@krotpn.xyz and removed stale admin@krotpn.com defaults from deployment docs.</evidence-13>
     <evidence-14>2026-05-23: Reboot hotfix enables DE awg-quick@awg0 during deploy so the private MTProto policy bind address survives host restart.</evidence-14>
     <evidence-15>2026-05-23: Live reboot diagnosis found RU policy table/NAT and DE NAT were transient; deploy now installs krotpn-vpn-runtime.service on RU and DE to restore full-tunnel routing, Telegram routes, FORWARD rules, and MASQUERADE after every boot. The current RU/DE hosts were hotfixed live and both units are enabled/active.</evidence-15>
+    <evidence-16>2026-05-24: Operator clean-deployed the reboot resilience release candidate from GitHub, rebooted both RU/DE hosts, and confirmed website, admin panel, VPN, and issued KPprotoN MTProto proxies all recovered after the normal startup delay. Deploy-surface reboot resilience is promoted to stable release evidence.</evidence-16>
   </evidence>
 </M-012>

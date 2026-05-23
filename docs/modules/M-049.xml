@@ -72,6 +72,7 @@
     <evidence-12>2026-05-19: Operator clean-deploy validation confirmed Telegram Desktop/mobile use the issued KPprotoN fake-TLS proxy successfully while VPN remains working.</evidence-12>
     <evidence-13>2026-05-23: Reboot hotfix added POLICY_LISTEN_IP wait logging and idempotent SNI replacement before add to prevent post-restart crash loops and replay policy-count growth.</evidence-13>
     <evidence-14>2026-05-23: Live promo-tag/reboot diagnosis found mtproto_proxy no_pool,2 failures from an incomplete fallback/downstream set; runtime now requires a complete Telegram DC bootstrap set and static fallback includes DC +/-1, +/-2, +/-3, +/-4, +/-5, and +/-203 with a 1000ms downstream probe timeout. The current DE host was rebuilt with the fix and redacted live smoke passed fake-TLS accept plus Telegram downstream reachability.</evidence-14>
+    <evidence-15>2026-05-24: Operator clean-deploy and reboot validation confirmed issued KPprotoN fake-TLS proxies recover and work after both RU and DE hosts restart; complete downstream fallback remains the stable production runtime path.</evidence-15>
   </evidence>
   <hotspot>H-036: Phase-41 MTProto live edge must keep RU public TCP 443 on the SNI router, route web fallback to nginx 9443, and load issued SNI policies without rotating existing secrets.</hotspot>
 </M-049>
