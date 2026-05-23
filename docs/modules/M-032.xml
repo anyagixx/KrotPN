@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <M-032 NAME="vpn-network-addressing-capacity" TYPE="INTEGRATION" STATUS="stable">
   <path>backend/app/core/vpn_network.py backend/app/core/config.py backend/app/vpn/amneziawg.py backend/app/vpn/models.py backend/app/core/init_vpn.py backend/app/vpn/provisioning.py backend/app/vpn/topology.py deploy/lib/vpn-network.sh deploy/deploy-on-server.sh deploy/deploy-all.sh install.sh .env.example .env.production</path>
-  <owns>Configurable VPN client and RU/DE relay address pools, non-10.0.0.0/8 deployment defaults, capacity validation for 500/1000 client devices, and explicit address-pool migration controls</owns>
+  <owns>Configurable VPN client and RU/DE relay address pools, non-10.0.0.0/8 deployment defaults, capacity validation for 500/1000 client devices, reboot-safe full-tunnel routing/NAT restore, and explicit address-pool migration controls</owns>
   <exports>
     <fn-build-vpn-network-settings>Normalize backend client/relay network settings and validate capacity/overlap constraints</fn-build-vpn-network-settings>
     <fn-vpn-network-resolve>Deploy helper that preserves existing AWG interface networks unless VPN_NETWORK_ROTATE=1</fn-vpn-network-resolve>
@@ -12,6 +12,7 @@
     <env-VPN_RELAY_RU_ADDRESS>RU relay client address inside the transit subnet, normally 172.29.255.2</env-VPN_RELAY_RU_ADDRESS>
     <env-VPN_CAPACITY_PROFILE>Validated capacity profile such as 500 or 1000 that rejects too-small client pools</env-VPN_CAPACITY_PROFILE>
     <env-VPN_NETWORK_ROTATE>Explicit operator gate for live address-pool migration and client config reprovisioning</env-VPN_NETWORK_ROTATE>
+    <fn-vpn-runtime-write-restore-service>Deploy helper that installs krotpn-vpn-runtime.service so RU policy routing, Telegram routes, and RU/DE NAT are restored after host reboot</fn-vpn-runtime-write-restore-service>
   </exports>
   <configuration>
     <default-client-subnet>172.29.0.0/22 for fresh deployments; legacy upgrades preserve existing configured subnet unless migration is explicit</default-client-subnet>
@@ -24,6 +25,7 @@
     <decision-2>/24 pools are invalid for 500/1000-device targets; /22 is the minimum practical 1000-device profile and /21 is the recommended headroom option.</decision-2>
     <decision-3>Existing deployments must not silently change client tunnel addresses because AWG configs embed fixed Address values.</decision-3>
     <decision-4>Deploy scripts and backend allocation must derive client, relay, NAT, policy-routing and config-generation behavior from one validated network source.</decision-4>
+    <decision-5>Full-tunnel policy routing and NAT are runtime host state, so deploy must install an explicit systemd restore unit instead of relying only on one-shot iptables/ip rule calls or if-up hooks.</decision-5>
   </decisions>
   <depends>M-001, M-003, M-012, M-019, M-020, M-022, M-028, M-030</depends>
   <verification-ref>V-M-032</verification-ref>
@@ -42,10 +44,10 @@
     <file>.env.example</file>
     <file>.env.production</file>
   </files>
-  <implementation-status updated="2026-04-20">
-    <done>Implemented backend VPN network helpers, capacity-aware client allocation, explicit reprovision migration guard, deploy-time network helper, 172.29 fresh-deploy env defaults, and static regression tests.</done>
-    <verification>V-M-032 passed on 2026-04-20: 25 passed, 9 warnings; bash syntax gate passed for install.sh, deploy scripts and deploy/lib/vpn-network.sh.</verification>
-    <live-verification>Operator-confirmed VPS deployment test passed for release v2.13.0-vpn-network-capacity-stable on 2026-04-20.</live-verification>
+  <implementation-status updated="2026-05-23">
+    <done>Implemented backend VPN network helpers, capacity-aware client allocation, explicit reprovision migration guard, deploy-time network helper, 172.29 fresh-deploy env defaults, reboot-safe krotpn-vpn-runtime.service renderers, and static regression tests.</done>
+    <verification>V-M-032 passed on 2026-05-23 for bash syntax/static gates covering install.sh, deploy scripts and deploy/lib/vpn-network.sh.</verification>
+    <live-verification>Operator-confirmed VPS deployment test passed for release v2.13.0-vpn-network-capacity-stable on 2026-04-20; 2026-05-23 live hotfix restored RU/DE runtime routing/NAT after reboot and promoted that behavior into deploy-time systemd restore.</live-verification>
   </implementation-status>
   <disaster-recovery-role>
     <role-1>Phase-22 restore validation must compare restored VPN_CLIENT_SUBNET, VPN_RELAY_SUBNET, VPN_CAPACITY_PROFILE, and stored VPNClient addresses against the backup manifest.</role-1>

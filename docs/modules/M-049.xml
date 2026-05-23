@@ -13,6 +13,7 @@
     <phase38-supersession>Phase-38 keeps the runtime artifacts but moves production traffic to a DE-hosted runtime behind an RU SNI router.</phase38-supersession>
     <mtproto-proxy-upstream>Runtime is pinned to seriyps/mtproto_proxy 154a8fb with modern fake-TLS ping and downstream backpressure fixes.</mtproto-proxy-upstream>
     <proxy-ad-tag>Runtime must start mtproto_proxy with a 32-hex ad tag; zero tag is valid and prevents Telegram proxy_req timeouts when no promo channel is configured.</proxy-ad-tag>
+    <complete-downstream-bootstrap>Runtime must not expose a filtered bootstrap config missing common Telegram DC pools because mtproto_proxy can otherwise stay healthy while real sessions fail with no_pool.</complete-downstream-bootstrap>
   </exports>
   <depends>M-001,M-012,M-043,M-044,M-046,M-048,M-050</depends>
   <verification-ref>V-M-049</verification-ref>
@@ -42,6 +43,7 @@
     <policy-7>RU host routes for Telegram upstream ranges must be scoped to Telegram networks only and use awg-client, not a broad default-route mutation.</policy-7>
     <policy-8>PROXY_AD_TAG must never be blank; deploy defaults MTPROTO_AD_TAG to 32 zero hex chars unless an operator supplies a real MTProxyBot tag.</policy-8>
     <policy-9>Runtime startup must wait for a private POLICY_LISTEN_IP before binding the policy API, and repeated policy apply must replace the same SNI rather than growing duplicate policy rows.</policy-9>
+    <policy-10>Bootstrap config must include DC +/-1, +/-2, +/-3, +/-4, +/-5, and +/-203 or fall back to the static complete Telegram downstream list before mtproto_proxy starts.</policy-10>
   </runtime-policy>
   <constraints>
     <constraint-1>Host-network public 443 changes are production-sensitive and must be paired with rollback-ready nginx fallback validation.</constraint-1>
@@ -69,6 +71,7 @@
     <evidence-11>2026-05-19: Live comparison against vanilla seriyps/mtproto_proxy isolated empty PROXY_AD_TAG as the remaining req_pq blocker; zero 32-hex tag made the issued-link mtp_ping pass through the RU SNI router and DE runtime for DC +1 through +5.</evidence-11>
     <evidence-12>2026-05-19: Operator clean-deploy validation confirmed Telegram Desktop/mobile use the issued KPprotoN fake-TLS proxy successfully while VPN remains working.</evidence-12>
     <evidence-13>2026-05-23: Reboot hotfix added POLICY_LISTEN_IP wait logging and idempotent SNI replacement before add to prevent post-restart crash loops and replay policy-count growth.</evidence-13>
+    <evidence-14>2026-05-23: Live promo-tag/reboot diagnosis found mtproto_proxy no_pool,2 failures from an incomplete fallback/downstream set; runtime now requires a complete Telegram DC bootstrap set and static fallback includes DC +/-1, +/-2, +/-3, +/-4, +/-5, and +/-203 with a 1000ms downstream probe timeout. The current DE host was rebuilt with the fix and redacted live smoke passed fake-TLS accept plus Telegram downstream reachability.</evidence-14>
   </evidence>
   <hotspot>H-036: Phase-41 MTProto live edge must keep RU public TCP 443 on the SNI router, route web fallback to nginx 9443, and load issued SNI policies without rotating existing secrets.</hotspot>
 </M-049>

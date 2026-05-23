@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<V-M-049 MODULE="M-049" PRIORITY="critical" STATUS="pass-live-phase41" VERSION="1.4.0">
+<V-M-049 MODULE="M-049" PRIORITY="critical" STATUS="pass-live-phase41" VERSION="1.5.0">
   <module>mtproto-live-edge-runtime</module>
   <phase-scope>
     <phase-37 status="superseded-by-phase-38">Live MTProto edge runtime fix for clean-VPS Telegram proxy unavailability; local verification passed, but RU mtproto_proxy downstream handshakes were superseded by the DE-backed runtime path.</phase-37>
@@ -45,7 +45,7 @@
     <check-4 evidence="deterministic">deploy writes MTPROTO_RUNTIME_POLICY_URL, MTPROTO_RUNTIME_TOKEN, MTPROTO_POLICY_PORT, EDGE_SHARED_443_ENABLED, and EDGE_HTTPS_FALLBACK_PORT.</check-4>
     <check-5 evidence="deterministic">backend HTTP adapter posts apply/revoke and gets health with the token header while redacting token and proxy secrets.</check-5>
     <check-6 evidence="deterministic">provisioning applies the SNI to runtime before returning an active user payload.</check-6>
-    <check-7 evidence="deterministic">Telegram core bootstrap fetches are bounded and static fallback artifacts are returned when core.telegram.org is slow, blocked, or yields no downstreams.</check-7>
+    <check-7 evidence="deterministic">Telegram core bootstrap fetches are bounded and static fallback artifacts are returned when core.telegram.org is slow, blocked, yields no downstreams, or yields a filtered config missing common Telegram DC pools.</check-7>
     <check-8 evidence="deterministic">Deploy persists Telegram MTProto upstream routes through awg-client for 149.154.160.0/20, 91.108.4.0/22, 91.108.56.0/22, and 91.105.192.0/23.</check-8>
     <check-9 evidence="operator-live">RU server has mtproto-edge healthy, TCP 443 owned by the edge, TCP 8443 owned by nginx fallback, and policy_count includes issued active SNI after replay.</check-9>
     <check-10 evidence="operator-live" status="passed">Telegram Desktop/mobile mark the issued proxy available from the existing user dashboard link.</check-10>
@@ -54,11 +54,12 @@
     <check-13 evidence="deterministic">mtproto_proxy is locked to commit 154a8fb8e6ef85460f502d4b74434a22a5836937 with modern fake-TLS ping/backpressure fixes needed for live req_pq diagnostics.</check-13>
     <check-14 evidence="operator-live" status="passed">DE KPprotoN runtime uses non-empty PROXY_AD_TAG; zero tag is accepted and live mtp_ping proves Telegram proxy_req responses are returned.</check-14>
     <check-15 evidence="deterministic">Runtime entrypoint waits for POLICY_LISTEN_IP before release boot, and policy apply replaces an existing SNI before adding it again.</check-15>
+    <check-16 evidence="deterministic">Runtime fallback proxy config includes DC +/-1, +/-2, +/-3, +/-4, +/-5, and +/-203 so mtproto_proxy cannot remain nominally healthy while real clients fail with no_pool for a common Telegram DC.</check-16>
   </module-checks>
   <scenarios>
     <scenario-1 kind="success">Fresh deploy starts mtproto-edge with wildcard TLS and no public 443 conflict.</scenario-1>
     <scenario-2 kind="success">Existing active assignment SNI is applied to the live policy table without changing its secret or link.</scenario-2>
-    <scenario-3 kind="success">MTProto bootstrap returns local fallback secret/config when Telegram core is unavailable, allowing mtproto_proxy to bind 443.</scenario-3>
+    <scenario-3 kind="success">MTProto bootstrap returns local fallback secret/config when Telegram core is unavailable or filtered bootstrap is incomplete, allowing mtproto_proxy to bind 443 with common DC pools.</scenario-3>
     <scenario-4 kind="success">Normal https://krotpn.xyz traffic is forwarded to nginx fallback and still reaches frontend, API, and admin surfaces.</scenario-4>
     <scenario-5 kind="failure">Missing runtime token, unreachable policy API, invalid SNI, or policy API auth failure returns degraded state and never claims an active usable proxy.</scenario-5>
     <scenario-6 kind="failure">Port bind conflict or broken fallback requires rollback to previous nginx-only edge before user traffic is advertised.</scenario-6>
@@ -107,5 +108,6 @@
     <evidence-9>2026-05-19: Live diagnosis after the upstream lock update proved the remaining blocker was blank PROXY_AD_TAG. With zero 32-hex tag, scheduler replay applied assignment_id=1 and mtp_ping for the issued fake-TLS link returned OK on DC +1 through +5.</evidence-9>
     <evidence-10>2026-05-19: Operator clean-deploy validation confirmed VPN and Telegram Desktop/mobile MTProto proxy work from the Phase-41 issued link.</evidence-10>
     <evidence-11>2026-05-23: Local smoke and static pytest cover POLICY_LISTEN_IP wait and idempotent SNI replace-before-add after live reboot diagnosis.</evidence-11>
+    <evidence-12>2026-05-23: Live promo-tag/reboot diagnosis found no_pool,2 in DE runtime logs; kpproton_core_api now requires complete common Telegram DC pools and uses an expanded static fallback plus a 1000ms downstream probe timeout. The current DE runtime was rebuilt and redacted Phase-39 live smoke passed fake-TLS accept with Telegram downstream proxy_for_count=24.</evidence-12>
   </evidence>
 </V-M-049>

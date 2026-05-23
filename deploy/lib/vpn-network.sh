@@ -1,11 +1,11 @@
 #!/bin/bash
 # FILE: deploy/lib/vpn-network.sh
-# VERSION: 1.0.0
+# VERSION: 1.1.0
 # ROLE: SCRIPT
 # MAP_MODE: EXPORTS
 # START_MODULE_CONTRACT
-#   PURPOSE: Deploy-time VPN network derivation and validation for client/relay subnets
-#   SCOPE: Fresh-deploy defaults, existing-interface preservation, capacity checks, env rendering, and route/NAT address variables
+#   PURPOSE: Deploy-time VPN network derivation, validation, and reboot-safe runtime routing for client/relay subnets
+#   SCOPE: Fresh-deploy defaults, existing-interface preservation, capacity checks, env rendering, route/NAT address variables, and RU/DE runtime restore systemd units
 #   DEPENDS: bash, python3, awk
 #   LINKS: M-032 (vpn-network-addressing-capacity), M-012 (deploy-surface), V-M-032
 # END_MODULE_CONTRACT
@@ -16,9 +16,13 @@
 #   vpn_network_validate - Reject overlapping/too-small/fresh-10.0.0.0/8 address pools
 #   vpn_network_require_address_match - Abort if an existing interface would be silently renumbered
 #   vpn_network_env_lines - Render shell-safe assignments for remote deploy phases
+#   vpn_runtime_write_ru_restore_service - Install reboot-safe RU routing/NAT restore script and unit
+#   vpn_runtime_write_de_restore_service - Install reboot-safe DE forwarding/NAT restore script and unit
+#   vpn_runtime_enable_restore_service - Enable and run the KrotPN runtime routing restore unit
 # END_MODULE_MAP
 #
 # START_CHANGE_SUMMARY
+#   LAST_CHANGE: v3.3.0 - Added krotpn-vpn-runtime.service renderers so full-tunnel routing/NAT survives host reboot.
 #   LAST_CHANGE: v3.2.0 - Added non-10.0.0.0/8 fresh defaults and 500/1000-device capacity validation
 # END_CHANGE_SUMMARY
 
@@ -214,4 +218,135 @@ vpn_network_env_lines() {
         VPN_CAPACITY_PROFILE VPN_NETWORK_ROTATE VPN_NETWORK_PRESERVED; do
         printf '%s=%q\n' "$key" "${!key:-}"
     done
+}
+
+vpn_runtime_write_common_unit() {
+    local after_units="$1"
+    local wants_units="$2"
+
+    cat > /etc/systemd/system/krotpn-vpn-runtime.service << EOF
+[Unit]
+Description=KrotPN reboot-safe VPN routing and NAT restore
+After=network-online.target ufw.service ${after_units}
+Wants=network-online.target ${wants_units}
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/bin/krotpn-restore-vpn-runtime.sh
+RemainAfterExit=yes
+
+[Install]
+WantedBy=multi-user.target
+EOF
+}
+
+vpn_runtime_enable_restore_service() {
+    systemctl daemon-reload
+    systemctl enable krotpn-vpn-runtime.service >/dev/null 2>&1 || true
+    systemctl restart krotpn-vpn-runtime.service
+    systemctl is-active --quiet krotpn-vpn-runtime.service
+    echo "[DeployVPN][vpn-runtime][BOOT_RESTORE_SERVICE] krotpn-vpn-runtime.service active"
+}
+
+vpn_runtime_write_ru_restore_service() {
+    local de_public_ip="$1"
+
+    cat > /usr/local/bin/krotpn-restore-vpn-runtime.sh << EOF
+#!/bin/bash
+set -euo pipefail
+
+VPN_CLIENT_SUBNET='${VPN_CLIENT_SUBNET}'
+VPN_RELAY_SUBNET='${VPN_RELAY_SUBNET}'
+DE_PUBLIC_IP='${de_public_ip}'
+VPN_CLIENT_TABLE_ID='100'
+VPN_CLIENT_TABLE_NAME='vpnclients'
+
+wait_for_link() {
+    local link="\$1"
+    local attempt
+    for attempt in {1..45}; do
+        if ip link show "\${link}" >/dev/null 2>&1; then
+            return 0
+        fi
+        sleep 2
+    done
+    echo "[DeployVPN][vpn-runtime][BOOT_RESTORE_SERVICE] missing interface \${link}" >&2
+    return 1
+}
+
+wait_for_link awg0
+wait_for_link awg-client
+
+sysctl -w net.ipv4.ip_forward=1 >/dev/null
+
+if ! grep -Eq "^[[:space:]]*\${VPN_CLIENT_TABLE_ID}[[:space:]]+\${VPN_CLIENT_TABLE_NAME}\$" /etc/iproute2/rt_tables 2>/dev/null; then
+    sed -i "/[[:space:]]\${VPN_CLIENT_TABLE_NAME}\$/d" /etc/iproute2/rt_tables 2>/dev/null || true
+    echo "\${VPN_CLIENT_TABLE_ID} \${VPN_CLIENT_TABLE_NAME}" >> /etc/iproute2/rt_tables
+fi
+
+while ip rule del from "\${VPN_CLIENT_SUBNET}" table "\${VPN_CLIENT_TABLE_ID}" 2>/dev/null; do :; done
+ip rule add pref 100 from "\${VPN_CLIENT_SUBNET}" table "\${VPN_CLIENT_TABLE_ID}"
+ip route replace default dev awg-client table "\${VPN_CLIENT_TABLE_ID}"
+ip route replace "\${VPN_RELAY_SUBNET}" dev awg-client
+
+if [ -n "\${DE_PUBLIC_IP}" ]; then
+    DE_GW="\$(ip route show default | awk '{print \$3; exit}')"
+    if [ -n "\${DE_GW}" ]; then
+        ip route replace "\${DE_PUBLIC_IP}/32" via "\${DE_GW}" 2>/dev/null || true
+    fi
+fi
+
+for tg_route in 149.154.160.0/20 91.108.4.0/22 91.108.56.0/22 91.105.192.0/23; do
+    ip route replace "\${tg_route}" dev awg-client 2>/dev/null || true
+done
+
+iptables -C FORWARD -i awg0 -o awg-client -j ACCEPT 2>/dev/null || iptables -I FORWARD 1 -i awg0 -o awg-client -j ACCEPT
+iptables -C FORWARD -i awg-client -o awg0 -j ACCEPT 2>/dev/null || iptables -I FORWARD 1 -i awg-client -o awg0 -j ACCEPT
+iptables -t nat -C POSTROUTING -s "\${VPN_CLIENT_SUBNET}" -o awg-client -j MASQUERADE 2>/dev/null || iptables -t nat -I POSTROUTING 1 -s "\${VPN_CLIENT_SUBNET}" -o awg-client -j MASQUERADE
+
+echo "[DeployVPN][vpn-runtime][BOOT_RESTORE_SERVICE] ru routing restored client_subnet=\${VPN_CLIENT_SUBNET}"
+EOF
+    chmod +x /usr/local/bin/krotpn-restore-vpn-runtime.sh
+    vpn_runtime_write_common_unit "awg-quick@awg0.service awg-quick@awg-client.service" "awg-quick@awg0.service awg-quick@awg-client.service"
+}
+
+vpn_runtime_write_de_restore_service() {
+    cat > /usr/local/bin/krotpn-restore-vpn-runtime.sh << EOF
+#!/bin/bash
+set -euo pipefail
+
+VPN_CLIENT_SUBNET='${VPN_CLIENT_SUBNET}'
+VPN_RELAY_SUBNET='${VPN_RELAY_SUBNET}'
+
+wait_for_link() {
+    local link="\$1"
+    local attempt
+    for attempt in {1..45}; do
+        if ip link show "\${link}" >/dev/null 2>&1; then
+            return 0
+        fi
+        sleep 2
+    done
+    echo "[DeployVPN][vpn-runtime][BOOT_RESTORE_SERVICE] missing interface \${link}" >&2
+    return 1
+}
+
+wait_for_link awg0
+sysctl -w net.ipv4.ip_forward=1 >/dev/null
+
+EXT_IF="\$(ip route show default | awk '{print \$5; exit}')"
+if [ -z "\${EXT_IF}" ]; then
+    echo "[DeployVPN][vpn-runtime][BOOT_RESTORE_SERVICE] missing default egress interface" >&2
+    exit 1
+fi
+
+iptables -C FORWARD -i awg0 -o "\${EXT_IF}" -j ACCEPT 2>/dev/null || iptables -I FORWARD 1 -i awg0 -o "\${EXT_IF}" -j ACCEPT
+iptables -C FORWARD -i "\${EXT_IF}" -o awg0 -j ACCEPT 2>/dev/null || iptables -I FORWARD 1 -i "\${EXT_IF}" -o awg0 -j ACCEPT
+iptables -t nat -C POSTROUTING -s "\${VPN_RELAY_SUBNET}" -o "\${EXT_IF}" -j MASQUERADE 2>/dev/null || iptables -t nat -I POSTROUTING 1 -s "\${VPN_RELAY_SUBNET}" -o "\${EXT_IF}" -j MASQUERADE
+iptables -t nat -C POSTROUTING -s "\${VPN_CLIENT_SUBNET}" -o "\${EXT_IF}" -j MASQUERADE 2>/dev/null || iptables -t nat -I POSTROUTING 1 -s "\${VPN_CLIENT_SUBNET}" -o "\${EXT_IF}" -j MASQUERADE
+
+echo "[DeployVPN][vpn-runtime][BOOT_RESTORE_SERVICE] de routing restored ext_if=\${EXT_IF} client_subnet=\${VPN_CLIENT_SUBNET}"
+EOF
+    chmod +x /usr/local/bin/krotpn-restore-vpn-runtime.sh
+    vpn_runtime_write_common_unit "awg-quick@awg0.service" "awg-quick@awg0.service"
 }

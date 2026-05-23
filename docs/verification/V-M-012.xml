@@ -1,15 +1,17 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<V-M-012 MODULE="M-012" PRIORITY="critical" STATUS="pass-live-phase41" VERSION="1.4.1">
+<V-M-012 MODULE="M-012" PRIORITY="critical" STATUS="pass-live-phase41" VERSION="1.4.2">
   <module>deploy-surface</module>
-  <checks>Deploy and nginx changes do not introduce weak defaults or unsafe routing assumptions. Deploy creates /var/lib/krotpn/ directory for RU IP snapshots. Snapshot directory permissions are correct (root:root, 755). Phase-36 deploy changes enable Resend email provider without logging RESEND_API_KEY. Phase-38 deploy changes wire DE-backed MTProto edge roles without exposing policy tokens or wildcard private keys. Phase-41 restores KPprotoN fake-TLS runtime as the active data-plane while keeping official MTProxy disabled from production routing and has clean-deploy live proof. Reboot hotfix keeps DE awg0 boot-persistent so the private MTProto policy bind survives host restart.</checks>
+  <checks>Deploy and nginx changes do not introduce weak defaults or unsafe routing assumptions. Deploy creates /var/lib/krotpn/ directory for RU IP snapshots. Snapshot directory permissions are correct (root:root, 755). Phase-36 deploy changes enable Resend email provider without logging RESEND_API_KEY. Phase-38 deploy changes wire DE-backed MTProto edge roles without exposing policy tokens or wildcard private keys. Phase-41 restores KPprotoN fake-TLS runtime as the active data-plane while keeping official MTProxy disabled from production routing and has clean-deploy live proof. Reboot hotfix keeps DE awg0 boot-persistent and installs krotpn-vpn-runtime.service on RU/DE so full-tunnel routing/NAT survives host restart.</checks>
   <test-files>
     <file>install.sh</file>
     <file>deploy/deploy-on-server.sh</file>
+    <file>deploy/deploy-all.sh</file>
+    <file>deploy/lib/vpn-network.sh</file>
     <file phase="36-designed">scripts/phase36-resend-deploy-smoke.mjs</file>
     <file phase="38-designed">scripts/phase38-de-mtproto-edge-smoke.mjs</file>
     <file phase="41-pass-local">scripts/phase41-kpproton-faketls-smoke.mjs</file>
   </test-files>
-  <commands>bash -n deploy/deploy-on-server.sh &amp;&amp; bash -n deploy/deploy-all.sh &amp;&amp; bash -n deploy/quick-start.sh &amp;&amp; bash -n deploy/create-client.sh &amp;&amp; bash -n deploy/remove-client.sh &amp;&amp; bash -n deploy/rollback.sh &amp;&amp; bash -n deploy/backup-db.sh &amp;&amp; bash -n install.sh</commands>
+  <commands>bash -n deploy/lib/vpn-network.sh &amp;&amp; bash -n deploy/deploy-on-server.sh &amp;&amp; bash -n deploy/deploy-all.sh &amp;&amp; bash -n deploy/quick-start.sh &amp;&amp; bash -n deploy/create-client.sh &amp;&amp; bash -n deploy/remove-client.sh &amp;&amp; bash -n deploy/rollback.sh &amp;&amp; bash -n deploy/backup-db.sh &amp;&amp; bash -n install.sh &amp;&amp; node scripts/phase41-kpproton-faketls-smoke.mjs</commands>
   <anchors>DEPLOY_IDEMPOTENT KEYS_PRESERVED DEPLOY_BACKUP_CREATED DEPLOY_RESTORED</anchors>
   <phase-36-verification>
     <check-1 evidence="deterministic">Clean install flow materializes EMAIL_PROVIDER=resend, RESEND_API_KEY, RESEND_API_URL, EMAIL_FROM, and EMAIL_VERIFICATION_URL_BASE into deploy configuration.</check-1>
@@ -46,6 +48,7 @@
     <scenario kind="success" trace="PHASE38_DE_EDGE_WIRED">Deploy can materialize DE-backed MTProto edge roles while keeping HTTPS rollback available</scenario>
     <scenario kind="success" trace="PHASE41_KPPROTON_EDGE_WIRED">Deploy can materialize DE KPprotoN fake-TLS edge roles while official MTProxy remains inactive in production</scenario>
     <scenario kind="success" trace="DE_AWG0_BOOT_PERSISTENT">DE awg0 is enabled for boot before the DE KPprotoN runtime depends on the private policy bind IP</scenario>
+    <scenario kind="success" trace="VPN_RUNTIME_BOOT_RESTORE">RU and DE install krotpn-vpn-runtime.service to restore policy routing, Telegram routes, FORWARD rules, and NAT after host reboot</scenario>
   </scenarios>
   <evidence>
     <evidence-1>2026-05-17: bash -n install.sh deploy/deploy-on-server.sh passed after Phase-36 Resend config wiring.</evidence-1>
@@ -59,5 +62,6 @@
     <evidence-9>2026-05-19: Operator clean-deploy validation from GitHub main confirmed deploy surface works for wildcard TLS, Resend registration email, VPN, and KPprotoN MTProto proxy.</evidence-9>
     <evidence-10>2026-05-19: Legacy V-M-029 Phase-16 rebranding verification is closed as superseded by V-M-012 after current deploy shell syntax, compose config, Phase-41 static smoke, frontend build, admin build, and Phase-41 live deploy proof.</evidence-10>
     <evidence-11>2026-05-23: Live reboot hotfix enabled DE awg-quick@awg0 and local deploy/static gates now assert the boot persistence marker.</evidence-11>
+    <evidence-12>2026-05-23: Live reboot diagnosis found transient RU policy table/NAT and DE NAT loss; deploy/lib/vpn-network.sh now renders krotpn-vpn-runtime.service and Phase-41 static smoke asserts the restore contract. The current RU/DE hosts were hotfixed with enabled/active restore units.</evidence-12>
   </evidence>
 </V-M-012>

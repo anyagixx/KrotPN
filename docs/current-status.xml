@@ -61,6 +61,7 @@
     <item>Phase-43 MTProto admin analytics UX, abuse alerts, and 90-day IP observability passed local execution on 2026-05-20: encrypted admin-only IP history, user/proxy search and detail, current/last/all IP views, timeseries graphs, CPU/RAM runtime metrics, abuse alert inbox, acknowledge/resolve/disable/block actions, storage-budget retention jobs, compact frontend-admin UI, backend tests, frontend build, Erlang compile, XML parse, MyGRACE lint, and Phase-43 static smoke passed.</item>
     <item>Phase-43 live-feedback fix on 2026-05-20 passed local verification: MTProto runtime now emits tls_domain/client_ipv4 ip_observation events, backend stores current/last IP without inflating usage counters, abuse alerts require hard multi-IP/concurrency evidence, and admin MTProto UI adds paginated large-list navigation plus compact area graphs.</item>
     <item>MTProto reboot hotfix on 2026-05-23 diagnosed DE awg0 missing after host reboot, enabled awg-quick@awg0 live, restored private policy health, replayed both active user SNI assignments, and added local deploy/runtime/UI regression guards.</item>
+    <item>MTProto/VPN reboot resilience fix on 2026-05-23 diagnosed false-green panels after reboot: RU lost transient vpnclients route table/NAT, DE lost NAT, and DE mtproto_proxy had no_pool,2 from incomplete Telegram downstream bootstrap. Live hotfix restored routing/NAT and policy replay; the current RU/DE hosts now have enabled/active krotpn-vpn-runtime.service, DE runtime was rebuilt, and redacted live smoke passed fake-TLS accept plus Telegram downstream reachability.</item>
     <item>MTProto admin UI fix on 2026-05-23 passed local verification: visible technical Signals panel/count was removed from the Abuse screen while alert APIs stay wired, and open alert actions now expose Russian hover descriptions for review, acknowledge, resolve, disable, and IP-block decisions.</item>
     <item>MTProto admin IP history UI fix on 2026-05-23 passed local verification: the investigation drawer no longer renders visible CIDR network masks, and the IP history list is more compact with internal mouse scrolling for long address history.</item>
     <item>Release target v2.21.3-mtproto-real-client-ip-stable is the current stable baseline for GitHub main/Releases after clean-deploy confirmation that VPN, individual MTProto proxies, real client IP observability, and MTProto promotion tag application work.</item>
@@ -169,7 +170,7 @@
       <summary>Local execution restores KPprotoN fake-TLS SNI as the production MTProto path; live diagnostics fixed the old mtproto_proxy lock and blank ad-tag req_pq blocker, issued-link mtp_ping passes, and operator clean-deploy testing confirms Telegram Desktop/mobile proxy connectivity plus VPN.</summary>
     </gate>
     <gate id="mtproto-reboot-policy-replay-hotfix" status="passed-live-hotfix">
-      <summary>Live RU/DE reboot diagnosis found DE awg0 was not enabled for boot; enabling awg-quick@awg0 restored private policy health, and active assignment replay applied both existing user SNIs. Local code now guards DE awg0 boot persistence, runtime POLICY_LISTEN_IP wait, idempotent policy apply, and single-message pending UI.</summary>
+      <summary>Live RU/DE reboot diagnosis found DE awg0, RU vpnclients policy table/NAT, DE NAT, and incomplete MTProto downstream bootstrap risks; local code now guards DE awg0 boot persistence, runtime POLICY_LISTEN_IP wait, idempotent policy apply, krotpn-vpn-runtime.service route/NAT restore, complete Telegram DC fallback config, and single-message pending UI.</summary>
     </gate>
     <gate id="phase-42-mtproto-analytics-promotion-tag" status="passed-live">
       <summary>Local Phase-42 execution passed for metadata-only MTProto analytics, runtime telemetry bridge, admin API/UI redaction, observe-only abuse signals, and safe @MTProxyBot promotion tag control; operator clean-deploy validation on 2026-05-23 confirmed promo tag registration/application with applied state.</summary>
@@ -180,13 +181,14 @@
   </rollout-gates>
 
   <immediate-priorities>
-    <priority rank="1">Use the v2.21.3 stable MTProto/VPN baseline with live-confirmed individual proxies, real client IP observability, and promotion tag application for future deploy testing and frontend client/admin redesign work.</priority>
-    <priority rank="2">Continue Phase-43 admin analytics hardening with real redacted runtime data: graph refresh polish, resource metrics, alert notifications, and TTL IP block runtime enforcement.</priority>
-    <priority rank="3">Run Phase-22 non-production restore rehearsal with a trusted backup bundle and isolated restore target before production release.</priority>
-    <priority rank="4">Decide whether to approve cookie-only auth migration and provide HTTPS or production-like auth smoke target.</priority>
-    <priority rank="5">Keep deploy/install scripts unchanged unless the operator explicitly requests deployment-surface work.</priority>
-    <priority rank="6">Improve repeatable local verification for backend, user frontend, and admin frontend.</priority>
-    <priority rank="7">Tune false-positive thresholds before enabling any automatic anti-sharing block policy beyond admin-reviewed detect-first mode.</priority>
+    <priority rank="1">Finish verification and release of the 2026-05-23 reboot resilience fix before treating promo-tag/reboot behavior as stable on clean VPS deployments.</priority>
+    <priority rank="2">Use the v2.21.3 stable MTProto/VPN baseline with live-confirmed individual proxies, real client IP observability, and promotion tag application for future deploy testing and frontend client/admin redesign work until the reboot resilience release is published.</priority>
+    <priority rank="3">Continue Phase-43 admin analytics hardening with real redacted runtime data: graph refresh polish, resource metrics, alert notifications, and TTL IP block runtime enforcement.</priority>
+    <priority rank="4">Run Phase-22 non-production restore rehearsal with a trusted backup bundle and isolated restore target before production release.</priority>
+    <priority rank="5">Decide whether to approve cookie-only auth migration and provide HTTPS or production-like auth smoke target.</priority>
+    <priority rank="6">Keep deploy/install scripts unchanged unless the operator explicitly requests deployment-surface work.</priority>
+    <priority rank="7">Improve repeatable local verification for backend, user frontend, and admin frontend.</priority>
+    <priority rank="8">Tune false-positive thresholds before enabling any automatic anti-sharing block policy beyond admin-reviewed detect-first mode.</priority>
   </immediate-priorities>
 
   <known-risks>

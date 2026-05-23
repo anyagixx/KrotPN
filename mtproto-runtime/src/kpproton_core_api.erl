@@ -1,10 +1,10 @@
 -module(kpproton_core_api).
 
 %% FILE: src/kpproton_core_api.erl
-%% VERSION: 1.2.0
+%% VERSION: 1.3.0
 %% START_MODULE_CONTRACT
 %%   PURPOSE: Fetch Telegram core bootstrap artifacts through the system curl binary with bounded local fallbacks for mtproto_proxy startup.
-%%   SCOPE: Retrieve getProxySecret/getProxyConfig payloads, filter unreachable downstreams, provide static fallback artifacts, and normalize failures for local bootstrap handlers.
+%%   SCOPE: Retrieve getProxySecret/getProxyConfig payloads, filter unreachable downstreams, require a complete common Telegram DC downstream set, provide static fallback artifacts, and normalize failures for local bootstrap handlers.
 %%   DEPENDS: M-CONFIG
 %%   LINKS: M-PROXY-BRIDGE, M-RELEASE
 %% END_MODULE_CONTRACT
@@ -12,9 +12,11 @@
 %% START_MODULE_MAP
 %%   proxy_secret/0 - returns the getProxySecret payload as binary
 %%   proxy_config/0 - returns the getProxyConfig payload as binary
+%%   has_required_downstreams/1 - validates that bootstrap config contains common Telegram DC pools
 %% END_MODULE_MAP
 %%
 %% START_CHANGE_SUMMARY
+%%   LAST_CHANGE: v1.3.0 - Require common Telegram DC downstreams and expand static fallback config to prevent no_pool crashes after reboot.
 %%   LAST_CHANGE: v1.2.0 - Added bounded static fallback bootstrap artifacts so mtproto_proxy can start when core.telegram.org is slow or blocked.
 %%   LAST_CHANGE: v1.1.0 - Filter unreachable bootstrap downstreams before exposing proxy config to mtproto_proxy.
 %% END_CHANGE_SUMMARY
@@ -35,11 +37,11 @@ proxy_config() ->
     case fetch_url(os:getenv("PROXY_CONFIG_URL", "https://core.telegram.org/getProxyConfig")) of
         {ok, Body} ->
             Filtered = filter_proxy_config(Body),
-            case has_downstream(Filtered) of
+            case has_required_downstreams(Filtered) of
                 true ->
                     {ok, Filtered};
                 false ->
-                    io:format("[M-PROXY-BRIDGE][bootstrap][STATIC_CONFIG_FALLBACK] reason=no_downstreams~n", []),
+                    io:format("[M-PROXY-BRIDGE][bootstrap][STATIC_CONFIG_FALLBACK] reason=missing_required_downstreams~n", []),
                     {ok, fallback_proxy_config()}
             end;
         Error ->
@@ -75,7 +77,7 @@ collect_output(Port, Acc, TimeoutSeconds) ->
     end.
 
 filter_proxy_config(Body) ->
-    TimeoutMs = env_integer("BOOTSTRAP_DOWNSTREAM_CONNECT_TIMEOUT_MS", 200),
+    TimeoutMs = env_integer("BOOTSTRAP_DOWNSTREAM_CONNECT_TIMEOUT_MS", 1000),
     Lines = binary:split(Body, <<"\n">>, [global]),
     Filtered =
         lists:reverse(
@@ -113,8 +115,17 @@ should_keep_line(<<"proxy_for ", _/binary>> = Line, TimeoutMs) ->
 should_keep_line(_Line, _TimeoutMs) ->
     true.
 
-has_downstream(Body) ->
-    binary:match(Body, <<"proxy_for ">>) =/= nomatch.
+has_required_downstreams(Body) ->
+    lists:all(
+      fun(DcId) ->
+          has_downstream(Body, DcId)
+      end,
+      [1, -1, 2, -2, 3, -3, 4, -4, 5, -5, 203, -203]
+    ).
+
+has_downstream(Body, DcId) ->
+    Marker = iolist_to_binary(["proxy_for ", integer_to_list(DcId), " "]),
+    binary:match(Body, Marker) =/= nomatch.
 
 fallback_proxy_secret() ->
     decode_base64_env(
@@ -123,10 +134,42 @@ fallback_proxy_secret() ->
     ).
 
 fallback_proxy_config() ->
-    decode_base64_env(
-      "PROXY_CONFIG_B64",
-      <<"IyBmb3JjZV9wcm9iYWJpbGl0eSAxMCAxMApkZWZhdWx0IDIwMzsKcHJveHlfZm9yIDIwMyA5MS4xMDUuMTkyLjExMDo0NDM7CnByb3h5X2ZvciAtMjAzIDkxLjEwNS4xOTIuMTEwOjQ0MzsK">>
-    ).
+    case os:getenv("PROXY_CONFIG_B64") of
+        false ->
+            fallback_proxy_config_default();
+        [] ->
+            fallback_proxy_config_default();
+        Value ->
+            base64:decode(unicode:characters_to_binary(Value))
+    end.
+
+fallback_proxy_config_default() ->
+    <<"# force_probability 10 10\n",
+      "default 2;\n",
+      "proxy_for 1 149.154.175.50:8888;\n",
+      "proxy_for -1 149.154.175.50:8888;\n",
+      "proxy_for 2 149.154.161.144:8888;\n",
+      "proxy_for -2 149.154.161.184:8888;\n",
+      "proxy_for 203 91.105.192.110:443;\n",
+      "proxy_for -203 91.105.192.110:443;\n",
+      "proxy_for 3 149.154.175.100:8888;\n",
+      "proxy_for -3 149.154.175.100:8888;\n",
+      "proxy_for 4 91.108.4.209:8888;\n",
+      "proxy_for 4 91.108.4.154:8888;\n",
+      "proxy_for 4 91.108.4.172:8888;\n",
+      "proxy_for 4 91.108.4.227:8888;\n",
+      "proxy_for 4 91.108.4.149:8888;\n",
+      "proxy_for 4 91.108.4.163:8888;\n",
+      "proxy_for 4 91.108.4.215:8888;\n",
+      "proxy_for 4 91.108.4.196:8888;\n",
+      "proxy_for 4 91.108.4.140:8888;\n",
+      "proxy_for 4 91.108.4.169:8888;\n",
+      "proxy_for -4 149.154.165.250:8888;\n",
+      "proxy_for -4 149.154.164.250:8888;\n",
+      "proxy_for 5 91.108.56.187:8888;\n",
+      "proxy_for 5 91.108.56.147:8888;\n",
+      "proxy_for -5 91.108.56.187:8888;\n",
+      "proxy_for -5 91.108.56.147:8888;\n">>.
 
 decode_base64_env(Key, Default) ->
     Encoded =

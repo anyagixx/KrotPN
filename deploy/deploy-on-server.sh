@@ -3,12 +3,12 @@
 # KrotPN Server Deployment Script v3.4.0 (Full Tunnel)
 # Run this script ON the RU server
 # FILE: deploy/deploy-on-server.sh
-# VERSION: 3.7.1
+# VERSION: 3.8.0
 # ROLE: SCRIPT
 # MAP_MODE: LOCALS
 # START_MODULE_CONTRACT
 #   PURPOSE: Provision the RU entry host, DE exit host, application runtime, Phase-35 operator wildcard TLS edge material, Phase-36 Resend email provider env, and Phase-41 KPprotoN MTProto edge.
-#   SCOPE: Host prerequisites, AmneziaWG tunnel setup, app env generation, TLS certificate validation/install, Resend config validation, nginx fallback/Phase-41 router rendering, DE KPprotoN runtime deployment, private policy API wiring, and Docker Compose startup.
+#   SCOPE: Host prerequisites, AmneziaWG tunnel setup, reboot-safe routing/NAT restore, app env generation, TLS certificate validation/install, Resend config validation, nginx fallback/Phase-41 router rendering, DE KPprotoN runtime deployment, private policy API wiring, and Docker Compose startup.
 #   DEPENDS: M-012, M-030, M-032, M-040, M-041, M-044, M-046, M-048, M-050, M-051, M-052, M-053
 #   LINKS: docs/modules/M-012.xml, docs/modules/M-040.xml, docs/modules/M-041.xml, docs/modules/M-044.xml, docs/modules/M-046.xml, docs/modules/M-048.xml, docs/modules/M-050.xml, docs/modules/M-051.xml, docs/modules/M-052.xml, docs/modules/M-053.xml, docs/plans/Phase-35.xml, docs/plans/Phase-36.xml, docs/plans/Phase-38.xml, docs/plans/Phase-39.xml, docs/plans/Phase-40.xml, docs/verification/V-M-048.xml, docs/verification/V-M-050.xml, docs/verification/V-M-051.xml, docs/verification/V-M-052.xml, docs/verification/V-M-053.xml
 # END_MODULE_CONTRACT
@@ -24,9 +24,11 @@
 #   normalize_de_mtproto_domain_fronting - Force stale DE domain-fronting fallback to the private KPprotoN HTTPS listener.
 #   deploy_de_mtproto_runtime - Copy KPprotoN artifacts, wildcard TLS material, and redacted env to DE and start the private policy runtime.
 #   de_awg0_boot_persistence - Enable DE awg-quick@awg0 so the private MTProto policy bind IP survives reboot.
+#   vpn_runtime_boot_restore - Install krotpn-vpn-runtime.service on RU and DE so full-tunnel routes/NAT survive host reboot.
 # END_MODULE_MAP
 #
 # START_CHANGE_SUMMARY
+#   LAST_CHANGE: v3.8.0 - Install reboot-safe RU/DE krotpn-vpn-runtime.service to restore full-tunnel policy routing, Telegram routes, and NAT.
 #   LAST_CHANGE: v3.7.1 - Enable DE awg-quick@awg0 at deploy time so MTProto private policy API survives host reboot.
 #   LAST_CHANGE: v3.7.0 - Defaulted MTPROTO_AD_TAG to zero 32-hex tag so DE KPprotoN runtime returns Telegram proxy_req responses.
 #   LAST_CHANGE: v3.6.0 - Restored DE MTProto deployment to KPprotoN fake-TLS and wildcard TLS runtime wiring.
@@ -752,6 +754,9 @@ awg-quick down awg0 2>/dev/null || true
 awg-quick up awg0
 systemctl enable awg-quick@awg0 >/dev/null 2>&1 || true
 echo -e "${GREEN}[M-050][de_awg0_boot_persistence][ENABLE_AWG_SERVICE] awg-quick@awg0 enabled for reboot recovery${NC}"
+vpn_runtime_write_de_restore_service
+vpn_runtime_enable_restore_service
+echo -e "${GREEN}[M-012][vpn_runtime_boot_restore][BOOT_RESTORE_SERVICE] DE reboot-safe forwarding/NAT restore enabled${NC}"
 
 sleep 1
 if ip link show awg0 > /dev/null 2>&1; then
@@ -885,6 +890,9 @@ systemctl enable awg-quick@awg0 >/dev/null 2>&1 || true
 awg-quick down awg-client 2>/dev/null || true
 awg-quick up awg-client
 systemctl enable awg-quick@awg-client >/dev/null 2>&1 || true
+vpn_runtime_write_ru_restore_service "${DE_IP}"
+vpn_runtime_enable_restore_service
+echo -e "${GREEN}[M-012][vpn_runtime_boot_restore][BOOT_RESTORE_SERVICE] RU reboot-safe policy routing/NAT restore enabled${NC}"
 
 # Route to tunnel subnet
 echo -e "${BLUE}[RU] Adding route to DE tunnel subnet...${NC}"
@@ -980,20 +988,20 @@ if ! grep -q "100.*vpnclients" /etc/iproute2/rt_tables 2>/dev/null; then
 fi
 
 # Add rule: all packets from client subnet use table 100
-ip rule add from ${VPN_CLIENT_SUBNET} lookup 100 2>/dev/null || true
+while ip rule del from ${VPN_CLIENT_SUBNET} lookup 100 2>/dev/null; do :; done
+ip rule add pref 100 from ${VPN_CLIENT_SUBNET} lookup 100
 echo "  Added ip rule: from ${VPN_CLIENT_SUBNET} lookup vpnclients"
 
 # Add default route via awg-client in table 100
-ip route add default dev awg-client table 100 2>/dev/null || true
+ip route replace default dev awg-client table 100
 echo "  Added default route via awg-client in table vpnclients"
 
 # Persist policy routing across reboots
-cat > /etc/network/if-up.d/krotpn-policy-routing << ROUTING_SCRIPT
+cat > /etc/network/if-up.d/krotpn-policy-routing << 'ROUTING_SCRIPT'
 #!/bin/sh
-# Restore VPN client policy routing after interface restart
-echo "100 vpnclients" >> /etc/iproute2/rt_tables 2>/dev/null || true
-ip rule add from ${VPN_CLIENT_SUBNET} lookup 100 2>/dev/null || true
-ip route add default dev awg-client table 100 2>/dev/null || true
+# Restore VPN client policy routing after interface restart.
+# The systemd unit is authoritative; this hook is a compatibility trigger for ifup-based hosts.
+[ -x /usr/local/bin/krotpn-restore-vpn-runtime.sh ] && /usr/local/bin/krotpn-restore-vpn-runtime.sh >/dev/null 2>&1 || true
 ROUTING_SCRIPT
 chmod +x /etc/network/if-up.d/krotpn-policy-routing
 echo "  ✅ Policy routing persisted across reboots"

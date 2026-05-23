@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 // FILE: scripts/phase41-kpproton-faketls-smoke.mjs
-// VERSION: 1.3.0
+// VERSION: 1.4.0
 // ROLE: SCRIPT
 // MAP_MODE: LOCALS
 // START_MODULE_CONTRACT
@@ -17,6 +17,7 @@
 // END_MODULE_MAP
 //
 // START_CHANGE_SUMMARY
+//   LAST_CHANGE: v1.4.0 - Guard reboot-safe full-tunnel restore service and complete Telegram DC fallback config.
 //   LAST_CHANGE: v1.3.0 - Guard DE reboot recovery for awg0-backed KPprotoN policy binding.
 //   LAST_CHANGE: v1.2.0 - Guard the non-empty MTProto proxy ad tag required for Telegram proxy_req responses.
 //   LAST_CHANGE: v1.1.0 - Guard the mtproto_proxy dependency commit that contains modern fake-TLS ping/backpressure fixes.
@@ -73,10 +74,23 @@ requireText('deploy/deploy-on-server.sh', 'DE_MTPROTO_DOMAIN_FRONTING=${domain_f
 requireText('deploy/deploy-on-server.sh', 'MTPROTO_AD_TAG=${MTPROTO_AD_TAG}')
 requireText('deploy/deploy-on-server.sh', 'generate_or_preserve_secret MTPROTO_AD_TAG')
 requireText('deploy/deploy-on-server.sh', '[M-050][de_awg0_boot_persistence][ENABLE_AWG_SERVICE]')
+requireText('deploy/deploy-on-server.sh', '[M-012][vpn_runtime_boot_restore][BOOT_RESTORE_SERVICE]')
 requireText('deploy/deploy-on-server.sh', '/opt/KrotPN/ssl/server.crt')
 requireText('deploy/deploy-on-server.sh', '/opt/KrotPN/ssl/server.key')
 requireAbsent('deploy/deploy-on-server.sh', 'krotpn-official-mtproxy.tgz')
 requireAbsent('deploy/deploy-on-server.sh', 'MTPROXY_NAT_INFO')
+
+requireText('deploy/lib/vpn-network.sh', 'krotpn-vpn-runtime.service')
+requireText('deploy/lib/vpn-network.sh', 'ip route replace default dev awg-client table')
+requireText('deploy/lib/vpn-network.sh', '-o awg-client -j MASQUERADE')
+requireText('deploy/lib/vpn-network.sh', 'for tg_route in 149.154.160.0/20 91.108.4.0/22 91.108.56.0/22 91.105.192.0/23')
+
+requireText('mtproto-runtime/src/kpproton_core_api.erl', 'BOOTSTRAP_DOWNSTREAM_CONNECT_TIMEOUT_MS", 1000')
+requireText('mtproto-runtime/src/kpproton_core_api.erl', 'missing_required_downstreams')
+requireText('mtproto-runtime/src/kpproton_core_api.erl', '[1, -1, 2, -2, 3, -3, 4, -4, 5, -5, 203, -203]')
+requireText('mtproto-runtime/src/kpproton_core_api.erl', 'proxy_for 2 149.154.161.144:8888')
+requireText('mtproto-runtime/src/kpproton_core_api.erl', 'proxy_for -2 149.154.161.184:8888')
+requireText('mtproto-runtime/src/kpproton_core_api.erl', 'proxy_for 5 91.108.56.187:8888')
 
 requireText('deploy/mtproto-de-compose.yml', 'context: ./mtproto-runtime')
 requireText('deploy/mtproto-de-compose.yml', 'PROXY_SECRET_HEX: ${MTPROTO_BASE_SECRET_HEX:?MTPROTO_BASE_SECRET_HEX must be set}')

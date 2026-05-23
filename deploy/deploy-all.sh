@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# KrotPN Fully Automated Deployment Script v3.0.0 (Full Tunnel)
+# KrotPN Fully Automated Deployment Script v3.1.0 (Full Tunnel)
 # Uses SSH key-based authentication
 #
 # Usage: ./deploy/deploy-all.sh
@@ -317,6 +317,9 @@ awg-quick down awg0 2>/dev/null || true
 awg-quick up awg0
 systemctl enable awg-quick@awg0 >/dev/null 2>&1 || true
 echo -e "${GREEN}[M-050][de_awg0_boot_persistence][ENABLE_AWG_SERVICE] awg-quick@awg0 enabled for reboot recovery${NC}"
+vpn_runtime_write_de_restore_service
+vpn_runtime_enable_restore_service
+echo -e "${GREEN}[M-012][vpn_runtime_boot_restore][BOOT_RESTORE_SERVICE] DE reboot-safe forwarding/NAT restore enabled${NC}"
 
 echo -e "${GREEN}[DE] Server ready!${NC}"
 REMOTE_SCRIPT
@@ -426,7 +429,14 @@ systemctl enable awg-quick@awg0 >/dev/null 2>&1 || true
 awg-quick down awg-client 2>/dev/null || true
 awg-quick up awg-client
 systemctl enable awg-quick@awg-client >/dev/null 2>&1 || true
-ip route add ${VPN_RELAY_SUBNET} dev awg-client 2>/dev/null || true
+vpn_runtime_write_ru_restore_service "${DE_IP}"
+vpn_runtime_enable_restore_service
+echo -e "${GREEN}[M-012][vpn_runtime_boot_restore][BOOT_RESTORE_SERVICE] RU reboot-safe policy routing/NAT restore enabled${NC}"
+ip route replace ${VPN_RELAY_SUBNET} dev awg-client 2>/dev/null || true
+
+for tg_route in 149.154.160.0/20 91.108.4.0/22 91.108.56.0/22 91.105.192.0/23; do
+    ip route replace "$tg_route" dev awg-client 2>/dev/null || true
+done
 
 # ============================================================
 # Full Tunnel: Simple FORWARD rules between awg0 and awg-client
@@ -447,6 +457,20 @@ iptables -t nat -I POSTROUTING 1 -s ${VPN_CLIENT_SUBNET} -o awg-client -j MASQUE
 echo "  NAT RU: ${VPN_CLIENT_SUBNET} -> awg-client MASQUERADE"
 
 echo -e "${GREEN}✓ Full Tunnel forwarding configured${NC}"
+
+echo -e "${BLUE}[RU] Configuring policy routing for VPN clients...${NC}"
+if ! grep -Eq "^[[:space:]]*100[[:space:]]+vpnclients$" /etc/iproute2/rt_tables 2>/dev/null; then
+    sed -i '/[[:space:]]vpnclients$/d' /etc/iproute2/rt_tables 2>/dev/null || true
+    echo "100 vpnclients" >> /etc/iproute2/rt_tables
+fi
+while ip rule del from ${VPN_CLIENT_SUBNET} lookup 100 2>/dev/null; do :; done
+ip rule add pref 100 from ${VPN_CLIENT_SUBNET} lookup 100
+ip route replace default dev awg-client table 100
+cat > /etc/network/if-up.d/krotpn-policy-routing << 'ROUTING_SCRIPT'
+#!/bin/sh
+[ -x /usr/local/bin/krotpn-restore-vpn-runtime.sh ] && /usr/local/bin/krotpn-restore-vpn-runtime.sh >/dev/null 2>&1 || true
+ROUTING_SCRIPT
+chmod +x /etc/network/if-up.d/krotpn-policy-routing
 
 sleep 2
 if ping -c 3 ${VPN_RELAY_DE_ADDRESS} > /dev/null 2>&1; then

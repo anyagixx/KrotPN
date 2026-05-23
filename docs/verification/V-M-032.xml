@@ -2,11 +2,11 @@
 <V-M-032 MODULE="M-032" PRIORITY="critical" STATUS="pass-live">
   <module>vpn-network-addressing-capacity</module>
   <checks>
-    Verify configurable VPN addressing, non-10.0.0.0/8 coexistence with OpenVPN, and 500/1000-device capacity behavior.
+    Verify configurable VPN addressing, non-10.0.0.0/8 coexistence with OpenVPN, 500/1000-device capacity behavior, and reboot-safe runtime route/NAT restore.
   </checks>
-  <test-files>backend/tests/test_vpn_network_addressing.py backend/tests/test_deploy_network_subnets_static.py backend/tests/test_vpn_service.py backend/tests/test_manual_client_cli.py backend/tests/test_device_api.py</test-files>
-  <commands>cd backend &amp;&amp; SECRET_KEY=test-secret-key-with-enough-length DATA_ENCRYPTION_KEY=dpFmfSVqfdAK3yx5MQV6Tcv35RZuw5MzaH0yhxJ01q0= PYTHONPATH=. ../.venv/bin/python -m pytest -o addopts='' tests/test_vpn_network_addressing.py tests/test_deploy_network_subnets_static.py tests/test_vpn_service.py tests/test_manual_client_cli.py tests/test_device_api.py -v &amp;&amp; cd .. &amp;&amp; bash -n install.sh deploy/deploy-on-server.sh deploy/deploy-all.sh deploy/lib/vpn-network.sh</commands>
-  <last-run date="2026-04-20" result="pass">25 passed, 9 warnings. Shell syntax gate passed for install.sh, deploy/deploy-on-server.sh, deploy/deploy-all.sh and deploy/lib/vpn-network.sh.</last-run>
+  <test-files>backend/tests/test_vpn_network_addressing.py backend/tests/test_deploy_network_subnets_static.py backend/tests/test_vpn_service.py backend/tests/test_manual_client_cli.py backend/tests/test_device_api.py deploy/lib/vpn-network.sh scripts/phase41-kpproton-faketls-smoke.mjs</test-files>
+  <commands>cd backend &amp;&amp; SECRET_KEY=test-secret-key-with-enough-length DATA_ENCRYPTION_KEY=dpFmfSVqfdAK3yx5MQV6Tcv35RZuw5MzaH0yhxJ01q0= PYTHONPATH=. ../.venv/bin/python -m pytest -o addopts='' tests/test_vpn_network_addressing.py tests/test_deploy_network_subnets_static.py tests/test_vpn_service.py tests/test_manual_client_cli.py tests/test_device_api.py -v &amp;&amp; cd .. &amp;&amp; bash -n install.sh deploy/deploy-on-server.sh deploy/deploy-all.sh deploy/lib/vpn-network.sh &amp;&amp; node scripts/phase41-kpproton-faketls-smoke.mjs</commands>
+  <last-run date="2026-05-23" result="pass">Shell/static gates cover install.sh, deploy/deploy-on-server.sh, deploy/deploy-all.sh, deploy/lib/vpn-network.sh, and the Phase-41 smoke asserts krotpn-vpn-runtime.service restore markers.</last-run>
   <live-run date="2026-04-20" result="pass">Operator-confirmed VPS deployment test passed for release v2.13.0-vpn-network-capacity-stable.</live-run>
   <verification-levels>
     <level-module-local>Pure Python tests for subnet parsing, gateway derivation, capacity validation, allocation bounds and migration guard decisions.</level-module-local>
@@ -21,6 +21,7 @@
     <matrix-4 target="upgrade-preserve" evidence="deterministic">Without VPN_NETWORK_ROTATE, existing VPNClient.address values are not rewritten and generated configs remain tied to stored addresses.</matrix-4>
     <matrix-5 target="explicit-migration" evidence="trace">With VPN_NETWORK_ROTATE=1, migration emits required markers and routes all client config changes through existing rotation/reprovision flows.</matrix-5>
     <matrix-6 target="deploy-safety" evidence="static-integration">Deploy scripts pass bash syntax checks and static tests prove client/relay/NAT/routing values come from validated env variables.</matrix-6>
+    <matrix-7 target="boot-restore" evidence="static-integration">Deploy renders krotpn-vpn-runtime.service on RU/DE and restores RU vpnclients table, Telegram routes, FORWARD rules, and RU/DE MASQUERADE after host reboot.</matrix-7>
   </verification-matrix>
 
   <required-log-markers>
@@ -30,6 +31,7 @@
     <marker-4>[VPNNetwork][migration_guard][ROTATION_REQUIRED]</marker-4>
     <marker-5>[DeployVPN][configure_client_interface][CLIENT_SUBNET_APPLIED]</marker-5>
     <marker-6>[DeployVPN][configure_relay_interface][RELAY_SUBNET_APPLIED]</marker-6>
+    <marker-7>[DeployVPN][vpn-runtime][BOOT_RESTORE_SERVICE]</marker-7>
   </required-log-markers>
 
   <telemetry-requirements>
@@ -45,6 +47,7 @@
     <scenario-4 kind="success" trace="[VPNNetwork][migration_guard][ROTATION_REQUIRED]">Upgrade without VPN_NETWORK_ROTATE preserves existing VPNClient.address values and does not silently invalidate generated client configs.</scenario-4>
     <scenario-5 kind="success" trace="[VPNNetwork][migration_guard][ROTATION_REQUIRED]">Explicit VPN_NETWORK_ROTATE=1 performs host rule replacement and forces client config reprovisioning through existing rotation flows.</scenario-5>
     <scenario-6 kind="failure" trace="[VPNNetwork][validate_overlap][OVERLAP_DETECTED]">Deploy static checks fail if runtime paths retain hardcoded 10.10.0.0/24 or 10.200.0.0/24 assumptions outside documented compatibility references.</scenario-6>
+    <scenario-7 kind="success" trace="[DeployVPN][vpn-runtime][BOOT_RESTORE_SERVICE]">After reboot, runtime restore service recreates transient ip rule/ip route/iptables state before VPN or MTProto health is trusted.</scenario-7>
   </scenarios>
 
   <module-checks>
@@ -52,6 +55,7 @@
     <check>1000-device capacity cannot be configured with a pool smaller than the validated threshold.</check>
     <check>Existing clients are protected from accidental address-pool migration unless the operator enables explicit rotation.</check>
     <check>AWG obfuscation and anti-abuse flows remain compatible with generated configs after subnet changes.</check>
+    <check>RU and DE deploy paths install a systemd oneshot restore service for full-tunnel route/NAT state that iptables-save or if-up hooks alone did not reliably restore on VPS reboot.</check>
   </module-checks>
 
   <autonomous-execution-safety>
