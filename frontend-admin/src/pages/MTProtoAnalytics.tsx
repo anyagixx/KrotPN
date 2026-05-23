@@ -1,10 +1,10 @@
 // FILE: frontend-admin/src/pages/MTProtoAnalytics.tsx
-// VERSION: 2.2.0
+// VERSION: 2.3.0
 // ROLE: UI_COMPONENT
 // MAP_MODE: SUMMARY
 // START_MODULE_CONTRACT
 //   PURPOSE: Compact admin MTProto analytics console with usage graphs, alert review, user investigation, runtime metrics, and promotion tag controls
-//   SCOPE: Overview, Users, Abuse, Settings tabs, top users, user detail drawer with IP history, alert actions, auto-refresh, and masked promotion tag update
+//   SCOPE: Overview, Users, Abuse, Settings tabs, top users, user detail drawer with IP history, alert actions with operator tooltips, auto-refresh, and masked promotion tag update
 //   DEPENDS: M-010 (frontend-admin), M-058 (mtproto-admin-analytics-ui), M-057 (admin analytics API), M-059 (promotion tag), M-060 (alerts), M-061 (IP observability)
 //   LINKS: M-058, M-057, M-059, M-060, M-061, V-M-058
 // END_MODULE_CONTRACT
@@ -19,6 +19,7 @@
 // END_MODULE_MAP
 //
 // START_CHANGE_SUMMARY
+//   LAST_CHANGE: v2.3.0 - Removed visible technical Signals panel/count and added Russian hover help for alert actions.
 //   LAST_CHANGE: v2.2.0 - Split Abuse into open inbox and archive, and standardized icon input padding.
 //   LAST_CHANGE: v2.1.0 - Added paginated user investigation, clearer IP-source states, harder-abuse UI copy, and richer compact area graphs.
 //   LAST_CHANGE: v2.0.0 - Rebuilt for Phase-43 compact tabs, alert inbox, IP investigation, graphs, resource metrics, and auto-refresh
@@ -36,7 +37,6 @@ import {
   Database,
   Eye,
   HardDrive,
-  ListFilter,
   MemoryStick,
   RadioTower,
   Save,
@@ -189,7 +189,6 @@ export default function MTProtoAnalyticsPanel() {
   const alertsQuery = useQuery(['admin-mtproto-alerts', 'open'], () => adminApi.getMTProtoAlerts('open', 50), { refetchInterval: 10000 })
   const acknowledgedAlertsQuery = useQuery(['admin-mtproto-alerts', 'acknowledged'], () => adminApi.getMTProtoAlerts('acknowledged', 50), { refetchInterval: 30000 })
   const resolvedAlertsQuery = useQuery(['admin-mtproto-alerts', 'resolved'], () => adminApi.getMTProtoAlerts('resolved', 50), { refetchInterval: 30000 })
-  const abuseQuery = useQuery(['admin-mtproto-abuse', days], () => adminApi.getMTProtoAbuseSignals(days), { refetchInterval: 30000 })
   const usersQuery = useQuery(
     ['admin-mtproto-user-search', search, userOffset, userPageSize],
     () => adminApi.searchMTProtoUsers(search, userPageSize, userOffset),
@@ -255,7 +254,6 @@ export default function MTProtoAnalyticsPanel() {
     const right = b.resolved_at || b.acknowledged_at || b.last_seen_at || b.first_seen_at || ''
     return right.localeCompare(left)
   })
-  const abuseSignals = abuseQuery.data?.data?.items || []
   const users = usersQuery.data?.data?.items || []
   const userTotal = usersQuery.data?.data?.total || 0
   const userTotalPages = Math.max(Math.ceil(userTotal / userPageSize), 1)
@@ -349,7 +347,7 @@ export default function MTProtoAnalyticsPanel() {
             <ShieldAlert className="mb-2 h-4 w-4 text-cyan-100" />
             <span className="metric-label">Alerts</span>
             <strong className="mt-1 block text-xl text-white">{alertsQuery.data?.data?.open_count ?? summary?.open_alert_count ?? 0}</strong>
-            <span className="text-xs muted">{abuseSignals.length} signals</span>
+            <span className="text-xs muted">open inbox</span>
           </div>
         </div>
       </div>
@@ -503,6 +501,8 @@ export default function MTProtoAnalyticsPanel() {
                         className="btn-secondary px-3 py-2"
                         onClick={() => blockIpMutation.mutate({ alertId: selectedAlertId, observationId: selectedUsage.last_ip!.id })}
                         disabled={blockIpMutation.isLoading}
+                        title="Заблокировать последний IP на 24 часа и закрыть alert"
+                        aria-label="Заблокировать последний IP на 24 часа и закрыть alert"
                       >
                         <XCircle className="h-4 w-4" />
                         Block
@@ -537,13 +537,13 @@ export default function MTProtoAnalyticsPanel() {
       ) : null}
 
       {activeTab === 'abuse' ? (
-        <div className="grid gap-3 xl:grid-cols-[1.1fr_0.9fr]">
+        <div className="grid gap-3">
           <div className="surface p-3" data-log-marker="[M-058][admin_mtproto_analytics_ui][ALERT_REVIEW]">
             <div className="flex items-center gap-2">
               <AlertTriangle className="h-4 w-4 text-cyan-200" />
               <h3 className="text-sm font-semibold text-white">Alerts</h3>
             </div>
-            <p className="mt-2 text-xs muted">В inbox попадает только жесткий abuse: высокая одновременная активность, много разных IP и сильные всплески. Обычная смена сети остается signal без тревоги.</p>
+            <p className="mt-2 text-xs muted">В inbox попадает только жесткий abuse: высокая одновременная активность, много разных IP и сильные всплески. Обычная смена сети не создает тревогу.</p>
             <div className="mt-3 flex items-center justify-between gap-2">
               <h4 className="text-xs font-semibold uppercase text-slate-400">Open</h4>
               <span className="neutral-pill">{alerts.length}</span>
@@ -560,11 +560,48 @@ export default function MTProtoAnalyticsPanel() {
                     </div>
                     <span className={alert.severity === 'critical' ? 'warning-pill' : 'metric-pill'}>{alert.severity}</span>
                   </div>
-                  <div className="mt-2 flex flex-wrap gap-2">
-                    <button type="button" className="btn-secondary px-3 py-2" onClick={() => reviewUser(alert.assignment_id, alert.id)}>Review</button>
-                    <button type="button" className="btn-secondary px-3 py-2" onClick={() => alertMutation.mutate({ id: alert.id, action: 'ack' })} disabled={alertMutation.isLoading}><CheckCircle2 className="h-4 w-4" />Ack</button>
-                    <button type="button" className="btn-secondary px-3 py-2" onClick={() => alertMutation.mutate({ id: alert.id, action: 'resolve' })} disabled={alertMutation.isLoading}>Resolve</button>
-                    <button type="button" className="btn-secondary px-3 py-2" onClick={() => alertMutation.mutate({ id: alert.id, action: 'disable' })} disabled={alertMutation.isLoading}><XCircle className="h-4 w-4" />Disable</button>
+                  <div className="mt-2 flex flex-wrap gap-2" data-log-marker="[M-058][admin_mtproto_analytics_ui][ALERT_ACTION_TOOLTIP]">
+                    <button
+                      type="button"
+                      className="btn-secondary px-3 py-2"
+                      onClick={() => reviewUser(alert.assignment_id, alert.id)}
+                      title="Открыть карточку пользователя, IP history и детали этого proxy"
+                      aria-label="Открыть карточку пользователя, IP history и детали этого proxy"
+                    >
+                      Review
+                    </button>
+                    <button
+                      type="button"
+                      className="btn-secondary px-3 py-2"
+                      onClick={() => alertMutation.mutate({ id: alert.id, action: 'ack' })}
+                      disabled={alertMutation.isLoading}
+                      title="Пометить alert как просмотренный без блокировки пользователя"
+                      aria-label="Пометить alert как просмотренный без блокировки пользователя"
+                    >
+                      <CheckCircle2 className="h-4 w-4" />
+                      Ack
+                    </button>
+                    <button
+                      type="button"
+                      className="btn-secondary px-3 py-2"
+                      onClick={() => alertMutation.mutate({ id: alert.id, action: 'resolve' })}
+                      disabled={alertMutation.isLoading}
+                      title="Закрыть alert без блокировки, инцидент уйдет в архив"
+                      aria-label="Закрыть alert без блокировки, инцидент уйдет в архив"
+                    >
+                      Resolve
+                    </button>
+                    <button
+                      type="button"
+                      className="btn-secondary px-3 py-2"
+                      onClick={() => alertMutation.mutate({ id: alert.id, action: 'disable' })}
+                      disabled={alertMutation.isLoading}
+                      title="Отключить MTProto proxy этого пользователя и закрыть alert"
+                      aria-label="Отключить MTProto proxy этого пользователя и закрыть alert"
+                    >
+                      <XCircle className="h-4 w-4" />
+                      Disable
+                    </button>
                   </div>
                 </div>
               ))}
@@ -588,28 +625,6 @@ export default function MTProtoAnalyticsPanel() {
                   <div className="row-meta">
                     <span className="meta-cell"><span className="meta-label">Action</span><span className="meta-value">{alert.action_taken || 'review'}</span></span>
                     <span className="meta-cell"><span className="meta-label">Result</span><span className="meta-value">{alert.action_result || alert.status}</span></span>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          <div className="surface p-3">
-            <div className="flex items-center gap-2">
-              <ListFilter className="h-4 w-4 text-cyan-200" />
-              <h3 className="text-sm font-semibold text-white">Signals</h3>
-            </div>
-            <div className="mt-3 compact-list max-h-[560px] overflow-y-auto">
-              {abuseSignals.length === 0 ? (
-                <p className="py-4 pl-4 text-sm muted">Нет signals</p>
-              ) : abuseSignals.map((signal) => (
-                <div key={signal.id} className="list-row py-3">
-                  <div className="row-main">
-                    <div className="min-w-0">
-                      <p className="row-title">{signal.signal_type}</p>
-                      <p className="row-subtitle">Assignment #{signal.assignment_id || 'unknown'}</p>
-                    </div>
-                    <span className={signal.severity === 'critical' ? 'warning-pill' : 'neutral-pill'}>{signal.severity}</span>
                   </div>
                 </div>
               ))}

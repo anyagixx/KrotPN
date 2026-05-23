@@ -13,7 +13,7 @@
     <phase-level>Admin UI cannot close until open alert badges, alert list, review drawer, and confirmation actions are visible on mobile.</phase-level>
   </verification-levels>
   <module-checks>
-    <check-1>Only high and critical abuse signals create operator alerts by default; low/medium remain visible as signals.</check-1>
+    <check-1>Only high and critical abuse signals create operator alerts by default; low/medium remain stored as observe-only signals and are hidden from the operator UI by M-058.</check-1>
     <check-2>Dedupe key prevents repeated scheduler runs from flooding the admin inbox.</check-2>
     <check-3>Acknowledge and resolve state transitions record admin id and timestamps without changing runtime access.</check-3>
     <check-4>Disable proxy delegates to M-047 revoke and marks the alert action outcome after confirmation.</check-4>

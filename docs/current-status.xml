@@ -61,6 +61,7 @@
     <item>Phase-43 MTProto admin analytics UX, abuse alerts, and 90-day IP observability passed local execution on 2026-05-20: encrypted admin-only IP history, user/proxy search and detail, current/last/all IP views, timeseries graphs, CPU/RAM runtime metrics, abuse alert inbox, acknowledge/resolve/disable/block actions, storage-budget retention jobs, compact frontend-admin UI, backend tests, frontend build, Erlang compile, XML parse, MyGRACE lint, and Phase-43 static smoke passed.</item>
     <item>Phase-43 live-feedback fix on 2026-05-20 passed local verification: MTProto runtime now emits tls_domain/client_ipv4 ip_observation events, backend stores current/last IP without inflating usage counters, abuse alerts require hard multi-IP/concurrency evidence, and admin MTProto UI adds paginated large-list navigation plus compact area graphs.</item>
     <item>MTProto reboot hotfix on 2026-05-23 diagnosed DE awg0 missing after host reboot, enabled awg-quick@awg0 live, restored private policy health, replayed both active user SNI assignments, and added local deploy/runtime/UI regression guards.</item>
+    <item>MTProto admin UI fix on 2026-05-23 passed local verification: visible technical Signals panel/count was removed from the Abuse screen while alert APIs stay wired, and open alert actions now expose Russian hover descriptions for review, acknowledge, resolve, disable, and IP-block decisions.</item>
     <item>Release target v2.21.3-mtproto-real-client-ip-stable is the current stable baseline for GitHub main/Releases after clean-deploy confirmation that VPN, individual MTProto proxies, real client IP observability, and MTProto promotion tag application work.</item>
   </what-is-working>
 
@@ -173,7 +174,7 @@
       <summary>Local Phase-42 execution passed for metadata-only MTProto analytics, runtime telemetry bridge, admin API/UI redaction, observe-only abuse signals, and safe @MTProxyBot promotion tag control; operator clean-deploy validation on 2026-05-23 confirmed promo tag registration/application with applied state.</summary>
     </gate>
     <gate id="phase-43-mtproto-admin-analytics-alerts-ip-observability" status="passed-local">
-      <summary>Local Phase-43 execution passed for compact admin analytics UX, encrypted 90-day admin-only IP observability, alert inbox/actions, storage retention jobs, backend/API/UI regressions, Erlang compile, XML parse, MyGRACE lint, and static redaction smoke; live deployment validation remains the next evidence step.</summary>
+      <summary>Local Phase-43 execution passed for compact admin analytics UX, encrypted 90-day admin-only IP observability, alert inbox/actions with Russian hover help, hidden visible Signals noise, storage retention jobs, backend/API/UI regressions, Erlang compile, XML parse, MyGRACE lint, and static redaction smoke; live deployment validation remains the next evidence step.</summary>
     </gate>
   </rollout-gates>
 

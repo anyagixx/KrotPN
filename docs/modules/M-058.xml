@@ -1,13 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <M-058 NAME="mtproto-admin-analytics-ui" TYPE="UI_COMPONENT" STATUS="pass-local-phase43">
   <path>frontend-admin/src/pages/MTProtoAnalytics.tsx frontend-admin/src/pages/MTProto.tsx frontend-admin/src/lib/api.ts frontend-admin/src/types/index.ts scripts/phase42-mtproto-admin-analytics-smoke.mjs scripts/phase43-mtproto-admin-analytics-smoke.mjs docs/plans/Phase-42.xml docs/plans/Phase-43.xml</path>
-  <owns>Compact admin UI for MTProto usage analytics, per-proxy details, abuse signals, runtime health, availability proof, and promotion tag controls.</owns>
+  <owns>Compact admin UI for MTProto usage analytics, per-proxy details, operator alert review, runtime health, availability proof, and promotion tag controls.</owns>
   <purpose>Let the operator analyze MTProto usage from desktop or mobile admin panel without exposing secrets.</purpose>
   <exports>
     <view-mtproto-analytics>Admin page or MTProto tab for global metrics, traffic windows, active connections, top users, and error summaries.</view-mtproto-analytics>
     <view-mtproto-assignment-detail>Per-proxy detail panel with last seen, session count, duration, traffic, errors, and abuse flags.</view-mtproto-assignment-detail>
     <view-mtproto-user-investigation>Phase-43 compact user/proxy drawer with issued time, last seen, current IP, last IP, 90-day IP history, sessions, graphs, and errors.</view-mtproto-user-investigation>
-    <view-mtproto-alert-inbox>Phase-43 admin alert inbox for high/critical abuse signals with acknowledge, resolve, disable proxy, and TTL IP block actions.</view-mtproto-alert-inbox>
+    <view-mtproto-alert-inbox>Phase-43 admin alert inbox for high/critical abuse alerts with Russian hover help on review, acknowledge, resolve, disable proxy, and TTL IP block actions.</view-mtproto-alert-inbox>
     <view-mtproto-promotion-tag>Promotion tag form showing masked current tag, validation state, apply status, and pending restart state.</view-mtproto-promotion-tag>
     <smoke-admin-analytics-redaction>Static smoke ensuring UI bundles do not render full tg links, secrets, tokens, or raw tags.</smoke-admin-analytics-redaction>
   </exports>
@@ -21,15 +21,16 @@
     <file status="implemented">scripts/phase42-mtproto-admin-analytics-smoke.mjs</file>
     <file status="implemented">scripts/phase43-mtproto-admin-analytics-smoke.mjs</file>
   </files>
-  <evidence>pass-local 2026-05-21: frontend-admin build and Phase-42/Phase-43 admin analytics static smokes passed; UI removes Recent events, paginates large proxy/user lists, exposes compact area graphs, clarifies source-IP unavailable states, splits Abuse into open inbox plus archive, and standardizes icon input padding.</evidence>
+  <evidence>pass-local 2026-05-23: frontend-admin build and Phase-42/Phase-43 admin analytics static smokes passed; UI removes Recent events and visible technical Signals surfaces, paginates large proxy/user lists, exposes compact area graphs, clarifies source-IP unavailable states, splits Abuse into open inbox plus archive, adds Russian alert-action hover help, and standardizes icon input padding.</evidence>
   <ui-policy>
     <policy-1>Mobile layout uses dense summary rows, tabs, filters, and drill-down panels rather than large decorative dashboards.</policy-1>
     <policy-2>Promotion tag editing requires confirmation and never displays the full stored tag after save.</policy-2>
-    <policy-3>Abuse signals are visibly observe-only in Phase-42.</policy-3>
-    <policy-4>Phase-43 removes the visible Recent events panel and replaces it with compact Overview, Users, Abuse, and Settings surfaces.</policy-4>
+    <policy-3>Technical abuse signals remain backend/API data but are hidden from the visible admin MTProto UI; the operator sees only high/critical Alerts plus Archive.</policy-3>
+    <policy-4>Phase-43 removes the visible Recent events and Signals panels and replaces them with compact Overview, Users, Abuse, and Settings surfaces.</policy-4>
     <policy-5>Raw IP values may render only inside the explicit admin investigation drawer and must never appear in general analytics cards or static smoke output.</policy-5>
     <policy-6>Large assignment/user inventories must use compact paging and bounded scroll panes so the admin panel remains usable with thousands of proxies.</policy-6>
     <policy-7>Abuse actions remove items from the open inbox by querying only open alerts, while acknowledged/resolved alerts remain visible in an archive list.</policy-7>
+    <policy-8>Alert action buttons must expose short Russian hover descriptions so operator decisions are clear before clicking.</policy-8>
   </ui-policy>
   <constraints>
     <constraint-1>Admin UI must not hide existing MTProto reissue/revoke controls.</constraint-1>

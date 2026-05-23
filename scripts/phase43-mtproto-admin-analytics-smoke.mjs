@@ -1,5 +1,5 @@
 // FILE: scripts/phase43-mtproto-admin-analytics-smoke.mjs
-// VERSION: 1.4.0
+// VERSION: 1.5.0
 // ROLE: SCRIPT
 // MAP_MODE: LOCALS
 // START_MODULE_CONTRACT
@@ -17,6 +17,7 @@
 // END_MODULE_MAP
 //
 // START_CHANGE_SUMMARY
+//   LAST_CHANGE: v1.5.0 - Guard hidden technical signal UI and Russian alert-action hover help.
 //   LAST_CHANGE: v1.4.0 - Guard M-054 trusted router-hop skip before persistence.
 //   LAST_CHANGE: v1.3.0 - Guard RU SNI-router real client IP ingestion and trusted router-hop filtering.
 //   LAST_CHANGE: v1.2.0 - Guard Abuse open inbox/archive split and empty-state copy.
@@ -78,6 +79,7 @@ for (const marker of [
   '[M-058][admin_mtproto_analytics_ui][AUTO_REFRESH]',
   '[M-058][admin_mtproto_analytics_ui][ALERT_REVIEW]',
   '[M-058][admin_mtproto_analytics_ui][ALERT_ARCHIVE]',
+  '[M-058][admin_mtproto_analytics_ui][ALERT_ACTION_TOOLTIP]',
   'Overview',
   'Users',
   'Abuse',
@@ -85,18 +87,25 @@ for (const marker of [
   'IP history',
   'MetricAreaChart',
   'SourceIPNotice',
-  'Обычная смена сети остается signal без тревоги',
+  'Обычная смена сети не создает тревогу',
   "getMTProtoAlerts('open'",
   "getMTProtoAlerts('acknowledged'",
   "getMTProtoAlerts('resolved'",
   'Нет открытых alerts',
-  'Нет signals',
+  'Открыть карточку пользователя, IP history и детали этого proxy',
+  'Пометить alert как просмотренный без блокировки пользователя',
+  'Закрыть alert без блокировки, инцидент уйдет в архив',
+  'Отключить MTProto proxy этого пользователя и закрыть alert',
+  'Заблокировать последний IP на 24 часа и закрыть alert',
 ]) {
   assertContains(ui, marker, uiPath)
 }
 assertForbiddenAbsent(ui, 'Recent events', uiPath)
 assertForbiddenAbsent(ui, 'Нет открытых alerts.', uiPath)
-assertForbiddenAbsent(ui, 'Нет signals.', uiPath)
+assertForbiddenAbsent(ui, '<h3 className="text-sm font-semibold text-white">Signals</h3>', uiPath)
+assertForbiddenAbsent(ui, 'Нет signals', uiPath)
+assertForbiddenAbsent(ui, ' signals</span>', uiPath)
+assertForbiddenAbsent(ui, 'getMTProtoAbuseSignals(days)', uiPath)
 for (const marker of [
   'getMTProtoTimeseries',
   'searchMTProtoUsers',
