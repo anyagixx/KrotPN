@@ -2,7 +2,7 @@
 
 **Коммерческий VPN-сервис с AmneziaWG Full Tunnel и персональным MTProto proxy для Telegram**
 
-![Version](https://img.shields.io/badge/version-2.19.1-blue)
+![Version](https://img.shields.io/badge/version-2.21.3-blue)
 ![Python](https://img.shields.io/badge/python-3.11-green)
 ![React](https://img.shields.io/badge/react-18-blue)
 ![License](https://img.shields.io/badge/license-MIT-green)
@@ -175,6 +175,54 @@ ssh root@YOUR_RU_IP "docker compose -f /opt/KrotPN/docker-compose.yml logs -f ba
 ```bash
 ssh root@YOUR_RU_IP "cd /opt/KrotPN && docker compose restart"
 ```
+
+### MTProto Promotion Tag
+
+KrotPN использует персональные fake-TLS MTProto proxy: у каждого пользователя свой `server=u-*.krotpn.xyz` и длинный `secret=ee...`.
+`@MTProxybot` при регистрации просит не полный `ee...` secret, а внутренние 32 hex символа.
+
+Чтобы получить и применить promotion tag:
+
+1. Возьмите любой рабочий MTProto proxy из личного кабинета тестового или служебного пользователя.
+2. Разберите secret:
+
+```text
+secret=ee<32_hex_secret><hex_encoded_sni>
+```
+
+Например, из `ee00112233445566778899aabbccddeeff...` для бота нужно взять только:
+
+```text
+00112233445566778899aabbccddeeff
+```
+
+3. В `@MTProxybot` выполните `/newproxy`, укажите `YOUR_DOMAIN:443`, затем передайте эти 32 hex символа.
+4. Бот выдаст promotion tag формата `32 hex`, например `0123456789abcdef0123456789abcdef`.
+5. В Admin Panel откройте `MTProto -> Settings -> Promotion tag`, вставьте tag и нажмите `Save tag`.
+
+Если статус стал `pending_restart`, tag уже сохранён в KrotPN, но backend и DE MTProto runtime ещё не перечитали `MTPROTO_AD_TAG` из `.env`.
+Примените tag на обоих серверах:
+
+```bash
+# RU server
+TAG='YOUR_32_HEX_PROMOTION_TAG'
+cd /opt/KrotPN
+sed -i -E "s/^MTPROTO_AD_TAG=.*/MTPROTO_AD_TAG=${TAG}/" .env
+docker compose up -d --force-recreate backend
+```
+
+```bash
+# DE server
+TAG='YOUR_32_HEX_PROMOTION_TAG'
+cd /opt/krotpn-mtproto
+sed -i -E "s/^MTPROTO_AD_TAG=.*/MTPROTO_AD_TAG=${TAG}/" .env
+docker compose up -d --force-recreate mtproto-de-runtime
+```
+
+После restart откройте Admin Panel и сохраните тот же promotion tag ещё раз. Статус должен стать `applied`.
+Promotion tag применяется глобально к MTProto runtime и не меняет уже выданные пользовательские proxy-ссылки.
+
+> Не отправляйте в `@MTProxybot` значения `MTPROTO_BASE_SECRET_HEX`, `MTPROTO_SECRET_SALT` или полный `ee...` secret.
 
 ## 📁 Структура проекта
 

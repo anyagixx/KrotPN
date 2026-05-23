@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<V-M-059 MODULE="M-059" PRIORITY="critical" STATUS="pass-local-phase42" VERSION="1.2.0">
+<V-M-059 MODULE="M-059" PRIORITY="critical" STATUS="pass-live-phase42" VERSION="1.3.0">
   <module>mtproto-promotion-tag-control</module>
   <checks>Admin-configured @MTProxyBot promotion tag is validated, redacted, audited, and propagated to runtime safely without changing issued proxy links.</checks>
   <test-files>
@@ -9,8 +9,8 @@
     <file status="pass-local">deploy/mtproto-de-compose.yml</file>
     <file status="pass-local">.env.example</file>
   </test-files>
-  <commands>pass-local 2026-05-19: node scripts/phase42-mtproto-promotion-tag-smoke.mjs &amp;&amp; cd backend &amp;&amp; SECRET_KEY=test-secret-key-with-enough-length PYTHONPATH=. ../.venv/bin/python -m pytest -o addopts='' tests/test_mtproto_promotion_tag.py -v; cd mtproto-runtime &amp;&amp; rebar3 compile</commands>
-  <evidence>Promotion tag validation/storage/pending-restart tests, static smoke, and runtime compile passed; full tags remain masked in API/audit-facing state.</evidence>
+  <commands>pass-live 2026-05-23: node scripts/phase42-mtproto-promotion-tag-smoke.mjs &amp;&amp; cd backend &amp;&amp; SECRET_KEY=test-secret-key-with-enough-length PYTHONPATH=. ../.venv/bin/python -m pytest -o addopts='' tests/test_mtproto_promotion_tag.py -v; operator clean-deploy validation confirmed @MTProxybot registration, MTPROTO_AD_TAG RU/DE restart application, and applied state.</commands>
+  <evidence>Promotion tag validation/storage/pending-restart tests, static smoke, runtime compile, and operator clean-deploy validation passed; full tags remain masked in API/audit-facing state, and the documented fake-TLS inner 32-hex secret registration flow is confirmed.</evidence>
   <verification-levels>
     <module-local>Validate tag parser, masking, storage state, audit payloads, runtime apply state, env fallback, and redaction fixtures.</module-local>
     <wave-level>Run with V-M-057 and V-M-058 to prove admin API/UI use the same masked state and confirmation contract.</wave-level>
@@ -32,6 +32,7 @@
     <scenario-3>Zero 32-hex fallback remains valid when no promotion channel is configured.</scenario-3>
     <scenario-4>Runtime apply reports applied or pending_restart without rotating base secret, salt, SNI, or owner links.</scenario-4>
     <scenario-5>Audit and logs never contain the full promotion tag.</scenario-5>
+    <scenario-6>Operator extracts the inner 32-hex secret from one working ee fake-TLS proxy, registers it with @MTProxybot, receives a 32-hex promotion tag, restarts RU backend and DE runtime with MTPROTO_AD_TAG, and observes applied state.</scenario-6>
   </scenarios>
   <redaction-rules>
     <rule-1>Only masked promotion tag is exposed through API, UI, audit, logs, and runtime status.</rule-1>
