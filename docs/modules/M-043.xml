@@ -1,10 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<M-043 NAME="mtproto-provisioning" TYPE="CORE_LOGIC" STATUS="pass-local-phase41">
-  <path>backend/app/mtproto docs/plans/Phase-29.xml docs/plans/Phase-40.xml docs/plans/Phase-41.xml</path>
-  <owns>Deterministic assignment identity, KPprotoN fake-TLS link generation, superseded official MTProxy per-user secret generation, tg://proxy assembly, and idempotent reissue policy.</owns>
+<M-043 NAME="mtproto-provisioning" TYPE="CORE_LOGIC" STATUS="pass-local-phase47">
+  <path>backend/app/mtproto docs/plans/Phase-29.xml docs/plans/Phase-40.xml docs/plans/Phase-41.xml docs/plans/Phase-47.xml</path>
+  <owns>Deterministic assignment identity, CTA MTProto hostname generation, legacy u-* preservation, KPprotoN fake-TLS link generation, superseded official MTProxy per-user secret generation, tg://proxy assembly, and idempotent reissue policy.</owns>
   <purpose>Port the useful KPprotoN provisioning logic into KrotPN as Python/FastAPI domain code backed by Postgres assignments.</purpose>
   <exports>
     <fn-generate-sni>Generate a stable user-bound wildcard-safe SNI under krotpn.xyz.</fn-generate-sni>
+    <fn-generate-cta-sni>Generate a Phase-47 CTA-prefixed wildcard-safe SNI for newly issued assignments.</fn-generate-cta-sni>
+    <fn-shorten-public-user-id>Derive a 7-hex public suffix without exposing raw numeric user IDs.</fn-shorten-public-user-id>
+    <fn-select-cta-prefix>Validate explicit CTA prefixes or choose a stable pseudo-random allowed prefix.</fn-select-cta-prefix>
     <fn-derive-fake-tls-secret>Build a per-SNI Telegram fake-TLS secret from configured base secret and private salt.</fn-derive-fake-tls-secret>
     <fn-derive-official-mtproxy-secret superseded="phase41-pass-local">Build a 16-byte official MTProxy secret for one canonical user assignment.</fn-derive-official-mtproxy-secret>
     <fn-issue-user-proxy>Create or reuse a user's canonical MTProto assignment and return a safe response payload.</fn-issue-user-proxy>
@@ -31,6 +34,7 @@
     <constraint-4>Missing or blank MTProto secret configuration must fail proxy issuance safely without crashing unrelated backend startup.</constraint-4>
     <constraint-5>Phase-40 official MTProxy links must treat fake-TLS SNI-derived links as legacy and must reissue explicitly rather than silently claiming compatibility.</constraint-5>
     <constraint-6>Phase-41 fake-TLS links must treat official dd-secret assignments as superseded and must reissue users explicitly rather than silently claiming compatibility.</constraint-6>
+    <constraint-7>Phase-47 new assignments use CTA-prefixed one-label hostnames, but existing active u-* assignments must be preserved without silent mass reissue.</constraint-7>
   </constraints>
   <phase-41-plan>
     <step-1 STATUS="pass-local">Restore owner payloads to server=u-*.krotpn.xyz and secret=ee... fake-TLS format.</step-1>
@@ -43,6 +47,7 @@
     <evidence-3>2026-05-19: Phase-40 plan adds official MTProxy per-user secret issuance because the fake-TLS data-plane did not pass real req_pq availability.</evidence-3>
     <evidence-4>2026-05-19: Phase-41 verification design supersedes official dd-secret issuance for production and returns owner payloads to the KPprotoN fake-TLS SNI model.</evidence-4>
     <evidence-5>2026-05-19: Phase-41 local tests passed for derived_per_sni defaults, ee fake-TLS owner payloads, explicit official-mode reissue, owner API behavior, and Phase-34 verified-registration integration.</evidence-5>
+    <evidence-6>2026-06-01: Phase-47 local tests passed 14/14 for CTA allow-list, public short IDs, explicit prefix validation, one-label SNI, final-SNI fake-TLS binding, and legacy u-* assignment preservation.</evidence-6>
   </evidence>
   <hotspot>H-029: Changing MTProto base secret or salt invalidates issued Telegram proxy links unless reissue is explicit</hotspot>
 </M-043>

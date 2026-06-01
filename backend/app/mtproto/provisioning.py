@@ -1,26 +1,31 @@
 """MTProto personal proxy provisioning.
 
 # FILE: backend/app/mtproto/provisioning.py
-# VERSION: 2.1.0
+# VERSION: 2.2.0
 # ROLE: RUNTIME
 # MAP_MODE: EXPORTS
 # START_MODULE_CONTRACT
-#   PURPOSE: Generate KPprotoN personal fake-TLS assignments and owner-safe payloads
-#   SCOPE: SNI identity generation, per-SNI fake-TLS secret derivation, Telegram link assembly,
-#          idempotent issue/reissue policy, live KPprotoN policy apply
+#   PURPOSE: Generate KPprotoN personal fake-TLS assignments and owner-safe payloads with CTA hostnames
+#   SCOPE: CTA SNI identity generation, legacy SNI preservation, per-SNI fake-TLS secret derivation,
+#          Telegram link assembly, idempotent issue/reissue policy, live KPprotoN policy apply
 #   DEPENDS: M-001 (settings), M-002 (User), M-042 (assignment repository), M-044 (runtime bridge)
-#   LINKS: M-043, M-044, V-M-043, V-M-044
+#   LINKS: M-043, M-044, M-065, V-M-043, V-M-044, V-M-065
 # END_MODULE_CONTRACT
 #
 # START_MODULE_MAP
 #   MTProtoProvisioningErrorCode, MTProtoProvisioningError - Stable safe failure contract
-#   generate_sni - Deterministic wildcard-safe SNI generation
+#   MTPROTO_CTA_PREFIXES - Fixed marketing CTA prefix allow-list for new assignments
+#   shorten_public_user_id - Derive a non-raw 7-hex public user suffix
+#   select_cta_prefix - Validate explicit prefixes or choose a stable pseudo-random CTA prefix
+#   generate_cta_sni - Build wildcard-safe CTA SNI for newly issued assignments
+#   generate_sni - Legacy deterministic wildcard-safe SNI generation helper
 #   derive_fake_tls_secret - Legacy KPprotoN-compatible per-SNI fake-TLS secret derivation
 #   build_tg_link - Generic Telegram tg://proxy link assembly
 #   MTProtoProvisioningService - Idempotent owner-safe issue/reissue service with live policy activation
 # END_MODULE_MAP
 #
 # START_CHANGE_SUMMARY
+#   LAST_CHANGE: v2.2.0 - Added Phase-47 CTA subdomain SNI generation for new MTProto assignments.
 #   LAST_CHANGE: v2.1.0 - Restored KPprotoN derived-per-SNI fake-TLS issuance as the production path.
 #   LAST_CHANGE: v2.0.0 - Switched owner payloads to official MTProxy secure dd secrets and manifest sync.
 #   LAST_CHANGE: v1.1.0 - Apply issued assignments to the live MTProto runtime before returning activated owner payloads.
@@ -47,7 +52,18 @@ from app.users.models import User
 
 
 SNI_HASH_LEN = 12
+PUBLIC_SHORT_ID_LEN = 7
 MAX_SNI_COLLISION_ATTEMPTS = 20
+MTPROTO_CTA_PREFIXES: tuple[str, ...] = (
+    "kupi-vpn",
+    "vpn-tut",
+    "beri-vpn",
+    "bez-blokirovok",
+    "hochu-bystree",
+    "krot-vpn",
+)
+CTA_PREFIX_HASH_SALT = "krotpn-mtproto-cta-prefix"
+PUBLIC_ID_HASH_SALT = "krotpn-mtproto-public-id"
 
 
 # START_BLOCK_PROVISIONING_TYPES
@@ -70,6 +86,94 @@ class MTProtoProvisioningError(ValueError):
         self.code = code
         self.safe_message = safe_message
 # END_BLOCK_PROVISIONING_TYPES
+
+
+# START_CONTRACT: shorten_public_user_id
+#   PURPOSE: Derive a compact public 7-hex user suffix without exposing numeric IDs
+#   INPUTS: user_key: str|int; collision_nonce: int
+#   OUTPUTS: str
+#   SIDE_EFFECTS: none
+#   LINKS: M-065, V-M-065
+# END_CONTRACT: shorten_public_user_id
+# START_BLOCK_CTA_PUBLIC_ID
+def shorten_public_user_id(user_key: str | int, *, collision_nonce: int = 0) -> str:
+    """Return a public 7-hex suffix for CTA MTProto hostnames."""
+    if collision_nonce < 0:
+        raise MTProtoProvisioningError(
+            MTProtoProvisioningErrorCode.INVALID_SNI,
+            "MTProto SNI collision nonce is invalid",
+        )
+
+    normalized_key = _normalize_public_user_key(user_key)
+    compact_hex = normalized_key.replace("-", "")
+    if (
+        collision_nonce == 0
+        and not normalized_key.isdigit()
+        and re.fullmatch(r"[0-9a-f]+", compact_hex)
+        and len(compact_hex) >= PUBLIC_SHORT_ID_LEN
+    ):
+        return compact_hex[:PUBLIC_SHORT_ID_LEN]
+
+    material = f"{PUBLIC_ID_HASH_SALT}:{normalized_key}:{collision_nonce}"
+    return hashlib.sha256(material.encode("utf-8")).hexdigest()[:PUBLIC_SHORT_ID_LEN]
+# END_BLOCK_CTA_PUBLIC_ID
+
+
+# START_CONTRACT: select_cta_prefix
+#   PURPOSE: Select an approved CTA prefix either explicitly or by stable pseudo-random rotation
+#   INPUTS: user_key: str|int; explicit_prefix: str|None
+#   OUTPUTS: str
+#   SIDE_EFFECTS: none
+#   LINKS: M-065, V-M-065
+# END_CONTRACT: select_cta_prefix
+# START_BLOCK_CTA_PREFIX_SELECTION
+def select_cta_prefix(user_key: str | int, *, explicit_prefix: str | None = None) -> str:
+    """Return an approved CTA prefix for a user-bound MTProto hostname."""
+    if explicit_prefix is not None:
+        return _validate_cta_prefix(explicit_prefix)
+
+    normalized_key = _normalize_public_user_key(user_key)
+    digest = hashlib.sha256(
+        f"{CTA_PREFIX_HASH_SALT}:{normalized_key}".encode("utf-8")
+    ).hexdigest()
+    index = int(digest[:8], 16) % len(MTPROTO_CTA_PREFIXES)
+    return MTPROTO_CTA_PREFIXES[index]
+# END_BLOCK_CTA_PREFIX_SELECTION
+
+
+# START_CONTRACT: generate_cta_sni
+#   PURPOSE: Generate a wildcard-safe CTA SNI under the configured base domain
+#   INPUTS: user_key: str|int; base_domain: str; prefix: str|None; collision_nonce: int
+#   OUTPUTS: str
+#   SIDE_EFFECTS: secret-free log markers
+#   LINKS: M-065, M-043, V-M-065
+# END_CONTRACT: generate_cta_sni
+# START_BLOCK_GENERATE_CTA_SNI
+def generate_cta_sni(
+    user_key: str | int,
+    *,
+    base_domain: str,
+    prefix: str | None = None,
+    collision_nonce: int = 0,
+) -> str:
+    """Generate a CTA hostname like kupi-vpn-4bb40fa.krotpn.xyz."""
+    normalized_domain = _normalize_base_domain(base_domain)
+    selected_prefix = select_cta_prefix(user_key, explicit_prefix=prefix)
+    public_short_id = shorten_public_user_id(user_key, collision_nonce=collision_nonce)
+    label = f"{selected_prefix}-{public_short_id}"
+    sni = f"{label}.{normalized_domain}"
+    _validate_cta_sni(sni, normalized_domain)
+    logger.info(
+        "[M-065][generate_cta_sni][CTA_PREFIX] "
+        f"prefix={selected_prefix} collision_nonce={collision_nonce}"
+    )
+    logger.info(
+        "[M-065][generate_cta_sni][PUBLIC_SHORT_ID] "
+        f"public_short_id={public_short_id}"
+    )
+    logger.info(f"[M-043][issue_user_proxy][GENERATE_SNI] sni_prefix={selected_prefix}")
+    return sni
+# END_BLOCK_GENERATE_CTA_SNI
 
 
 # START_CONTRACT: generate_sni
@@ -160,7 +264,13 @@ class MTProtoProvisioningService:
     #   LINKS: M-042, M-043, V-M-043
     # END_CONTRACT: issue_user_proxy
     # START_BLOCK_ISSUE_USER_PROXY
-    async def issue_user_proxy(self, user: User, *, reissue: bool = False) -> MTProtoProxyPayload:
+    async def issue_user_proxy(
+        self,
+        user: User,
+        *,
+        reissue: bool = False,
+        cta_prefix: str | None = None,
+    ) -> MTProtoProxyPayload:
         """Issue or reuse an owner-safe MTProto proxy payload."""
         self._ensure_verified_user(user)
         self._ensure_runtime_config()
@@ -182,27 +292,41 @@ class MTProtoProvisioningService:
                     "[M-043][issue_user_proxy][REUSE_ASSIGNMENT] "
                     f"user_id={user_id} assignment_id={existing.id}"
                 )
+                if _is_legacy_u_sni(existing.sni, self.settings.mtproto_base_domain):
+                    logger.info(
+                        "[M-065][phase47_mtproto_cta_links][LEGACY_PRESERVE] "
+                        f"user_id={user_id} assignment_id={existing.id}"
+                    )
                 await self._apply_runtime_policy(existing)
                 return self._payload_from_assignment(existing)
             return await self._reissue_existing(user_id, existing)
 
-        assignment = await self._create_assignment(user_id)
+        assignment = await self._create_assignment(user_id, cta_prefix=cta_prefix)
         await self._apply_runtime_policy(assignment)
         return self._payload_from_assignment(assignment)
     # END_BLOCK_ISSUE_USER_PROXY
 
     # START_BLOCK_ASSIGNMENT_CREATE_REISSUE
-    async def _create_assignment(self, user_id: int) -> MTProtoAssignment:
+    async def _create_assignment(
+        self,
+        user_id: int,
+        *,
+        cta_prefix: str | None = None,
+    ) -> MTProtoAssignment:
         for collision_nonce in range(MAX_SNI_COLLISION_ATTEMPTS):
-            sni = generate_sni(
-                f"user:{user_id}",
+            sni = generate_cta_sni(
+                str(user_id),
                 base_domain=self.settings.mtproto_base_domain,
-                prefix=self.settings.mtproto_sni_prefix,
+                prefix=cta_prefix,
                 collision_nonce=collision_nonce,
             )
             existing_for_sni = await self.repository.get_assignment_by_sni(sni)
             if existing_for_sni is not None and existing_for_sni.user_id != user_id:
                 continue
+            logger.info(
+                "[M-065][issue_user_proxy][CTA_ASSIGNMENT] "
+                f"user_id={user_id} sni={sni}"
+            )
             logger.info(f"[M-043][issue_user_proxy][PERSIST_ASSIGNMENT] user_id={user_id}")
             return await self.repository.save_assignment(
                 user_id=user_id,
@@ -329,6 +453,58 @@ def _normalize_sni_prefix(prefix: str) -> str:
             "MTProto SNI prefix is invalid",
         )
     return normalized
+
+
+def _normalize_public_user_key(user_key: str | int) -> str:
+    normalized = str(user_key).strip().lower()
+    if not normalized:
+        raise MTProtoProvisioningError(
+            MTProtoProvisioningErrorCode.INVALID_SNI,
+            "MTProto public user key is invalid",
+        )
+    return normalized
+
+
+def _validate_cta_prefix(prefix: str) -> str:
+    if prefix not in MTPROTO_CTA_PREFIXES:
+        raise MTProtoProvisioningError(
+            MTProtoProvisioningErrorCode.INVALID_SNI,
+            "MTProto CTA prefix is not allowed",
+        )
+    return prefix
+
+
+def _validate_cta_sni(sni: str, base_domain: str) -> None:
+    _validate_sni(sni, base_domain)
+    suffix = f".{base_domain}"
+    label = sni[: -len(suffix)]
+    if "." in label or not label:
+        raise MTProtoProvisioningError(
+            MTProtoProvisioningErrorCode.INVALID_SNI,
+            "MTProto CTA SNI must use one wildcard label",
+        )
+
+    matching_prefix = None
+    for allowed_prefix in MTPROTO_CTA_PREFIXES:
+        if label.startswith(f"{allowed_prefix}-"):
+            matching_prefix = allowed_prefix
+            break
+    public_part = label[len(matching_prefix) + 1 :] if matching_prefix else ""
+    if matching_prefix is None or not re.fullmatch(r"[0-9a-f]{7}", public_part):
+        raise MTProtoProvisioningError(
+            MTProtoProvisioningErrorCode.INVALID_SNI,
+            "MTProto CTA SNI label is invalid",
+        )
+
+
+def _is_legacy_u_sni(sni: str, base_domain: str) -> bool:
+    normalized_domain = _normalize_base_domain(base_domain)
+    suffix = f".{normalized_domain}"
+    normalized_sni = sni.strip().lower().rstrip(".")
+    if not normalized_sni.endswith(suffix):
+        return False
+    label = normalized_sni[: -len(suffix)]
+    return re.fullmatch(r"u-[0-9a-f]{12}", label) is not None
 
 
 def _validate_sni(sni: str, base_domain: str) -> None:

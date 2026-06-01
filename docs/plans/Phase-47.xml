@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Phase-47 NAME="MTProto CTA Subdomain Link Generation" STATUS="verification-designed" VERSION="1.0.0" MODULES="M-065,M-001,M-002,M-042,M-043,M-045,M-049,M-050,M-064" CREATED="2026-06-01" UPDATED="2026-06-01">
+<Phase-47 NAME="MTProto CTA Subdomain Link Generation" STATUS="done-local" VERSION="1.0.0" MODULES="M-065,M-001,M-002,M-042,M-043,M-045,M-049,M-050,M-064" CREATED="2026-06-01" UPDATED="2026-06-01">
   <purpose>Implement marketing-oriented CTA subdomains for newly issued personal MTProto proxy links while preserving existing working proxies and the Phase-41 RU/DE fake-TLS data-plane.</purpose>
   <scope>
     <in>CTA prefix allow-list, 7-hex public user suffix derivation, explicit prefix validation, stable pseudo-random prefix choice, CTA SNI generation, owner payload consistency, backend tests, frontend/smoke guards, and MyGRACE metadata.</in>
@@ -7,15 +7,15 @@
   </scope>
   <example-output>https://t.me/proxy?server=kupi-vpn-4bb40fa.krotpn.xyz&amp;port=443&amp;secret=ee...</example-output>
   <steps>
-    <step-1 MODULE="M-065,M-043" STATUS="planned">Add the fixed CTA prefix allow-list: kupi-vpn, vpn-tut, beri-vpn, bez-blokirovok, hochu-bystree, and krot-vpn.</step-1>
-    <step-2 MODULE="M-065,M-002" STATUS="planned">Implement public short-id derivation: use first 7 hex characters for hex-like user keys and a stable 7-hex hash suffix for numeric internal IDs.</step-2>
-    <step-3 MODULE="M-065,M-043" STATUS="planned">Implement explicit prefix validation and stable pseudo-random prefix selection without accepting arbitrary DNS labels.</step-3>
-    <step-4 MODULE="M-065,M-043" STATUS="planned">Generate wildcard-safe CTA SNI as cta-prefix-shortid.base-domain with collision nonce support and DNS label validation.</step-4>
-    <step-5 MODULE="M-065,M-042,M-043" STATUS="planned">Integrate CTA SNI into new assignment creation while preserving existing active u-* assignments unless reissue is explicit.</step-5>
-    <step-6 MODULE="M-065,M-043,M-049,M-050" STATUS="planned">Verify fake-TLS secret derivation, live policy apply expectations, and RU SNI router compatibility for the final CTA SNI.</step-6>
-    <step-7 MODULE="M-065,M-045,M-064" STATUS="planned">Ensure user-cabinet tg:// and https://t.me links both use the CTA server value returned by the owner API.</step-7>
-    <step-8 MODULE="M-065" STATUS="planned">Add targeted backend tests and Phase-47 static smoke for prefix allow-list, short-id derivation, link consistency, redaction, and protected deploy surfaces.</step-8>
-    <step-9 MODULE="M-065" STATUS="planned">Run backend provisioning tests, frontend build, Phase-47 smoke, XML parse, MyGRACE lint, and deploy/install diff guard.</step-9>
+    <step-1 MODULE="M-065,M-043" STATUS="done-local">Add the fixed CTA prefix allow-list: kupi-vpn, vpn-tut, beri-vpn, bez-blokirovok, hochu-bystree, and krot-vpn.</step-1>
+    <step-2 MODULE="M-065,M-002" STATUS="done-local">Implement public short-id derivation: use first 7 hex characters for hex-like user keys and a stable 7-hex hash suffix for numeric internal IDs.</step-2>
+    <step-3 MODULE="M-065,M-043" STATUS="done-local">Implement explicit prefix validation and stable pseudo-random prefix selection without accepting arbitrary DNS labels.</step-3>
+    <step-4 MODULE="M-065,M-043" STATUS="done-local">Generate wildcard-safe CTA SNI as cta-prefix-shortid.base-domain with collision nonce support and DNS label validation.</step-4>
+    <step-5 MODULE="M-065,M-042,M-043" STATUS="done-local">Integrate CTA SNI into new assignment creation while preserving existing active u-* assignments unless reissue is explicit.</step-5>
+    <step-6 MODULE="M-065,M-043,M-049,M-050" STATUS="done-local">Verify fake-TLS secret derivation, live policy apply expectations, and RU SNI router compatibility for the final CTA SNI.</step-6>
+    <step-7 MODULE="M-065,M-045,M-064" STATUS="done-local">Ensure user-cabinet tg:// and https://t.me links both use the CTA server value returned by the owner API.</step-7>
+    <step-8 MODULE="M-065" STATUS="done-local">Add targeted backend tests and Phase-47 static smoke for prefix allow-list, short-id derivation, link consistency, redaction, and protected deploy surfaces.</step-8>
+    <step-9 MODULE="M-065" STATUS="done-local">Run backend provisioning tests, frontend build, Phase-47 smoke, XML parse, MyGRACE lint, and deploy/install diff guard.</step-9>
   </steps>
   <data-flow>
     <flow-1>Verified user -&gt; MTProtoProvisioningService -&gt; CTA prefix selector -&gt; public 7-hex suffix -&gt; cta-prefix-shortid.krotpn.xyz.</flow-1>
@@ -48,11 +48,12 @@
       <runtime-safety>Runtime topology is not changed; policy apply expectations are verified by existing M-049/M-050 contracts and static checks that CTA SNI remains one wildcard-safe label under the configured base domain.</runtime-safety>
     </matrix>
     <commands>
-      <command status="planned">cd backend &amp;&amp; SECRET_KEY=test-secret-key-with-enough-length PYTHONPATH=. ../.venv/bin/python -m pytest -o addopts='' tests/test_mtproto_provisioning.py -v</command>
-      <command status="planned">cd frontend &amp;&amp; npm run build</command>
-      <command status="planned">node scripts/phase47-mtproto-cta-links-smoke.mjs</command>
-      <command status="planned">python3 -m xml.etree.ElementTree docs/plans/Phase-47.xml docs/modules/M-065.xml docs/verification/V-M-065.xml docs/graph-index.xml docs/plan-index.xml docs/verification-index.xml</command>
-      <command status="planned">mygrace lint</command>
+      <command status="pass-local">cd backend &amp;&amp; SECRET_KEY=test-secret-key-with-enough-length PYTHONPATH=. ../.venv/bin/python -m pytest -o addopts='' tests/test_mtproto_provisioning.py -v</command>
+      <command status="pass-local">cd frontend &amp;&amp; npm run build</command>
+      <command status="pass-local">node scripts/phase47-mtproto-cta-links-smoke.mjs</command>
+      <command status="pass-local">python3 -m xml.etree.ElementTree docs/plans/Phase-47.xml docs/modules/M-065.xml docs/verification/V-M-065.xml docs/graph-index.xml docs/plan-index.xml docs/verification-index.xml docs/current-status.xml</command>
+      <command status="pass-local">mygrace lint</command>
     </commands>
+    <evidence>2026-06-01: backend provisioning tests passed 14/14 outside sandbox after sandbox aiosqlite hang, frontend build passed, Phase-47 smoke passed, protected deploy/install diff guard had no output, XML parse passed, and MyGRACE lint passed.</evidence>
   </verification>
 </Phase-47>

@@ -1,19 +1,20 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<V-M-065 MODULE="M-065" PRIORITY="high" STATUS="verification-designed">
+<V-M-065 MODULE="M-065" PRIORITY="high" STATUS="pass-local">
   <purpose>Verify Phase-47 CTA MTProto subdomain generation, owner link consistency, and safety around existing assignments and deploy surfaces.</purpose>
   <checks>CTA prefix allow-list, public 7-hex suffix derivation, explicit prefix validation, stable pseudo-random prefix selection, final-SNI fake-TLS secret derivation, old assignment preservation, redaction, and no deploy/install changes.</checks>
   <test-files>
     <file>backend/app/mtproto/provisioning.py</file>
+    <file>backend/app/mtproto/service.py</file>
     <file>backend/tests/test_mtproto_provisioning.py</file>
     <file>frontend/src/pages/Dashboard.tsx</file>
     <file>scripts/phase47-mtproto-cta-links-smoke.mjs</file>
   </test-files>
   <commands>
-    <command status="planned">cd backend &amp;&amp; SECRET_KEY=test-secret-key-with-enough-length PYTHONPATH=. ../.venv/bin/python -m pytest -o addopts='' tests/test_mtproto_provisioning.py -v</command>
-    <command status="planned">cd frontend &amp;&amp; npm run build</command>
-    <command status="planned">node scripts/phase47-mtproto-cta-links-smoke.mjs</command>
-    <command status="planned">python3 -m xml.etree.ElementTree docs/plans/Phase-47.xml docs/modules/M-065.xml docs/verification/V-M-065.xml docs/graph-index.xml docs/plan-index.xml docs/verification-index.xml</command>
-    <command status="planned">mygrace lint</command>
+    <command status="pass-local">cd backend &amp;&amp; SECRET_KEY=test-secret-key-with-enough-length PYTHONPATH=. ../.venv/bin/python -m pytest -o addopts='' tests/test_mtproto_provisioning.py -v</command>
+    <command status="pass-local">cd frontend &amp;&amp; npm run build</command>
+    <command status="pass-local">node scripts/phase47-mtproto-cta-links-smoke.mjs</command>
+    <command status="pass-local">python3 -m xml.etree.ElementTree docs/plans/Phase-47.xml docs/modules/M-065.xml docs/verification/V-M-065.xml docs/graph-index.xml docs/plan-index.xml docs/verification-index.xml docs/current-status.xml</command>
+    <command status="pass-local">mygrace lint</command>
   </commands>
   <module-checks>
     <check-1>Allowed prefixes are exactly kupi-vpn, vpn-tut, beri-vpn, bez-blokirovok, hochu-bystree, and krot-vpn.</check-1>
@@ -58,4 +59,9 @@
     <rule-1>Do not log or print base secret, salt, derived secret, full tg:// or https://t.me links from live users, runtime tokens, access tokens, refresh tokens, email verification tokens, reset tokens, or private env values.</rule-1>
   </redaction-rules>
   <autonomous-execution-safety>Allowed after plan and verification approval because Phase-47 is scoped to provisioning/link generation and static verification, with deploy/install/runtime topology explicitly out of scope.</autonomous-execution-safety>
+  <evidence>
+    <evidence-1>2026-06-01: backend provisioning suite passed 14/14 outside sandbox after the first sandbox run hung on known aiosqlite async DB behavior.</evidence-1>
+    <evidence-2>2026-06-01: frontend build passed and Phase-47 smoke verified CTA helper markers, owner link consistency, redaction guards, and protected-surface static guard.</evidence-2>
+    <evidence-3>2026-06-01: protected deploy/install/nginx/docker-compose diff guard had no output; XML parse and MyGRACE lint passed.</evidence-3>
+  </evidence>
 </V-M-065>
