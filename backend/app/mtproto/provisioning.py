@@ -1,7 +1,7 @@
 """MTProto personal proxy provisioning.
 
 # FILE: backend/app/mtproto/provisioning.py
-# VERSION: 2.2.0
+# VERSION: 2.3.0
 # ROLE: RUNTIME
 # MAP_MODE: EXPORTS
 # START_MODULE_CONTRACT
@@ -15,7 +15,7 @@
 # START_MODULE_MAP
 #   MTProtoProvisioningErrorCode, MTProtoProvisioningError - Stable safe failure contract
 #   MTPROTO_CTA_PREFIXES - Fixed marketing CTA prefix allow-list for new assignments
-#   shorten_public_user_id - Derive a non-raw 7-hex public user suffix
+#   shorten_public_user_id - Derive a non-raw 4-hex public user suffix
 #   select_cta_prefix - Validate explicit prefixes or choose a stable pseudo-random CTA prefix
 #   generate_cta_sni - Build wildcard-safe CTA SNI for newly issued assignments
 #   generate_sni - Legacy deterministic wildcard-safe SNI generation helper
@@ -25,6 +25,7 @@
 # END_MODULE_MAP
 #
 # START_CHANGE_SUMMARY
+#   LAST_CHANGE: v2.3.0 - Shorten new CTA public suffixes from 7 hex chars to 4 hex chars for compact Telegram display.
 #   LAST_CHANGE: v2.2.0 - Added Phase-47 CTA subdomain SNI generation for new MTProto assignments.
 #   LAST_CHANGE: v2.1.0 - Restored KPprotoN derived-per-SNI fake-TLS issuance as the production path.
 #   LAST_CHANGE: v2.0.0 - Switched owner payloads to official MTProxy secure dd secrets and manifest sync.
@@ -52,7 +53,7 @@ from app.users.models import User
 
 
 SNI_HASH_LEN = 12
-PUBLIC_SHORT_ID_LEN = 7
+PUBLIC_SHORT_ID_LEN = 4
 MAX_SNI_COLLISION_ATTEMPTS = 20
 MTPROTO_CTA_PREFIXES: tuple[str, ...] = (
     "kupi-vpn",
@@ -89,7 +90,7 @@ class MTProtoProvisioningError(ValueError):
 
 
 # START_CONTRACT: shorten_public_user_id
-#   PURPOSE: Derive a compact public 7-hex user suffix without exposing numeric IDs
+#   PURPOSE: Derive a compact public 4-hex user suffix without exposing numeric IDs
 #   INPUTS: user_key: str|int; collision_nonce: int
 #   OUTPUTS: str
 #   SIDE_EFFECTS: none
@@ -97,7 +98,7 @@ class MTProtoProvisioningError(ValueError):
 # END_CONTRACT: shorten_public_user_id
 # START_BLOCK_CTA_PUBLIC_ID
 def shorten_public_user_id(user_key: str | int, *, collision_nonce: int = 0) -> str:
-    """Return a public 7-hex suffix for CTA MTProto hostnames."""
+    """Return a public 4-hex suffix for CTA MTProto hostnames."""
     if collision_nonce < 0:
         raise MTProtoProvisioningError(
             MTProtoProvisioningErrorCode.INVALID_SNI,
@@ -156,7 +157,7 @@ def generate_cta_sni(
     prefix: str | None = None,
     collision_nonce: int = 0,
 ) -> str:
-    """Generate a CTA hostname like kupi-vpn-4bb40fa.krotpn.xyz."""
+    """Generate a CTA hostname like kupi-vpn-4bb4.krotpn.xyz."""
     normalized_domain = _normalize_base_domain(base_domain)
     selected_prefix = select_cta_prefix(user_key, explicit_prefix=prefix)
     public_short_id = shorten_public_user_id(user_key, collision_nonce=collision_nonce)
@@ -490,7 +491,7 @@ def _validate_cta_sni(sni: str, base_domain: str) -> None:
             matching_prefix = allowed_prefix
             break
     public_part = label[len(matching_prefix) + 1 :] if matching_prefix else ""
-    if matching_prefix is None or not re.fullmatch(r"[0-9a-f]{7}", public_part):
+    if matching_prefix is None or not re.fullmatch(r"[0-9a-f]{4}", public_part):
         raise MTProtoProvisioningError(
             MTProtoProvisioningErrorCode.INVALID_SNI,
             "MTProto CTA SNI label is invalid",

@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 // FILE: scripts/phase38-de-mtproto-edge-smoke.mjs
-// VERSION: 1.7.0
+// VERSION: 1.8.0
 // ROLE: SCRIPT
 // MAP_MODE: LOCALS
 // START_MODULE_CONTRACT
@@ -17,6 +17,7 @@
 // END_MODULE_MAP
 //
 // START_CHANGE_SUMMARY
+//   LAST_CHANGE: v1.8.0 - Guard 4-hex CTA issued SNI routing while preserving existing 7-hex CTA labels.
 //   LAST_CHANGE: v1.7.0 - Guard RU SNI router compatibility for Phase-47 CTA-prefixed issued MTProto hostnames.
 //   LAST_CHANGE: v1.6.0 - Guard DE awg0 boot persistence and runtime policy-bind wait for reboot recovery.
 //   LAST_CHANGE: v1.5.0 - Guard local SNI-router syslog handoff for real client IP observations.
@@ -61,7 +62,7 @@ requireText('deploy/haproxy-phase38.cfg', 'log 127.0.0.1:1514 local0 info')
 requireText('deploy/haproxy-phase38.cfg', 'option logasap')
 requireText('deploy/haproxy-phase38.cfg', 'tcp-request content capture req.ssl_sni len 128')
 requireText('deploy/haproxy-phase38.cfg', 'acl sni_web req.ssl_sni -i krotpn.xyz www.krotpn.xyz')
-requireText('deploy/haproxy-phase38.cfg', '^(u-[0-9a-f]{12}|(kupi-vpn|vpn-tut|beri-vpn|bez-blokirovok|hochu-bystree|krot-vpn)-[0-9a-f]{7})\\.krotpn\\.xyz$')
+requireText('deploy/haproxy-phase38.cfg', '^(u-[0-9a-f]{12}|(kupi-vpn|vpn-tut|beri-vpn|bez-blokirovok|hochu-bystree|krot-vpn)-[0-9a-f]{4}([0-9a-f]{3})?)\\.krotpn\\.xyz$')
 requireText('deploy/haproxy-phase38.cfg', 'hochu-bystree')
 requireText('deploy/haproxy-phase38.cfg', 'server ru_nginx_9443 127.0.0.1:9443 check')
 requireText('deploy/haproxy-phase38.cfg', 'server de_mtproto_443 127.0.0.1:19443 check')

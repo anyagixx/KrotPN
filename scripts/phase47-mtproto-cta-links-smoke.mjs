@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /*
  * FILE: scripts/phase47-mtproto-cta-links-smoke.mjs
- * VERSION: 1.2.0
+ * VERSION: 1.3.0
  * ROLE: TEST
  * MAP_MODE: LOCALS
  * START_MODULE_CONTRACT
@@ -21,6 +21,7 @@
  * END_MODULE_MAP
  *
  * START_CHANGE_SUMMARY
+ *   LAST_CHANGE: v1.3.0 - Guard 4-hex CTA suffix generation and router compatibility while preserving 7-hex issued labels
  *   LAST_CHANGE: v1.2.0 - Assert the router ACL regex accepts representative legacy and CTA issued hostnames
  *   LAST_CHANGE: v1.1.0 - Added SNI-router compatibility guard for CTA-prefixed issued hostnames
  *   LAST_CHANGE: v1.0.0 - Added Phase-47 MTProto CTA link static smoke gate
@@ -75,19 +76,21 @@ function assertProtectedSurfaceGuard() {
 function assertSniRouterSupportsCtaLabels() {
   const routerPath = 'deploy/haproxy-phase38.cfg'
   const router = read(routerPath)
-  const aclPattern = '^(u-[0-9a-f]{12}|(kupi-vpn|vpn-tut|beri-vpn|bez-blokirovok|hochu-bystree|krot-vpn)-[0-9a-f]{7})\\.krotpn\\.xyz$'
+  const aclPattern = '^(u-[0-9a-f]{12}|(kupi-vpn|vpn-tut|beri-vpn|bez-blokirovok|hochu-bystree|krot-vpn)-[0-9a-f]{4}([0-9a-f]{3})?)\\.krotpn\\.xyz$'
   const routeRegex = new RegExp(aclPattern)
 
   assertContains(router, 'use_backend mtproto_de_runtime if sni_mtproto', routerPath)
   assertContains(router, 'default_backend web_https_fallback', routerPath)
   assertContains(router, aclPattern, routerPath)
   assertContains(router, 'u-[0-9a-f]{12}', routerPath)
-  assertContains(router, '-[0-9a-f]{7}', routerPath)
+  assertContains(router, '-[0-9a-f]{4}([0-9a-f]{3})?', routerPath)
   for (const prefix of ctaPrefixes) {
     assertContains(router, prefix, routerPath)
   }
   for (const hostname of [
     'u-0195616cec89.krotpn.xyz',
+    'hochu-bystree-b405.krotpn.xyz',
+    'kupi-vpn-4bb4.krotpn.xyz',
     'hochu-bystree-b405086.krotpn.xyz',
     'kupi-vpn-4bb40fa.krotpn.xyz',
   ]) {
@@ -95,7 +98,12 @@ function assertSniRouterSupportsCtaLabels() {
       throw new Error(`${routerPath} MTProto ACL does not match issued hostname: ${hostname}`)
     }
   }
-  for (const hostname of ['krotpn.xyz', 'www.krotpn.xyz', 'unknown-b405086.krotpn.xyz']) {
+  for (const hostname of [
+    'krotpn.xyz',
+    'www.krotpn.xyz',
+    'unknown-b405.krotpn.xyz',
+    'kupi-vpn-4bb40.krotpn.xyz',
+  ]) {
     if (routeRegex.test(hostname)) {
       throw new Error(`${routerPath} MTProto ACL unexpectedly matches non-issued hostname: ${hostname}`)
     }
@@ -114,7 +122,7 @@ for (const prefix of ctaPrefixes) {
 }
 
 assertContains(provisioning, 'MTPROTO_CTA_PREFIXES', provisioningPath)
-assertContains(provisioning, 'PUBLIC_SHORT_ID_LEN = 7', provisioningPath)
+assertContains(provisioning, 'PUBLIC_SHORT_ID_LEN = 4', provisioningPath)
 assertContains(provisioning, 'def shorten_public_user_id(', provisioningPath)
 assertContains(provisioning, 'def select_cta_prefix(', provisioningPath)
 assertContains(provisioning, 'def generate_cta_sni(', provisioningPath)

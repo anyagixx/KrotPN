@@ -1,15 +1,16 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Phase-47 NAME="MTProto CTA Subdomain Link Generation" STATUS="pass-local-hotfix" VERSION="1.1.0" MODULES="M-065,M-001,M-002,M-042,M-043,M-045,M-049,M-050,M-064" CREATED="2026-06-01" UPDATED="2026-06-01">
+<Phase-47 NAME="MTProto CTA Subdomain Link Generation" STATUS="pass-local-short-suffix" VERSION="1.2.0" MODULES="M-065,M-001,M-002,M-042,M-043,M-045,M-049,M-050,M-064" CREATED="2026-06-01" UPDATED="2026-06-01">
   <purpose>Implement marketing-oriented CTA subdomains for newly issued personal MTProto proxy links while preserving existing working proxies and the Phase-41 RU/DE fake-TLS data-plane.</purpose>
   <scope>
-    <in>CTA prefix allow-list, 7-hex public user suffix derivation, explicit prefix validation, stable pseudo-random prefix choice, CTA SNI generation, owner payload consistency, backend tests, frontend/smoke guards, and MyGRACE metadata.</in>
+    <in>CTA prefix allow-list, 4-hex public user suffix derivation for new assignments, explicit prefix validation, stable pseudo-random prefix choice, CTA SNI generation, owner payload consistency, backend tests, frontend/smoke guards, and MyGRACE metadata.</in>
     <out>Deploy/install scripts, nginx/docker-compose, wildcard TLS issuance, database schema migrations, MTProto runtime topology, promotion tag runtime, and automatic mass reissue of existing u-* assignments.</out>
   </scope>
   <hotfix id="phase47-cta-router-acl" status="pass-local" date="2026-06-01">Operator clean-deploy found CTA hostnames were generated and persisted correctly but HAProxy still routed only legacy u-12hex issued labels. The hotfix changes only deploy/haproxy-phase38.cfg SNI ACL so approved CTA-prefix-7hex labels route to mtproto_de_runtime; install.sh, deploy scripts, nginx, docker-compose, TLS issuance, and runtime topology remain unchanged.</hotfix>
-  <example-output>https://t.me/proxy?server=kupi-vpn-4bb40fa.krotpn.xyz&amp;port=443&amp;secret=ee...</example-output>
+  <hotfix id="phase47-cta-short-suffix" status="pass-local" date="2026-06-01">Operator requested shorter Telegram-visible hostnames. New CTA assignments now use 4-hex public suffixes while the RU SNI router remains compatible with existing 7-hex CTA assignments and legacy u-12hex assignments.</hotfix>
+  <example-output>https://t.me/proxy?server=kupi-vpn-4bb4.krotpn.xyz&amp;port=443&amp;secret=ee...</example-output>
   <steps>
     <step-1 MODULE="M-065,M-043" STATUS="done-local">Add the fixed CTA prefix allow-list: kupi-vpn, vpn-tut, beri-vpn, bez-blokirovok, hochu-bystree, and krot-vpn.</step-1>
-    <step-2 MODULE="M-065,M-002" STATUS="done-local">Implement public short-id derivation: use first 7 hex characters for hex-like user keys and a stable 7-hex hash suffix for numeric internal IDs.</step-2>
+    <step-2 MODULE="M-065,M-002" STATUS="pass-local-short-suffix">Implement public short-id derivation: use first 4 hex characters for hex-like user keys and a stable 4-hex hash suffix for numeric internal IDs.</step-2>
     <step-3 MODULE="M-065,M-043" STATUS="done-local">Implement explicit prefix validation and stable pseudo-random prefix selection without accepting arbitrary DNS labels.</step-3>
     <step-4 MODULE="M-065,M-043" STATUS="done-local">Generate wildcard-safe CTA SNI as cta-prefix-shortid.base-domain with collision nonce support and DNS label validation.</step-4>
     <step-5 MODULE="M-065,M-042,M-043" STATUS="done-local">Integrate CTA SNI into new assignment creation while preserving existing active u-* assignments unless reissue is explicit.</step-5>
@@ -19,17 +20,17 @@
     <step-9 MODULE="M-065" STATUS="done-local">Run backend provisioning tests, frontend build, Phase-47 smoke, XML parse, MyGRACE lint, and deploy/install diff guard.</step-9>
   </steps>
   <data-flow>
-    <flow-1>Verified user -&gt; MTProtoProvisioningService -&gt; CTA prefix selector -&gt; public 7-hex suffix -&gt; cta-prefix-shortid.krotpn.xyz.</flow-1>
+    <flow-1>Verified user -&gt; MTProtoProvisioningService -&gt; CTA prefix selector -&gt; public 4-hex suffix -&gt; cta-prefix-shortid.krotpn.xyz.</flow-1>
     <flow-2>CTA SNI -&gt; derive_fake_tls_secret -&gt; owner payload server/secret -&gt; tg://proxy and https://t.me/proxy links.</flow-2>
     <flow-3>CTA SNI assignment -&gt; runtime policy apply -&gt; RU SNI router -&gt; DE KPprotoN fake-TLS runtime.</flow-3>
   </data-flow>
   <mental-walkthroughs>
-    <walkthrough-1>A newly verified user receives kupi-vpn-4bb40fa.krotpn.xyz; Telegram sees the same server in the fake-TLS secret and can connect through the existing RU/DE edge.</walkthrough-1>
+    <walkthrough-1>A newly verified user receives kupi-vpn-4bb4.krotpn.xyz; Telegram sees the same server in the fake-TLS secret and can connect through the existing RU/DE edge.</walkthrough-1>
     <walkthrough-2>An existing user with u-0195616cec89.krotpn.xyz logs in after Phase-47 and keeps the old working assignment because no automatic mass reissue occurs.</walkthrough-2>
     <walkthrough-3>An invalid explicit prefix such as custom-domain is rejected before SNI creation, so arbitrary hostnames cannot enter policy apply or logs.</walkthrough-3>
   </mental-walkthroughs>
   <phase-gates>
-    <gate-1>CTA hostnames match one of the approved prefixes plus a 7-hex suffix under the configured base domain.</gate-1>
+    <gate-1>New CTA hostnames match one of the approved prefixes plus a 4-hex suffix under the configured base domain, while old 7-hex CTA hostnames remain routable.</gate-1>
     <gate-2>Raw numeric user IDs are not visible in generated public hostnames.</gate-2>
     <gate-3>Existing active assignments remain stable and are not silently rotated.</gate-3>
     <gate-4>Derived ee fake-TLS secret contains the final CTA SNI hex and does not use stale u-* server text for new assignments.</gate-4>
@@ -58,6 +59,6 @@
       <command status="pass-local">python3 -m xml.etree.ElementTree docs/plans/Phase-47.xml docs/modules/M-065.xml docs/verification/V-M-065.xml docs/graph-index.xml docs/plan-index.xml docs/verification-index.xml docs/current-status.xml</command>
       <command status="pass-local">mygrace lint</command>
     </commands>
-    <evidence>2026-06-01: backend provisioning tests passed 14/14 outside sandbox after sandbox aiosqlite hang, frontend build passed, Phase-47 smoke passed, protected deploy/install diff guard had no output, XML parse passed, and MyGRACE lint passed. Later the same day, a clean-deploy operator report showed CTA hostnames unavailable because HAProxy matched only legacy u-12hex labels; the hotfix widened the MTProto ACL to legacy-or-approved-CTA labels and passed Phase-38/41/47 smoke plus 27 targeted backend tests locally.</evidence>
+    <evidence>2026-06-01: backend provisioning tests passed outside sandbox after sandbox aiosqlite hang, frontend build passed, Phase-47 smoke passed, protected deploy/install diff guard had no output, XML parse passed, and MyGRACE lint passed. Later the same day, a clean-deploy operator report showed CTA hostnames unavailable because HAProxy matched only legacy u-12hex labels; the hotfix widened the MTProto ACL to legacy-or-approved-CTA labels and passed Phase-38/41/47 smoke plus targeted backend tests locally. The short-suffix follow-up changes new CTA suffixes from 7 hex chars to 4 while preserving existing 7-hex CTA routing.</evidence>
   </verification>
 </Phase-47>

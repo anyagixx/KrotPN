@@ -1,7 +1,7 @@
 """Phase-41 deploy surface static verification.
 
 # FILE: backend/tests/test_deploy_phase38_static.py
-# VERSION: 2.4.0
+# VERSION: 2.5.0
 # ROLE: TEST
 # MAP_MODE: LOCALS
 # START_MODULE_CONTRACT
@@ -21,6 +21,7 @@
 # END_MODULE_MAP
 #
 # START_CHANGE_SUMMARY
+#   LAST_CHANGE: v2.5.0 - Guard 4-hex CTA suffix routing while preserving existing 7-hex CTA issued hostnames.
 #   LAST_CHANGE: v2.4.0 - Guard Phase-47 CTA-prefixed MTProto hostnames in the RU SNI router ACL.
 #   LAST_CHANGE: v2.3.0 - Added static guards for DE awg0 boot persistence and runtime policy-bind wait.
 #   LAST_CHANGE: v2.2.0 - Restored deploy static checks for KPprotoN fake-TLS production runtime.
@@ -54,7 +55,7 @@ def test_haproxy_routes_web_and_mtproto_sni():
     assert "[M-050][ru_sni_router][ROUTE_UNKNOWN_SNI]" in haproxy
     assert "acl sni_web req.ssl_sni -i krotpn.xyz www.krotpn.xyz" in haproxy
     assert (
-        r"^(u-[0-9a-f]{12}|(kupi-vpn|vpn-tut|beri-vpn|bez-blokirovok|hochu-bystree|krot-vpn)-[0-9a-f]{7})\.krotpn\.xyz$"
+        r"^(u-[0-9a-f]{12}|(kupi-vpn|vpn-tut|beri-vpn|bez-blokirovok|hochu-bystree|krot-vpn)-[0-9a-f]{4}([0-9a-f]{3})?)\.krotpn\.xyz$"
         in haproxy
     )
     assert "hochu-bystree" in haproxy

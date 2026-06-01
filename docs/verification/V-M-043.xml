@@ -1,18 +1,18 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<V-M-043 MODULE="M-043" PRIORITY="critical" STATUS="pass-local-phase47" VERSION="1.8.0">
+<V-M-043 MODULE="M-043" PRIORITY="critical" STATUS="pass-local-phase47-short-suffix" VERSION="1.9.0">
   <module>mtproto-provisioning</module>
   <phase-scope>
     <phase-29 status="pass-local">Deterministic MTProto provisioning core implemented and verified locally.</phase-29>
     <phase-34 status="planned">Stabilization gate must prove verified users can receive one free indefinite owner proxy while unverified users and stale rotation states remain safe.</phase-34>
     <phase-38 status="verification-designed">Existing SNI, base secret, salt, and tg link stability must survive the runtime target move from RU-only to DE-backed edge.</phase-38>
     <phase-41 status="pass-local">Provisioning returns KPprotoN fake-TLS ee owner payloads and explicitly reissues official dd credential-mode assignments.</phase-41>
-    <phase-47 status="pass-local">New provisioning returns CTA-prefixed one-label SNI while preserving active legacy u-* assignments.</phase-47>
+    <phase-47 status="pass-local-short-suffix">New provisioning returns CTA-prefixed one-label SNI with a compact 4-hex public suffix while preserving active legacy u-* and existing CTA assignments.</phase-47>
   </phase-scope>
   <test-files>
     <file>backend/tests/test_mtproto_provisioning.py</file>
     <file>scripts/phase47-mtproto-cta-links-smoke.mjs</file>
   </test-files>
-  <commands>pass-local 2026-06-01: cd backend &amp;&amp; SECRET_KEY=test-secret-key-with-enough-length PYTHONPATH=. ../.venv/bin/python -m pytest -o addopts='' tests/test_mtproto_provisioning.py -v passed 14/14 outside sandbox; node scripts/phase47-mtproto-cta-links-smoke.mjs passed</commands>
+  <commands>pass-local 2026-06-01: cd backend &amp;&amp; SECRET_KEY=test-secret-key-with-enough-length PYTHONPATH=. ../.venv/bin/python -m pytest -o addopts='' tests/test_mtproto_provisioning.py -v passed; node scripts/phase47-mtproto-cta-links-smoke.mjs passed</commands>
   <verification-levels>
     <module-local>Pure deterministic SNI, secret derivation, tg://proxy assembly, validation, and idempotency tests use fixed vectors and fake repository/session adapters.</module-local>
     <wave-level>Runs with V-M-042 so issue/reissue persists only restore-safe assignment data and can rebuild owner-safe payloads.</wave-level>
@@ -28,7 +28,7 @@
     <check-7 evidence="phase-34-integration">Verified-email activation plus owner dashboard access produces one idempotent MTProto assignment and owner-only tg://proxy response.</check-7>
     <check-8 evidence="phase-38-deterministic">Changing runtime policy target to DE does not change SNI generation, fake-TLS derivation, proxy port, or owner tg://proxy payload for existing assignments.</check-8>
     <check-9 evidence="phase-41-deterministic">KPprotoN owner payloads use server=SNI and secret=ee...; official dd payloads are not treated as active production links.</check-9>
-    <check-10 evidence="phase-47-deterministic">New owner payloads use approved CTA one-label SNI under krotpn.xyz while existing active u-* assignments remain unchanged.</check-10>
+    <check-10 evidence="phase-47-deterministic">New owner payloads use approved CTA one-label SNI with a compact 4-hex suffix under krotpn.xyz while existing active u-* and stored CTA assignments remain unchanged.</check-10>
   </module-checks>
   <phase-34-stabilization-gates>
     <gate-1>Free MTProto assignment is indefinite by KrotPN subscription/trial lifetime and does not expire with the three-day KrotPN VPN trial.</gate-1>
@@ -43,7 +43,7 @@
     <scenario-6 kind="failure">Unverified, inactive, or missing users do not receive assignment rows or tg://proxy payloads.</scenario-6>
     <scenario-7 kind="success">Existing assignment payload is rebuilt unchanged while the runtime bridge applies policy to the DE edge.</scenario-7>
     <scenario-8 kind="success">Phase-41 reissue converts a superseded official assignment into a KPprotoN fake-TLS owner payload without leaking raw secrets.</scenario-8>
-    <scenario-9 kind="success">Phase-47 new assignment returns a CTA SNI and derives the fake-TLS secret from that final SNI.</scenario-9>
+    <scenario-9 kind="success">Phase-47 new assignment returns a compact CTA SNI and derives the fake-TLS secret from that final SNI.</scenario-9>
     <scenario-10 kind="success">Phase-47 existing u-* assignment is reused without automatic hostname rewrite.</scenario-10>
   </scenarios>
   <required-log-markers>
@@ -70,5 +70,6 @@
     <evidence-4>2026-05-19: Phase-41 verification design restores fake-TLS ee payload assertions and supersedes official dd payloads for production.</evidence-4>
     <evidence-5>2026-05-19: Phase-41 local provisioning/API/Phase-34 integration tests passed for derived_per_sni defaults, server=SNI, ee secret shape, official-mode reissue-required state, and redaction guards.</evidence-5>
     <evidence-6>2026-06-01: Phase-47 provisioning tests passed 14/14 for CTA allow-list, public short IDs, explicit prefix validation, one-label SNI, final-SNI fake-TLS binding, and legacy u-* preservation.</evidence-6>
+    <evidence-7>2026-06-01: Short-suffix fix verifies new CTA SNI suffixes use 4 hex chars, collision nonce still changes the suffix, and existing assignments remain reused.</evidence-7>
   </evidence>
 </V-M-043>

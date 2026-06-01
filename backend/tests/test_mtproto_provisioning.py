@@ -15,7 +15,7 @@
 # START_MODULE_MAP
 #   test_generate_sni_is_stable_and_under_base_domain - Covers stable SNI generation
 #   test_cta_prefix_allow_list_is_fixed - Covers Phase-47 CTA prefix contract
-#   test_public_short_id_derivation_hashes_numeric_ids - Covers public 7-hex suffix derivation
+#   test_public_short_id_derivation_hashes_numeric_ids - Covers public 4-hex suffix derivation
 #   test_generate_cta_sni_validates_prefix_and_single_label - Covers CTA SNI validation and explicit prefix support
 #   test_derive_fake_tls_secret_matches_kpproton_vector - Covers fake-TLS derivation
 #   test_fake_tls_link_helper_builds_owner_link - Covers KPprotoN fake-TLS link formatting
@@ -128,8 +128,8 @@ def test_cta_prefix_allow_list_is_fixed():
 
 
 def test_public_short_id_derivation_hashes_numeric_ids():
-    assert shorten_public_user_id("4bb40fa4b428") == "4bb40fa"
-    assert shorten_public_user_id("4bb40fa4-b428-4fff-8333-abcdefabcdef") == "4bb40fa"
+    assert shorten_public_user_id("4bb40fa4b428") == "4bb4"
+    assert shorten_public_user_id("4bb40fa4-b428-4fff-8333-abcdefabcdef") == "4bb4"
 
     numeric_suffix = shorten_public_user_id("1234567")
     repeated_suffix = shorten_public_user_id(1234567)
@@ -137,8 +137,8 @@ def test_public_short_id_derivation_hashes_numeric_ids():
 
     assert numeric_suffix == repeated_suffix
     assert numeric_suffix != "1234567"
-    assert re.fullmatch(r"[0-9a-f]{7}", numeric_suffix)
-    assert re.fullmatch(r"[0-9a-f]{7}", collision_suffix)
+    assert re.fullmatch(r"[0-9a-f]{4}", numeric_suffix)
+    assert re.fullmatch(r"[0-9a-f]{4}", collision_suffix)
     assert collision_suffix != numeric_suffix
 
 
@@ -156,7 +156,7 @@ def test_generate_cta_sni_validates_prefix_and_single_label():
     )
     stable_prefix = select_cta_prefix("42")
 
-    assert sni == "krot-vpn-4bb40fa.krotpn.xyz"
+    assert sni == "krot-vpn-4bb4.krotpn.xyz"
     assert collision_sni.endswith(".krotpn.xyz")
     assert collision_sni.startswith("krot-vpn-")
     assert collision_sni != sni
@@ -212,7 +212,7 @@ async def test_issue_user_proxy_is_idempotent_and_owner_safe(db_session: AsyncSe
     assert first.sni.endswith(".krotpn.xyz")
     assert not first.sni.startswith("u-")
     assert any(first.sni.startswith(f"{prefix}-") for prefix in MTPROTO_CTA_PREFIXES)
-    assert re.fullmatch(r"[0-9a-f]{7}", first.sni.split(".")[0].rsplit("-", 1)[1])
+    assert re.fullmatch(r"[0-9a-f]{4}", first.sni.split(".")[0].rsplit("-", 1)[1])
     assert first.port == 443
     assert first.secret.startswith("ee")
     assert first.sni.encode("utf-8").hex() in first.secret

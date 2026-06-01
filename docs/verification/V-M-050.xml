@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<V-M-050 MODULE="M-050" PRIORITY="critical" STATUS="pass-live-phase41-pass-local-phase47-hotfix" VERSION="1.8.0">
+<V-M-050 MODULE="M-050" PRIORITY="critical" STATUS="pass-live-phase41-pass-local-phase47-short-suffix" VERSION="1.9.0">
   <module>mtproto-de-backed-edge</module>
   <phase-scope>
     <phase-38 status="partial-live">DE-hosted MTProto runtime plus RU public TCP 443 SNI router passed live RU/DE edge checks; Phase-41 supersedes the remaining Phase-38 Telegram acceptance gap.</phase-38>
     <phase-41 status="pass-live">DE-backed edge returns to KPprotoN fake-TLS SNI routing, removes official MTProxy from the active production target, fixes blank ad-tag req_pq timeout, and passes operator Telegram Desktop/mobile proof.</phase-41>
-    <phase-47 status="pass-local-hotfix">CTA-issued hostnames are routed by the same RU SNI router MTProto ACL as legacy u-* hostnames; the fix preserves topology and only widens approved issued-label matching.</phase-47>
+    <phase-47 status="pass-local-short-suffix">CTA-issued hostnames are routed by the same RU SNI router MTProto ACL as legacy u-* hostnames; the fix preserves existing 7-hex CTA labels and accepts new 4-hex CTA labels.</phase-47>
     <supersedes>M-049 RU-only runtime path is superseded; Phase-38/41 verifies the replacement DE-backed traffic path.</supersedes>
   </phase-scope>
   <test-files>
@@ -60,7 +60,7 @@
     <check-15 evidence="operator-live" status="passed">MTPROTO_AD_TAG/PROXY_AD_TAG is non-empty and defaults to zero 32-hex tag; issued-link mtp_ping returns OK across DC +1 through +5 after policy replay.</check-15>
     <check-16 evidence="deterministic">RU SNI router emits local syslog observations to 127.0.0.1:1514 with issued SNI capture so M-055 can store real client IPs before DE proxying.</check-16>
     <check-17 evidence="live-hotfix">DE awg-quick@awg0 is enabled for boot and the runtime waits for POLICY_LISTEN_IP before binding the private policy API.</check-17>
-    <check-18 evidence="deterministic" status="pass-local-phase47-hotfix">RU SNI router MTProto ACL matches legacy u-12hex hostnames and approved CTA-prefix-7hex hostnames such as hochu-bystree-xxxxxxx.krotpn.xyz.</check-18>
+    <check-18 evidence="deterministic" status="pass-local-phase47-short-suffix">RU SNI router MTProto ACL matches legacy u-12hex hostnames, new CTA-prefix-4hex hostnames such as hochu-bystree-xxxx.krotpn.xyz, and existing CTA-prefix-7hex hostnames such as hochu-bystree-xxxxxxx.krotpn.xyz.</check-18>
   </module-checks>
   <verification-matrix>
     <gate-1 MODULES="M-050,M-046" EVIDENCE="deterministic">SNI router target map separates web, issued MTProto SNI, and unknown SNI behavior.</gate-1>
@@ -71,7 +71,7 @@
     <gate-6 MODULES="M-050" EVIDENCE="operator-live" STATUS="passed">Telegram Desktop/mobile mark an existing issued user proxy available and usable through the DE runtime route.</gate-6>
     <gate-7 MODULES="M-050,M-052" EVIDENCE="phase-41-deterministic">Official MTProxy route is disabled from production traffic after KPprotoN fake-TLS rollback.</gate-7>
     <gate-8 MODULES="M-050,M-055,M-061" EVIDENCE="deterministic">RU SNI-router real client IP observation is wired without sending PROXY protocol into the DE MTProto listener.</gate-8>
-    <gate-9 MODULES="M-050,M-065" EVIDENCE="deterministic" STATUS="passed-local">Phase-47 CTA-issued SNI labels route to mtproto_de_runtime and unknown SNI remains on HTTPS fallback.</gate-9>
+    <gate-9 MODULES="M-050,M-065" EVIDENCE="deterministic" STATUS="passed-local">Phase-47 4-hex and existing 7-hex CTA-issued SNI labels route to mtproto_de_runtime and unknown SNI remains on HTTPS fallback.</gate-9>
   </verification-matrix>
   <scenarios>
     <scenario-1 kind="success">Browser request for krotpn.xyz routes from RU public 443 to private RU nginx 9443 and returns a healthy HTTPS page.</scenario-1>
@@ -85,7 +85,7 @@
     <scenario-9 kind="success">Phase-41 routes a newly issued fake-TLS SNI to DE KPprotoN runtime and keeps krotpn.xyz HTTPS on web fallback.</scenario-9>
     <scenario-10 kind="success">RU SNI router observes the user device IP and issued SNI locally while the DE runtime may only see the RU router hop.</scenario-10>
     <scenario-11 kind="success">After RU/DE reboot, DE awg0 returns automatically, policy health becomes reachable, and scheduler replay reapplies all active SNI policies without reissue.</scenario-11>
-    <scenario-12 kind="success">Telegram request for a CTA-issued hostname such as hochu-bystree-b405086.krotpn.xyz routes from RU public 443 to DE KPprotoN instead of HTTPS fallback.</scenario-12>
+    <scenario-12 kind="success">Telegram request for a new CTA-issued hostname such as hochu-bystree-b405.krotpn.xyz or an existing 7-hex CTA hostname routes from RU public 443 to DE KPprotoN instead of HTTPS fallback.</scenario-12>
   </scenarios>
   <required-log-markers>
     <marker-1>[M-050][ru_sni_router][ROUTE_WEB]</marker-1>
@@ -148,5 +148,6 @@
     <evidence-11>2026-05-21: Local fix added HAProxy local syslog SNI/client-IP observation, host collector service, static smoke coverage, and backend IP observability tests for real client IP history.</evidence-11>
     <evidence-12>2026-05-23: Live RU/DE reboot diagnosis found DE awg0 was not enabled for boot; enabling awg-quick@awg0 restored policy health and active assignment replay applied both existing user SNIs.</evidence-12>
     <evidence-13>2026-06-01: Phase-47 CTA routing hotfix passed locally: Phase-38, Phase-41, and Phase-47 smoke scripts plus backend deploy static/provisioning/edge tests prove approved CTA labels reach mtproto_de_runtime while web/unknown SNI remains safe.</evidence-13>
+    <evidence-14>2026-06-01: Short-suffix follow-up passed locally: router smoke and backend static guards now cover new 4-hex CTA labels, existing 7-hex CTA labels, legacy u-12hex labels, and 5-hex rejection.</evidence-14>
   </evidence>
 </V-M-050>
