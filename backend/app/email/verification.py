@@ -363,9 +363,13 @@ async def request_registration(
         select(User).where(User.email == risk.normalized_email)
     )
     if existing_user_result.scalar_one_or_none() is not None:
+        logger.info(
+            "[VerifiedRegistration][register][DUPLICATE_EMAIL_RECOVERY] "
+            f"email={mask_email_for_logs(risk.normalized_email)}"
+        )
         raise EmailVerificationError(
             EmailVerificationErrorCode.EMAIL_UNAVAILABLE,
-            "Registration cannot be completed",
+            "На эту почту уже зарегистрирован аккаунт. Восстановите доступ через сброс пароля.",
         )
 
     issued_at = now or datetime.now(timezone.utc)
@@ -556,9 +560,13 @@ async def activate_registration(
         select(User).where(User.email == pending.email)
     )
     if existing_user_result.scalar_one_or_none() is not None:
+        logger.info(
+            "[VerifiedRegistration][register][DUPLICATE_EMAIL_RECOVERY] "
+            f"email={mask_email_for_logs(pending.email)}"
+        )
         raise EmailVerificationError(
             EmailVerificationErrorCode.EMAIL_UNAVAILABLE,
-            "Registration cannot be completed",
+            "На эту почту уже зарегистрирован аккаунт. Восстановите доступ через сброс пароля.",
         )
 
     referred_by_id: int | None = None

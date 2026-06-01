@@ -19,6 +19,7 @@ User schemas for API requests and responses.
 #   UserUpdate - Profile update schema
 #   UserChangePassword - Password change request
 #   UserLogin - Email/password login request
+#   PasswordResetRequest, PasswordResetConfirm, PasswordResetResponse - Password recovery payloads
 #   PendingRegistrationResponse - Safe check-email response for verified registration
 #   EmailVerificationRequest - One-time email verification token request
 #   Token - JWT token response
@@ -32,6 +33,7 @@ User schemas for API requests and responses.
 # END_MODULE_MAP
 #
 # START_CHANGE_SUMMARY
+#   LAST_CHANGE: 2026-06-01 - Added Phase-44 strong-password and password recovery schemas
 #   LAST_CHANGE: 2026-05-13 - Added Phase-28 pending registration and verify-email schemas
 #   LAST_CHANGE: 2026-04-06 - Added full GRACE MODULE_CONTRACT, MODULE_MAP, BLOCK markers per GRACE governance protocol
 # END_CHANGE_SUMMARY
@@ -44,6 +46,7 @@ from pydantic import EmailStr, Field, field_validator
 from sqlmodel import SQLModel
 
 from app.users.models import UserRole
+from app.users.password_policy import validate_password_strength
 
 
 # Base schemas
@@ -57,15 +60,13 @@ class UserBase(SQLModel):
 # START_BLOCK_USERCREATE
 class UserCreate(UserBase):
     """Schema for user registration."""
-    password: str = Field(..., min_length=8, max_length=100)
+    password: str = Field(..., min_length=10, max_length=100)
     referral_code: str | None = Field(default=None, max_length=20)
 
     @field_validator("password")
     @classmethod
     def validate_password(cls, v: str) -> str:
-        if len(v) < 8:
-            raise ValueError("Password must be at least 8 characters")
-        return v
+        return validate_password_strength(v)
 # END_BLOCK_USERCREATE
 
 
@@ -95,13 +96,42 @@ class UserUpdate(SQLModel):
 class UserChangePassword(SQLModel):
     """Schema for password change."""
     current_password: str
-    new_password: str = Field(..., min_length=8, max_length=100)
+    new_password: str = Field(..., min_length=10, max_length=100)
+
+    @field_validator("new_password")
+    @classmethod
+    def validate_new_password(cls, v: str) -> str:
+        return validate_password_strength(v)
 
 
 class UserLogin(SQLModel):
     """Schema for user login."""
     email: EmailStr
     password: str
+
+
+# START_BLOCK_PASSWORD_RESET_SCHEMAS
+class PasswordResetRequest(SQLModel):
+    """Schema for requesting a password reset email."""
+    email: EmailStr
+
+
+class PasswordResetConfirm(SQLModel):
+    """Schema for consuming a one-time password reset token."""
+    token: str = Field(..., min_length=16, max_length=512)
+    new_password: str = Field(..., min_length=10, max_length=100)
+
+    @field_validator("new_password")
+    @classmethod
+    def validate_new_password(cls, v: str) -> str:
+        return validate_password_strength(v)
+
+
+class PasswordResetResponse(SQLModel):
+    """Safe password reset response."""
+    status: str
+    message: str
+# END_BLOCK_PASSWORD_RESET_SCHEMAS
 
 
 # START_BLOCK_VERIFIED_REGISTRATION_SCHEMAS

@@ -14,7 +14,7 @@
 //   User, TokenResponse, PendingRegistrationResponse, VPNConfig, UserDevice, DeviceList, DeviceConfigBundle - Types
 //   VPNStats, VPNNodeStatus, VPNRouteStatus, UserStats - Types
 //   Plan, SubscriptionStatus, ReferralStats, ReferralListItem, MTProtoProxyResponse - Types
-//   authApi - Login, register, telegram auth, refresh
+//   authApi - Login, register, verify email, password reset, telegram auth, refresh
 //   userApi - Get me, stats, update profile, change password
 //   vpnApi - Config, download, QR, stats, nodes, routes
 //   deviceApi - List, create, rotate, revoke
@@ -24,6 +24,7 @@
 // END_MODULE_MAP
 //
 // START_CHANGE_SUMMARY
+//   LAST_CHANGE: 2026-06-01 - Added Phase-44 password reset auth API contracts
 //   LAST_CHANGE: 2026-05-14 - Added Phase-31 MTProto owner proxy API contract
 //   LAST_CHANGE: 2026-05-13 - Added Phase-28 pending registration and verify-email auth API contracts
 //   LAST_CHANGE: v2.8.0 - Added full GRACE MODULE_CONTRACT and MODULE_MAP per GRACE governance protocol
@@ -119,6 +120,11 @@ export interface PendingRegistrationResponse {
   status: string
   expires_at: string
   delivery_status: string
+  message: string
+}
+
+export interface PasswordResetResponse {
+  status: string
   message: string
 }
 
@@ -280,6 +286,12 @@ export const authApi = {
 
   verifyEmail: (token: string) =>
     api.post<TokenResponse>('/auth/verify-email', { token }),
+
+  requestPasswordReset: (email: string) =>
+    api.post<PasswordResetResponse>('/auth/password-reset/request', { email }),
+
+  confirmPasswordReset: (token: string, new_password: string) =>
+    api.post<PasswordResetResponse>('/auth/password-reset/confirm', { token, new_password }),
 
   telegramAuth: (telegram_id: number, telegram_username?: string, referral_code?: string) =>
     api.post<TokenResponse>('/auth/telegram', { telegram_id, telegram_username, referral_code }),

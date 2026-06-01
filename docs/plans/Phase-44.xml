@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Phase-44 NAME="Email Onboarding UX and Password Recovery" STATUS="verification-designed" VERSION="1.1.0" MODULES="M-062,M-001,M-002,M-009,M-027,M-028,M-040,M-041" CREATED="2026-06-01" UPDATED="2026-06-01">
+<Phase-44 NAME="Email Onboarding UX and Password Recovery" STATUS="done-local" VERSION="1.2.0" MODULES="M-062,M-001,M-002,M-009,M-027,M-028,M-040,M-041" CREATED="2026-06-01" UPDATED="2026-06-01">
   <purpose>Improve registration trust and supportability by redesigning verification emails, clarifying check-email UX, enforcing strong passwords, adding password reset, and handling duplicate email registration clearly.</purpose>
   <scope>
     <in>Beautiful verification email template, password reset email template, operator note for sender avatar and deliverability, spam-folder hint in the pending registration block, removal of stale trial/VPN wording, removal of the registration right-side explanatory panel, strong-password policy, forgot/reset password flow, and duplicate-email recovery CTA.</in>
@@ -10,14 +10,14 @@
     <note-2>Spam placement cannot be eliminated by frontend code. The product fix is twofold: improve domain/provider deliverability and make the UI tell users to check spam if the email is missing.</note-2>
   </operator-notes>
   <steps>
-    <step-1 MODULE="M-062,M-040" STATUS="planned">Redesign verification email HTML/text templates with KrotPN branding, compact Russian copy, safe button/link fallback, and no token exposure in logs.</step-1>
-    <step-2 MODULE="M-062,M-040" STATUS="planned">Add password reset email template and document the sender-avatar/deliverability operator boundary for Resend-backed mail.</step-2>
-    <step-3 MODULE="M-062,M-009" STATUS="planned">Update registration pending UI: add spam-folder guidance, remove "trial на 3 дня и VPN-доступ", and remove the right-side explanatory block.</step-3>
-    <step-4 MODULE="M-062,M-002,M-009" STATUS="planned">Implement shared strong-password policy with backend enforcement and frontend strength feedback for registration and password reset.</step-4>
-    <step-5 MODULE="M-062,M-002,M-028,M-027" STATUS="planned">Add one-time password reset token storage, request endpoint, reset endpoint, TTL, replay protection, and rate-limit hooks.</step-5>
-    <step-6 MODULE="M-062,M-009" STATUS="planned">Add forgot-password and reset-password frontend screens with compact mobile-first layout and safe success/error states.</step-6>
-    <step-7 MODULE="M-062,M-041,M-009" STATUS="planned">Return explicit duplicate-email registration guidance with a reset-password CTA while keeping throttling and safe logs.</step-7>
-    <step-8 MODULE="M-062" STATUS="planned">Run backend auth/email tests, frontend build, Phase-44 smoke, XML parse, MyGRACE lint, and verify no deploy/install files changed.</step-8>
+    <step-1 MODULE="M-062,M-040" STATUS="done-local">Redesign verification email HTML/text templates with KrotPN branding, compact Russian copy, safe button/link fallback, and no token exposure in logs.</step-1>
+    <step-2 MODULE="M-062,M-040" STATUS="done-local">Add password reset email template and document the sender-avatar/deliverability operator boundary for Resend-backed mail.</step-2>
+    <step-3 MODULE="M-062,M-009" STATUS="done-local">Update registration pending UI: add spam-folder guidance, remove "trial на 3 дня и VPN-доступ", and remove the right-side explanatory block.</step-3>
+    <step-4 MODULE="M-062,M-002,M-009" STATUS="done-local">Implement shared strong-password policy with backend enforcement and frontend strength feedback for registration and password reset.</step-4>
+    <step-5 MODULE="M-062,M-002,M-028,M-027" STATUS="done-local">Add one-time password reset token storage, request endpoint, reset endpoint, TTL, replay protection, and rate-limit hooks.</step-5>
+    <step-6 MODULE="M-062,M-009" STATUS="done-local">Add forgot-password and reset-password frontend screens with compact mobile-first layout and safe success/error states.</step-6>
+    <step-7 MODULE="M-062,M-041,M-009" STATUS="done-local">Return explicit duplicate-email registration guidance with a reset-password CTA while keeping throttling and safe logs.</step-7>
+    <step-8 MODULE="M-062" STATUS="done-local">Run backend auth/email tests, frontend build, Phase-44 smoke, XML parse, MyGRACE lint, and verify no deploy/install files changed.</step-8>
   </steps>
   <data-flow>
     <flow-1>User registers -> M-041 creates pending registration -> M-040 sends branded verification email -> M-009 pending screen tells user to check inbox and spam.</flow-1>
@@ -45,11 +45,17 @@
   </risks>
   <verification>
     <commands>
-      <command status="verification-designed">cd backend &amp;&amp; SECRET_KEY=test-secret-key-with-enough-length DATA_ENCRYPTION_KEY=dpFmfSVqfdAK3yx5MQV6Tcv35RZuw5MzaH0yhxJ01q0= PYTHONPATH=. ../.venv/bin/python -m pytest -o addopts='' tests/test_email_delivery.py tests/test_verified_registration.py tests/test_password_recovery.py -v</command>
-      <command status="verification-designed">cd frontend &amp;&amp; npm run build</command>
-      <command status="verification-designed">node scripts/phase44-auth-email-ux-smoke.mjs</command>
-      <command status="verification-designed">python3 -m xml.etree.ElementTree docs/plans/Phase-44.xml docs/modules/M-062.xml docs/verification/V-M-062.xml docs/graph-index.xml docs/plan-index.xml docs/verification-index.xml docs/requirements.xml docs/current-status.xml</command>
-      <command status="verification-designed">mygrace lint</command>
+      <command status="pass-local">cd backend &amp;&amp; SECRET_KEY=test-secret-key-with-enough-length DATA_ENCRYPTION_KEY=dpFmfSVqfdAK3yx5MQV6Tcv35RZuw5MzaH0yhxJ01q0= PYTHONPATH=. ../.venv/bin/python -m pytest -o addopts='' tests/test_email_delivery.py tests/test_verified_registration.py tests/test_password_recovery.py tests/test_email_verification_guard.py tests/test_db_migrations.py -v</command>
+      <command status="pass-local">cd frontend &amp;&amp; npm run build</command>
+      <command status="pass-local">node scripts/phase44-auth-email-ux-smoke.mjs</command>
+      <command status="pass-local">python3 -m xml.etree.ElementTree docs/plans/Phase-44.xml docs/modules/M-062.xml docs/modules/M-002.xml docs/modules/M-009.xml docs/modules/M-028.xml docs/modules/M-040.xml docs/verification/V-M-062.xml docs/verification/V-M-002.xml docs/verification/V-M-009.xml docs/verification/V-M-028.xml docs/verification/V-M-040.xml docs/graph-index.xml docs/plan-index.xml docs/verification-index.xml docs/requirements.xml docs/current-status.xml</command>
+      <command status="pass-local">mygrace lint</command>
     </commands>
   </verification>
+  <evidence>
+    <evidence-1>2026-06-01: backend Phase-44 auth/email/migration tests passed outside sandbox because sandbox aiosqlite in-memory DB hangs; result was 29 passed in 0.84s.</evidence-1>
+    <evidence-2>2026-06-01: frontend npm run build passed and node scripts/phase44-auth-email-ux-smoke.mjs passed.</evidence-2>
+    <evidence-3>2026-06-01: XML parse and MyGRACE lint passed.</evidence-3>
+    <evidence-4>deploy/install scripts were intentionally untouched by Phase-44 execution.</evidence-4>
+  </evidence>
 </Phase-44>

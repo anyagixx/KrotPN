@@ -190,7 +190,7 @@ async def test_verified_registration_issues_single_owner_mtproto_proxy(
         "/api/v1/auth/register",
         json={
             "email": "Phase34.Owner@Example.com",
-            "password": "very-secret-password",
+            "password": "Very-secret-password1!",
             "name": "Phase 34 Owner",
             "referral_code": "PHASE34",
         },
@@ -264,7 +264,7 @@ async def test_unverified_user_cannot_get_mtproto_assignment(
 
     register_response = client.post(
         "/api/v1/auth/register",
-        json={"email": "phase34.pending@example.com", "password": "very-secret-password"},
+        json={"email": "phase34.pending@example.com", "password": "Very-secret-password1!"},
     )
 
     assert register_response.status_code == 202

@@ -1,13 +1,15 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<M-009 NAME="frontend-user" TYPE="UI_COMPONENT" STATUS="stable">
+<M-009 NAME="frontend-user" TYPE="UI_COMPONENT" STATUS="pass-local-phase44">
   <path>frontend</path>
-  <owns>login, verified registration, verify-email activation, dashboard, config delivery, subscription management, referrals and settings UI with per-device config awareness</owns>
+  <owns>login, verified registration, password recovery, verify-email activation, dashboard, config delivery, subscription management, referrals and settings UI with per-device config awareness</owns>
   <depends>M-002, M-003, M-004, M-005, M-022</depends>
   <verification-ref>V-M-009</verification-ref>
   <files>
     <file>frontend/src/main.tsx</file>
     <file>frontend/src/App.tsx</file>
     <file>frontend/src/pages/Register.tsx</file>
+    <file>frontend/src/pages/ForgotPassword.tsx</file>
+    <file>frontend/src/pages/ResetPassword.tsx</file>
     <file>frontend/src/pages/VerifyEmail.tsx</file>
     <file>frontend/src/components/Layout.tsx</file>
     <file>frontend/src/pages/Dashboard.tsx</file>
@@ -16,6 +18,7 @@
     <file>frontend/src/pages/Referrals.tsx</file>
     <file>frontend/src/pages/Settings.tsx</file>
     <file>frontend/src/lib/api.ts</file>
+    <file>frontend/src/lib/passwordPolicy.ts</file>
     <file>frontend/src/index.css</file>
   </files>
   <phase-23-scope>
@@ -31,4 +34,9 @@
     <primary-files>Dashboard.tsx, lib/api.ts, index.css, scripts/phase31-mtproto-cabinet-smoke.mjs</primary-files>
     <primary-behaviors>owner-only MTProto proxy API binding, compact dashboard proxy card, copy/open Telegram actions, and no-secret console traces</primary-behaviors>
   </phase-31-scope>
+  <phase-44-scope>
+    <primary-files>App.tsx, Register.tsx, Login.tsx, ForgotPassword.tsx, ResetPassword.tsx, Settings.tsx, lib/api.ts, lib/passwordPolicy.ts, scripts/phase44-auth-email-ux-smoke.mjs</primary-files>
+    <primary-behaviors>compact check-email state with spam hint, no stale trial/VPN registration promise, forgot/reset password screens, duplicate-email recovery CTA, and client-side password strength hints.</primary-behaviors>
+    <evidence>2026-06-01: frontend npm run build passed and Phase-44 auth/email UX smoke passed.</evidence>
+  </phase-44-scope>
 </M-009>

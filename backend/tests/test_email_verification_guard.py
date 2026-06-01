@@ -103,7 +103,7 @@ async def test_email_risk_check_allowlist_overrides_block_rules():
 @pytest.mark.asyncio
 async def test_request_registration_blocks_domain_before_sender_call(db_session):
     sender = CapturingSender()
-    data = UserCreate(email="test@mailinator.com", password="very-secret-password")
+    data = UserCreate(email="test@mailinator.com", password="Very-secret-password1!")
 
     with pytest.raises(EmailVerificationError) as exc_info:
         await request_registration(
@@ -135,7 +135,7 @@ def test_email_domain_settings_accept_comma_env(monkeypatch):
 @pytest.mark.asyncio
 async def test_request_registration_stores_hashed_token_without_user_side_effects(db_session):
     sender = CapturingSender()
-    data = UserCreate(email="Friend@Example.com", password="very-secret-password", name="Friend")
+    data = UserCreate(email="Friend@Example.com", password="Very-secret-password1!", name="Friend")
 
     result = await request_registration(
         db_session,
@@ -155,7 +155,7 @@ async def test_request_registration_stores_hashed_token_without_user_side_effect
     pending = pending_result.scalar_one()
 
     assert pending.email == "friend@example.com"
-    assert pending.password_hash != "very-secret-password"
+    assert pending.password_hash != "Very-secret-password1!"
     assert token not in pending.token_hash
     assert len(pending.token_hash) == 64
 
@@ -163,7 +163,7 @@ async def test_request_registration_stores_hashed_token_without_user_side_effect
 @pytest.mark.asyncio
 async def test_verify_registration_consumes_token_once(db_session):
     sender = CapturingSender()
-    data = UserCreate(email="verify@example.com", password="very-secret-password")
+    data = UserCreate(email="verify@example.com", password="Very-secret-password1!")
     await request_registration(
         db_session,
         data,

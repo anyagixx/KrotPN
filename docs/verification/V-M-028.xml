@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<V-M-028 MODULE="M-028" PRIORITY="critical" STATUS="pass-local-phase43" PHASE-43="pass-local">
+<V-M-028 MODULE="M-028" PRIORITY="critical" STATUS="pass-local-phase44" PHASE-43="pass-local" PHASE-44="pass-local">
   <module>alembic-migrations</module>
-  <checks>Alembic migrations apply all migrations on clean database and produce schema consistent with models. Backward compatible with existing SQLModel.create_all behavior during transition period. Phase-29 MTProto assignment migration is registered after baseline with user/SNI uniqueness indexes. Phase-43 adds encrypted MTProto IP observations, admin alerts, and TTL IP block records.</checks>
+  <checks>Alembic migrations apply all migrations on clean database and produce schema consistent with models. Backward compatible with existing SQLModel.create_all behavior during transition period. Phase-29 MTProto assignment migration is registered after baseline with user/SNI uniqueness indexes. Phase-43 adds encrypted MTProto IP observations, admin alerts, and TTL IP block records. Phase-44 adds password reset token persistence after Phase-43.</checks>
   <test-files>backend/tests/test_db_migrations.py</test-files>
   <commands>cd backend &amp;&amp; SECRET_KEY=test-secret-key-with-enough-length PYTHONPATH=. ../.venv/bin/python -m pytest -o addopts='' tests/test_db_migrations.py -v</commands>
   <anchors>ALEMBIC_MIGRATION_APPLIED</anchors>
@@ -9,9 +9,11 @@
     <scenario kind="success" trace="ALEMBIC_MIGRATION_APPLIED">alembic upgrade head applies all migrations on clean database</scenario>
     <scenario kind="success" trace="MTPROTO_ASSIGNMENT_SCHEMA">MTProto assignment migration follows baseline and contains registry schema markers</scenario>
     <scenario kind="success" trace="PHASE43_MTPROTO_OBSERVABILITY_SCHEMA">Phase-43 migration creates IP observation, admin alert, and blocked-IP record tables</scenario>
+    <scenario kind="success" trace="PASSWORD_RESET_TOKEN_SCHEMA">Phase-44 migration creates password_reset_tokens after Phase-43</scenario>
   </scenarios>
   <evidence>
     <evidence-1>2026-05-14: tests/test_db_migrations.py passed as part of Phase-29 target pytest gate.</evidence-1>
     <evidence-2>2026-05-20: tests/test_db_migrations.py passed in the Phase-43 backend wave and validates phase43_add_mtproto_ip_observability migration metadata.</evidence-2>
+    <evidence-3>2026-06-01: tests/test_db_migrations.py passed in Phase-44 backend suite and validates phase44_add_password_reset_tokens migration metadata.</evidence-3>
   </evidence>
 </V-M-028>

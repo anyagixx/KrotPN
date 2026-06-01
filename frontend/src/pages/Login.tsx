@@ -16,6 +16,7 @@
 // END_MODULE_MAP
 //
 // START_CHANGE_SUMMARY
+//   LAST_CHANGE: 2026-06-01 - Added Phase-44 password recovery entry point
 //   LAST_CHANGE: v2.8.0 - Added full GRACE MODULE_CONTRACT and MODULE_MAP per GRACE governance protocol
 // END_CHANGE_SUMMARY
 //
@@ -133,6 +134,12 @@ export default function Login() {
                 {loading ? <Loader2 className="h-5 w-5 animate-spin" /> : null}
                 {loading ? 'Проверяем доступ' : t('loginButton')}
               </button>
+
+              <div className="text-right text-sm">
+                <Link to="/forgot-password" className="font-semibold text-cyan-100 hover:text-emerald-100">
+                  Забыли пароль?
+                </Link>
+              </div>
             </form>
 
             <div className="mt-6 text-center text-sm muted">

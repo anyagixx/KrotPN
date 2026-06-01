@@ -1,11 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<V-M-062 MODULE="M-062" PRIORITY="critical" STATUS="verification-designed">
+<V-M-062 MODULE="M-062" PRIORITY="critical" STATUS="pass-local">
   <purpose>Verify Phase-44 email onboarding, password policy, password reset, and duplicate-email UX without changing deploy/install scripts.</purpose>
   <checks>Branded email templates render safely, registration copy is accurate, weak passwords are rejected, reset tokens are one-time and TTL-bound, duplicate registration offers recovery, and secrets/tokens remain redacted.</checks>
   <test-files>
     <file>backend/tests/test_email_delivery.py</file>
     <file>backend/tests/test_verified_registration.py</file>
     <file>backend/tests/test_password_recovery.py</file>
+    <file>backend/tests/test_email_verification_guard.py</file>
+    <file>backend/tests/test_db_migrations.py</file>
     <file>frontend/src/pages/Register.tsx</file>
     <file>frontend/src/pages/ForgotPassword.tsx</file>
     <file>frontend/src/pages/ResetPassword.tsx</file>
@@ -40,12 +42,19 @@
     <marker-6>[VerifiedRegistration][register][DUPLICATE_EMAIL_RECOVERY]</marker-6>
   </required-log-markers>
   <commands>
-    <command status="verification-designed">cd backend &amp;&amp; SECRET_KEY=test-secret-key-with-enough-length DATA_ENCRYPTION_KEY=dpFmfSVqfdAK3yx5MQV6Tcv35RZuw5MzaH0yhxJ01q0= PYTHONPATH=. ../.venv/bin/python -m pytest -o addopts='' tests/test_email_delivery.py tests/test_verified_registration.py tests/test_password_recovery.py -v</command>
-    <command status="verification-designed">cd frontend &amp;&amp; npm run build</command>
-    <command status="verification-designed">node scripts/phase44-auth-email-ux-smoke.mjs</command>
-    <command status="verification-designed">python3 -m xml.etree.ElementTree docs/plans/Phase-44.xml docs/modules/M-062.xml docs/verification/V-M-062.xml docs/graph-index.xml docs/plan-index.xml docs/verification-index.xml docs/requirements.xml docs/current-status.xml</command>
-    <command status="verification-designed">mygrace lint</command>
+    <command status="pass-local">cd backend &amp;&amp; SECRET_KEY=test-secret-key-with-enough-length DATA_ENCRYPTION_KEY=dpFmfSVqfdAK3yx5MQV6Tcv35RZuw5MzaH0yhxJ01q0= PYTHONPATH=. ../.venv/bin/python -m pytest -o addopts='' tests/test_email_delivery.py tests/test_verified_registration.py tests/test_password_recovery.py tests/test_email_verification_guard.py tests/test_db_migrations.py -v</command>
+    <command status="pass-local">cd frontend &amp;&amp; npm run build</command>
+    <command status="pass-local">node scripts/phase44-auth-email-ux-smoke.mjs</command>
+    <command status="pass-local">python3 -m xml.etree.ElementTree docs/plans/Phase-44.xml docs/modules/M-062.xml docs/modules/M-002.xml docs/modules/M-009.xml docs/modules/M-028.xml docs/modules/M-040.xml docs/verification/V-M-062.xml docs/verification/V-M-002.xml docs/verification/V-M-009.xml docs/verification/V-M-028.xml docs/verification/V-M-040.xml docs/graph-index.xml docs/plan-index.xml docs/verification-index.xml docs/requirements.xml docs/current-status.xml</command>
+    <command status="pass-local">mygrace lint</command>
   </commands>
+  <evidence>
+    <evidence-1>2026-06-01: backend Phase-44 auth/email/migration suite passed outside sandbox because sandbox aiosqlite in-memory DB hangs; result was 29 passed in 0.84s.</evidence-1>
+    <evidence-2>2026-06-01: frontend npm run build passed.</evidence-2>
+    <evidence-3>2026-06-01: Phase-44 auth/email UX smoke passed.</evidence-3>
+    <evidence-4>2026-06-01: XML parse and MyGRACE lint passed.</evidence-4>
+    <evidence-5>2026-06-01: deploy/install diff guard passed by review; no deploy/install files changed.</evidence-5>
+  </evidence>
   <telemetry-requirements>
     <metric-1>Password reset request, success, invalid, expired, and replay outcomes are counted without raw email, token, provider body, or IP leakage.</metric-1>
     <metric-2>Email provider failures are normalized with provider code/category only; bearer keys, message bodies, and links stay redacted.</metric-2>

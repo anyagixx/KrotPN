@@ -7,7 +7,7 @@ User models for authentication and profile management.
 # MAP_MODE: EXPORTS
 # START_MODULE_CONTRACT
 #   PURPOSE: User, auth and profile database models
-#   SCOPE: User model with roles, Telegram linkage, email/password fields; pending email registration; UserProfile and UserStats response models
+#   SCOPE: User model with roles, Telegram linkage, email/password fields; pending email registration; password reset tokens; UserProfile and UserStats response models
 #   DEPENDS: M-001 (core database, SQLModel), SQLAlchemy Column types
 #   LINKS: M-002 (users), M-004 (billing.Subscription), M-005 (vpn.VPNClient), M-006 (referrals)
 # END_MODULE_CONTRACT
@@ -17,11 +17,14 @@ User models for authentication and profile management.
 #   User - Main user table model with auth, Telegram, profile, referral, and relationship fields
 #   PendingEmailRegistrationStatus - Lifecycle state for email verification records
 #   PendingEmailRegistration - Pending verified-registration table storing hashed tokens and password hashes
+#   PasswordResetTokenStatus - Lifecycle state for one-time password reset tokens
+#   PasswordResetToken - Hashed one-time reset token table with replay and expiry state
 #   UserProfile - User profile data for responses (non-table SQLModel)
 #   UserStats - User statistics for dashboard (non-table SQLModel)
 # END_MODULE_MAP
 #
 # START_CHANGE_SUMMARY
+#   LAST_CHANGE: 2026-06-01 - Added Phase-44 password reset token model
 #   LAST_CHANGE: 2026-05-13 - Added Phase-27 pending email registration model with hashed token storage
 #   LAST_CHANGE: 2026-04-06 - Added full GRACE MODULE_CONTRACT, MODULE_MAP, BLOCK markers per GRACE governance protocol
 # END_CHANGE_SUMMARY
@@ -60,6 +63,16 @@ class PendingEmailRegistrationStatus(str, Enum):
     EXPIRED = "expired"
     REJECTED = "rejected"
 # END_BLOCK_PENDING_EMAIL_REGISTRATION_STATUS
+
+
+# START_BLOCK_PASSWORD_RESET_TOKEN_STATUS
+class PasswordResetTokenStatus(str, Enum):
+    """One-time password reset token lifecycle states."""
+
+    PENDING = "pending"
+    CONSUMED = "consumed"
+    EXPIRED = "expired"
+# END_BLOCK_PASSWORD_RESET_TOKEN_STATUS
 
 
 # START_BLOCK_USER
@@ -155,6 +168,27 @@ class PendingEmailRegistration(SQLModel, table=True):
     expires_at: datetime = Field(sa_column=Column(DateTime(timezone=True), nullable=False))
     consumed_at: datetime | None = Field(default=None, sa_column=Column(DateTime(timezone=True)))
 # END_BLOCK_PENDING_EMAIL_REGISTRATION
+
+
+# START_BLOCK_PASSWORD_RESET_TOKEN
+class PasswordResetToken(SQLModel, table=True):
+    """Replay-safe password reset token record."""
+
+    __tablename__ = "password_reset_tokens"
+
+    id: int | None = Field(default=None, primary_key=True)
+    user_id: int = Field(foreign_key="users.id", index=True)
+    email: str = Field(index=True, max_length=255)
+    token_hash: str = Field(unique=True, index=True, max_length=128)
+    status: PasswordResetTokenStatus = Field(
+        default=PasswordResetTokenStatus.PENDING,
+        index=True,
+    )
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc), sa_column=Column(DateTime(timezone=True)))
+    updated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc), sa_column=Column(DateTime(timezone=True)))
+    expires_at: datetime = Field(sa_column=Column(DateTime(timezone=True), nullable=False))
+    consumed_at: datetime | None = Field(default=None, sa_column=Column(DateTime(timezone=True)))
+# END_BLOCK_PASSWORD_RESET_TOKEN
 
 
 # START_BLOCK_USERPROFILE

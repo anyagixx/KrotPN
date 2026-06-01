@@ -1,17 +1,19 @@
 """
 MODULE_CONTRACT
-- PURPOSE: Verify Phase-27 email delivery foundation.
-- SCOPE: Unit tests for verification templates, fake-provider dispatch, Resend request shape, provider-disabled guard, and typed provider error mapping.
+- PURPOSE: Verify Phase-27/Phase-44 email delivery foundation.
+- SCOPE: Unit tests for verification/password reset templates, fake-provider dispatch, Resend request shape, provider-disabled guard, and typed provider error mapping.
 - DEPENDS: app.email.service, app.email.provider, app.core.config.
 - LINKS: V-M-040.
 
 MODULE_MAP
 - test_send_verification_email_uses_template_and_redacts_token_from_logs: Verifies fake-provider dispatch and token redaction.
+- test_send_password_reset_email_uses_template_and_redacts_token_from_logs: Verifies Phase-44 reset dispatch and token redaction.
 - test_resend_provider_builds_production_request_shape: Verifies Resend URL, sender, payload, Bearer auth, and safe receipt metadata.
 - test_send_verification_email_blocks_when_provider_disabled: Verifies disabled provider fails before a network call.
 - test_map_email_provider_error_returns_stable_safe_codes: Verifies HTTP status mapping.
 
 CHANGE_SUMMARY
+- 2026-06-01: Added Phase-44 password reset email delivery tests.
 - 2026-05-17: Added Phase-36 Resend production request-shape test.
 - 2026-05-13: Added Phase-27 email delivery tests.
 """
@@ -29,7 +31,7 @@ from app.email.provider import (
     map_email_provider_error,
 )
 from app.email import provider as provider_module
-from app.email.service import send_verification_email
+from app.email.service import send_password_reset_email, send_verification_email
 
 
 class RecordingProvider:
@@ -84,6 +86,38 @@ async def test_send_verification_email_uses_template_and_redacts_token_from_logs
     joined_logs = "\n".join(log_lines)
     assert "[M-040][send_verification_email][BUILD_REQUEST]" in joined_logs
     assert "[M-040][send_verification_email][POST_PROVIDER]" in joined_logs
+    assert "[EmailTemplates][build_verification_template][RENDER_BRANDED_VERIFICATION]" in joined_logs
+    assert token not in joined_logs
+
+
+@pytest.mark.asyncio
+async def test_send_password_reset_email_uses_template_and_redacts_token_from_logs():
+    provider = RecordingProvider()
+    token = "reset-token-that-must-not-be-logged"
+    log_lines: list[str] = []
+    sink_id = logger.add(lambda message: log_lines.append(str(message)), format="{message}")
+
+    try:
+        receipt = await send_password_reset_email(
+            "friend@example.com",
+            token,
+            provider=provider,
+            app_settings=_settings(email_provider="resend"),
+        )
+    finally:
+        logger.remove(sink_id)
+
+    assert receipt.provider == "fake"
+    assert len(provider.requests) == 1
+    request = provider.requests[0]
+    assert request.to_email == "friend@example.com"
+    assert "KrotPN" in request.subject
+    assert "https://krotpn.xyz/reset-password?token=reset-token-that-must-not-be-logged" in request.text
+
+    joined_logs = "\n".join(log_lines)
+    assert "[M-040][send_password_reset_email][BUILD_REQUEST]" in joined_logs
+    assert "[M-040][send_password_reset_email][POST_PROVIDER]" in joined_logs
+    assert "[EmailTemplates][build_password_reset_template][RENDER_PASSWORD_RESET]" in joined_logs
     assert token not in joined_logs
 
 

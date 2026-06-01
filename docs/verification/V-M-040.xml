@@ -1,18 +1,21 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<V-M-040 MODULE="M-040" PRIORITY="critical" STATUS="pass-live-phase36" VERSION="1.7.0">
+<V-M-040 MODULE="M-040" PRIORITY="critical" STATUS="pass-live-phase36-pass-local-phase44" VERSION="1.8.0">
   <phase-scope>
     <phase-27>Email delivery foundation only: fake-provider tests must prove request shaping, template rendering, provider error mapping, and redaction before live provider use.</phase-27>
     <phase-34 status="planned">Stabilization regression gate proves verification-email delivery still participates in pending registration without leaking tokens or provider secrets.</phase-34>
     <phase-36 status="pass-live">Resend production wiring proves clean deployments enable EMAIL_PROVIDER=resend without exposing API keys or verification tokens, and operator clean-deploy registration email succeeds.</phase-36>
+    <phase-44 status="pass-local">Branded verification and password-reset templates render HTML/text safely and keep verification/reset tokens out of logs.</phase-44>
   </phase-scope>
   <test-files>
     <file>backend/tests/test_email_delivery.py</file>
     <file phase="36-designed">scripts/phase36-resend-deploy-smoke.mjs</file>
+    <file phase="44-pass-local">scripts/phase44-auth-email-ux-smoke.mjs</file>
   </test-files>
   <commands>
     <command-1>cd backend &amp;&amp; SECRET_KEY=test-secret-key-with-enough-length DATA_ENCRYPTION_KEY=dpFmfSVqfdAK3yx5MQV6Tcv35RZuw5MzaH0yhxJ01q0= PYTHONPATH=. ../.venv/bin/python -m pytest -o addopts='' tests/test_email_delivery.py -v</command-1>
     <command-2 status="planned">node scripts/phase36-resend-deploy-smoke.mjs</command-2>
     <command-3 status="pass-live">After krotpn.xyz is verified in Resend, send one controlled registration email and record redacted provider status only.</command-3>
+    <command-4 status="pass-local">node scripts/phase44-auth-email-ux-smoke.mjs</command-4>
   </commands>
   <verification-levels>
     <module-local>Unit tests use a fake provider/client and never require live email credentials.</module-local>
@@ -30,6 +33,7 @@
     <check-8 evidence="phase-36-designed">Deploy smoke proves EMAIL_PROVIDER=resend and RESEND_API_KEY are present when operator supplied the key, while logs and tests redact the key.</check-8>
     <check-9 evidence="phase-36-designed">Resend 401, 422/domain-not-verified, 429, 5xx, timeout, and transport failures are mapped to safe internal errors without raw provider response leakage.</check-9>
     <check-10 evidence="phase-36-designed">A configured Resend provider never returns provider_disabled; only missing or explicitly disabled config may use that path.</check-10>
+    <check-11 evidence="phase-44-pass-local">Password reset email delivery uses the same provider/redaction boundary and never logs reset tokens or reset URLs.</check-11>
   </module-checks>
   <phase-36-verification-matrix>
     <gate-1 MODULES="M-040,M-001" EVIDENCE="deterministic">Settings-backed Resend provider builds the exact production request shape through fake transport.</gate-1>
@@ -44,12 +48,15 @@
     <scenario-4 kind="failure">Provider-disabled configuration returns a typed disabled-provider result before request construction.</scenario-4>
     <scenario-5 kind="success">Clean VPS deployment with a supplied Resend API key sends pending-registration verification email through Resend.</scenario-5>
     <scenario-6 kind="failure">Missing Resend API key fails with an operator-safe configuration error and no live registration side effects.</scenario-6>
+    <scenario-7 kind="success">Password reset email is rendered and dispatched through the fake provider with token redaction.</scenario-7>
   </scenarios>
   <required-log-markers>
     <marker-1>[M-040][send_verification_email][BUILD_REQUEST]</marker-1>
     <marker-2>[M-040][send_verification_email][POST_PROVIDER]</marker-2>
     <marker-3>[M-040][send_verification_email][MAP_PROVIDER_ERROR]</marker-3>
     <marker-4>[M-040][send_verification_email][PROVIDER_DISABLED]</marker-4>
+    <marker-5>[M-040][send_password_reset_email][BUILD_REQUEST]</marker-5>
+    <marker-6>[M-040][send_password_reset_email][POST_PROVIDER]</marker-6>
   </required-log-markers>
   <telemetry-requirements>
     <metric-1>email_delivery_result tagged by provider=resend, status=success|safe_error, and safe_error_code only.</metric-1>
@@ -68,5 +75,6 @@
     <evidence-2>2026-05-17: Phase-36 planning scoped Resend deploy wiring after live clean VPS registration returned provider_disabled because EMAIL_PROVIDER was left disabled.</evidence-2>
     <evidence-3>2026-05-17: Phase-36 backend/tests/test_email_delivery.py passed locally with Resend request-shape coverage and provider error mapping.</evidence-3>
     <evidence-4>2026-05-19: Operator clean-deploy registration via email succeeded with Resend configured, closing the provider_disabled production blocker.</evidence-4>
+    <evidence-5>2026-06-01: Phase-44 email delivery tests and static smoke passed for branded verification/reset templates and token redaction.</evidence-5>
   </evidence>
 </V-M-040>

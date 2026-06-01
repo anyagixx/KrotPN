@@ -24,6 +24,7 @@ User service for business logic.
 # END_MODULE_MAP
 #
 # START_CHANGE_SUMMARY
+#   LAST_CHANGE: 2026-06-01 - Enforced Phase-44 strong-password policy for user password mutations
 #   LAST_CHANGE: 2026-04-06 - Added full GRACE MODULE_CONTRACT, MODULE_MAP, BLOCK markers per GRACE governance protocol
 #   PREVIOUS: 2026-03-26 - Added internal-user resolution helpers for manual non-billable client issuance
 # END_CHANGE_SUMMARY
@@ -39,7 +40,7 @@ CHANGE_SUMMARY
 """
 # <!-- GRACE: module="M-002" contract="user-service" -->
 
-from datetime import datetime, timezone, timezone
+from datetime import datetime, timezone
 import re
 from typing import Any
 
@@ -51,6 +52,7 @@ from sqlalchemy.orm import selectinload
 from app.core.config import settings
 from app.core.security import hash_password, verify_password
 from app.users.models import User, UserRole
+from app.users.password_policy import validate_password_strength
 from app.users.schemas import UserCreate, UserCreateTelegram, UserUpdate
 
 
@@ -155,6 +157,7 @@ class UserService:
                 raise ValueError("User with this email already exists")
 
         # Create user
+        validate_password_strength(data.password, email=str(data.email) if data.email else None, name=data.name)
         user = User(
             email=data.email.lower() if data.email else None,
             password_hash=hash_password(data.password) if data.password else None,
@@ -269,6 +272,7 @@ class UserService:
         """
         if user.password_hash is None:
             # User registered via Telegram, set password
+            validate_password_strength(new_password, email=user.email, name=user.name)
             user.password_hash = hash_password(new_password)
             await self.session.flush()
             return True
@@ -276,6 +280,7 @@ class UserService:
         if not verify_password(current_password, user.password_hash):
             return False
 
+        validate_password_strength(new_password, email=user.email, name=user.name)
         user.password_hash = hash_password(new_password)
         await self.session.flush()
         return True
@@ -283,6 +288,7 @@ class UserService:
 
     async def set_password(self, user: User, password: str) -> None:
         """Set password for user (for password reset)."""
+        validate_password_strength(password, email=user.email, name=user.name)
         user.password_hash = hash_password(password)
         await self.session.flush()
 

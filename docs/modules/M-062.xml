@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<M-062 NAME="onboarding-email-password-security" TYPE="CORE_LOGIC" STATUS="verification-designed-phase44">
+<M-062 NAME="onboarding-email-password-security" TYPE="CORE_LOGIC" STATUS="done-local-phase44">
   <path>backend/app/email backend/app/users frontend scripts/phase44-auth-email-ux-smoke.mjs docs/plans/Phase-44.xml</path>
   <owns>Branded verification email UX, password-strength policy, password recovery, duplicate-email registration guidance, and user-facing pending-email copy.</owns>
   <purpose>Make email onboarding clearer and safer without changing deploy/install scripts or weakening verified-email ownership gates.</purpose>
@@ -17,14 +17,17 @@
     <file>backend/app/email/templates.py</file>
     <file>backend/app/email/service.py</file>
     <file>backend/app/users/models.py</file>
+    <file>backend/app/users/password_policy.py</file>
+    <file>backend/app/users/password_reset.py</file>
     <file>backend/app/users/router.py</file>
     <file>backend/app/users/schemas.py</file>
     <file>backend/app/users/service.py</file>
-    <file>backend/alembic/versions/phase44_password_reset_tokens.py</file>
+    <file>backend/alembic/versions/phase44_add_password_reset_tokens.py</file>
     <file>frontend/src/pages/Register.tsx</file>
     <file>frontend/src/pages/ForgotPassword.tsx</file>
     <file>frontend/src/pages/ResetPassword.tsx</file>
     <file>frontend/src/lib/api.ts</file>
+    <file>frontend/src/lib/passwordPolicy.ts</file>
     <file>scripts/phase44-auth-email-ux-smoke.mjs</file>
   </files>
   <phase-44-scope>
@@ -43,5 +46,11 @@
     <metric-3>Forgot/reset flow works for valid tokens, rejects expired/replayed tokens, and returns safe generic request responses where appropriate.</metric-3>
     <metric-4>Frontend build and Phase-44 smoke pass without touching deploy/install scripts.</metric-4>
   </acceptance-metrics>
+  <evidence>
+    <evidence-1>2026-06-01: backend Phase-44 auth/email/migration tests passed outside sandbox because sandbox aiosqlite in-memory DB hangs; result was 29 passed in 0.84s.</evidence-1>
+    <evidence-2>2026-06-01: frontend npm run build passed.</evidence-2>
+    <evidence-3>2026-06-01: node scripts/phase44-auth-email-ux-smoke.mjs passed.</evidence-3>
+    <evidence-4>deploy/install files were not modified during Phase-44 execution.</evidence-4>
+  </evidence>
   <hotspot>H-049: Password recovery and duplicate-email hints must not leak reset tokens, allow account takeover, or make email enumeration worse than the approved UX tradeoff</hotspot>
 </M-062>

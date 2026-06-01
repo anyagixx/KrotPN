@@ -16,6 +16,7 @@
 // END_MODULE_MAP
 //
 // START_CHANGE_SUMMARY
+//   LAST_CHANGE: 2026-06-01 - Added Phase-44 compact check-email UX, spam hint, strong-password hints, and duplicate-email recovery CTA
 //   LAST_CHANGE: 2026-05-13 - Switched registration UX to pending email verification without token storage
 //   LAST_CHANGE: v2.8.0 - Added full GRACE MODULE_CONTRACT and MODULE_MAP per GRACE governance protocol
 // END_CHANGE_SUMMARY
@@ -24,22 +25,27 @@
 import { useState } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
-import { ArrowLeft, Loader2, Lock, Mail, MailCheck, RefreshCw, Shield, Sparkles } from 'lucide-react'
+import { AlertCircle, ArrowLeft, Loader2, Lock, Mail, MailCheck, RefreshCw, Shield, Sparkles } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { authApi } from '../lib/api'
+import { passwordPolicyHint, passwordStrengthIssues } from '../lib/passwordPolicy'
 
 type RegistrationPhase = 'form' | 'pending'
 
-function readApiError(error: unknown, fallback: string): string {
+function readApiError(error: unknown, fallback: string): { code: string | null; message: string } {
   const response = (error as { response?: { data?: { detail?: unknown } } }).response
   const detail = response?.data?.detail
   if (typeof detail === 'string') {
-    return detail
+    return { code: null, message: detail }
   }
   if (detail && typeof detail === 'object' && 'message' in detail) {
-    return String((detail as { message?: unknown }).message || fallback)
+    const detailObject = detail as { code?: unknown; message?: unknown }
+    return {
+      code: typeof detailObject.code === 'string' ? detailObject.code : null,
+      message: String(detailObject.message || fallback),
+    }
   }
-  return fallback
+  return { code: null, message: fallback }
 }
 
 export default function Register() {
@@ -55,14 +61,21 @@ export default function Register() {
   const [expiresAt, setExpiresAt] = useState<string | null>(null)
   const [phase, setPhase] = useState<RegistrationPhase>('form')
   const [loading, setLoading] = useState(false)
+  const [registrationError, setRegistrationError] = useState<{ code: string | null; message: string } | null>(null)
 
   const submitRegistration = async (isResend = false) => {
     if (password !== confirmPassword) {
       toast.error('Пароли не совпадают')
       return
     }
+    const passwordIssues = passwordStrengthIssues(password)
+    if (passwordIssues.length > 0) {
+      toast.error(`Пароль слишком простой: ${passwordIssues.join(', ')}`)
+      return
+    }
 
     setLoading(true)
+    setRegistrationError(null)
 
     try {
       const { data } = await authApi.register(email, password, referralCode || undefined)
@@ -71,7 +84,9 @@ export default function Register() {
       setPhase('pending')
       toast.success(isResend ? 'Письмо отправлено повторно' : 'Письмо для подтверждения отправлено')
     } catch (error: unknown) {
-      toast.error(readApiError(error, t('error')))
+      const apiError = readApiError(error, t('error'))
+      setRegistrationError(apiError)
+      toast.error(apiError.message)
     } finally {
       setLoading(false)
     }
@@ -88,15 +103,15 @@ export default function Register() {
 
   return (
     <div className="min-h-screen px-3 py-4 sm:px-4 sm:py-6">
-      <div className="mx-auto grid min-h-[calc(100vh-2rem)] max-w-5xl grid-cols-1 overflow-hidden rounded-lg border border-white/10 bg-slate-950/35 shadow-[0_22px_70px_rgba(2,10,14,0.45)] backdrop-blur-sm lg:grid-cols-[0.92fr_1.08fr]">
-        <section className="flex items-center justify-center p-4 sm:p-6 md:p-8">
-          <div className="w-full max-w-md">
-            <div className="mb-6 text-center lg:text-left">
-              <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-lg bg-emerald-300/12 text-emerald-200 lg:mx-0">
+      <div className="mx-auto flex min-h-[calc(100vh-2rem)] max-w-xl items-center justify-center">
+        <section className="w-full p-2 sm:p-4">
+          <div className="mx-auto w-full max-w-md">
+            <div className="mb-6 text-center">
+              <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-lg bg-emerald-300/12 text-emerald-200">
                 <Shield className="h-7 w-7" />
               </div>
               <h1 className="mt-4 text-2xl font-extrabold sm:text-3xl">{t('registerTitle')}</h1>
-              <p className="mt-2 text-sm muted">Подтвердите email, затем trial и VPN-конфигурация появятся в кабинете.</p>
+              <p className="mt-2 text-sm muted">Подтвердите email, чтобы активировать личный кабинет.</p>
             </div>
 
             {phase === 'pending' ? (
@@ -110,7 +125,7 @@ export default function Register() {
                     <h2 className="text-xl font-extrabold text-white">Проверьте почту</h2>
                     <p className="mt-1 text-sm leading-6 muted">
                       Мы отправили ссылку на <span className="font-semibold text-cyan-100">{pendingEmail}</span>.
-                      После подтверждения откроется кабинет, trial на 3 дня и VPN-доступ.
+                      Если письмо не пришло в течение минуты, проверьте папку «Спам» или «Промоакции».
                     </p>
                   </div>
                 </div>
@@ -166,13 +181,14 @@ export default function Register() {
                     <input
                       type="password"
                       className="input"
-                      placeholder="Минимум 8 символов"
+                      placeholder="Минимум 10 символов"
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
                       required
-                      minLength={8}
+                      minLength={10}
                     />
                   </div>
+                  <p className="mt-2 text-xs leading-5 muted">{passwordPolicyHint}</p>
                 </label>
 
                 <label className="block">
@@ -197,6 +213,18 @@ export default function Register() {
                   </div>
                 ) : null}
 
+                {registrationError?.code === 'email_unavailable' ? (
+                  <div className="panel-soft flex items-start gap-3 px-4 py-3 text-sm text-slate-200">
+                    <AlertCircle className="mt-0.5 h-4 w-4 shrink-0 text-cyan-100" />
+                    <div>
+                      <p>{registrationError.message}</p>
+                      <Link to="/forgot-password" className="mt-1 inline-block font-semibold text-cyan-100 hover:text-emerald-100">
+                        Восстановить доступ
+                      </Link>
+                    </div>
+                  </div>
+                ) : null}
+
                 <button type="submit" className="btn-primary w-full py-3" disabled={loading}>
                   {loading ? <Loader2 className="h-5 w-5 animate-spin" /> : null}
                   {loading ? 'Отправляем письмо' : t('registerButton')}
@@ -210,34 +238,6 @@ export default function Register() {
                 {t('login')}
               </Link>
             </div>
-          </div>
-        </section>
-
-        <section className="hidden border-l border-white/5 p-8 lg:flex lg:flex-col lg:justify-between">
-          <div>
-            <div className="inline-flex items-center gap-3 rounded-lg border border-cyan-200/12 bg-cyan-300/10 px-3 py-2 text-sm font-semibold text-cyan-100">
-              <Sparkles className="h-4 w-4" />
-              Verified onboarding
-            </div>
-            <h2 className="mt-6 max-w-xl text-4xl font-extrabold tracking-tight text-white">
-              Доступ включается после подтверждения email
-            </h2>
-            <p className="mt-4 max-w-xl text-sm leading-6 text-slate-300">
-              Это защищает кабинет от временных почт и не запускает trial, VPN-конфиг или реферальные начисления до проверки владельца адреса.
-            </p>
-          </div>
-
-          <div className="grid gap-3">
-            {[
-              ['Email сначала', 'Аккаунт активируется только по ссылке из письма.'],
-              ['3 дня trial', 'Пробный период стартует после подтверждения.'],
-              ['VPN в кабинете', 'Основное устройство и конфигурация появятся автоматически.'],
-            ].map(([title, description]) => (
-              <div key={title} className="panel-soft p-4">
-                <p className="font-bold">{title}</p>
-                <p className="mt-1 text-sm muted">{description}</p>
-              </div>
-            ))}
           </div>
         </section>
       </div>

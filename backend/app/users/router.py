@@ -15,6 +15,7 @@ User API router.
 # START_MODULE_MAP
 #   router - Auth endpoints: /register, /login, /telegram, /refresh
 #   verify_email - Verified registration activation endpoint
+#   request_password_reset, reset_password - Password recovery endpoints
 #   users_router - User endpoints: /me, /me (PUT), /me/stats, /me/change-password
 #   admin_users_router - Admin endpoints: list, get, activate, deactivate users
 #   _initialize_new_user_resources - Post-registration orchestrator (trial, VPN, referral)
@@ -22,6 +23,7 @@ User API router.
 # END_MODULE_MAP
 #
 # START_CHANGE_SUMMARY
+#   LAST_CHANGE: 2026-06-01 - Added Phase-44 password recovery endpoints and duplicate-email recovery status
 #   LAST_CHANGE: 2026-05-13 - Switched email registration to pending verification and added verify-email activation
 #   LAST_CHANGE: 2026-04-06 - Added full GRACE MODULE_CONTRACT, MODULE_MAP, BLOCK markers per GRACE governance protocol
 # END_CHANGE_SUMMARY
@@ -50,6 +52,7 @@ from app.core import (
     verify_token,
 )
 from app.email.provider import EmailDeliveryError
+from app.email.service import mask_email_for_logs
 from app.email.verification import (
     EmailVerificationError,
     EmailVerificationErrorCode,
@@ -58,9 +61,18 @@ from app.email.verification import (
 )
 from app.users.telegram_auth import verify_telegram_auth
 from app.users.models import User, UserRole
+from app.users.password_reset import (
+    PasswordResetError,
+    PasswordResetErrorCode,
+    request_password_reset as request_password_reset_flow,
+    reset_password_with_token,
+)
 from app.users.schemas import (
     EmailVerificationRequest,
     PendingRegistrationResponse,
+    PasswordResetConfirm,
+    PasswordResetRequest,
+    PasswordResetResponse,
     Token,
     TokenRefresh,
     UserAdminResponse,
@@ -179,8 +191,11 @@ async def register(
     try:
         pending = await request_registration(session, data)
     except EmailVerificationError as e:
+        status_code = status.HTTP_400_BAD_REQUEST
+        if e.code == EmailVerificationErrorCode.EMAIL_UNAVAILABLE:
+            status_code = status.HTTP_409_CONFLICT
         raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
+            status_code=status_code,
             detail={"code": e.code.value, "message": e.safe_message},
         ) from e
     except EmailDeliveryError as e:
@@ -238,6 +253,68 @@ async def verify_email(
     refresh_token = create_refresh_token(subject=activation.user.id)
     return _make_token_response(access_token, refresh_token)
 # END_BLOCK_VERIFY_EMAIL
+
+
+# START_BLOCK_PASSWORD_RESET_REQUEST
+@router.post("/password-reset/request", response_model=PasswordResetResponse, status_code=status.HTTP_202_ACCEPTED)
+@limiter.limit("5/minute")
+async def request_password_reset(
+    request: Request,
+    data: PasswordResetRequest,
+    session: DBSession,
+):
+    """Request a password reset email with a generic public response."""
+    try:
+        result = await request_password_reset_flow(session, str(data.email))
+    except EmailDeliveryError as e:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail={"code": e.code.value, "message": e.safe_message},
+        ) from e
+
+    if result.token_created:
+        logger.info(
+            "[UsersRouter][request_password_reset][CREATE_RESET_TOKEN] "
+            f"email={mask_email_for_logs(result.email)} expires_at={result.expires_at.isoformat() if result.expires_at else None}"
+        )
+    return PasswordResetResponse(
+        status="accepted",
+        message="Если аккаунт с такой почтой существует, мы отправили письмо для сброса пароля.",
+    )
+# END_BLOCK_PASSWORD_RESET_REQUEST
+
+
+# START_BLOCK_PASSWORD_RESET_CONFIRM
+@router.post("/password-reset/confirm", response_model=PasswordResetResponse)
+@limiter.limit("10/minute")
+async def reset_password(
+    request: Request,
+    data: PasswordResetConfirm,
+    session: DBSession,
+):
+    """Consume a password reset token and set a new password."""
+    try:
+        user = await reset_password_with_token(session, data.token, data.new_password)
+    except PasswordResetError as e:
+        status_code = status.HTTP_400_BAD_REQUEST
+        if e.code == PasswordResetErrorCode.TOKEN_EXPIRED:
+            status_code = status.HTTP_410_GONE
+        elif e.code == PasswordResetErrorCode.TOKEN_REPLAYED:
+            status_code = status.HTTP_409_CONFLICT
+        raise HTTPException(
+            status_code=status_code,
+            detail={"code": e.code.value, "message": e.safe_message},
+        ) from e
+
+    logger.info(
+        "[UsersRouter][reset_password][CONSUME_RESET_TOKEN] "
+        f"user_id={user.id}"
+    )
+    return PasswordResetResponse(
+        status="password_reset",
+        message="Пароль обновлён. Теперь можно войти с новым паролем.",
+    )
+# END_BLOCK_PASSWORD_RESET_CONFIRM
 
 
 # START_BLOCK_LOGIN

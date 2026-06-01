@@ -6,9 +6,9 @@
 # MAP_MODE: LOCALS
 # START_MODULE_CONTRACT
 #   PURPOSE: Verify database migration helper behavior and migration metadata guardrails
-#   SCOPE: VPN client compatibility helpers, Phase-29 MTProto migration evidence, Phase-42 telemetry migration evidence, and Phase-43 analytics migration evidence
-#   DEPENDS: M-028, M-042, M-054, M-059, M-060, M-061
-#   LINKS: V-M-028, V-M-042, V-M-054, V-M-059, V-M-060, V-M-061
+#   SCOPE: VPN client compatibility helpers, Phase-29 MTProto migration evidence, Phase-42 telemetry migration evidence, Phase-43 analytics migration evidence, and Phase-44 password recovery migration evidence
+#   DEPENDS: M-028, M-042, M-054, M-059, M-060, M-061, M-062
+#   LINKS: V-M-028, V-M-042, V-M-054, V-M-059, V-M-060, V-M-061, V-M-062
 # END_MODULE_CONTRACT
 #
 # START_MODULE_MAP
@@ -18,9 +18,11 @@
 #   test_mtproto_assignment_migration_is_registered_after_baseline - Covers MTProto assignment metadata
 #   test_mtproto_usage_telemetry_migration_is_registered_after_assignments - Covers Phase-42 analytics metadata
 #   test_mtproto_phase43_migration_is_registered_after_usage_telemetry - Covers Phase-43 analytics metadata
+#   test_phase44_password_reset_migration_is_registered_after_phase43 - Covers Phase-44 password reset migration metadata
 # END_MODULE_MAP
 #
 # START_CHANGE_SUMMARY
+#   LAST_CHANGE: v1.4.0 - Added Phase-44 password reset migration metadata guard
 #   LAST_CHANGE: v1.3.0 - Added Phase-43 MTProto IP observability/admin alert migration metadata guard
 #   LAST_CHANGE: v1.2.0 - Added Phase-42 MTProto usage telemetry migration metadata guard
 #   LAST_CHANGE: v1.1.0 - Added MyGRACE contract and Phase-29 migration scope
@@ -164,3 +166,18 @@ def test_mtproto_phase43_migration_is_registered_after_usage_telemetry():
     assert "[M-061][migration][MTPROTO_IP_OBSERVABILITY_SCHEMA]" in migration_text
     assert "mtproto_admin_alerts" in migration_text
     assert "mtproto_ip_observations" in migration_text
+
+
+def test_phase44_password_reset_migration_is_registered_after_phase43():
+    migration_path = (
+        Path(__file__).parents[1]
+        / "alembic"
+        / "versions"
+        / "phase44_add_password_reset_tokens.py"
+    )
+    migration_text = migration_path.read_text(encoding="utf-8")
+
+    assert 'revision: str = "phase44_password_reset_tokens"' in migration_text
+    assert 'down_revision: Union[str, Sequence[str], None] = "phase43_mtproto_admin_analytics"' in migration_text
+    assert "[M-062][migration][PASSWORD_RESET_TOKEN_SCHEMA]" in migration_text
+    assert "password_reset_tokens" in migration_text

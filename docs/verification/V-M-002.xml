@@ -1,9 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<V-M-002 MODULE="M-002" PRIORITY="critical" STATUS="pass-local" VERSION="1.2.0">
+<V-M-002 MODULE="M-002" PRIORITY="critical" STATUS="pass-local-phase44" VERSION="1.3.0">
   <module>users</module>
-  <checks>Identity creation stays deterministic for normal, verified-email, Telegram, and internal users, and Phase-28 registration cutover cannot create duplicate user rows or bypass email ownership proof.</checks>
+  <checks>Identity creation stays deterministic for normal, verified-email, Telegram, password recovery, and internal users; Phase-28 registration cutover cannot create duplicate user rows or bypass email ownership proof, and Phase-44 password reset cannot consume tokens twice or accept weak passwords.</checks>
   <test-files>
     <file>backend/tests/test_verified_registration.py</file>
+    <file>backend/tests/test_password_recovery.py</file>
     <file>backend/tests/test_telegram_auth.py</file>
     <file>backend/tests/test_manual_access_policy.py</file>
     <file>backend/tests/test_manual_client_cli.py</file>
@@ -17,11 +18,18 @@
     <gate-3>Existing login, refresh, logout, Telegram auth, and internal-user resolution behavior remains compatible after the registration response shape changes.</gate-3>
     <gate-4>Duplicate pending requests for the same email cannot create duplicate active users.</gate-4>
   </phase-28-auth-cutover>
+  <phase-44-password-recovery>
+    <gate-1>Password reset requests return generic public responses and send email only for eligible active email/password accounts.</gate-1>
+    <gate-2>Password reset tokens are HMAC-stored, TTL-bound, and replay-safe.</gate-2>
+    <gate-3>Registration, password change, and reset paths enforce strong-password policy.</gate-3>
+    <gate-4>Duplicate-email registration returns a recovery CTA without creating duplicate access.</gate-4>
+  </phase-44-password-recovery>
   <scenarios>
     <scenario-1 kind="success" trace="EMAIL_VERIFIED_USER_CREATED">Verified email activation creates the active user once.</scenario-1>
     <scenario-2 kind="success" trace="VPN_INTERNAL_USER_RESOLVED">Internal user resolved without creating duplicate rows.</scenario-2>
     <scenario-3 kind="success" trace="AUTH_REFRESH_SUCCESS">Refresh and logout contracts remain compatible with M-039 session-security assumptions.</scenario-3>
     <scenario-4 kind="failure">Unverified registration cannot authenticate or access protected user profile endpoints.</scenario-4>
+    <scenario-5 kind="failure">Weak password reset payload is rejected without consuming the reset token.</scenario-5>
   </scenarios>
-  <evidence>2026-05-13: Phase-28 backend auth regression passed locally, including verified-registration token response, Telegram auth path, refresh/security tests, and manual internal-user resolution.</evidence>
+  <evidence>2026-06-01: Phase-44 backend auth/email suite passed and covers password reset request/confirm/replay, weak-password rejection, and duplicate-email recovery CTA.</evidence>
 </V-M-002>

@@ -15,6 +15,7 @@
 // END_MODULE_MAP
 //
 // START_CHANGE_SUMMARY
+//   LAST_CHANGE: 2026-06-01 - Reused Phase-44 strong-password policy for password changes
 //   LAST_CHANGE: v2.8.0 - Added full GRACE MODULE_CONTRACT and MODULE_MAP per GRACE governance protocol
 // END_CHANGE_SUMMARY
 //
@@ -25,6 +26,7 @@ import { useMutation } from 'react-query'
 import { Globe, Lock, Save, User } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { userApi } from '../lib/api'
+import { passwordPolicyHint, passwordStrengthIssues } from '../lib/passwordPolicy'
 import { useAuthStore } from '../stores/auth'
 
 export default function Settings() {
@@ -65,8 +67,9 @@ export default function Settings() {
 
   const handleChangePassword = (e: React.FormEvent) => {
     e.preventDefault()
-    if (newPassword.length < 8) {
-      toast.error('Пароль должен быть не короче 8 символов')
+    const issues = passwordStrengthIssues(newPassword)
+    if (issues.length > 0) {
+      toast.error(`Пароль слишком простой: ${issues.join(', ')}`)
       return
     }
     changePassword.mutate()
@@ -176,8 +179,9 @@ export default function Settings() {
               onChange={(e) => setNewPassword(e.target.value)}
               className="input"
               required
-              minLength={8}
+              minLength={10}
             />
+            <p className="mt-2 text-xs leading-5 muted">{passwordPolicyHint}</p>
           </label>
 
           <div>

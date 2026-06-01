@@ -5,7 +5,7 @@
 # START_MODULE_CONTRACT
 #   PURPOSE: Application configuration and environment variable parsing with validation
 #   SCOPE: Settings model, environment parsing, secret validation, VPN network settings,
-#          AmneziaWG params, anti-abuse, email verification, MTProto knobs,
+#          AmneziaWG params, anti-abuse, email verification/password reset, MTProto knobs,
 #          edge domain/TLS/SNI-router settings, and router telemetry trust boundaries
 #   DEPENDS: M-032 (vpn-network-addressing-capacity)
 #   LINKS: M-001 (backend-core), M-032, V-M-001, V-M-032
@@ -17,7 +17,7 @@
 #   Settings.awg_client_obfuscation_params - CLIENT_PROFILE mapping
 #   Settings.awg_relay_obfuscation_params - RELAY_PROFILE mapping
 #   Settings.anti_abuse_* - Observe/auto-rotate and endpoint-history thresholds
-#   Settings.email_verification_* - Provider, TTL, URL and domain guard settings
+#   Settings.email_verification_* / password_reset_* - Provider, TTL, URL and domain guard settings
 #   Settings.mtproto_* - Personal MTProto proxy provisioning, private policy API, and live runtime bridge settings
 #   Settings.edge_* - krotpn.xyz canonical domain, TLS path, shared 443, and DE-backed SNI-router contract
 #   get_settings - lru_cache factory returning validated Settings singleton
@@ -25,6 +25,7 @@
 # END_MODULE_MAP
 #
 # START_CHANGE_SUMMARY
+#   LAST_CHANGE: v3.10.0 - Added Phase-44 password reset token TTL and frontend URL settings.
 #   LAST_CHANGE: v3.9.0 - Added RU SNI-router telemetry trust settings for real MTProto client IP capture.
 #   LAST_CHANGE: v3.8.0 - Added Phase-42 MTProxy promotion tag setting validation.
 #   LAST_CHANGE: v3.7.0 - Allow Phase-38 private DE MTProto policy targets and edge SNI-router settings.
@@ -228,6 +229,8 @@ class Settings(BaseSettings):
     email_provider: Literal["disabled", "resend", "smtp"] = "disabled"
     email_verification_token_ttl_minutes: int = Field(default=30, ge=5, le=1440)
     email_verification_url_base: str | None = None
+    password_reset_token_ttl_minutes: int = Field(default=30, ge=5, le=1440)
+    password_reset_url_base: str | None = None
     email_provider_timeout_seconds: float = Field(default=10.0, ge=1.0, le=60.0)
     email_allowed_domains: Annotated[list[str], NoDecode] = Field(default_factory=list)
     email_blocked_domains: Annotated[list[str], NoDecode] = Field(default_factory=list)

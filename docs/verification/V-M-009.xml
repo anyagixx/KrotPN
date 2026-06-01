@@ -1,16 +1,19 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<V-M-009 MODULE="M-009" PRIORITY="high" STATUS="pass-local" VERSION="1.2.0">
+<V-M-009 MODULE="M-009" PRIORITY="high" STATUS="pass-local-phase44" VERSION="1.3.0">
   <module>frontend-user</module>
   <checks>User frontend still builds, matches the Phase-28 auth API response shape, and makes registration mobile-safe without implying active KrotPN trial before email verification.</checks>
   <test-files>
     <file>frontend/src/pages/Register.tsx</file>
+    <file>frontend/src/pages/ForgotPassword.tsx</file>
+    <file>frontend/src/pages/ResetPassword.tsx</file>
     <file>frontend/src/pages/VerifyEmail.tsx</file>
     <file>frontend/src/App.tsx</file>
     <file>frontend/src/lib/api.ts</file>
+    <file>frontend/src/lib/passwordPolicy.ts</file>
     <file>frontend/src/stores/auth.ts</file>
     <file>scripts/phase28-register-flow-smoke.mjs</file>
   </test-files>
-  <commands>node scripts/phase28-register-flow-smoke.mjs; cd frontend &amp;&amp; npm run build</commands>
+  <commands>node scripts/phase28-register-flow-smoke.mjs; cd frontend &amp;&amp; npm run build; node scripts/phase44-auth-email-ux-smoke.mjs</commands>
   <anchors>TYPESCRIPT_NO_ERRORS REGISTER_PENDING_STATE REGISTER_VERIFIED_SUCCESS REGISTER_EXPIRED_LINK REGISTER_RESEND_AVAILABLE</anchors>
   <phase-28-frontend-gates>
     <gate-1>Register submit handles pending/check-email response without storing access tokens or marking the user authenticated.</gate-1>
@@ -18,6 +21,12 @@
     <gate-3>Frontend copy clearly states that free trial and VPN config become available after email verification.</gate-3>
     <gate-4>Existing login, refresh, logout, dashboard, config, and subscription flows continue to build against the shared API client.</gate-4>
   </phase-28-frontend-gates>
+  <phase-44-frontend-gates>
+    <gate-1>Register pending state includes spam-folder guidance and removes stale 3-day trial/immediate VPN copy.</gate-1>
+    <gate-2>Forgot/reset password routes exist and bind to the Phase-44 auth API methods.</gate-2>
+    <gate-3>Client-side password strength hints match the backend minimum policy shape.</gate-3>
+    <gate-4>Duplicate-email errors show a recovery CTA.</gate-4>
+  </phase-44-frontend-gates>
   <mobile-viewports>
     <viewport-1>360x740</viewport-1>
     <viewport-2>390x844</viewport-2>
@@ -28,6 +37,7 @@
     <scenario-2 kind="success" trace="REGISTER_VERIFIED_SUCCESS">Verification success routes the user into the normal authenticated onboarding path.</scenario-2>
     <scenario-3 kind="failure" trace="REGISTER_EXPIRED_LINK">Expired or replayed token state remains understandable and offers resend.</scenario-3>
     <scenario-4 kind="success" trace="TYPESCRIPT_NO_ERRORS">Frontend builds with zero TypeScript errors.</scenario-4>
+    <scenario-5 kind="success">Password recovery screens build and static smoke passes.</scenario-5>
   </scenarios>
-  <evidence>2026-05-13: node scripts/phase28-register-flow-smoke.mjs, node scripts/session-security-smoke.mjs, and cd frontend &amp;&amp; npm run build passed locally.</evidence>
+  <evidence>2026-06-01: cd frontend &amp;&amp; npm run build and node scripts/phase44-auth-email-ux-smoke.mjs passed for Phase-44 password recovery UX.</evidence>
 </V-M-009>

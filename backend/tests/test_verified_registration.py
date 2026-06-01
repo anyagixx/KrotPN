@@ -123,7 +123,7 @@ async def test_register_returns_pending_without_active_access(db_session: AsyncS
 
     response = client.post(
         "/api/v1/auth/register",
-        json={"email": "Pending@Example.com", "password": "very-secret-password"},
+        json={"email": "Pending@Example.com", "password": "Very-secret-password1!"},
     )
 
     assert response.status_code == 202
@@ -155,7 +155,7 @@ async def test_verify_email_activates_user_and_onboarding_once(db_session: Async
         db_session,
         UserCreate(
             email="Verified@Example.com",
-            password="very-secret-password",
+            password="Very-secret-password1!",
             name="Verified User",
             referral_code="FRIEND42",
         ),
@@ -221,7 +221,7 @@ async def test_verify_email_rejects_expired_token_without_user_side_effects(db_s
 @pytest.mark.asyncio
 async def test_request_registration_reuses_pending_record_for_resend(db_session: AsyncSession):
     sender = CapturingSender()
-    data = UserCreate(email="resend@example.com", password="very-secret-password")
+    data = UserCreate(email="resend@example.com", password="Very-secret-password1!")
 
     await request_registration(
         db_session,
