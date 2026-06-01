@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<M-065 NAME="mtproto-cta-subdomain-link-generation" TYPE="CORE_LOGIC" STATUS="planned">
+<M-065 NAME="mtproto-cta-subdomain-link-generation" TYPE="CORE_LOGIC" STATUS="verification-designed">
   <path>backend/app/mtproto/provisioning.py backend/tests/test_mtproto_provisioning.py frontend/src/pages/Dashboard.tsx scripts/phase47-mtproto-cta-links-smoke.mjs docs/plans/Phase-47.xml</path>
   <owns>CTA-prefixed MTProto SNI generation, public short user identifier derivation, explicit prefix validation, and owner link compatibility for Telegram app/browser links.</owns>
   <purpose>Generate readable marketing-oriented personal MTProto proxy hostnames that encourage visits to krotpn.xyz without breaking issued-link availability or exposing raw internal user IDs.</purpose>
@@ -34,5 +34,10 @@
     <metric-4>Owner payload server, secret, tg:// link, and https://t.me link all reference the same CTA SNI.</metric-4>
     <metric-5>Backend tests, frontend build, Phase-47 smoke, MyGRACE lint, XML parse, and deploy/install diff guard pass.</metric-5>
   </acceptance-metrics>
+  <verification-design>
+    <evidence-level-1>Module-local backend tests verify prefix allow-list, short-id derivation, SNI validation, fake-TLS secret binding, and legacy assignment preservation.</evidence-level-1>
+    <evidence-level-2>Wave-level frontend and smoke checks verify owner payload tg:// and https://t.me links use the same CTA server without exposing real secret-bearing links.</evidence-level-2>
+    <evidence-level-3>Phase-level static guards verify no deploy/install/nginx/docker-compose/runtime topology or wildcard TLS surfaces changed.</evidence-level-3>
+  </verification-design>
   <hotspot>H-052: CTA MTProto SNI generation must stay wildcard-safe, avoid exposing raw numeric user IDs, preserve old issued links, and not weaken RU/DE routing</hotspot>
 </M-065>

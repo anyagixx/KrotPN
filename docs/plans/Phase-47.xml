@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Phase-47 NAME="MTProto CTA Subdomain Link Generation" STATUS="planned" VERSION="1.0.0" MODULES="M-065,M-001,M-002,M-042,M-043,M-045,M-049,M-050,M-064" CREATED="2026-06-01" UPDATED="2026-06-01">
+<Phase-47 NAME="MTProto CTA Subdomain Link Generation" STATUS="verification-designed" VERSION="1.0.0" MODULES="M-065,M-001,M-002,M-042,M-043,M-045,M-049,M-050,M-064" CREATED="2026-06-01" UPDATED="2026-06-01">
   <purpose>Implement marketing-oriented CTA subdomains for newly issued personal MTProto proxy links while preserving existing working proxies and the Phase-41 RU/DE fake-TLS data-plane.</purpose>
   <scope>
     <in>CTA prefix allow-list, 7-hex public user suffix derivation, explicit prefix validation, stable pseudo-random prefix choice, CTA SNI generation, owner payload consistency, backend tests, frontend/smoke guards, and MyGRACE metadata.</in>
@@ -41,6 +41,12 @@
     <risk-4 severity="medium">Random prefix choice must be deterministic after issuance; true randomness belongs only to create/reissue time and must be persisted as SNI.</risk-4>
   </risks>
   <verification>
+    <matrix>
+      <module-local>Backend tests validate CTA prefix allow-list, short-id derivation for hex-like and numeric IDs, DNS label safety, explicit prefix rejection, collision nonce behavior, fake-TLS secret derivation from final SNI, and legacy u-* assignment preservation.</module-local>
+      <wave-level>Frontend build and Phase-47 smoke validate owner payload consistency: server, secret, tg:// link, and https://t.me link all use the final CTA SNI without leaking real full links.</wave-level>
+      <phase-level>XML parse, MyGRACE lint, and protected deploy/install/nginx/docker-compose diff guard validate metadata consistency and operational isolation.</phase-level>
+      <runtime-safety>Runtime topology is not changed; policy apply expectations are verified by existing M-049/M-050 contracts and static checks that CTA SNI remains one wildcard-safe label under the configured base domain.</runtime-safety>
+    </matrix>
     <commands>
       <command status="planned">cd backend &amp;&amp; SECRET_KEY=test-secret-key-with-enough-length PYTHONPATH=. ../.venv/bin/python -m pytest -o addopts='' tests/test_mtproto_provisioning.py -v</command>
       <command status="planned">cd frontend &amp;&amp; npm run build</command>

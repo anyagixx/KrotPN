@@ -69,6 +69,7 @@
     <item>Phase-44 email onboarding UX and password recovery passed local execution on 2026-06-01: branded verification/reset email templates, spam-folder guidance, removal of stale trial/VPN registration copy, strong-password enforcement, one-time password reset tokens, duplicate-email recovery CTA, frontend build, backend auth/email/migration tests, and Phase-44 static smoke passed without deploy/install changes.</item>
     <item>Phase-45 first-VPN-handshake trial activation passed local execution on 2026-06-01: default trial duration is four days, verified users receive pending VPN trial access, first config remains available, first observed VPN handshake starts the countdown exactly once, subscription API returns server-side days/hours/minutes and active date range, dashboard/subscription UI show pending/countdown/calendar states, backend suite passed 35/35, frontend build and Phase-45 smoke passed, and deploy/install scripts were untouched.</item>
     <item>Phase-46 user cabinet password and MTProto link UX polish passed local execution on 2026-06-01: registration shows a safe password format example, Telegram proxy actions separate tg:// app link from https://t.me browser link, MTProto labels are Russian, status refresh is bounded at 30 seconds, frontend build and Phase-46 smoke passed, and deploy/install scripts were untouched.</item>
+    <item>Phase-47 MTProto CTA subdomain link generation has verification design ready on 2026-06-01: backend tests, frontend smoke, owner-link consistency, SNI/fake-TLS binding, legacy assignment preservation, redaction, MyGRACE lint, XML parse, and protected deploy/install diff guard are specified before execution.</item>
   </what-is-working>
 
   <what-is-fragile>
@@ -88,6 +89,7 @@
     <item>Phase-42 analytics/promotion tag are passed-live for the promotion tag path: active connections, handshakes, closes, protocol errors, req_pq hints, and global bytes are wired from the live runtime; exact per-user byte attribution under concurrent active SNI domains remains a future data-plane-hook limitation.</item>
     <item>Phase-43 analytics are partially passed-live: raw IP data is encrypted and admin-only with 90-day retention, and the clean-deploy validation confirmed real client IP visibility for MTProto users. Resource-metric tuning, graph polish, and TTL IP block runtime enforcement remain future hardening items.</item>
     <item>Phase-45 is passed-local for 4-day pending VPN trial activation on first successful VPN handshake, idempotency, no paid-subscription regression, days/hours/minutes countdown, and subscription calendar UX without deploy/install changes; live clean-deploy validation remains optional before release promotion.</item>
+    <item>Phase-47 is verification-designed only: CTA MTProto SNI/link generation has a full local verification matrix, but implementation and live clean-deploy evidence are not executed yet.</item>
     <item>Emergency relocation is documented but still blocked until a trusted backup bundle and isolated restore target exist for dry-run evidence.</item>
     <item>Cookie-only auth migration is planned but not executed because it requires explicit approval and HTTPS or production-like smoke evidence.</item>
   </what-is-fragile>
@@ -192,11 +194,14 @@
     <gate id="phase-46-user-cabinet-auth-mtproto-ux-polish" status="passed-local">
       <summary>Local execution passed for password format example UX, MTProto tg:// app link vs https://t.me browser link split, Russian proxy labels, bounded status refresh, Phase-46 static smoke, frontend build, XML parse, MyGRACE lint, and no deploy/install changes.</summary>
     </gate>
+    <gate id="phase-47-mtproto-cta-subdomain-link-generation" status="verification-designed">
+      <summary>Verification matrix is ready for CTA prefix allow-list, 7-hex public short IDs, one-label wildcard-safe SNI, final-SNI fake-TLS secret binding, legacy u-* assignment preservation, owner tg:// and https://t.me link consistency, redaction, XML parse, MyGRACE lint, and protected deploy/install diff guard.</summary>
+    </gate>
   </rollout-gates>
 
   <immediate-priorities>
-    <priority rank="1">Prepare the next test release or live clean-deploy validation for Phase-45 first-VPN-handshake trial activation when the operator is ready.</priority>
-    <priority rank="2">Use the v2.21.5-reboot-resilience-stable baseline plus Phase-44 local changes for future clean VPS test feedback and frontend client/admin redesign work.</priority>
+    <priority rank="1">Execute Phase-47 MTProto CTA subdomain link generation when approved, using the prepared verification matrix before touching runtime behavior.</priority>
+    <priority rank="2">Prepare the next test release or live clean-deploy validation for Phase-45 first-VPN-handshake trial activation when the operator is ready.</priority>
     <priority rank="3">Continue Phase-43 admin analytics hardening with real redacted runtime data: graph refresh polish, resource metrics, alert notifications, and TTL IP block runtime enforcement.</priority>
     <priority rank="4">Run Phase-22 non-production restore rehearsal with a trusted backup bundle and isolated restore target before production release.</priority>
     <priority rank="5">Decide whether to approve cookie-only auth migration and provide HTTPS or production-like auth smoke target.</priority>
