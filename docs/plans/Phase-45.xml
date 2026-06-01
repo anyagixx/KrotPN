@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Phase-45 NAME="First VPN Handshake Trial Activation and Subscription Calendar" STATUS="planned" VERSION="1.0.0" MODULES="M-063,M-001,M-003,M-004,M-008,M-009,M-022,M-028,M-036" CREATED="2026-06-01" UPDATED="2026-06-01">
+<Phase-45 NAME="First VPN Handshake Trial Activation and Subscription Calendar" STATUS="verification-designed" VERSION="1.1.0" MODULES="M-063,M-001,M-003,M-004,M-008,M-009,M-022,M-028,M-036" CREATED="2026-06-01" UPDATED="2026-06-01">
   <purpose>Change KrotPN trial semantics so verified users receive a four-day VPN trial whose countdown starts only after their first successful VPN connection.</purpose>
   <scope>
     <in>TRIAL_DAYS default from 3 to 4, pending trial lifecycle after email verification, first-handshake activation from VPN stats, idempotent subscription update, subscription countdown API, dashboard remaining-time UX, and calendar highlighting active subscription dates.</in>
@@ -43,11 +43,11 @@
   </risks>
   <verification>
     <commands>
-      <command status="planned">cd backend &amp;&amp; SECRET_KEY=test-secret-key-with-enough-length DATA_ENCRYPTION_KEY=dpFmfSVqfdAK3yx5MQV6Tcv35RZuw5MzaH0yhxJ01q0= PYTHONPATH=. ../.venv/bin/python -m pytest -o addopts='' tests/test_trial_activation.py tests/test_billing_service.py tests/test_verified_registration.py tests/test_vpn_router_compat.py tests/test_scheduler.py tests/test_db_migrations.py -v</command>
-      <command status="planned">cd frontend &amp;&amp; npm run build</command>
-      <command status="planned">node scripts/phase45-trial-subscription-ux-smoke.mjs</command>
-      <command status="planned">python3 -m xml.etree.ElementTree docs/plans/Phase-45.xml docs/modules/M-063.xml docs/verification/V-M-063.xml docs/graph-index.xml docs/plan-index.xml docs/verification-index.xml docs/requirements.xml docs/current-status.xml</command>
-      <command status="planned">mygrace lint</command>
+      <command status="verification-designed">cd backend &amp;&amp; SECRET_KEY=test-secret-key-with-enough-length DATA_ENCRYPTION_KEY=dpFmfSVqfdAK3yx5MQV6Tcv35RZuw5MzaH0yhxJ01q0= PYTHONPATH=. ../.venv/bin/python -m pytest -o addopts='' tests/test_trial_activation.py tests/test_billing_service.py tests/test_verified_registration.py tests/test_vpn_router_compat.py tests/test_scheduler.py tests/test_db_migrations.py -v</command>
+      <command status="verification-designed">cd frontend &amp;&amp; npm run build</command>
+      <command status="verification-designed">node scripts/phase45-trial-subscription-ux-smoke.mjs</command>
+      <command status="verification-designed">python3 -m xml.etree.ElementTree docs/plans/Phase-45.xml docs/modules/M-063.xml docs/verification/V-M-063.xml docs/graph-index.xml docs/plan-index.xml docs/verification-index.xml docs/requirements.xml docs/current-status.xml</command>
+      <command status="verification-designed">mygrace lint</command>
     </commands>
   </verification>
 </Phase-45>

@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<M-063 NAME="trial-activation-subscription-countdown" TYPE="CORE_LOGIC" STATUS="planned-phase45">
+<M-063 NAME="trial-activation-subscription-countdown" TYPE="CORE_LOGIC" STATUS="verification-designed-phase45">
   <path>backend/app/billing backend/app/vpn backend/app/tasks frontend scripts/phase45-trial-subscription-ux-smoke.mjs docs/plans/Phase-45.xml</path>
   <owns>Four-day trial policy, pending-trial lifecycle, first VPN handshake activation, subscription countdown API, and calendar UX.</owns>
   <purpose>Start the free KrotPN VPN trial only when the verified user first connects through VPN while keeping config access and billing state consistent.</purpose>

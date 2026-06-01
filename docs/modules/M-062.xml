@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<M-062 NAME="onboarding-email-password-security" TYPE="CORE_LOGIC" STATUS="planned-phase44">
+<M-062 NAME="onboarding-email-password-security" TYPE="CORE_LOGIC" STATUS="verification-designed-phase44">
   <path>backend/app/email backend/app/users frontend scripts/phase44-auth-email-ux-smoke.mjs docs/plans/Phase-44.xml</path>
   <owns>Branded verification email UX, password-strength policy, password recovery, duplicate-email registration guidance, and user-facing pending-email copy.</owns>
   <purpose>Make email onboarding clearer and safer without changing deploy/install scripts or weakening verified-email ownership gates.</purpose>
