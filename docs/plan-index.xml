@@ -46,5 +46,5 @@
   <Phase-42 NAME="MTProto Usage Analytics and Promotion Tag Control" STATUS="passed-live" STEPS="10" MODULES="M-054,M-055,M-056,M-057,M-058,M-059,M-042,M-044,M-047,M-049,M-050,M-051" />
   <Phase-43 NAME="MTProto Admin Analytics UX, Abuse Alerts and 90-day IP Observability" STATUS="pass-local" STEPS="12" MODULES="M-001,M-008,M-026,M-028,M-042,M-047,M-054,M-055,M-056,M-057,M-058,M-060,M-061" />
   <Phase-44 NAME="Email Onboarding UX and Password Recovery" STATUS="done-local" STEPS="8" MODULES="M-062,M-001,M-002,M-009,M-027,M-028,M-040,M-041" />
-  <Phase-45 NAME="First VPN Handshake Trial Activation and Subscription Calendar" STATUS="verification-designed" STEPS="9" MODULES="M-063,M-001,M-003,M-004,M-008,M-009,M-022,M-028,M-036" />
+  <Phase-45 NAME="First VPN Handshake Trial Activation and Subscription Calendar" STATUS="done-local" STEPS="9" MODULES="M-063,M-001,M-003,M-004,M-008,M-009,M-022,M-028,M-036" />
 </PlanIndex>

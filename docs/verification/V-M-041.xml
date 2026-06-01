@@ -1,10 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<V-M-041 MODULE="M-041" PRIORITY="critical" STATUS="pass-local" VERSION="1.9.0">
+<V-M-041 MODULE="M-041" PRIORITY="critical" STATUS="pass-local-phase45" VERSION="2.0.0">
   <phase-scope>
     <phase-27 status="pass-local">Foundation evidence exists for pending-registration primitives, token hashing, TTL/replay protection, email risk checks, fake-provider email delivery, and unchanged active /register behavior.</phase-27>
     <phase-28 status="pass-local">Primary cutover and cross-module verification prove that /register is a pending-email flow and that active KrotPN access exists only after verified email activation; V-M-004 billing and V-M-022 device/VPN route gates pass locally.</phase-28>
     <phase-34 status="pass-local">Stabilization gate proves verified-email activation and the free MTProto owner path are linked without issuing MTProto, trial, VPN, referral, or JWT side effects before email proof.</phase-34>
     <phase-36 status="pass-live">Resend deploy wiring verifies pending registration can send email in production after operator supplies a Resend API key; live clean-deploy registration email proof is operator-confirmed.</phase-36>
+    <phase-45 status="pass-local">Verified activation now creates pending VPN trial access; the four-day countdown starts only after first VPN handshake.</phase-45>
   </phase-scope>
   <test-files>
     <file phase="27-regression">backend/tests/test_email_verification_guard.py</file>
@@ -17,6 +18,7 @@
     <file phase="28-cross-module">backend/tests/test_referrals.py</file>
     <file phase="34-integration">backend/tests/test_phase34_mtproto_integration.py</file>
     <file phase="36-designed">scripts/phase36-resend-deploy-smoke.mjs</file>
+    <file phase="45-primary">backend/tests/test_trial_activation.py</file>
   </test-files>
   <commands>
     <command-1 status="pass-local">cd backend &amp;&amp; SECRET_KEY=test-secret-key-with-enough-length DATA_ENCRYPTION_KEY=dpFmfSVqfdAK3yx5MQV6Tcv35RZuw5MzaH0yhxJ01q0= PYTHONPATH=. ../.venv/bin/python -m pytest -o addopts='' tests/test_verified_registration.py tests/test_email_verification_guard.py tests/test_manual_access_policy.py tests/test_billing_security.py tests/test_billing_plan_api.py tests/test_device_api.py tests/test_vpn_router_compat.py tests/test_referrals.py tests/test_phase34_mtproto_integration.py -v</command-1>
@@ -55,7 +57,7 @@
   <phase-28-cutover-gates>
     <gate-1>/api/v1/auth/register returns a pending/check-email response and never returns access_token, refresh_token, user profile, or authenticated cookies.</gate-1>
     <gate-2>/api/v1/auth/verify-email or the chosen equivalent endpoint accepts a valid one-time token and creates active access only after email ownership is proven.</gate-2>
-    <gate-3>Verified activation creates exactly one eligible trial, one primary VPN device path, and one referral linkage where applicable.</gate-3>
+    <gate-3>Verified activation creates exactly one eligible pending trial, one primary VPN device path, and one referral linkage where applicable.</gate-3>
     <gate-4>Token replay, duplicate email, expired token, and blocked-domain paths cannot duplicate trial, referral, VPN, or future MTProto side effects.</gate-4>
   </phase-28-cutover-gates>
   <scenarios>
@@ -96,5 +98,6 @@
     <evidence-7>2026-05-17: Phase-36 local implementation preserves fake-provider registration verification and defined live controlled-mailbox proof after Resend domain verification.</evidence-7>
     <evidence-8>2026-05-19: Operator clean-deploy registration via email succeeded with Resend configured, closing the provider_disabled production blocker while preserving pending-registration semantics.</evidence-8>
     <evidence-9>2026-05-19: Full Phase-28 cross-module gate passed locally with 39 tests after aligning billing and VPN compatibility tests to /api/v1 route prefixes; V-M-004, V-M-022, and V-M-041 are pass-local.</evidence-9>
+    <evidence-10>2026-06-01: Phase-45 backend suite passed and updates verified-email onboarding so trial access is pending until first VPN handshake while replay remains idempotent.</evidence-10>
   </evidence>
 </V-M-041>

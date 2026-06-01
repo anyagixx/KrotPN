@@ -1,16 +1,17 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<V-M-008 MODULE="M-008" PRIORITY="medium" STATUS="pass-local-phase43" PHASE-43="pass-local">
+<V-M-008 MODULE="M-008" PRIORITY="medium" STATUS="pass-local-phase45" PHASE-43="pass-local" PHASE-45="pass-local">
   <module>tasks</module>
-  <checks>Background jobs do not auto-assign complimentary internal access or mutate manually managed clients unexpectedly. Subscription expiry task correctly deactivates expired subscriptions and decrements server.current_clients counter. Daily cleanup, configurable anti-abuse handshake detection, and KPprotoN MTProto policy replay tasks run without errors.</checks>
+  <checks>Background jobs do not auto-assign complimentary internal access or mutate manually managed clients unexpectedly. Subscription expiry task correctly deactivates expired subscriptions and decrements server.current_clients counter. Daily cleanup, configurable anti-abuse handshake detection, KPprotoN MTProto policy replay tasks, and Phase-45 pending trial activation scan run without errors.</checks>
   <test-files>backend/tests/test_scheduler.py</test-files>
-  <commands>pass-local 2026-05-20: cd backend &amp;&amp; SECRET_KEY=test-secret-key-with-enough-length DATA_ENCRYPTION_KEY=dpFmfSVqfdAK3yx5MQV6Tcv35RZuw5MzaH0yhxJ01q0= PYTHONPATH=. ../.venv/bin/python -m pytest -o addopts='' tests/test_scheduler.py -v</commands>
-  <anchors>SUBSCRIPTION_EXPIRED COUNTER_DECREMENTED DAILY_CLEANUP_COMPLETED detect_handshake_anomalies</anchors>
+  <commands>pass-local 2026-06-01: Phase-45 backend suite includes tests/test_scheduler.py and validates activate_pending_trials job registration and behavior.</commands>
+  <anchors>SUBSCRIPTION_EXPIRED COUNTER_DECREMENTED DAILY_CLEANUP_COMPLETED detect_handshake_anomalies SCAN_PENDING_TRIALS</anchors>
   <scenarios>
     <scenario kind="success" trace="SUBSCRIPTION_EXPIRED">Expired subscription deactivated by scheduler</scenario>
     <scenario kind="success" trace="COUNTER_DECREMENTED">server.current_clients counter decremented on expiry</scenario>
     <scenario kind="success" trace="detect_handshake_anomalies">Handshake anomaly job interval is configured from ANTI_ABUSE_SCAN_INTERVAL_SECONDS</scenario>
     <scenario kind="success" trace="SCHEDULER_SYNC">MTProto policy sync job is registered once and delegates active KPprotoN SNI replay to M-044 safely</scenario>
     <scenario kind="success" trace="PHASE43_MTPROTO_ANALYTICS_JOBS">Phase-43 registers MTProto telemetry ingest, abuse scan, rollup rebuild, raw event prune, IP observation prune, and storage-budget health checks without duplicate job ids</scenario>
+    <scenario kind="success" trace="SCAN_PENDING_TRIALS">Phase-45 activates pending trial records from VPN clients with a first last_handshake_at exactly once</scenario>
     <scenario kind="failure" trace="PHASE43_RETENTION_SAFE_FAIL">Retention job failure is logged and does not stop MTProto policy replay or subscription expiry jobs</scenario>
   </scenarios>
   <phase-43-checks>
@@ -29,5 +30,6 @@
     <evidence-1>2026-05-14: tests/test_scheduler.py passed as part of Phase-30 target pytest gate.</evidence-1>
     <evidence-2>2026-05-19: Phase-41 scheduler regression passed after removing official manifest sync from the active reconciliation path.</evidence-2>
     <evidence-3>2026-05-20: Phase-43 scheduler regression passed for MTProto analytics maintenance job registration and safe retention/abuse-scan delegation.</evidence-3>
+    <evidence-4>2026-06-01: Phase-45 backend suite passed and covers activate_pending_trials scan, job registration, and subscription expiry ignoring pending trial rows.</evidence-4>
   </evidence>
 </V-M-008>

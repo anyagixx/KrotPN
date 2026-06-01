@@ -11,7 +11,7 @@
 #
 # START_MODULE_MAP
 #   list_plans - Returns active plans for user-facing storefront
-#   get_subscription_status - Returns compact subscription status for current user
+#   get_subscription_status - Returns compact subscription status/countdown for current user
 #   get_subscription_detail - Returns detailed subscription state for current user
 #   create_subscription_payment - Starts payment flow for one selected plan
 #   get_payment_history - Returns payment history for current user
@@ -22,6 +22,7 @@
 # END_MODULE_MAP
 #
 # START_CHANGE_SUMMARY
+#   LAST_CHANGE: v3.1.0 - Added Phase-45 pending trial countdown response fields.
 #   LAST_CHANGE: v2.8.0 - Added full GRACE MODULE_CONTRACT, MODULE_MAP, and BLOCKS per GRACE governance protocol
 #   v2.8.0 - Added full GRACE MODULE_CONTRACT and MODULE_MAP per GRACE governance protocol
 # END_CHANGE_SUMMARY
@@ -55,7 +56,7 @@ CHANGE_SUMMARY
 # <!-- GRACE: module="M-004" api-group="Billing API" -->
 
 import json
-from datetime import datetime, timezone, timezone
+from datetime import datetime, timezone
 
 from fastapi import APIRouter, HTTPException, Request, status
 from loguru import logger
@@ -86,6 +87,37 @@ from app.billing.yookassa import yookassa_client
 
 router = APIRouter(prefix="/api/v1/billing", tags=["billing"])
 admin_router = APIRouter(prefix="/api/v1/admin/billing", tags=["admin"])
+
+
+# START_BLOCK: subscription_countdown_helpers
+def _as_aware_utc(value: datetime) -> datetime:
+    """Normalize DB timestamps that may come back as naive UTC under SQLite."""
+    if value.tzinfo is None:
+        return value.replace(tzinfo=timezone.utc)
+    return value.astimezone(timezone.utc)
+
+
+def _remaining_parts(expires_at: datetime, now: datetime) -> dict[str, int]:
+    """Return server-time remaining duration split for API consumers."""
+    remaining_seconds = max(0, int((_as_aware_utc(expires_at) - now).total_seconds()))
+    return {
+        "remaining_seconds": remaining_seconds,
+        "remaining_days": remaining_seconds // 86400,
+        "remaining_hours": (remaining_seconds % 86400) // 3600,
+        "remaining_minutes": (remaining_seconds % 3600) // 60,
+    }
+
+
+async def _plan_name_for_subscription(
+    service: BillingService,
+    subscription: Subscription,
+) -> str | None:
+    """Resolve display plan name while keeping trial rows planless."""
+    if subscription.plan_id:
+        plan = await service.get_plan(subscription.plan_id)
+        return plan.name if plan else None
+    return "Trial" if subscription.is_trial else None
+# END_BLOCK
 
 
 # ==================== Public Plan Endpoints ====================
@@ -129,33 +161,67 @@ async def get_subscription_status(
     subscription = await service.get_user_subscription(current_user.id)
 
     if not subscription:
+        logger.info(
+            "[BillingRouter][get_subscription][COUNTDOWN_RESPONSE] "
+            f"user_id={current_user.id} has_subscription=false"
+        )
         return SubscriptionStatusResponse(
             has_subscription=False,
             is_active=False,
             is_trial=False,
+            pending_activation=False,
             plan_name=None,
             days_left=0,
             expires_at=None,
+            activated_at=None,
+            started_at=None,
+            remaining_seconds=0,
+            remaining_days=0,
+            remaining_hours=0,
+            remaining_minutes=0,
+            active_from=None,
+            active_until=None,
             is_recurring=False,
         )
 
     now = datetime.now(timezone.utc)
-    days_left = max(0, (subscription.expires_at - now).days)
+    pending_activation = bool(subscription.pending_activation)
+    active = (
+        subscription.is_active
+        and not pending_activation
+        and _as_aware_utc(subscription.expires_at) > now
+    )
+    remaining = (
+        {"remaining_seconds": 0, "remaining_days": 0, "remaining_hours": 0, "remaining_minutes": 0}
+        if pending_activation
+        else _remaining_parts(subscription.expires_at, now)
+    )
+    plan_name = await _plan_name_for_subscription(service, subscription)
+    activated_at = _as_aware_utc(subscription.activated_at) if subscription.activated_at else None
+    started_at = None if pending_activation else _as_aware_utc(subscription.started_at)
+    active_from = None if pending_activation else (activated_at or started_at)
+    active_until = None if pending_activation else _as_aware_utc(subscription.expires_at)
 
-    # Get plan name
-    plan_name = None
-    if subscription.plan_id:
-        plan = await service.get_plan(subscription.plan_id)
-        plan_name = plan.name if plan else None
-
+    logger.info(
+        "[BillingRouter][get_subscription][COUNTDOWN_RESPONSE] "
+        f"user_id={current_user.id} subscription_id={subscription.id} "
+        f"pending_activation={pending_activation} is_active={active} "
+        f"remaining_seconds={remaining['remaining_seconds']}"
+    )
     return SubscriptionStatusResponse(
         has_subscription=True,
-        is_active=subscription.is_active and subscription.expires_at > now,
+        is_active=active,
         is_trial=subscription.is_trial,
+        pending_activation=pending_activation,
         plan_name=plan_name or ("Trial" if subscription.is_trial else None),
-        days_left=days_left,
-        expires_at=subscription.expires_at,
+        days_left=remaining["remaining_days"],
+        expires_at=active_until,
+        activated_at=activated_at,
+        started_at=started_at,
+        active_from=active_from,
+        active_until=active_until,
         is_recurring=subscription.is_recurring,
+        **remaining,
     )
 # END_BLOCK
 
@@ -174,25 +240,33 @@ async def get_subscription_detail(
         return None
 
     now = datetime.now(timezone.utc)
-    days_left = max(0, (subscription.expires_at - now).days)
-
-    # Get plan name
-    plan_name = None
-    if subscription.plan_id:
-        plan = await service.get_plan(subscription.plan_id)
-        plan_name = plan.name if plan else None
+    pending_activation = bool(subscription.pending_activation)
+    remaining = (
+        {"remaining_seconds": 0, "remaining_days": 0, "remaining_hours": 0, "remaining_minutes": 0}
+        if pending_activation
+        else _remaining_parts(subscription.expires_at, now)
+    )
+    plan_name = await _plan_name_for_subscription(service, subscription)
+    activated_at = _as_aware_utc(subscription.activated_at) if subscription.activated_at else None
+    started_at = _as_aware_utc(subscription.started_at)
+    active_until = None if pending_activation else _as_aware_utc(subscription.expires_at)
 
     return SubscriptionResponse(
         id=subscription.id,
         plan_id=subscription.plan_id or 0,
         plan_name=plan_name or "Trial",
         status=subscription.status,
-        is_active=subscription.is_active,
-        started_at=subscription.started_at,
-        expires_at=subscription.expires_at,
-        days_left=days_left,
+        is_active=subscription.is_active and not pending_activation and _as_aware_utc(subscription.expires_at) > now,
+        started_at=started_at,
+        expires_at=active_until or _as_aware_utc(subscription.expires_at),
+        days_left=remaining["remaining_days"],
         is_trial=subscription.is_trial,
+        pending_activation=pending_activation,
+        activated_at=activated_at,
+        active_from=None if pending_activation else (activated_at or started_at),
+        active_until=active_until,
         is_recurring=subscription.is_recurring,
+        **remaining,
     )
 # END_BLOCK
 

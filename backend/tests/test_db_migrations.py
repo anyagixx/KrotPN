@@ -15,6 +15,7 @@
 #   test_partition_vpn_client_rows_keeps_active_latest_row_per_user - Covers partitioning
 #   test_ensure_vpn_client_preshared_key_column_adds_nullable_column - Covers add path
 #   test_ensure_vpn_client_preshared_key_column_is_idempotent - Covers no-op path
+#   test_ensure_subscription_pending_trial_columns_adds_columns_and_indexes - Covers Phase-45 compatibility add path
 #   test_mtproto_assignment_migration_is_registered_after_baseline - Covers MTProto assignment metadata
 #   test_mtproto_usage_telemetry_migration_is_registered_after_assignments - Covers Phase-42 analytics metadata
 #   test_mtproto_phase43_migration_is_registered_after_usage_telemetry - Covers Phase-43 analytics metadata
@@ -22,6 +23,7 @@
 # END_MODULE_MAP
 #
 # START_CHANGE_SUMMARY
+#   LAST_CHANGE: v1.5.0 - Added Phase-45 pending trial migration metadata and compatibility helper coverage
 #   LAST_CHANGE: v1.4.0 - Added Phase-44 password reset migration metadata guard
 #   LAST_CHANGE: v1.3.0 - Added Phase-43 MTProto IP observability/admin alert migration metadata guard
 #   LAST_CHANGE: v1.2.0 - Added Phase-42 MTProto usage telemetry migration metadata guard
@@ -35,6 +37,7 @@ from types import SimpleNamespace
 import pytest
 
 from app.core.migrations import (
+    _ensure_subscription_pending_trial_columns,
     _ensure_vpn_client_preshared_key_column,
     _partition_vpn_client_rows,
 )
@@ -123,6 +126,19 @@ async def test_ensure_vpn_client_preshared_key_column_is_idempotent():
     assert conn.statements == []
 
 
+@pytest.mark.asyncio
+async def test_ensure_subscription_pending_trial_columns_adds_columns_and_indexes():
+    conn = FakeConnection(has_column=False)
+
+    await _ensure_subscription_pending_trial_columns(conn)
+
+    assert "ALTER TABLE subscriptions ADD COLUMN pending_activation BOOLEAN DEFAULT FALSE" in conn.statements
+    assert "ALTER TABLE subscriptions ADD COLUMN activated_at TIMESTAMP WITH TIME ZONE" in conn.statements
+    assert "ALTER TABLE subscriptions ADD COLUMN trial_duration_days INTEGER" in conn.statements
+    assert any("ix_subscriptions_pending_activation" in statement for statement in conn.statements)
+    assert any("ix_subscriptions_user_pending_trial" in statement for statement in conn.statements)
+
+
 def test_mtproto_assignment_migration_is_registered_after_baseline():
     migration_path = (
         Path(__file__).parents[1]
@@ -181,3 +197,18 @@ def test_phase44_password_reset_migration_is_registered_after_phase43():
     assert 'down_revision: Union[str, Sequence[str], None] = "phase43_mtproto_admin_analytics"' in migration_text
     assert "[M-062][migration][PASSWORD_RESET_TOKEN_SCHEMA]" in migration_text
     assert "password_reset_tokens" in migration_text
+
+
+def test_phase45_pending_trial_migration_is_registered_after_phase44():
+    migration_path = (
+        Path(__file__).parents[1]
+        / "alembic"
+        / "versions"
+        / "phase45_pending_trial_activation.py"
+    )
+    migration_text = migration_path.read_text(encoding="utf-8")
+
+    assert 'revision: str = "phase45_pending_trial_activation"' in migration_text
+    assert 'down_revision: Union[str, Sequence[str], None] = "phase44_password_reset_tokens"' in migration_text
+    assert "[M-063][migration][PENDING_TRIAL_SCHEMA]" in migration_text
+    assert "pending_activation" in migration_text

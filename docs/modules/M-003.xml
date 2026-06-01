@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<M-003 NAME="vpn" TYPE="CORE_LOGIC" STATUS="stable">
+<M-003 NAME="vpn" TYPE="CORE_LOGIC" STATUS="pass-local-phase45">
   <path>backend/app/vpn</path>
   <owns>vpn clients, profile-consistent config generation, QR, topology-aware provisioning, legacy VPNServer compatibility, device-bound peer management, handshake monitoring</owns>
   <exports>
@@ -8,6 +8,7 @@
     <fn-revoke_client>Revoke client peer and free device slot</fn-revoke_client>
     <fn-rotate_client>Generate new peer credentials for existing client</fn-rotate_client>
     <fn-get_client_stats>Return traffic and connection stats for a client</fn-get_client_stats>
+    <fn-pending-trial-config-access>Allow pending trial users to retrieve first VPN config and activate trial after first observed handshake</fn-pending-trial-config-access>
     <fn-render-stealth-config>Render client configs with deploy-time CLIENT_PROFILE and optional per-client preshared key</fn-render-stealth-config>
   </exports>
   <depends>M-001, M-002, M-007, M-020, M-030</depends>
@@ -31,4 +32,9 @@
   <hotspot>H-001: Topology migration carries legacy VPNServer compatibility</hotspot>
   <hotspot>H-013: VPN service split into 4 files — import paths must remain stable</hotspot>
   <hotspot>H-017: Client configs must match RU awg0 CLIENT_PROFILE exactly or handshakes fail</hotspot>
+  <phase-45-scope>
+    <primary-files>backend/app/vpn/router.py backend/app/vpn/service.py</primary-files>
+    <primary-behaviors>pending trial grants first config access; /vpn/stats can trigger idempotent trial activation from last_handshake_at.</primary-behaviors>
+    <evidence>2026-06-01: Phase-45 backend suite passed and preserved vpn_router_compat coverage.</evidence>
+  </phase-45-scope>
 </M-003>

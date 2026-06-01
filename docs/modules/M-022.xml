@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<M-022 NAME="device-provisioning-api" TYPE="ENTRY_POINT" STATUS="stable">
+<M-022 NAME="device-provisioning-api" TYPE="ENTRY_POINT" STATUS="pass-local-phase45">
   <path>backend/app/devices/router.py backend/app/vpn/router.py</path>
   <owns>user-facing device management, stealth-aware config retrieval and device-bound provisioning APIs</owns>
   <exports>
@@ -7,12 +7,19 @@
     <fn-rotate-device-config>Reissues peer material for one logical device while invalidating the old config</fn-rotate-device-config>
     <fn-revoke-device>Revokes a specific device and frees or preserves a slot according to policy</fn-revoke-device>
     <fn-download-stealth-config>Returns AmneziaWG config and QR payload with CLIENT_PROFILE and preshared-key parity</fn-download-stealth-config>
+    <fn-pending-trial-first-config>Allows verified users with pending trial access to create/reuse primary device and retrieve first config before the countdown starts</fn-pending-trial-first-config>
   </exports>
   <depends>M-001, M-002, M-003, M-004, M-020, M-021</depends>
   <verification-ref>V-M-022</verification-ref>
   <files>
     <file>backend/app/devices/router.py</file>
+    <file>backend/app/vpn/router.py</file>
     <file>backend/app/devices/schemas.py</file>
   </files>
+  <phase-45-scope>
+    <primary-files>backend/app/vpn/router.py</primary-files>
+    <primary-behaviors>pending trial access counts as config-eligible for first VPN config retrieval without changing paid plan/device semantics.</primary-behaviors>
+    <evidence>2026-06-01: Phase-45 backend suite passed and includes vpn_router_compat plus pending trial access coverage.</evidence>
+  </phase-45-scope>
   <hotspot>H-017: QR/raw config endpoints must not diverge in profile or preshared-key content</hotspot>
 </M-022>

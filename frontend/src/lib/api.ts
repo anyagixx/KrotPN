@@ -24,6 +24,7 @@
 // END_MODULE_MAP
 //
 // START_CHANGE_SUMMARY
+//   LAST_CHANGE: 2026-06-01 - Added Phase-45 subscription countdown and pending trial API fields
 //   LAST_CHANGE: 2026-06-01 - Added Phase-44 password reset auth API contracts
 //   LAST_CHANGE: 2026-05-14 - Added Phase-31 MTProto owner proxy API contract
 //   LAST_CHANGE: 2026-05-13 - Added Phase-28 pending registration and verify-email auth API contracts
@@ -238,9 +239,18 @@ export interface SubscriptionStatus {
   has_subscription: boolean
   is_active: boolean
   is_trial: boolean
+  pending_activation: boolean
   plan_name: string | null
   days_left: number
   expires_at: string | null
+  activated_at: string | null
+  started_at: string | null
+  remaining_seconds: number
+  remaining_days: number
+  remaining_hours: number
+  remaining_minutes: number
+  active_from: string | null
+  active_until: string | null
   is_recurring: boolean
 }
 

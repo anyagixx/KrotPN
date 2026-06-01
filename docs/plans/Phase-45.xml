@@ -1,20 +1,20 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Phase-45 NAME="First VPN Handshake Trial Activation and Subscription Calendar" STATUS="verification-designed" VERSION="1.1.0" MODULES="M-063,M-001,M-003,M-004,M-008,M-009,M-022,M-028,M-036" CREATED="2026-06-01" UPDATED="2026-06-01">
+<Phase-45 NAME="First VPN Handshake Trial Activation and Subscription Calendar" STATUS="done-local" VERSION="1.2.0" MODULES="M-063,M-001,M-003,M-004,M-008,M-009,M-022,M-028,M-036" CREATED="2026-06-01" UPDATED="2026-06-01">
   <purpose>Change KrotPN trial semantics so verified users receive a four-day VPN trial whose countdown starts only after their first successful VPN connection.</purpose>
   <scope>
     <in>TRIAL_DAYS default from 3 to 4, pending trial lifecycle after email verification, first-handshake activation from VPN stats, idempotent subscription update, subscription countdown API, dashboard remaining-time UX, and calendar highlighting active subscription dates.</in>
     <out>Deploy/install script changes, MTProto proxy expiration changes, paid subscription duration changes, automatic VPN client rotation, and production backup/restore work.</out>
   </scope>
   <steps>
-    <step-1 MODULE="M-063,M-001" STATUS="planned">Update runtime settings and documentation to make the default free trial duration four days while preserving env override behavior.</step-1>
-    <step-2 MODULE="M-063,M-004,M-028" STATUS="planned">Add nullable pending-trial activation fields and migration metadata without breaking existing subscriptions.</step-2>
-    <step-3 MODULE="M-063,M-004,M-041" STATUS="planned">Change verified-email onboarding to create an eligible pending trial instead of an already-running trial.</step-3>
-    <step-4 MODULE="M-063,M-003,M-004,M-022" STATUS="planned">Allow verified users with pending trial state to retrieve and use their first VPN config before the countdown starts.</step-4>
-    <step-5 MODULE="M-063,M-003,M-008,M-004" STATUS="planned">Activate pending trial atomically from the first successful VPN handshake observed by the scheduler or stats refresh path.</step-5>
-    <step-6 MODULE="M-063,M-004" STATUS="planned">Expose subscription state with pending_activation, activated_at, expires_at, remaining_seconds, remaining_days, remaining_hours, and remaining_minutes.</step-6>
-    <step-7 MODULE="M-063,M-009,M-036" STATUS="planned">Update dashboard and subscription pages to show compact remaining days/hours/minutes and pending-first-connection state.</step-7>
-    <step-8 MODULE="M-063,M-009,M-036" STATUS="planned">Add calendar view with active subscription date range highlighting and mobile-safe controls.</step-8>
-    <step-9 MODULE="M-063" STATUS="planned">Run billing/VPN/scheduler regression tests, frontend build, Phase-45 smoke, XML parse, MyGRACE lint, and no deploy/install diff guard.</step-9>
+    <step-1 MODULE="M-063,M-001" STATUS="done-local">Update runtime settings and documentation to make the default free trial duration four days while preserving env override behavior.</step-1>
+    <step-2 MODULE="M-063,M-004,M-028" STATUS="done-local">Add nullable pending-trial activation fields and migration metadata without breaking existing subscriptions.</step-2>
+    <step-3 MODULE="M-063,M-004,M-041" STATUS="done-local">Change verified-email onboarding to create an eligible pending trial instead of an already-running trial.</step-3>
+    <step-4 MODULE="M-063,M-003,M-004,M-022" STATUS="done-local">Allow verified users with pending trial state to retrieve and use their first VPN config before the countdown starts.</step-4>
+    <step-5 MODULE="M-063,M-003,M-008,M-004" STATUS="done-local">Activate pending trial atomically from the first successful VPN handshake observed by the scheduler or stats refresh path.</step-5>
+    <step-6 MODULE="M-063,M-004" STATUS="done-local">Expose subscription state with pending_activation, activated_at, expires_at, remaining_seconds, remaining_days, remaining_hours, and remaining_minutes.</step-6>
+    <step-7 MODULE="M-063,M-009,M-036" STATUS="done-local">Update dashboard and subscription pages to show compact remaining days/hours/minutes and pending-first-connection state.</step-7>
+    <step-8 MODULE="M-063,M-009,M-036" STATUS="done-local">Add calendar view with active subscription date range highlighting and mobile-safe controls.</step-8>
+    <step-9 MODULE="M-063" STATUS="done-local">Run billing/VPN/scheduler regression tests, frontend build, Phase-45 smoke, XML parse, MyGRACE lint, and no deploy/install diff guard.</step-9>
   </steps>
   <data-flow>
     <flow-1>Email verification -> M-041 onboarding -> M-004 creates pending trial -> M-022 exposes first config path -> M-009 shows "starts after first VPN connection".</flow-1>
@@ -43,11 +43,12 @@
   </risks>
   <verification>
     <commands>
-      <command status="verification-designed">cd backend &amp;&amp; SECRET_KEY=test-secret-key-with-enough-length DATA_ENCRYPTION_KEY=dpFmfSVqfdAK3yx5MQV6Tcv35RZuw5MzaH0yhxJ01q0= PYTHONPATH=. ../.venv/bin/python -m pytest -o addopts='' tests/test_trial_activation.py tests/test_billing_service.py tests/test_verified_registration.py tests/test_vpn_router_compat.py tests/test_scheduler.py tests/test_db_migrations.py -v</command>
-      <command status="verification-designed">cd frontend &amp;&amp; npm run build</command>
-      <command status="verification-designed">node scripts/phase45-trial-subscription-ux-smoke.mjs</command>
-      <command status="verification-designed">python3 -m xml.etree.ElementTree docs/plans/Phase-45.xml docs/modules/M-063.xml docs/verification/V-M-063.xml docs/graph-index.xml docs/plan-index.xml docs/verification-index.xml docs/requirements.xml docs/current-status.xml</command>
-      <command status="verification-designed">mygrace lint</command>
+      <command status="pass-local">cd backend &amp;&amp; SECRET_KEY=test-secret-key-with-enough-length DATA_ENCRYPTION_KEY=dpFmfSVqfdAK3yx5MQV6Tcv35RZuw5MzaH0yhxJ01q0= PYTHONPATH=. ../.venv/bin/python -m pytest -o addopts='' tests/test_trial_activation.py tests/test_billing_service.py tests/test_verified_registration.py tests/test_vpn_router_compat.py tests/test_scheduler.py tests/test_db_migrations.py -v</command>
+      <command status="pass-local">cd frontend &amp;&amp; npm run build</command>
+      <command status="pass-local">node scripts/phase45-trial-subscription-ux-smoke.mjs</command>
+      <command status="pass-local">python3 -m xml.etree.ElementTree docs/plans/Phase-45.xml docs/modules/M-063.xml docs/verification/V-M-063.xml docs/graph-index.xml docs/plan-index.xml docs/verification-index.xml docs/requirements.xml docs/current-status.xml</command>
+      <command status="pass-local">mygrace lint</command>
     </commands>
   </verification>
+  <evidence>2026-06-01: Phase-45 backend regression suite passed outside sandbox due known aiosqlite sandbox hang: 35 passed. Frontend npm run build passed, Phase-45 UX smoke passed, py_compile passed for changed backend files, and deploy/install diff guard showed no changes.</evidence>
 </Phase-45>

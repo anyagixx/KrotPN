@@ -13,6 +13,7 @@ MODULE_MAP
 - test_request_registration_reuses_pending_record_for_resend: Verifies resend-style register retry does not create duplicate pending rows.
 
 CHANGE_SUMMARY
+- 2026-06-01: Updated onboarding assertions for Phase-45 pending trial creation.
 - 2026-05-13: Added Phase-28 verified-registration cutover regression tests.
 """
 
@@ -180,6 +181,13 @@ async def test_verify_email_activates_user_and_onboarding_once(db_session: Async
     assert user.referred_by_id == referrer.id
 
     assert await _count(db_session, Subscription) == 1
+    subscription_result = await db_session.execute(
+        select(Subscription).where(Subscription.user_id == user.id)
+    )
+    subscription = subscription_result.scalar_one()
+    assert subscription.pending_activation is True
+    assert subscription.activated_at is None
+    assert subscription.trial_duration_days == 4
     assert await _count(db_session, UserDevice) == 1
     assert await _count(db_session, Referral) == 1
     assert len(StubVPNService.provision_calls) == 1

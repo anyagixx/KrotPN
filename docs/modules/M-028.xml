@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<M-028 NAME="alembic-migrations" TYPE="UTILITY" STATUS="pass-local-phase44">
-  <path>backend/alembic/ backend/app/core/migrations.py docs/plans/Phase-43.xml docs/plans/Phase-44.xml</path>
-  <owns>database schema migration infrastructure, nullable VPN client preshared-key migration, MTProto assignment migration, password reset token migration, and migration helper functions extracted from database.py</owns>
+<M-028 NAME="alembic-migrations" TYPE="UTILITY" STATUS="pass-local-phase45">
+  <path>backend/alembic/ backend/app/core/migrations.py docs/plans/Phase-43.xml docs/plans/Phase-44.xml docs/plans/Phase-45.xml</path>
+  <owns>database schema migration infrastructure, nullable VPN client preshared-key migration, MTProto assignment migration, password reset token migration, pending trial activation migration, and migration helper functions extracted from database.py</owns>
   <exports>
     <fn-alembic-env>Async Alembic environment configured with SQLModel metadata</fn-alembic-env>
     <fn-migration-helpers>Database migration utilities for schema introspection and data migration</fn-migration-helpers>
@@ -9,6 +9,7 @@
     <fn-mtproto-assignment-migration>Adds mtproto_assignments with unique user and SNI indexes</fn-mtproto-assignment-migration>
     <fn-mtproto-phase43-observability-migration>Adds MTProto encrypted IP observations, admin alerts, and TTL IP block record tables.</fn-mtproto-phase43-observability-migration>
     <fn-password-reset-token-migration>Adds password_reset_tokens with token hash uniqueness, status indexes, and user/email lookup indexes.</fn-password-reset-token-migration>
+    <fn-pending-trial-activation-migration>Adds subscriptions.pending_activation, activated_at, trial_duration_days, and lookup indexes.</fn-pending-trial-activation-migration>
   </exports>
   <depends>M-001, M-020</depends>
   <verification-ref>V-M-028</verification-ref>
@@ -17,10 +18,11 @@
     <file>backend/alembic/versions/b3f1e0d2c9a4_add_mtproto_assignments.py</file>
     <file>backend/alembic/versions/phase43_add_mtproto_ip_observability.py</file>
     <file>backend/alembic/versions/phase44_add_password_reset_tokens.py</file>
+    <file>backend/alembic/versions/phase45_pending_trial_activation.py</file>
     <file>backend/app/core/migrations.py</file>
     <file>backend/tests/test_db_migrations.py</file>
   </files>
-  <evidence>pass-local 2026-06-01: Phase-44 migration metadata guard passed and verifies password_reset_tokens schema ownership after Phase-43.</evidence>
+  <evidence>pass-local 2026-06-01: Phase-44 migration metadata guard passed and verifies password_reset_tokens schema ownership after Phase-43. Phase-45 migration metadata guard passed and verifies pending trial activation schema after Phase-44 plus runtime compatibility helper.</evidence>
   <disaster-recovery-role>
     <role-1>Phase-22 restore validation must compare source and restored migration state before cutover.</role-1>
     <role-2>Schema or migration-state mismatch blocks emergency relocation until the operator resolves or explicitly waives the risk.</role-2>

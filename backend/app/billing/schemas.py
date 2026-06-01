@@ -13,7 +13,7 @@
 #   PlanCreate - Validates admin plan creation payloads, including device_limit
 #   PlanUpdate - Validates partial admin plan updates, including device_limit changes
 #   SubscribeRequest - Validates user plan purchase intent and payment provider choice
-#   SubscriptionStatusResponse - Returns compact subscription-state payload
+#   SubscriptionStatusResponse - Returns compact subscription-state and Phase-45 countdown payload
 #   PaymentCreateRequest - Validates explicit payment creation requests
 #   PaymentWebhookYooKassa - Documents YooKassa webhook payload shape
 #   PaymentHistoryResponse - Returns paged payment-history payload
@@ -21,6 +21,7 @@
 # END_MODULE_MAP
 #
 # START_CHANGE_SUMMARY
+#   LAST_CHANGE: v3.1.0 - Added Phase-45 pending trial and server-side remaining-time fields.
 #   LAST_CHANGE: v2.8.0 - Added full GRACE MODULE_CONTRACT, MODULE_MAP, and BLOCKS per GRACE governance protocol
 #   v2.8.0 - Added full GRACE MODULE_CONTRACT and MODULE_MAP per GRACE governance protocol
 # END_CHANGE_SUMMARY
@@ -101,9 +102,18 @@ class SubscriptionStatusResponse(SQLModel):
     has_subscription: bool
     is_active: bool
     is_trial: bool
+    pending_activation: bool = False
     plan_name: str | None
     days_left: int
     expires_at: datetime | None
+    activated_at: datetime | None = None
+    started_at: datetime | None = None
+    remaining_seconds: int = 0
+    remaining_days: int = 0
+    remaining_hours: int = 0
+    remaining_minutes: int = 0
+    active_from: datetime | None = None
+    active_until: datetime | None = None
     is_recurring: bool
 # END_BLOCK
 

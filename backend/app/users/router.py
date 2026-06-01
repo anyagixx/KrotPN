@@ -18,11 +18,12 @@ User API router.
 #   request_password_reset, reset_password - Password recovery endpoints
 #   users_router - User endpoints: /me, /me (PUT), /me/stats, /me/change-password
 #   admin_users_router - Admin endpoints: list, get, activate, deactivate users
-#   _initialize_new_user_resources - Post-registration orchestrator (trial, VPN, referral)
+#   _initialize_new_user_resources - Post-registration orchestrator (pending trial, VPN, referral)
 #   _make_token_response - JWT cookie/token response builder
 # END_MODULE_MAP
 #
 # START_CHANGE_SUMMARY
+#   LAST_CHANGE: 2026-06-01 - Switched onboarding to Phase-45 pending trial creation before first VPN handshake.
 #   LAST_CHANGE: 2026-06-01 - Added Phase-44 password recovery endpoints and duplicate-email recovery status
 #   LAST_CHANGE: 2026-05-13 - Switched email registration to pending verification and added verify-email activation
 #   LAST_CHANGE: 2026-04-06 - Added full GRACE MODULE_CONTRACT, MODULE_MAP, BLOCK markers per GRACE governance protocol
@@ -103,7 +104,7 @@ async def _initialize_new_user_resources(
     referred_by_id: int | None,
     session: DBSession,
 ) -> None:
-    """Create trial, VPN access, and referral records for newly registered users."""
+    """Create pending trial, VPN access, and referral records for newly registered users."""
     # This helper is the main post-registration orchestrator. Failures in VPN provisioning
     # should degrade gracefully instead of blocking account creation.
     from app.billing.service import BillingService
@@ -116,7 +117,7 @@ async def _initialize_new_user_resources(
 
     history = await billing_service.get_user_subscription_history(user_id, limit=1)
     if not history:
-        await billing_service.create_trial_subscription(user_id)
+        await billing_service.create_pending_trial(user_id)
 
     existing_client = await vpn_service.get_user_client(user_id)
     if not existing_client:

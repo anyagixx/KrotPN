@@ -16,6 +16,7 @@
 #   task_scheduler - Global singleton scheduler instance
 #   check_subscription_expiry - Hourly job: deactivate expired subscriptions and VPN clients
 #   update_vpn_stats - Every 5 min: update client stats from AmneziaWG
+#   activate_pending_trials - Every minute: activate pending trials after first VPN handshake
 #   daily_cleanup - Daily at 3AM: clean old failed payments
 #   detect_handshake_anomalies - Configurable interval: observe peer handshakes for anomaly signals
 #   sync_mtproto_policy - Reconcile active KPprotoN SNI policies into runtime state
@@ -25,6 +26,7 @@
 # END_MODULE_MAP
 #
 # START_CHANGE_SUMMARY
+#   LAST_CHANGE: v3.7.0 - Added Phase-45 pending trial activation scan from VPN handshakes.
 #   LAST_CHANGE: v3.6.0 - Added Phase-43 MTProto analytics retention and alert maintenance job.
 #   LAST_CHANGE: v3.5.0 - Added Phase-42 scheduled MTProto telemetry ingestion.
 #   LAST_CHANGE: v3.4.0 - Restored scheduled MTProto reconciliation to KPprotoN runtime policy replay.
@@ -75,6 +77,7 @@ from app.core.database import async_session_maker
 MTPROTO_POLICY_SYNC_INTERVAL_SECONDS = 60
 MTPROTO_TELEMETRY_INGEST_INTERVAL_SECONDS = 60
 MTPROTO_ANALYTICS_MAINTENANCE_INTERVAL_SECONDS = 15 * 60
+TRIAL_ACTIVATION_SCAN_INTERVAL_SECONDS = 60
 
 
 # <!-- START_BLOCK: TaskScheduler -->
@@ -103,6 +106,13 @@ class TaskScheduler:
             update_vpn_stats,
             IntervalTrigger(minutes=5),
             id="update_vpn_stats",
+            replace_existing=True,
+        )
+
+        self.scheduler.add_job(
+            activate_pending_trials,
+            IntervalTrigger(seconds=TRIAL_ACTIVATION_SCAN_INTERVAL_SECONDS),
+            id="activate_pending_trials",
             replace_existing=True,
         )
 
@@ -187,6 +197,7 @@ async def check_subscription_expiry():
             select(Subscription)
             .where(
                 Subscription.is_active == True,
+                Subscription.pending_activation == False,
                 Subscription.expires_at <= now,
             )
         )
@@ -238,6 +249,7 @@ async def update_vpn_stats():
 
     async with async_session_maker() as session:
         from sqlalchemy import select
+        from app.billing.service import BillingService
         from app.vpn.models import VPNClient
         from app.vpn.amneziawg import wg_manager
 
@@ -250,6 +262,8 @@ async def update_vpn_stats():
         stats = await wg_manager.get_peer_stats()
 
         updated = 0
+        activated = 0
+        billing_service = BillingService(session)
         for client in clients:
             if client.public_key in stats:
                 peer_stats = stats[client.public_key]
@@ -258,12 +272,63 @@ async def update_vpn_stats():
                 client.last_handshake_at = peer_stats["last_handshake"]
                 client.updated_at = datetime.now(timezone.utc)
                 updated += 1
+                if client.last_handshake_at is not None:
+                    subscription = await billing_service.activate_trial_on_first_vpn_handshake(
+                        client.user_id,
+                        client.last_handshake_at,
+                        client_id=client.id,
+                    )
+                    if subscription is not None:
+                        activated += 1
 
         await session.commit()
 
         if updated > 0:
-            logger.debug(f"[TASKS] Updated stats for {updated} clients")
+            logger.debug(f"[TASKS] Updated stats for {updated} clients; activated_pending_trials={activated}")
 # <!-- END_BLOCK: update_vpn_stats -->
+
+
+# <!-- START_BLOCK: activate_pending_trials -->
+async def activate_pending_trials():
+    """
+    Activate pending trials from VPN clients that already have a first handshake.
+    """
+    logger.info("[Scheduler][activate_pending_trials][SCAN_PENDING_TRIALS] started")
+
+    async with async_session_maker() as session:
+        from sqlalchemy import select
+        from app.billing.service import BillingService
+        from app.vpn.models import VPNClient
+
+        result = await session.execute(
+            select(VPNClient)
+            .where(
+                VPNClient.is_active == True,
+                VPNClient.last_handshake_at.is_not(None),
+            )
+            .order_by(VPNClient.last_handshake_at.asc(), VPNClient.id.asc())
+        )
+        clients = list(result.scalars().all())
+
+        billing_service = BillingService(session)
+        activated = 0
+        for client in clients:
+            subscription = await billing_service.activate_trial_on_first_vpn_handshake(
+                client.user_id,
+                client.last_handshake_at,
+                client_id=client.id,
+            )
+            if subscription is not None:
+                activated += 1
+
+        await session.commit()
+
+    logger.info(
+        "[Scheduler][activate_pending_trials][SCAN_PENDING_TRIALS] "
+        f"scanned={len(clients)} activated={activated}"
+    )
+    return {"scanned": len(clients), "activated": activated}
+# <!-- END_BLOCK: activate_pending_trials -->
 
 
 # <!-- START_BLOCK: daily_cleanup -->

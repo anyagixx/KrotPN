@@ -17,6 +17,7 @@
 // END_MODULE_MAP
 //
 // START_CHANGE_SUMMARY
+//   LAST_CHANGE: v2.10.0 - Added Phase-45 pending trial countdown and compact active-date calendar.
 //   LAST_CHANGE: v2.8.0 - Added full GRACE MODULE_CONTRACT and MODULE_MAP per GRACE governance protocol
 //   LAST_CHANGE: v2.9.0 - Reworked billing surface into compact mobile-first plan rows for Phase-23
 // END_CHANGE_SUMMARY
@@ -26,7 +27,7 @@ import { useQuery } from 'react-query'
 import { useTranslation } from 'react-i18next'
 import { AlertTriangle, Calendar, Check, CreditCard, Crown, Rocket, ShieldCheck, Zap } from 'lucide-react'
 import toast from 'react-hot-toast'
-import { billingApi } from '../lib/api'
+import { billingApi, SubscriptionStatus } from '../lib/api'
 import Loading from '../components/Loading'
 
 const planIcons = {
@@ -35,11 +36,60 @@ const planIcons = {
   premium: Rocket,
 }
 
+const weekdayLabels = ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс']
+
+function formatRemaining(subscription?: SubscriptionStatus) {
+  if (!subscription?.has_subscription) return 'Нет активного доступа'
+  if (subscription.pending_activation) return 'Trial начнется после первого VPN подключения'
+  if (!subscription.is_active) return 'Доступ закончился'
+  return `${subscription.remaining_days}д ${subscription.remaining_hours}ч ${subscription.remaining_minutes}м`
+}
+
+function subscriptionDescription(subscription?: SubscriptionStatus) {
+  if (!subscription?.has_subscription) return 'Выберите тариф, оплатите и сразу откройте конфиг.'
+  if (subscription.pending_activation) return 'Конфиг уже доступен. Таймер на 4 дня стартует после первого успешного VPN handshake.'
+  if (subscription.is_active) return 'Оставшееся время рассчитано backend по серверному времени.'
+  return 'Продлите подписку, чтобы снова открыть VPN доступ.'
+}
+
+function startOfDay(value: Date) {
+  return new Date(value.getFullYear(), value.getMonth(), value.getDate())
+}
+
+function buildCalendarDays(subscription?: SubscriptionStatus) {
+  const activeFrom = subscription?.active_from || subscription?.activated_at || subscription?.started_at
+  const activeUntil = subscription?.active_until || subscription?.expires_at
+  const rangeStart = activeFrom ? startOfDay(new Date(activeFrom)) : null
+  const rangeEnd = activeUntil ? startOfDay(new Date(activeUntil)) : null
+  const anchor = rangeStart || startOfDay(new Date())
+  const monthStart = new Date(anchor.getFullYear(), anchor.getMonth(), 1)
+  const gridStart = new Date(monthStart)
+  gridStart.setDate(monthStart.getDate() - ((monthStart.getDay() + 6) % 7))
+  const today = startOfDay(new Date()).getTime()
+
+  return Array.from({ length: 42 }, (_, index) => {
+    const date = new Date(gridStart)
+    date.setDate(gridStart.getDate() + index)
+    const dayStart = startOfDay(date).getTime()
+    const active = !!rangeStart && !!rangeEnd && dayStart >= rangeStart.getTime() && dayStart <= rangeEnd.getTime()
+
+    return {
+      key: date.toISOString(),
+      label: String(date.getDate()),
+      inMonth: date.getMonth() === monthStart.getMonth(),
+      active,
+      today: dayStart === today,
+    }
+  })
+}
+
 export default function Subscription() {
   const { t } = useTranslation()
 
   const { data: plansData, isLoading: plansLoading, isError: plansError } = useQuery('plans', () => billingApi.getPlans())
-  const { data: subData, isLoading: subLoading, isError: subError } = useQuery('subscription', () => billingApi.getSubscription())
+  const { data: subData, isLoading: subLoading, isError: subError } = useQuery('subscription', () => billingApi.getSubscription(), {
+    refetchInterval: 30000,
+  })
 
   if (plansLoading || subLoading) {
     return <Loading text={t('loading')} />
@@ -59,6 +109,7 @@ export default function Subscription() {
 
   const plans = plansData?.data || []
   const subscription = subData?.data
+  const calendarDays = buildCalendarDays(subscription)
 
   const handleSubscribe = async (planId: number) => {
     try {
@@ -79,16 +130,32 @@ export default function Subscription() {
             <div className="min-w-0">
               <p className="text-xs font-bold uppercase text-cyan-100/70">Текущая подписка</p>
               <h1 className="mt-1 truncate text-2xl font-extrabold">
-                {subscription?.has_subscription ? subscription.plan_name || 'Активная подписка' : 'Нет активного доступа'}
+                {subscription?.has_subscription ? subscription.plan_name || 'Trial' : 'Нет активного доступа'}
               </h1>
               <p className="mt-2 text-sm muted">
-                {subscription?.has_subscription
-                  ? `До окончания осталось ${subscription.days_left} дней.`
-                  : 'Выберите тариф, оплатите и сразу откройте конфиг.'}
+                {subscriptionDescription(subscription)}
               </p>
+              <div className="mt-3 flex flex-wrap items-center gap-2">
+                <span className={subscription?.is_active ? 'status-badge-success w-fit' : 'status-badge-warning w-fit'}>
+                  {formatRemaining(subscription)}
+                </span>
+                {subscription?.active_until ? (
+                  <span className="text-xs muted">
+                    до {new Date(subscription.active_until).toLocaleString('ru-RU')}
+                  </span>
+                ) : null}
+              </div>
             </div>
-            <span className={subscription?.has_subscription ? 'status-badge-success shrink-0' : 'status-badge-warning shrink-0'}>
-              {subscription?.has_subscription ? 'active' : 'inactive'}
+            <span
+              className={
+                subscription?.pending_activation
+                  ? 'status-badge-warning shrink-0'
+                  : subscription?.is_active
+                    ? 'status-badge-success shrink-0'
+                    : 'status-badge-warning shrink-0'
+              }
+            >
+              {subscription?.pending_activation ? 'pending' : subscription?.is_active ? 'active' : 'inactive'}
             </span>
           </div>
         </article>
@@ -102,6 +169,42 @@ export default function Subscription() {
             </div>
           </div>
         </article>
+      </section>
+
+      <section className="panel p-4 sm:p-5" data-phase45-subscription-calendar="true">
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+          <div className="min-w-0">
+            <p className="text-xs font-bold uppercase text-cyan-100/70">Календарь доступа</p>
+            <h2 className="mt-1 text-xl font-extrabold">Активные даты</h2>
+            <p className="mt-1 text-sm muted">
+              {subscription?.pending_activation
+                ? 'Даты подсветятся после первого VPN подключения.'
+                : subscription?.active_from && subscription?.active_until
+                  ? `${new Date(subscription.active_from).toLocaleDateString('ru-RU')} - ${new Date(subscription.active_until).toLocaleDateString('ru-RU')}`
+                  : 'Нет активного диапазона подписки.'}
+            </p>
+          </div>
+          <Calendar className="h-5 w-5 shrink-0 text-cyan-100" />
+        </div>
+
+        <div className="mt-4 grid grid-cols-7 gap-1 text-center text-xs">
+          {weekdayLabels.map((day) => (
+            <span key={day} className="py-1 font-bold text-cyan-100/70">{day}</span>
+          ))}
+          {calendarDays.map((day) => (
+            <span
+              key={day.key}
+              className={[
+                'flex aspect-square min-h-9 items-center justify-center rounded-md border text-sm font-semibold',
+                day.active ? 'border-emerald-200/50 bg-emerald-300/18 text-emerald-50' : 'border-white/8 bg-white/[0.03] text-slate-100',
+                day.inMonth ? '' : 'opacity-35',
+                day.today ? 'ring-1 ring-cyan-100/50' : '',
+              ].join(' ')}
+            >
+              {day.label}
+            </span>
+          ))}
+        </div>
       </section>
 
       <section className="grid gap-3">
@@ -177,7 +280,7 @@ export default function Subscription() {
             <Calendar className="mt-1 h-5 w-5 shrink-0 text-cyan-100" />
             <div className="min-w-0">
               <h3 className="text-lg font-bold">{t('trial')}</h3>
-              <p className="mt-1 text-sm muted">{t('trialDays', { days: 3 })} и быстрый вход в личный кабинет.</p>
+              <p className="mt-1 text-sm muted">Бесплатный trial на 4 дня начнется после первого VPN подключения.</p>
             </div>
           </div>
         </section>

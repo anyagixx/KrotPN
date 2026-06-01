@@ -1,20 +1,25 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<V-M-022 MODULE="M-022" PRIORITY="critical" STATUS="pass-local" VERSION="1.3.0">
+<V-M-022 MODULE="M-022" PRIORITY="critical" STATUS="pass-local-phase45" VERSION="1.4.0">
   <module>device-provisioning-api</module>
   <checks>User-facing device APIs expose only the caller's devices, allow deterministic create or revoke or rotate flows, keep one peer per logical device, and Phase-28 cannot provision VPN resources before email verification.</checks>
   <test-files>
     <file>backend/tests/test_verified_registration.py</file>
     <file>backend/tests/test_device_api.py</file>
     <file>backend/tests/test_vpn_router_compat.py</file>
+    <file>backend/tests/test_trial_activation.py</file>
   </test-files>
   <commands>cd backend &amp;&amp; SECRET_KEY=test-secret-key-with-enough-length DATA_ENCRYPTION_KEY=dpFmfSVqfdAK3yx5MQV6Tcv35RZuw5MzaH0yhxJ01q0= PYTHONPATH=. ../.venv/bin/python -m pytest -o addopts='' tests/test_verified_registration.py tests/test_device_api.py tests/test_vpn_router_compat.py -v</commands>
-  <anchors>VPN_DEVICE_CREATED VPN_DEVICE_REVOKED VPN_DEVICE_CONFIG_ROTATED VPN_CONFIG_RENDERED VPN_DEVICE_SKIPPED_UNVERIFIED</anchors>
+  <anchors>VPN_DEVICE_CREATED VPN_DEVICE_REVOKED VPN_DEVICE_CONFIG_ROTATED VPN_CONFIG_RENDERED VPN_DEVICE_SKIPPED_UNVERIFIED PENDING_TRIAL_ACCESS</anchors>
   <phase-28-device-gates>
     <gate-1>Pending email registration cannot create device rows, VPN clients, WireGuard peers, or downloadable config material.</gate-1>
     <gate-2>Verified activation creates exactly one primary device path or makes the existing primary-device creation explicitly idempotent.</gate-2>
     <gate-3>Verify token replay cannot create duplicate primary devices or duplicate peers.</gate-3>
     <gate-4>Authenticated device create, revoke, rotate, and config-render flows remain green after registration cutover.</gate-4>
   </phase-28-device-gates>
+  <phase-45-device-gates>
+    <gate-1>Verified users with pending trial state can create/reuse a primary device and retrieve first VPN config.</gate-1>
+    <gate-2>Pending trial access does not bypass per-plan behavior for paid subscriptions or duplicate device replay safety.</gate-2>
+  </phase-45-device-gates>
   <scenarios>
     <scenario-1 kind="success" trace="VPN_DEVICE_CREATED">Primary device created after verified activation.</scenario-1>
     <scenario-2 kind="success" trace="VPN_DEVICE_REVOKED">Old peer disabled after revoke, new device works.</scenario-2>
@@ -25,5 +30,5 @@
     <finding-1 severity="historical" date="2026-05-14">Full V-M-022 command failed locally with 404 responses in public VPN server/node compatibility route tests because those tests still used stale /api paths.</finding-1>
     <finding-2 severity="resolved" date="2026-05-19">The 404 failures were stale test route expectations using /api instead of the canonical /api/v1 VPN prefixes. Public servers/nodes compatibility tests were aligned and the full V-M-022 command now passes locally.</finding-2>
   </refresh-findings>
-  <evidence>2026-05-13: Phase-28 backend suite passed locally and proved pending registration creates no user device while verified activation creates one primary device path and does not duplicate it on replay. 2026-05-19: Full V-M-022 command passed locally after aligning VPN compatibility route tests with /api/v1 prefixes.</evidence>
+  <evidence>2026-05-13: Phase-28 backend suite passed locally and proved pending registration creates no user device while verified activation creates one primary device path and does not duplicate it on replay. 2026-05-19: Full V-M-022 command passed locally after aligning VPN compatibility route tests with /api/v1 prefixes. 2026-06-01: Phase-45 backend suite passed and confirms pending trial users remain eligible for first config retrieval.</evidence>
 </V-M-022>

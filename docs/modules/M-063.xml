@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<M-063 NAME="trial-activation-subscription-countdown" TYPE="CORE_LOGIC" STATUS="verification-designed-phase45">
+<M-063 NAME="trial-activation-subscription-countdown" TYPE="CORE_LOGIC" STATUS="done-local-phase45">
   <path>backend/app/billing backend/app/vpn backend/app/tasks frontend scripts/phase45-trial-subscription-ux-smoke.mjs docs/plans/Phase-45.xml</path>
   <owns>Four-day trial policy, pending-trial lifecycle, first VPN handshake activation, subscription countdown API, and calendar UX.</owns>
   <purpose>Start the free KrotPN VPN trial only when the verified user first connects through VPN while keeping config access and billing state consistent.</purpose>
@@ -27,6 +27,7 @@
     <file>frontend/src/pages/Subscription.tsx</file>
     <file>frontend/src/lib/api.ts</file>
     <file>scripts/phase45-trial-subscription-ux-smoke.mjs</file>
+    <file>backend/tests/test_trial_activation.py</file>
   </files>
   <phase-45-scope>
     <in>Change default free trial from 3 to 4 days, create pending trial after email verification, allow verified users to retrieve first VPN config before timer starts, activate countdown from first successful VPN handshake, expose remaining time and active date range, and show calendar-highlighted subscription dates.</in>
@@ -44,5 +45,13 @@
     <metric-3>Dashboard and subscription pages show days, hours, and minutes remaining plus a compact active-date calendar after activation.</metric-3>
     <metric-4>Backend tests, scheduler tests, frontend build, XML parse, MyGRACE lint, and Phase-45 smoke pass.</metric-4>
   </acceptance-metrics>
+  <implementation-summary>
+    <item-1>TRIAL_DAYS default is four days while env override behavior remains intact.</item-1>
+    <item-2>Verified-email onboarding creates pending_activation trial rows; the first config path remains available through the normal device-bound provisioning flow.</item-2>
+    <item-3>BillingService activates pending trials exactly once from the first VPN handshake observed by /vpn/stats or the scheduler scan.</item-3>
+    <item-4>Subscription API returns pending_activation, activated_at, active date range, and server-derived remaining seconds/days/hours/minutes.</item-4>
+    <item-5>User dashboard and subscription page render pending-first-connection state, compact countdown, and highlighted active-date calendar.</item-5>
+  </implementation-summary>
+  <evidence>2026-06-01: backend Phase-45 suite passed 35/35 outside sandbox due known aiosqlite sandbox hang; frontend npm run build and node scripts/phase45-trial-subscription-ux-smoke.mjs passed; py_compile passed for changed backend files; deploy/install diff guard showed no changes.</evidence>
   <hotspot>H-050: VPN trial activation must start from the first successful VPN handshake without locking verified users out of their first config</hotspot>
 </M-063>

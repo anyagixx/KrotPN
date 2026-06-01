@@ -18,6 +18,7 @@
 // END_MODULE_MAP
 //
 // START_CHANGE_SUMMARY
+//   LAST_CHANGE: v3.2.0 - Added Phase-45 pending trial state and subscription countdown summary.
 //   LAST_CHANGE: v3.1.1 - Avoid rendering pending/degraded MTProto safe_message twice in the dashboard card.
 //   LAST_CHANGE: v3.1.0 - Added Phase-39 primary Telegram web-link action and full-link copy flow
 //   LAST_CHANGE: v3.0.0 - Added Phase-31 compact MTProto proxy owner card
@@ -50,7 +51,7 @@ import {
 import { Link } from 'react-router-dom'
 import toast from 'react-hot-toast'
 import { useAuthStore } from '../stores/auth'
-import { deviceApi, mtprotoApi, MTProtoProxyResponse, userApi, vpnApi } from '../lib/api'
+import { billingApi, deviceApi, mtprotoApi, MTProtoProxyResponse, SubscriptionStatus, vpnApi } from '../lib/api'
 import Loading from '../components/Loading'
 
 const MTPROTO_CARD_RENDER_MARKER = '[M-045][dashboard_mtproto_card][CARD_RENDER]'
@@ -105,6 +106,20 @@ function mtprotoIntroText(payload?: MTProtoProxyResponse, isLoading?: boolean, i
   return 'Proxy будет доступен после подготовки.'
 }
 
+function formatSubscriptionRemaining(subscription?: SubscriptionStatus) {
+  if (!subscription?.has_subscription) return 'Нужна оплата'
+  if (subscription.pending_activation) return 'Старт после VPN'
+  if (!subscription.is_active) return 'Истекла'
+  return `${subscription.remaining_days}д ${subscription.remaining_hours}ч ${subscription.remaining_minutes}м`
+}
+
+function subscriptionHint(subscription?: SubscriptionStatus) {
+  if (!subscription?.has_subscription) return 'Выберите тариф, чтобы получить рабочий конфиг.'
+  if (subscription.pending_activation) return 'Trial на 4 дня начнется после первого успешного VPN подключения.'
+  if (subscription.is_active) return 'Оставшееся время рассчитано backend по серверному времени.'
+  return 'Доступ закончился, продлите подписку для нового конфига.'
+}
+
 export default function Dashboard() {
   const { t } = useTranslation()
   const { user } = useAuthStore()
@@ -114,7 +129,13 @@ export default function Dashboard() {
     refetchInterval: 10000,
   })
 
-  const { data: userStats, isLoading: userStatsLoading, isError: userStatsError } = useQuery('user-stats', () => userApi.getStats())
+  const { data: subscriptionData, isLoading: subscriptionLoading, isError: subscriptionError } = useQuery(
+    'dashboard-subscription',
+    () => billingApi.getSubscription(),
+    {
+      refetchInterval: 30000,
+    }
+  )
   const { data: devicesData, isLoading: devicesLoading, isError: devicesError } = useQuery('dashboard-devices', () => deviceApi.list(), {
     retry: false,
   })
@@ -135,11 +156,11 @@ export default function Dashboard() {
     }
   }, [mtproto?.status])
 
-  if (statsLoading || userStatsLoading) {
+  if (statsLoading || subscriptionLoading) {
     return <Loading text={t('loading')} />
   }
 
-  if (statsError || userStatsError) {
+  if (statsError || subscriptionError) {
     return (
       <div className="empty-state">
         <AlertTriangle className="h-10 w-10 text-red-200" />
@@ -152,9 +173,10 @@ export default function Dashboard() {
   }
 
   const stats = vpnStats?.data
-  const uStats = userStats?.data
+  const subscription = subscriptionData?.data
   const isConnected = !!stats?.is_connected
-  const hasSubscription = !!uStats?.has_active_subscription
+  const hasSubscription = !!subscription?.has_subscription && (subscription.is_active || subscription.pending_activation)
+  const subscriptionPending = !!subscription?.pending_activation
   const deviceList = devicesData?.data?.devices || []
   const activeDevices = deviceList.filter((device) => device.status === 'active').length
   const consumedSlots = devicesData?.data?.consumed_slots || activeDevices
@@ -202,7 +224,9 @@ export default function Dashboard() {
               </h1>
               <p className="mt-2 text-sm muted">
                 {hasSubscription
-                  ? 'Конфиг, QR и устройства доступны из главного действия.'
+                  ? subscriptionPending
+                    ? 'Скачайте конфиг: trial начнется после первого VPN подключения.'
+                    : 'Конфиг, QR и устройства доступны из главного действия.'
                   : 'Активируйте подписку, чтобы получить рабочий конфиг.'}
               </p>
             </div>
@@ -228,8 +252,9 @@ export default function Dashboard() {
             <div className="min-w-0">
               <p className="text-xs font-bold uppercase text-cyan-100/70">Подписка</p>
               <p className="mt-1 truncate text-xl font-extrabold">
-                {hasSubscription ? `${uStats?.subscription_days_left || 0} ${t('daysLeft')}` : 'Нужна оплата'}
+                {formatSubscriptionRemaining(subscription)}
               </p>
+              <p className="mt-1 text-xs muted">{subscriptionHint(subscription)}</p>
             </div>
             <Calendar className="h-5 w-5 shrink-0 text-cyan-100" />
           </div>

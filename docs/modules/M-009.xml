@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<M-009 NAME="frontend-user" TYPE="UI_COMPONENT" STATUS="pass-local-phase44">
+<M-009 NAME="frontend-user" TYPE="UI_COMPONENT" STATUS="pass-local-phase45">
   <path>frontend</path>
-  <owns>login, verified registration, password recovery, verify-email activation, dashboard, config delivery, subscription management, referrals and settings UI with per-device config awareness</owns>
+  <owns>login, verified registration, password recovery, verify-email activation, dashboard, config delivery, subscription management, pending trial countdown/calendar UX, referrals and settings UI with per-device config awareness</owns>
   <depends>M-002, M-003, M-004, M-005, M-022</depends>
   <verification-ref>V-M-009</verification-ref>
   <files>
@@ -39,4 +39,9 @@
     <primary-behaviors>compact check-email state with spam hint, no stale trial/VPN registration promise, forgot/reset password screens, duplicate-email recovery CTA, and client-side password strength hints.</primary-behaviors>
     <evidence>2026-06-01: frontend npm run build passed and Phase-44 auth/email UX smoke passed.</evidence>
   </phase-44-scope>
+  <phase-45-scope>
+    <primary-files>Dashboard.tsx, Subscription.tsx, lib/api.ts, scripts/phase45-trial-subscription-ux-smoke.mjs</primary-files>
+    <primary-behaviors>pending-first-VPN state, server-derived remaining days/hours/minutes, compact subscription calendar, and no stale 3-day trial copy.</primary-behaviors>
+    <evidence>2026-06-01: frontend npm run build passed and Phase-45 subscription UX smoke passed.</evidence>
+  </phase-45-scope>
 </M-009>

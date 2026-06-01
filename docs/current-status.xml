@@ -67,6 +67,7 @@
     <item>MTProto admin IP history UI fix on 2026-05-23 passed local verification: the investigation drawer no longer renders visible CIDR network masks, and the IP history list is more compact with internal mouse scrolling for long address history.</item>
     <item>Release target v2.21.5-reboot-resilience-stable is the current stable baseline for GitHub main/Releases after clean-deploy and reboot confirmation that website, admin panel, VPN, individual MTProto proxies, real client IP observability, and MTProto promotion tag application work.</item>
     <item>Phase-44 email onboarding UX and password recovery passed local execution on 2026-06-01: branded verification/reset email templates, spam-folder guidance, removal of stale trial/VPN registration copy, strong-password enforcement, one-time password reset tokens, duplicate-email recovery CTA, frontend build, backend auth/email/migration tests, and Phase-44 static smoke passed without deploy/install changes.</item>
+    <item>Phase-45 first-VPN-handshake trial activation passed local execution on 2026-06-01: default trial duration is four days, verified users receive pending VPN trial access, first config remains available, first observed VPN handshake starts the countdown exactly once, subscription API returns server-side days/hours/minutes and active date range, dashboard/subscription UI show pending/countdown/calendar states, backend suite passed 35/35, frontend build and Phase-45 smoke passed, and deploy/install scripts were untouched.</item>
   </what-is-working>
 
   <what-is-fragile>
@@ -85,7 +86,7 @@
     <item>Phase-41 is passed-live: KrotPN provisioning returns ee fake-TLS links and live diagnostics prove policy replay, RU SNI routing, fake-TLS accept, valid non-empty proxy ad tag, issued-link mtp_ping req_pq success, and operator-confirmed Telegram Desktop/mobile connectivity after clean deploy.</item>
     <item>Phase-42 analytics/promotion tag are passed-live for the promotion tag path: active connections, handshakes, closes, protocol errors, req_pq hints, and global bytes are wired from the live runtime; exact per-user byte attribution under concurrent active SNI domains remains a future data-plane-hook limitation.</item>
     <item>Phase-43 analytics are partially passed-live: raw IP data is encrypted and admin-only with 90-day retention, and the clean-deploy validation confirmed real client IP visibility for MTProto users. Resource-metric tuning, graph polish, and TTL IP block runtime enforcement remain future hardening items.</item>
-    <item>Phase-45 verification is designed for 4-day pending VPN trial activation on first successful VPN handshake, idempotency, no paid-subscription regression, days/hours/minutes countdown, and subscription calendar UX without deploy/install changes.</item>
+    <item>Phase-45 is passed-local for 4-day pending VPN trial activation on first successful VPN handshake, idempotency, no paid-subscription regression, days/hours/minutes countdown, and subscription calendar UX without deploy/install changes; live clean-deploy validation remains optional before release promotion.</item>
     <item>Emergency relocation is documented but still blocked until a trusted backup bundle and isolated restore target exist for dry-run evidence.</item>
     <item>Cookie-only auth migration is planned but not executed because it requires explicit approval and HTTPS or production-like smoke evidence.</item>
   </what-is-fragile>
@@ -184,13 +185,13 @@
     <gate id="phase-44-email-onboarding-password-recovery" status="passed-local">
       <summary>Local execution passed for branded verification/reset emails, spam-folder guidance, strong-password enforcement, password reset, duplicate-email recovery CTA, required log markers, redaction, migration metadata, frontend build, and no deploy/install changes.</summary>
     </gate>
-    <gate id="phase-45-first-vpn-handshake-trial-activation" status="verification-designed">
-      <summary>Verification design covers 4-day pending trial activation by first successful VPN handshake, first-config access, paid/active subscription non-regression, server-time countdown, calendar UX, required log markers, redaction, telemetry, and no deploy/install changes.</summary>
+    <gate id="phase-45-first-vpn-handshake-trial-activation" status="passed-local">
+      <summary>Local execution passed for 4-day pending trial activation by first successful VPN handshake, first-config access, paid/active subscription non-regression, server-time countdown, calendar UX, required log markers, redaction, migration metadata, backend regression suite, frontend build, UX smoke, and no deploy/install changes.</summary>
     </gate>
   </rollout-gates>
 
   <immediate-priorities>
-    <priority rank="1">Execute Phase-45 first-VPN-handshake trial activation and subscription countdown in a controlled separate wave.</priority>
+    <priority rank="1">Prepare the next test release or live clean-deploy validation for Phase-45 first-VPN-handshake trial activation when the operator is ready.</priority>
     <priority rank="2">Use the v2.21.5-reboot-resilience-stable baseline plus Phase-44 local changes for future clean VPS test feedback and frontend client/admin redesign work.</priority>
     <priority rank="3">Continue Phase-43 admin analytics hardening with real redacted runtime data: graph refresh polish, resource metrics, alert notifications, and TTL IP block runtime enforcement.</priority>
     <priority rank="4">Run Phase-22 non-production restore rehearsal with a trusted backup bundle and isolated restore target before production release.</priority>

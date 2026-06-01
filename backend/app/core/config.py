@@ -25,6 +25,7 @@
 # END_MODULE_MAP
 #
 # START_CHANGE_SUMMARY
+#   LAST_CHANGE: v3.11.0 - Changed default free VPN trial duration to four days for Phase-45 first-handshake activation.
 #   LAST_CHANGE: v3.10.0 - Added Phase-44 password reset token TTL and frontend URL settings.
 #   LAST_CHANGE: v3.9.0 - Added RU SNI-router telemetry trust settings for real MTProto client IP capture.
 #   LAST_CHANGE: v3.8.0 - Added Phase-42 MTProxy promotion tag setting validation.
@@ -211,7 +212,7 @@ class Settings(BaseSettings):
     awg_h4: int = 100000004
 
     # Trial
-    trial_days: int = 3
+    trial_days: int = 4
 
     # YooKassa
     yookassa_shop_id: str | None = None

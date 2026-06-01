@@ -6,13 +6,14 @@ MODULE_CONTRACT
 - LINKS: V-M-004.
 
 MODULE_MAP
-- test_create_trial_subscription_creates_correct_duration: Verifies trial subscription duration.
+- test_create_trial_subscription_creates_pending_four_day_trial: Verifies pending trial duration metadata.
 - test_get_active_subscription_returns_none_when_no_subscription: Verifies empty lookup.
 - test_get_active_subscription_returns_active_when_valid: Verifies active subscription lookup.
 - test_expire_subscription_marks_inactive: Verifies deactivation.
 - test_payment_webhook_succeeded_creates_subscription: Verifies happy-path webhook.
 
 CHANGE_SUMMARY
+- 2026-06-01: Updated trial creation expectations for Phase-45 pending activation.
 - 2026-04-05: Added billing service tests for Phase 5.
 """
 
@@ -53,8 +54,9 @@ async def billing_session():
 
 
 @pytest.mark.asyncio
-async def test_create_trial_subscription_creates_correct_duration(billing_session: AsyncSession, monkeypatch):
+async def test_create_trial_subscription_creates_pending_four_day_trial(billing_session: AsyncSession, monkeypatch):
     monkeypatch.setattr("app.billing.service.yookassa_client", None)
+    monkeypatch.setattr("app.billing.service.settings.trial_days", 4)
 
     service = BillingService(billing_session)
     sub = await service.create_trial_subscription(user_id=1)
@@ -63,9 +65,10 @@ async def test_create_trial_subscription_creates_correct_duration(billing_sessio
     assert sub.is_trial is True
     assert sub.is_active is True
     assert sub.plan_id is None
-    assert sub.expires_at > sub.started_at
-    delta = sub.expires_at - sub.started_at
-    assert delta.days == 3
+    assert sub.pending_activation is True
+    assert sub.activated_at is None
+    assert sub.trial_duration_days == 4
+    assert sub.expires_at == sub.started_at
 
 
 @pytest.mark.asyncio

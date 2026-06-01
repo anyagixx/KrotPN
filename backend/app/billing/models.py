@@ -12,12 +12,13 @@
 # START_MODULE_MAP
 #   PaymentProvider, PaymentStatus, SubscriptionStatus - Enum types for billing state
 #   Plan - Subscription plan table with pricing, duration, device_limit
-#   Subscription - User subscription table with lifecycle fields
+#   Subscription - User subscription table with lifecycle fields, pending trial activation, and countdown anchors
 #   Payment - Payment record table with provider integration
 #   PlanResponse, SubscriptionResponse, PaymentResponse - API response schemas
 # END_MODULE_MAP
 #
 # START_CHANGE_SUMMARY
+#   LAST_CHANGE: v3.1.0 - Added Phase-45 pending trial activation fields and countdown response anchors.
 #   LAST_CHANGE: v2.8.0 - Added full GRACE MODULE_CONTRACT, MODULE_MAP, and BLOCKS per GRACE governance protocol
 #   v2.8.0 - Added full GRACE MODULE_CONTRACT and MODULE_MAP per GRACE governance protocol
 # END_CHANGE_SUMMARY
@@ -127,6 +128,9 @@ class Subscription(SQLModel, table=True):
 
     # Trial
     is_trial: bool = Field(default=False)
+    pending_activation: bool = Field(default=False, index=True)
+    activated_at: datetime | None = Field(default=None, sa_column=Column(DateTime(timezone=True)))
+    trial_duration_days: int | None = Field(default=None)
     is_complimentary: bool = Field(default=False)
     access_label: str | None = Field(default=None, max_length=100)
 
@@ -211,6 +215,14 @@ class SubscriptionResponse(SQLModel):
     expires_at: datetime
     days_left: int
     is_trial: bool
+    pending_activation: bool = False
+    activated_at: datetime | None = None
+    remaining_seconds: int = 0
+    remaining_days: int = 0
+    remaining_hours: int = 0
+    remaining_minutes: int = 0
+    active_from: datetime | None = None
+    active_until: datetime | None = None
     is_complimentary: bool = False
     is_recurring: bool
 

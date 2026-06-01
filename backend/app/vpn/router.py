@@ -16,10 +16,11 @@
 #   admin_routes_router - Admin routes router (/api/v1/admin/routes/*)
 #   format_bytes - Helper to format byte counts for display
 #   legacy_server_status_from_node - Helper to derive legacy server status from node
-#   get_or_provision_user_client - Helper to get or create VPN client for user
+#   get_or_provision_user_client - Helper to get or create VPN client for user, including pending trial access
 # END_MODULE_MAP
 #
 # START_CHANGE_SUMMARY
+#   LAST_CHANGE: v3.3.0 - Allowed Phase-45 pending trial users to fetch first VPN config and activate on first stats handshake.
 #   LAST_CHANGE: v2.8.4 - Added /config/qr/amnezia endpoint for AmneziaVPN app (JSON containers format), frontend shows dual QR tabs
 #   LAST_CHANGE: v2.8.3 - Improved QR code error correction (ERROR_CORRECT_H + box_size=15) for AmneziaVPN compatibility
 #   LAST_CHANGE: v2.8.0 - Converted to full GRACE MODULE_CONTRACT/MAP format with START/END blocks
@@ -41,6 +42,7 @@ from typing import Annotated
 import qrcode
 from fastapi import APIRouter, HTTPException, Query, status
 from fastapi.responses import StreamingResponse, Response
+from loguru import logger
 
 from app.core import CurrentAdmin, CurrentUser, DBSession
 from app.billing.service import BillingService
@@ -192,6 +194,13 @@ async def get_vpn_config(
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="VPN access is disabled",
+        )
+
+    subscription = await BillingService(session).get_user_subscription(current_user.id)
+    if subscription is not None and subscription.pending_activation:
+        logger.info(
+            "[VPNRouter][get_config][PENDING_TRIAL_ACCESS] "
+            f"user_id={current_user.id} subscription_id={subscription.id} client_id={client.id}"
         )
     
     config = await service.get_client_config(client)
@@ -348,6 +357,12 @@ async def get_vpn_stats(
         )
     
     stats = await service.get_client_stats(client)
+    if stats.last_handshake_at is not None:
+        await BillingService(session).activate_trial_on_first_vpn_handshake(
+            current_user.id,
+            stats.last_handshake_at,
+            client_id=client.id,
+        )
     
     return VPNStatsResponse(
         total_upload_bytes=stats.total_upload_bytes,

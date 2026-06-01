@@ -1,9 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<V-M-004 MODULE="M-004" PRIORITY="critical" STATUS="pass-local" VERSION="1.3.0">
+<V-M-004 MODULE="M-004" PRIORITY="critical" STATUS="pass-local-phase45" VERSION="1.4.0">
   <module>billing</module>
   <checks>Payment and webhook flows remain isolated from registration cutover, complimentary internal access stays outside payment-provider logic, and Phase-28 trial creation is delayed until verified email activation.</checks>
   <test-files>
     <file>backend/tests/test_verified_registration.py</file>
+    <file>backend/tests/test_trial_activation.py</file>
     <file>backend/tests/test_billing_security.py</file>
     <file>backend/tests/test_manual_access_policy.py</file>
     <file>backend/tests/test_billing_plan_api.py</file>
@@ -26,5 +27,5 @@
     <finding-1 severity="historical" date="2026-05-14">Full V-M-004 command failed locally with 404 responses in billing webhook and billing plan API route tests because those tests still used stale /api paths.</finding-1>
     <finding-2 severity="resolved" date="2026-05-19">The 404 failures were stale test route expectations using /api instead of the canonical /api/v1 billing prefixes. Router-level webhook and plan API tests were aligned and the full V-M-004 command now passes locally.</finding-2>
   </refresh-findings>
-  <evidence>2026-05-13: Phase-28 backend suite passed locally and proved pending registration creates no trial while verified activation creates one eligible trial once. 2026-05-19: Full V-M-004 command passed locally after aligning billing route tests with /api/v1 prefixes.</evidence>
+  <evidence>2026-05-13: Phase-28 backend suite passed locally and proved pending registration creates no trial while verified activation creates one eligible trial once. 2026-05-19: Full V-M-004 command passed locally after aligning billing route tests with /api/v1 prefixes. 2026-06-01: Phase-45 backend suite passed and proves verified activation creates a pending four-day trial, first VPN handshake starts it once, countdown fields are server-derived, and paid subscriptions are not overwritten.</evidence>
 </V-M-004>

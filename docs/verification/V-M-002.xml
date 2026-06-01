@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<V-M-002 MODULE="M-002" PRIORITY="critical" STATUS="pass-local-phase44" VERSION="1.3.0">
+<V-M-002 MODULE="M-002" PRIORITY="critical" STATUS="pass-local-phase45" VERSION="1.4.0">
   <module>users</module>
   <checks>Identity creation stays deterministic for normal, verified-email, Telegram, password recovery, and internal users; Phase-28 registration cutover cannot create duplicate user rows or bypass email ownership proof, and Phase-44 password reset cannot consume tokens twice or accept weak passwords.</checks>
   <test-files>
@@ -9,6 +9,7 @@
     <file>backend/tests/test_manual_access_policy.py</file>
     <file>backend/tests/test_manual_client_cli.py</file>
     <file>backend/tests/test_security.py</file>
+    <file>backend/tests/test_trial_activation.py</file>
   </test-files>
   <commands>cd backend &amp;&amp; SECRET_KEY=test-secret-key-with-enough-length DATA_ENCRYPTION_KEY=dpFmfSVqfdAK3yx5MQV6Tcv35RZuw5MzaH0yhxJ01q0= PYTHONPATH=. ../.venv/bin/python -m pytest -o addopts='' tests/test_verified_registration.py tests/test_telegram_auth.py tests/test_manual_access_policy.py tests/test_manual_client_cli.py tests/test_security.py -v</commands>
   <anchors>VPN_INTERNAL_USER_RESOLVED AUTH_LOGIN_SUCCESS AUTH_REFRESH_SUCCESS EMAIL_VERIFIED_USER_CREATED</anchors>
@@ -24,6 +25,10 @@
     <gate-3>Registration, password change, and reset paths enforce strong-password policy.</gate-3>
     <gate-4>Duplicate-email registration returns a recovery CTA without creating duplicate access.</gate-4>
   </phase-44-password-recovery>
+  <phase-45-pending-trial-onboarding>
+    <gate-1>Verified-email activation creates pending trial access instead of an already-running countdown.</gate-1>
+    <gate-2>Dashboard stats keep pending trial users config-eligible without reporting positive subscription days.</gate-2>
+  </phase-45-pending-trial-onboarding>
   <scenarios>
     <scenario-1 kind="success" trace="EMAIL_VERIFIED_USER_CREATED">Verified email activation creates the active user once.</scenario-1>
     <scenario-2 kind="success" trace="VPN_INTERNAL_USER_RESOLVED">Internal user resolved without creating duplicate rows.</scenario-2>
@@ -31,5 +36,5 @@
     <scenario-4 kind="failure">Unverified registration cannot authenticate or access protected user profile endpoints.</scenario-4>
     <scenario-5 kind="failure">Weak password reset payload is rejected without consuming the reset token.</scenario-5>
   </scenarios>
-  <evidence>2026-06-01: Phase-44 backend auth/email suite passed and covers password reset request/confirm/replay, weak-password rejection, and duplicate-email recovery CTA.</evidence>
+  <evidence>2026-06-01: Phase-44 backend auth/email suite passed and covers password reset request/confirm/replay, weak-password rejection, and duplicate-email recovery CTA. 2026-06-01: Phase-45 backend suite passed and proves verified-email onboarding creates pending trial access without starting countdown.</evidence>
 </V-M-002>

@@ -12,10 +12,12 @@ MODULE_MAP
 - test_daily_cleanup_does_not_crash: Verifies daily cleanup runs without errors.
 - test_handshake_anomaly_detection_runs_without_errors: Verifies anomaly detection task runs.
 - test_scheduler_registers_configured_handshake_interval: Verifies anti-abuse scan interval is seconds-based and configurable.
+- test_activate_pending_trials_starts_trial_from_handshake: Verifies Phase-45 pending trial scan.
 - test_mtproto_policy_sync_runs_without_errors: Verifies KPprotoN policy replay task delegates safely.
 - test_mtproto_analytics_maintenance_runs_without_errors: Verifies Phase-43 analytics maintenance task delegates safely.
 
 CHANGE_SUMMARY
+- 2026-06-01: Added Phase-45 pending trial activation scheduler coverage.
 - 2026-04-20: Added scheduler interval coverage for anti-ping-pong scans.
 - 2026-05-14: Added Phase-30 MTProto policy sync scheduler coverage.
 - 2026-05-20: Added Phase-43 MTProto analytics maintenance scheduler coverage.
@@ -74,6 +76,12 @@ class FakeSessionMaker:
 
     def __call__(self):
         return self
+
+
+def aware_utc(value: datetime) -> datetime:
+    if value.tzinfo is None:
+        return value.replace(tzinfo=timezone.utc)
+    return value.astimezone(timezone.utc)
 
 
 @pytest.mark.asyncio
@@ -193,6 +201,41 @@ async def test_handshake_anomaly_detection_runs_without_errors(session: AsyncSes
 
 
 @pytest.mark.asyncio
+async def test_activate_pending_trials_starts_trial_from_handshake(session: AsyncSession, monkeypatch):
+    now = datetime.now(timezone.utc)
+    pending = Subscription(
+        user_id=45,
+        plan_id=None,
+        status=SubscriptionStatus.TRIAL,
+        is_active=True,
+        is_trial=True,
+        pending_activation=True,
+        trial_duration_days=4,
+        started_at=now,
+        expires_at=now,
+    )
+    client = VPNClient(
+        user_id=45,
+        public_key="phase45-scheduler-client",
+        private_key_enc="enc-key",
+        address="10.45.0.45",
+        is_active=True,
+        last_handshake_at=now + timedelta(minutes=1),
+    )
+    session.add(pending)
+    session.add(client)
+    await session.commit()
+    monkeypatch.setattr(scheduler_mod, "async_session_maker", FakeSessionMaker(session))
+
+    result = await scheduler_mod.activate_pending_trials()
+
+    assert result == {"scanned": 1, "activated": 1}
+    await session.refresh(pending)
+    assert pending.pending_activation is False
+    assert aware_utc(pending.expires_at) == client.last_handshake_at + timedelta(days=4)
+
+
+@pytest.mark.asyncio
 async def test_mtproto_policy_sync_runs_without_errors(session: AsyncSession, monkeypatch):
     monkeypatch.setattr(scheduler_mod, "async_session_maker", FakeSessionMaker(session))
 
@@ -245,6 +288,7 @@ def test_scheduler_registers_configured_handshake_interval(monkeypatch):
     handshake_jobs = [job for job in fake_scheduler.jobs if job["id"] == "detect_handshake_anomalies"]
     mtproto_jobs = [job for job in fake_scheduler.jobs if job["id"] == "sync_mtproto_policy"]
     mtproto_maintenance_jobs = [job for job in fake_scheduler.jobs if job["id"] == "maintain_mtproto_analytics"]
+    trial_activation_jobs = [job for job in fake_scheduler.jobs if job["id"] == "activate_pending_trials"]
 
     assert fake_scheduler.started is True
     assert len(handshake_jobs) == 1
@@ -259,4 +303,9 @@ def test_scheduler_registers_configured_handshake_interval(monkeypatch):
     assert mtproto_maintenance_jobs[0]["replace_existing"] is True
     assert mtproto_maintenance_jobs[0]["trigger"].interval.total_seconds() == (
         scheduler_mod.MTPROTO_ANALYTICS_MAINTENANCE_INTERVAL_SECONDS
+    )
+    assert len(trial_activation_jobs) == 1
+    assert trial_activation_jobs[0]["replace_existing"] is True
+    assert trial_activation_jobs[0]["trigger"].interval.total_seconds() == (
+        scheduler_mod.TRIAL_ACTIVATION_SCAN_INTERVAL_SECONDS
     )

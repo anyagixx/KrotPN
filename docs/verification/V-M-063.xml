@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<V-M-063 MODULE="M-063" PRIORITY="critical" STATUS="verification-designed">
+<V-M-063 MODULE="M-063" PRIORITY="critical" STATUS="pass-local">
   <purpose>Verify Phase-45 four-day trial and first-VPN-handshake activation semantics across billing, VPN, scheduler, and user cabinet UX.</purpose>
   <checks>Pending trial is created after email verification, first config remains available, first successful VPN handshake activates the four-day countdown exactly once, subscription API returns precise remaining time, and mobile UI shows countdown plus calendar without stale 3-day copy.</checks>
   <test-files>
@@ -42,11 +42,11 @@
     <marker-5>[BillingRouter][get_subscription][COUNTDOWN_RESPONSE]</marker-5>
   </required-log-markers>
   <commands>
-    <command status="verification-designed">cd backend &amp;&amp; SECRET_KEY=test-secret-key-with-enough-length DATA_ENCRYPTION_KEY=dpFmfSVqfdAK3yx5MQV6Tcv35RZuw5MzaH0yhxJ01q0= PYTHONPATH=. ../.venv/bin/python -m pytest -o addopts='' tests/test_trial_activation.py tests/test_billing_service.py tests/test_verified_registration.py tests/test_vpn_router_compat.py tests/test_scheduler.py tests/test_db_migrations.py -v</command>
-    <command status="verification-designed">cd frontend &amp;&amp; npm run build</command>
-    <command status="verification-designed">node scripts/phase45-trial-subscription-ux-smoke.mjs</command>
-    <command status="verification-designed">python3 -m xml.etree.ElementTree docs/plans/Phase-45.xml docs/modules/M-063.xml docs/verification/V-M-063.xml docs/graph-index.xml docs/plan-index.xml docs/verification-index.xml docs/requirements.xml docs/current-status.xml</command>
-    <command status="verification-designed">mygrace lint</command>
+    <command status="pass-local">cd backend &amp;&amp; SECRET_KEY=test-secret-key-with-enough-length DATA_ENCRYPTION_KEY=dpFmfSVqfdAK3yx5MQV6Tcv35RZuw5MzaH0yhxJ01q0= PYTHONPATH=. ../.venv/bin/python -m pytest -o addopts='' tests/test_trial_activation.py tests/test_billing_service.py tests/test_verified_registration.py tests/test_vpn_router_compat.py tests/test_scheduler.py tests/test_db_migrations.py -v</command>
+    <command status="pass-local">cd frontend &amp;&amp; npm run build</command>
+    <command status="pass-local">node scripts/phase45-trial-subscription-ux-smoke.mjs</command>
+    <command status="pass-local">python3 -m xml.etree.ElementTree docs/plans/Phase-45.xml docs/modules/M-063.xml docs/verification/V-M-063.xml docs/graph-index.xml docs/plan-index.xml docs/verification-index.xml docs/requirements.xml docs/current-status.xml</command>
+    <command status="pass-local">mygrace lint</command>
   </commands>
   <telemetry-requirements>
     <metric-1>Pending trial created, activated, skipped_already_active, skipped_ineligible, and activation lag outcomes are counted without logging VPN keys or client config.</metric-1>
@@ -56,5 +56,12 @@
     <item-1>No VPN private key, config text, QR payload, access token, or raw environment value may appear in activation logs or smoke output.</item-1>
     <item-2>Handshake activation logs may include user/client ids and timestamps but must not include client config material.</item-2>
   </redaction>
+  <evidence>
+    <evidence-1>2026-06-01: Backend Phase-45 regression suite passed outside sandbox due known aiosqlite sandbox hang: 35 passed.</evidence-1>
+    <evidence-2>2026-06-01: cd frontend &amp;&amp; npm run build passed.</evidence-2>
+    <evidence-3>2026-06-01: node scripts/phase45-trial-subscription-ux-smoke.mjs passed and confirmed pending/countdown/calendar wiring with no stale 3-day copy.</evidence-3>
+    <evidence-4>2026-06-01: py_compile passed for changed backend runtime and test files; deploy/install diff guard showed no changes.</evidence-4>
+    <evidence-5>2026-06-01: XML parse and MyGRACE lint passed with zero errors and zero warnings after documentation synchronization.</evidence-5>
+  </evidence>
   <autonomous-execution-safety>Conditionally safe for local autonomous execute after Phase-44 or in a separate approved wave. Block execution if pending trial cannot retrieve first VPN config, if activation can extend paid/active subscriptions, or if migration coverage is missing.</autonomous-execution-safety>
 </V-M-063>

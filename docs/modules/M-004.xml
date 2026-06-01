@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<M-004 NAME="billing" TYPE="CORE_LOGIC" STATUS="stable">
+<M-004 NAME="billing" TYPE="CORE_LOGIC" STATUS="pass-local-phase45">
   <path>backend/app/billing</path>
   <owns>plans, subscriptions, per-plan device limits, payments and YooKassa integration</owns>
   <exports>
@@ -7,6 +7,9 @@
     <fn-process_webhook>Handle YooKassa payment confirmation or failure</fn-process_webhook>
     <fn-get_active_subscription>Return current subscription state for user</fn-get_active_subscription>
     <fn-get_plan_limits>Return device limits and features for a plan</fn-get_plan_limits>
+    <fn-create-pending-trial>Create pending four-day trial access after verified email without starting countdown</fn-create-pending-trial>
+    <fn-activate-trial-on-first-vpn-handshake>Start pending trial exactly once from first observed VPN handshake</fn-activate-trial-on-first-vpn-handshake>
+    <fn-get-subscription-countdown>Return pending/active state and server-time remaining days/hours/minutes</fn-get-subscription-countdown>
   </exports>
   <depends>M-001, M-021</depends>
   <verification-ref>V-M-004</verification-ref>
@@ -18,4 +21,9 @@
     <file>backend/app/billing/yookassa.py</file>
     <file>backend/app/billing/__init__.py</file>
   </files>
+  <phase-45-scope>
+    <primary-files>service.py, router.py, models.py, schemas.py</primary-files>
+    <primary-behaviors>pending trial lifecycle, idempotent first-handshake activation, paid subscription non-regression, device limit access for pending trial, and countdown API fields.</primary-behaviors>
+    <evidence>2026-06-01: Phase-45 backend suite passed 35/35, including tests/test_trial_activation.py and updated billing tests.</evidence>
+  </phase-45-scope>
 </M-004>

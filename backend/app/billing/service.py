@@ -14,12 +14,13 @@
 #   get_plans, get_plan, create_plan - Plan CRUD operations
 #   get_user_subscription, get_effective_device_limit, get_user_subscription_history - Subscription reads
 #   get_active_complimentary_access, ensure_complimentary_access - Complimentary access helpers
-#   create_trial_subscription, create_subscription, extend_subscription, deactivate_subscription - Subscription lifecycle
+#   create_pending_trial, create_trial_subscription, activate_trial_on_first_vpn_handshake, create_subscription, extend_subscription, deactivate_subscription - Subscription lifecycle
 #   create_payment, process_payment_webhook, _process_yookassa_webhook, get_user_payments - Payment operations
 #   get_subscription_stats - Aggregate billing statistics
 # END_MODULE_MAP
 #
 # START_CHANGE_SUMMARY
+#   LAST_CHANGE: v3.1.0 - Added Phase-45 pending trial lifecycle and first VPN handshake activation.
 #   LAST_CHANGE: v2.8.0 - Added full GRACE MODULE_CONTRACT, MODULE_MAP, and BLOCKS per GRACE governance protocol
 #   v2.8.0 - Added full GRACE MODULE_CONTRACT and MODULE_MAP per GRACE governance protocol
 # END_CHANGE_SUMMARY
@@ -44,7 +45,7 @@ import json
 from datetime import datetime, timedelta, timezone
 from typing import Any
 
-from sqlalchemy import and_, func, select
+from sqlalchemy import func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.config import settings
@@ -58,6 +59,20 @@ from app.billing.models import (
 )
 from app.billing.yookassa import yookassa_client
 from loguru import logger
+
+
+# START_BLOCK: trial_time_helpers
+def _as_aware_utc(value: datetime) -> datetime:
+    """Normalize DB timestamps that may come back as naive UTC under SQLite."""
+    if value.tzinfo is None:
+        return value.replace(tzinfo=timezone.utc)
+    return value.astimezone(timezone.utc)
+
+
+def _trial_duration_days() -> int:
+    """Return the configured trial duration with a defensive lower bound."""
+    return max(1, int(settings.trial_days))
+# END_BLOCK
 
 
 # START_BLOCK: BillingService class
@@ -114,18 +129,30 @@ class BillingService:
     # ==================== Subscriptions ====================
 
     # START_BLOCK: get_user_subscription
-    async def get_user_subscription(self, user_id: int) -> Subscription | None:
-        """Get user's active subscription."""
+    async def get_user_subscription(
+        self,
+        user_id: int,
+        *,
+        include_pending: bool = True,
+    ) -> Subscription | None:
+        """Get user's current access-bearing subscription."""
         now = datetime.now(timezone.utc)
+
+        access_predicate = Subscription.expires_at > now
+        if include_pending:
+            access_predicate = or_(
+                Subscription.expires_at > now,
+                Subscription.pending_activation == True,
+            )
 
         result = await self.session.execute(
             select(Subscription)
             .where(
                 Subscription.user_id == user_id,
                 Subscription.is_active == True,
-                Subscription.expires_at > now,
+                access_predicate,
             )
-            .order_by(Subscription.expires_at.desc())
+            .order_by(Subscription.pending_activation.asc(), Subscription.expires_at.desc())
         )
         return result.scalar_one_or_none()
     # END_BLOCK
@@ -136,6 +163,9 @@ class BillingService:
         subscription = await self.get_user_subscription(user_id)
         if subscription is None:
             return 0
+
+        if subscription.pending_activation:
+            return 1
 
         if subscription.is_complimentary:
             return 9999
@@ -188,11 +218,29 @@ class BillingService:
         return result.scalar_one_or_none()
     # END_BLOCK
 
-    # START_BLOCK: create_trial_subscription
-    async def create_trial_subscription(self, user_id: int) -> Subscription:
-        """Create a trial subscription for new user."""
+    # START_BLOCK: create_pending_trial
+    async def create_pending_trial(self, user_id: int) -> Subscription:
+        """Create an eligible trial whose countdown waits for first VPN handshake."""
         now = datetime.now(timezone.utc)
-        expires_at = now + timedelta(days=settings.trial_days)
+        duration_days = _trial_duration_days()
+
+        result = await self.session.execute(
+            select(Subscription)
+            .where(
+                Subscription.user_id == user_id,
+                Subscription.is_active == True,
+                Subscription.is_trial == True,
+                Subscription.pending_activation == True,
+            )
+            .order_by(Subscription.created_at.desc())
+        )
+        existing = result.scalar_one_or_none()
+        if existing is not None:
+            logger.info(
+                "[BillingService][create_pending_trial][CREATE_PENDING_TRIAL] "
+                f"user_id={user_id} subscription_id={existing.id} reused=true"
+            )
+            return existing
 
         subscription = Subscription(
             user_id=user_id,
@@ -200,16 +248,28 @@ class BillingService:
             status=SubscriptionStatus.TRIAL,
             is_active=True,
             is_trial=True,
+            pending_activation=True,
+            activated_at=None,
+            trial_duration_days=duration_days,
             started_at=now,
-            expires_at=expires_at,
+            expires_at=now,
         )
 
         self.session.add(subscription)
         await self.session.flush()
         await self.session.refresh(subscription)
 
-        logger.info(f"[BILLING] Trial subscription created for user {user_id}")
+        logger.info(
+            "[BillingService][create_pending_trial][CREATE_PENDING_TRIAL] "
+            f"user_id={user_id} subscription_id={subscription.id} trial_duration_days={duration_days} reused=false"
+        )
         return subscription
+    # END_BLOCK
+
+    # START_BLOCK: create_trial_subscription
+    async def create_trial_subscription(self, user_id: int) -> Subscription:
+        """Compatibility wrapper for the Phase-45 pending-trial lifecycle."""
+        return await self.create_pending_trial(user_id)
     # END_BLOCK
 
     # START_BLOCK: ensure_complimentary_access
@@ -255,6 +315,8 @@ class BillingService:
                 started_at=now,
                 expires_at=expires_at,
                 is_trial=False,
+                pending_activation=False,
+                activated_at=now,
                 is_complimentary=True,
                 access_label=access_label,
             )
@@ -263,6 +325,8 @@ class BillingService:
             subscription.status = SubscriptionStatus.ACTIVE
             subscription.is_active = True
             subscription.is_trial = False
+            subscription.pending_activation = False
+            subscription.activated_at = subscription.activated_at or now
             subscription.is_complimentary = True
             subscription.access_label = access_label
             subscription.started_at = subscription.started_at or now
@@ -279,6 +343,91 @@ class BillingService:
         return subscription
     # END_BLOCK
 
+    # START_BLOCK: activate_trial_on_first_vpn_handshake
+    async def activate_trial_on_first_vpn_handshake(
+        self,
+        user_id: int,
+        handshake_at: datetime,
+        *,
+        client_id: int | None = None,
+    ) -> Subscription | None:
+        """Start a pending trial once from the first observed VPN handshake."""
+        observed_at = _as_aware_utc(handshake_at)
+        now = datetime.now(timezone.utc)
+
+        active_subscription = await self.get_user_subscription(user_id, include_pending=False)
+        if active_subscription is not None:
+            logger.info(
+                "[BillingService][activate_trial_on_first_vpn_handshake][ACTIVATE_PENDING_TRIAL] "
+                f"user_id={user_id} client_id={client_id} skipped=already_active "
+                f"subscription_id={active_subscription.id}"
+            )
+            return None
+
+        result = await self.session.execute(
+            select(Subscription)
+            .where(
+                Subscription.user_id == user_id,
+                Subscription.is_active == True,
+                Subscription.is_trial == True,
+                Subscription.pending_activation == True,
+            )
+            .order_by(Subscription.created_at.asc(), Subscription.id.asc())
+        )
+        subscription = result.scalar_one_or_none()
+        if subscription is None:
+            logger.info(
+                "[BillingService][activate_trial_on_first_vpn_handshake][ACTIVATE_PENDING_TRIAL] "
+                f"user_id={user_id} client_id={client_id} skipped=no_pending_trial"
+            )
+            return None
+
+        duration_days = int(subscription.trial_duration_days or _trial_duration_days())
+        subscription.pending_activation = False
+        subscription.activated_at = observed_at
+        subscription.started_at = observed_at
+        subscription.expires_at = observed_at + timedelta(days=duration_days)
+        subscription.status = SubscriptionStatus.TRIAL
+        subscription.is_active = True
+        subscription.is_trial = True
+        subscription.updated_at = now
+
+        await self.session.flush()
+        await self.session.refresh(subscription)
+        logger.info(
+            "[BillingService][activate_trial_on_first_vpn_handshake][ACTIVATE_PENDING_TRIAL] "
+            f"user_id={user_id} client_id={client_id} subscription_id={subscription.id} "
+            f"activated_at={observed_at.isoformat()} expires_at={subscription.expires_at.isoformat()}"
+        )
+        return subscription
+    # END_BLOCK
+
+    # START_BLOCK: cancel_pending_trials
+    async def cancel_pending_trials(self, user_id: int, *, reason: str = "replaced") -> int:
+        """Deactivate pending trials when paid or manual access supersedes them."""
+        result = await self.session.execute(
+            select(Subscription).where(
+                Subscription.user_id == user_id,
+                Subscription.is_active == True,
+                Subscription.is_trial == True,
+                Subscription.pending_activation == True,
+            )
+        )
+        pending_trials = list(result.scalars().all())
+        now = datetime.now(timezone.utc)
+        for pending in pending_trials:
+            pending.is_active = False
+            pending.status = SubscriptionStatus.CANCELED
+            pending.updated_at = now
+        if pending_trials:
+            await self.session.flush()
+            logger.info(
+                "[BillingService][cancel_pending_trials][PENDING_TRIAL_CANCELLED] "
+                f"user_id={user_id} count={len(pending_trials)} reason={reason}"
+            )
+        return len(pending_trials)
+    # END_BLOCK
+
     # START_BLOCK: create_subscription
     async def create_subscription(
         self,
@@ -289,15 +438,18 @@ class BillingService:
         """Create a subscription from a plan."""
         now = datetime.now(timezone.utc)
 
-        # Check for existing active subscription
-        existing = await self.get_user_subscription(user_id)
+        # Check for existing active subscription. Pending trial rows are not
+        # billable time and must not be used as the extension base.
+        existing = await self.get_user_subscription(user_id, include_pending=False)
+        await self.cancel_pending_trials(user_id, reason="paid_subscription")
 
         if existing:
             # Extend existing subscription
-            new_expires = existing.expires_at + timedelta(days=plan.duration_days)
+            new_expires = _as_aware_utc(existing.expires_at) + timedelta(days=plan.duration_days)
             existing.expires_at = new_expires
             existing.status = SubscriptionStatus.ACTIVE
             existing.is_trial = False
+            existing.pending_activation = False
             existing.is_complimentary = False
             existing.access_label = None
             existing.plan_id = plan.id
@@ -323,6 +475,8 @@ class BillingService:
             status=SubscriptionStatus.ACTIVE,
             is_active=True,
             is_trial=False,
+            pending_activation=False,
+            activated_at=now,
             is_complimentary=False,
             started_at=now,
             expires_at=expires_at,
@@ -346,10 +500,12 @@ class BillingService:
         now = datetime.now(timezone.utc)
 
         # If expired, start from now
-        base = max(subscription.expires_at, now)
+        base = max(_as_aware_utc(subscription.expires_at), now)
         subscription.expires_at = base + timedelta(days=days)
         subscription.status = SubscriptionStatus.ACTIVE
         subscription.is_active = True
+        subscription.pending_activation = False
+        subscription.activated_at = subscription.activated_at or now
         subscription.updated_at = now
 
         await self.session.flush()
@@ -529,6 +685,7 @@ class BillingService:
             select(func.count(Subscription.id)).where(
                 Subscription.is_active == True,
                 Subscription.is_complimentary == False,
+                Subscription.pending_activation == False,
                 Subscription.expires_at > now,
             )
         )
@@ -540,6 +697,7 @@ class BillingService:
                 Subscription.is_trial == True,
                 Subscription.is_active == True,
                 Subscription.is_complimentary == False,
+                Subscription.pending_activation == False,
                 Subscription.expires_at > now,
             )
         )

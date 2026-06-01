@@ -24,6 +24,7 @@ User service for business logic.
 # END_MODULE_MAP
 #
 # START_CHANGE_SUMMARY
+#   LAST_CHANGE: 2026-06-01 - Count Phase-45 pending trial as dashboard access without starting subscription days.
 #   LAST_CHANGE: 2026-06-01 - Enforced Phase-44 strong-password policy for user password mutations
 #   LAST_CHANGE: 2026-04-06 - Added full GRACE MODULE_CONTRACT, MODULE_MAP, BLOCK markers per GRACE governance protocol
 #   PREVIOUS: 2026-03-26 - Added internal-user resolution helpers for manual non-billable client issuance
@@ -45,7 +46,7 @@ import re
 from typing import Any
 
 from loguru import logger
-from sqlalchemy import func, select
+from sqlalchemy import func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
@@ -340,11 +341,20 @@ class UserService:
             .where(
                 Subscription.user_id == user.id,
                 Subscription.is_active == True,
-                Subscription.expires_at > now,
+                or_(
+                    Subscription.expires_at > now,
+                    Subscription.pending_activation == True,
+                ),
             )
-            .order_by(Subscription.expires_at.desc())
+            .order_by(Subscription.pending_activation.asc(), Subscription.expires_at.desc())
         )
         active_sub = active_sub_result.scalar_one_or_none()
+        subscription_days_left = 0
+        if active_sub and not active_sub.pending_activation:
+            expires_at = active_sub.expires_at
+            if expires_at.tzinfo is None:
+                expires_at = expires_at.replace(tzinfo=timezone.utc)
+            subscription_days_left = max(0, (expires_at - now).days)
 
         # Get total traffic
         traffic_result = await self.session.execute(
@@ -370,9 +380,7 @@ class UserService:
         return {
             "total_upload_bytes": traffic.upload or 0,
             "total_download_bytes": traffic.download or 0,
-            "subscription_days_left": (
-                (active_sub.expires_at - now).days if active_sub else 0
-            ),
+            "subscription_days_left": subscription_days_left,
             "has_active_subscription": active_sub is not None,
             "referrals_count": referrals_count,
             "referral_bonus_days": bonus_days,

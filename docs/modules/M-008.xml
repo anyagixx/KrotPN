@@ -1,12 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<M-008 NAME="tasks" TYPE="UTILITY" STATUS="pass-local-phase43">
-  <path>backend/app/tasks docs/plans/Phase-43.xml</path>
-  <owns>scheduler and recurring maintenance jobs including subscription expiry, daily cleanup, configurable anti-abuse handshake scans, KPprotoN MTProto policy replay, and Phase-43 MTProto analytics maintenance jobs</owns>
+<M-008 NAME="tasks" TYPE="UTILITY" STATUS="pass-local-phase45">
+  <path>backend/app/tasks docs/plans/Phase-43.xml docs/plans/Phase-45.xml</path>
+  <owns>scheduler and recurring maintenance jobs including subscription expiry, daily cleanup, configurable anti-abuse handshake scans, KPprotoN MTProto policy replay, Phase-43 MTProto analytics maintenance jobs, and Phase-45 pending trial activation scans</owns>
   <exports>
     <fn-scheduler>APScheduler-based recurring job runner</fn-scheduler>
     <fn-detect-handshake-anomalies>Configurable seconds-based job that delegates live peer observations to M-023/M-031</fn-detect-handshake-anomalies>
     <task-mtproto-policy-sync>Fixed-interval job that delegates active KPprotoN SNI policy replay to M-044</task-mtproto-policy-sync>
     <task-mtproto-phase43-analytics-maintenance>Phase-43 jobs for telemetry ingest, abuse scan, rollup rebuild, raw event retention, IP observation retention, and storage-budget health checks.</task-mtproto-phase43-analytics-maintenance>
+    <task-trial-handshake-activation>Phase-45 job that scans VPN clients with last_handshake_at and activates pending trials idempotently.</task-trial-handshake-activation>
   </exports>
   <depends>M-001,M-044,M-054,M-056,M-060,M-061</depends>
   <verification-ref>V-M-008</verification-ref>
@@ -17,5 +18,6 @@
   <evidence>
     <evidence-1>2026-05-19: Phase-41 restored scheduler MTProto reconciliation to M-044 KPprotoN runtime replay and local scheduler regression passed.</evidence-1>
     <evidence-2>2026-05-20: Phase-43 scheduler regression passed for MTProto telemetry ingest, rollup rebuild, abuse alert scan, raw event/IP retention, and storage-budget health job registration.</evidence-2>
+    <evidence-3>2026-06-01: Phase-45 backend suite passed for activate_pending_trials job registration and first-handshake activation behavior.</evidence-3>
   </evidence>
 </M-008>

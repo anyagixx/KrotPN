@@ -15,6 +15,7 @@
 #   _ensure_vpn_client_device_columns - Add device_id column to vpn_clients
 #   _ensure_vpn_client_preshared_key_column - Add nullable encrypted preshared key column to vpn_clients
 #   _ensure_subscription_internal_access_columns - Add complimentary access columns
+#   _ensure_subscription_pending_trial_columns - Add Phase-45 pending trial activation columns
 #   _ensure_plan_device_limit_column - Add device_limit to plans
 #   _ensure_unique_vpn_client_device_id - Create unique index on device_id
 #   _relax_vpn_client_user_uniqueness - Drop legacy user_id uniqueness constraint
@@ -27,6 +28,7 @@
 # END_MODULE_MAP
 #
 # START_CHANGE_SUMMARY
+#   LAST_CHANGE: v3.1.0 - Added Phase-45 pending trial activation compatibility columns
 #   LAST_CHANGE: v3.0.0 - Added nullable vpn_clients.preshared_key_enc compatibility migration
 #   LAST_CHANGE: v2.8.0 - Split from original migrations.py (1003 lines) into core + legacy per GRACE <1000 line rule
 # END_CHANGE_SUMMARY
@@ -76,6 +78,7 @@ def _partition_vpn_client_rows(
 async def migrate_existing_schema(conn) -> None:
     """Apply lightweight compatibility migrations for already deployed databases."""
     await _ensure_subscription_internal_access_columns(conn)
+    await _ensure_subscription_pending_trial_columns(conn)
     await _ensure_plan_device_limit_column(conn)
     await _ensure_vpn_client_topology_columns(conn)
     await _ensure_vpn_client_device_columns(conn)
@@ -296,6 +299,48 @@ async def _ensure_subscription_internal_access_columns(conn) -> None:
             text("ALTER TABLE subscriptions ADD COLUMN access_label VARCHAR(100)")
         )
         logger.info("[DB] Added subscriptions.access_label compatibility column")
+
+
+async def _ensure_subscription_pending_trial_columns(conn) -> None:
+    """Add pending-trial lifecycle columns to subscriptions on already deployed databases."""
+    has_subscriptions = await conn.run_sync(_table_exists, "subscriptions")
+    if not has_subscriptions:
+        return
+
+    if not await conn.run_sync(_table_has_column, "subscriptions", "pending_activation"):
+        await conn.execute(
+            text("ALTER TABLE subscriptions ADD COLUMN pending_activation BOOLEAN DEFAULT FALSE")
+        )
+        logger.info("[DB] Added subscriptions.pending_activation compatibility column")
+
+    if not await conn.run_sync(_table_has_column, "subscriptions", "activated_at"):
+        await conn.execute(
+            text("ALTER TABLE subscriptions ADD COLUMN activated_at TIMESTAMP WITH TIME ZONE")
+        )
+        logger.info("[DB] Added subscriptions.activated_at compatibility column")
+
+    if not await conn.run_sync(_table_has_column, "subscriptions", "trial_duration_days"):
+        await conn.execute(
+            text("ALTER TABLE subscriptions ADD COLUMN trial_duration_days INTEGER")
+        )
+        logger.info("[DB] Added subscriptions.trial_duration_days compatibility column")
+
+    await conn.execute(
+        text(
+            """
+            CREATE INDEX IF NOT EXISTS ix_subscriptions_pending_activation
+            ON subscriptions (pending_activation)
+            """
+        )
+    )
+    await conn.execute(
+        text(
+            """
+            CREATE INDEX IF NOT EXISTS ix_subscriptions_user_pending_trial
+            ON subscriptions (user_id, pending_activation)
+            """
+        )
+    )
 
 
 async def _ensure_plan_device_limit_column(conn) -> None:

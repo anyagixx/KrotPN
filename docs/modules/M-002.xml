@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<M-002 NAME="users" TYPE="CORE_LOGIC" STATUS="pass-local-phase44">
+<M-002 NAME="users" TYPE="CORE_LOGIC" STATUS="pass-local-phase45">
   <path>backend/app/users</path>
   <owns>email auth, verified-email activation endpoint, password recovery, strong-password policy, Telegram auth, profile and admin user operations, internal user resolution</owns>
   <exports>
@@ -9,6 +9,7 @@
     <fn-request-password-reset>Accept password reset requests with generic public response and email delivery.</fn-request-password-reset>
     <fn-reset-password>Consume one-time reset tokens and update password hashes after strong-password validation.</fn-reset-password>
     <fn-validate-password-strength>Reject weak, common, repeated, or incomplete passwords for registration, change, and reset flows.</fn-validate-password-strength>
+    <fn-verified-onboarding-pending-trial>Create pending VPN trial resources after email verification without starting the countdown.</fn-verified-onboarding-pending-trial>
     <fn-telegram_auth>Authenticate user via Telegram widget or bot-mediated flow</fn-telegram_auth>
     <fn-get_current_user>Dependency injection for authenticated user from JWT</fn-get_current_user>
     <fn-resolve-internal-user>Finds or creates canonical internal user identity</fn-resolve-internal-user>
@@ -30,4 +31,9 @@
     <primary-behaviors>strong password checks, one-time reset token lifecycle, replay/expiry failures, duplicate-email recovery guidance, and safe reset request response.</primary-behaviors>
     <evidence>2026-06-01: Phase-44 backend auth/email tests passed: 29 passed in 0.84s outside sandbox due sandbox aiosqlite hang.</evidence>
   </phase-44-scope>
+  <phase-45-scope>
+    <primary-files>router.py, service.py</primary-files>
+    <primary-behaviors>verified-email onboarding creates pending trial access and dashboard stats treat pending access as config-eligible without subscription days.</primary-behaviors>
+    <evidence>2026-06-01: Phase-45 backend suite passed; tests/test_verified_registration.py asserts pending_activation trial after verify-email.</evidence>
+  </phase-45-scope>
 </M-002>
