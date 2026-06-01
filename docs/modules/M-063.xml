@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<M-063 NAME="trial-activation-subscription-countdown" TYPE="CORE_LOGIC" STATUS="planned-phase45">
+  <path>backend/app/billing backend/app/vpn backend/app/tasks frontend scripts/phase45-trial-subscription-ux-smoke.mjs docs/plans/Phase-45.xml</path>
+  <owns>Four-day trial policy, pending-trial lifecycle, first VPN handshake activation, subscription countdown API, and calendar UX.</owns>
+  <purpose>Start the free KrotPN VPN trial only when the verified user first connects through VPN while keeping config access and billing state consistent.</purpose>
+  <exports>
+    <fn-create-pending-trial>Create an eligible trial record after email verification without starting the countdown.</fn-create-pending-trial>
+    <fn-activate-trial-on-first-vpn-handshake>Atomically set started_at and expires_at from the first successful VPN handshake observation.</fn-activate-trial-on-first-vpn-handshake>
+    <fn-get-subscription-countdown>Return pending, active, expired, remaining seconds, days, hours, minutes, start, and expiry fields.</fn-get-subscription-countdown>
+    <task-trial-handshake-activation>Scheduler job that observes VPN client last_handshake_at and activates pending trials idempotently.</task-trial-handshake-activation>
+    <view-subscription-countdown>Render compact remaining time in the user cabinet.</view-subscription-countdown>
+    <view-subscription-calendar>Render active subscription dates in a compact calendar view.</view-subscription-calendar>
+  </exports>
+  <depends>M-001,M-003,M-004,M-008,M-009,M-022,M-028,M-036</depends>
+  <verification-ref>V-M-063</verification-ref>
+  <files>
+    <file>backend/app/core/config.py</file>
+    <file>backend/app/billing/models.py</file>
+    <file>backend/app/billing/schemas.py</file>
+    <file>backend/app/billing/service.py</file>
+    <file>backend/app/billing/router.py</file>
+    <file>backend/app/vpn/models.py</file>
+    <file>backend/app/vpn/router.py</file>
+    <file>backend/app/tasks/scheduler.py</file>
+    <file>backend/alembic/versions/phase45_pending_trial_activation.py</file>
+    <file>frontend/src/pages/Dashboard.tsx</file>
+    <file>frontend/src/pages/Subscription.tsx</file>
+    <file>frontend/src/lib/api.ts</file>
+    <file>scripts/phase45-trial-subscription-ux-smoke.mjs</file>
+  </files>
+  <phase-45-scope>
+    <in>Change default free trial from 3 to 4 days, create pending trial after email verification, allow verified users to retrieve first VPN config before timer starts, activate countdown from first successful VPN handshake, expose remaining time and active date range, and show calendar-highlighted subscription dates.</in>
+    <out>Changing deploy/install scripts, changing paid subscription duration semantics, expiring free MTProto proxy with the VPN trial, or silently invalidating existing VPN clients.</out>
+  </phase-45-scope>
+  <constraints>
+    <constraint-1>Email ownership remains mandatory before pending trial, VPN config, referral effects, JWT session, or MTProto proxy access.</constraint-1>
+    <constraint-2>Pending trial must grant only the minimum access needed to retrieve and use the first VPN config; payment and paid-plan logic remain isolated.</constraint-2>
+    <constraint-3>First-handshake activation must be idempotent and must not extend already-started, paid, complimentary, or expired subscriptions.</constraint-3>
+    <constraint-4>Subscription countdown must be server-time based to avoid client clock drift.</constraint-4>
+  </constraints>
+  <acceptance-metrics>
+    <metric-1>New verified users receive a 4-day pending trial that activates on first successful VPN handshake.</metric-1>
+    <metric-2>Users who verify but never connect can still retrieve their first config and see pending activation state.</metric-2>
+    <metric-3>Dashboard and subscription pages show days, hours, and minutes remaining plus a compact active-date calendar after activation.</metric-3>
+    <metric-4>Backend tests, scheduler tests, frontend build, XML parse, MyGRACE lint, and Phase-45 smoke pass.</metric-4>
+  </acceptance-metrics>
+  <hotspot>H-050: VPN trial activation must start from the first successful VPN handshake without locking verified users out of their first config</hotspot>
+</M-063>

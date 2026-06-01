@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<V-M-062 MODULE="M-062" PRIORITY="critical" STATUS="planned">
+  <purpose>Verify Phase-44 email onboarding, password policy, password reset, and duplicate-email UX without changing deploy/install scripts.</purpose>
+  <checks>Branded email templates render safely, registration copy is accurate, weak passwords are rejected, reset tokens are one-time and TTL-bound, duplicate registration offers recovery, and secrets/tokens remain redacted.</checks>
+  <test-files>
+    <file>backend/tests/test_email_delivery.py</file>
+    <file>backend/tests/test_verified_registration.py</file>
+    <file>backend/tests/test_password_recovery.py</file>
+    <file>frontend/src/pages/Register.tsx</file>
+    <file>frontend/src/pages/ForgotPassword.tsx</file>
+    <file>frontend/src/pages/ResetPassword.tsx</file>
+    <file>scripts/phase44-auth-email-ux-smoke.mjs</file>
+  </test-files>
+  <phase-44-gates>
+    <gate-1>Verification and reset emails include branded HTML and text fallback while never logging full links or tokens.</gate-1>
+    <gate-2>Pending-registration UI tells users to check spam and contains no stale "trial на 3 дня" or immediate VPN claim.</gate-2>
+    <gate-3>Strong-password validation is deterministic for registration and reset flows on backend and frontend.</gate-3>
+    <gate-4>Password reset request, success, expired, replay, and invalid token states are covered.</gate-4>
+    <gate-5>Duplicate-email registration returns a clear account-exists message with reset CTA and no extra side effects.</gate-5>
+    <gate-6>Deploy/install scripts show no diff.</gate-6>
+  </phase-44-gates>
+  <scenarios>
+    <scenario-1 kind="success">Strong-password registration sends branded verification email and shows spam-folder guidance.</scenario-1>
+    <scenario-2 kind="failure">Weak-password registration is rejected before pending registration or provider send side effects.</scenario-2>
+    <scenario-3 kind="success">Password reset token changes password once and authenticates with the new password.</scenario-3>
+    <scenario-4 kind="failure">Expired or replayed reset token cannot change password again.</scenario-4>
+    <scenario-5 kind="success">Existing-email registration suggests password recovery without creating duplicate pending access.</scenario-5>
+  </scenarios>
+  <commands>
+    <command status="planned">cd backend &amp;&amp; SECRET_KEY=test-secret-key-with-enough-length DATA_ENCRYPTION_KEY=dpFmfSVqfdAK3yx5MQV6Tcv35RZuw5MzaH0yhxJ01q0= PYTHONPATH=. ../.venv/bin/python -m pytest -o addopts='' tests/test_email_delivery.py tests/test_verified_registration.py tests/test_password_recovery.py -v</command>
+    <command status="planned">cd frontend &amp;&amp; npm run build</command>
+    <command status="planned">node scripts/phase44-auth-email-ux-smoke.mjs</command>
+    <command status="planned">python3 -m xml.etree.ElementTree docs/plans/Phase-44.xml docs/modules/M-062.xml docs/verification/V-M-062.xml docs/graph-index.xml docs/plan-index.xml docs/verification-index.xml docs/requirements.xml docs/current-status.xml</command>
+    <command status="planned">mygrace lint</command>
+  </commands>
+  <redaction>
+    <item-1>No verification token, reset token, Resend API key, bearer header, or full verification/reset link may appear in logs, test output, or smoke output.</item-1>
+    <item-2>Provider errors are normalized before reaching user-facing responses.</item-2>
+  </redaction>
+</V-M-062>

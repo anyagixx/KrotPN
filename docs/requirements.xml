@@ -68,7 +68,7 @@
       <Action>Registers by email, confirms ownership through a one-time verification email, then receives trial subscription and VPN client</Action>
       <Goal>User gets VPN access with minimal safe steps: request registration, verify email, receive trial, config, connect</Goal>
       <Preconditions>Email syntax and domain risk checks pass; system can send verification email; verification token is valid and unused</Preconditions>
-      <AcceptanceCriteria>No trial, VPN config, referral effect, JWT session, or MTProto proxy is issued before email ownership is verified. After verification, user receives 3-day trial subscription, VPN client config (text/file/QR), and can connect successfully.</AcceptanceCriteria>
+      <AcceptanceCriteria>No trial, VPN config, referral effect, JWT session, or MTProto proxy is issued before email ownership is verified. After verification, user receives pending 4-day trial eligibility, VPN client config (text/file/QR), and can connect successfully. The 4-day VPN trial countdown starts from the first successful VPN handshake, not from registration or first cabinet login.</AcceptanceCriteria>
       <Priority>critical</Priority>
       <RelatedFlows>DF-001</RelatedFlows>
     </UC-005>
@@ -193,6 +193,28 @@
       <Priority>high</Priority>
       <RelatedFlows>DF-MTPROTO-ABUSE-ALERT, DF-MTPROTO-IP-OBSERVABILITY, DF-MTPROTO-ADMIN-REVIEW</RelatedFlows>
     </UC-016>
+
+    <UC-017>
+      <Name>Safe email onboarding and password recovery</Name>
+      <Actor>User</Actor>
+      <Action>Registers with a strong password, receives a branded verification email, sees clear inbox/spam guidance, and can reset a forgotten password</Action>
+      <Goal>Reduce registration confusion and support burden while keeping account security strong</Goal>
+      <Preconditions>Email provider is configured; user controls the email address; reset and verification tokens can be stored securely</Preconditions>
+      <AcceptanceCriteria>Verification emails have branded HTML and text fallback. The frontend pending-registration screen tells the user to check spam if the email is missing and does not promise immediate VPN access or stale 3-day trial wording. Weak passwords are rejected. Password reset tokens are one-time, TTL-bound, rate-limited, and never logged raw. Duplicate-email registration clearly says the account exists and offers password recovery.</AcceptanceCriteria>
+      <Priority>critical</Priority>
+      <RelatedFlows>DF-EMAIL-ONBOARDING, DF-PASSWORD-RESET, DF-DUPLICATE-EMAIL-RECOVERY</RelatedFlows>
+    </UC-017>
+
+    <UC-018>
+      <Name>First VPN handshake trial activation and subscription countdown</Name>
+      <Actor>User</Actor>
+      <Action>Verifies email, receives VPN config, connects for the first time, and sees accurate remaining subscription time</Action>
+      <Goal>Start the free trial when the user actually starts using VPN, then show remaining days, hours, minutes, and active subscription dates</Goal>
+      <Preconditions>Email ownership is verified; VPN client config is provisioned; backend can observe successful VPN handshakes</Preconditions>
+      <AcceptanceCriteria>New verified users receive a pending 4-day VPN trial. Pending trial users can retrieve and use their first VPN config. The first successful VPN handshake activates the trial exactly once and sets expiry to four days after that handshake. The user cabinet shows pending activation before first connection, then remaining days/hours/minutes and a compact calendar with active subscription dates.</AcceptanceCriteria>
+      <Priority>critical</Priority>
+      <RelatedFlows>DF-TRIAL-PENDING, DF-VPN-FIRST-HANDSHAKE, DF-SUBSCRIPTION-COUNTDOWN</RelatedFlows>
+    </UC-018>
   </UseCases>
 
   <NonGoals>
@@ -215,6 +237,8 @@
     <constraint-8>Email ownership verification is mandatory before issuing trial, VPN, referral, JWT session, or MTProto proxy access</constraint-8>
     <constraint-9>KPprotoN fake-TLS MTProto traffic and normal HTTPS must share the krotpn.xyz edge safely through explicit 443 routing that preserves web HTTPS and forwards issued wildcard SNI traffic to the MTProto data-plane</constraint-9>
     <constraint-10>MTProto raw client IP observability is allowed only for authenticated admins, must be encrypted at rest, retained for 90 days, and must not leak to users, logs, audit details, or general analytics payloads</constraint-10>
+    <constraint-11>Trial countdown activation must be based on trusted server-observed VPN handshake time, not client browser time</constraint-11>
+    <constraint-12>Email and trial UX phases must not redesign deploy/install scripts or change the operator-approved deployment flow</constraint-12>
   </Constraints>
 
   <Risks>
@@ -228,6 +252,8 @@
     <risk-8>Mobile UI simplification can hide critical admin/user actions unless workflows are verified on small viewports</risk-8>
     <risk-9>Disposable-email filtering can block real users or miss new temporary domains; email ownership proof remains the decisive control</risk-9>
     <risk-10>Shared 443 routing for HTTPS and MTProto can break both website access and Telegram proxy if TLS classification, fallback routing, or official MTProxy secret sync is misconfigured</risk-10>
+    <risk-11>Password recovery can become an account-takeover path if reset tokens, TTL, rate limits, or logs are weak</risk-11>
+    <risk-12>Pending-trial activation can lock users out of first VPN config if billing gates treat pending state as fully inactive</risk-12>
   </Risks>
 
   <OpenQuestions>

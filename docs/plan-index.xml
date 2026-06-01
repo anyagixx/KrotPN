@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!-- MyGRACE Plan Index — lazy-loading entry point for phase navigation -->
 <!-- MyGRACE plan index generated from per-phase files; archived monoliths are reference-only -->
-<PlanIndex VERSION="1.0.0" PROJECT="KrotPN" PHASE-COUNT="43">
+<PlanIndex VERSION="1.0.0" PROJECT="KrotPN" PHASE-COUNT="45">
   <Phase-1 NAME="Policy model and safe compatibility layer" STATUS="done" STEPS="3" MODULES="M-007,M-017" />
   <Phase-2 NAME="Runtime synchronization and DNS binding" STATUS="done" STEPS="3" MODULES="M-017" />
   <Phase-3 NAME="Admin control plane and operator visibility" STATUS="done" STEPS="3" MODULES="M-006,M-010,M-017" />
@@ -45,4 +45,6 @@
   <Phase-41 NAME="KPprotoN fake-TLS production data-plane rollback" STATUS="passed-live" STEPS="9" MODULES="M-043,M-044,M-049,M-050,M-051,M-052,M-053,M-012,M-045,M-047" />
   <Phase-42 NAME="MTProto Usage Analytics and Promotion Tag Control" STATUS="passed-live" STEPS="10" MODULES="M-054,M-055,M-056,M-057,M-058,M-059,M-042,M-044,M-047,M-049,M-050,M-051" />
   <Phase-43 NAME="MTProto Admin Analytics UX, Abuse Alerts and 90-day IP Observability" STATUS="pass-local" STEPS="12" MODULES="M-001,M-008,M-026,M-028,M-042,M-047,M-054,M-055,M-056,M-057,M-058,M-060,M-061" />
+  <Phase-44 NAME="Email Onboarding UX and Password Recovery" STATUS="planned" STEPS="8" MODULES="M-062,M-001,M-002,M-009,M-027,M-028,M-040,M-041" />
+  <Phase-45 NAME="First VPN Handshake Trial Activation and Subscription Calendar" STATUS="planned" STEPS="9" MODULES="M-063,M-001,M-003,M-004,M-008,M-009,M-022,M-028,M-036" />
 </PlanIndex>

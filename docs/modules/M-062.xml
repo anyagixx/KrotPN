@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<M-062 NAME="onboarding-email-password-security" TYPE="CORE_LOGIC" STATUS="planned-phase44">
+  <path>backend/app/email backend/app/users frontend scripts/phase44-auth-email-ux-smoke.mjs docs/plans/Phase-44.xml</path>
+  <owns>Branded verification email UX, password-strength policy, password recovery, duplicate-email registration guidance, and user-facing pending-email copy.</owns>
+  <purpose>Make email onboarding clearer and safer without changing deploy/install scripts or weakening verified-email ownership gates.</purpose>
+  <exports>
+    <fn-build-branded-verification-email>Render compact branded verification email HTML and text fallback for Resend delivery.</fn-build-branded-verification-email>
+    <fn-build-password-reset-email>Render password reset email content with one-time token semantics and safe text fallback.</fn-build-password-reset-email>
+    <fn-validate-password-strength>Reject weak or common passwords consistently on backend and frontend.</fn-validate-password-strength>
+    <fn-request-password-reset>Accept a normalized email address and create a one-time reset flow without leaking reset tokens.</fn-request-password-reset>
+    <fn-reset-password>Consume a valid reset token once and set a strong replacement password.</fn-reset-password>
+    <view-registration-pending-email>Show concise check-email and spam-folder guidance after registration.</view-registration-pending-email>
+  </exports>
+  <depends>M-001,M-002,M-009,M-027,M-028,M-040,M-041</depends>
+  <verification-ref>V-M-062</verification-ref>
+  <files>
+    <file>backend/app/email/templates.py</file>
+    <file>backend/app/email/service.py</file>
+    <file>backend/app/users/models.py</file>
+    <file>backend/app/users/router.py</file>
+    <file>backend/app/users/schemas.py</file>
+    <file>backend/app/users/service.py</file>
+    <file>backend/alembic/versions/phase44_password_reset_tokens.py</file>
+    <file>frontend/src/pages/Register.tsx</file>
+    <file>frontend/src/pages/ForgotPassword.tsx</file>
+    <file>frontend/src/pages/ResetPassword.tsx</file>
+    <file>frontend/src/lib/api.ts</file>
+    <file>scripts/phase44-auth-email-ux-smoke.mjs</file>
+  </files>
+  <phase-44-scope>
+    <in>Verification email visual redesign, operator sender-avatar note, spam-folder hint, removal of stale 3-day trial/VPN wording, deletion of registration side-info panel, strong-password backend and frontend validation, forgot/reset password flow, duplicate-email UX with reset CTA, and rate-limited reset endpoints.</in>
+    <out>Changing install/deploy scripts, bypassing email verification, issuing access before email proof, guaranteeing sender avatar rendering inside every mailbox, or weakening MTProto/VPN provisioning guards.</out>
+  </phase-44-scope>
+  <constraints>
+    <constraint-1>Email verification and reset tokens must never be logged, returned after creation, or stored raw.</constraint-1>
+    <constraint-2>Password reset must be one-time, TTL-bound, rate-limited, and safe for already-authenticated and unauthenticated users.</constraint-2>
+    <constraint-3>Duplicate-email messaging is an approved UX tradeoff and must pair with throttling to limit account enumeration abuse.</constraint-3>
+    <constraint-4>Sender avatar behavior is mailbox/provider-side branding; KrotPN backend can improve templates and deliverability but cannot force recipient UI avatars through the Resend send API.</constraint-4>
+  </constraints>
+  <acceptance-metrics>
+    <metric-1>Registration pending view tells users to check spam and no longer mentions 3-day trial or immediate VPN access.</metric-1>
+    <metric-2>Registration and reset forms reject weak passwords consistently before and after API submission.</metric-2>
+    <metric-3>Forgot/reset flow works for valid tokens, rejects expired/replayed tokens, and returns safe generic request responses where appropriate.</metric-3>
+    <metric-4>Frontend build and Phase-44 smoke pass without touching deploy/install scripts.</metric-4>
+  </acceptance-metrics>
+  <hotspot>H-049: Password recovery and duplicate-email hints must not leak reset tokens, allow account takeover, or make email enumeration worse than the approved UX tradeoff</hotspot>
+</M-062>

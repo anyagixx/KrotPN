@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Phase-45 NAME="First VPN Handshake Trial Activation and Subscription Calendar" STATUS="planned" VERSION="1.0.0" MODULES="M-063,M-001,M-003,M-004,M-008,M-009,M-022,M-028,M-036" CREATED="2026-06-01" UPDATED="2026-06-01">
+  <purpose>Change KrotPN trial semantics so verified users receive a four-day VPN trial whose countdown starts only after their first successful VPN connection.</purpose>
+  <scope>
+    <in>TRIAL_DAYS default from 3 to 4, pending trial lifecycle after email verification, first-handshake activation from VPN stats, idempotent subscription update, subscription countdown API, dashboard remaining-time UX, and calendar highlighting active subscription dates.</in>
+    <out>Deploy/install script changes, MTProto proxy expiration changes, paid subscription duration changes, automatic VPN client rotation, and production backup/restore work.</out>
+  </scope>
+  <steps>
+    <step-1 MODULE="M-063,M-001" STATUS="planned">Update runtime settings and documentation to make the default free trial duration four days while preserving env override behavior.</step-1>
+    <step-2 MODULE="M-063,M-004,M-028" STATUS="planned">Add nullable pending-trial activation fields and migration metadata without breaking existing subscriptions.</step-2>
+    <step-3 MODULE="M-063,M-004,M-041" STATUS="planned">Change verified-email onboarding to create an eligible pending trial instead of an already-running trial.</step-3>
+    <step-4 MODULE="M-063,M-003,M-004,M-022" STATUS="planned">Allow verified users with pending trial state to retrieve and use their first VPN config before the countdown starts.</step-4>
+    <step-5 MODULE="M-063,M-003,M-008,M-004" STATUS="planned">Activate pending trial atomically from the first successful VPN handshake observed by the scheduler or stats refresh path.</step-5>
+    <step-6 MODULE="M-063,M-004" STATUS="planned">Expose subscription state with pending_activation, activated_at, expires_at, remaining_seconds, remaining_days, remaining_hours, and remaining_minutes.</step-6>
+    <step-7 MODULE="M-063,M-009,M-036" STATUS="planned">Update dashboard and subscription pages to show compact remaining days/hours/minutes and pending-first-connection state.</step-7>
+    <step-8 MODULE="M-063,M-009,M-036" STATUS="planned">Add calendar view with active subscription date range highlighting and mobile-safe controls.</step-8>
+    <step-9 MODULE="M-063" STATUS="planned">Run billing/VPN/scheduler regression tests, frontend build, Phase-45 smoke, XML parse, MyGRACE lint, and no deploy/install diff guard.</step-9>
+  </steps>
+  <data-flow>
+    <flow-1>Email verification -> M-041 onboarding -> M-004 creates pending trial -> M-022 exposes first config path -> M-009 shows "starts after first VPN connection".</flow-1>
+    <flow-2>VPN client connects -> M-003 updates last_handshake_at -> M-008 detects first handshake -> M-004 sets started_at and expires_at = started_at + 4 days once.</flow-2>
+    <flow-3>Dashboard/subscription request -> M-004 returns server-time countdown -> M-009 renders remaining time and active date calendar.</flow-3>
+  </data-flow>
+  <mental-walkthroughs>
+    <walkthrough-1>Verified user does not connect today: pending trial remains unstarted, config is available, and UI explains that timer starts after first VPN connection.</walkthrough-1>
+    <walkthrough-2>Verified user connects once: scheduler observes first handshake, starts the four-day countdown, and subsequent handshakes do not extend it.</walkthrough-2>
+    <walkthrough-3>Paid user or already-started trial: handshake activation does nothing destructive and paid subscription expiry remains governed by billing/payment rules.</walkthrough-3>
+  </mental-walkthroughs>
+  <phase-gates>
+    <gate-1>New verified registrations create pending trial state without starting the countdown.</gate-1>
+    <gate-2>Pending trial users can retrieve and use their first VPN config.</gate-2>
+    <gate-3>First successful VPN handshake activates exactly one four-day trial window.</gate-3>
+    <gate-4>Subscription API returns precise server-side remaining time and active date range.</gate-4>
+    <gate-5>User dashboard and subscription page are compact on mobile and avoid stale "3 days" copy.</gate-5>
+    <gate-6>Existing paid, complimentary, expired, and already-active subscriptions are not extended accidentally.</gate-6>
+    <gate-7>Deploy/install scripts remain untouched.</gate-7>
+  </phase-gates>
+  <risks>
+    <risk-1 severity="critical">If pending trial is treated as inactive everywhere, users can be blocked from the first config and never start the trial.</risk-1>
+    <risk-2 severity="high">If activation is not idempotent, repeated handshakes can extend trial unfairly.</risk-2>
+    <risk-3 severity="medium">Scheduler delay may make countdown appear pending briefly after first connection; UI must tolerate that state.</risk-3>
+    <risk-4 severity="medium">Legacy users with already-running trials need migration-safe behavior and no retroactive surprise extension unless explicitly defined.</risk-4>
+  </risks>
+  <verification>
+    <commands>
+      <command status="planned">cd backend &amp;&amp; SECRET_KEY=test-secret-key-with-enough-length DATA_ENCRYPTION_KEY=dpFmfSVqfdAK3yx5MQV6Tcv35RZuw5MzaH0yhxJ01q0= PYTHONPATH=. ../.venv/bin/python -m pytest -o addopts='' tests/test_trial_activation.py tests/test_billing_service.py tests/test_verified_registration.py tests/test_vpn_router_compat.py tests/test_scheduler.py tests/test_db_migrations.py -v</command>
+      <command status="planned">cd frontend &amp;&amp; npm run build</command>
+      <command status="planned">node scripts/phase45-trial-subscription-ux-smoke.mjs</command>
+      <command status="planned">python3 -m xml.etree.ElementTree docs/plans/Phase-45.xml docs/modules/M-063.xml docs/verification/V-M-063.xml docs/graph-index.xml docs/plan-index.xml docs/verification-index.xml docs/requirements.xml docs/current-status.xml</command>
+      <command status="planned">mygrace lint</command>
+    </commands>
+  </verification>
+</Phase-45>

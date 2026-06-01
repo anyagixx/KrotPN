@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<V-M-063 MODULE="M-063" PRIORITY="critical" STATUS="planned">
+  <purpose>Verify Phase-45 four-day trial and first-VPN-handshake activation semantics across billing, VPN, scheduler, and user cabinet UX.</purpose>
+  <checks>Pending trial is created after email verification, first config remains available, first successful VPN handshake activates the four-day countdown exactly once, subscription API returns precise remaining time, and mobile UI shows countdown plus calendar without stale 3-day copy.</checks>
+  <test-files>
+    <file>backend/tests/test_trial_activation.py</file>
+    <file>backend/tests/test_billing_service.py</file>
+    <file>backend/tests/test_verified_registration.py</file>
+    <file>backend/tests/test_vpn_router_compat.py</file>
+    <file>backend/tests/test_scheduler.py</file>
+    <file>backend/tests/test_db_migrations.py</file>
+    <file>frontend/src/pages/Dashboard.tsx</file>
+    <file>frontend/src/pages/Subscription.tsx</file>
+    <file>scripts/phase45-trial-subscription-ux-smoke.mjs</file>
+  </test-files>
+  <phase-45-gates>
+    <gate-1>Verified registration creates a pending four-day trial that has no running countdown before first VPN handshake.</gate-1>
+    <gate-2>Pending trial permits first VPN config retrieval and successful VPN connection path.</gate-2>
+    <gate-3>First VPN handshake sets started_at and expires_at once; repeated handshakes do not extend trial.</gate-3>
+    <gate-4>Paid, complimentary, expired, and already-active subscriptions are not overwritten by pending-trial activation.</gate-4>
+    <gate-5>Subscription API exposes remaining seconds/days/hours/minutes and active date range from server time.</gate-5>
+    <gate-6>Dashboard and subscription pages show pending activation, countdown, and calendar without horizontal mobile scroll.</gate-6>
+    <gate-7>Deploy/install scripts show no diff.</gate-7>
+  </phase-45-gates>
+  <scenarios>
+    <scenario-1 kind="success">User verifies email, receives pending trial, downloads config, and UI says timer starts after first VPN connection.</scenario-1>
+    <scenario-2 kind="success">First handshake activates exactly four days of trial from handshake timestamp.</scenario-2>
+    <scenario-3 kind="failure">Second handshake does not move expires_at forward.</scenario-3>
+    <scenario-4 kind="success">Paid user handshake does not convert or shorten paid subscription.</scenario-4>
+    <scenario-5 kind="failure">Expired pending or ineligible trial does not create unauthorized VPN access.</scenario-5>
+  </scenarios>
+  <commands>
+    <command status="planned">cd backend &amp;&amp; SECRET_KEY=test-secret-key-with-enough-length DATA_ENCRYPTION_KEY=dpFmfSVqfdAK3yx5MQV6Tcv35RZuw5MzaH0yhxJ01q0= PYTHONPATH=. ../.venv/bin/python -m pytest -o addopts='' tests/test_trial_activation.py tests/test_billing_service.py tests/test_verified_registration.py tests/test_vpn_router_compat.py tests/test_scheduler.py tests/test_db_migrations.py -v</command>
+    <command status="planned">cd frontend &amp;&amp; npm run build</command>
+    <command status="planned">node scripts/phase45-trial-subscription-ux-smoke.mjs</command>
+    <command status="planned">python3 -m xml.etree.ElementTree docs/plans/Phase-45.xml docs/modules/M-063.xml docs/verification/V-M-063.xml docs/graph-index.xml docs/plan-index.xml docs/verification-index.xml docs/requirements.xml docs/current-status.xml</command>
+    <command status="planned">mygrace lint</command>
+  </commands>
+</V-M-063>

@@ -3,7 +3,7 @@
 <current-status>
   <meta>
     <project-name>KrotPN</project-name>
-    <updated>2026-05-24</updated>
+    <updated>2026-06-01</updated>
     <status>active-development</status>
   </meta>
 
@@ -84,6 +84,8 @@
     <item>Phase-41 is passed-live: KrotPN provisioning returns ee fake-TLS links and live diagnostics prove policy replay, RU SNI routing, fake-TLS accept, valid non-empty proxy ad tag, issued-link mtp_ping req_pq success, and operator-confirmed Telegram Desktop/mobile connectivity after clean deploy.</item>
     <item>Phase-42 analytics/promotion tag are passed-live for the promotion tag path: active connections, handshakes, closes, protocol errors, req_pq hints, and global bytes are wired from the live runtime; exact per-user byte attribution under concurrent active SNI domains remains a future data-plane-hook limitation.</item>
     <item>Phase-43 analytics are partially passed-live: raw IP data is encrypted and admin-only with 90-day retention, and the clean-deploy validation confirmed real client IP visibility for MTProto users. Resource-metric tuning, graph polish, and TTL IP block runtime enforcement remain future hardening items.</item>
+    <item>Phase-44 is planned for email onboarding UX, stronger password policy, password recovery, duplicate-email recovery CTA, and clearer spam-folder guidance without deploy/install changes.</item>
+    <item>Phase-45 is planned for 4-day pending VPN trial activation on first successful VPN handshake plus days/hours/minutes countdown and subscription calendar UX without deploy/install changes.</item>
     <item>Emergency relocation is documented but still blocked until a trusted backup bundle and isolated restore target exist for dry-run evidence.</item>
     <item>Cookie-only auth migration is planned but not executed because it requires explicit approval and HTTPS or production-like smoke evidence.</item>
   </what-is-fragile>
@@ -179,15 +181,23 @@
     <gate id="phase-43-mtproto-admin-analytics-alerts-ip-observability" status="passed-local">
       <summary>Local Phase-43 execution passed for compact admin analytics UX, encrypted 90-day admin-only IP observability, alert inbox/actions with Russian hover help, hidden visible Signals noise, storage retention jobs, backend/API/UI regressions, Erlang compile, XML parse, MyGRACE lint, and static redaction smoke; live deployment validation remains the next evidence step.</summary>
     </gate>
+    <gate id="phase-44-email-onboarding-password-recovery" status="planned">
+      <summary>Planned scope covers branded verification/reset emails, spam-folder guidance, strong-password enforcement, password reset, duplicate-email recovery CTA, and no deploy/install changes.</summary>
+    </gate>
+    <gate id="phase-45-first-vpn-handshake-trial-activation" status="planned">
+      <summary>Planned scope changes new verified-user VPN trial semantics to 4 pending days activated by first successful VPN handshake with precise countdown and calendar UX.</summary>
+    </gate>
   </rollout-gates>
 
   <immediate-priorities>
-    <priority rank="1">Use the v2.21.5-reboot-resilience-stable baseline for future clean VPS deployments, test feedback, and frontend client/admin redesign work.</priority>
-    <priority rank="2">Continue Phase-43 admin analytics hardening with real redacted runtime data: graph refresh polish, resource metrics, alert notifications, and TTL IP block runtime enforcement.</priority>
-    <priority rank="3">Run Phase-22 non-production restore rehearsal with a trusted backup bundle and isolated restore target before production release.</priority>
-    <priority rank="4">Decide whether to approve cookie-only auth migration and provide HTTPS or production-like auth smoke target.</priority>
-    <priority rank="5">Improve repeatable local verification for backend, user frontend, and admin frontend.</priority>
-    <priority rank="6">Tune false-positive thresholds before enabling any automatic anti-sharing block policy beyond admin-reviewed detect-first mode.</priority>
+    <priority rank="1">Execute Phase-44 email onboarding UX and password recovery after user approval.</priority>
+    <priority rank="2">Execute Phase-45 first-VPN-handshake trial activation and subscription countdown after Phase-44 or in a controlled separate wave.</priority>
+    <priority rank="3">Use the v2.21.5-reboot-resilience-stable baseline for future clean VPS deployments, test feedback, and frontend client/admin redesign work.</priority>
+    <priority rank="4">Continue Phase-43 admin analytics hardening with real redacted runtime data: graph refresh polish, resource metrics, alert notifications, and TTL IP block runtime enforcement.</priority>
+    <priority rank="5">Run Phase-22 non-production restore rehearsal with a trusted backup bundle and isolated restore target before production release.</priority>
+    <priority rank="6">Decide whether to approve cookie-only auth migration and provide HTTPS or production-like auth smoke target.</priority>
+    <priority rank="7">Improve repeatable local verification for backend, user frontend, and admin frontend.</priority>
+    <priority rank="8">Tune false-positive thresholds before enabling any automatic anti-sharing block policy beyond admin-reviewed detect-first mode.</priority>
   </immediate-priorities>
 
   <known-risks>
