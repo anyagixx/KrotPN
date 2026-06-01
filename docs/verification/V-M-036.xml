@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<V-M-036 MODULE="M-036" PRIORITY="high" STATUS="pass-local">
+<V-M-036 MODULE="M-036" PRIORITY="high" STATUS="pass-local-phase45" VERSION="1.1.0">
   <module>mobile-user-cabinet</module>
-  <checks>User frontend must become compact, phone-friendly, and focused on VPN config, subscription, and device workflows.</checks>
-  <test-files>frontend/src/components/Layout.tsx frontend/src/pages/Dashboard.tsx frontend/src/pages/Config.tsx frontend/src/pages/Subscription.tsx frontend/src/index.css</test-files>
-  <commands>cd frontend &amp;&amp; npm run build; Phase-23 mobile smoke for /, /config, and /subscription at 360x740, 390x844, and 430x932; assert documentElement.scrollWidth &lt;= innerWidth and primary config path &lt;= 2 taps</commands>
+  <checks>User frontend must become compact, phone-friendly, and focused on VPN config, subscription, device workflows, and Phase-45 pending trial countdown/calendar UX.</checks>
+  <test-files>frontend/src/components/Layout.tsx frontend/src/pages/Dashboard.tsx frontend/src/pages/Config.tsx frontend/src/pages/Subscription.tsx frontend/src/index.css scripts/phase45-trial-subscription-ux-smoke.mjs</test-files>
+  <commands>cd frontend &amp;&amp; npm run build; Phase-23 mobile smoke for /, /config, and /subscription at 360x740, 390x844, and 430x932; node scripts/phase45-trial-subscription-ux-smoke.mjs; assert documentElement.scrollWidth &lt;= innerWidth and primary config path &lt;= 2 taps</commands>
   <levels>
     <module-local>TypeScript/Vite build must pass for the user frontend after each execution step that changes Phase-23 files.</module-local>
     <wave-level>Authenticated mobile route smoke must cover dashboard, config/device, and subscription workflows after UI shell and page changes are merged.</wave-level>
@@ -19,6 +19,9 @@
     <route-subscription path="/subscription">
       Check current subscription state, days left, plan price, duration, and renewal/payment button remain readable on all mobile viewports.
     </route-subscription>
+    <route-phase45-subscription path="/subscription">
+      Check pending-first-VPN state, server-derived days/hours/minutes, and active subscription date calendar remain compact and do not show stale 3-day trial copy.
+    </route-phase45-subscription>
     <route-empty-states path="/,/config,/subscription">
       Check loading, forbidden/no-config, no-devices, no-plans, expired-subscription, and request-error states keep an actionable next step.
     </route-empty-states>
@@ -30,6 +33,7 @@
     <check-4>Subscription and device state remain visible without oversized decorative sections.</check-4>
     <check-5>Create device, rotate device, revoke device, QR, copy, and .conf download controls remain present.</check-5>
     <check-6>Existing backend API request/response shapes are unchanged in Phase-23.</check-6>
+    <check-7>Phase-45 dashboard and subscription pages render pending activation, remaining days/hours/minutes, and calendar marker from the subscription API fields.</check-7>
   </module-checks>
   <scenarios>
     <scenario-1 kind="success">Authenticated user opens the cabinet on a phone and immediately sees VPN status, config action, subscription state, and active device summary.</scenario-1>
@@ -38,6 +42,7 @@
     <scenario-4 kind="failure">Primary VPN action is buried behind desktop-only navigation or a large decorative layout.</scenario-4>
     <scenario-5 kind="failure">A mobile viewport introduces horizontal scroll, hidden controls, clipped critical text, or overlapping action buttons.</scenario-5>
     <scenario-6 kind="failure">Simplification removes device-bound rotate/revoke/config retrieval behavior.</scenario-6>
+    <scenario-7 kind="success">Pending trial user sees that the four-day timer starts after first VPN connection; activated trial user sees remaining days, hours, minutes, and highlighted active dates.</scenario-7>
   </scenarios>
   <critical-invariants>
     <invariant-1>No backend API endpoint, request body, or response shape changes are introduced by Phase-23.</invariant-1>
@@ -67,6 +72,7 @@
     <evidence-3>Record action reachability for config QR/download/copy from mobile home.</evidence-3>
     <evidence-4>Record that device create/rotate/revoke controls and subscription payment entry are still present.</evidence-4>
     <evidence-5>2026-05-10: npm run build passed; Chrome CDP smoke passed for /, /config, /subscription at 360x740, 390x844, 430x932 with no horizontal scroll and required actions present.</evidence-5>
+    <evidence-6>2026-06-01: frontend npm run build passed and node scripts/phase45-trial-subscription-ux-smoke.mjs passed for pending trial copy, countdown fields, active-date calendar marker, and stale 3-day copy guard.</evidence-6>
   </evidence>
   <autonomous-execution-safety status="allowed-after-build-and-mobile-smoke">
     Autonomous execution may proceed inside Phase-23 user frontend files if each step preserves module contracts, keeps deploy/install out of scope, and records build plus viewport evidence before commit.

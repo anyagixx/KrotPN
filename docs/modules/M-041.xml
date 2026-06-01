@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<M-041 NAME="verified-email-registration" TYPE="CORE_LOGIC" STATUS="done-local">
-  <path>backend/app/users backend/app/email scripts/phase36-resend-deploy-smoke.mjs docs/plans/Phase-27.xml docs/plans/Phase-28.xml docs/plans/Phase-36.xml</path>
-  <owns>Pending email registration, email ownership verification, disposable-domain guard, and Phase-28 post-verification onboarding orchestration.</owns>
-  <purpose>Build the verified-registration foundation so KrotPN can create user access, trial subscription, VPN config, referral effects, and MTProto proxy only after email ownership is proven.</purpose>
+<M-041 NAME="verified-email-registration" TYPE="CORE_LOGIC" STATUS="pass-local-phase45">
+  <path>backend/app/users backend/app/email backend/tests/test_trial_activation.py scripts/phase36-resend-deploy-smoke.mjs docs/plans/Phase-27.xml docs/plans/Phase-28.xml docs/plans/Phase-36.xml docs/plans/Phase-45.xml</path>
+  <owns>Pending email registration, email ownership verification, disposable-domain guard, Phase-28 post-verification onboarding orchestration, and Phase-45 pending trial handoff.</owns>
+  <purpose>Build the verified-registration foundation so KrotPN can create user access, pending trial access, VPN config, referral effects, and MTProto proxy only after email ownership is proven.</purpose>
   <exports>
     <fn-request-registration>Validate email/password/referral input and send a one-time verification email without creating active access.</fn-request-registration>
     <fn-verify-registration>Consume verification token once for low-level token lifecycle checks.</fn-verify-registration>
-    <fn-activate-registration>Consume verification token once, create verified user, and hand off onboarding side effects after ownership proof.</fn-activate-registration>
+    <fn-activate-registration>Consume verification token once, create verified user, and hand off onboarding side effects after ownership proof, including pending VPN trial access.</fn-activate-registration>
     <fn-email-risk-check>Evaluate syntax, domain, MX/DNS, disposable-domain, and configured deny/allow policies.</fn-email-risk-check>
     <fn-registration-status>Return safe pending, verified, expired, or rejected registration state for the frontend.</fn-registration-status>
   </exports>
@@ -20,11 +20,12 @@
     <file>backend/tests/test_email_verification_guard.py</file>
     <file>backend/tests/test_verified_registration.py</file>
     <file>backend/tests/test_phase34_mtproto_integration.py</file>
+    <file>backend/tests/test_trial_activation.py</file>
   </files>
   <registration-policy>
     <policy-1>Phase-27 kept active /register behavior unchanged while pending-registration primitives were verified.</policy-1>
     <policy-2>Phase-28 changes plain /register so active user access is not created before email verification.</policy-2>
-    <policy-3>Trial subscription remains 3 days but starts only after verified activation.</policy-3>
+    <policy-3>Trial access is a four-day pending trial after verified activation; the countdown starts only after the first successful VPN handshake.</policy-3>
     <policy-4>Telegram auth remains a separate verified identity path unless explicitly merged later.</policy-4>
   </registration-policy>
   <implementation-state>
@@ -33,6 +34,7 @@
     <state-3>MTProto assignment remains deferred to Phase-29+ and is not issued in Phase-28.</state-3>
     <state-4>Phase-34 local integration verifies verified activation can expose one owner MTProto assignment while pending/unverified registration creates none.</state-4>
     <state-5>Phase-36 wires production Resend deploy settings so pending registration sends verification emails on clean VPS deployments after operator Resend domain verification.</state-5>
+    <state-6>Phase-45 changes verified activation to create pending trial access only; countdown activation is owned by M-063/M-004 after first VPN handshake.</state-6>
   </implementation-state>
   <constraints>
     <constraint-1>Do not issue trial, VPN device, referral bonus, or MTProto proxy for unverified email.</constraint-1>
@@ -48,6 +50,7 @@
   <evidence>
     <evidence-1>2026-05-17: Phase-36 local verification keeps registration tests on fake providers and leaves controlled-mailbox Resend smoke operator-only.</evidence-1>
     <evidence-2>2026-05-19: Operator clean-deploy registration via email succeeded with Resend configured while preserving pending-before-verification behavior.</evidence-2>
+    <evidence-3>2026-06-01: Phase-45 backend suite passed and proves verified-email activation creates pending four-day trial access without starting the countdown before first VPN handshake.</evidence-3>
   </evidence>
   <hotspot>H-027: Trial, VPN provisioning, referral effects, and MTProto issuance must not happen before email ownership is verified</hotspot>
 </M-041>

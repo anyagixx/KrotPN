@@ -1,12 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<M-036 NAME="mobile-user-cabinet" TYPE="UI_COMPONENT" STATUS="done">
-  <path>frontend docs/plans/Phase-23.xml</path>
-  <owns>Compact mobile-first personal cabinet for VPN status, subscription state, device management, and config access</owns>
+<M-036 NAME="mobile-user-cabinet" TYPE="UI_COMPONENT" STATUS="pass-local-phase45">
+  <path>frontend scripts/phase45-trial-subscription-ux-smoke.mjs docs/plans/Phase-23.xml docs/plans/Phase-45.xml</path>
+  <owns>Compact mobile-first personal cabinet for VPN status, subscription state, trial countdown/calendar, device management, and config access</owns>
   <exports>
     <view-mobile-home>Single compact home surface with VPN status, subscription state, and primary config action</view-mobile-home>
     <view-mobile-config>Selected-device config workflow with QR, .conf download, copy, and raw-config fallback</view-mobile-config>
     <view-mobile-devices>Small-screen device list with create, rotate, revoke, and selected-device config actions</view-mobile-devices>
     <view-mobile-billing>Compact subscription and payment action surface</view-mobile-billing>
+    <view-mobile-countdown-calendar>Compact Phase-45 pending-first-VPN state, remaining days/hours/minutes, and active subscription date calendar</view-mobile-countdown-calendar>
     <view-mobile-empty-states>Phone-safe unavailable, expired, loading, and error states with actionable next steps</view-mobile-empty-states>
   </exports>
   <depends>M-002, M-003, M-004, M-005, M-022, M-038</depends>
@@ -17,17 +18,19 @@
     <file>frontend/src/pages/Config.tsx</file>
     <file>frontend/src/pages/Subscription.tsx</file>
     <file>frontend/src/index.css</file>
+    <file>scripts/phase45-trial-subscription-ux-smoke.mjs</file>
     <file>docs/plans/Phase-23.xml</file>
+    <file>docs/plans/Phase-45.xml</file>
   </files>
   <workflows>
     <DF-UI-USER-HOME>Dashboard aggregates auth/user stats, VPN stats, subscription state, and device summary into the first mobile screen.</DF-UI-USER-HOME>
     <DF-UI-CONFIG-ACTION>Primary config action opens QR/download/copy for the current or newly created device without requiring a desktop layout.</DF-UI-CONFIG-ACTION>
     <DF-UI-DEVICE-MANAGEMENT>Device create, rotate, revoke, and config retrieval remain available through compact rows and confirmation-safe controls.</DF-UI-DEVICE-MANAGEMENT>
-    <DF-UI-BILLING>Subscription page and dashboard renewal CTA preserve the existing billing API contract and payment redirect behavior.</DF-UI-BILLING>
+    <DF-UI-BILLING>Subscription page and dashboard renewal CTA preserve the existing billing API contract and payment redirect behavior while rendering Phase-45 pending/countdown/calendar state.</DF-UI-BILLING>
     <DF-UI-MTPROTO-PROXY>Dashboard shows the authenticated owner's Telegram MTProto proxy state and copy/open actions without hiding VPN trial or config actions.</DF-UI-MTPROTO-PROXY>
   </workflows>
   <content-priority>
-    <primary>VPN status, config action, QR/download, subscription state, device slots, active device rows</primary>
+    <primary>VPN status, config action, QR/download, subscription state, trial countdown/calendar, device slots, active device rows</primary>
     <secondary>Telegram MTProto proxy state, traffic counters, last handshake, referral CTA, profile/settings shortcuts, raw config text</secondary>
     <removable-from-first-screen>Decorative hero copy, repeated identity panels, large status card grids, explanatory marketing text</removable-from-first-screen>
   </content-priority>
@@ -44,6 +47,8 @@
     <metric-3>Device create, rotate, revoke, and selected config retrieval remain present after simplification.</metric-3>
     <metric-4>cd frontend &amp;&amp; npm run build passes.</metric-4>
     <metric-5>Phase-31 MTProto card renders without horizontal scroll and keeps VPN config/subscription actions reachable.</metric-5>
+    <metric-6>Phase-45 subscription UX smoke passes for pending trial copy, server-derived countdown fields, active-date calendar marker, and stale 3-day copy guard.</metric-6>
   </acceptance-metrics>
+  <evidence>2026-06-01: frontend npm run build passed and node scripts/phase45-trial-subscription-ux-smoke.mjs passed for pending-first-VPN state, remaining days/hours/minutes, and compact subscription calendar wiring.</evidence>
   <hotspot>H-023: Mobile user cabinet must keep config download, QR, subscription and device actions reachable without clutter</hotspot>
 </M-036>
