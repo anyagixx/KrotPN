@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Phase-48 NAME="VPN Config Download MIME and Filename Hardening" STATUS="planned" VERSION="1.0.0" MODULES="M-066,M-001,M-003,M-009,M-022,M-036" CREATED="2026-06-01" UPDATED="2026-06-01">
+  <purpose>Harden VPN configuration downloads so Android, iOS, and desktop browsers save WireGuard and AmneziaVPN configs as the original .conf files instead of appending .txt.</purpose>
+  <scope>
+    <in>Backend download response MIME and headers, safe .conf filename policy, frontend Blob MIME alignment for config downloads, compatibility tests, static smoke, and MyGRACE metadata.</in>
+    <out>Deploy/install scripts, nginx/docker-compose, TLS/certificate handling, VPN profile generation, AWG/WG cryptographic material, QR rendering, raw config content changes, and mobile app-specific import automation.</out>
+  </scope>
+  <problem>Mobile browsers can rename vpn.conf to vpn.conf.txt when the server returns config downloads as text/plain; the current KrotPN download surface must make the file an attachment with non-text MIME and explicit .conf filename metadata.</problem>
+  <steps>
+    <step-1 MODULE="M-066,M-003,M-022" STATUS="planned">Inventory current config download surfaces and confirm /api/v1/vpn/config/download is the canonical server-side attachment endpoint.</step-1>
+    <step-2 MODULE="M-066,M-003" STATUS="planned">Add a small backend response helper that UTF-8 encodes config text and returns application/octet-stream without a text/plain charset.</step-2>
+    <step-3 MODULE="M-066,M-003" STATUS="planned">Add safe Content-Disposition with both filename=&quot;krotpn-*.conf&quot; and filename*=UTF-8''krotpn-*.conf, plus X-Content-Type-Options: nosniff and Cache-Control: no-store, private.</step-3>
+    <step-4 MODULE="M-066,M-003" STATUS="planned">Implement filename sanitation that removes separators, unsafe characters, duplicate extensions, and any accidental .txt suffix while enforcing exactly one .conf suffix.</step-4>
+    <step-5 MODULE="M-066,M-009,M-036" STATUS="planned">Update frontend config download Blob creation to use application/octet-stream for both backend-returned blobs and locally available managed-device config text.</step-5>
+    <step-6 MODULE="M-066,M-022" STATUS="planned">Add or extend backend compatibility tests for headers, body preservation, authentication, and no regression to pending-trial first config access.</step-6>
+    <step-7 MODULE="M-066" STATUS="planned">Add Phase-48 static smoke that fails on text/plain download responses, missing filename-star/nosniff headers, .conf.txt filenames, or deploy/install/nginx/docker-compose changes.</step-7>
+    <step-8 MODULE="M-066" STATUS="planned">Run backend router tests, frontend build, Phase-48 smoke, XML parse, MyGRACE lint, and deploy/install diff guard.</step-8>
+  </steps>
+  <data-flow>
+    <flow-1>User taps download in mobile cabinet -&gt; frontend requests /api/v1/vpn/config/download -&gt; backend returns bytes with application/octet-stream and attachment .conf filename.</flow-1>
+    <flow-2>Managed config already loaded in frontend -&gt; frontend creates Blob with application/octet-stream -&gt; browser download attribute stays krotpn-*.conf.</flow-2>
+    <flow-3>QR/copy/raw config paths continue to use existing config text and are not transformed by the attachment-specific MIME hardening.</flow-3>
+  </data-flow>
+  <mental-walkthroughs>
+    <walkthrough-1>Android Chrome receives Content-Type application/octet-stream and Content-Disposition attachment with filename krotpn-user.conf, so it stores krotpn-user.conf instead of krotpn-user.conf.txt.</walkthrough-1>
+    <walkthrough-2>iOS Safari receives the same attachment and explicit filename metadata; even if it previews through Files, the suggested filename remains .conf.</walkthrough-2>
+    <walkthrough-3>A verified pending-trial user still reaches the first config path from Phase-45, but the response wrapper changes from plain text to a safe attachment.</walkthrough-3>
+  </mental-walkthroughs>
+  <phase-gates>
+    <gate-1>Download endpoint does not use text/plain for .conf attachment responses.</gate-1>
+    <gate-2>Content-Disposition includes attachment, filename, and filename-star values that end in .conf and never .txt.</gate-2>
+    <gate-3>Frontend-created Blobs specify application/octet-stream and preserve .conf download names.</gate-3>
+    <gate-4>Config body content, QR display, copy action, and pending-trial first config eligibility remain compatible.</gate-4>
+    <gate-5>No deploy/install/nginx/docker-compose files are changed.</gate-5>
+  </phase-gates>
+  <risks>
+    <risk-1 severity="medium">Some mobile browsers may still present a preview UI, but attachment plus octet-stream plus explicit filename is the strongest server-side control available.</risk-1>
+    <risk-2 severity="high">Changing config content or VPN profile rendering would invalidate clients; Phase-48 only changes response metadata and frontend Blob type.</risk-2>
+    <risk-3 severity="medium">Non-ASCII filenames can behave inconsistently across mobile download managers, so Phase-48 keeps generated filenames ASCII-safe.</risk-3>
+  </risks>
+  <verification>
+    <commands>
+      <command status="planned">cd backend &amp;&amp; SECRET_KEY=test-secret-key-with-enough-length PYTHONPATH=. ../.venv/bin/python -m pytest -o addopts='' tests/test_vpn_router_compat.py -v</command>
+      <command status="planned">cd frontend &amp;&amp; npm run build</command>
+      <command status="planned">node scripts/phase48-config-download-mime-smoke.mjs</command>
+      <command status="planned">python3 -m xml.etree.ElementTree docs/plans/Phase-48.xml docs/modules/M-066.xml docs/verification/V-M-066.xml docs/graph-index.xml docs/plan-index.xml docs/verification-index.xml</command>
+      <command status="planned">mygrace lint</command>
+    </commands>
+  </verification>
+</Phase-48>

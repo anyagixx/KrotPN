@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<V-M-066 MODULE="M-066" PRIORITY="high" STATUS="planned">
+  <purpose>Verify Phase-48 .conf download MIME hardening across backend headers, frontend Blob creation, and protected operational surfaces.</purpose>
+  <checks>application/octet-stream attachment response, filename and filename-star .conf metadata, nosniff, no-store/private cache control, byte-preserved config body, frontend Blob MIME alignment, auth preservation, and no deploy/install changes.</checks>
+  <test-files>
+    <file>backend/app/vpn/router.py</file>
+    <file>backend/tests/test_vpn_router_compat.py</file>
+    <file>frontend/src/pages/Config.tsx</file>
+    <file>frontend/src/lib/api.ts</file>
+    <file>scripts/phase48-config-download-mime-smoke.mjs</file>
+  </test-files>
+  <commands>
+    <command status="planned">cd backend &amp;&amp; SECRET_KEY=test-secret-key-with-enough-length PYTHONPATH=. ../.venv/bin/python -m pytest -o addopts='' tests/test_vpn_router_compat.py -v</command>
+    <command status="planned">cd frontend &amp;&amp; npm run build</command>
+    <command status="planned">node scripts/phase48-config-download-mime-smoke.mjs</command>
+    <command status="planned">python3 -m xml.etree.ElementTree docs/plans/Phase-48.xml docs/modules/M-066.xml docs/verification/V-M-066.xml docs/graph-index.xml docs/plan-index.xml docs/verification-index.xml</command>
+    <command status="planned">mygrace lint</command>
+  </commands>
+  <module-checks>
+    <check-1>/api/v1/vpn/config/download returns Content-Type application/octet-stream and never text/plain for attachment downloads.</check-1>
+    <check-2>Content-Disposition contains attachment, filename=&quot;*.conf&quot;, and filename*=UTF-8''*.conf with no .txt suffix.</check-2>
+    <check-3>X-Content-Type-Options is nosniff and Cache-Control is private/no-store so browsers do not reinterpret the payload as text.</check-3>
+    <check-4>Config body remains equivalent to the generated WireGuard/Amnezia config text after UTF-8 encoding.</check-4>
+    <check-5>Frontend download Blob creation uses application/octet-stream and the download attribute ends in .conf for all config download branches.</check-5>
+    <check-6>Pending-trial first config access, QR display, raw config copy, and device provisioning API compatibility remain intact.</check-6>
+    <check-7>Smoke fails if Phase-48 changes install.sh, deploy scripts, nginx, docker-compose, TLS material, or VPN profile generation logic.</check-7>
+  </module-checks>
+  <scenarios>
+    <scenario-1 kind="success">Android Chrome downloads krotpn-user.conf from the backend endpoint and does not receive text/plain metadata that would invite .txt renaming.</scenario-1>
+    <scenario-2 kind="success">A frontend-managed device config download creates an octet-stream Blob and suggests krotpn-device.conf.</scenario-2>
+    <scenario-3 kind="success">A verified pending-trial user can still retrieve the first VPN config, with only attachment metadata changed.</scenario-3>
+    <scenario-4 kind="failure">Any response header, filename helper, or frontend branch emits .conf.txt, text/plain, unsafe path separators, or missing nosniff.</scenario-4>
+    <scenario-5 kind="failure">Any Phase-48 diff touches deploy/install/nginx/docker-compose or changes generated config content.</scenario-5>
+  </scenarios>
+  <required-markers>
+    <marker-1>[M-066][build_config_download_response][DOWNLOAD_HEADERS]</marker-1>
+    <marker-2>[M-066][sanitize_config_download_filename][FILENAME_SAFE]</marker-2>
+    <marker-3>[M-066][download_vpn_config][ATTACHMENT_RESPONSE]</marker-3>
+    <marker-4>[M-066][phase48_config_download_mime][STATIC_GUARD]</marker-4>
+  </required-markers>
+  <redaction-rules>
+    <rule-1>Do not log raw private keys, full config bodies, access tokens, refresh tokens, email tokens, MTProto secrets, or deployment secrets in tests or smoke output.</rule-1>
+  </redaction-rules>
+  <autonomous-execution-safety>Allowed after plan and verification approval because Phase-48 is restricted to response metadata, frontend Blob type, tests, and static smoke while deployment and VPN profile generation remain out of scope.</autonomous-execution-safety>
+</V-M-066>

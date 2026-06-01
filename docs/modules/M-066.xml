@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<M-066 NAME="vpn-config-download-mime-hardening" TYPE="ENTRY_POINT" STATUS="planned">
+  <path>backend/app/vpn/router.py frontend/src/pages/Config.tsx frontend/src/lib/api.ts scripts/phase48-config-download-mime-smoke.mjs docs/plans/Phase-48.xml</path>
+  <owns>HTTP response semantics and frontend download Blob semantics for WireGuard and AmneziaVPN .conf files.</owns>
+  <purpose>Prevent Android, iOS, and desktop browsers from renaming VPN configuration downloads from .conf to .conf.txt by forcing safe attachment and MIME headers.</purpose>
+  <exports>
+    <fn-build-config-download-response>Return config bytes with attachment, application/octet-stream, filename, filename-star, nosniff, and private no-store headers.</fn-build-config-download-response>
+    <fn-sanitize-config-download-filename>Build ASCII-safe .conf filenames without path separators, duplicate extensions, Unicode surprises, or .txt suffixes.</fn-sanitize-config-download-filename>
+    <fn-download-vpn-config>Preserve the authenticated /api/v1/vpn/config/download contract while changing only download response headers and body encoding.</fn-download-vpn-config>
+    <ui-download-config-blob>Create browser download Blobs with application/octet-stream and a .conf download attribute for cached or managed device configs.</ui-download-config-blob>
+  </exports>
+  <depends>M-001,M-003,M-009,M-022,M-036</depends>
+  <verification-ref>V-M-066</verification-ref>
+  <files>
+    <file>backend/app/vpn/router.py</file>
+    <file>backend/tests/test_vpn_router_compat.py</file>
+    <file>frontend/src/pages/Config.tsx</file>
+    <file>frontend/src/lib/api.ts</file>
+    <file>scripts/phase48-config-download-mime-smoke.mjs</file>
+    <file>docs/plans/Phase-48.xml</file>
+  </files>
+  <constraints>
+    <constraint-1>Do not change install.sh, deploy scripts, nginx, docker-compose, TLS, VPN profile generation, AWG/WG key material, or existing config text content in Phase-48.</constraint-1>
+    <constraint-2>The download endpoint must stay authenticated and must not expose configs through public URLs.</constraint-2>
+    <constraint-3>Content-Type must not be text/plain for attachment downloads because Android Chrome may append .txt.</constraint-3>
+    <constraint-4>Filename must be ASCII-safe, deterministic, and end with exactly .conf.</constraint-4>
+    <constraint-5>QR, copy-to-clipboard, raw config display, and JSON config retrieval must keep their current behavior unless explicitly changed in a later phase.</constraint-5>
+  </constraints>
+  <acceptance-metrics>
+    <metric-1>/api/v1/vpn/config/download returns application/octet-stream, attachment, filename .conf, filename-star .conf, X-Content-Type-Options nosniff, and Cache-Control no-store/private.</metric-1>
+    <metric-2>Response body remains byte-for-byte equivalent to the generated VPN config text after UTF-8 encoding.</metric-2>
+    <metric-3>Frontend-created download Blobs use application/octet-stream and keep download filenames ending in .conf.</metric-3>
+    <metric-4>No server or frontend path emits .conf.txt, text/plain, or unsafe path-derived filenames for config downloads.</metric-4>
+    <metric-5>Backend router tests, frontend build, Phase-48 smoke, XML parse, MyGRACE lint, and deploy/install diff guard pass.</metric-5>
+  </acceptance-metrics>
+  <hotspot>H-053: Mobile browsers may rename .conf downloads to .txt unless the backend and frontend force attachment, octet-stream, filename, and nosniff semantics</hotspot>
+</M-066>
