@@ -70,6 +70,7 @@
     <item>Phase-45 first-VPN-handshake trial activation passed local execution on 2026-06-01: default trial duration is four days, verified users receive pending VPN trial access, first config remains available, first observed VPN handshake starts the countdown exactly once, subscription API returns server-side days/hours/minutes and active date range, dashboard/subscription UI show pending/countdown/calendar states, backend suite passed 35/35, frontend build and Phase-45 smoke passed, and deploy/install scripts were untouched.</item>
     <item>Phase-46 user cabinet password and MTProto link UX polish passed local execution on 2026-06-01: registration shows a safe password format example, Telegram proxy actions separate tg:// app link from https://t.me browser link, MTProto labels are Russian, status refresh is bounded at 30 seconds, frontend build and Phase-46 smoke passed, and deploy/install scripts were untouched.</item>
     <item>Phase-47 MTProto CTA subdomain link generation passed local execution on 2026-06-01: new verified users receive CTA-prefixed one-label MTProto hostnames such as krot-vpn-xxxxxxx.krotpn.xyz, numeric user IDs are hashed into 7-hex public suffixes, explicit prefixes are allow-listed, fake-TLS secrets bind to the final CTA SNI, active legacy u-* assignments are preserved, backend tests passed 14/14, frontend build and Phase-47 smoke passed, and deploy/install scripts were untouched.</item>
+    <item>Phase-48 VPN config download MIME and filename hardening has verification design ready on 2026-06-01: backend header/body/auth tests, frontend Blob MIME checks, .conf filename sanitation, QR/copy/raw config non-regression, redaction rules, MyGRACE lint, XML parse, and protected deploy/install diff guard are specified before execution.</item>
   </what-is-working>
 
   <what-is-fragile>
@@ -90,6 +91,7 @@
     <item>Phase-43 analytics are partially passed-live: raw IP data is encrypted and admin-only with 90-day retention, and the clean-deploy validation confirmed real client IP visibility for MTProto users. Resource-metric tuning, graph polish, and TTL IP block runtime enforcement remain future hardening items.</item>
     <item>Phase-45 is passed-local for 4-day pending VPN trial activation on first successful VPN handshake, idempotency, no paid-subscription regression, days/hours/minutes countdown, and subscription calendar UX without deploy/install changes; live clean-deploy validation remains optional before release promotion.</item>
     <item>Phase-47 is passed-local for CTA MTProto SNI/link generation; live clean-deploy Telegram proof remains optional because RU/DE runtime topology did not change and Phase-41 is still the active live data-plane evidence.</item>
+    <item>Phase-48 is verification-designed only: .conf download MIME and filename hardening has a full local verification matrix, but implementation and mobile browser live proof are not executed yet.</item>
     <item>Emergency relocation is documented but still blocked until a trusted backup bundle and isolated restore target exist for dry-run evidence.</item>
     <item>Cookie-only auth migration is planned but not executed because it requires explicit approval and HTTPS or production-like smoke evidence.</item>
   </what-is-fragile>
@@ -196,6 +198,9 @@
     </gate>
     <gate id="phase-47-mtproto-cta-subdomain-link-generation" status="passed-local">
       <summary>Local execution passed for CTA prefix allow-list, 7-hex public short IDs, one-label wildcard-safe SNI, final-SNI fake-TLS secret binding, legacy u-* assignment preservation, owner tg:// and https://t.me link consistency, redaction, XML parse, MyGRACE lint, frontend build, backend provisioning tests 14/14, and protected deploy/install diff guard.</summary>
+    </gate>
+    <gate id="phase-48-vpn-config-download-mime-hardening" status="verification-designed">
+      <summary>Verification matrix is ready for application/octet-stream attachment downloads, Content-Disposition filename and filename-star .conf metadata, nosniff/no-store headers, safe filename sanitation, body preservation, auth and pending-trial compatibility, frontend Blob MIME, redaction, XML parse, MyGRACE lint, and protected deploy/install diff guard.</summary>
     </gate>
   </rollout-gates>
 

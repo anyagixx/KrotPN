@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<V-M-066 MODULE="M-066" PRIORITY="high" STATUS="planned">
+<V-M-066 MODULE="M-066" PRIORITY="high" STATUS="verification-designed">
   <purpose>Verify Phase-48 .conf download MIME hardening across backend headers, frontend Blob creation, and protected operational surfaces.</purpose>
   <checks>application/octet-stream attachment response, filename and filename-star .conf metadata, nosniff, no-store/private cache control, byte-preserved config body, frontend Blob MIME alignment, auth preservation, and no deploy/install changes.</checks>
   <test-files>
@@ -10,11 +10,11 @@
     <file>scripts/phase48-config-download-mime-smoke.mjs</file>
   </test-files>
   <commands>
-    <command status="planned">cd backend &amp;&amp; SECRET_KEY=test-secret-key-with-enough-length PYTHONPATH=. ../.venv/bin/python -m pytest -o addopts='' tests/test_vpn_router_compat.py -v</command>
-    <command status="planned">cd frontend &amp;&amp; npm run build</command>
-    <command status="planned">node scripts/phase48-config-download-mime-smoke.mjs</command>
-    <command status="planned">python3 -m xml.etree.ElementTree docs/plans/Phase-48.xml docs/modules/M-066.xml docs/verification/V-M-066.xml docs/graph-index.xml docs/plan-index.xml docs/verification-index.xml</command>
-    <command status="planned">mygrace lint</command>
+    <command status="verification-designed">cd backend &amp;&amp; SECRET_KEY=test-secret-key-with-enough-length PYTHONPATH=. ../.venv/bin/python -m pytest -o addopts='' tests/test_vpn_router_compat.py -v</command>
+    <command status="verification-designed">cd frontend &amp;&amp; npm run build</command>
+    <command status="verification-designed">node scripts/phase48-config-download-mime-smoke.mjs</command>
+    <command status="verification-designed">python3 -m xml.etree.ElementTree docs/plans/Phase-48.xml docs/modules/M-066.xml docs/verification/V-M-066.xml docs/graph-index.xml docs/plan-index.xml docs/verification-index.xml docs/current-status.xml</command>
+    <command status="verification-designed">mygrace lint</command>
   </commands>
   <module-checks>
     <check-1>/api/v1/vpn/config/download returns Content-Type application/octet-stream and never text/plain for attachment downloads.</check-1>
@@ -24,14 +24,28 @@
     <check-5>Frontend download Blob creation uses application/octet-stream and the download attribute ends in .conf for all config download branches.</check-5>
     <check-6>Pending-trial first config access, QR display, raw config copy, and device provisioning API compatibility remain intact.</check-6>
     <check-7>Smoke fails if Phase-48 changes install.sh, deploy scripts, nginx, docker-compose, TLS material, or VPN profile generation logic.</check-7>
+    <check-8>Filename sanitation rejects path separators, duplicate .conf/.txt suffixes, control characters, non-ASCII surprises, and empty names before headers are built.</check-8>
+    <check-9>Backend and frontend tests never print private keys, full config bodies, Authorization headers, tokens, or generated QR payloads.</check-9>
   </module-checks>
+  <verification-levels>
+    <module-local>Backend tests cover headers, filename sanitation, auth preservation, body byte preservation, pending-trial first-config access, and no regression in JSON/QR/raw config routes.</module-local>
+    <wave-level>Frontend build and static smoke cover Blob MIME, download attribute names, object URL cleanup, no .conf.txt fallback, and unchanged user-facing config workflow.</wave-level>
+    <phase-level>XML parse, MyGRACE lint, and protected deploy/install/nginx/docker-compose diff guard prove documentation consistency and operational isolation.</phase-level>
+    <live-optional>Manual Android Chrome/iOS Safari download proof is useful after prerelease deploy, but local execution can pass with deterministic HTTP/header and frontend static evidence.</live-optional>
+  </verification-levels>
   <scenarios>
     <scenario-1 kind="success">Android Chrome downloads krotpn-user.conf from the backend endpoint and does not receive text/plain metadata that would invite .txt renaming.</scenario-1>
     <scenario-2 kind="success">A frontend-managed device config download creates an octet-stream Blob and suggests krotpn-device.conf.</scenario-2>
     <scenario-3 kind="success">A verified pending-trial user can still retrieve the first VPN config, with only attachment metadata changed.</scenario-3>
-    <scenario-4 kind="failure">Any response header, filename helper, or frontend branch emits .conf.txt, text/plain, unsafe path separators, or missing nosniff.</scenario-4>
-    <scenario-5 kind="failure">Any Phase-48 diff touches deploy/install/nginx/docker-compose or changes generated config content.</scenario-5>
+    <scenario-4 kind="success">QR, copy-to-clipboard, raw config display, and JSON config retrieval stay text-friendly while only the attachment download response is octet-stream.</scenario-4>
+    <scenario-5 kind="failure">Any response header, filename helper, or frontend branch emits .conf.txt, text/plain, unsafe path separators, duplicate suffixes, or missing nosniff.</scenario-5>
+    <scenario-6 kind="failure">Any Phase-48 diff touches deploy/install/nginx/docker-compose/TLS files or changes generated config content.</scenario-6>
   </scenarios>
+  <telemetry-requirements>
+    <requirement-1>Runtime telemetry is not required for Phase-48 because the change is deterministic HTTP metadata and frontend Blob construction, not VPN tunnel behavior.</requirement-1>
+    <requirement-2>Backend logs may include secret-free filename policy decisions, route name, response MIME, and safe failure code; they must not include config body, private key, preshared key, Authorization header, access/refresh token, or QR payload.</requirement-2>
+    <requirement-3>Smoke output must be aggregate marker-only evidence and must not print generated configs, object URLs containing secrets, or live user identifiers.</requirement-3>
+  </telemetry-requirements>
   <required-markers>
     <marker-1>[M-066][build_config_download_response][DOWNLOAD_HEADERS]</marker-1>
     <marker-2>[M-066][sanitize_config_download_filename][FILENAME_SAFE]</marker-2>

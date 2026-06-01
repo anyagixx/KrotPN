@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<M-066 NAME="vpn-config-download-mime-hardening" TYPE="ENTRY_POINT" STATUS="planned">
+<M-066 NAME="vpn-config-download-mime-hardening" TYPE="ENTRY_POINT" STATUS="verification-designed">
   <path>backend/app/vpn/router.py frontend/src/pages/Config.tsx frontend/src/lib/api.ts scripts/phase48-config-download-mime-smoke.mjs docs/plans/Phase-48.xml</path>
   <owns>HTTP response semantics and frontend download Blob semantics for WireGuard and AmneziaVPN .conf files.</owns>
   <purpose>Prevent Android, iOS, and desktop browsers from renaming VPN configuration downloads from .conf to .conf.txt by forcing safe attachment and MIME headers.</purpose>
@@ -33,5 +33,10 @@
     <metric-4>No server or frontend path emits .conf.txt, text/plain, or unsafe path-derived filenames for config downloads.</metric-4>
     <metric-5>Backend router tests, frontend build, Phase-48 smoke, XML parse, MyGRACE lint, and deploy/install diff guard pass.</metric-5>
   </acceptance-metrics>
+  <verification-design>
+    <evidence-level-1>Module-local backend tests verify authenticated download headers, safe filename sanitation, exact .conf suffix, body preservation, and pending-trial first-config compatibility.</evidence-level-1>
+    <evidence-level-2>Wave-level frontend build and static smoke verify application/octet-stream Blob construction, .conf download attributes, no .conf.txt fallback, and preserved QR/copy/raw config surfaces.</evidence-level-2>
+    <evidence-level-3>Phase-level XML parse, MyGRACE lint, and protected deploy/install/nginx/docker-compose diff guard verify metadata consistency and operational isolation.</evidence-level-3>
+  </verification-design>
   <hotspot>H-053: Mobile browsers may rename .conf downloads to .txt unless the backend and frontend force attachment, octet-stream, filename, and nosniff semantics</hotspot>
 </M-066>
