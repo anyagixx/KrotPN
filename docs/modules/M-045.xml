@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<M-045 NAME="mtproto-user-cabinet" TYPE="UI_COMPONENT" STATUS="pass-local-phase41">
-  <path>frontend backend/app/mtproto backend/app/main.py scripts docs/plans/Phase-31.xml docs/plans/Phase-41.xml scripts/phase41-kpproton-faketls-smoke.mjs</path>
+<M-045 NAME="mtproto-user-cabinet" TYPE="UI_COMPONENT" STATUS="pass-local-phase46">
+  <path>frontend backend/app/mtproto backend/app/main.py scripts docs/plans/Phase-31.xml docs/plans/Phase-41.xml docs/plans/Phase-46.xml scripts/phase41-kpproton-faketls-smoke.mjs scripts/phase46-user-cabinet-ux-smoke.mjs</path>
   <owns>User-facing API and compact dashboard UI for personal free Telegram MTProto proxy access.</owns>
   <purpose>Show every verified user their free indefinite MTProto proxy alongside KrotPN trial and VPN actions in the mobile cabinet.</purpose>
   <exports>
     <api-get-my-mtproto-proxy>Authenticated endpoint returning server, port, secret, tg link, status, and reissue guidance.</api-get-my-mtproto-proxy>
-    <view-mtproto-card>Dashboard card with primary https://t.me/proxy open action, full-link copy, copy server, copy port, and copy secret actions.</view-mtproto-card>
+    <view-mtproto-card>Dashboard card with primary tg://proxy Telegram app action, https://t.me/proxy browser/copy action, and manual server/port/secret copy actions.</view-mtproto-card>
     <view-mtproto-empty-state>Compact unavailable, pending, degraded, and reissue-required states.</view-mtproto-empty-state>
   </exports>
   <depends>M-002,M-009,M-036,M-042,M-043</depends>
@@ -21,10 +21,11 @@
     <file>scripts/phase31-mtproto-cabinet-smoke.mjs</file>
     <file>scripts/phase34-mtproto-stabilization-smoke.mjs</file>
     <file phase="41-pass-local">scripts/phase41-kpproton-faketls-smoke.mjs</file>
+    <file phase="46-pass-local">scripts/phase46-user-cabinet-ux-smoke.mjs</file>
   </files>
   <ui-contract>
     <primary>MTProto proxy status and copy/open actions fit the first mobile dashboard screen without hiding VPN trial state.</primary>
-    <secondary>Manual Telegram fields remain available for desktop and mobile copy workflows.</secondary>
+    <secondary>Telegram app opening uses tg://proxy, browser/manual sharing uses https://t.me/proxy, and manual Telegram fields remain available for desktop and mobile copy workflows.</secondary>
   </ui-contract>
   <constraints>
     <constraint-1>The MTProto card must not create horizontal scroll at 360x740, 390x844, or 430x932.</constraint-1>
@@ -44,6 +45,7 @@
     <evidence-4>2026-05-19: Phase-41 verification design adds owner-cabinet gates for ee fake-TLS payloads, official-dd reissue-required state, redaction, and mobile compactness.</evidence-4>
     <evidence-5>2026-05-19: Phase-41 local API tests passed for owner ee payloads, server=SNI behavior, and official-mode reissue-required responses without leaking stale dd links.</evidence-5>
     <evidence-6>2026-05-23: Dashboard pending/degraded state now renders backend safe_message once; header text is neutral while the detailed state owns the user-actionable message.</evidence-6>
+    <evidence-7>2026-06-01: Phase-46 frontend build and UX smoke passed for tg:// Telegram app action, https://t.me browser link, Russian labels, bounded status refresh, and no secret-bearing console output.</evidence-7>
   </evidence>
   <hotspot>H-031: User dashboard must show MTProto access compactly without hiding VPN trial status or config actions</hotspot>
 </M-045>

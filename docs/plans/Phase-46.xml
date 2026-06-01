@@ -1,18 +1,18 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Phase-46 NAME="User Cabinet Password and MTProto Link UX Polish" STATUS="verification-designed" VERSION="1.0.0" MODULES="M-064,M-009,M-036,M-045,M-062" CREATED="2026-06-01" UPDATED="2026-06-01">
+<Phase-46 NAME="User Cabinet Password and MTProto Link UX Polish" STATUS="done-local" VERSION="1.0.0" MODULES="M-064,M-009,M-036,M-045,M-062" CREATED="2026-06-01" UPDATED="2026-06-01">
   <purpose>Polish registration password guidance and user-cabinet MTProto link/status UX before the next clean-deploy validation.</purpose>
   <scope>
     <in>Password example display, MTProto tg:// vs https://t.me link separation, Russian MTProto labels, dynamic MTProto status badge refresh, frontend smoke verification, and MyGRACE metadata.</in>
     <out>Deploy/install scripts, backend MTProto provisioning/runtime, database schema, VPN billing/trial semantics, admin panel MTProto analytics, and email provider behavior.</out>
   </scope>
   <steps>
-    <step-1 MODULE="M-064,M-009,M-062" STATUS="planned">Add a safe registration password example that matches the existing password policy and does not weaken backend validation.</step-1>
-    <step-2 MODULE="M-064,M-045,M-009" STATUS="planned">Split MTProto owner link construction into Telegram app tg://proxy and browser https://t.me/proxy variants.</step-2>
-    <step-3 MODULE="M-064,M-045,M-036" STATUS="planned">Change visible MTProto card labels to Russian: Ссылка, Сервер, Порт, and Секрет.</step-3>
-    <step-4 MODULE="M-064,M-045,M-036" STATUS="planned">Verify or add bounded dynamic refresh for the MTProto status badge in the user cabinet.</step-4>
-    <step-5 MODULE="M-064" STATUS="planned">Add Phase-46 static smoke coverage for password example, dual links, Russian labels, status refresh, and protected deploy/install surfaces.</step-5>
-    <step-6 MODULE="M-064,M-009,M-036,M-045,M-062" STATUS="planned">Update changed MODULE_MAP and CHANGE_SUMMARY blocks in touched frontend files during execution.</step-6>
-    <step-7 MODULE="M-064" STATUS="planned">Run frontend build, Phase-46 smoke, MyGRACE lint, XML parse, and deploy/install diff guard.</step-7>
+    <step-1 MODULE="M-064,M-009,M-062" STATUS="done-local">Add a safe registration password example that matches the existing password policy and does not weaken backend validation.</step-1>
+    <step-2 MODULE="M-064,M-045,M-009" STATUS="done-local">Split MTProto owner link construction into Telegram app tg://proxy and browser https://t.me/proxy variants.</step-2>
+    <step-3 MODULE="M-064,M-045,M-036" STATUS="done-local">Change visible MTProto card labels to Russian: Ссылка, Сервер, Порт, and Секрет.</step-3>
+    <step-4 MODULE="M-064,M-045,M-036" STATUS="done-local">Verify or add bounded dynamic refresh for the MTProto status badge in the user cabinet.</step-4>
+    <step-5 MODULE="M-064" STATUS="done-local">Add Phase-46 static smoke coverage for password example, dual links, Russian labels, status refresh, and protected deploy/install surfaces.</step-5>
+    <step-6 MODULE="M-064,M-009,M-036,M-045,M-062" STATUS="done-local">Update changed MODULE_MAP and CHANGE_SUMMARY blocks in touched frontend files during execution.</step-6>
+    <step-7 MODULE="M-064" STATUS="done-local">Run frontend build, Phase-46 smoke, MyGRACE lint, XML parse, and deploy/install diff guard.</step-7>
   </steps>
   <data-flow>
     <flow-1>Register form -&gt; passwordPolicy helper -&gt; safe example and policy hint -&gt; existing frontend/backend password validation.</flow-1>
@@ -44,10 +44,16 @@
       <phase-level>XML parse, MyGRACE lint, and protected deploy/install diff guard validate metadata and operational isolation.</phase-level>
     </matrix>
     <commands>
-      <command status="planned">cd frontend &amp;&amp; npm run build</command>
-      <command status="planned">node scripts/phase46-user-cabinet-ux-smoke.mjs</command>
-      <command status="planned">python3 -m xml.etree.ElementTree docs/plans/Phase-46.xml docs/modules/M-064.xml docs/verification/V-M-064.xml docs/graph-index.xml docs/plan-index.xml docs/verification-index.xml</command>
-      <command status="planned">mygrace lint</command>
+      <command status="pass-local">cd frontend &amp;&amp; npm run build</command>
+      <command status="pass-local">node scripts/phase46-user-cabinet-ux-smoke.mjs</command>
+      <command status="pass-local">python3 -m xml.etree.ElementTree docs/plans/Phase-46.xml docs/modules/M-064.xml docs/verification/V-M-064.xml docs/graph-index.xml docs/plan-index.xml docs/verification-index.xml</command>
+      <command status="pass-local">mygrace lint</command>
     </commands>
   </verification>
+  <evidence>
+    <evidence-1>2026-06-01: cd frontend &amp;&amp; npm run build passed.</evidence-1>
+    <evidence-2>2026-06-01: node scripts/phase46-user-cabinet-ux-smoke.mjs passed.</evidence-2>
+    <evidence-3>2026-06-01: XML parse and MyGRACE lint passed.</evidence-3>
+    <evidence-4>2026-06-01: deploy/install diff guard showed no changes.</evidence-4>
+  </evidence>
 </Phase-46>

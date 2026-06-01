@@ -68,6 +68,7 @@
     <item>Release target v2.21.5-reboot-resilience-stable is the current stable baseline for GitHub main/Releases after clean-deploy and reboot confirmation that website, admin panel, VPN, individual MTProto proxies, real client IP observability, and MTProto promotion tag application work.</item>
     <item>Phase-44 email onboarding UX and password recovery passed local execution on 2026-06-01: branded verification/reset email templates, spam-folder guidance, removal of stale trial/VPN registration copy, strong-password enforcement, one-time password reset tokens, duplicate-email recovery CTA, frontend build, backend auth/email/migration tests, and Phase-44 static smoke passed without deploy/install changes.</item>
     <item>Phase-45 first-VPN-handshake trial activation passed local execution on 2026-06-01: default trial duration is four days, verified users receive pending VPN trial access, first config remains available, first observed VPN handshake starts the countdown exactly once, subscription API returns server-side days/hours/minutes and active date range, dashboard/subscription UI show pending/countdown/calendar states, backend suite passed 35/35, frontend build and Phase-45 smoke passed, and deploy/install scripts were untouched.</item>
+    <item>Phase-46 user cabinet password and MTProto link UX polish passed local execution on 2026-06-01: registration shows a safe password format example, Telegram proxy actions separate tg:// app link from https://t.me browser link, MTProto labels are Russian, status refresh is bounded at 30 seconds, frontend build and Phase-46 smoke passed, and deploy/install scripts were untouched.</item>
   </what-is-working>
 
   <what-is-fragile>
@@ -187,6 +188,9 @@
     </gate>
     <gate id="phase-45-first-vpn-handshake-trial-activation" status="passed-local">
       <summary>Local execution passed for 4-day pending trial activation by first successful VPN handshake, first-config access, paid/active subscription non-regression, server-time countdown, calendar UX, required log markers, redaction, migration metadata, backend regression suite, frontend build, UX smoke, and no deploy/install changes.</summary>
+    </gate>
+    <gate id="phase-46-user-cabinet-auth-mtproto-ux-polish" status="passed-local">
+      <summary>Local execution passed for password format example UX, MTProto tg:// app link vs https://t.me browser link split, Russian proxy labels, bounded status refresh, Phase-46 static smoke, frontend build, XML parse, MyGRACE lint, and no deploy/install changes.</summary>
     </gate>
   </rollout-gates>
 

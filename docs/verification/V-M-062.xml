@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<V-M-062 MODULE="M-062" PRIORITY="critical" STATUS="pass-local">
+<V-M-062 MODULE="M-062" PRIORITY="critical" STATUS="pass-local-phase46">
   <purpose>Verify Phase-44 email onboarding, password policy, password reset, and duplicate-email UX without changing deploy/install scripts.</purpose>
   <checks>Branded email templates render safely, registration copy is accurate, weak passwords are rejected, reset tokens are one-time and TTL-bound, duplicate registration offers recovery, and secrets/tokens remain redacted.</checks>
   <test-files>
@@ -12,6 +12,7 @@
     <file>frontend/src/pages/ForgotPassword.tsx</file>
     <file>frontend/src/pages/ResetPassword.tsx</file>
     <file>scripts/phase44-auth-email-ux-smoke.mjs</file>
+    <file>scripts/phase46-user-cabinet-ux-smoke.mjs</file>
   </test-files>
   <phase-44-gates>
     <gate-1>Verification and reset emails include branded HTML and text fallback while never logging full links or tokens.</gate-1>
@@ -21,6 +22,11 @@
     <gate-5>Duplicate-email registration returns a clear account-exists message with reset CTA and no extra side effects.</gate-5>
     <gate-6>Deploy/install scripts show no diff.</gate-6>
   </phase-44-gates>
+  <phase-46-gates>
+    <gate-1>Password policy helper exports a format-only example that satisfies the active frontend policy.</gate-1>
+    <gate-2>Registration UI displays the example while clearly telling users not to reuse it literally.</gate-2>
+    <gate-3>passwordStrengthIssues remains the registration validation gate; backend policy is unchanged.</gate-3>
+  </phase-46-gates>
   <verification-levels>
     <module-local>Email template rendering, password-strength policy, reset token lifecycle, and duplicate-email side-effect guards are tested with deterministic backend assertions.</module-local>
     <wave-level>Auth/email/frontend surfaces are verified together so API response shape, UI copy, and provider redaction do not drift.</wave-level>
@@ -45,6 +51,7 @@
     <command status="pass-local">cd backend &amp;&amp; SECRET_KEY=test-secret-key-with-enough-length DATA_ENCRYPTION_KEY=dpFmfSVqfdAK3yx5MQV6Tcv35RZuw5MzaH0yhxJ01q0= PYTHONPATH=. ../.venv/bin/python -m pytest -o addopts='' tests/test_email_delivery.py tests/test_verified_registration.py tests/test_password_recovery.py tests/test_email_verification_guard.py tests/test_db_migrations.py -v</command>
     <command status="pass-local">cd frontend &amp;&amp; npm run build</command>
     <command status="pass-local">node scripts/phase44-auth-email-ux-smoke.mjs</command>
+    <command status="pass-local">node scripts/phase46-user-cabinet-ux-smoke.mjs</command>
     <command status="pass-local">python3 -m xml.etree.ElementTree docs/plans/Phase-44.xml docs/modules/M-062.xml docs/modules/M-002.xml docs/modules/M-009.xml docs/modules/M-028.xml docs/modules/M-040.xml docs/verification/V-M-062.xml docs/verification/V-M-002.xml docs/verification/V-M-009.xml docs/verification/V-M-028.xml docs/verification/V-M-040.xml docs/graph-index.xml docs/plan-index.xml docs/verification-index.xml docs/requirements.xml docs/current-status.xml</command>
     <command status="pass-local">mygrace lint</command>
   </commands>
@@ -54,6 +61,7 @@
     <evidence-3>2026-06-01: Phase-44 auth/email UX smoke passed.</evidence-3>
     <evidence-4>2026-06-01: XML parse and MyGRACE lint passed.</evidence-4>
     <evidence-5>2026-06-01: deploy/install diff guard passed by review; no deploy/install files changed.</evidence-5>
+    <evidence-6>2026-06-01: Phase-46 frontend build and UX smoke passed for safe password format example without backend policy changes.</evidence-6>
   </evidence>
   <telemetry-requirements>
     <metric-1>Password reset request, success, invalid, expired, and replay outcomes are counted without raw email, token, provider body, or IP leakage.</metric-1>

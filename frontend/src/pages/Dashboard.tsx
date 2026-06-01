@@ -1,5 +1,5 @@
 // FILE: frontend/src/pages/Dashboard.tsx
-// VERSION: 1.2.1
+// VERSION: 1.3.0
 // ROLE: UI_COMPONENT
 // MAP_MODE: SUMMARY
 // START_MODULE_CONTRACT
@@ -11,13 +11,15 @@
 //
 // START_MODULE_MAP
 //   DashboardPage - Compact dashboard component with mobile-first primary actions, MTProto owner card, and device summary
-//   buildMtprotoTelegramWebLink - Builds the primary https://t.me/proxy action link from the owner payload
+//   buildMtprotoTelegramAppLink - Builds tg://proxy action link from the owner payload for Telegram app opening
+//   buildMtprotoBrowserLink - Builds https://t.me/proxy browser/copy link from the owner payload
 //   mtprotoIntroText - Builds a non-duplicating MTProto card intro line
 //   BLOCK_DASHBOARD_PAGE - DashboardPage default export with VPN, subscription, MTProto, config, and device surfaces
 //   default - React component (default export)
 // END_MODULE_MAP
 //
 // START_CHANGE_SUMMARY
+//   LAST_CHANGE: v3.3.0 - Added Phase-46 MTProto tg/browser link split, Russian labels, and bounded status refresh marker.
 //   LAST_CHANGE: v3.2.0 - Added Phase-45 pending trial state and subscription countdown summary.
 //   LAST_CHANGE: v3.1.1 - Avoid rendering pending/degraded MTProto safe_message twice in the dashboard card.
 //   LAST_CHANGE: v3.1.0 - Added Phase-39 primary Telegram web-link action and full-link copy flow
@@ -57,6 +59,7 @@ import Loading from '../components/Loading'
 const MTPROTO_CARD_RENDER_MARKER = '[M-045][dashboard_mtproto_card][CARD_RENDER]'
 const MTPROTO_COPY_ACTION_MARKER = '[M-045][dashboard_mtproto_card][COPY_ACTION]'
 const MTPROTO_OPEN_TELEGRAM_MARKER = '[M-045][dashboard_mtproto_card][OPEN_TELEGRAM]'
+const MTPROTO_STATUS_REFRESH_MS = 30000
 
 type MTProtoCopyField = 'link' | 'server' | 'port' | 'secret'
 
@@ -87,7 +90,18 @@ function mtprotoStatusClass(payload?: MTProtoProxyResponse, isLoading?: boolean,
   return 'status-badge-warning w-fit'
 }
 
-function buildMtprotoTelegramWebLink(payload?: MTProtoProxyResponse) {
+function buildMtprotoTelegramAppLink(payload?: MTProtoProxyResponse) {
+  if (!hasOwnerProxy(payload)) return null
+
+  const params = new URLSearchParams({
+    server: payload.server,
+    port: String(payload.port),
+    secret: payload.secret,
+  })
+  return `tg://proxy?${params.toString()}`
+}
+
+function buildMtprotoBrowserLink(payload?: MTProtoProxyResponse) {
   if (!hasOwnerProxy(payload)) return null
 
   const params = new URLSearchParams({
@@ -144,7 +158,9 @@ export default function Dashboard() {
     () => mtprotoApi.getProxy(),
     {
       retry: false,
-      refetchInterval: 30000,
+      refetchInterval: MTPROTO_STATUS_REFRESH_MS,
+      refetchIntervalInBackground: false,
+      staleTime: 10000,
     }
   )
 
@@ -183,7 +199,8 @@ export default function Dashboard() {
   const deviceLimit = devicesData?.data?.device_limit || 0
   const lastHandshake = stats?.last_handshake_at ? new Date(stats.last_handshake_at).toLocaleString('ru-RU') : 'Нет данных'
   const mtprotoReady = hasOwnerProxy(mtproto)
-  const mtprotoTelegramWebLink = buildMtprotoTelegramWebLink(mtproto)
+  const mtprotoTelegramAppLink = buildMtprotoTelegramAppLink(mtproto)
+  const mtprotoBrowserLink = buildMtprotoBrowserLink(mtproto)
 
   const handleMtprotoCopy = async (field: MTProtoCopyField, value?: string | number | null) => {
     if (value === null || value === undefined || value === '') {
@@ -267,6 +284,7 @@ export default function Dashboard() {
       <section
         className="panel p-4 sm:p-5"
         data-phase31-mtproto-card="true"
+        data-phase46-mtproto-status-refresh-ms={MTPROTO_STATUS_REFRESH_MS}
         data-mtproto-status={mtproto?.status || (mtprotoError ? 'degraded' : 'pending')}
       >
         <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
@@ -286,36 +304,34 @@ export default function Dashboard() {
           <>
             <dl className="mt-3 grid gap-x-4 gap-y-2 text-sm sm:grid-cols-[minmax(0,1fr)_88px_minmax(0,1.2fr)]">
               <div className="min-w-0">
-                <dt className="metric-label">Server</dt>
+                <dt className="metric-label">Сервер</dt>
                 <dd className="mt-1 break-all font-semibold text-slate-50">{mtproto.server}</dd>
               </div>
               <div className="min-w-0">
-                <dt className="metric-label">Port</dt>
+                <dt className="metric-label">Порт</dt>
                 <dd className="mt-1 font-semibold text-slate-50">{mtproto.port}</dd>
               </div>
               <div className="min-w-0">
-                <dt className="metric-label">Secret</dt>
+                <dt className="metric-label">Секрет</dt>
                 <dd className="mt-1 break-all font-mono text-xs font-semibold text-slate-50">{mtproto.secret}</dd>
               </div>
             </dl>
 
             <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-5">
               <a
-                href={mtprotoTelegramWebLink || mtproto.tg_link}
+                href={mtprotoTelegramAppLink || mtproto.tg_link}
                 className="btn-primary min-h-10 min-w-0 rounded-lg px-2 py-2 text-sm"
                 aria-label="Open MTProto proxy in Telegram"
                 title="Open MTProto proxy in Telegram"
-                target="_blank"
-                rel="noreferrer"
-                onClick={() => console.info(MTPROTO_OPEN_TELEGRAM_MARKER, { field: 'telegram_web_link' })}
+                onClick={() => console.info(MTPROTO_OPEN_TELEGRAM_MARKER, { field: 'telegram_app_link' })}
               >
                 <ExternalLink className="h-4 w-4" />
                 <span className="truncate">Telegram</span>
               </a>
-              {renderMtprotoCopyButton('link', 'Full link', mtprotoTelegramWebLink || mtproto.tg_link)}
-              {renderMtprotoCopyButton('server', 'Server', mtproto.server)}
-              {renderMtprotoCopyButton('port', 'Port', mtproto.port)}
-              {renderMtprotoCopyButton('secret', 'Secret', mtproto.secret)}
+              {renderMtprotoCopyButton('link', 'Ссылка', mtprotoBrowserLink)}
+              {renderMtprotoCopyButton('server', 'Сервер', mtproto.server)}
+              {renderMtprotoCopyButton('port', 'Порт', mtproto.port)}
+              {renderMtprotoCopyButton('secret', 'Секрет', mtproto.secret)}
             </div>
           </>
         ) : (

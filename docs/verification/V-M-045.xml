@@ -1,11 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<V-M-045 MODULE="M-045" PRIORITY="high" STATUS="pass-local-phase41" VERSION="1.4.1">
+<V-M-045 MODULE="M-045" PRIORITY="high" STATUS="pass-local-phase46" VERSION="1.5.0">
   <module>mtproto-user-cabinet</module>
   <phase-scope>
     <phase-31 status="pass-local">User-facing backend API and compact mobile dashboard UX for personal MTProto proxy access passed local verification.</phase-31>
     <phase-34 status="pass-local">Stabilization gate proves the owner dashboard still shows free MTProto access after verified registration without hiding KrotPN trial or VPN actions.</phase-34>
     <phase-40 status="pass-local">Official dd-secret payload support was verified locally but is superseded for production by Phase-41.</phase-40>
     <phase-41 status="pass-local">Owner cabinet shows the KPprotoN ee fake-TLS payload and never shows stale official dd links as active production credentials.</phase-41>
+    <phase-46 status="pass-local">Owner cabinet separates tg:// Telegram app opening from https://t.me browser/copy links, localizes labels, and keeps status refresh bounded.</phase-46>
   </phase-scope>
   <test-files>
     <file>backend/app/mtproto/router.py</file>
@@ -19,6 +20,7 @@
     <file>scripts/phase31-mtproto-cabinet-smoke.mjs</file>
     <file phase="34-static">scripts/phase34-mtproto-stabilization-smoke.mjs</file>
     <file phase="41-pass-local">scripts/phase41-kpproton-faketls-smoke.mjs</file>
+    <file phase="46-pass-local">scripts/phase46-user-cabinet-ux-smoke.mjs</file>
   </test-files>
   <commands>
     <command-1>cd backend &amp;&amp; SECRET_KEY=test-secret-key-with-enough-length DATA_ENCRYPTION_KEY=dpFmfSVqfdAK3yx5MQV6Tcv35RZuw5MzaH0yhxJ01q0= PYTHONPATH=. ../.venv/bin/python -m pytest -o addopts='' tests/test_mtproto_api.py tests/test_mtproto_assignment_registry.py tests/test_mtproto_provisioning.py -v</command-1>
@@ -27,6 +29,7 @@
     <command-4>python3 -m xml.etree.ElementTree docs/plans/Phase-31.xml docs/plans/Phase-41.xml docs/modules/M-045.xml docs/verification/V-M-045.xml docs/verification-index.xml &amp;&amp; mygrace lint</command-4>
     <command-5>node scripts/phase34-mtproto-stabilization-smoke.mjs</command-5>
     <command-6 status="pass-local">node scripts/phase41-kpproton-faketls-smoke.mjs</command-6>
+    <command-7 status="pass-local">node scripts/phase46-user-cabinet-ux-smoke.mjs</command-7>
   </commands>
   <verification-levels>
     <module-local>Backend API tests prove owner-only payload delivery, safe failure codes, and no unauthenticated or unverified proxy leakage.</module-local>
@@ -46,6 +49,7 @@
     <check-9 evidence="phase-41-failure-path">Official dd credential-mode assignments render reissue-required or unavailable state and are not copied/opened as active production links.</check-9>
     <check-10 evidence="phase-41-redaction">Smoke output and frontend console traces contain no full tg links, ee secrets, dd secrets, base secret, salt, runtime token, or wildcard key material.</check-10>
     <check-11 evidence="ui-smoke">Pending/degraded dashboard state renders backend safe_message once and does not duplicate the same text in the card header and detail row.</check-11>
+    <check-12 evidence="ui-smoke">Telegram button uses tg://proxy, Ссылка uses https://t.me/proxy, manual labels are Russian, and status refetch is bounded.</check-12>
   </module-checks>
   <phase-34-stabilization-gates>
     <gate-1>Owner-only MTProto secret/link fields remain visible only in authenticated user dashboard/API, never admin or smoke output.</gate-1>
@@ -106,5 +110,6 @@
     <evidence-5>2026-05-19: Phase-41 verification design adds owner-cabinet checks for ee fake-TLS payloads, official dd supersession, redaction, and compact mobile state.</evidence-5>
     <evidence-6>2026-05-19: Phase-41 local owner API tests and static smoke passed for ee payloads, official-mode reissue-required behavior, and no stale official link exposure.</evidence-6>
     <evidence-7>2026-05-23: Static cabinet smoke guards exactly one mtproto safe_message rendering during the cross-module reboot hotfix.</evidence-7>
+    <evidence-8>2026-06-01: Phase-46 frontend build and static smoke passed for dual MTProto link schemes, Russian labels, bounded status refresh, and redaction.</evidence-8>
   </evidence>
 </V-M-045>

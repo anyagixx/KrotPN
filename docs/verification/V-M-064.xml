@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<V-M-064 MODULE="M-064" PRIORITY="high" STATUS="verification-designed">
+<V-M-064 MODULE="M-064" PRIORITY="high" STATUS="pass-local">
   <purpose>Verify Phase-46 registration password example and MTProto user-cabinet link/status UX polish.</purpose>
   <checks>Password example matches policy, MTProto Telegram app and browser links are separated, visible labels are Russian, status badge refresh is dynamic, and protected deploy surfaces remain unchanged.</checks>
   <test-files>
@@ -9,17 +9,17 @@
     <file>scripts/phase46-user-cabinet-ux-smoke.mjs</file>
   </test-files>
   <commands>
-    <command status="planned">cd frontend &amp;&amp; npm run build</command>
-    <command status="planned">node scripts/phase46-user-cabinet-ux-smoke.mjs</command>
-    <command status="planned">python3 -m xml.etree.ElementTree docs/plans/Phase-46.xml docs/modules/M-064.xml docs/verification/V-M-064.xml docs/graph-index.xml docs/plan-index.xml docs/verification-index.xml</command>
-    <command status="planned">mygrace lint</command>
+    <command status="pass-local">cd frontend &amp;&amp; npm run build</command>
+    <command status="pass-local">node scripts/phase46-user-cabinet-ux-smoke.mjs</command>
+    <command status="pass-local">python3 -m xml.etree.ElementTree docs/plans/Phase-46.xml docs/modules/M-064.xml docs/verification/V-M-064.xml docs/graph-index.xml docs/plan-index.xml docs/verification-index.xml</command>
+    <command status="pass-local">mygrace lint</command>
   </commands>
   <module-checks>
     <check-1>Registration form renders a password example and keeps passwordStrengthIssues as the validation gate.</check-1>
     <check-2>Dashboard builds tg://proxy for Telegram app opening and https://t.me/proxy for Ссылка browser/copy action.</check-2>
     <check-3>Visible MTProto field/action labels are Ссылка, Сервер, Порт, and Секрет.</check-3>
     <check-4>MTProto status badge class is derived from live payload state and the query has bounded refresh or equivalent invalidation.</check-4>
-    <check-5>Phase-46 smoke fails if deploy/install/nginx/docker-compose surfaces are changed.</check-5>
+    <check-5>Phase-46 verification fails if the protected deploy/install/nginx/docker-compose diff guard shows changes.</check-5>
   </module-checks>
   <verification-levels>
     <module-local>Deterministic static smoke validates exact UX contract: safe password example, passwordStrengthIssues gate, dual MTProto link schemes, Russian labels, bounded status refresh, and no secret-bearing output.</module-local>
@@ -47,5 +47,10 @@
   <redaction-rules>
     <rule-1>Smoke output must not print real MTProto secrets, full proxy links from live accounts, access tokens, refresh tokens, reset tokens, or private env values.</rule-1>
   </redaction-rules>
+  <evidence>
+    <evidence-1>2026-06-01: cd frontend &amp;&amp; npm run build passed.</evidence-1>
+    <evidence-2>2026-06-01: node scripts/phase46-user-cabinet-ux-smoke.mjs passed and emitted the required M-064 markers.</evidence-2>
+    <evidence-3>2026-06-01: XML parse, MyGRACE lint, and deploy/install diff guard passed.</evidence-3>
+  </evidence>
   <autonomous-execution-safety>Allowed after plan approval because scope is frontend-only and deploy/install/backend runtime surfaces are out of scope.</autonomous-execution-safety>
 </V-M-064>

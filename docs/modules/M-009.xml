@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<M-009 NAME="frontend-user" TYPE="UI_COMPONENT" STATUS="pass-local-phase45">
+<M-009 NAME="frontend-user" TYPE="UI_COMPONENT" STATUS="pass-local-phase46">
   <path>frontend</path>
   <owns>login, verified registration, password recovery, verify-email activation, dashboard, config delivery, subscription management, pending trial countdown/calendar UX, referrals and settings UI with per-device config awareness</owns>
   <depends>M-002, M-003, M-004, M-005, M-022</depends>
@@ -44,4 +44,9 @@
     <primary-behaviors>pending-first-VPN state, server-derived remaining days/hours/minutes, compact subscription calendar, and no stale 3-day trial copy.</primary-behaviors>
     <evidence>2026-06-01: frontend npm run build passed and Phase-45 subscription UX smoke passed.</evidence>
   </phase-45-scope>
+  <phase-46-scope>
+    <primary-files>Register.tsx, Dashboard.tsx, lib/passwordPolicy.ts, scripts/phase46-user-cabinet-ux-smoke.mjs</primary-files>
+    <primary-behaviors>safe password format example, MTProto tg:// app link, https://t.me browser link, Russian proxy labels, and bounded 30s MTProto status refresh.</primary-behaviors>
+    <evidence>2026-06-01: frontend npm run build passed and Phase-46 user-cabinet UX smoke passed.</evidence>
+  </phase-46-scope>
 </M-009>

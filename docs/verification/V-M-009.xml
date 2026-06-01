@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<V-M-009 MODULE="M-009" PRIORITY="high" STATUS="pass-local-phase45" VERSION="1.4.0">
+<V-M-009 MODULE="M-009" PRIORITY="high" STATUS="pass-local-phase46" VERSION="1.5.0">
   <module>frontend-user</module>
   <checks>User frontend still builds, matches the Phase-28 auth API response shape, and makes registration mobile-safe without implying active KrotPN trial before email verification.</checks>
   <test-files>
@@ -15,9 +15,10 @@
     <file>frontend/src/pages/Subscription.tsx</file>
     <file>scripts/phase28-register-flow-smoke.mjs</file>
     <file>scripts/phase45-trial-subscription-ux-smoke.mjs</file>
+    <file>scripts/phase46-user-cabinet-ux-smoke.mjs</file>
   </test-files>
-  <commands>pass-local 2026-06-01: cd frontend &amp;&amp; npm run build; node scripts/phase45-trial-subscription-ux-smoke.mjs</commands>
-  <anchors>TYPESCRIPT_NO_ERRORS REGISTER_PENDING_STATE REGISTER_VERIFIED_SUCCESS REGISTER_EXPIRED_LINK REGISTER_RESEND_AVAILABLE PHASE45_SUBSCRIPTION_COUNTDOWN</anchors>
+  <commands>pass-local 2026-06-01: cd frontend &amp;&amp; npm run build; node scripts/phase46-user-cabinet-ux-smoke.mjs</commands>
+  <anchors>TYPESCRIPT_NO_ERRORS REGISTER_PENDING_STATE REGISTER_VERIFIED_SUCCESS REGISTER_EXPIRED_LINK REGISTER_RESEND_AVAILABLE PHASE45_SUBSCRIPTION_COUNTDOWN PHASE46_PASSWORD_EXAMPLE PHASE46_MTPROTO_LINKS</anchors>
   <phase-28-frontend-gates>
     <gate-1>Register submit handles pending/check-email response without storing access tokens or marking the user authenticated.</gate-1>
     <gate-2>Verify-email route handles success, expired token, replayed token, and resend-needed states with compact mobile layouts.</gate-2>
@@ -35,6 +36,12 @@
     <gate-2>Subscription page renders server-derived days/hours/minutes and active date range.</gate-2>
     <gate-3>Subscription calendar highlights active dates and does not show stale 3-day trial copy.</gate-3>
   </phase-45-frontend-gates>
+  <phase-46-frontend-gates>
+    <gate-1>Register form renders a format-only password example imported from the shared password policy helper.</gate-1>
+    <gate-2>Dashboard separates Telegram app tg://proxy link from browser https://t.me proxy link.</gate-2>
+    <gate-3>MTProto visible labels are localized as Ссылка, Сервер, Порт, and Секрет.</gate-3>
+    <gate-4>MTProto status badge refresh is bounded at 30 seconds and avoids background polling.</gate-4>
+  </phase-46-frontend-gates>
   <mobile-viewports>
     <viewport-1>360x740</viewport-1>
     <viewport-2>390x844</viewport-2>
@@ -47,5 +54,5 @@
     <scenario-4 kind="success" trace="TYPESCRIPT_NO_ERRORS">Frontend builds with zero TypeScript errors.</scenario-4>
     <scenario-5 kind="success">Password recovery screens build and static smoke passes.</scenario-5>
   </scenarios>
-  <evidence>2026-06-01: cd frontend &amp;&amp; npm run build and node scripts/phase44-auth-email-ux-smoke.mjs passed for Phase-44 password recovery UX. 2026-06-01: Phase-45 frontend build and subscription UX smoke passed for pending-trial copy, countdown fields, calendar marker, and stale 3-day copy guard.</evidence>
+  <evidence>2026-06-01: cd frontend &amp;&amp; npm run build and node scripts/phase44-auth-email-ux-smoke.mjs passed for Phase-44 password recovery UX. 2026-06-01: Phase-45 frontend build and subscription UX smoke passed for pending-trial copy, countdown fields, calendar marker, and stale 3-day copy guard. 2026-06-01: Phase-46 frontend build and user-cabinet UX smoke passed for password example, dual MTProto links, Russian labels, and bounded status refresh.</evidence>
 </V-M-009>

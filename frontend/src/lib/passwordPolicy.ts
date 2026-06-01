@@ -12,9 +12,11 @@
 // START_MODULE_MAP
 //   passwordStrengthIssues - Returns safe localized weakness reasons
 //   passwordPolicyHint - Compact Russian password policy hint
+//   passwordPolicyExample - Format-only password example that satisfies the active policy
 // END_MODULE_MAP
 //
 // START_CHANGE_SUMMARY
+//   LAST_CHANGE: v1.1.0 - Added Phase-46 format-only password example for registration UX
 //   LAST_CHANGE: v1.0.0 - Added Phase-44 client-side strong-password helper
 // END_CHANGE_SUMMARY
 
@@ -32,6 +34,7 @@ const COMMON_PASSWORDS = new Set([
 ])
 
 export const passwordPolicyHint = 'Минимум 10 символов: заглавная и строчная буква, цифра и спецсимвол.'
+export const passwordPolicyExample = 'Krot-47!Primer'
 
 export function passwordStrengthIssues(password: string): string[] {
   const issues: string[] = []

@@ -1,5 +1,5 @@
 // FILE: frontend/src/pages/Register.tsx
-// VERSION: 1.1.0
+// VERSION: 1.2.0
 // ROLE: UI_COMPONENT
 // MAP_MODE: SUMMARY
 // START_MODULE_CONTRACT
@@ -10,12 +10,13 @@
 // END_MODULE_CONTRACT
 //
 // START_MODULE_MAP
-//   RegisterPage - Registration component with form, pending check-email state, resend handling, and referral display
+//   RegisterPage - Registration component with form, safe password example, pending check-email state, resend handling, and referral display
 //   BLOCK_REGISTER_PAGE - RegisterPage default export
 //   default - React component (default export)
 // END_MODULE_MAP
 //
 // START_CHANGE_SUMMARY
+//   LAST_CHANGE: 2026-06-01 - Added Phase-46 password format example tied to the active password policy
 //   LAST_CHANGE: 2026-06-01 - Added Phase-44 compact check-email UX, spam hint, strong-password hints, and duplicate-email recovery CTA
 //   LAST_CHANGE: 2026-05-13 - Switched registration UX to pending email verification without token storage
 //   LAST_CHANGE: v2.8.0 - Added full GRACE MODULE_CONTRACT and MODULE_MAP per GRACE governance protocol
@@ -28,7 +29,7 @@ import { useTranslation } from 'react-i18next'
 import { AlertCircle, ArrowLeft, Loader2, Lock, Mail, MailCheck, RefreshCw, Shield, Sparkles } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { authApi } from '../lib/api'
-import { passwordPolicyHint, passwordStrengthIssues } from '../lib/passwordPolicy'
+import { passwordPolicyExample, passwordPolicyHint, passwordStrengthIssues } from '../lib/passwordPolicy'
 
 type RegistrationPhase = 'form' | 'pending'
 
@@ -189,6 +190,10 @@ export default function Register() {
                     />
                   </div>
                   <p className="mt-2 text-xs leading-5 muted">{passwordPolicyHint}</p>
+                  <p className="mt-1 text-xs leading-5 text-slate-300" data-phase46-password-example="true">
+                    Пример формата: <span className="font-mono font-semibold text-cyan-100">{passwordPolicyExample}</span>.
+                    Не используйте этот пример дословно.
+                  </p>
                 </label>
 
                 <label className="block">
