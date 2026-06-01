@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Phase-46 NAME="User Cabinet Password and MTProto Link UX Polish" STATUS="planned" VERSION="1.0.0" MODULES="M-064,M-009,M-036,M-045,M-062" CREATED="2026-06-01" UPDATED="2026-06-01">
+  <purpose>Polish registration password guidance and user-cabinet MTProto link/status UX before the next clean-deploy validation.</purpose>
+  <scope>
+    <in>Password example display, MTProto tg:// vs https://t.me link separation, Russian MTProto labels, dynamic MTProto status badge refresh, frontend smoke verification, and MyGRACE metadata.</in>
+    <out>Deploy/install scripts, backend MTProto provisioning/runtime, database schema, VPN billing/trial semantics, admin panel MTProto analytics, and email provider behavior.</out>
+  </scope>
+  <steps>
+    <step-1 MODULE="M-064,M-009,M-062" STATUS="planned">Add a safe registration password example that matches the existing password policy and does not weaken backend validation.</step-1>
+    <step-2 MODULE="M-064,M-045,M-009" STATUS="planned">Split MTProto owner link construction into Telegram app tg://proxy and browser https://t.me/proxy variants.</step-2>
+    <step-3 MODULE="M-064,M-045,M-036" STATUS="planned">Change visible MTProto card labels to Russian: Ссылка, Сервер, Порт, and Секрет.</step-3>
+    <step-4 MODULE="M-064,M-045,M-036" STATUS="planned">Verify or add bounded dynamic refresh for the MTProto status badge in the user cabinet.</step-4>
+    <step-5 MODULE="M-064" STATUS="planned">Add Phase-46 static smoke coverage for password example, dual links, Russian labels, status refresh, and protected deploy/install surfaces.</step-5>
+    <step-6 MODULE="M-064,M-009,M-036,M-045,M-062" STATUS="planned">Update changed MODULE_MAP and CHANGE_SUMMARY blocks in touched frontend files during execution.</step-6>
+    <step-7 MODULE="M-064" STATUS="planned">Run frontend build, Phase-46 smoke, MyGRACE lint, XML parse, and deploy/install diff guard.</step-7>
+  </steps>
+  <data-flow>
+    <flow-1>Register form -&gt; passwordPolicy helper -&gt; safe example and policy hint -&gt; existing frontend/backend password validation.</flow-1>
+    <flow-2>MTProto owner API payload -&gt; Dashboard link builders -&gt; Telegram button tg://proxy and Ссылка browser/copy https://t.me/proxy.</flow-2>
+    <flow-3>MTProto owner API payload -&gt; bounded refetch -&gt; mtprotoStatusClass -&gt; dynamic dashboard status badge.</flow-3>
+  </data-flow>
+  <mental-walkthroughs>
+    <walkthrough-1>New user opens registration, sees requirements plus an example format, submits a strong custom password, and backend policy remains unchanged.</walkthrough-1>
+    <walkthrough-2>Verified user opens dashboard, taps Telegram to launch the app link, or copies Ссылка for browser/manual sharing without mixing link schemes.</walkthrough-2>
+    <walkthrough-3>MTProto status changes from pending/degraded to activated and the badge updates after bounded refetch without a page reload.</walkthrough-3>
+  </mental-walkthroughs>
+  <phase-gates>
+    <gate-1>Password example is visible and matches policy without becoming a default password recommendation.</gate-1>
+    <gate-2>Telegram button uses tg://proxy and browser/copy link uses https://t.me/proxy.</gate-2>
+    <gate-3>Visible MTProto labels are localized and compact on mobile.</gate-3>
+    <gate-4>Status badge uses current API state and has bounded auto-refresh if needed.</gate-4>
+    <gate-5>No deploy/install/nginx/docker-compose/backend runtime files are changed.</gate-5>
+  </phase-gates>
+  <risks>
+    <risk-1 severity="medium">tg:// links depend on Telegram app availability; https://t.me link remains the browser fallback.</risk-1>
+    <risk-2 severity="medium">Password example may be copied literally; UI copy must frame it as format-only.</risk-2>
+    <risk-3 severity="medium">Overly frequent status polling can add backend load; refresh must be bounded.</risk-3>
+    <risk-4 severity="critical">MTProto secret-bearing links must remain owner-only and must not be logged by smoke tests or console traces.</risk-4>
+  </risks>
+  <verification>
+    <commands>
+      <command status="planned">cd frontend &amp;&amp; npm run build</command>
+      <command status="planned">node scripts/phase46-user-cabinet-ux-smoke.mjs</command>
+      <command status="planned">python3 -m xml.etree.ElementTree docs/plans/Phase-46.xml docs/modules/M-064.xml docs/verification/V-M-064.xml docs/graph-index.xml docs/plan-index.xml docs/verification-index.xml</command>
+      <command status="planned">mygrace lint</command>
+    </commands>
+  </verification>
+</Phase-46>

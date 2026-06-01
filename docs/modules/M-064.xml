@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<M-064 NAME="user-cabinet-auth-mtproto-ux-polish" TYPE="UI_COMPONENT" STATUS="planned">
+  <path>frontend scripts/phase46-user-cabinet-ux-smoke.mjs docs/plans/Phase-46.xml</path>
+  <owns>Registration password example UX, owner MTProto dual-link behavior, Russian MTProto field labels, and dynamic dashboard status badge refresh.</owns>
+  <purpose>Polish the user cabinet and registration UX without changing backend MTProto, auth, or deploy/install contracts.</purpose>
+  <exports>
+    <view-password-example>Registration form shows a safe example of password format matching the active policy without encouraging literal reuse.</view-password-example>
+    <fn-build-mtproto-app-link>Builds tg://proxy owner link from server, port, and secret for Telegram app opening.</fn-build-mtproto-app-link>
+    <fn-build-mtproto-browser-link>Builds https://t.me/proxy owner link from server, port, and secret for browser/copy workflows.</fn-build-mtproto-browser-link>
+    <view-mtproto-russian-labels>MTProto card labels visible user-facing fields as Ссылка, Сервер, Порт, and Секрет.</view-mtproto-russian-labels>
+    <view-dynamic-status-badge>MTProto status badge refreshes from current owner proxy state instead of staying stale.</view-dynamic-status-badge>
+  </exports>
+  <depends>M-009,M-036,M-045,M-062</depends>
+  <verification-ref>V-M-064</verification-ref>
+  <files>
+    <file>frontend/src/pages/Register.tsx</file>
+    <file>frontend/src/pages/Dashboard.tsx</file>
+    <file>frontend/src/lib/passwordPolicy.ts</file>
+    <file>scripts/phase46-user-cabinet-ux-smoke.mjs</file>
+    <file>docs/plans/Phase-46.xml</file>
+  </files>
+  <constraints>
+    <constraint-1>Do not change backend MTProto issuance, secrets, provisioning, runtime, deploy/install, Docker, nginx, or database schema.</constraint-1>
+    <constraint-2>Owner MTProto secret and full links remain visible only inside the authenticated owner dashboard.</constraint-2>
+    <constraint-3>Telegram app link must use tg://proxy; browser/share link must use https://t.me/proxy.</constraint-3>
+    <constraint-4>Status refresh interval must be bounded to avoid unnecessary backend load.</constraint-4>
+  </constraints>
+  <acceptance-metrics>
+    <metric-1>Registration UI shows a password example that satisfies the active frontend/backend policy and is clearly not a recommended literal password.</metric-1>
+    <metric-2>Telegram button opens tg://proxy and Ссылка copies or exposes https://t.me/proxy.</metric-2>
+    <metric-3>Visible MTProto card labels are localized as Ссылка, Сервер, Порт, and Секрет.</metric-3>
+    <metric-4>Activated/degraded/pending MTProto status badge can refresh dynamically from the API state.</metric-4>
+    <metric-5>Frontend build, Phase-46 smoke, MyGRACE lint, XML parse, and deploy/install diff guard pass.</metric-5>
+  </acceptance-metrics>
+  <hotspot>H-051: User cabinet UX polish must separate tg app links from browser links, keep MTProto secrets owner-only, and avoid stale status badges</hotspot>
+</M-064>

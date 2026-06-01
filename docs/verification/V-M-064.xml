@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<V-M-064 MODULE="M-064" PRIORITY="high" STATUS="planned">
+  <purpose>Verify Phase-46 registration password example and MTProto user-cabinet link/status UX polish.</purpose>
+  <checks>Password example matches policy, MTProto Telegram app and browser links are separated, visible labels are Russian, status badge refresh is dynamic, and protected deploy surfaces remain unchanged.</checks>
+  <test-files>
+    <file>frontend/src/pages/Register.tsx</file>
+    <file>frontend/src/pages/Dashboard.tsx</file>
+    <file>frontend/src/lib/passwordPolicy.ts</file>
+    <file>scripts/phase46-user-cabinet-ux-smoke.mjs</file>
+  </test-files>
+  <commands>
+    <command status="planned">cd frontend &amp;&amp; npm run build</command>
+    <command status="planned">node scripts/phase46-user-cabinet-ux-smoke.mjs</command>
+    <command status="planned">python3 -m xml.etree.ElementTree docs/plans/Phase-46.xml docs/modules/M-064.xml docs/verification/V-M-064.xml docs/graph-index.xml docs/plan-index.xml docs/verification-index.xml</command>
+    <command status="planned">mygrace lint</command>
+  </commands>
+  <module-checks>
+    <check-1>Registration form renders a password example and keeps passwordStrengthIssues as the validation gate.</check-1>
+    <check-2>Dashboard builds tg://proxy for Telegram app opening and https://t.me/proxy for Ссылка browser/copy action.</check-2>
+    <check-3>Visible MTProto field/action labels are Ссылка, Сервер, Порт, and Секрет.</check-3>
+    <check-4>MTProto status badge class is derived from live payload state and the query has bounded refresh or equivalent invalidation.</check-4>
+    <check-5>Phase-46 smoke fails if deploy/install/nginx/docker-compose surfaces are changed.</check-5>
+  </module-checks>
+  <scenarios>
+    <scenario-1 kind="success">A registering user sees a clear password example and still cannot submit a weak password.</scenario-1>
+    <scenario-2 kind="success">An owner with an activated MTProto proxy can open Telegram through tg:// and copy browser link through https://t.me.</scenario-2>
+    <scenario-3 kind="failure">The UI reuses https://t.me for the Telegram app button or tg:// for the browser/full-link action.</scenario-3>
+    <scenario-4 kind="failure">Status badge remains statically green after backend state changes or no bounded refresh exists.</scenario-4>
+  </scenarios>
+  <required-markers>
+    <marker-1>[M-064][phase46_user_cabinet_ux][PASSWORD_EXAMPLE]</marker-1>
+    <marker-2>[M-064][phase46_user_cabinet_ux][DUAL_MTPROTO_LINKS]</marker-2>
+    <marker-3>[M-064][phase46_user_cabinet_ux][RUSSIAN_LABELS]</marker-3>
+    <marker-4>[M-064][phase46_user_cabinet_ux][DYNAMIC_STATUS]</marker-4>
+  </required-markers>
+  <redaction-rules>
+    <rule-1>Smoke output must not print real MTProto secrets, full proxy links from live accounts, access tokens, refresh tokens, reset tokens, or private env values.</rule-1>
+  </redaction-rules>
+  <autonomous-execution-safety>Allowed after plan approval because scope is frontend-only and deploy/install/backend runtime surfaces are out of scope.</autonomous-execution-safety>
+</V-M-064>
