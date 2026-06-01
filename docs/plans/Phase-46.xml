@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Phase-46 NAME="User Cabinet Password and MTProto Link UX Polish" STATUS="planned" VERSION="1.0.0" MODULES="M-064,M-009,M-036,M-045,M-062" CREATED="2026-06-01" UPDATED="2026-06-01">
+<Phase-46 NAME="User Cabinet Password and MTProto Link UX Polish" STATUS="verification-designed" VERSION="1.0.0" MODULES="M-064,M-009,M-036,M-045,M-062" CREATED="2026-06-01" UPDATED="2026-06-01">
   <purpose>Polish registration password guidance and user-cabinet MTProto link/status UX before the next clean-deploy validation.</purpose>
   <scope>
     <in>Password example display, MTProto tg:// vs https://t.me link separation, Russian MTProto labels, dynamic MTProto status badge refresh, frontend smoke verification, and MyGRACE metadata.</in>
@@ -38,6 +38,11 @@
     <risk-4 severity="critical">MTProto secret-bearing links must remain owner-only and must not be logged by smoke tests or console traces.</risk-4>
   </risks>
   <verification>
+    <matrix>
+      <module-local>Static smoke validates password example copy, active password policy usage, tg:// Telegram app link, https://t.me browser link, Russian MTProto labels, bounded status refresh, and secret redaction.</module-local>
+      <wave-level>Frontend build validates Register, Dashboard, passwordPolicy, and API type compatibility after execution.</wave-level>
+      <phase-level>XML parse, MyGRACE lint, and protected deploy/install diff guard validate metadata and operational isolation.</phase-level>
+    </matrix>
     <commands>
       <command status="planned">cd frontend &amp;&amp; npm run build</command>
       <command status="planned">node scripts/phase46-user-cabinet-ux-smoke.mjs</command>

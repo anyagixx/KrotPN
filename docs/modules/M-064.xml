@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<M-064 NAME="user-cabinet-auth-mtproto-ux-polish" TYPE="UI_COMPONENT" STATUS="planned">
+<M-064 NAME="user-cabinet-auth-mtproto-ux-polish" TYPE="UI_COMPONENT" STATUS="verification-designed">
   <path>frontend scripts/phase46-user-cabinet-ux-smoke.mjs docs/plans/Phase-46.xml</path>
   <owns>Registration password example UX, owner MTProto dual-link behavior, Russian MTProto field labels, and dynamic dashboard status badge refresh.</owns>
   <purpose>Polish the user cabinet and registration UX without changing backend MTProto, auth, or deploy/install contracts.</purpose>
@@ -32,5 +32,10 @@
     <metric-4>Activated/degraded/pending MTProto status badge can refresh dynamically from the API state.</metric-4>
     <metric-5>Frontend build, Phase-46 smoke, MyGRACE lint, XML parse, and deploy/install diff guard pass.</metric-5>
   </acceptance-metrics>
+  <verification-design>
+    <evidence-level-1>Module-local deterministic smoke asserts password example, dual MTProto link schemes, Russian labels, bounded status refresh, and redaction.</evidence-level-1>
+    <evidence-level-2>Wave-level frontend build proves TypeScript/Vite compatibility for Register, Dashboard, and passwordPolicy changes.</evidence-level-2>
+    <evidence-level-3>Phase-level XML parse, MyGRACE lint, and deploy/install diff guard prove documentation consistency and protected surface isolation.</evidence-level-3>
+  </verification-design>
   <hotspot>H-051: User cabinet UX polish must separate tg app links from browser links, keep MTProto secrets owner-only, and avoid stale status badges</hotspot>
 </M-064>

@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<V-M-064 MODULE="M-064" PRIORITY="high" STATUS="planned">
+<V-M-064 MODULE="M-064" PRIORITY="high" STATUS="verification-designed">
   <purpose>Verify Phase-46 registration password example and MTProto user-cabinet link/status UX polish.</purpose>
   <checks>Password example matches policy, MTProto Telegram app and browser links are separated, visible labels are Russian, status badge refresh is dynamic, and protected deploy surfaces remain unchanged.</checks>
   <test-files>
@@ -21,12 +21,23 @@
     <check-4>MTProto status badge class is derived from live payload state and the query has bounded refresh or equivalent invalidation.</check-4>
     <check-5>Phase-46 smoke fails if deploy/install/nginx/docker-compose surfaces are changed.</check-5>
   </module-checks>
+  <verification-levels>
+    <module-local>Deterministic static smoke validates exact UX contract: safe password example, passwordStrengthIssues gate, dual MTProto link schemes, Russian labels, bounded status refresh, and no secret-bearing output.</module-local>
+    <wave-level>Frontend build validates touched React/TypeScript surfaces and shared password policy imports.</wave-level>
+    <phase-level>XML parse, MyGRACE lint, and deploy/install diff guard validate artifact consistency and operational isolation.</phase-level>
+  </verification-levels>
   <scenarios>
     <scenario-1 kind="success">A registering user sees a clear password example and still cannot submit a weak password.</scenario-1>
     <scenario-2 kind="success">An owner with an activated MTProto proxy can open Telegram through tg:// and copy browser link through https://t.me.</scenario-2>
-    <scenario-3 kind="failure">The UI reuses https://t.me for the Telegram app button or tg:// for the browser/full-link action.</scenario-3>
-    <scenario-4 kind="failure">Status badge remains statically green after backend state changes or no bounded refresh exists.</scenario-4>
+    <scenario-3 kind="success">Pending or degraded MTProto state becomes visible after bounded refetch without a page reload or stale success badge.</scenario-3>
+    <scenario-4 kind="failure">The UI reuses https://t.me for the Telegram app button or tg:// for the browser/full-link action.</scenario-4>
+    <scenario-5 kind="failure">Status badge remains statically green after backend state changes or no bounded refresh exists.</scenario-5>
+    <scenario-6 kind="failure">Smoke, console traces, or fixtures expose a real MTProto secret-bearing link, access token, reset token, or private environment value.</scenario-6>
   </scenarios>
+  <telemetry-requirements>
+    <requirement-1>Runtime telemetry is not required for Phase-46 because the scope is frontend UX; static smoke must still assert that no secret-bearing console/debug output is introduced.</requirement-1>
+    <requirement-2>Status refresh evidence must be visible in code through bounded polling, invalidation, or equivalent refetch control; unbounded intervals are rejected.</requirement-2>
+  </telemetry-requirements>
   <required-markers>
     <marker-1>[M-064][phase46_user_cabinet_ux][PASSWORD_EXAMPLE]</marker-1>
     <marker-2>[M-064][phase46_user_cabinet_ux][DUAL_MTPROTO_LINKS]</marker-2>
