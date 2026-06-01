@@ -17,9 +17,12 @@
 #   format_bytes - Helper to format byte counts for display
 #   legacy_server_status_from_node - Helper to derive legacy server status from node
 #   get_or_provision_user_client - Helper to get or create VPN client for user, including pending trial access
+#   sanitize_config_download_filename - Helper to enforce safe .conf attachment filenames
+#   build_config_download_response - Helper to return mobile-safe .conf attachment responses
 # END_MODULE_MAP
 #
 # START_CHANGE_SUMMARY
+#   LAST_CHANGE: v3.4.0 - Hardened .conf downloads with octet-stream attachment headers for mobile browsers.
 #   LAST_CHANGE: v3.3.0 - Allowed Phase-45 pending trial users to fetch first VPN config and activate on first stats handshake.
 #   LAST_CHANGE: v2.8.4 - Added /config/qr/amnezia endpoint for AmneziaVPN app (JSON containers format), frontend shows dual QR tabs
 #   LAST_CHANGE: v2.8.3 - Improved QR code error correction (ERROR_CORRECT_H + box_size=15) for AmneziaVPN compatibility
@@ -37,11 +40,13 @@ GRACE-lite module contract:
 # <!-- GRACE: module="M-003" api-group="VPN API" -->
 
 import io
+import re
 from typing import Annotated
+from urllib.parse import quote
 
 import qrcode
 from fastapi import APIRouter, HTTPException, Query, status
-from fastapi.responses import StreamingResponse, Response
+from fastapi.responses import Response
 from loguru import logger
 
 from app.core import CurrentAdmin, CurrentUser, DBSession
@@ -71,6 +76,12 @@ router = APIRouter(prefix="/api/v1/vpn", tags=["vpn"])
 admin_router = APIRouter(prefix="/api/v1/admin/servers", tags=["admin"])
 admin_nodes_router = APIRouter(prefix="/api/v1/admin/nodes", tags=["admin"])
 admin_routes_router = APIRouter(prefix="/api/v1/admin/routes", tags=["admin"])
+
+CONFIG_DOWNLOAD_MIME_TYPE = "application/octet-stream"
+CONFIG_DOWNLOAD_CACHE_CONTROL = "no-store, private"
+CONFIG_DOWNLOAD_FALLBACK_BASENAME = "krotpn-config"
+CONFIG_DOWNLOAD_MAX_BASENAME_LENGTH = 80
+CONFIG_DOWNLOAD_UNSAFE_BASENAME_CHARS = re.compile(r"[^A-Za-z0-9_-]+")
 
 
 # START_BLOCK: format_bytes
@@ -173,6 +184,77 @@ async def get_or_provision_user_client(
 # END_BLOCK: get_or_provision_user_client
 
 
+# START_CONTRACT: sanitize_config_download_filename
+#   PURPOSE: Convert operator/user-derived labels into deterministic ASCII .conf filenames for browser downloads.
+#   INPUTS: raw_name: str | None - candidate filename or basename.
+#   OUTPUTS: str - ASCII filename ending with exactly one .conf suffix.
+#   SIDE_EFFECTS: Logs only the sanitized filename, never config bodies or key material.
+#   LINKS: M-066, V-M-066
+# END_CONTRACT: sanitize_config_download_filename
+# START_BLOCK: sanitize_config_download_filename
+def sanitize_config_download_filename(raw_name: str | None) -> str:
+    """Return a browser-safe ASCII .conf filename."""
+    candidate = (raw_name or CONFIG_DOWNLOAD_FALLBACK_BASENAME).strip()
+    candidate = candidate.replace("/", "-").replace("\\", "-")
+
+    while candidate.lower().endswith(".txt"):
+        candidate = candidate[:-4].strip(" .-_")
+    while candidate.lower().endswith(".conf"):
+        candidate = candidate[:-5].strip(" .-_")
+
+    ascii_candidate = "".join(
+        character if 32 <= ord(character) <= 126 else "-"
+        for character in candidate
+    )
+    safe_basename = CONFIG_DOWNLOAD_UNSAFE_BASENAME_CHARS.sub("-", ascii_candidate)
+    safe_basename = re.sub(r"-{2,}", "-", safe_basename).strip("-_ .")
+    if not safe_basename:
+        safe_basename = CONFIG_DOWNLOAD_FALLBACK_BASENAME
+    safe_basename = safe_basename[:CONFIG_DOWNLOAD_MAX_BASENAME_LENGTH].strip("-_ .")
+    if not safe_basename:
+        safe_basename = CONFIG_DOWNLOAD_FALLBACK_BASENAME
+
+    safe_filename = f"{safe_basename}.conf"
+    logger.info(
+        "[M-066][sanitize_config_download_filename][FILENAME_SAFE] "
+        f"filename={safe_filename}"
+    )
+    return safe_filename
+# END_BLOCK: sanitize_config_download_filename
+
+
+# START_CONTRACT: build_config_download_response
+#   PURPOSE: Wrap generated VPN config text in mobile-safe attachment metadata without changing config content.
+#   INPUTS: config_text: str - generated VPN config text; filename: str | None - candidate .conf filename.
+#   OUTPUTS: Response - FastAPI octet-stream attachment response.
+#   SIDE_EFFECTS: Logs response metadata only, never config bodies or key material.
+#   LINKS: M-066, V-M-066
+# END_CONTRACT: build_config_download_response
+# START_BLOCK: build_config_download_response
+def build_config_download_response(config_text: str, filename: str | None) -> Response:
+    """Build an attachment response that mobile browsers keep as .conf."""
+    safe_filename = sanitize_config_download_filename(filename)
+    body = config_text.encode("utf-8")
+    quoted_filename = quote(safe_filename, safe="")
+    logger.info(
+        "[M-066][build_config_download_response][DOWNLOAD_HEADERS] "
+        f"filename={safe_filename} mime={CONFIG_DOWNLOAD_MIME_TYPE} bytes={len(body)}"
+    )
+    return Response(
+        content=body,
+        media_type=CONFIG_DOWNLOAD_MIME_TYPE,
+        headers={
+            "Content-Disposition": (
+                f"attachment; filename=\"{safe_filename}\"; "
+                f"filename*=UTF-8''{quoted_filename}"
+            ),
+            "X-Content-Type-Options": "nosniff",
+            "Cache-Control": CONFIG_DOWNLOAD_CACHE_CONTROL,
+        },
+    )
+# END_BLOCK: build_config_download_response
+
+
 # ==================== User Endpoints ====================
 
 @router.get("/config", response_model=VPNConfigResponse)
@@ -235,14 +317,13 @@ async def download_vpn_config(
         )
     
     config = await service.get_client_config(client)
-    
-    return StreamingResponse(
-        iter([config.config]),
-        media_type="text/plain",
-        headers={
-            "Content-Disposition": f"attachment; filename=krotpn-{current_user.id}.conf"
-        },
+
+    filename = f"krotpn-{current_user.id}.conf"
+    logger.info(
+        "[M-066][download_vpn_config][ATTACHMENT_RESPONSE] "
+        f"user_id={current_user.id} filename_candidate={filename}"
     )
+    return build_config_download_response(config.config, filename)
 
 
 @router.get("/config/qr")

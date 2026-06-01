@@ -70,7 +70,7 @@
     <item>Phase-45 first-VPN-handshake trial activation passed local execution on 2026-06-01: default trial duration is four days, verified users receive pending VPN trial access, first config remains available, first observed VPN handshake starts the countdown exactly once, subscription API returns server-side days/hours/minutes and active date range, dashboard/subscription UI show pending/countdown/calendar states, backend suite passed 35/35, frontend build and Phase-45 smoke passed, and deploy/install scripts were untouched.</item>
     <item>Phase-46 user cabinet password and MTProto link UX polish passed local execution on 2026-06-01: registration shows a safe password format example, Telegram proxy actions separate tg:// app link from https://t.me browser link, MTProto labels are Russian, status refresh is bounded at 30 seconds, frontend build and Phase-46 smoke passed, and deploy/install scripts were untouched.</item>
     <item>Phase-47 MTProto CTA subdomain link generation passed local execution on 2026-06-01: new verified users receive CTA-prefixed one-label MTProto hostnames such as krot-vpn-xxxxxxx.krotpn.xyz, numeric user IDs are hashed into 7-hex public suffixes, explicit prefixes are allow-listed, fake-TLS secrets bind to the final CTA SNI, active legacy u-* assignments are preserved, backend tests passed 14/14, frontend build and Phase-47 smoke passed, and deploy/install scripts were untouched.</item>
-    <item>Phase-48 VPN config download MIME and filename hardening has verification design ready on 2026-06-01: backend header/body/auth tests, frontend Blob MIME checks, .conf filename sanitation, QR/copy/raw config non-regression, redaction rules, MyGRACE lint, XML parse, and protected deploy/install diff guard are specified before execution.</item>
+    <item>Phase-48 VPN config download MIME and filename hardening passed local execution on 2026-06-01: /api/v1/vpn/config/download now returns application/octet-stream attachment responses with filename and filename-star .conf metadata, nosniff and no-store/private headers, config body bytes are preserved, frontend-created config Blobs use application/octet-stream, backend tests passed 10/10, frontend build and Phase-48 static smoke passed, and deploy/install/nginx/docker-compose surfaces were untouched.</item>
   </what-is-working>
 
   <what-is-fragile>
@@ -91,7 +91,7 @@
     <item>Phase-43 analytics are partially passed-live: raw IP data is encrypted and admin-only with 90-day retention, and the clean-deploy validation confirmed real client IP visibility for MTProto users. Resource-metric tuning, graph polish, and TTL IP block runtime enforcement remain future hardening items.</item>
     <item>Phase-45 is passed-local for 4-day pending VPN trial activation on first successful VPN handshake, idempotency, no paid-subscription regression, days/hours/minutes countdown, and subscription calendar UX without deploy/install changes; live clean-deploy validation remains optional before release promotion.</item>
     <item>Phase-47 is passed-local for CTA MTProto SNI/link generation; live clean-deploy Telegram proof remains optional because RU/DE runtime topology did not change and Phase-41 is still the active live data-plane evidence.</item>
-    <item>Phase-48 is verification-designed only: .conf download MIME and filename hardening has a full local verification matrix, but implementation and mobile browser live proof are not executed yet.</item>
+    <item>Phase-48 is passed-local for deterministic HTTP/header and frontend Blob behavior; optional live validation remains manual Android Chrome/iOS Safari proof that downloaded files stay as .conf on real devices.</item>
     <item>Emergency relocation is documented but still blocked until a trusted backup bundle and isolated restore target exist for dry-run evidence.</item>
     <item>Cookie-only auth migration is planned but not executed because it requires explicit approval and HTTPS or production-like smoke evidence.</item>
   </what-is-fragile>
@@ -199,19 +199,18 @@
     <gate id="phase-47-mtproto-cta-subdomain-link-generation" status="passed-local">
       <summary>Local execution passed for CTA prefix allow-list, 7-hex public short IDs, one-label wildcard-safe SNI, final-SNI fake-TLS secret binding, legacy u-* assignment preservation, owner tg:// and https://t.me link consistency, redaction, XML parse, MyGRACE lint, frontend build, backend provisioning tests 14/14, and protected deploy/install diff guard.</summary>
     </gate>
-    <gate id="phase-48-vpn-config-download-mime-hardening" status="verification-designed">
-      <summary>Verification matrix is ready for application/octet-stream attachment downloads, Content-Disposition filename and filename-star .conf metadata, nosniff/no-store headers, safe filename sanitation, body preservation, auth and pending-trial compatibility, frontend Blob MIME, redaction, XML parse, MyGRACE lint, and protected deploy/install diff guard.</summary>
+    <gate id="phase-48-vpn-config-download-mime-hardening" status="passed-local">
+      <summary>Local execution passed for application/octet-stream attachment downloads, Content-Disposition filename and filename-star .conf metadata, nosniff/no-store headers, safe filename sanitation, body preservation, auth compatibility, frontend Blob MIME, redaction, XML parse, MyGRACE lint, backend tests 10/10, frontend build, Phase-48 static smoke, and protected deploy/install diff guard.</summary>
     </gate>
   </rollout-gates>
 
   <immediate-priorities>
-    <priority rank="1">Execute Phase-48 VPN config download MIME and filename hardening when approved, keeping deploy/install surfaces unchanged unless explicitly required.</priority>
-    <priority rank="2">Prepare the next test release or live clean-deploy validation for Phase-45/Phase-47 user-visible changes when the operator is ready.</priority>
-    <priority rank="3">Continue Phase-43 admin analytics hardening with real redacted runtime data: graph refresh polish, resource metrics, alert notifications, and TTL IP block runtime enforcement.</priority>
-    <priority rank="4">Run Phase-22 non-production restore rehearsal with a trusted backup bundle and isolated restore target before production release.</priority>
-    <priority rank="5">Decide whether to approve cookie-only auth migration and provide HTTPS or production-like auth smoke target.</priority>
-    <priority rank="6">Improve repeatable local verification for backend, user frontend, and admin frontend; sandbox currently hangs on aiosqlite in-memory DB, so DB tests may require non-sandbox execution.</priority>
-    <priority rank="7">Tune false-positive thresholds before enabling any automatic anti-sharing block policy beyond admin-reviewed detect-first mode.</priority>
+    <priority rank="1">Prepare the next test release or live clean-deploy validation for Phase-45/Phase-47/Phase-48 user-visible changes when the operator is ready.</priority>
+    <priority rank="2">Continue Phase-43 admin analytics hardening with real redacted runtime data: graph refresh polish, resource metrics, alert notifications, and TTL IP block runtime enforcement.</priority>
+    <priority rank="3">Run Phase-22 non-production restore rehearsal with a trusted backup bundle and isolated restore target before production release.</priority>
+    <priority rank="4">Decide whether to approve cookie-only auth migration and provide HTTPS or production-like auth smoke target.</priority>
+    <priority rank="5">Improve repeatable local verification for backend, user frontend, and admin frontend; sandbox currently hangs on aiosqlite in-memory DB, so DB tests may require non-sandbox execution.</priority>
+    <priority rank="6">Tune false-positive thresholds before enabling any automatic anti-sharing block policy beyond admin-reviewed detect-first mode.</priority>
   </immediate-priorities>
 
   <known-risks>

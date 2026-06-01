@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<M-066 NAME="vpn-config-download-mime-hardening" TYPE="ENTRY_POINT" STATUS="verification-designed">
+<M-066 NAME="vpn-config-download-mime-hardening" TYPE="ENTRY_POINT" STATUS="done-local-phase48">
   <path>backend/app/vpn/router.py frontend/src/pages/Config.tsx frontend/src/lib/api.ts scripts/phase48-config-download-mime-smoke.mjs docs/plans/Phase-48.xml</path>
   <owns>HTTP response semantics and frontend download Blob semantics for WireGuard and AmneziaVPN .conf files.</owns>
   <purpose>Prevent Android, iOS, and desktop browsers from renaming VPN configuration downloads from .conf to .conf.txt by forcing safe attachment and MIME headers.</purpose>
@@ -38,5 +38,11 @@
     <evidence-level-2>Wave-level frontend build and static smoke verify application/octet-stream Blob construction, .conf download attributes, no .conf.txt fallback, and preserved QR/copy/raw config surfaces.</evidence-level-2>
     <evidence-level-3>Phase-level XML parse, MyGRACE lint, and protected deploy/install/nginx/docker-compose diff guard verify metadata consistency and operational isolation.</evidence-level-3>
   </verification-design>
+  <execution-evidence status="done-local" date="2026-06-01">
+    <evidence-1>backend/app/vpn/router.py now returns .conf downloads through build_config_download_response with application/octet-stream, attachment filename, filename-star, nosniff, and no-store/private headers.</evidence-1>
+    <evidence-2>frontend/src/pages/Config.tsx and frontend/src/lib/api.ts now use CONFIG_DOWNLOAD_MIME_TYPE application/octet-stream for backend and locally-created config Blob downloads.</evidence-2>
+    <evidence-3>backend/tests/test_vpn_router_compat.py passed 10/10 for route compatibility, mobile-safe download headers, filename sanitation, and auth preservation.</evidence-3>
+    <evidence-4>scripts/phase48-config-download-mime-smoke.mjs passed and protected deploy/install/nginx/docker-compose diff guard was clean.</evidence-4>
+  </execution-evidence>
   <hotspot>H-053: Mobile browsers may rename .conf downloads to .txt unless the backend and frontend force attachment, octet-stream, filename, and nosniff semantics</hotspot>
 </M-066>

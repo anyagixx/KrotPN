@@ -12,10 +12,13 @@
 // START_MODULE_MAP
 //   ConfigPage - Compact config page component with device management, QR modal, and collapsed raw config
 //   QRModal - Client-side QR modal with AmneziaWG and AmneziaVPN guidance
+//   buildConfigDownloadBlob - Creates octet-stream config download blobs
+//   buildConfigDownloadFilename - Creates safe .conf download filenames
 //   BLOCK_CONFIG_PAGE - ConfigPage default export with compact device/config workflow
 // END_MODULE_MAP
 //
 // START_CHANGE_SUMMARY
+//   LAST_CHANGE: v3.0.0 - Hardened frontend .conf downloads with octet-stream Blob type and safe filenames.
 //   LAST_CHANGE: v2.8.0 - Added full GRACE MODULE_CONTRACT and MODULE_MAP per GRACE governance protocol
 //   LAST_CHANGE: v2.8.1 - Fixed QR code not showing: removed disabled={Boolean(managedBundle)} from QR button so device-bound configs can also display QR
 //   LAST_CHANGE: v2.9.0 - Reworked device/config management into compact mobile-first Phase-23 workflow
@@ -29,8 +32,39 @@ import { AlertTriangle, Check, Copy, Download, FileCode2, Laptop2, Monitor, Plus
 import { Link } from 'react-router-dom'
 import toast from 'react-hot-toast'
 import QRCodeCanvas from 'qrcode.react'
-import { deviceApi, type DeviceConfigBundle, vpnApi } from '../lib/api'
+import { CONFIG_DOWNLOAD_MIME_TYPE, deviceApi, type DeviceConfigBundle, vpnApi } from '../lib/api'
 import Loading from '../components/Loading'
+
+const CONFIG_DOWNLOAD_FALLBACK_FILENAME = 'krotpn.conf'
+
+// START_CONTRACT: buildConfigDownloadBlob
+//   PURPOSE: Create a browser download Blob that mobile browsers do not reinterpret as .txt.
+//   INPUTS: source: string | Blob - generated VPN config text or backend Blob response.
+//   OUTPUTS: Blob - application/octet-stream Blob preserving source bytes.
+//   SIDE_EFFECTS: none.
+// END_CONTRACT: buildConfigDownloadBlob
+function buildConfigDownloadBlob(source: string | Blob): Blob {
+  return new Blob([source], { type: CONFIG_DOWNLOAD_MIME_TYPE })
+}
+
+// START_CONTRACT: buildConfigDownloadFilename
+//   PURPOSE: Create compact ASCII .conf filenames for frontend-managed device configs.
+//   INPUTS: deviceKey: string | null | undefined - optional device key from registry.
+//   OUTPUTS: string - filename ending with exactly one .conf suffix.
+//   SIDE_EFFECTS: none.
+// END_CONTRACT: buildConfigDownloadFilename
+function buildConfigDownloadFilename(deviceKey?: string | null): string {
+  const rawName = deviceKey ? `krotpn-${deviceKey}` : CONFIG_DOWNLOAD_FALLBACK_FILENAME
+  const withoutTxt = rawName.replace(/\.txt$/i, '')
+  const withoutConf = withoutTxt.replace(/(\.conf)+$/i, '')
+  const safeBase = withoutConf
+    .replace(/[\\/]+/g, '-')
+    .replace(/[^A-Za-z0-9_-]+/g, '-')
+    .replace(/-+/g, '-')
+    .replace(/^[-_]+|[-_]+$/g, '')
+
+  return `${safeBase || 'krotpn'}.conf`
+}
 
 export default function Config() {
   const { t } = useTranslation()
@@ -100,13 +134,10 @@ export default function Config() {
     try {
       const activeConfig = managedBundle?.config ? managedBundle.config : null
       const blobSource = activeConfig ? activeConfig : (await vpnApi.downloadConfig()).data
-      const url = window.URL.createObjectURL(new Blob([blobSource]))
+      const url = window.URL.createObjectURL(buildConfigDownloadBlob(blobSource))
       const link = window.document.createElement('a')
       link.href = url
-      const fileName = managedBundle?.device.device_key
-        ? `krotpn-${managedBundle.device.device_key}.conf`
-        : 'krotpn.conf'
-      link.setAttribute('download', fileName)
+      link.setAttribute('download', buildConfigDownloadFilename(managedBundle?.device.device_key))
       window.document.body.appendChild(link)
       link.click()
       link.remove()

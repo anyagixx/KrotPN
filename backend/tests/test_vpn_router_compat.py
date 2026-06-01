@@ -9,10 +9,17 @@ MODULE_MAP
 - test_public_servers_endpoint_is_compat_wrapper: Verifies /api/v1/vpn/servers projects entry nodes into legacy server shape.
 - test_public_nodes_endpoint_returns_route_aware_nodes: Verifies /api/v1/vpn/nodes returns active route-aware nodes.
 - test_get_or_provision_user_client_prefers_active_primary_device: Verifies active primary devices are preferred over legacy user clients.
+- test_config_download_uses_mobile_safe_attachment_headers: Verifies .conf download headers prevent mobile .txt suffixing.
+- test_config_download_filename_sanitizer_forces_single_conf_suffix: Verifies unsafe filename candidates are normalized.
+- test_config_download_requires_authenticated_user: Verifies the config download route stays authenticated.
 
 CHANGE_SUMMARY
+- 2026-06-01: Added Phase-48 mobile-safe .conf download MIME/header coverage.
 - 2026-05-19: Aligned compatibility route coverage with /api/v1 VPN router prefix for Phase-28 debt closure.
 """
+
+from datetime import datetime, timezone
+from types import SimpleNamespace
 
 import pytest
 from fastapi import FastAPI
@@ -71,7 +78,7 @@ class StubVPNService:
         ]
 
 
-def _build_app() -> TestClient:
+def _build_app(*, with_current_user: bool = True) -> TestClient:
     app = FastAPI()
     app.include_router(vpn_router_module.router)
 
@@ -85,7 +92,8 @@ def _build_app() -> TestClient:
         return User()
 
     app.dependency_overrides[get_session] = override_session
-    app.dependency_overrides[get_current_user] = current_user_override
+    if with_current_user:
+        app.dependency_overrides[get_current_user] = current_user_override
     return TestClient(app)
 
 
@@ -166,3 +174,71 @@ async def test_get_or_provision_user_client_prefers_active_primary_device(monkey
     result = await vpn_router_module.get_or_provision_user_client(1, DummySession())
 
     assert result == {"client_id": 99, "device_id": 21}
+
+
+def test_config_download_uses_mobile_safe_attachment_headers(monkeypatch):
+    config_text = "[Interface]\nPrivateKey = redacted\nAddress = 10.8.0.2/32\n"
+
+    class StubDownloadVPNService:
+        def __init__(self, session):
+            self.session = session
+
+        async def get_client_config(self, client):
+            assert client.id == 77
+            return SimpleNamespace(
+                config=config_text,
+                server_name="RU",
+                server_location="Russia",
+                address="10.8.0.2",
+                created_at=datetime.now(timezone.utc),
+            )
+
+    async def fake_get_or_provision_user_client(user_id, session):
+        assert user_id == 1
+        return SimpleNamespace(id=77, is_active=True)
+
+    monkeypatch.setattr(vpn_router_module, "VPNService", StubDownloadVPNService)
+    monkeypatch.setattr(vpn_router_module, "get_or_provision_user_client", fake_get_or_provision_user_client)
+    client = _build_app()
+
+    response = client.get("/api/v1/vpn/config/download")
+
+    assert response.status_code == 200
+    assert response.content == config_text.encode("utf-8")
+    assert response.headers["content-type"] == "application/octet-stream"
+    assert response.headers["x-content-type-options"] == "nosniff"
+    assert "no-store" in response.headers["cache-control"]
+    assert "private" in response.headers["cache-control"]
+    disposition = response.headers["content-disposition"]
+    assert "attachment" in disposition
+    assert 'filename="krotpn-1.conf"' in disposition
+    assert "filename*=UTF-8''krotpn-1.conf" in disposition
+    assert ".conf.txt" not in disposition
+
+
+@pytest.mark.parametrize(
+    ("candidate", "expected"),
+    [
+        ("../evil.conf.txt", "evil.conf"),
+        ("krotpn-user.conf.conf.txt", "krotpn-user.conf"),
+        ("device/phone\\vpn.txt", "device-phone-vpn.conf"),
+        ("", "krotpn-config.conf"),
+        ("тест.conf", "krotpn-config.conf"),
+    ],
+)
+def test_config_download_filename_sanitizer_forces_single_conf_suffix(candidate, expected):
+    filename = vpn_router_module.sanitize_config_download_filename(candidate)
+
+    assert filename == expected
+    assert filename.endswith(".conf")
+    assert not filename.endswith(".txt")
+    assert "/" not in filename
+    assert "\\" not in filename
+
+
+def test_config_download_requires_authenticated_user():
+    client = _build_app(with_current_user=False)
+
+    response = client.get("/api/v1/vpn/config/download")
+
+    assert response.status_code in {401, 403}

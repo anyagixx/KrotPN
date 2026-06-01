@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<V-M-066 MODULE="M-066" PRIORITY="high" STATUS="verification-designed">
+<V-M-066 MODULE="M-066" PRIORITY="high" STATUS="pass-local">
   <purpose>Verify Phase-48 .conf download MIME hardening across backend headers, frontend Blob creation, and protected operational surfaces.</purpose>
   <checks>application/octet-stream attachment response, filename and filename-star .conf metadata, nosniff, no-store/private cache control, byte-preserved config body, frontend Blob MIME alignment, auth preservation, and no deploy/install changes.</checks>
   <test-files>
@@ -10,11 +10,13 @@
     <file>scripts/phase48-config-download-mime-smoke.mjs</file>
   </test-files>
   <commands>
-    <command status="verification-designed">cd backend &amp;&amp; SECRET_KEY=test-secret-key-with-enough-length PYTHONPATH=. ../.venv/bin/python -m pytest -o addopts='' tests/test_vpn_router_compat.py -v</command>
-    <command status="verification-designed">cd frontend &amp;&amp; npm run build</command>
-    <command status="verification-designed">node scripts/phase48-config-download-mime-smoke.mjs</command>
-    <command status="verification-designed">python3 -m xml.etree.ElementTree docs/plans/Phase-48.xml docs/modules/M-066.xml docs/verification/V-M-066.xml docs/graph-index.xml docs/plan-index.xml docs/verification-index.xml docs/current-status.xml</command>
-    <command status="verification-designed">mygrace lint</command>
+    <command status="pass-local">python3 -m py_compile backend/app/vpn/router.py backend/tests/test_vpn_router_compat.py</command>
+    <command status="pass-local">cd backend &amp;&amp; SECRET_KEY=test-secret-key-with-enough-length PYTHONPATH=. ../.venv/bin/python -m pytest -o addopts='' tests/test_vpn_router_compat.py -v passed 10/10</command>
+    <command status="pass-local">cd frontend &amp;&amp; npm run build passed</command>
+    <command status="pass-local">node scripts/phase48-config-download-mime-smoke.mjs passed</command>
+    <command status="pass-local">python3 -m xml.etree.ElementTree docs/plans/Phase-48.xml docs/modules/M-066.xml docs/verification/V-M-066.xml docs/graph-index.xml docs/plan-index.xml docs/verification-index.xml docs/current-status.xml passed</command>
+    <command status="pass-local">mygrace lint passed</command>
+    <command status="pass-local">git diff --name-only HEAD -- install.sh docker-compose.yml nginx deploy deploy/mtproto-de-compose.yml .env.example produced no output</command>
   </commands>
   <module-checks>
     <check-1>/api/v1/vpn/config/download returns Content-Type application/octet-stream and never text/plain for attachment downloads.</check-1>
@@ -55,5 +57,6 @@
   <redaction-rules>
     <rule-1>Do not log raw private keys, full config bodies, access tokens, refresh tokens, email tokens, MTProto secrets, or deployment secrets in tests or smoke output.</rule-1>
   </redaction-rules>
+  <evidence status="pass-local" date="2026-06-01">Phase-48 local verification passed: backend headers/body/auth/sanitizer tests, frontend production build, static smoke marker [M-066][phase48_config_download_mime][STATIC_GUARD], XML parse, MyGRACE lint, git diff --check, and protected deploy/install diff guard.</evidence>
   <autonomous-execution-safety>Allowed after plan and verification approval because Phase-48 is restricted to response metadata, frontend Blob type, tests, and static smoke while deployment and VPN profile generation remain out of scope.</autonomous-execution-safety>
 </V-M-066>

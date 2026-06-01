@@ -62,7 +62,7 @@
   <M-063 NAME="trial-activation-subscription-countdown" TYPE="CORE_LOGIC" STATUS="done-local-phase45" PATH="backend/app/billing backend/app/vpn backend/app/tasks frontend scripts/phase45-trial-subscription-ux-smoke.mjs docs/plans/Phase-45.xml" DEPENDS="M-001,M-003,M-004,M-008,M-009,M-022,M-028,M-036" VERIFICATION-REF="V-M-063" />
   <M-064 NAME="user-cabinet-auth-mtproto-ux-polish" TYPE="UI_COMPONENT" STATUS="done-local-phase46" PATH="frontend scripts/phase46-user-cabinet-ux-smoke.mjs docs/plans/Phase-46.xml" DEPENDS="M-009,M-036,M-045,M-062" VERIFICATION-REF="V-M-064" />
   <M-065 NAME="mtproto-cta-subdomain-link-generation" TYPE="CORE_LOGIC" STATUS="done-local-phase47" PATH="backend/app/mtproto/provisioning.py backend/app/mtproto/service.py backend/tests/test_mtproto_provisioning.py frontend/src/pages/Dashboard.tsx scripts/phase47-mtproto-cta-links-smoke.mjs docs/plans/Phase-47.xml" DEPENDS="M-001,M-002,M-042,M-043,M-045,M-049,M-050,M-064" VERIFICATION-REF="V-M-065" />
-  <M-066 NAME="vpn-config-download-mime-hardening" TYPE="ENTRY_POINT" STATUS="verification-designed" PATH="backend/app/vpn/router.py frontend/src/pages/Config.tsx frontend/src/lib/api.ts scripts/phase48-config-download-mime-smoke.mjs docs/plans/Phase-48.xml" DEPENDS="M-001,M-003,M-009,M-022,M-036" VERIFICATION-REF="V-M-066" />
+  <M-066 NAME="vpn-config-download-mime-hardening" TYPE="ENTRY_POINT" STATUS="done-local-phase48" PATH="backend/app/vpn/router.py frontend/src/pages/Config.tsx frontend/src/lib/api.ts scripts/phase48-config-download-mime-smoke.mjs docs/plans/Phase-48.xml" DEPENDS="M-001,M-003,M-009,M-022,M-036" VERIFICATION-REF="V-M-066" />
 
   <CrossLinks>
     <link from="M-002" to="M-001" />

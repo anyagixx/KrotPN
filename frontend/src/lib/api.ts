@@ -17,6 +17,7 @@
 //   authApi - Login, register, verify email, password reset, telegram auth, refresh
 //   userApi - Get me, stats, update profile, change password
 //   vpnApi - Config, download, QR, stats, nodes, routes
+//   CONFIG_DOWNLOAD_MIME_TYPE - Browser-safe MIME type for .conf attachment downloads
 //   deviceApi - List, create, rotate, revoke
 //   billingApi - Get plans, subscription, create payment
 //   referralApi - Get code, stats, list
@@ -24,6 +25,7 @@
 // END_MODULE_MAP
 //
 // START_CHANGE_SUMMARY
+//   LAST_CHANGE: 2026-06-01 - Added Phase-48 octet-stream MIME contract for VPN config downloads
 //   LAST_CHANGE: 2026-06-01 - Added Phase-45 subscription countdown and pending trial API fields
 //   LAST_CHANGE: 2026-06-01 - Added Phase-44 password reset auth API contracts
 //   LAST_CHANGE: 2026-05-14 - Added Phase-31 MTProto owner proxy API contract
@@ -35,6 +37,7 @@
 import axios from 'axios'
 
 const API_BASE = '/api/v1'
+export const CONFIG_DOWNLOAD_MIME_TYPE = 'application/octet-stream'
 
 export const api = axios.create({
   baseURL: API_BASE,
@@ -335,7 +338,12 @@ export const vpnApi = {
     api.get<VPNConfig>('/vpn/config'),
 
   downloadConfig: () =>
-    api.get('/vpn/config/download', { responseType: 'blob' }),
+    api.get('/vpn/config/download', {
+      responseType: 'blob',
+      headers: {
+        Accept: CONFIG_DOWNLOAD_MIME_TYPE,
+      },
+    }),
 
   getQRCode: () =>
     api.get('/vpn/config/qr', { responseType: 'blob' }),
