@@ -48,6 +48,6 @@
   <Phase-44 NAME="Email Onboarding UX and Password Recovery" STATUS="done-local" STEPS="8" MODULES="M-062,M-001,M-002,M-009,M-027,M-028,M-040,M-041" />
   <Phase-45 NAME="First VPN Handshake Trial Activation and Subscription Calendar" STATUS="done-local" STEPS="9" MODULES="M-063,M-001,M-003,M-004,M-008,M-009,M-022,M-028,M-036" />
   <Phase-46 NAME="User Cabinet Password and MTProto Link UX Polish" STATUS="done-local" STEPS="7" MODULES="M-064,M-009,M-036,M-045,M-062" />
-  <Phase-47 NAME="MTProto CTA Subdomain Link Generation" STATUS="done-local" STEPS="9" MODULES="M-065,M-001,M-002,M-042,M-043,M-045,M-049,M-050,M-064" />
+  <Phase-47 NAME="MTProto CTA Subdomain Link Generation" STATUS="pass-local-hotfix" STEPS="9" MODULES="M-065,M-001,M-002,M-042,M-043,M-045,M-049,M-050,M-064" />
   <Phase-48 NAME="VPN Config Download MIME and Filename Hardening" STATUS="done-local" STEPS="8" MODULES="M-066,M-001,M-003,M-009,M-022,M-036" />
 </PlanIndex>

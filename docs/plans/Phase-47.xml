@@ -1,10 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Phase-47 NAME="MTProto CTA Subdomain Link Generation" STATUS="done-local" VERSION="1.0.0" MODULES="M-065,M-001,M-002,M-042,M-043,M-045,M-049,M-050,M-064" CREATED="2026-06-01" UPDATED="2026-06-01">
+<Phase-47 NAME="MTProto CTA Subdomain Link Generation" STATUS="pass-local-hotfix" VERSION="1.1.0" MODULES="M-065,M-001,M-002,M-042,M-043,M-045,M-049,M-050,M-064" CREATED="2026-06-01" UPDATED="2026-06-01">
   <purpose>Implement marketing-oriented CTA subdomains for newly issued personal MTProto proxy links while preserving existing working proxies and the Phase-41 RU/DE fake-TLS data-plane.</purpose>
   <scope>
     <in>CTA prefix allow-list, 7-hex public user suffix derivation, explicit prefix validation, stable pseudo-random prefix choice, CTA SNI generation, owner payload consistency, backend tests, frontend/smoke guards, and MyGRACE metadata.</in>
     <out>Deploy/install scripts, nginx/docker-compose, wildcard TLS issuance, database schema migrations, MTProto runtime topology, promotion tag runtime, and automatic mass reissue of existing u-* assignments.</out>
   </scope>
+  <hotfix id="phase47-cta-router-acl" status="pass-local" date="2026-06-01">Operator clean-deploy found CTA hostnames were generated and persisted correctly but HAProxy still routed only legacy u-12hex issued labels. The hotfix changes only deploy/haproxy-phase38.cfg SNI ACL so approved CTA-prefix-7hex labels route to mtproto_de_runtime; install.sh, deploy scripts, nginx, docker-compose, TLS issuance, and runtime topology remain unchanged.</hotfix>
   <example-output>https://t.me/proxy?server=kupi-vpn-4bb40fa.krotpn.xyz&amp;port=443&amp;secret=ee...</example-output>
   <steps>
     <step-1 MODULE="M-065,M-043" STATUS="done-local">Add the fixed CTA prefix allow-list: kupi-vpn, vpn-tut, beri-vpn, bez-blokirovok, hochu-bystree, and krot-vpn.</step-1>
@@ -12,7 +13,7 @@
     <step-3 MODULE="M-065,M-043" STATUS="done-local">Implement explicit prefix validation and stable pseudo-random prefix selection without accepting arbitrary DNS labels.</step-3>
     <step-4 MODULE="M-065,M-043" STATUS="done-local">Generate wildcard-safe CTA SNI as cta-prefix-shortid.base-domain with collision nonce support and DNS label validation.</step-4>
     <step-5 MODULE="M-065,M-042,M-043" STATUS="done-local">Integrate CTA SNI into new assignment creation while preserving existing active u-* assignments unless reissue is explicit.</step-5>
-    <step-6 MODULE="M-065,M-043,M-049,M-050" STATUS="done-local">Verify fake-TLS secret derivation, live policy apply expectations, and RU SNI router compatibility for the final CTA SNI.</step-6>
+    <step-6 MODULE="M-065,M-043,M-049,M-050" STATUS="pass-local-hotfix">Verify fake-TLS secret derivation, live policy apply expectations, and RU SNI router compatibility for the final CTA SNI, including HAProxy CTA ACL coverage.</step-6>
     <step-7 MODULE="M-065,M-045,M-064" STATUS="done-local">Ensure user-cabinet tg:// and https://t.me links both use the CTA server value returned by the owner API.</step-7>
     <step-8 MODULE="M-065" STATUS="done-local">Add targeted backend tests and Phase-47 static smoke for prefix allow-list, short-id derivation, link consistency, redaction, and protected deploy surfaces.</step-8>
     <step-9 MODULE="M-065" STATUS="done-local">Run backend provisioning tests, frontend build, Phase-47 smoke, XML parse, MyGRACE lint, and deploy/install diff guard.</step-9>
@@ -32,7 +33,7 @@
     <gate-2>Raw numeric user IDs are not visible in generated public hostnames.</gate-2>
     <gate-3>Existing active assignments remain stable and are not silently rotated.</gate-3>
     <gate-4>Derived ee fake-TLS secret contains the final CTA SNI hex and does not use stale u-* server text for new assignments.</gate-4>
-    <gate-5>No deploy/install/nginx/docker-compose files are changed.</gate-5>
+    <gate-5 superseded-by="phase47-cta-router-acl">Original execution avoided deploy/install/nginx/docker-compose changes. The accepted hotfix permits only HAProxy SNI ACL compatibility for issued CTA labels, without changing install.sh, deploy scripts, nginx, docker-compose, TLS issuance, or runtime topology.</gate-5>
   </phase-gates>
   <risks>
     <risk-1 severity="medium">CTA hostnames are more marketing-visible than neutral u-* hostnames, which may improve recall but can make blocked-word tuning more sensitive.</risk-1>
@@ -44,16 +45,19 @@
     <matrix>
       <module-local>Backend tests validate CTA prefix allow-list, short-id derivation for hex-like and numeric IDs, DNS label safety, explicit prefix rejection, collision nonce behavior, fake-TLS secret derivation from final SNI, and legacy u-* assignment preservation.</module-local>
       <wave-level>Frontend build and Phase-47 smoke validate owner payload consistency: server, secret, tg:// link, and https://t.me link all use the final CTA SNI without leaking real full links.</wave-level>
-      <phase-level>XML parse, MyGRACE lint, and protected deploy/install/nginx/docker-compose diff guard validate metadata consistency and operational isolation.</phase-level>
+      <phase-level>XML parse, MyGRACE lint, protected install/deploy-script/nginx/docker-compose diff guard, and HAProxy SNI router smoke validate metadata consistency and operational isolation.</phase-level>
       <runtime-safety>Runtime topology is not changed; policy apply expectations are verified by existing M-049/M-050 contracts and static checks that CTA SNI remains one wildcard-safe label under the configured base domain.</runtime-safety>
     </matrix>
     <commands>
       <command status="pass-local">cd backend &amp;&amp; SECRET_KEY=test-secret-key-with-enough-length PYTHONPATH=. ../.venv/bin/python -m pytest -o addopts='' tests/test_mtproto_provisioning.py -v</command>
+      <command status="pass-local">cd backend &amp;&amp; SECRET_KEY=test-secret-key-with-enough-length DATA_ENCRYPTION_KEY=dpFmfSVqfdAK3yx5MQV6Tcv35RZuw5MzaH0yhxJ01q0= PYTHONPATH=. ../.venv/bin/python -m pytest -o addopts='' tests/test_deploy_phase38_static.py tests/test_mtproto_de_edge_contract.py tests/test_mtproto_provisioning.py -v</command>
       <command status="pass-local">cd frontend &amp;&amp; npm run build</command>
+      <command status="pass-local">node scripts/phase38-de-mtproto-edge-smoke.mjs</command>
+      <command status="pass-local">node scripts/phase41-kpproton-faketls-smoke.mjs</command>
       <command status="pass-local">node scripts/phase47-mtproto-cta-links-smoke.mjs</command>
       <command status="pass-local">python3 -m xml.etree.ElementTree docs/plans/Phase-47.xml docs/modules/M-065.xml docs/verification/V-M-065.xml docs/graph-index.xml docs/plan-index.xml docs/verification-index.xml docs/current-status.xml</command>
       <command status="pass-local">mygrace lint</command>
     </commands>
-    <evidence>2026-06-01: backend provisioning tests passed 14/14 outside sandbox after sandbox aiosqlite hang, frontend build passed, Phase-47 smoke passed, protected deploy/install diff guard had no output, XML parse passed, and MyGRACE lint passed.</evidence>
+    <evidence>2026-06-01: backend provisioning tests passed 14/14 outside sandbox after sandbox aiosqlite hang, frontend build passed, Phase-47 smoke passed, protected deploy/install diff guard had no output, XML parse passed, and MyGRACE lint passed. Later the same day, a clean-deploy operator report showed CTA hostnames unavailable because HAProxy matched only legacy u-12hex labels; the hotfix widened the MTProto ACL to legacy-or-approved-CTA labels and passed Phase-38/41/47 smoke plus 27 targeted backend tests locally.</evidence>
   </verification>
 </Phase-47>

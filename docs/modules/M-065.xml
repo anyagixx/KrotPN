@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<M-065 NAME="mtproto-cta-subdomain-link-generation" TYPE="CORE_LOGIC" STATUS="done-local-phase47">
-  <path>backend/app/mtproto/provisioning.py backend/app/mtproto/service.py backend/tests/test_mtproto_provisioning.py frontend/src/pages/Dashboard.tsx scripts/phase47-mtproto-cta-links-smoke.mjs docs/plans/Phase-47.xml</path>
+<M-065 NAME="mtproto-cta-subdomain-link-generation" TYPE="CORE_LOGIC" STATUS="pass-local-phase47-hotfix">
+  <path>backend/app/mtproto/provisioning.py backend/app/mtproto/service.py backend/tests/test_mtproto_provisioning.py backend/tests/test_deploy_phase38_static.py frontend/src/pages/Dashboard.tsx deploy/haproxy-phase38.cfg scripts/phase38-de-mtproto-edge-smoke.mjs scripts/phase47-mtproto-cta-links-smoke.mjs docs/plans/Phase-47.xml</path>
   <owns>CTA-prefixed MTProto SNI generation, public short user identifier derivation, explicit prefix validation, and owner link compatibility for Telegram app/browser links.</owns>
   <purpose>Generate readable marketing-oriented personal MTProto proxy hostnames that encourage visits to krotpn.xyz without breaking issued-link availability or exposing raw internal user IDs.</purpose>
   <exports>
@@ -9,6 +9,7 @@
     <fn-select-cta-prefix>Choose either an explicit validated CTA prefix or a stable pseudo-random prefix for rotation-safe provisioning.</fn-select-cta-prefix>
     <fn-generate-cta-sni>Build wildcard-safe SNI in the format cta-prefix-shortid.base-domain with collision nonce support.</fn-generate-cta-sni>
     <fn-issue-cta-proxy-payload>Return owner-safe MTProto payloads whose server, secret, tg link, and browser link use the final CTA SNI.</fn-issue-cta-proxy-payload>
+    <ru-sni-router-cta-compatibility>Ensure approved CTA-prefix-7hex hostnames match the RU SNI router MTProto ACL and do not fall back to the HTTPS backend.</ru-sni-router-cta-compatibility>
   </exports>
   <depends>M-001,M-002,M-042,M-043,M-045,M-049,M-050,M-064</depends>
   <verification-ref>V-M-065</verification-ref>
@@ -16,12 +17,15 @@
     <file>backend/app/mtproto/provisioning.py</file>
     <file>backend/app/mtproto/service.py</file>
     <file>backend/tests/test_mtproto_provisioning.py</file>
+    <file>backend/tests/test_deploy_phase38_static.py</file>
     <file>frontend/src/pages/Dashboard.tsx</file>
+    <file>deploy/haproxy-phase38.cfg</file>
+    <file>scripts/phase38-de-mtproto-edge-smoke.mjs</file>
     <file>scripts/phase47-mtproto-cta-links-smoke.mjs</file>
     <file>docs/plans/Phase-47.xml</file>
   </files>
   <constraints>
-    <constraint-1>Do not change install.sh, deploy scripts, nginx, docker-compose, wildcard TLS issuance, database schema, or RU/DE topology in Phase-47.</constraint-1>
+    <constraint-1>Do not change install.sh, deploy scripts, nginx, docker-compose, wildcard TLS issuance, database schema, or RU/DE topology in Phase-47. The post-release hotfix permits only the HAProxy SNI ACL compatibility update needed to route CTA labels.</constraint-1>
     <constraint-2>Generated SNI must remain exactly one wildcard label under the configured base domain so existing *.krotpn.xyz TLS and RU SNI routing continue to work.</constraint-2>
     <constraint-3>Numeric internal user IDs must not be exposed directly in public hostnames; use a stable 7-hex public suffix instead.</constraint-3>
     <constraint-4>Explicit CTA prefix input must be restricted to the approved allow-list and never accept arbitrary DNS labels.</constraint-4>
@@ -33,17 +37,19 @@
     <metric-2>Allowed explicit prefix and stable pseudo-random prefix selection are deterministic and covered by tests.</metric-2>
     <metric-3>Numeric IDs are transformed to a non-raw 7-hex public suffix while hex-like IDs can use their first 7 hex characters.</metric-3>
     <metric-4>Owner payload server, secret, tg:// link, and https://t.me link all reference the same CTA SNI.</metric-4>
-    <metric-5>Backend tests, frontend build, Phase-47 smoke, MyGRACE lint, XML parse, and deploy/install diff guard pass.</metric-5>
+    <metric-5>Backend tests, frontend build, Phase-38/47 smoke, MyGRACE lint, XML parse, and deploy/install diff guard pass.</metric-5>
+    <metric-6>RU SNI router routes legacy u-12hex and approved CTA-prefix-7hex issued hostnames to mtproto_de_runtime while unknown SNI stays on HTTPS fallback.</metric-6>
   </acceptance-metrics>
   <verification-design>
     <evidence-level-1>Module-local backend tests verify prefix allow-list, short-id derivation, SNI validation, fake-TLS secret binding, and legacy assignment preservation.</evidence-level-1>
     <evidence-level-2>Wave-level frontend and smoke checks verify owner payload tg:// and https://t.me links use the same CTA server without exposing real secret-bearing links.</evidence-level-2>
-    <evidence-level-3>Phase-level static guards verify no deploy/install/nginx/docker-compose/runtime topology or wildcard TLS surfaces changed.</evidence-level-3>
+    <evidence-level-3>Phase-level static guards verify no install/deploy-script/nginx/docker-compose/runtime topology or wildcard TLS surfaces changed, and the HAProxy router ACL accepts approved CTA labels.</evidence-level-3>
   </verification-design>
   <execution-evidence>
     <evidence-1>2026-06-01: backend/app/mtproto/provisioning.py now exposes MTPROTO_CTA_PREFIXES, shorten_public_user_id, select_cta_prefix, and generate_cta_sni.</evidence-1>
     <evidence-2>2026-06-01: new assignment issuance uses CTA SNI while active legacy u-* assignments are reused without automatic mass reissue.</evidence-2>
     <evidence-3>2026-06-01: backend tests passed 14/14, frontend build passed, Phase-47 smoke passed, XML parse passed, MyGRACE lint passed, and protected deploy surfaces had no diff.</evidence-3>
+    <evidence-4>2026-06-01: Hotfix closed live operator report for unavailable CTA links by changing HAProxy MTProto ACL from legacy-only u-12hex to legacy-or-approved-CTA-prefix-7hex, then passing Phase-38, Phase-41, Phase-47, and deploy static verification locally.</evidence-4>
   </execution-evidence>
   <hotspot>H-052: CTA MTProto SNI generation must stay wildcard-safe, avoid exposing raw numeric user IDs, preserve old issued links, and not weaken RU/DE routing</hotspot>
 </M-065>

@@ -1,17 +1,23 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<V-M-065 MODULE="M-065" PRIORITY="high" STATUS="pass-local">
-  <purpose>Verify Phase-47 CTA MTProto subdomain generation, owner link consistency, and safety around existing assignments and deploy surfaces.</purpose>
-  <checks>CTA prefix allow-list, public 7-hex suffix derivation, explicit prefix validation, stable pseudo-random prefix selection, final-SNI fake-TLS secret derivation, old assignment preservation, redaction, and no deploy/install changes.</checks>
+<V-M-065 MODULE="M-065" PRIORITY="high" STATUS="pass-local-phase47-hotfix">
+  <purpose>Verify Phase-47 CTA MTProto subdomain generation, owner link consistency, and RU SNI router compatibility for issued CTA hostnames.</purpose>
+  <checks>CTA prefix allow-list, public 7-hex suffix derivation, explicit prefix validation, stable pseudo-random prefix selection, final-SNI fake-TLS secret derivation, old assignment preservation, redaction, router ACL compatibility, and no install/deploy-script topology changes.</checks>
   <test-files>
     <file>backend/app/mtproto/provisioning.py</file>
     <file>backend/app/mtproto/service.py</file>
     <file>backend/tests/test_mtproto_provisioning.py</file>
+    <file>backend/tests/test_deploy_phase38_static.py</file>
     <file>frontend/src/pages/Dashboard.tsx</file>
+    <file>deploy/haproxy-phase38.cfg</file>
+    <file>scripts/phase38-de-mtproto-edge-smoke.mjs</file>
     <file>scripts/phase47-mtproto-cta-links-smoke.mjs</file>
   </test-files>
   <commands>
     <command status="pass-local">cd backend &amp;&amp; SECRET_KEY=test-secret-key-with-enough-length PYTHONPATH=. ../.venv/bin/python -m pytest -o addopts='' tests/test_mtproto_provisioning.py -v</command>
+    <command status="pass-local">cd backend &amp;&amp; SECRET_KEY=test-secret-key-with-enough-length DATA_ENCRYPTION_KEY=dpFmfSVqfdAK3yx5MQV6Tcv35RZuw5MzaH0yhxJ01q0= PYTHONPATH=. ../.venv/bin/python -m pytest -o addopts='' tests/test_deploy_phase38_static.py tests/test_mtproto_de_edge_contract.py tests/test_mtproto_provisioning.py -v</command>
     <command status="pass-local">cd frontend &amp;&amp; npm run build</command>
+    <command status="pass-local">node scripts/phase38-de-mtproto-edge-smoke.mjs</command>
+    <command status="pass-local">node scripts/phase41-kpproton-faketls-smoke.mjs</command>
     <command status="pass-local">node scripts/phase47-mtproto-cta-links-smoke.mjs</command>
     <command status="pass-local">python3 -m xml.etree.ElementTree docs/plans/Phase-47.xml docs/modules/M-065.xml docs/verification/V-M-065.xml docs/graph-index.xml docs/plan-index.xml docs/verification-index.xml docs/current-status.xml</command>
     <command status="pass-local">mygrace lint</command>
@@ -23,16 +29,17 @@
     <check-4>Owner payload server, secret, tg:// link, and https://t.me browser link share the same final CTA SNI.</check-4>
     <check-5>Existing u-* active assignments are reused without automatic rewrite or forced reissue.</check-5>
     <check-6>Smoke output and logs do not print base secret, salt, derived secret, full proxy links from real accounts, runtime token, JWTs, or email tokens.</check-6>
-    <check-7>Phase-47 smoke fails if install.sh, deploy scripts, nginx, docker-compose, or wildcard TLS surfaces are changed.</check-7>
+    <check-7>Phase-47 smoke fails if install.sh, deploy scripts, nginx, docker-compose, or wildcard TLS surfaces carry CTA implementation drift; HAProxy ACL compatibility is explicitly guarded.</check-7>
     <check-8>Generated CTA SNI is exactly one wildcard label below the configured public domain and cannot include dots, path separators, uppercase drift, or arbitrary operator input.</check-8>
     <check-9>Fake-TLS secret derivation uses the final persisted CTA SNI; stale u-* host text is rejected for new CTA assignments.</check-9>
     <check-10>Legacy u-* assignments stay valid and are not mass-rewritten during normal dashboard/API access.</check-10>
+    <check-11>RU SNI router accepts approved CTA-prefix-7hex issued hostnames and still routes unknown SNI to HTTPS fallback, not MTProto.</check-11>
   </module-checks>
   <verification-levels>
     <module-local>Deterministic backend tests cover allowed prefixes, invalid prefixes, short-id derivation, DNS/SNI safety, collision nonce behavior, final-SNI fake-TLS secret derivation, and legacy assignment reuse.</module-local>
     <wave-level>Frontend build plus Phase-47 smoke cover owner API payload/link consistency with Phase-46 tg:// and https://t.me split.</wave-level>
-    <phase-level>XML parse, MyGRACE lint, and protected deploy/install diff guard prove MyGRACE consistency and operational isolation.</phase-level>
-    <live-required>Live Telegram proof is not required to execute Phase-47 locally because RU/DE topology and runtime are unchanged; any later production release should still reuse the Phase-41 issued-link mtp_ping/Telegram client smoke gates.</live-required>
+    <phase-level>XML parse, MyGRACE lint, protected install/deploy-script diff guard, and M-050 router smoke prove MyGRACE consistency and operational isolation.</phase-level>
+    <live-required>Live Telegram proof is not required to execute the local hotfix, but the next production promotion should include operator clean-deploy Telegram client proof for a CTA-issued hostname.</live-required>
   </verification-levels>
   <scenarios>
     <scenario-1 kind="success">New assignment for a numeric user ID returns a CTA server such as kupi-vpn-4bb40fa.krotpn.xyz without exposing the numeric ID.</scenario-1>
@@ -40,9 +47,10 @@
     <scenario-3 kind="success">Existing u-*.krotpn.xyz active assignment remains active and owner payload still matches the stored SNI.</scenario-3>
     <scenario-4 kind="success">Hex-like UUID/user keys use the first 7 hex characters while numeric IDs use a stable non-raw hash suffix.</scenario-4>
     <scenario-5 kind="success">Owner dashboard tg:// app link and https://t.me browser link reference the same CTA server returned by the owner API.</scenario-5>
-    <scenario-6 kind="failure">Unknown prefix, uppercase/unsafe DNS label, overlong label, dotted label, path separator, or foreign base domain is rejected before persistence or policy apply.</scenario-6>
-    <scenario-7 kind="failure">Any test, smoke output, backend log, frontend console trace, or fixture leaks a real full proxy link or secret-bearing value.</scenario-7>
-    <scenario-8 kind="failure">Phase-47 changes install.sh, deploy scripts, nginx, docker-compose, wildcard TLS material, or runtime topology.</scenario-8>
+    <scenario-6 kind="success">RU SNI router classifies hochu-bystree-b405086.krotpn.xyz as MTProto traffic and sends it to mtproto_de_runtime.</scenario-6>
+    <scenario-7 kind="failure">Unknown prefix, uppercase/unsafe DNS label, overlong label, dotted label, path separator, or foreign base domain is rejected before persistence or policy apply.</scenario-7>
+    <scenario-8 kind="failure">Any test, smoke output, backend log, frontend console trace, or fixture leaks a real full proxy link or secret-bearing value.</scenario-8>
+    <scenario-9 kind="failure">Phase-47 changes install.sh, deploy scripts, nginx, docker-compose, wildcard TLS material, or runtime topology.</scenario-9>
   </scenarios>
   <telemetry-requirements>
     <requirement-1>Runtime telemetry is not required for local Phase-47 because the data-plane is unchanged, but backend logs must expose secret-free decision markers for prefix selection, public short-id derivation, CTA assignment creation, and legacy preservation.</requirement-1>
@@ -63,5 +71,6 @@
     <evidence-1>2026-06-01: backend provisioning suite passed 14/14 outside sandbox after the first sandbox run hung on known aiosqlite async DB behavior.</evidence-1>
     <evidence-2>2026-06-01: frontend build passed and Phase-47 smoke verified CTA helper markers, owner link consistency, redaction guards, and protected-surface static guard.</evidence-2>
     <evidence-3>2026-06-01: protected deploy/install/nginx/docker-compose diff guard had no output; XML parse and MyGRACE lint passed.</evidence-3>
+    <evidence-4>2026-06-01: Operator report showed CTA links such as hochu-bystree-b405086.krotpn.xyz were unavailable because HAProxy only matched legacy u-12hex labels. Local hotfix widened the MTProto ACL to legacy-or-approved-CTA labels and passed Phase-38/41/47 smoke plus 27 targeted backend tests.</evidence-4>
   </evidence>
 </V-M-065>

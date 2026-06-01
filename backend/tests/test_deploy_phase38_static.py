@@ -1,14 +1,14 @@
 """Phase-41 deploy surface static verification.
 
 # FILE: backend/tests/test_deploy_phase38_static.py
-# VERSION: 2.3.0
+# VERSION: 2.4.0
 # ROLE: TEST
 # MAP_MODE: LOCALS
 # START_MODULE_CONTRACT
 #   PURPOSE: Verify Phase-41 deploy files define a DE-backed KPprotoN fake-TLS runtime and RU SNI router safely.
 #   SCOPE: HAProxy SNI classifier, docker compose port ownership, deploy env wiring, DE KPprotoN runtime compose, private policy bind, wildcard TLS mount, and redaction guards.
-#   DEPENDS: M-012, M-046, M-048, M-049, M-050, M-052, M-053
-#   LINKS: V-M-012, V-M-046, V-M-048, V-M-049, V-M-050, V-M-052, V-M-053, docs/plans/Phase-41.xml
+#   DEPENDS: M-012, M-046, M-048, M-049, M-050, M-052, M-053, M-065
+#   LINKS: V-M-012, V-M-046, V-M-048, V-M-049, V-M-050, V-M-052, V-M-053, V-M-065, docs/plans/Phase-41.xml, docs/plans/Phase-47.xml
 # END_MODULE_CONTRACT
 #
 # START_MODULE_MAP
@@ -21,6 +21,7 @@
 # END_MODULE_MAP
 #
 # START_CHANGE_SUMMARY
+#   LAST_CHANGE: v2.4.0 - Guard Phase-47 CTA-prefixed MTProto hostnames in the RU SNI router ACL.
 #   LAST_CHANGE: v2.3.0 - Added static guards for DE awg0 boot persistence and runtime policy-bind wait.
 #   LAST_CHANGE: v2.2.0 - Restored deploy static checks for KPprotoN fake-TLS production runtime.
 #   LAST_CHANGE: v2.1.0 - Added static guards for stable official MTProxy runtime flags and idempotent manifests.
@@ -52,8 +53,14 @@ def test_haproxy_routes_web_and_mtproto_sni():
     assert "[M-050][ru_sni_router][ROUTE_MTPROTO]" in haproxy
     assert "[M-050][ru_sni_router][ROUTE_UNKNOWN_SNI]" in haproxy
     assert "acl sni_web req.ssl_sni -i krotpn.xyz www.krotpn.xyz" in haproxy
-    assert r"^u-[0-9a-f]{12}\.krotpn\.xyz$" in haproxy
+    assert (
+        r"^(u-[0-9a-f]{12}|(kupi-vpn|vpn-tut|beri-vpn|bez-blokirovok|hochu-bystree|krot-vpn)-[0-9a-f]{7})\.krotpn\.xyz$"
+        in haproxy
+    )
+    assert "hochu-bystree" in haproxy
+    assert "krot-vpn" in haproxy
     assert "use_backend mtproto_de_runtime if sni_mtproto" in haproxy
+    assert "default_backend mtproto_de_runtime" not in haproxy
     assert "server ru_nginx_9443 127.0.0.1:9443 check" in haproxy
     assert "server de_mtproto_443 127.0.0.1:19443 check" in haproxy
     assert "default_backend web_https_fallback" in haproxy

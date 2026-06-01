@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<M-050 NAME="mtproto-de-backed-edge" TYPE="INTEGRATION" STATUS="pass-live-phase41">
-  <path>mtproto-runtime nginx docker-compose.yml deploy/deploy-on-server.sh deploy/haproxy-phase38.cfg deploy/haproxy-phase40.cfg deploy/mtproto-de-compose.yml backend/app/core/config.py backend/app/mtproto scripts/phase38-de-mtproto-edge-smoke.mjs scripts/phase41-kpproton-faketls-smoke.mjs docs/plans/Phase-38.xml docs/plans/Phase-40.xml docs/plans/Phase-41.xml</path>
+<M-050 NAME="mtproto-de-backed-edge" TYPE="INTEGRATION" STATUS="pass-live-phase41-pass-local-phase47-hotfix">
+  <path>mtproto-runtime nginx docker-compose.yml deploy/deploy-on-server.sh deploy/haproxy-phase38.cfg deploy/haproxy-phase40.cfg deploy/mtproto-de-compose.yml backend/app/core/config.py backend/app/mtproto scripts/phase38-de-mtproto-edge-smoke.mjs scripts/phase41-kpproton-faketls-smoke.mjs scripts/phase47-mtproto-cta-links-smoke.mjs docs/plans/Phase-38.xml docs/plans/Phase-40.xml docs/plans/Phase-41.xml docs/plans/Phase-47.xml</path>
   <owns>DE-hosted MTProto runtime, RU public TCP 443 router, private RU-to-DE policy/API reachability, superseded official MTProxy routing, planned Phase-41 KPprotoN SNI routing, and live Telegram availability gates.</owns>
   <purpose>Restore Telegram MTProto availability by routing issued user SNI traffic from the RU public edge to a DE-hosted MTProto runtime while keeping HTTPS on krotpn.xyz available.</purpose>
   <exports>
@@ -13,8 +13,9 @@
     <phase41-routing status="pass-live">Restore issued wildcard SNI routing to the DE KPprotoN fake-TLS runtime while web SNI continues to nginx fallback.</phase41-routing>
     <de-mtproto-ad-tag>DE runtime propagates MTPROTO_AD_TAG/PROXY_AD_TAG and defaults it to 32 zero hex chars so Telegram proxy_req receives a valid tag.</de-mtproto-ad-tag>
     <ru-client-ip-observation>RU SNI router emits local-only syslog observations with source IP and issued SNI before proxying traffic to DE.</ru-client-ip-observation>
+    <phase47-cta-routing status="pass-local">RU SNI router accepts both legacy u-12hex hostnames and CTA-prefix-7hex issued hostnames before forwarding to the DE KPprotoN runtime.</phase47-cta-routing>
   </exports>
-  <depends>M-001,M-012,M-043,M-044,M-046,M-048,M-049,M-052</depends>
+  <depends>M-001,M-012,M-043,M-044,M-046,M-048,M-049,M-052,M-065</depends>
   <verification-ref>V-M-050</verification-ref>
   <files>
     <file>deploy/deploy-on-server.sh</file>
@@ -29,8 +30,11 @@
     <file>backend/tests/test_mtproto_de_edge_contract.py</file>
     <file>backend/tests/test_deploy_phase38_static.py</file>
     <file>scripts/phase38-de-mtproto-edge-smoke.mjs</file>
+    <file>scripts/phase47-mtproto-cta-links-smoke.mjs</file>
     <file>docs/plans/Phase-38.xml</file>
+    <file>docs/plans/Phase-47.xml</file>
     <file>docs/verification/V-M-050.xml</file>
+    <file>docs/verification/V-M-065.xml</file>
   </files>
   <edge-policy>
     <policy-1>RU public TCP 443 has exactly one owner: the SNI router.</policy-1>
@@ -43,6 +47,7 @@
     <policy-8 status="pass-live">DE KPprotoN runtime must not start with a blank proxy ad tag; use a real MTProxyBot tag or the zero 32-hex tag.</policy-8>
     <policy-9 status="pass-local">DE-backed mode must not treat the RU router public IP as the user device IP; real client IP is captured at the RU SNI router boundary.</policy-9>
     <policy-10 status="pass-live-hotfix">DE awg0 must be enabled for boot so the private policy API address exists after RU/DE host reboot.</policy-10>
+    <policy-11 status="pass-local-phase47-hotfix">Phase-47 CTA-issued hostnames such as hochu-bystree-xxxxxxx.krotpn.xyz must match the same MTProto ACL as legacy u-xxxxxxxxxxxx.krotpn.xyz hostnames.</policy-11>
   </edge-policy>
   <constraints>
     <constraint-1>No public exposure of the DE policy API, runtime token, private key, base secret, salt, derived secret, or full proxy link.</constraint-1>
@@ -70,6 +75,7 @@
     <evidence-12>2026-05-19: Operator clean-deploy validation confirmed RU public HTTPS, admin access, VPN, and Telegram Desktop/mobile MTProto proxy behavior are working from the Phase-41 edge.</evidence-12>
     <evidence-13>2026-05-21: Local fix changed HAProxy to emit local syslog SNI/client-IP observations and added a host collector so admin IP history uses RU-edge real client IPs instead of the RU router hop.</evidence-13>
     <evidence-14>2026-05-23: Live reboot diagnosis found DE awg0 absent and runtime failing with eaddrnotavail; awg-quick@awg0 was enabled live, runtime recovered, and active assignment replay returned applied=2.</evidence-14>
+    <evidence-15>2026-06-01: Phase-47 hotfix found CTA hosts were generated correctly but fell through HAProxy because the ACL only matched legacy u-12hex names; deploy/haproxy-phase38.cfg now routes legacy and approved CTA-prefix-7hex labels to mtproto_de_runtime, with Phase-38/41/47 smoke and backend deploy static tests passing locally.</evidence-15>
   </evidence>
   <hotspot>H-037: DE-backed MTProto edge and RU SNI router can break HTTPS or expose policy/cert material unless routing, private API reachability, and redaction gates are strict.</hotspot>
 </M-050>
