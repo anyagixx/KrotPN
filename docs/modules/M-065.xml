@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<M-065 NAME="mtproto-cta-subdomain-link-generation" TYPE="CORE_LOGIC" STATUS="planned">
+  <path>backend/app/mtproto/provisioning.py backend/tests/test_mtproto_provisioning.py frontend/src/pages/Dashboard.tsx scripts/phase47-mtproto-cta-links-smoke.mjs docs/plans/Phase-47.xml</path>
+  <owns>CTA-prefixed MTProto SNI generation, public short user identifier derivation, explicit prefix validation, and owner link compatibility for Telegram app/browser links.</owns>
+  <purpose>Generate readable marketing-oriented personal MTProto proxy hostnames that encourage visits to krotpn.xyz without breaking issued-link availability or exposing raw internal user IDs.</purpose>
+  <exports>
+    <const-mtproto-cta-prefixes>Allowed transliterated CTA prefixes: kupi-vpn, vpn-tut, beri-vpn, bez-blokirovok, hochu-bystree, krot-vpn.</const-mtproto-cta-prefixes>
+    <fn-shorten-public-user-id>Derive a 7-hex public suffix from a hex/UUID-like user key or from a stable hash when the stored user_id is numeric.</fn-shorten-public-user-id>
+    <fn-select-cta-prefix>Choose either an explicit validated CTA prefix or a stable pseudo-random prefix for rotation-safe provisioning.</fn-select-cta-prefix>
+    <fn-generate-cta-sni>Build wildcard-safe SNI in the format cta-prefix-shortid.base-domain with collision nonce support.</fn-generate-cta-sni>
+    <fn-issue-cta-proxy-payload>Return owner-safe MTProto payloads whose server, secret, tg link, and browser link use the final CTA SNI.</fn-issue-cta-proxy-payload>
+  </exports>
+  <depends>M-001,M-002,M-042,M-043,M-045,M-049,M-050,M-064</depends>
+  <verification-ref>V-M-065</verification-ref>
+  <files>
+    <file>backend/app/mtproto/provisioning.py</file>
+    <file>backend/tests/test_mtproto_provisioning.py</file>
+    <file>frontend/src/pages/Dashboard.tsx</file>
+    <file>scripts/phase47-mtproto-cta-links-smoke.mjs</file>
+    <file>docs/plans/Phase-47.xml</file>
+  </files>
+  <constraints>
+    <constraint-1>Do not change install.sh, deploy scripts, nginx, docker-compose, wildcard TLS issuance, database schema, or RU/DE topology in Phase-47.</constraint-1>
+    <constraint-2>Generated SNI must remain exactly one wildcard label under the configured base domain so existing *.krotpn.xyz TLS and RU SNI routing continue to work.</constraint-2>
+    <constraint-3>Numeric internal user IDs must not be exposed directly in public hostnames; use a stable 7-hex public suffix instead.</constraint-3>
+    <constraint-4>Explicit CTA prefix input must be restricted to the approved allow-list and never accept arbitrary DNS labels.</constraint-4>
+    <constraint-5>Existing active u-*.krotpn.xyz assignments must remain valid unless an explicit reissue path is requested.</constraint-5>
+    <constraint-6>Derived fake-TLS secret must be computed from the final CTA SNI, and no base secret, salt, derived secret, or full proxy link may be logged.</constraint-6>
+  </constraints>
+  <acceptance-metrics>
+    <metric-1>New assignment hostnames follow cta-prefix-7hex.krotpn.xyz and stay below DNS label limits.</metric-1>
+    <metric-2>Allowed explicit prefix and stable pseudo-random prefix selection are deterministic and covered by tests.</metric-2>
+    <metric-3>Numeric IDs are transformed to a non-raw 7-hex public suffix while hex-like IDs can use their first 7 hex characters.</metric-3>
+    <metric-4>Owner payload server, secret, tg:// link, and https://t.me link all reference the same CTA SNI.</metric-4>
+    <metric-5>Backend tests, frontend build, Phase-47 smoke, MyGRACE lint, XML parse, and deploy/install diff guard pass.</metric-5>
+  </acceptance-metrics>
+  <hotspot>H-052: CTA MTProto SNI generation must stay wildcard-safe, avoid exposing raw numeric user IDs, preserve old issued links, and not weaken RU/DE routing</hotspot>
+</M-065>

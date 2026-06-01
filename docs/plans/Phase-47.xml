@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Phase-47 NAME="MTProto CTA Subdomain Link Generation" STATUS="planned" VERSION="1.0.0" MODULES="M-065,M-001,M-002,M-042,M-043,M-045,M-049,M-050,M-064" CREATED="2026-06-01" UPDATED="2026-06-01">
+  <purpose>Implement marketing-oriented CTA subdomains for newly issued personal MTProto proxy links while preserving existing working proxies and the Phase-41 RU/DE fake-TLS data-plane.</purpose>
+  <scope>
+    <in>CTA prefix allow-list, 7-hex public user suffix derivation, explicit prefix validation, stable pseudo-random prefix choice, CTA SNI generation, owner payload consistency, backend tests, frontend/smoke guards, and MyGRACE metadata.</in>
+    <out>Deploy/install scripts, nginx/docker-compose, wildcard TLS issuance, database schema migrations, MTProto runtime topology, promotion tag runtime, and automatic mass reissue of existing u-* assignments.</out>
+  </scope>
+  <example-output>https://t.me/proxy?server=kupi-vpn-4bb40fa.krotpn.xyz&amp;port=443&amp;secret=ee...</example-output>
+  <steps>
+    <step-1 MODULE="M-065,M-043" STATUS="planned">Add the fixed CTA prefix allow-list: kupi-vpn, vpn-tut, beri-vpn, bez-blokirovok, hochu-bystree, and krot-vpn.</step-1>
+    <step-2 MODULE="M-065,M-002" STATUS="planned">Implement public short-id derivation: use first 7 hex characters for hex-like user keys and a stable 7-hex hash suffix for numeric internal IDs.</step-2>
+    <step-3 MODULE="M-065,M-043" STATUS="planned">Implement explicit prefix validation and stable pseudo-random prefix selection without accepting arbitrary DNS labels.</step-3>
+    <step-4 MODULE="M-065,M-043" STATUS="planned">Generate wildcard-safe CTA SNI as cta-prefix-shortid.base-domain with collision nonce support and DNS label validation.</step-4>
+    <step-5 MODULE="M-065,M-042,M-043" STATUS="planned">Integrate CTA SNI into new assignment creation while preserving existing active u-* assignments unless reissue is explicit.</step-5>
+    <step-6 MODULE="M-065,M-043,M-049,M-050" STATUS="planned">Verify fake-TLS secret derivation, live policy apply expectations, and RU SNI router compatibility for the final CTA SNI.</step-6>
+    <step-7 MODULE="M-065,M-045,M-064" STATUS="planned">Ensure user-cabinet tg:// and https://t.me links both use the CTA server value returned by the owner API.</step-7>
+    <step-8 MODULE="M-065" STATUS="planned">Add targeted backend tests and Phase-47 static smoke for prefix allow-list, short-id derivation, link consistency, redaction, and protected deploy surfaces.</step-8>
+    <step-9 MODULE="M-065" STATUS="planned">Run backend provisioning tests, frontend build, Phase-47 smoke, XML parse, MyGRACE lint, and deploy/install diff guard.</step-9>
+  </steps>
+  <data-flow>
+    <flow-1>Verified user -&gt; MTProtoProvisioningService -&gt; CTA prefix selector -&gt; public 7-hex suffix -&gt; cta-prefix-shortid.krotpn.xyz.</flow-1>
+    <flow-2>CTA SNI -&gt; derive_fake_tls_secret -&gt; owner payload server/secret -&gt; tg://proxy and https://t.me/proxy links.</flow-2>
+    <flow-3>CTA SNI assignment -&gt; runtime policy apply -&gt; RU SNI router -&gt; DE KPprotoN fake-TLS runtime.</flow-3>
+  </data-flow>
+  <mental-walkthroughs>
+    <walkthrough-1>A newly verified user receives kupi-vpn-4bb40fa.krotpn.xyz; Telegram sees the same server in the fake-TLS secret and can connect through the existing RU/DE edge.</walkthrough-1>
+    <walkthrough-2>An existing user with u-0195616cec89.krotpn.xyz logs in after Phase-47 and keeps the old working assignment because no automatic mass reissue occurs.</walkthrough-2>
+    <walkthrough-3>An invalid explicit prefix such as custom-domain is rejected before SNI creation, so arbitrary hostnames cannot enter policy apply or logs.</walkthrough-3>
+  </mental-walkthroughs>
+  <phase-gates>
+    <gate-1>CTA hostnames match one of the approved prefixes plus a 7-hex suffix under the configured base domain.</gate-1>
+    <gate-2>Raw numeric user IDs are not visible in generated public hostnames.</gate-2>
+    <gate-3>Existing active assignments remain stable and are not silently rotated.</gate-3>
+    <gate-4>Derived ee fake-TLS secret contains the final CTA SNI hex and does not use stale u-* server text for new assignments.</gate-4>
+    <gate-5>No deploy/install/nginx/docker-compose files are changed.</gate-5>
+  </phase-gates>
+  <risks>
+    <risk-1 severity="medium">CTA hostnames are more marketing-visible than neutral u-* hostnames, which may improve recall but can make blocked-word tuning more sensitive.</risk-1>
+    <risk-2 severity="high">Changing SNI generation breaks old proxy links if existing assignments are silently rewritten; Phase-47 forbids automatic mass rotation.</risk-2>
+    <risk-3 severity="high">Secret derivation must use the final CTA SNI because Telegram fake-TLS secret embeds the hostname in hex.</risk-3>
+    <risk-4 severity="medium">Random prefix choice must be deterministic after issuance; true randomness belongs only to create/reissue time and must be persisted as SNI.</risk-4>
+  </risks>
+  <verification>
+    <commands>
+      <command status="planned">cd backend &amp;&amp; SECRET_KEY=test-secret-key-with-enough-length PYTHONPATH=. ../.venv/bin/python -m pytest -o addopts='' tests/test_mtproto_provisioning.py -v</command>
+      <command status="planned">cd frontend &amp;&amp; npm run build</command>
+      <command status="planned">node scripts/phase47-mtproto-cta-links-smoke.mjs</command>
+      <command status="planned">python3 -m xml.etree.ElementTree docs/plans/Phase-47.xml docs/modules/M-065.xml docs/verification/V-M-065.xml docs/graph-index.xml docs/plan-index.xml docs/verification-index.xml</command>
+      <command status="planned">mygrace lint</command>
+    </commands>
+  </verification>
+</Phase-47>

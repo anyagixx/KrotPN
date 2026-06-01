@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<V-M-065 MODULE="M-065" PRIORITY="high" STATUS="planned">
+  <purpose>Verify Phase-47 CTA MTProto subdomain generation, owner link consistency, and safety around existing assignments and deploy surfaces.</purpose>
+  <checks>CTA prefix allow-list, public 7-hex suffix derivation, explicit prefix validation, stable pseudo-random prefix selection, final-SNI fake-TLS secret derivation, old assignment preservation, redaction, and no deploy/install changes.</checks>
+  <test-files>
+    <file>backend/app/mtproto/provisioning.py</file>
+    <file>backend/tests/test_mtproto_provisioning.py</file>
+    <file>frontend/src/pages/Dashboard.tsx</file>
+    <file>scripts/phase47-mtproto-cta-links-smoke.mjs</file>
+  </test-files>
+  <commands>
+    <command status="planned">cd backend &amp;&amp; SECRET_KEY=test-secret-key-with-enough-length PYTHONPATH=. ../.venv/bin/python -m pytest -o addopts='' tests/test_mtproto_provisioning.py -v</command>
+    <command status="planned">cd frontend &amp;&amp; npm run build</command>
+    <command status="planned">node scripts/phase47-mtproto-cta-links-smoke.mjs</command>
+    <command status="planned">python3 -m xml.etree.ElementTree docs/plans/Phase-47.xml docs/modules/M-065.xml docs/verification/V-M-065.xml docs/graph-index.xml docs/plan-index.xml docs/verification-index.xml</command>
+    <command status="planned">mygrace lint</command>
+  </commands>
+  <module-checks>
+    <check-1>Allowed prefixes are exactly kupi-vpn, vpn-tut, beri-vpn, bez-blokirovok, hochu-bystree, and krot-vpn.</check-1>
+    <check-2>Generated CTA SNI follows cta-prefix-7hex.krotpn.xyz, stays DNS-label-safe, and supports collision nonce changes.</check-2>
+    <check-3>Numeric user IDs are not copied raw into public hostnames; hex-like user keys use the first 7 hex characters.</check-3>
+    <check-4>Owner payload server, secret, tg:// link, and https://t.me browser link share the same final CTA SNI.</check-4>
+    <check-5>Existing u-* active assignments are reused without automatic rewrite or forced reissue.</check-5>
+    <check-6>Smoke output and logs do not print base secret, salt, derived secret, full proxy links from real accounts, runtime token, JWTs, or email tokens.</check-6>
+    <check-7>Phase-47 smoke fails if install.sh, deploy scripts, nginx, docker-compose, or wildcard TLS surfaces are changed.</check-7>
+  </module-checks>
+  <scenarios>
+    <scenario-1 kind="success">New assignment for a numeric user ID returns a CTA server such as kupi-vpn-4bb40fa.krotpn.xyz without exposing the numeric ID.</scenario-1>
+    <scenario-2 kind="success">Explicit prefix krot-vpn produces krot-vpn-xxxxxxx.krotpn.xyz and the fake-TLS secret contains that hostname in hex.</scenario-2>
+    <scenario-3 kind="success">Existing u-*.krotpn.xyz active assignment remains active and owner payload still matches the stored SNI.</scenario-3>
+    <scenario-4 kind="failure">Unknown prefix, uppercase/unsafe DNS label, overlong label, or foreign base domain is rejected before persistence or policy apply.</scenario-4>
+    <scenario-5 kind="failure">Any test or smoke output leaks a real full proxy link or secret-bearing value.</scenario-5>
+  </scenarios>
+  <required-markers>
+    <marker-1>[M-065][generate_cta_sni][CTA_PREFIX]</marker-1>
+    <marker-2>[M-065][generate_cta_sni][PUBLIC_SHORT_ID]</marker-2>
+    <marker-3>[M-065][issue_user_proxy][CTA_ASSIGNMENT]</marker-3>
+    <marker-4>[M-065][phase47_mtproto_cta_links][LEGACY_PRESERVE]</marker-4>
+  </required-markers>
+  <redaction-rules>
+    <rule-1>Do not log or print base secret, salt, derived secret, full tg:// or https://t.me links from live users, runtime tokens, access tokens, refresh tokens, email verification tokens, reset tokens, or private env values.</rule-1>
+  </redaction-rules>
+  <autonomous-execution-safety>Allowed after plan and verification approval because Phase-47 is scoped to provisioning/link generation and static verification, with deploy/install/runtime topology explicitly out of scope.</autonomous-execution-safety>
+</V-M-065>
