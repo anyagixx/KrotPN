@@ -50,5 +50,5 @@
   <Phase-46 NAME="User Cabinet Password and MTProto Link UX Polish" STATUS="done-local" STEPS="7" MODULES="M-064,M-009,M-036,M-045,M-062" />
   <Phase-47 NAME="MTProto CTA Subdomain Link Generation" STATUS="pass-local-short-suffix" STEPS="9" MODULES="M-065,M-001,M-002,M-042,M-043,M-045,M-049,M-050,M-064" />
   <Phase-48 NAME="VPN Config Download MIME and Filename Hardening" STATUS="done-local" STEPS="8" MODULES="M-066,M-001,M-003,M-009,M-022,M-036" />
-  <Phase-49 NAME="BIMI Sender Branding Asset Deployment" STATUS="planned" STEPS="8" MODULES="M-067,M-009,M-012,M-040,M-046,M-062" />
+  <Phase-49 NAME="BIMI Sender Branding Asset Deployment" STATUS="verification-designed" STEPS="8" MODULES="M-067,M-009,M-012,M-040,M-046,M-062" />
 </PlanIndex>

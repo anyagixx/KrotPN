@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<V-M-067 MODULE="M-067" PRIORITY="medium" STATUS="planned">
+<V-M-067 MODULE="M-067" PRIORITY="medium" STATUS="verification-designed">
   <purpose>Verify Phase-49 BIMI sender-branding asset deployment across SVG compliance, frontend static delivery, nginx well-known routing, DNS instructions, and protected operational surfaces.</purpose>
   <checks>BIMI Tiny P/S root attributes, file size, title/desc, absence of unsafe SVG constructs, frontend public asset copy, /.well-known/bimi allow-rule, image/svg+xml live headers, and unchanged deploy/install surfaces.</checks>
   <test-files>
@@ -53,6 +53,6 @@
   <redaction-rules>
     <rule-1>Do not log Resend API keys, verification/reset tokens, TLS private keys, MTProto secrets, VPN config bodies, Authorization headers, or live user identifiers during Phase-49 verification.</rule-1>
   </redaction-rules>
-  <evidence status="planned" date="2026-06-02">Phase-49 verification is designed; execution evidence is expected after $mygrace:execute Phase-49.</evidence>
+  <evidence status="verification-designed" date="2026-06-02">Phase-49 verification design is ready; execution evidence is expected after $mygrace:execute Phase-49.</evidence>
   <autonomous-execution-safety>Allowed after plan and verification approval because Phase-49 is limited to public static branding asset delivery, nginx well-known allowance, smoke verification, and DNS/runbook docs.</autonomous-execution-safety>
 </V-M-067>

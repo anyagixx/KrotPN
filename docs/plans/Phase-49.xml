@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Phase-49 NAME="BIMI Sender Branding Asset Deployment" STATUS="planned" VERSION="1.0.0" MODULES="M-067,M-009,M-012,M-040,M-046,M-062" CREATED="2026-06-02" UPDATED="2026-06-02">
+<Phase-49 NAME="BIMI Sender Branding Asset Deployment" STATUS="verification-designed" VERSION="1.0.0" MODULES="M-067,M-009,M-012,M-040,M-046,M-062" CREATED="2026-06-02" UPDATED="2026-06-02">
   <purpose>Deploy the prepared KrotPN BIMI SVG as a public HTTPS asset and document the DNS record needed for mailbox-provider sender-logo discovery.</purpose>
   <scope>
     <in>BIMI SVG normalization, frontend static asset placement, /.well-known/bimi nginx allowance, smoke verification, DNS runbook, and MyGRACE metadata.</in>
