@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<M-068 NAME="paid-tariff-catalog" TYPE="CORE_LOGIC" STATUS="planned-phase50">
+<M-068 NAME="paid-tariff-catalog" TYPE="CORE_LOGIC" STATUS="verification-designed-phase50">
   <path>backend/app/billing frontend/src/pages/Subscription.tsx frontend-admin/src/pages/Plans.tsx scripts/phase50-tariff-catalog-smoke.mjs docs/plans/Phase-50.xml</path>
   <owns>Canonical three-plan paid tariff catalog, server-authoritative payment amounts, device-limit checkout guards, and compact tariff presentation in user/admin frontends.</owns>
   <purpose>Guarantee that clean deployments and existing deployments converge to the approved KrotPN paid tariff matrix without trusting frontend-provided prices.</purpose>
@@ -49,6 +49,7 @@
     <metric-3>Device provisioning enforces the purchased plan limit and checkout blocks incompatible downgrades before payment creation.</metric-3>
     <metric-4>User and admin frontends build and show compact, Russian, mobile-safe tariff surfaces with no stale placeholder CRUD wording.</metric-4>
     <metric-5>Backend tariff, billing, device-limit, migration, frontend build, admin build, static smoke, XML parse, MyGRACE lint, and protected deploy/install diff guard pass.</metric-5>
+    <metric-6>Phase-50 verification design is complete before execution: deterministic assertions, trace markers, UI/API contract, and protected-surface guard are explicitly mapped in V-M-068.</metric-6>
   </acceptance-metrics>
   <hotspot>H-055: Paid tariff catalog must keep server-authoritative prices, canonical device limits, no duplicate clean-deploy plans, and no deploy/install drift</hotspot>
 </M-068>

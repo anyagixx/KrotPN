@@ -2,6 +2,11 @@
 <V-M-068 MODULE="M-068" PRIORITY="critical" STATUS="verification-designed">
   <purpose>Verify Phase-50 canonical paid tariffs across billing catalog convergence, YooKassa payment creation, subscription activation, device-limit policy, and compact user/admin UI.</purpose>
   <checks>Exactly three canonical active tariffs, server-authoritative prices, idempotent clean-deploy upsert, downgrade guard, correct payment metadata, paid subscription activation, device-limit enforcement, user/admin UI rendering, and unchanged deploy/install surfaces.</checks>
+  <evidence-priority>
+    <level-1>Deterministic assertions first: exact canonical tariff matrix, no duplicate upsert, server-derived payment amount, webhook subscription state, and device-limit boundaries.</level-1>
+    <level-2>Trace assertions second: secret-free markers for catalog upsert, checkout validation, downgrade rejection, payment creation, and paid subscription update.</level-2>
+    <level-3>Integration checks third: frontend build, frontend-admin build, static smoke, XML/MyGRACE, and protected deploy/install guard.</level-3>
+  </evidence-priority>
   <test-files>
     <file planned="true">backend/tests/test_billing_tariff_catalog.py</file>
     <file>backend/tests/test_billing_plan_api.py</file>
@@ -36,6 +41,17 @@
     <check-9>Admin Plans renders a compact canonical tariff matrix and does not expose accidental canonical delete/edit actions.</check-9>
     <check-10>Phase-50 does not change install.sh, deploy scripts, docker-compose, nginx, TLS material, VPN runtime, or MTProto runtime.</check-10>
   </module-checks>
+  <phase-50-gates>
+    <gate-1>Public GET /api/v1/billing/plans returns exactly krotpn-1, krotpn-6, and krotpn-9 in sort order with price, currency, duration_days, device_limit, slug, active status, and popular marker.</gate-1>
+    <gate-2>Admin plan response exposes slug, is_active, is_popular, sort_order, price, currency, duration_days, and device_limit; frontend-admin build fails if the type contract drifts.</gate-2>
+    <gate-3>Canonical upsert can run repeatedly on clean or existing databases and leaves exactly one active row per canonical slug with current approved values.</gate-3>
+    <gate-4>Checkout accepts plan_id only from the user-facing request and rejects inactive, noncanonical, stale, or lower-limit incompatible plans before YooKassa payment creation.</gate-4>
+    <gate-5>YooKassa create-payment request uses server-derived amount strings and metadata; frontend tampering with price, duration, currency, or device_limit cannot affect provider payload.</gate-5>
+    <gate-6>Succeeded webhook cancels pending trial, activates or extends paid subscription, preserves paid-subscription non-regression, and exposes the selected device limit to M-021.</gate-6>
+    <gate-7>Device policy enforces 1, 6, and 9 active slots and blocks the next over-limit provisioning attempt with a deterministic error.</gate-7>
+    <gate-8>Phase-50 static smoke fails if the user/admin UI shows fewer or more than three tariffs, stale plan CRUD placeholder copy, non-Russian labels, or missing protected-surface guard.</gate-8>
+    <gate-9>Any diff under install.sh, deploy, docker-compose.yml, nginx, TLS material, VPN runtime topology, or MTProto runtime topology blocks Phase-50 completion.</gate-9>
+  </phase-50-gates>
   <verification-levels>
     <module-local>Backend tests cover catalog convergence, API payloads, checkout validation, YooKassa amount/metadata, webhook activation, and device-limit enforcement.</module-local>
     <wave-level>Frontend and frontend-admin builds plus Phase-50 smoke cover compact tariff presentation and API type compatibility.</wave-level>
@@ -57,7 +73,7 @@
     <marker-2>[M-068][checkout][TARIFF_CHECKOUT_VALIDATED]</marker-2>
     <marker-3>[M-068][checkout][TARIFF_DOWNGRADE_BLOCKED]</marker-3>
     <marker-4>[BillingService][create_payment][BILLING_PAYMENT_CREATED]</marker-4>
-    <marker-5>[BILLING] Payment</marker-5>
+    <marker-5>[BillingService][process_payment_webhook][BILLING_SUBSCRIPTION_UPDATED]</marker-5>
   </required-markers>
   <redaction-rules>
     <rule-1>Do not log YooKassa secret keys, raw Authorization headers, JWTs, payment provider credentials, email tokens, TLS private keys, VPN config bodies, MTProto secrets, or full user identifiers during Phase-50 verification.</rule-1>

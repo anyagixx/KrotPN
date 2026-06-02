@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Phase-50 NAME="Three Paid Tariffs Catalog and Device-Limit Checkout" STATUS="planned" VERSION="1.0.0" MODULES="M-068,M-001,M-004,M-006,M-009,M-010,M-021,M-022,M-028,M-036,M-038" CREATED="2026-06-02" UPDATED="2026-06-02">
+<Phase-50 NAME="Three Paid Tariffs Catalog and Device-Limit Checkout" STATUS="verification-designed" VERSION="1.0.0" MODULES="M-068,M-001,M-004,M-006,M-009,M-010,M-021,M-022,M-028,M-036,M-038" CREATED="2026-06-02" UPDATED="2026-06-02">
   <purpose>Implement the approved KrotPN paid tariff matrix across backend billing, device limits, YooKassa checkout, user frontend, and admin frontend.</purpose>
   <scope>
     <in>Canonical 30-day tariff catalog, idempotent clean-deploy plan convergence, server-authoritative prices, YooKassa payment metadata, downgrade guard, device-limit enforcement, compact user tariff cards, compact admin tariff matrix, tests, smoke checks, README/MyGRACE sync.</in>
@@ -33,13 +33,22 @@
     <walkthrough-2>User already has six active devices and tries to buy KrotPN 1. Backend blocks checkout before payment creation and frontend explains that extra devices must be revoked first.</walkthrough-2>
     <walkthrough-3>Clean VPS deployment starts backend twice. The tariff convergence path leaves exactly three canonical active plans and does not create duplicate rows or stale prices.</walkthrough-3>
   </mental-walkthroughs>
+  <verification-design status="verification-designed">
+    <deterministic-evidence>Phase-50 must prove the exact tariff matrix krotpn-1/krotpn-6/krotpn-9, prices 369/693/936 RUB, 30-day duration, limits 1/6/9, sorted public/admin API output, idempotent upsert without duplicates, server-derived YooKassa amount, paid webhook activation, pending-trial cancellation, and device-limit boundaries.</deterministic-evidence>
+    <trace-evidence>Implementation must emit secret-free markers for tariff catalog upsert, checkout validation, downgrade rejection, payment creation, and paid subscription update so failures can be traced without exposing provider keys, tokens, VPN configs, or MTProto secrets.</trace-evidence>
+    <integration-evidence>Frontend build, frontend-admin build, Phase-50 smoke, XML parse, MyGRACE lint, git diff --check, and protected deploy/install diff guard are required before execution can be treated as complete.</integration-evidence>
+    <ui-contract>User UI must render exactly three compact mobile-safe Russian tariff cards. Admin UI must render a compact canonical tariff matrix with slug, active, popular, sort order, price, duration, and device-limit fields, without accidental canonical delete/edit affordances.</ui-contract>
+    <protected-surfaces>Phase-50 verification fails if install.sh, deploy scripts, docker-compose, nginx, TLS material, VPN runtime topology, or MTProto runtime topology are changed.</protected-surfaces>
+    <autonomous-execution>Allowed after this verification design because Phase-50 is scoped to billing catalog, payment validation, device-limit policy, UI presentation, tests, docs, and protected-surface guards.</autonomous-execution>
+  </verification-design>
   <phase-gates>
     <gate-1>Canonical public plan API returns exactly three active paid tariffs: 369/1, 693/6, 936/9, all RUB and 30 days.</gate-1>
     <gate-2>Payment creation never trusts client-supplied price, duration, currency, or device_limit.</gate-2>
     <gate-3>YooKassa payload value strings are 369.00, 693.00, and 936.00 for the corresponding canonical plans.</gate-3>
     <gate-4>Device creation enforces limits 1, 6, and 9 after paid activation and blocks the next device over limit.</gate-4>
-    <gate-5>Frontend user and admin builds pass and tariff UI remains compact on mobile.</gate-5>
-    <gate-6>install.sh, deploy scripts, docker-compose, nginx, TLS material, VPN runtime, and MTProto runtime have no Phase-50 diff.</gate-6>
+    <gate-5>Admin plan API exposes slug, is_active, is_popular, sort_order, device_limit, price, currency, and duration_days so the admin UI does not infer undefined canonical state.</gate-5>
+    <gate-6>Frontend user and admin builds pass and tariff UI remains compact on mobile.</gate-6>
+    <gate-7>install.sh, deploy scripts, docker-compose, nginx, TLS material, VPN runtime, and MTProto runtime have no Phase-50 diff.</gate-7>
   </phase-gates>
   <risks>
     <risk-1 severity="high">Existing databases can contain old plans; Phase-50 must converge canonical plans by stable slug or deterministic identity without breaking active legacy subscriptions.</risk-1>
