@@ -1,0 +1,58 @@
+<svg version="1.2" baseProfile="tiny-ps" viewBox="0 0 100 100" width="100" height="100" xmlns="http://www.w3.org/2000/svg">
+<title>KrotPN</title>
+<desc>Angular vector BIMI logo of a cyberpunk mole in Matrix green and dark charcoal.</desc>
+<circle cx="50" cy="50" r="50" fill="#FFFFFF"/>
+<g id="logo" transform="translate(3, 3) scale(0.18359375)">
+<rect width="512" height="512" fill="#ffffff"/>
+<path d="M256 43 L346 74 L404 123 L419 178 L458 204 L472 262 L453 309 L466 330 L445 354 L392 407 L335 455 L256 489 L177 455 L120 407 L67 354 L46 330 L59 309 L40 262 L54 204 L93 178 L108 123 L166 74 Z" fill="#050908" stroke="#00ff41" stroke-width="8" stroke-linejoin="round"/>
+<path d="M59 219 L87 197 L113 213 L99 250 L114 279 L94 303 L71 272 Z" fill="#0d1513" stroke="#00ff41" stroke-width="7" stroke-linejoin="round"/>
+<path d="M453 219 L425 197 L399 213 L413 250 L398 279 L418 303 L441 272 Z" fill="#0d1513" stroke="#00ff41" stroke-width="7" stroke-linejoin="round"/>
+<path d="M82 228 L97 217 L87 248 L99 274 L88 288 L74 264 Z" fill="#030605" stroke="#00ff41" stroke-width="5" stroke-linejoin="round"/>
+<path d="M430 228 L415 217 L425 248 L413 274 L424 288 L438 264 Z" fill="#030605" stroke="#00ff41" stroke-width="5" stroke-linejoin="round"/>
+<path d="M111 131 L167 86 L256 61 L345 86 L401 131 L410 179 L370 186 L322 212 L292 226 L220 226 L190 212 L142 186 L102 179 Z" fill="#060c0b"/>
+<path d="M104 158 L191 183 L223 206 L113 197 Z" fill="#26312d"/>
+<path d="M408 158 L321 183 L289 206 L399 197 Z" fill="#26312d"/>
+<path d="M116 180 L191 198 L220 223 L149 211 L104 197 Z" fill="#0a100f"/>
+<path d="M396 180 L321 198 L292 223 L363 211 L408 197 Z" fill="#0a100f"/>
+<path d="M97 189 L141 202 L195 211 L212 228 L239 229 L250 219 L262 219 L273 229 L300 228 L317 211 L371 202 L415 189 L406 231 L366 262 L309 258 L285 236 L227 236 L203 258 L146 262 L106 231 Z" fill="#003511" stroke="#00ff41" stroke-width="7" stroke-linejoin="round"/>
+<path d="M103 185 L145 197 L205 207 L220 222 L244 222 L251 217 L261 217 L268 222 L292 222 L307 207 L367 197 L409 185 L405 204 L367 216 L316 226 L292 236 L220 236 L196 226 L145 216 L107 204 Z" fill="#00ff41"/>
+<path d="M122 202 L176 214 L196 236 L221 238" fill="none" stroke="#003511" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M390 202 L336 214 L316 236 L291 238" fill="none" stroke="#003511" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M228 219 L284 219" fill="none" stroke="#003511" stroke-width="7" stroke-linecap="round"/>
+<path d="M118 229 L165 232 L188 258 L216 261" fill="none" stroke="#00ff41" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M394 229 L347 232 L324 258 L296 261" fill="none" stroke="#00ff41" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M129 216 L162 219 L184 240" fill="none" stroke="#00ff41" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M383 216 L350 219 L328 240" fill="none" stroke="#00ff41" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+<circle cx="188" cy="240" r="7" fill="#003511" stroke="#00ff41" stroke-width="5"/>
+<circle cx="324" cy="240" r="7" fill="#003511" stroke="#00ff41" stroke-width="5"/>
+<circle cx="129" cy="229" r="6" fill="#003511" stroke="#00ff41" stroke-width="5"/>
+<circle cx="383" cy="229" r="6" fill="#003511" stroke="#00ff41" stroke-width="5"/>
+<path d="M96 247 L150 271 L203 275 L192 302 L132 304 L86 281 Z" fill="#070c0b"/>
+<path d="M416 247 L362 271 L309 275 L320 302 L380 304 L426 281 Z" fill="#070c0b"/>
+<path d="M101 282 L154 306 L204 309 L178 342 L102 329 L74 305 Z" fill="#0b1210"/>
+<path d="M411 282 L358 306 L308 309 L334 342 L410 329 L438 305 Z" fill="#0b1210"/>
+<path d="M213 243 L299 243 L326 274 L326 331 L301 363 L256 376 L211 363 L186 331 L186 274 Z" fill="#2a3431" stroke="#07100e" stroke-width="5" stroke-linejoin="round"/>
+<path d="M220 263 L292 263 L310 285 L307 326 L287 351 L256 360 L225 351 L205 326 L202 285 Z" fill="#303b38"/>
+<path d="M228 288 C239 278 273 278 284 288 L293 309 C284 328 272 338 256 338 C240 338 228 328 219 309 Z" fill="#00ff41"/>
+<path d="M237 300 C249 303 255 314 253 329 C240 326 233 315 237 300 Z" fill="#020403"/>
+<path d="M275 300 C263 303 257 314 259 329 C272 326 279 315 275 300 Z" fill="#020403"/>
+<path d="M227 350 L256 341 L285 350" fill="none" stroke="#050807" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M197 304 C149 295 103 296 66 302" fill="none" stroke="#00ff41" stroke-width="6" stroke-linecap="round"/>
+<path d="M198 318 C150 318 111 327 71 342" fill="none" stroke="#00ff41" stroke-width="6" stroke-linecap="round"/>
+<path d="M200 331 C153 343 119 362 89 388" fill="none" stroke="#00ff41" stroke-width="6" stroke-linecap="round"/>
+<path d="M315 304 C363 295 409 296 446 302" fill="none" stroke="#00ff41" stroke-width="6" stroke-linecap="round"/>
+<path d="M314 318 C362 318 401 327 441 342" fill="none" stroke="#00ff41" stroke-width="6" stroke-linecap="round"/>
+<path d="M312 331 C359 343 393 362 423 388" fill="none" stroke="#00ff41" stroke-width="6" stroke-linecap="round"/>
+<path d="M110 350 L165 401 L210 437 L256 462 L302 437 L347 401 L402 350 L356 381 L309 417 L287 433 L256 446 L225 433 L203 417 L156 381 Z" fill="#070c0b"/>
+<path d="M169 370 L214 414 L214 452" fill="none" stroke="#00ff41" stroke-width="7" stroke-linejoin="round"/>
+<path d="M343 370 L298 414 L298 452" fill="none" stroke="#00ff41" stroke-width="7" stroke-linejoin="round"/>
+<path d="M202 407 L229 429" fill="none" stroke="#00ff41" stroke-width="7" stroke-linecap="square"/>
+<path d="M310 407 L283 429" fill="none" stroke="#00ff41" stroke-width="7" stroke-linecap="square"/>
+<path d="M256 407 L256 476" fill="none" stroke="#00ff41" stroke-width="7" stroke-linecap="round"/>
+<circle cx="256" cy="407" r="11" fill="#050908" stroke="#00ff41" stroke-width="6"/>
+<path d="M204 418 L204 452" fill="none" stroke="#00ff41" stroke-width="6"/>
+<path d="M308 418 L308 452" fill="none" stroke="#00ff41" stroke-width="6"/>
+<path d="M126 343 L164 382 L111 366 Z" fill="#111a18"/>
+<path d="M386 343 L348 382 L401 366 Z" fill="#111a18"/>
+</g>
+</svg>

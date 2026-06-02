@@ -116,6 +116,27 @@ HTTP автоматически перенаправляется на HTTPS. В 
 
 После регистрации пользователь получает письмо подтверждения. VPN trial и персональный MTProto proxy выдаются только после успешного `verify-email`.
 
+### Email Sender Avatar (BIMI)
+
+KrotPN публикует BIMI SVG для sender branding по адресу:
+
+```text
+https://krotpn.xyz/.well-known/bimi/krotpn.svg
+```
+
+После деплоя и проверки URL добавьте DNS запись:
+
+```text
+Host/Name: default._bimi
+Type: TXT
+Value: v=BIMI1; l=https://krotpn.xyz/.well-known/bimi/krotpn.svg;
+```
+
+Если DNS-панель требует полный host, используйте `default._bimi.krotpn.xyz`.
+Do not add `a=` until VMC/CMC PEM certificate material exists.
+
+BIMI работает только если почтовый провайдер успешно проверяет SPF/DKIM/DMARC. Для Gmail и Apple аватар может не отображаться без VMC/CMC даже при корректной DNS записи. Resend отправляет письма от `noreply@krotpn.xyz`, но сам не управляет аватаркой отправителя в почтовых клиентах.
+
 ### 🔐 Доступ к Admin Panel
 
 После установки используйте учётные данные, которые вы задали в `ADMIN_EMAIL` и `ADMIN_PASSWORD` во время деплоя.

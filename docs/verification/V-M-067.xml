@@ -1,27 +1,29 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<V-M-067 MODULE="M-067" PRIORITY="medium" STATUS="verification-designed">
+<V-M-067 MODULE="M-067" PRIORITY="medium" STATUS="pass-local">
   <purpose>Verify Phase-49 BIMI sender-branding asset deployment across SVG compliance, frontend static delivery, nginx well-known routing, DNS instructions, and protected operational surfaces.</purpose>
   <checks>BIMI Tiny P/S root attributes, file size, title/desc, absence of unsafe SVG constructs, frontend public asset copy, /.well-known/bimi allow-rule, image/svg+xml live headers, and unchanged deploy/install surfaces.</checks>
   <test-files>
     <file>frontend/public/.well-known/bimi/krotpn.svg</file>
     <file>frontend/nginx.conf</file>
     <file>scripts/phase49-bimi-branding-smoke.mjs</file>
+    <file>README.md</file>
     <file>docs/plans/Phase-49.xml</file>
   </test-files>
   <commands>
-    <command status="planned">node scripts/phase49-bimi-branding-smoke.mjs</command>
-    <command status="planned">cd frontend &amp;&amp; npm run build</command>
-    <command status="planned">python3 -m xml.etree.ElementTree docs/plans/Phase-49.xml docs/modules/M-067.xml docs/verification/V-M-067.xml docs/graph-index.xml docs/plan-index.xml docs/verification-index.xml</command>
-    <command status="planned">mygrace lint</command>
-    <command status="planned">git diff --check</command>
-    <command status="planned">git diff --name-only HEAD -- install.sh docker-compose.yml nginx deploy deploy/mtproto-de-compose.yml .env.example produces no output</command>
+    <command status="pass-local">node scripts/phase49-bimi-branding-smoke.mjs</command>
+    <command status="pass-local">cd frontend &amp;&amp; npm run build</command>
+    <command status="pass-local">node scripts/phase49-bimi-branding-smoke.mjs --expect-dist</command>
+    <command status="pass-local">python3 -m xml.etree.ElementTree docs/plans/Phase-49.xml docs/modules/M-067.xml docs/verification/V-M-067.xml docs/graph-index.xml docs/plan-index.xml docs/verification-index.xml</command>
+    <command status="pass-local">mygrace lint</command>
+    <command status="pass-local">git diff --check</command>
+    <command status="pass-local">git diff --name-only HEAD -- install.sh docker-compose.yml nginx deploy deploy/mtproto-de-compose.yml .env.example produces no output</command>
     <command status="operator-live">curl -I https://krotpn.xyz/.well-known/bimi/krotpn.svg returns 200 and image/svg+xml after clean deploy</command>
     <command status="operator-dns">dig +short TXT default._bimi.krotpn.xyz @1.1.1.1 returns v=BIMI1 with l=https://krotpn.xyz/.well-known/bimi/krotpn.svg</command>
   </commands>
   <module-checks>
     <check-1>The SVG root includes version=&quot;1.2&quot; and baseProfile=&quot;tiny-ps&quot;, and does not include root x or y attributes.</check-1>
     <check-2>The SVG stays below 32 kilobytes, remains square, and includes title plus desc.</check-2>
-    <check-3>The SVG does not include script, animation, foreignObject, image, base64, style attributes, external href/xlink references, http/https URLs, or javascript URLs.</check-3>
+    <check-3>The SVG does not include script, animation, foreignObject, image, base64, style attributes, external href/xlink references, external http/https URLs outside the SVG namespace, or javascript URLs.</check-3>
     <check-4>frontend/nginx.conf has a specific /.well-known/bimi/ static location before the hidden-file deny location.</check-4>
     <check-5>Frontend build output includes dist/.well-known/bimi/krotpn.svg and does not rewrite it into the SPA HTML fallback.</check-5>
     <check-6>Phase-49 does not change Resend provider code, email token logic, install.sh, deploy scripts, docker-compose, TLS paths, VPN runtime, or MTProto runtime.</check-6>
@@ -53,6 +55,6 @@
   <redaction-rules>
     <rule-1>Do not log Resend API keys, verification/reset tokens, TLS private keys, MTProto secrets, VPN config bodies, Authorization headers, or live user identifiers during Phase-49 verification.</rule-1>
   </redaction-rules>
-  <evidence status="verification-designed" date="2026-06-02">Phase-49 verification design is ready; execution evidence is expected after $mygrace:execute Phase-49.</evidence>
+  <evidence status="pass-local" date="2026-06-02">Phase-49 local verification passed: BIMI SVG smoke, frontend build, dist-copy smoke, XML parse, MyGRACE lint, git diff --check, and protected deploy/install diff guard. Operator live curl and DNS publication remain after release deploy.</evidence>
   <autonomous-execution-safety>Allowed after plan and verification approval because Phase-49 is limited to public static branding asset delivery, nginx well-known allowance, smoke verification, and DNS/runbook docs.</autonomous-execution-safety>
 </V-M-067>

@@ -1,12 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<M-067 NAME="bimi-sender-branding" TYPE="ENTRY_POINT" STATUS="verification-designed-phase49">
-  <path>frontend/public/.well-known/bimi/krotpn.svg frontend/nginx.conf scripts/phase49-bimi-branding-smoke.mjs docs/plans/Phase-49.xml</path>
+<M-067 NAME="bimi-sender-branding" TYPE="ENTRY_POINT" STATUS="done-local-phase49">
+  <path>frontend/public/.well-known/bimi/krotpn.svg frontend/nginx.conf scripts/phase49-bimi-branding-smoke.mjs README.md docs/plans/Phase-49.xml</path>
   <owns>Public BIMI SVG asset delivery for KrotPN sender-branding DNS records.</owns>
   <purpose>Expose a BIMI-compliant KrotPN logo over HTTPS so mailbox providers can discover sender branding through the operator-managed BIMI DNS record.</purpose>
   <exports>
     <asset-bimi-logo>Serve the KrotPN BIMI SVG at /.well-known/bimi/krotpn.svg from the user frontend static build.</asset-bimi-logo>
     <rule-well-known-bimi>Allow only the BIMI well-known path before the frontend hidden-file deny rule.</rule-well-known-bimi>
     <smoke-phase49-bimi-branding>Validate SVG Tiny P/S structure, file size, unsafe SVG absence, nginx allow-rule, and DNS/live instructions.</smoke-phase49-bimi-branding>
+    <runbook-bimi-dns>Document the default._bimi DNS TXT record and provider-side mailbox rendering limits for operators.</runbook-bimi-dns>
   </exports>
   <depends>M-009,M-012,M-040,M-046,M-062</depends>
   <verification-ref>V-M-067</verification-ref>
@@ -14,6 +15,7 @@
     <file>frontend/public/.well-known/bimi/krotpn.svg</file>
     <file>frontend/nginx.conf</file>
     <file>scripts/phase49-bimi-branding-smoke.mjs</file>
+    <file>README.md</file>
     <file>docs/plans/Phase-49.xml</file>
     <file>docs/verification/V-M-067.xml</file>
   </files>
@@ -35,5 +37,9 @@
     <evidence-level-2>Frontend build and nginx static review prove the asset is copied and the well-known route is not blocked by the hidden-file deny location.</evidence-level-2>
     <evidence-level-3>Optional live smoke verifies curl -I returns 200 and image/svg+xml at https://krotpn.xyz/.well-known/bimi/krotpn.svg after clean deploy.</evidence-level-3>
   </verification-design>
+  <execution-evidence>
+    <evidence-1>2026-06-02: node scripts/phase49-bimi-branding-smoke.mjs passed for BIMI Tiny P/S SVG, nginx well-known route ordering, README DNS runbook, and protected deploy/install diff guard.</evidence-1>
+    <evidence-2>2026-06-02: cd frontend &amp;&amp; npm run build passed and node scripts/phase49-bimi-branding-smoke.mjs --expect-dist confirmed dist/.well-known/bimi/krotpn.svg was copied unchanged.</evidence-2>
+  </execution-evidence>
   <hotspot>H-054: BIMI sender branding depends on strict SVG Tiny P/S compliance, public HTTPS delivery, DMARC enforcement, and mailbox-provider rendering policy outside the Resend send API</hotspot>
 </M-067>
