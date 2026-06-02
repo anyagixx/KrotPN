@@ -1,16 +1,16 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<M-040 NAME="email-delivery" TYPE="INTEGRATION" STATUS="pass-live-phase36-pass-local-phase44">
-  <path>backend/app/email backend/tests/test_email_delivery.py scripts/phase36-resend-deploy-smoke.mjs scripts/phase44-auth-email-ux-smoke.mjs docs/plans/Phase-27.xml docs/plans/Phase-36.xml docs/plans/Phase-44.xml</path>
+<M-040 NAME="email-delivery" TYPE="INTEGRATION" STATUS="pass-live-phase36-pass-local-phase44-phase51">
+  <path>backend/app/email backend/tests/test_email_delivery.py scripts/phase36-resend-deploy-smoke.mjs scripts/phase44-auth-email-ux-smoke.mjs scripts/phase51-brand-assets-smoke.mjs docs/plans/Phase-27.xml docs/plans/Phase-36.xml docs/plans/Phase-44.xml docs/plans/Phase-51.xml</path>
   <owns>Email provider adapter, verification/password reset email templates, provider error mapping, and safe operator evidence for email delivery.</owns>
   <purpose>Provide a KrotPN-native email delivery surface for verified registration and password recovery without exposing tokens or provider secrets.</purpose>
   <exports>
     <fn-send-verification-email>Send a one-time registration verification link or code to a normalized email address.</fn-send-verification-email>
     <fn-send-password-reset-email>Send a one-time password reset link to a normalized email address.</fn-send-password-reset-email>
-    <fn-build-verification-template>Render branded Russian and English verification subject, HTML, and text fallback content.</fn-build-verification-template>
-    <fn-build-password-reset-template>Render branded Russian and English password reset subject, HTML, and text fallback content.</fn-build-password-reset-template>
+    <fn-build-verification-template>Render branded Russian and English verification subject, HTML with public email-logo asset, and text fallback content.</fn-build-verification-template>
+    <fn-build-password-reset-template>Render branded Russian and English password reset subject, HTML with public email-logo asset, and text fallback content.</fn-build-password-reset-template>
     <fn-map-email-provider-error>Map provider HTTP or transport failures to typed application errors.</fn-map-email-provider-error>
   </exports>
-  <depends>M-001</depends>
+  <depends>M-001,M-069</depends>
   <verification-ref>V-M-040</verification-ref>
   <files>
     <file>backend/app/email/service.py</file>
@@ -18,12 +18,14 @@
     <file>backend/app/email/provider.py</file>
     <file>backend/app/email/__init__.py</file>
     <file>backend/tests/test_email_delivery.py</file>
+    <file>scripts/phase51-brand-assets-smoke.mjs</file>
   </files>
   <implementation-state>
     <state-1>Phase-27 implemented provider-neutral requests, Resend and SMTP adapters, disabled-provider guard, templates, safe log markers, and fake-provider test coverage.</state-1>
     <state-2>Live provider smoke is operator-run only after EMAIL_PROVIDER and provider secrets are configured outside tests; clean VPS registration email is now operator-confirmed.</state-2>
     <state-3>Phase-36 local execution adds production deploy wiring and request-shape tests so Resend is enabled during clean VPS installs and registration no longer fails with provider_disabled when an API key is supplied.</state-3>
     <state-4>Phase-44 local execution adds branded verification/reset templates, reset URL delivery, template log markers, and token-redaction tests.</state-4>
+    <state-5>Phase-51 adds a public email body logo to verification/reset HTML templates through FRONTEND_URL while preserving text fallbacks and token redaction.</state-5>
   </implementation-state>
   <source-transfer>
     <from-project>KPprotoN</from-project>
@@ -35,6 +37,7 @@
     <constraint-2>Email sending failures block registration activation but do not create user, trial, VPN, or MTProto records.</constraint-2>
     <constraint-3>Provider configuration remains env-backed through M-001 settings.</constraint-3>
     <constraint-4>Production Resend configuration must use https://api.resend.com/emails, Authorization Bearer API key, and noreply@krotpn.xyz sender after domain verification.</constraint-4>
+    <constraint-5>Email body logo rendering is distinct from BIMI or mailbox sender-avatar behavior and must not claim provider-side avatar control.</constraint-5>
   </constraints>
   <phase-36-plan>
     <step-1 STATUS="pass-local">Strengthen Resend request-shape tests for URL, Bearer header, sender, recipient, subject, HTML, and text payload.</step-1>
@@ -45,6 +48,7 @@
     <evidence-1>2026-05-17: backend/tests/test_email_delivery.py passed locally with Phase-36 Resend URL, Bearer header, sender, payload, timeout, and safe receipt assertions.</evidence-1>
     <evidence-2>2026-05-19: Operator clean-deploy registration via email succeeded with Resend configured, closing the provider_disabled production blocker.</evidence-2>
     <evidence-3>2026-06-01: backend/tests/test_email_delivery.py and Phase-44 static smoke passed for branded verification/reset templates and token redaction.</evidence-3>
+    <evidence-4>2026-06-02: backend/tests/test_email_delivery.py passed 5/5 and Phase-51 smoke passed for public email-logo HTML rendering, clean text fallback, and protected deploy/install guard.</evidence-4>
   </evidence>
   <hotspot>H-026: Email delivery must not leak verification tokens, API keys, or raw provider responses</hotspot>
 </M-040>

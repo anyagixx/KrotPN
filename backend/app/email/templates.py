@@ -1,12 +1,12 @@
 # FILE: backend/app/email/templates.py
-# VERSION: 1.1.0
+# VERSION: 1.2.0
 # ROLE: RUNTIME
 # MAP_MODE: EXPORTS
 # START_MODULE_CONTRACT
 #   PURPOSE: Render verification and password reset email subject, HTML and text fallback content
 #   SCOPE: Russian and English account-security email templates for KrotPN onboarding and password recovery
-#   DEPENDS: M-040
-#   LINKS: V-M-040, V-M-062
+#   DEPENDS: M-040, M-069
+#   LINKS: V-M-040, V-M-062, V-M-069
 # END_MODULE_CONTRACT
 #
 # START_MODULE_MAP
@@ -17,6 +17,7 @@
 # END_MODULE_MAP
 #
 # START_CHANGE_SUMMARY
+#   LAST_CHANGE: v1.2.0 - Added Phase-51 public brand logo rendering for Resend HTML email templates
 #   LAST_CHANGE: v1.1.0 - Added Phase-44 branded verification and password reset templates
 #   LAST_CHANGE: v1.0.0 - Added Phase-27 verification email templates
 # END_CHANGE_SUMMARY
@@ -49,10 +50,10 @@ class PasswordResetEmailTemplate:
 
 # START_CONTRACT: build_verification_template
 #   PURPOSE: Render a localized branded verification email without logging tokens or mutating state
-#   INPUTS: verification_url: str - one-time verification URL; language: str - ru/en locale; app_name: str - product name
+#   INPUTS: verification_url: str - one-time verification URL; language: str - ru/en locale; app_name: str - product name; brand_base_url: str - public frontend URL for email logo assets
 #   OUTPUTS: VerificationEmailTemplate
 #   SIDE_EFFECTS: none
-#   LINKS: M-040, M-062, V-M-040, V-M-062
+#   LINKS: M-040, M-062, M-069, V-M-040, V-M-062, V-M-069
 # END_CONTRACT: build_verification_template
 # START_BLOCK_BUILD_TEMPLATE
 def build_verification_template(
@@ -60,6 +61,7 @@ def build_verification_template(
     *,
     language: str = "ru",
     app_name: str = "KrotPN",
+    brand_base_url: str = "https://krotpn.xyz",
 ) -> VerificationEmailTemplate:
     """Build the verification email content."""
     normalized_language = language.lower().split("-")[0]
@@ -89,6 +91,7 @@ def build_verification_template(
         intro=intro,
         button=button,
         action_url=verification_url,
+        brand_logo_url=_build_brand_logo_url(brand_base_url),
         fallback=fallback,
         note=note,
     )
@@ -99,10 +102,10 @@ def build_verification_template(
 
 # START_CONTRACT: build_password_reset_template
 #   PURPOSE: Render a localized password reset email without logging tokens or mutating state
-#   INPUTS: reset_url: str - one-time reset URL; language: str - ru/en locale; app_name: str - product name
+#   INPUTS: reset_url: str - one-time reset URL; language: str - ru/en locale; app_name: str - product name; brand_base_url: str - public frontend URL for email logo assets
 #   OUTPUTS: PasswordResetEmailTemplate
 #   SIDE_EFFECTS: safe template-render log marker
-#   LINKS: M-040, M-062, V-M-062
+#   LINKS: M-040, M-062, M-069, V-M-062, V-M-069
 # END_CONTRACT: build_password_reset_template
 # START_BLOCK_BUILD_PASSWORD_RESET_TEMPLATE
 def build_password_reset_template(
@@ -110,6 +113,7 @@ def build_password_reset_template(
     *,
     language: str = "ru",
     app_name: str = "KrotPN",
+    brand_base_url: str = "https://krotpn.xyz",
 ) -> PasswordResetEmailTemplate:
     """Build the password reset email content."""
     normalized_language = language.lower().split("-")[0]
@@ -139,6 +143,7 @@ def build_password_reset_template(
         intro=intro,
         button=button,
         action_url=reset_url,
+        brand_logo_url=_build_brand_logo_url(brand_base_url),
         fallback=fallback,
         note=note,
     )
@@ -148,6 +153,14 @@ def build_password_reset_template(
 
 
 # START_BLOCK_EMAIL_LAYOUT
+def _build_brand_logo_url(brand_base_url: str | None) -> str:
+    """Build the public email logo URL from the configured frontend origin."""
+    normalized_base_url = (brand_base_url or "").strip().rstrip("/")
+    if not normalized_base_url:
+        return ""
+    return f"{normalized_base_url}/brand/email-logo.png"
+
+
 def _render_action_email(
     *,
     language: str,
@@ -156,6 +169,7 @@ def _render_action_email(
     intro: str,
     button: str,
     action_url: str,
+    brand_logo_url: str,
     fallback: str,
     note: str,
 ) -> str:
@@ -168,6 +182,13 @@ def _render_action_email(
     safe_button = escape(button)
     safe_fallback = escape(fallback)
     safe_note = escape(note)
+    safe_brand_logo_url = escape(brand_logo_url, quote=True)
+    logo_markup = ""
+    if safe_brand_logo_url:
+        logo_markup = (
+            f'<img src="{safe_brand_logo_url}" alt="{safe_app_name}" width="96" height="96" '
+            'style="display:block;width:96px;height:96px;border:0;margin:0 0 14px 0;" />'
+        )
     return f"""<!doctype html>
 <html lang="{safe_language}">
   <body style="margin:0;background:#061117;color:#eff8fb;font-family:Arial,Helvetica,sans-serif;line-height:1.5;">
@@ -178,6 +199,7 @@ def _render_action_email(
           <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="max-width:560px;background:#0d222c;border:1px solid rgba(157,203,216,0.22);border-radius:12px;overflow:hidden;">
             <tr>
               <td style="padding:26px 28px 16px 28px;">
+                {logo_markup}
                 <div style="font-size:13px;font-weight:700;letter-spacing:0;color:#75c7ff;">{safe_app_name}</div>
                 <h1 style="margin:12px 0 0 0;font-size:26px;line-height:1.2;color:#ffffff;">{safe_title}</h1>
                 <p style="margin:14px 0 0 0;font-size:15px;color:#b7cbd3;">{safe_intro}</p>

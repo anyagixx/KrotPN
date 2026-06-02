@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<V-M-010 MODULE="M-010" PRIORITY="high" STATUS="pass" VERSION="1.1.0">
+<V-M-010 MODULE="M-010" PRIORITY="high" STATUS="pass-local-phase51" VERSION="1.2.0">
   <module>frontend-admin</module>
   <checks>Admin frontend builds and reflects current admin, Full Tunnel, system, analytics, and device-control surfaces without auth regression.</checks>
-  <test-files>frontend-admin/src/main.tsx frontend-admin/src/components/Layout.tsx frontend-admin/src/pages/Login.tsx frontend-admin/src/pages/Dashboard.tsx frontend-admin/src/pages/Users.tsx frontend-admin/src/pages/Devices.tsx frontend-admin/src/pages/Analytics.tsx frontend-admin/src/pages/Servers.tsx frontend-admin/src/pages/Plans.tsx frontend-admin/src/lib/api.ts frontend-admin/src/stores/auth.ts frontend-admin/src/types/index.ts frontend-admin/src/index.css</test-files>
-  <commands>cd frontend-admin &amp;&amp; npm run build</commands>
+  <test-files>frontend-admin/index.html frontend-admin/public/favicon.ico frontend-admin/public/favicon-16x16.png frontend-admin/public/favicon-32x32.png frontend-admin/public/apple-touch-icon.png frontend-admin/src/main.tsx frontend-admin/src/components/Layout.tsx frontend-admin/src/pages/Login.tsx frontend-admin/src/pages/Dashboard.tsx frontend-admin/src/pages/Users.tsx frontend-admin/src/pages/Devices.tsx frontend-admin/src/pages/Analytics.tsx frontend-admin/src/pages/Servers.tsx frontend-admin/src/pages/Plans.tsx frontend-admin/src/lib/api.ts frontend-admin/src/stores/auth.ts frontend-admin/src/types/index.ts frontend-admin/src/index.css scripts/phase51-brand-assets-smoke.mjs</test-files>
+  <commands>pass-local 2026-06-02: cd frontend-admin &amp;&amp; npm run build; node scripts/phase51-brand-assets-smoke.mjs --expect-dist</commands>
   <levels>
     <module-local>Run npm build after frontend-admin route, component, API binding, or type changes.</module-local>
     <wave-level>During Phase-24, pair the build with V-M-037 mobile smoke for /, /users, /devices, and /analytics.</wave-level>
@@ -18,6 +18,8 @@
     <check-6>Admin auth store clears admin_refresh_token whenever admin_token is cleared.</check-6>
     <check-7>Admin login email/password fields do not expose stale default credential placeholders.</check-7>
     <check-8>Admin inputs with left icons use shared icon padding so the icon and placeholder/value text cannot overlap.</check-8>
+    <check-9>Admin index.html references real favicon.ico and PNG fallbacks from frontend-admin public assets.</check-9>
+    <check-10>No visible admin layout logo is added before the planned frontend redesign phase.</check-10>
   </module-checks>
   <scenarios>
     <scenario-1 kind="success">Admin login route and protected layout still build after compact UI changes.</scenario-1>
@@ -35,5 +37,6 @@
     <evidence-3>2026-05-10: Phase-25 admin refresh compatibility fix added; rebuild required by V-M-039/V-M-010.</evidence-3>
     <evidence-4>2026-05-10: cd frontend-admin &amp;&amp; npm run build passed after admin refresh-token persistence cleanup.</evidence-4>
     <evidence-5>2026-05-21: Local admin UI fix removed login placeholders, removed stale admin@krotpn.com fallback copy, and passed frontend-admin build.</evidence-5>
+    <evidence-6>2026-06-02: Phase-51 frontend-admin build passed and brand asset smoke --expect-dist confirmed admin favicon assets in dist.</evidence-6>
   </evidence>
 </V-M-010>

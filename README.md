@@ -151,6 +151,26 @@ Do not add `a=` until VMC/CMC PEM certificate material exists.
 
 BIMI работает только если почтовый провайдер успешно проверяет SPF/DKIM/DMARC. Для Gmail и Apple аватар может не отображаться без VMC/CMC даже при корректной DNS записи. Resend отправляет письма от `noreply@krotpn.xyz`, но сам не управляет аватаркой отправителя в почтовых клиентах.
 
+### Favicon and Email Logo
+
+KrotPN ships browser favicon assets for the user cabinet and admin panel:
+
+- `frontend/public/favicon.ico`
+- `frontend/public/favicon-16x16.png`
+- `frontend/public/favicon-32x32.png`
+- `frontend/public/apple-touch-icon.png`
+- `frontend/public/pwa-192x192.png`
+- `frontend/public/pwa-512x512.png`
+- `frontend-admin/public/favicon.ico`
+
+HTML-письма подтверждения email и сброса пароля, которые отправляются через Resend, показывают логотип из публичного frontend URL:
+
+```text
+https://krotpn.xyz/brand/email-logo.png
+```
+
+Это именно логотип внутри письма. Он не заменяет BIMI и не заставляет почтовые клиенты показывать аватарку отправителя рядом с `noreply@krotpn.xyz`.
+
 ### 🔐 Доступ к Admin Panel
 
 После установки используйте учётные данные, которые вы задали в `ADMIN_EMAIL` и `ADMIN_PASSWORD` во время деплоя.

@@ -1,18 +1,19 @@
 """
 MODULE_CONTRACT
-- PURPOSE: Verify Phase-27/Phase-44 email delivery foundation.
-- SCOPE: Unit tests for verification/password reset templates, fake-provider dispatch, Resend request shape, provider-disabled guard, and typed provider error mapping.
+- PURPOSE: Verify Phase-27/Phase-44/Phase-51 email delivery foundation.
+- SCOPE: Unit tests for verification/password reset templates, brand-logo rendering, fake-provider dispatch, Resend request shape, provider-disabled guard, and typed provider error mapping.
 - DEPENDS: app.email.service, app.email.provider, app.core.config.
-- LINKS: V-M-040.
+- LINKS: V-M-040, V-M-069.
 
 MODULE_MAP
-- test_send_verification_email_uses_template_and_redacts_token_from_logs: Verifies fake-provider dispatch and token redaction.
-- test_send_password_reset_email_uses_template_and_redacts_token_from_logs: Verifies Phase-44 reset dispatch and token redaction.
+- test_send_verification_email_uses_template_and_redacts_token_from_logs: Verifies fake-provider dispatch, brand-logo HTML, and token redaction.
+- test_send_password_reset_email_uses_template_and_redacts_token_from_logs: Verifies Phase-44 reset dispatch, brand-logo HTML, and token redaction.
 - test_resend_provider_builds_production_request_shape: Verifies Resend URL, sender, payload, Bearer auth, and safe receipt metadata.
 - test_send_verification_email_blocks_when_provider_disabled: Verifies disabled provider fails before a network call.
 - test_map_email_provider_error_returns_stable_safe_codes: Verifies HTTP status mapping.
 
 CHANGE_SUMMARY
+- 2026-06-02: Added Phase-51 email logo assertions for verification and reset templates.
 - 2026-06-01: Added Phase-44 password reset email delivery tests.
 - 2026-05-17: Added Phase-36 Resend production request-shape test.
 - 2026-05-13: Added Phase-27 email delivery tests.
@@ -81,7 +82,10 @@ async def test_send_verification_email_uses_template_and_redacts_token_from_logs
     request = provider.requests[0]
     assert request.to_email == "friend@example.com"
     assert "KrotPN" in request.subject
+    assert 'src="https://krotpn.xyz/brand/email-logo.png"' in request.html
+    assert 'alt="KrotPN"' in request.html
     assert "https://krotpn.xyz/verify-email?token=secret-token-that-must-not-be-logged" in request.text
+    assert "brand/email-logo.png" not in request.text
 
     joined_logs = "\n".join(log_lines)
     assert "[M-040][send_verification_email][BUILD_REQUEST]" in joined_logs
@@ -112,7 +116,10 @@ async def test_send_password_reset_email_uses_template_and_redacts_token_from_lo
     request = provider.requests[0]
     assert request.to_email == "friend@example.com"
     assert "KrotPN" in request.subject
+    assert 'src="https://krotpn.xyz/brand/email-logo.png"' in request.html
+    assert 'alt="KrotPN"' in request.html
     assert "https://krotpn.xyz/reset-password?token=reset-token-that-must-not-be-logged" in request.text
+    assert "brand/email-logo.png" not in request.text
 
     joined_logs = "\n".join(log_lines)
     assert "[M-040][send_password_reset_email][BUILD_REQUEST]" in joined_logs

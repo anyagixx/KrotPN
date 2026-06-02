@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<M-062 NAME="onboarding-email-password-security" TYPE="CORE_LOGIC" STATUS="pass-local-phase46">
-  <path>backend/app/email backend/app/users frontend scripts/phase44-auth-email-ux-smoke.mjs scripts/phase46-user-cabinet-ux-smoke.mjs docs/plans/Phase-44.xml docs/plans/Phase-46.xml</path>
+<M-062 NAME="onboarding-email-password-security" TYPE="CORE_LOGIC" STATUS="pass-local-phase46-phase51">
+  <path>backend/app/email backend/app/users frontend scripts/phase44-auth-email-ux-smoke.mjs scripts/phase46-user-cabinet-ux-smoke.mjs scripts/phase51-brand-assets-smoke.mjs docs/plans/Phase-44.xml docs/plans/Phase-46.xml docs/plans/Phase-51.xml</path>
   <owns>Branded verification email UX, password-strength policy, password recovery, duplicate-email registration guidance, and user-facing pending-email copy.</owns>
   <purpose>Make email onboarding clearer and safer without changing deploy/install scripts or weakening verified-email ownership gates.</purpose>
   <exports>
-    <fn-build-branded-verification-email>Render compact branded verification email HTML and text fallback for Resend delivery.</fn-build-branded-verification-email>
-    <fn-build-password-reset-email>Render password reset email content with one-time token semantics and safe text fallback.</fn-build-password-reset-email>
+    <fn-build-branded-verification-email>Render compact branded verification email HTML with public logo and text fallback for Resend delivery.</fn-build-branded-verification-email>
+    <fn-build-password-reset-email>Render password reset email content with public logo, one-time token semantics, and safe text fallback.</fn-build-password-reset-email>
     <fn-validate-password-strength>Reject weak or common passwords consistently on backend and frontend.</fn-validate-password-strength>
     <fn-request-password-reset>Accept a normalized email address and create a one-time reset flow without leaking reset tokens.</fn-request-password-reset>
     <fn-reset-password>Consume a valid reset token once and set a strong replacement password.</fn-reset-password>
@@ -30,6 +30,7 @@
     <file>frontend/src/lib/passwordPolicy.ts</file>
     <file>scripts/phase44-auth-email-ux-smoke.mjs</file>
     <file>scripts/phase46-user-cabinet-ux-smoke.mjs</file>
+    <file>scripts/phase51-brand-assets-smoke.mjs</file>
   </files>
   <phase-44-scope>
     <in>Verification email visual redesign, operator sender-avatar note, spam-folder hint, removal of stale 3-day trial/VPN wording, deletion of registration side-info panel, strong-password backend and frontend validation, forgot/reset password flow, duplicate-email UX with reset CTA, and rate-limited reset endpoints.</in>
@@ -39,11 +40,16 @@
     <in>Frontend password policy helper exports a format-only example that satisfies the active policy and Register.tsx displays it without weakening backend validation.</in>
     <out>Backend password validation, password reset token storage, email templates, deploy/install scripts, and registration side effects.</out>
   </phase-46-scope>
+  <phase-51-scope>
+    <in>Add a public KrotPN logo inside verification/reset HTML email bodies through the shared action-email layout.</in>
+    <out>Changing password validation, reset token storage, duplicate-email behavior, visible frontend logos, deploy/install scripts, or claiming mailbox sender-avatar control.</out>
+  </phase-51-scope>
   <constraints>
     <constraint-1>Email verification and reset tokens must never be logged, returned after creation, or stored raw.</constraint-1>
     <constraint-2>Password reset must be one-time, TTL-bound, rate-limited, and safe for already-authenticated and unauthenticated users.</constraint-2>
     <constraint-3>Duplicate-email messaging is an approved UX tradeoff and must pair with throttling to limit account enumeration abuse.</constraint-3>
     <constraint-4>Sender avatar behavior is mailbox/provider-side branding; KrotPN backend can improve templates and deliverability but cannot force recipient UI avatars through the Resend send API.</constraint-4>
+    <constraint-5>Email body logo URLs must not be added to text fallbacks, logs, token payloads, or provider secrets.</constraint-5>
   </constraints>
   <acceptance-metrics>
     <metric-1>Registration pending view tells users to check spam and no longer mentions 3-day trial or immediate VPN access.</metric-1>
@@ -57,6 +63,7 @@
     <evidence-3>2026-06-01: node scripts/phase44-auth-email-ux-smoke.mjs passed.</evidence-3>
     <evidence-4>deploy/install files were not modified during Phase-44 execution.</evidence-4>
     <evidence-5>2026-06-01: Phase-46 frontend build and UX smoke passed for safe password format example while preserving passwordStrengthIssues as the registration validation gate.</evidence-5>
+    <evidence-6>2026-06-02: backend email delivery tests and Phase-51 smoke passed for shared verification/reset action-email logo rendering without text fallback noise or token leaks.</evidence-6>
   </evidence>
   <hotspot>H-049: Password recovery and duplicate-email hints must not leak reset tokens, allow account takeover, or make email enumeration worse than the approved UX tradeoff</hotspot>
 </M-062>

@@ -73,6 +73,7 @@
     <item>Phase-48 VPN config download MIME and filename hardening passed local execution on 2026-06-01: /api/v1/vpn/config/download now returns application/octet-stream attachment responses with filename and filename-star .conf metadata, nosniff and no-store/private headers, config body bytes are preserved, frontend-created config Blobs use application/octet-stream, backend tests passed 10/10, frontend build and Phase-48 static smoke passed, and deploy/install/nginx/docker-compose surfaces were untouched.</item>
     <item>Phase-49 BIMI sender branding asset deployment passed local execution on 2026-06-02: the KrotPN BIMI SVG is normalized for Tiny P/S, served from frontend/public/.well-known/bimi/krotpn.svg, frontend nginx allows the BIMI well-known path before hidden-file denial, README documents default._bimi DNS, frontend build copies the SVG unchanged into dist, Phase-49 smoke passed, and protected deploy/install surfaces were untouched.</item>
     <item>Phase-50 three paid tariffs passed local execution on 2026-06-02: backend now converges the canonical 30-day KrotPN 1/6/9 tariff matrix at 369/693/936 RUB, checkout accepts plan_id only and derives YooKassa amount/metadata server-side, incompatible lower-limit checkout is blocked before payment creation, paid webhook cancels pending trial and updates subscription/device limits, user subscription UI shows compact device-aware tariff cards, admin Plans shows a protected canonical matrix without accidental CRUD controls, backend tests passed 29/29, frontend/admin builds and Phase-50 smoke passed, and protected deploy/install surfaces were untouched.</item>
+    <item>Phase-51 favicon and Resend email-logo branding passed local execution on 2026-06-02: user and admin frontend builds now include real favicon.ico plus PNG fallbacks, the user PWA includes apple/PWA icon assets, verification/reset HTML emails render the public logo at /brand/email-logo.png from FRONTEND_URL, backend email tests passed 5/5, Phase-51 source and dist smoke passed, XML/MyGRACE/diff gates passed, and protected deploy/install surfaces were untouched.</item>
   </what-is-working>
 
   <what-is-fragile>
@@ -96,6 +97,7 @@
     <item>Phase-48 is passed-local for deterministic HTTP/header and frontend Blob behavior; optional live validation remains manual Android Chrome/iOS Safari proof that downloaded files stay as .conf on real devices.</item>
     <item>Phase-49 is passed-local for BIMI asset delivery and DNS runbook; live curl, default._bimi DNS propagation, and mailbox avatar rendering remain operator/provider-side validation after release deployment.</item>
     <item>Phase-50 is passed-local for tariff catalog, checkout, YooKassa payload shape, device-limit guard, UI/API contract, and protected-surface isolation; optional live validation remains clean-deploy review of the three tariffs plus a real or YooKassa test-mode payment.</item>
+    <item>Phase-51 is passed-local for favicon/PWA asset delivery and Resend HTML email-logo rendering; optional live validation remains curl/browser proof for https://krotpn.xyz/favicon.ico and https://krotpn.xyz/brand/email-logo.png plus a real delivered Resend email with remote images enabled.</item>
     <item>Emergency relocation is documented but still blocked until a trusted backup bundle and isolated restore target exist for dry-run evidence.</item>
     <item>Cookie-only auth migration is planned but not executed because it requires explicit approval and HTTPS or production-like smoke evidence.</item>
   </what-is-fragile>
@@ -211,6 +213,9 @@
     </gate>
     <gate id="phase-50-paid-tariff-catalog" status="passed-local">
       <summary>Local execution passed for canonical KrotPN 1/6/9 tariff convergence, server-derived YooKassa amount/metadata, pre-payment downgrade guard, paid webhook pending-trial cancellation, device-limit enforcement for 1/6/9, compact user/admin tariff UI, backend tests 29/29, frontend/admin builds, Phase-50 smoke, XML parse, MyGRACE lint, git diff --check, and protected deploy/install diff guard.</summary>
+    </gate>
+    <gate id="phase-51-favicon-email-logo-branding" status="passed-local">
+      <summary>Local execution passed for user/admin favicon assets, user PWA icons, public /brand/email-logo.png, Resend verification/reset HTML logo rendering from FRONTEND_URL, backend email tests 5/5, frontend/admin builds, Phase-51 source and dist smoke, XML parse, MyGRACE lint, git diff --check, and protected deploy/install diff guard.</summary>
     </gate>
   </rollout-gates>
 

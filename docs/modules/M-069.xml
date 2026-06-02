@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<M-069 NAME="brand-assets-favicon-email-logo" TYPE="ENTRY_POINT" STATUS="done-local-phase51">
+  <path>frontend/public frontend/index.html frontend/vite.config.ts frontend-admin/public frontend-admin/index.html backend/app/email README.md scripts/phase51-brand-assets-smoke.mjs docs/plans/Phase-51.xml</path>
+  <owns>Browser favicon/PWA assets and the public logo rendered inside KrotPN Resend HTML emails.</owns>
+  <purpose>Provide a consistent KrotPN browser identity and branded email body logo without changing the current visible frontend UI layout.</purpose>
+  <exports>
+    <asset-user-favicon>Serve favicon.ico plus 16x16/32x32 PNG fallbacks from the user frontend static build.</asset-user-favicon>
+    <asset-admin-favicon>Serve favicon.ico plus 16x16/32x32 PNG fallbacks from the admin frontend static build.</asset-admin-favicon>
+    <asset-pwa-icons>Serve apple-touch-icon.png, pwa-192x192.png, and pwa-512x512.png from the user frontend build.</asset-pwa-icons>
+    <asset-email-logo>Serve the email body logo at /brand/email-logo.png from the user frontend static build.</asset-email-logo>
+    <fn-email-logo-rendering>Render the public email-logo URL in verification and password-reset HTML templates while keeping text fallbacks clean.</fn-email-logo-rendering>
+    <smoke-phase51-brand-assets>Validate assets, dimensions, HTML references, email template binding, README notes, and protected deploy surfaces.</smoke-phase51-brand-assets>
+  </exports>
+  <depends>M-009,M-010,M-040,M-062,M-067</depends>
+  <verification-ref>V-M-069</verification-ref>
+  <files>
+    <file>frontend/public/favicon.ico</file>
+    <file>frontend/public/favicon-16x16.png</file>
+    <file>frontend/public/favicon-32x32.png</file>
+    <file>frontend/public/apple-touch-icon.png</file>
+    <file>frontend/public/pwa-192x192.png</file>
+    <file>frontend/public/pwa-512x512.png</file>
+    <file>frontend/public/brand/email-logo.png</file>
+    <file>frontend/index.html</file>
+    <file>frontend/vite.config.ts</file>
+    <file>frontend-admin/public/favicon.ico</file>
+    <file>frontend-admin/public/favicon-16x16.png</file>
+    <file>frontend-admin/public/favicon-32x32.png</file>
+    <file>frontend-admin/public/apple-touch-icon.png</file>
+    <file>frontend-admin/index.html</file>
+    <file>backend/app/email/templates.py</file>
+    <file>backend/app/email/service.py</file>
+    <file>backend/tests/test_email_delivery.py</file>
+    <file>scripts/phase51-brand-assets-smoke.mjs</file>
+    <file>README.md</file>
+    <file>docs/plans/Phase-51.xml</file>
+    <file>docs/verification/V-M-069.xml</file>
+  </files>
+  <constraints>
+    <constraint-1>Do not add visible logo components to the current website, user cabinet, or admin panel; that belongs to the future frontend redesign phase.</constraint-1>
+    <constraint-2>Do not change Resend API payload semantics beyond the HTML content already sent through M-040.</constraint-2>
+    <constraint-3>Do not log verification/reset tokens, logo URLs with tokens, API keys, or provider secrets.</constraint-3>
+    <constraint-4>Do not change install.sh, deploy scripts, docker-compose, nginx edge topology, VPN runtime, MTProto runtime, or BIMI DNS behavior.</constraint-4>
+    <constraint-5>Email body logo display is mailbox-client dependent because many clients block remote images until the recipient allows images.</constraint-5>
+  </constraints>
+  <acceptance-metrics>
+    <metric-1>User and admin builds include working favicon.ico plus 16x16/32x32 PNG fallbacks.</metric-1>
+    <metric-2>User frontend includes 180x180 apple-touch-icon.png, 192x192 PWA icon, 512x512 PWA icon, and a 256x256 public email-logo PNG.</metric-2>
+    <metric-3>Email templates render src=&quot;{FRONTEND_URL}/brand/email-logo.png&quot; in HTML only, with alt text and no logo URL in text fallback.</metric-3>
+    <metric-4>Phase-51 smoke and backend email tests fail if the logo/template/asset contract drifts.</metric-4>
+  </acceptance-metrics>
+  <verification-design>
+    <evidence-level-1>Static asset smoke checks ICO signature, PNG signatures, expected dimensions, frontend/admin HTML links, Vite PWA asset names, README notes, and protected deploy diff.</evidence-level-1>
+    <evidence-level-2>Backend email tests verify verification/reset HTML contains the public logo URL and text fallbacks remain token-focused without logo noise.</evidence-level-2>
+    <evidence-level-3>Frontend and admin production builds prove public assets copy into dist without adding visible UI logo surfaces.</evidence-level-3>
+    <evidence-level-4>Optional live curl after clean deploy verifies https://krotpn.xyz/favicon.ico and https://krotpn.xyz/brand/email-logo.png return the expected static assets.</evidence-level-4>
+  </verification-design>
+  <execution-evidence>
+    <evidence-1>2026-06-02: node scripts/phase51-brand-assets-smoke.mjs passed for source assets, HTML references, email template binding, README notes, and protected deploy/install diff guard.</evidence-1>
+    <evidence-2>2026-06-02: backend/tests/test_email_delivery.py passed 5/5 with public email-logo HTML assertions and unchanged text fallback/token redaction behavior.</evidence-2>
+    <evidence-3>2026-06-02: frontend npm run build and frontend-admin npm run build passed; node scripts/phase51-brand-assets-smoke.mjs --expect-dist confirmed Vite copied favicon/PWA/email-logo assets into dist.</evidence-3>
+    <evidence-4>2026-06-02: XML parse, MyGRACE lint, and git diff --check passed.</evidence-4>
+  </execution-evidence>
+  <hotspot>H-056: Favicon and email-logo assets must remain public static branding only, while BIMI/provider avatar rendering stays a separate mailbox-provider-controlled surface</hotspot>
+</M-069>

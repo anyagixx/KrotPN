@@ -1,11 +1,20 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<M-009 NAME="frontend-user" TYPE="UI_COMPONENT" STATUS="pass-local-phase46">
-  <path>frontend</path>
+<M-009 NAME="frontend-user" TYPE="UI_COMPONENT" STATUS="pass-local-phase46-phase51">
+  <path>frontend frontend/public frontend/index.html frontend/vite.config.ts</path>
   <owns>login, verified registration, password recovery, verify-email activation, dashboard, config delivery, subscription management, pending trial countdown/calendar UX, referrals and settings UI with per-device config awareness</owns>
   <depends>M-002, M-003, M-004, M-005, M-022</depends>
   <verification-ref>V-M-009</verification-ref>
   <files>
     <file>frontend/src/main.tsx</file>
+    <file>frontend/index.html</file>
+    <file>frontend/vite.config.ts</file>
+    <file>frontend/public/favicon.ico</file>
+    <file>frontend/public/favicon-16x16.png</file>
+    <file>frontend/public/favicon-32x32.png</file>
+    <file>frontend/public/apple-touch-icon.png</file>
+    <file>frontend/public/pwa-192x192.png</file>
+    <file>frontend/public/pwa-512x512.png</file>
+    <file>frontend/public/brand/email-logo.png</file>
     <file>frontend/src/App.tsx</file>
     <file>frontend/src/pages/Register.tsx</file>
     <file>frontend/src/pages/ForgotPassword.tsx</file>
@@ -49,4 +58,9 @@
     <primary-behaviors>safe password format example, MTProto tg:// app link, https://t.me browser link, Russian proxy labels, and bounded 30s MTProto status refresh.</primary-behaviors>
     <evidence>2026-06-01: frontend npm run build passed and Phase-46 user-cabinet UX smoke passed.</evidence>
   </phase-46-scope>
+  <phase-51-scope>
+    <primary-files>index.html, vite.config.ts, public/favicon.ico, public/favicon-16x16.png, public/favicon-32x32.png, public/apple-touch-icon.png, public/pwa-192x192.png, public/pwa-512x512.png, public/brand/email-logo.png</primary-files>
+    <primary-behaviors>Browser favicon/PWA asset delivery and public email-logo asset delivery without adding visible page logos before the planned frontend redesign.</primary-behaviors>
+    <evidence>2026-06-02: frontend npm run build passed and Phase-51 smoke --expect-dist confirmed favicon/PWA/email-logo assets copied into dist.</evidence>
+  </phase-51-scope>
 </M-009>

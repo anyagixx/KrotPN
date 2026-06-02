@@ -1,12 +1,12 @@
 # FILE: backend/app/email/service.py
-# VERSION: 1.1.0
+# VERSION: 1.2.0
 # ROLE: RUNTIME
 # MAP_MODE: EXPORTS
 # START_MODULE_CONTRACT
 #   PURPOSE: Email delivery orchestration for one-time account security messages
 #   SCOPE: Verification/password-reset URL construction, template rendering, provider dispatch, safe telemetry and token redaction boundaries
-#   DEPENDS: M-001 (settings), M-040 provider/templates
-#   LINKS: M-040, V-M-040
+#   DEPENDS: M-001 (settings), M-040 provider/templates, M-069 brand assets
+#   LINKS: M-040, M-069, V-M-040, V-M-069
 # END_MODULE_CONTRACT
 #
 # START_MODULE_MAP
@@ -18,6 +18,7 @@
 # END_MODULE_MAP
 #
 # START_CHANGE_SUMMARY
+#   LAST_CHANGE: v1.2.0 - Passed configured frontend origin into Phase-51 email brand logo templates
 #   LAST_CHANGE: v1.1.0 - Added Phase-44 password reset email delivery service
 #   LAST_CHANGE: v1.0.0 - Added Phase-27 verification email delivery service
 # END_CHANGE_SUMMARY
@@ -103,7 +104,7 @@ def build_password_reset_url(token: str, app_settings: Settings = settings) -> s
 #   INPUTS: to_email: str - normalized recipient; verification_token: str - one-time token; language: str - template language; provider: EmailProvider | None - test/provider override; app_settings: Settings
 #   OUTPUTS: EmailDeliveryReceipt
 #   SIDE_EFFECTS: provider network call unless provider override is fake
-#   LINKS: M-040, V-M-040
+#   LINKS: M-040, M-069, V-M-040, V-M-069
 # END_CONTRACT: send_verification_email
 # START_BLOCK_SEND_VERIFICATION_EMAIL
 async def send_verification_email(
@@ -129,6 +130,7 @@ async def send_verification_email(
         verification_url,
         language=language,
         app_name=app_settings.app_name,
+        brand_base_url=app_settings.frontend_url,
     )
 
     logger.info(
@@ -170,7 +172,7 @@ async def send_verification_email(
 #   INPUTS: to_email: str - normalized recipient; reset_token: str - one-time token; language: str - template language; provider: EmailProvider | None - test/provider override; app_settings: Settings
 #   OUTPUTS: EmailDeliveryReceipt
 #   SIDE_EFFECTS: provider network call unless provider override is fake
-#   LINKS: M-040, M-062, V-M-062
+#   LINKS: M-040, M-062, M-069, V-M-062, V-M-069
 # END_CONTRACT: send_password_reset_email
 # START_BLOCK_SEND_PASSWORD_RESET_EMAIL
 async def send_password_reset_email(
@@ -196,6 +198,7 @@ async def send_password_reset_email(
         reset_url,
         language=language,
         app_name=app_settings.app_name,
+        brand_base_url=app_settings.frontend_url,
     )
 
     logger.info(

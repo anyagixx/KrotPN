@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<V-M-062 MODULE="M-062" PRIORITY="critical" STATUS="pass-local-phase46">
+<V-M-062 MODULE="M-062" PRIORITY="critical" STATUS="pass-local-phase46-phase51">
   <purpose>Verify Phase-44 email onboarding, password policy, password reset, and duplicate-email UX without changing deploy/install scripts.</purpose>
   <checks>Branded email templates render safely, registration copy is accurate, weak passwords are rejected, reset tokens are one-time and TTL-bound, duplicate registration offers recovery, and secrets/tokens remain redacted.</checks>
   <test-files>
@@ -13,6 +13,7 @@
     <file>frontend/src/pages/ResetPassword.tsx</file>
     <file>scripts/phase44-auth-email-ux-smoke.mjs</file>
     <file>scripts/phase46-user-cabinet-ux-smoke.mjs</file>
+    <file>scripts/phase51-brand-assets-smoke.mjs</file>
   </test-files>
   <phase-44-gates>
     <gate-1>Verification and reset emails include branded HTML and text fallback while never logging full links or tokens.</gate-1>
@@ -27,6 +28,11 @@
     <gate-2>Registration UI displays the example while clearly telling users not to reuse it literally.</gate-2>
     <gate-3>passwordStrengthIssues remains the registration validation gate; backend policy is unchanged.</gate-3>
   </phase-46-gates>
+  <phase-51-gates>
+    <gate-1>Verification and reset HTML emails render the public KrotPN email-logo image from FRONTEND_URL.</gate-1>
+    <gate-2>Text fallbacks do not include the email-logo URL and stay focused on one-time action links.</gate-2>
+    <gate-3>Email body logo rendering remains separate from provider-side BIMI sender-avatar behavior.</gate-3>
+  </phase-51-gates>
   <verification-levels>
     <module-local>Email template rendering, password-strength policy, reset token lifecycle, and duplicate-email side-effect guards are tested with deterministic backend assertions.</module-local>
     <wave-level>Auth/email/frontend surfaces are verified together so API response shape, UI copy, and provider redaction do not drift.</wave-level>
@@ -38,6 +44,7 @@
     <scenario-3 kind="success">Password reset token changes password once and authenticates with the new password.</scenario-3>
     <scenario-4 kind="failure">Expired or replayed reset token cannot change password again.</scenario-4>
     <scenario-5 kind="success">Existing-email registration suggests password recovery without creating duplicate pending access.</scenario-5>
+    <scenario-6 kind="success">Verification/reset HTML body contains the public KrotPN logo while token handling and text fallback stay unchanged.</scenario-6>
   </scenarios>
   <required-log-markers>
     <marker-1>[EmailTemplates][build_verification_template][RENDER_BRANDED_VERIFICATION]</marker-1>
@@ -52,6 +59,7 @@
     <command status="pass-local">cd frontend &amp;&amp; npm run build</command>
     <command status="pass-local">node scripts/phase44-auth-email-ux-smoke.mjs</command>
     <command status="pass-local">node scripts/phase46-user-cabinet-ux-smoke.mjs</command>
+    <command status="pass-local">node scripts/phase51-brand-assets-smoke.mjs</command>
     <command status="pass-local">python3 -m xml.etree.ElementTree docs/plans/Phase-44.xml docs/modules/M-062.xml docs/modules/M-002.xml docs/modules/M-009.xml docs/modules/M-028.xml docs/modules/M-040.xml docs/verification/V-M-062.xml docs/verification/V-M-002.xml docs/verification/V-M-009.xml docs/verification/V-M-028.xml docs/verification/V-M-040.xml docs/graph-index.xml docs/plan-index.xml docs/verification-index.xml docs/requirements.xml docs/current-status.xml</command>
     <command status="pass-local">mygrace lint</command>
   </commands>
@@ -62,6 +70,7 @@
     <evidence-4>2026-06-01: XML parse and MyGRACE lint passed.</evidence-4>
     <evidence-5>2026-06-01: deploy/install diff guard passed by review; no deploy/install files changed.</evidence-5>
     <evidence-6>2026-06-01: Phase-46 frontend build and UX smoke passed for safe password format example without backend policy changes.</evidence-6>
+    <evidence-7>2026-06-02: backend email delivery tests and Phase-51 smoke passed for shared verification/reset action-email logo rendering without text fallback noise or token leaks.</evidence-7>
   </evidence>
   <telemetry-requirements>
     <metric-1>Password reset request, success, invalid, expired, and replay outcomes are counted without raw email, token, provider body, or IP leakage.</metric-1>

@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Phase-51 NAME="Favicon and Resend Email Logo Branding" STATUS="done-local" MODULES="M-069,M-009,M-010,M-040,M-062,M-067" STEPS="8">
+  <intent>Add KrotPN favicon assets to browser surfaces and add the prepared KrotPN logo inside Resend HTML emails without placing visible logos in the current frontend UI.</intent>
+  <scope>
+    <in>Frontend favicon/PWA assets, admin favicon assets, public email logo asset, verification/reset email HTML logo rendering, README operator notes, and static smoke verification.</in>
+    <out>Visible site/cabinet/admin UI logos, frontend redesign, BIMI DNS changes, Resend provider API behavior, install.sh, deploy scripts, docker-compose, nginx edge topology, VPN runtime, and MTProto runtime.</out>
+  </scope>
+  <steps>
+    <step-1 STATUS="done-local" MODULE="M-069">Select prepared PNG assets from /home/truffle/Загрузки/ДЛЯ КРОТА/logos and materialize favicon, PWA, Apple touch, and email-logo assets in frontend/admin public surfaces.</step-1>
+    <step-2 STATUS="done-local" MODULE="M-009">Wire user frontend index.html and Vite PWA includeAssets to real favicon and icon filenames.</step-2>
+    <step-3 STATUS="done-local" MODULE="M-010">Wire admin frontend index.html and public assets to the same favicon identity without adding visible UI logo components.</step-3>
+    <step-4 STATUS="done-local" MODULE="M-040">Render the public brand logo URL in Resend HTML email templates while keeping text fallbacks and token redaction unchanged.</step-4>
+    <step-5 STATUS="done-local" MODULE="M-062">Preserve verification/reset onboarding behavior while adding email-logo presentation to the shared action-email layout.</step-5>
+    <step-6 STATUS="done-local" MODULE="M-069">Add Phase-51 smoke gate for asset dimensions, HTML references, email template binding, README notes, and protected deploy/install surfaces.</step-6>
+    <step-7 STATUS="done-local" MODULE="M-069">Run backend email tests, frontend/admin builds, Phase-51 smoke, XML parse, MyGRACE lint, git diff check, and protected deploy guard.</step-7>
+    <step-8 STATUS="done-local" MODULE="M-069">Update execution evidence and current-status after verification passes.</step-8>
+  </steps>
+  <acceptance>
+    <metric-1>Browsers can request favicon.ico plus 16/32 PNG fallbacks from user and admin frontend builds.</metric-1>
+    <metric-2>User frontend PWA build includes apple-touch-icon.png, pwa-192x192.png, and pwa-512x512.png.</metric-2>
+    <metric-3>Verification and password reset emails include an HTTPS logo URL derived from FRONTEND_URL and do not add the logo URL to text fallback content.</metric-3>
+    <metric-4>README clearly separates email-template logo rendering from provider-side BIMI sender avatar behavior.</metric-4>
+    <metric-5>install.sh, deploy scripts, docker-compose, nginx edge topology, VPN, and MTProto runtime remain untouched.</metric-5>
+  </acceptance>
+  <risk-controls>
+    <risk-1>Email clients may block remote images by default; this phase only guarantees HTML template presence and public asset delivery.</risk-1>
+    <risk-2>Favicon caches can be sticky in browsers; standard root filenames are used for compatibility.</risk-2>
+    <risk-3>The visible frontend redesign is intentionally deferred, so no cabinet/admin layout logo is introduced here.</risk-3>
+  </risk-controls>
+  <execution-evidence>
+    <evidence-1>2026-06-02: backend/tests/test_email_delivery.py passed 5/5 with email-logo HTML assertions and token redaction preserved.</evidence-1>
+    <evidence-2>2026-06-02: frontend npm run build and frontend-admin npm run build passed; Phase-51 smoke with --expect-dist confirmed public assets copied into dist.</evidence-2>
+    <evidence-3>2026-06-02: XML parse, MyGRACE lint, git diff --check, and protected deploy/install diff guard passed.</evidence-3>
+  </execution-evidence>
+</Phase-51>

@@ -1,11 +1,16 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<M-010 NAME="frontend-admin" TYPE="UI_COMPONENT" STATUS="stable">
-  <path>frontend-admin</path>
+<M-010 NAME="frontend-admin" TYPE="UI_COMPONENT" STATUS="stable-pass-local-phase51">
+  <path>frontend-admin frontend-admin/public frontend-admin/index.html</path>
   <owns>admin login, mobile-capable dashboard, users, devices, MTProto operations, servers, plans, analytics, settings, Full Tunnel status, and device anomaly review controls</owns>
   <depends>M-006, M-024</depends>
   <verification-ref>V-M-010</verification-ref>
   <files>
     <file>frontend-admin/src/main.tsx</file>
+    <file>frontend-admin/index.html</file>
+    <file>frontend-admin/public/favicon.ico</file>
+    <file>frontend-admin/public/favicon-16x16.png</file>
+    <file>frontend-admin/public/favicon-32x32.png</file>
+    <file>frontend-admin/public/apple-touch-icon.png</file>
     <file>frontend-admin/src/components/Layout.tsx</file>
     <file>frontend-admin/src/components/StatCard.tsx</file>
     <file>frontend-admin/src/pages/Login.tsx</file>
@@ -36,6 +41,11 @@
     <surface-3>Confirmation-safe device actions using existing M-024 admin endpoints.</surface-3>
     <surface-4>Analytics/payment/system summaries that remain readable on phone viewports.</surface-4>
   </phase-24-scope>
+  <phase-51-scope>
+    <surface-1>Admin browser favicon and Apple touch icon are served from frontend-admin public assets.</surface-1>
+    <surface-2>No visible admin panel logo/layout change is introduced before the planned frontend redesign.</surface-2>
+    <surface-3>2026-06-02: frontend-admin npm run build passed and Phase-51 smoke --expect-dist verified the browser asset surface.</surface-3>
+  </phase-51-scope>
   <constraints>
     <constraint-1>Frontend-admin must continue to call existing M-006 and M-024 API contracts unless an API change is separately approved.</constraint-1>
     <constraint-2>Admin auth/session hardening belongs to Phase-25 and must not be bundled into Phase-24 UI simplification.</constraint-2>

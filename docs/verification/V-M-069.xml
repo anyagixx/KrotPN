@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<V-M-069 MODULE="M-069" PRIORITY="medium" STATUS="pass-local" PHASE-51="pass-local">
+  <scope>Verify favicon/PWA/email-logo public assets, browser HTML references, Resend email template logo rendering, documentation, and protected deployment boundaries.</scope>
+  <test-files>
+    <file>scripts/phase51-brand-assets-smoke.mjs</file>
+    <file>backend/tests/test_email_delivery.py</file>
+    <file>frontend/index.html</file>
+    <file>frontend/vite.config.ts</file>
+    <file>frontend-admin/index.html</file>
+    <file>backend/app/email/templates.py</file>
+    <file>backend/app/email/service.py</file>
+    <file>README.md</file>
+  </test-files>
+  <commands>
+    <command>node scripts/phase51-brand-assets-smoke.mjs</command>
+    <command>cd backend &amp;&amp; SECRET_KEY=test-secret-key-with-enough-length DATA_ENCRYPTION_KEY=dpFmfSVqfdAK3yx5MQV6Tcv35RZuw5MzaH0yhxJ01q0= PYTHONPATH=. ../.venv/bin/python -m pytest -o addopts='' tests/test_email_delivery.py -v</command>
+    <command>cd frontend &amp;&amp; npm run build</command>
+    <command>cd frontend-admin &amp;&amp; npm run build</command>
+    <command>node scripts/phase51-brand-assets-smoke.mjs --expect-dist</command>
+    <command>python3 -m xml.etree.ElementTree docs/graph-index.xml docs/plan-index.xml docs/verification-index.xml docs/current-status.xml docs/plans/Phase-51.xml docs/modules/M-069.xml docs/verification/V-M-069.xml</command>
+    <command>mygrace lint</command>
+    <command>git diff --check</command>
+  </commands>
+  <assertions>
+    <assertion-1>frontend/public and frontend-admin/public contain valid favicon.ico plus 16x16/32x32 PNG fallbacks.</assertion-1>
+    <assertion-2>frontend/public contains apple-touch-icon.png 180x180, pwa-192x192.png 192x192, pwa-512x512.png 512x512, and brand/email-logo.png 256x256.</assertion-2>
+    <assertion-3>frontend and admin index.html reference real favicon assets instead of missing favicon.svg.</assertion-3>
+    <assertion-4>Email HTML renders {FRONTEND_URL}/brand/email-logo.png with KrotPN alt text; text fallback does not include the logo URL.</assertion-4>
+    <assertion-5>README explains that the email body logo is distinct from BIMI sender-avatar display.</assertion-5>
+    <assertion-6>install.sh, deploy, docker-compose, nginx edge topology, VPN runtime, and MTProto runtime have no Phase-51 diff.</assertion-6>
+  </assertions>
+  <forbidden>
+    <item>Changing deploy/install scripts or runtime topology.</item>
+    <item>Adding visible frontend/admin logo layout before the planned frontend redesign phase.</item>
+    <item>Logging verification/reset tokens or provider secrets.</item>
+    <item>Claiming Resend can force mailbox sender avatars.</item>
+  </forbidden>
+  <evidence>
+    <result>pass-local 2026-06-02</result>
+    <evidence-1>node scripts/phase51-brand-assets-smoke.mjs passed for source asset signatures/dimensions, frontend/admin HTML links, Vite PWA asset names, email template binding, README notes, and protected deploy/install diff guard.</evidence-1>
+    <evidence-2>cd backend &amp;&amp; SECRET_KEY=test-secret-key-with-enough-length DATA_ENCRYPTION_KEY=dpFmfSVqfdAK3yx5MQV6Tcv35RZuw5MzaH0yhxJ01q0= PYTHONPATH=. ../.venv/bin/python -m pytest -o addopts='' tests/test_email_delivery.py -v passed 5/5.</evidence-2>
+    <evidence-3>cd frontend &amp;&amp; npm run build passed; cd frontend-admin &amp;&amp; npm run build passed.</evidence-3>
+    <evidence-4>node scripts/phase51-brand-assets-smoke.mjs --expect-dist passed and confirmed Vite copied favicon/PWA/email-logo assets into production dist.</evidence-4>
+    <evidence-5>XML parse, mygrace lint, and git diff --check passed.</evidence-5>
+  </evidence>
+</V-M-069>
