@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<V-M-068 MODULE="M-068" PRIORITY="critical" STATUS="verification-designed">
+  <purpose>Verify Phase-50 canonical paid tariffs across billing catalog convergence, YooKassa payment creation, subscription activation, device-limit policy, and compact user/admin UI.</purpose>
+  <checks>Exactly three canonical active tariffs, server-authoritative prices, idempotent clean-deploy upsert, downgrade guard, correct payment metadata, paid subscription activation, device-limit enforcement, user/admin UI rendering, and unchanged deploy/install surfaces.</checks>
+  <test-files>
+    <file planned="true">backend/tests/test_billing_tariff_catalog.py</file>
+    <file>backend/tests/test_billing_plan_api.py</file>
+    <file>backend/tests/test_billing_service.py</file>
+    <file>backend/tests/test_device_access_policy.py</file>
+    <file>backend/tests/test_db_migrations.py</file>
+    <file>frontend/src/lib/api.ts</file>
+    <file>frontend/src/pages/Subscription.tsx</file>
+    <file>frontend-admin/src/pages/Plans.tsx</file>
+    <file>frontend-admin/src/types/index.ts</file>
+    <file planned="true">scripts/phase50-tariff-catalog-smoke.mjs</file>
+  </test-files>
+  <commands>
+    <command status="planned">cd backend &amp;&amp; SECRET_KEY=test-secret-key-with-enough-length DATA_ENCRYPTION_KEY=dpFmfSVqfdAK3yx5MQV6Tcv35RZuw5MzaH0yhxJ01q0= PYTHONPATH=. ../.venv/bin/python -m pytest -o addopts='' tests/test_billing_tariff_catalog.py tests/test_billing_plan_api.py tests/test_billing_service.py tests/test_device_access_policy.py tests/test_db_migrations.py -v</command>
+    <command status="planned">cd frontend &amp;&amp; npm run build</command>
+    <command status="planned">cd frontend-admin &amp;&amp; npm run build</command>
+    <command status="planned">node scripts/phase50-tariff-catalog-smoke.mjs</command>
+    <command status="planned">python3 -m xml.etree.ElementTree docs/plans/Phase-50.xml docs/modules/M-068.xml docs/verification/V-M-068.xml docs/graph-index.xml docs/plan-index.xml docs/verification-index.xml docs/current-status.xml</command>
+    <command status="planned">mygrace lint</command>
+    <command status="planned">git diff --check</command>
+    <command status="planned">git diff --name-only HEAD -- install.sh docker-compose.yml nginx deploy deploy/mtproto-de-compose.yml .env.example produces no output</command>
+  </commands>
+  <module-checks>
+    <check-1>Canonical catalog defines only krotpn-1, krotpn-6, and krotpn-9 as active paid storefront plans.</check-1>
+    <check-2>Prices are 369, 693, and 936 RUB; duration is 30 days; device limits are 1, 6, and 9.</check-2>
+    <check-3>Startup or migration convergence is idempotent and does not duplicate plan rows across backend restarts.</check-3>
+    <check-4>Payment creation accepts only plan_id from the user and derives all money-sensitive fields server-side.</check-4>
+    <check-5>YooKassa payload amount values are 369.00, 693.00, and 936.00 and metadata contains only non-secret plan/payment identifiers.</check-5>
+    <check-6>Checkout blocks lower device-limit plans when consumed active or blocked device slots exceed the target plan limit.</check-6>
+    <check-7>Paid webhook activation cancels pending trials, preserves paid-subscription non-regression, and exposes the correct effective device limit.</check-7>
+    <check-8>User /subscription renders exactly three compact tariff cards with Russian labels, price, duration, device limit, current usage, and popular marker.</check-8>
+    <check-9>Admin Plans renders a compact canonical tariff matrix and does not expose accidental canonical delete/edit actions.</check-9>
+    <check-10>Phase-50 does not change install.sh, deploy scripts, docker-compose, nginx, TLS material, VPN runtime, or MTProto runtime.</check-10>
+  </module-checks>
+  <verification-levels>
+    <module-local>Backend tests cover catalog convergence, API payloads, checkout validation, YooKassa amount/metadata, webhook activation, and device-limit enforcement.</module-local>
+    <wave-level>Frontend and frontend-admin builds plus Phase-50 smoke cover compact tariff presentation and API type compatibility.</wave-level>
+    <phase-level>XML parse, MyGRACE lint, git diff --check, and protected deploy/install diff guard cover metadata integrity and operational isolation.</phase-level>
+    <live-optional>Operator clean-deploy validation may confirm the three tariffs render in both panels and a test payment reaches YooKassa with the expected amount.</live-optional>
+  </verification-levels>
+  <scenarios>
+    <scenario-1 kind="success" trace="TARIFF_CATALOG_UPSERT">Clean DB startup creates exactly three canonical paid tariffs.</scenario-1>
+    <scenario-2 kind="success" trace="TARIFF_CATALOG_UPSERT">Repeated startup updates canonical fields without creating duplicates.</scenario-2>
+    <scenario-3 kind="success" trace="BILLING_PAYMENT_CREATED">KrotPN 6 checkout creates a 693.00 RUB YooKassa payment from backend-derived plan data.</scenario-3>
+    <scenario-4 kind="success" trace="BILLING_SUBSCRIPTION_UPDATED">Succeeded webhook activates paid subscription and effective device limit 6.</scenario-4>
+    <scenario-5 kind="success" trace="VPN_DEVICE_LIMIT_REJECTED">A one-device paid plan rejects the second active device.</scenario-5>
+    <scenario-6 kind="failure" trace="TARIFF_DOWNGRADE_BLOCKED">User with six consumed slots cannot start checkout for the one-device tariff.</scenario-6>
+    <scenario-7 kind="failure">Frontend price tampering cannot alter backend payment amount, duration, currency, or device limit.</scenario-7>
+    <scenario-8 kind="failure">Any deploy/install/nginx/docker-compose/TLS/runtime diff appears during Phase-50.</scenario-8>
+  </scenarios>
+  <required-markers>
+    <marker-1>[M-068][tariff_catalog][TARIFF_CATALOG_UPSERT]</marker-1>
+    <marker-2>[M-068][checkout][TARIFF_CHECKOUT_VALIDATED]</marker-2>
+    <marker-3>[M-068][checkout][TARIFF_DOWNGRADE_BLOCKED]</marker-3>
+    <marker-4>[BillingService][create_payment][BILLING_PAYMENT_CREATED]</marker-4>
+    <marker-5>[BILLING] Payment</marker-5>
+  </required-markers>
+  <redaction-rules>
+    <rule-1>Do not log YooKassa secret keys, raw Authorization headers, JWTs, payment provider credentials, email tokens, TLS private keys, VPN config bodies, MTProto secrets, or full user identifiers during Phase-50 verification.</rule-1>
+    <rule-2>Payment metadata may include plan slug, plan_id, payment_id, user_id, duration_days, and device_limit; no secrets or raw provider credentials may be stored in payment_metadata.</rule-2>
+  </redaction-rules>
+  <autonomous-execution-safety>Allowed after Phase-50 verification approval because the scope is limited to billing catalog, payment validation, device-limit policy, UI presentation, tests, docs, and protected-surface guards.</autonomous-execution-safety>
+</V-M-068>

@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!-- MyGRACE Graph Index — lazy-loading entry point for module navigation -->
 <!-- MyGRACE index generated from per-module contracts; archived monoliths are reference-only -->
-<GraphIndex VERSION="1.0.0" PROJECT="KrotPN" MODULE-COUNT="62">
+<GraphIndex VERSION="1.0.0" PROJECT="KrotPN" MODULE-COUNT="63">
   <M-001 NAME="backend-core" TYPE="UTILITY" STATUS="pass-local-phase45" PATH="backend/app/core" DEPENDS="M-028" VERIFICATION-REF="V-M-001" />
   <M-002 NAME="users" TYPE="CORE_LOGIC" STATUS="pass-local-phase45" PATH="backend/app/users" DEPENDS="M-001,M-027,M-040" VERIFICATION-REF="V-M-002" />
   <M-003 NAME="vpn" TYPE="CORE_LOGIC" STATUS="pass-local-phase45" PATH="backend/app/vpn" DEPENDS="M-001,M-002,M-007,M-020,M-030" VERIFICATION-REF="V-M-003" />
@@ -64,6 +64,7 @@
   <M-065 NAME="mtproto-cta-subdomain-link-generation" TYPE="CORE_LOGIC" STATUS="pass-local-phase47-short-suffix" PATH="backend/app/mtproto/provisioning.py backend/app/mtproto/service.py backend/tests/test_mtproto_provisioning.py backend/tests/test_deploy_phase38_static.py frontend/src/pages/Dashboard.tsx deploy/haproxy-phase38.cfg scripts/phase38-de-mtproto-edge-smoke.mjs scripts/phase47-mtproto-cta-links-smoke.mjs docs/plans/Phase-47.xml" DEPENDS="M-001,M-002,M-042,M-043,M-045,M-049,M-050,M-064" VERIFICATION-REF="V-M-065" />
   <M-066 NAME="vpn-config-download-mime-hardening" TYPE="ENTRY_POINT" STATUS="done-local-phase48" PATH="backend/app/vpn/router.py frontend/src/pages/Config.tsx frontend/src/lib/api.ts scripts/phase48-config-download-mime-smoke.mjs docs/plans/Phase-48.xml" DEPENDS="M-001,M-003,M-009,M-022,M-036" VERIFICATION-REF="V-M-066" />
   <M-067 NAME="bimi-sender-branding" TYPE="ENTRY_POINT" STATUS="done-local-phase49" PATH="frontend/public/.well-known/bimi/krotpn.svg frontend/nginx.conf scripts/phase49-bimi-branding-smoke.mjs README.md docs/plans/Phase-49.xml" DEPENDS="M-009,M-012,M-040,M-046,M-062" VERIFICATION-REF="V-M-067" />
+  <M-068 NAME="paid-tariff-catalog" TYPE="CORE_LOGIC" STATUS="planned-phase50" PATH="backend/app/billing frontend/src/pages/Subscription.tsx frontend-admin/src/pages/Plans.tsx scripts/phase50-tariff-catalog-smoke.mjs docs/plans/Phase-50.xml" DEPENDS="M-001,M-004,M-006,M-009,M-010,M-021,M-022,M-028,M-036,M-038" VERIFICATION-REF="V-M-068" />
 
   <CrossLinks>
     <link from="M-002" to="M-001" />
@@ -371,6 +372,16 @@
     <link from="M-067" to="M-040" />
     <link from="M-067" to="M-046" />
     <link from="M-067" to="M-062" />
+    <link from="M-068" to="M-001" />
+    <link from="M-068" to="M-004" />
+    <link from="M-068" to="M-006" />
+    <link from="M-068" to="M-009" />
+    <link from="M-068" to="M-010" />
+    <link from="M-068" to="M-021" />
+    <link from="M-068" to="M-022" />
+    <link from="M-068" to="M-028" />
+    <link from="M-068" to="M-036" />
+    <link from="M-068" to="M-038" />
   </CrossLinks>
 
   <Hotspots>
@@ -428,5 +439,6 @@
     <H-052 module="M-065" text="CTA MTProto SNI generation must stay wildcard-safe, avoid exposing raw numeric user IDs, preserve old issued links, and not weaken RU/DE routing" />
     <H-053 module="M-066" text="Mobile browsers may rename .conf downloads to .txt unless the backend and frontend force attachment, octet-stream, filename, and nosniff semantics" />
     <H-054 module="M-067" text="BIMI sender branding depends on strict SVG Tiny P/S compliance, public HTTPS delivery, DMARC enforcement, and mailbox-provider rendering policy outside the Resend send API" />
+    <H-055 module="M-068" text="Paid tariff catalog must keep server-authoritative prices, canonical device limits, no duplicate clean-deploy plans, and no deploy/install drift" />
   </Hotspots>
 </GraphIndex>

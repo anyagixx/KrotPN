@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Phase-50 NAME="Three Paid Tariffs Catalog and Device-Limit Checkout" STATUS="planned" VERSION="1.0.0" MODULES="M-068,M-001,M-004,M-006,M-009,M-010,M-021,M-022,M-028,M-036,M-038" CREATED="2026-06-02" UPDATED="2026-06-02">
+  <purpose>Implement the approved KrotPN paid tariff matrix across backend billing, device limits, YooKassa checkout, user frontend, and admin frontend.</purpose>
+  <scope>
+    <in>Canonical 30-day tariff catalog, idempotent clean-deploy plan convergence, server-authoritative prices, YooKassa payment metadata, downgrade guard, device-limit enforcement, compact user tariff cards, compact admin tariff matrix, tests, smoke checks, README/MyGRACE sync.</in>
+    <out>Changing install.sh, deploy scripts, docker-compose, nginx routing, TLS issuance, VPN topology, MTProto entitlement, MTProto runtime, Resend email delivery, YooKassa shop configuration, or adding recurring autopay.</out>
+  </scope>
+  <tariff-matrix>
+    <tariff-1 slug="krotpn-1" name="KrotPN 1" price-rub="369" device-limit="1" duration-days="30" popular="false">One-device personal plan.</tariff-1>
+    <tariff-2 slug="krotpn-6" name="KrotPN 6" price-rub="693" device-limit="6" duration-days="30" popular="true">Recommended multi-device plan.</tariff-2>
+    <tariff-3 slug="krotpn-9" name="KrotPN 9" price-rub="936" device-limit="9" duration-days="30" popular="false">Maximum standard plan.</tariff-3>
+  </tariff-matrix>
+  <steps>
+    <step-1 MODULE="M-068,M-004" STATUS="planned">Add a server-side canonical tariff catalog with stable slugs, names, RUB prices, 30-day duration, device limits, features, popular marker, and sort order.</step-1>
+    <step-2 MODULE="M-068,M-001,M-028" STATUS="planned">Add idempotent startup/migration convergence so clean deployments and existing deployments contain the three canonical active tariffs without duplicates.</step-2>
+    <step-3 MODULE="M-068,M-004" STATUS="planned">Extend billing service plan reads and checkout validation so public catalog output is canonical and inactive or noncanonical plans cannot be bought accidentally.</step-3>
+    <step-4 MODULE="M-068,M-004,M-021,M-022" STATUS="planned">Block incompatible lower-limit checkout when current active or blocked device slots exceed the selected tariff device_limit.</step-4>
+    <step-5 MODULE="M-068,M-004" STATUS="planned">Ensure YooKassa payment creation uses backend-derived amount/currency/description and metadata containing plan_id, slug, device_limit, duration_days, and payment_id.</step-5>
+    <step-6 MODULE="M-068,M-004,M-063" STATUS="planned">Preserve Phase-45 pending-trial behavior while making successful paid webhook cancel pending trial and activate paid access immediately.</step-6>
+    <step-7 MODULE="M-068,M-009,M-036,M-038" STATUS="planned">Rework user /subscription into exactly three compact tariff cards with price, duration, device limit, current usage, popular marker, and clear blocked-downgrade message.</step-7>
+    <step-8 MODULE="M-068,M-010,M-006,M-038" STATUS="planned">Rework admin Plans page into a compact canonical tariff matrix and remove accidental delete/edit affordances for canonical plans unless a future tariff-editor phase is approved.</step-8>
+    <step-9 MODULE="M-068" STATUS="planned">Add Phase-50 static smoke and README tariff documentation after implementation.</step-9>
+    <step-10 MODULE="M-068,M-004,M-009,M-010,M-021,M-028" STATUS="planned">Run backend tariff/billing/device/migration tests, frontend builds, Phase-50 smoke, XML parse, MyGRACE lint, git diff --check, and protected deploy/install diff guard.</step-10>
+  </steps>
+  <data-flow>
+    <flow-1>User opens /subscription -&gt; frontend calls GET /api/v1/billing/plans -&gt; backend returns canonical sorted tariffs -&gt; UI renders three compact cards.</flow-1>
+    <flow-2>User selects a tariff -&gt; frontend posts plan_id only -&gt; backend validates canonical plan and device-slot compatibility -&gt; YooKassa payment is created with server-derived amount and metadata.</flow-2>
+    <flow-3>YooKassa sends succeeded webhook -&gt; BillingService finds Payment and Plan -&gt; pending trial is cancelled if present -&gt; active paid Subscription is created or extended -&gt; M-021 enforces the selected plan device_limit.</flow-3>
+    <flow-4>Admin opens Plans -&gt; admin billing API returns canonical matrix -&gt; admin UI shows price, duration, device limit, active/popular status, and warning-free stable plan state.</flow-4>
+  </data-flow>
+  <mental-walkthroughs>
+    <walkthrough-1>New verified trial user with one device buys KrotPN 6. Payment amount is 693.00 RUB, pending trial is cancelled after succeeded webhook, subscription becomes active for 30 days, and the user can create up to six devices.</walkthrough-1>
+    <walkthrough-2>User already has six active devices and tries to buy KrotPN 1. Backend blocks checkout before payment creation and frontend explains that extra devices must be revoked first.</walkthrough-2>
+    <walkthrough-3>Clean VPS deployment starts backend twice. The tariff convergence path leaves exactly three canonical active plans and does not create duplicate rows or stale prices.</walkthrough-3>
+  </mental-walkthroughs>
+  <phase-gates>
+    <gate-1>Canonical public plan API returns exactly three active paid tariffs: 369/1, 693/6, 936/9, all RUB and 30 days.</gate-1>
+    <gate-2>Payment creation never trusts client-supplied price, duration, currency, or device_limit.</gate-2>
+    <gate-3>YooKassa payload value strings are 369.00, 693.00, and 936.00 for the corresponding canonical plans.</gate-3>
+    <gate-4>Device creation enforces limits 1, 6, and 9 after paid activation and blocks the next device over limit.</gate-4>
+    <gate-5>Frontend user and admin builds pass and tariff UI remains compact on mobile.</gate-5>
+    <gate-6>install.sh, deploy scripts, docker-compose, nginx, TLS material, VPN runtime, and MTProto runtime have no Phase-50 diff.</gate-6>
+  </phase-gates>
+  <risks>
+    <risk-1 severity="high">Existing databases can contain old plans; Phase-50 must converge canonical plans by stable slug or deterministic identity without breaking active legacy subscriptions.</risk-1>
+    <risk-2 severity="high">Allowing frontend-controlled amounts would create billing fraud risk; payment amount must remain backend-authoritative.</risk-2>
+    <risk-3 severity="medium">Downgrades can create more active devices than the new plan allows; checkout must block incompatible lower-limit purchases before money is taken.</risk-3>
+    <risk-4 severity="medium">Admin CRUD for canonical prices can accidentally break the approved tariff matrix; Phase-50 should display and protect canonical plans, not build a broad tariff editor.</risk-4>
+  </risks>
+  <verification>
+    <matrix>
+      <module-local>Backend tariff catalog, payment creation, webhook activation, device-limit, and migration tests cover server-side behavior.</module-local>
+      <wave-level>User frontend build, admin frontend build, and Phase-50 static smoke cover UI/API contract and compact tariff presentation.</wave-level>
+      <phase-level>XML parse, MyGRACE lint, git diff --check, and protected deploy/install diff guard prove documentation consistency and operational isolation.</phase-level>
+      <live-optional>Operator clean deploy can verify the three tariffs in user/admin UI and create a test YooKassa payment when production credentials are available.</live-optional>
+    </matrix>
+    <commands>
+      <command status="planned">cd backend &amp;&amp; SECRET_KEY=test-secret-key-with-enough-length DATA_ENCRYPTION_KEY=dpFmfSVqfdAK3yx5MQV6Tcv35RZuw5MzaH0yhxJ01q0= PYTHONPATH=. ../.venv/bin/python -m pytest -o addopts='' tests/test_billing_tariff_catalog.py tests/test_billing_plan_api.py tests/test_billing_service.py tests/test_device_access_policy.py tests/test_db_migrations.py -v</command>
+      <command status="planned">cd frontend &amp;&amp; npm run build</command>
+      <command status="planned">cd frontend-admin &amp;&amp; npm run build</command>
+      <command status="planned">node scripts/phase50-tariff-catalog-smoke.mjs</command>
+      <command status="planned">python3 -m xml.etree.ElementTree docs/plans/Phase-50.xml docs/modules/M-068.xml docs/verification/V-M-068.xml docs/graph-index.xml docs/plan-index.xml docs/verification-index.xml docs/current-status.xml</command>
+      <command status="planned">mygrace lint</command>
+      <command status="planned">git diff --check</command>
+      <command status="planned">git diff --name-only HEAD -- install.sh docker-compose.yml nginx deploy deploy/mtproto-de-compose.yml .env.example produces no output</command>
+    </commands>
+  </verification>
+  <implementation-order>
+    <order-1>Backend catalog and schema identity first, because all UI and payment behavior depends on a stable canonical source.</order-1>
+    <order-2>Billing checkout and YooKassa metadata second, before frontend exposes the new tariff matrix.</order-2>
+    <order-3>Device-limit guard third, so low-plan purchases cannot create inconsistent active slots.</order-3>
+    <order-4>User and admin UI fourth, using the finalized API shape.</order-4>
+    <order-5>Tests, smoke, README, MyGRACE refresh, and protected-surface guard last.</order-5>
+  </implementation-order>
+</Phase-50>

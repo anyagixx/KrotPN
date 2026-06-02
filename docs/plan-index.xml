@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!-- MyGRACE Plan Index — lazy-loading entry point for phase navigation -->
 <!-- MyGRACE plan index generated from per-phase files; archived monoliths are reference-only -->
-<PlanIndex VERSION="1.0.0" PROJECT="KrotPN" PHASE-COUNT="49">
+<PlanIndex VERSION="1.0.0" PROJECT="KrotPN" PHASE-COUNT="50">
   <Phase-1 NAME="Policy model and safe compatibility layer" STATUS="done" STEPS="3" MODULES="M-007,M-017" />
   <Phase-2 NAME="Runtime synchronization and DNS binding" STATUS="done" STEPS="3" MODULES="M-017" />
   <Phase-3 NAME="Admin control plane and operator visibility" STATUS="done" STEPS="3" MODULES="M-006,M-010,M-017" />
@@ -51,4 +51,5 @@
   <Phase-47 NAME="MTProto CTA Subdomain Link Generation" STATUS="pass-local-short-suffix" STEPS="9" MODULES="M-065,M-001,M-002,M-042,M-043,M-045,M-049,M-050,M-064" />
   <Phase-48 NAME="VPN Config Download MIME and Filename Hardening" STATUS="done-local" STEPS="8" MODULES="M-066,M-001,M-003,M-009,M-022,M-036" />
   <Phase-49 NAME="BIMI Sender Branding Asset Deployment" STATUS="done-local" STEPS="8" MODULES="M-067,M-009,M-012,M-040,M-046,M-062" />
+  <Phase-50 NAME="Three Paid Tariffs Catalog and Device-Limit Checkout" STATUS="planned" STEPS="10" MODULES="M-068,M-001,M-004,M-006,M-009,M-010,M-021,M-022,M-028,M-036,M-038" />
 </PlanIndex>

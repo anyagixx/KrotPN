@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<M-068 NAME="paid-tariff-catalog" TYPE="CORE_LOGIC" STATUS="planned-phase50">
+  <path>backend/app/billing frontend/src/pages/Subscription.tsx frontend-admin/src/pages/Plans.tsx scripts/phase50-tariff-catalog-smoke.mjs docs/plans/Phase-50.xml</path>
+  <owns>Canonical three-plan paid tariff catalog, server-authoritative payment amounts, device-limit checkout guards, and compact tariff presentation in user/admin frontends.</owns>
+  <purpose>Guarantee that clean deployments and existing deployments converge to the approved KrotPN paid tariff matrix without trusting frontend-provided prices.</purpose>
+  <exports>
+    <fn-canonical-tariff-catalog>Return the approved paid tariff definitions: 1 device for 369 RUB, 6 devices for 693 RUB, and 9 devices for 936 RUB.</fn-canonical-tariff-catalog>
+    <fn-upsert-canonical-tariffs>Idempotently create or update canonical plan rows without duplicating plans on backend restart.</fn-upsert-canonical-tariffs>
+    <fn-validate-checkout-plan>Validate that a selected plan is active, canonical, and compatible with the user's current consumed device slots before payment creation.</fn-validate-checkout-plan>
+    <ui-user-tariff-cards>Render exactly three compact user-facing tariff cards with price, duration, device limit, and checkout action.</ui-user-tariff-cards>
+    <ui-admin-tariff-matrix>Render the canonical tariff matrix in admin panel without exposing accidental delete/edit paths for canonical plans.</ui-admin-tariff-matrix>
+    <smoke-phase50-tariff-catalog>Static smoke for user/admin tariff copy, canonical price/device-limit values, and protected deploy/install surfaces.</smoke-phase50-tariff-catalog>
+  </exports>
+  <depends>M-001,M-004,M-006,M-009,M-010,M-021,M-022,M-028,M-036,M-038</depends>
+  <verification-ref>V-M-068</verification-ref>
+  <files>
+    <file planned="true">backend/app/billing/catalog.py</file>
+    <file>backend/app/billing/models.py</file>
+    <file>backend/app/billing/service.py</file>
+    <file>backend/app/billing/router.py</file>
+    <file>backend/app/billing/yookassa.py</file>
+    <file>backend/app/core/database.py</file>
+    <file planned="true">backend/alembic/versions/phase50_paid_tariff_catalog.py</file>
+    <file planned="true">backend/tests/test_billing_tariff_catalog.py</file>
+    <file>backend/tests/test_billing_plan_api.py</file>
+    <file>backend/tests/test_device_access_policy.py</file>
+    <file>frontend/src/lib/api.ts</file>
+    <file>frontend/src/pages/Subscription.tsx</file>
+    <file>frontend-admin/src/pages/Plans.tsx</file>
+    <file>frontend-admin/src/types/index.ts</file>
+    <file planned="true">scripts/phase50-tariff-catalog-smoke.mjs</file>
+  </files>
+  <tariffs>
+    <tariff-1 slug="krotpn-1" name="KrotPN 1" price-rub="369" duration-days="30" device-limit="1" sort-order="10" popular="false" />
+    <tariff-2 slug="krotpn-6" name="KrotPN 6" price-rub="693" duration-days="30" device-limit="6" sort-order="20" popular="true" />
+    <tariff-3 slug="krotpn-9" name="KrotPN 9" price-rub="936" duration-days="30" device-limit="9" sort-order="30" popular="false" />
+  </tariffs>
+  <constraints>
+    <constraint-1>Frontend may submit only plan_id; backend must derive price, currency, duration_days, device_limit, description, and YooKassa metadata from server-side canonical state.</constraint-1>
+    <constraint-2>Clean deploys and backend restarts must not create duplicate plan rows or silently leave stale canonical prices active.</constraint-2>
+    <constraint-3>Purchasing a lower device-limit tariff must be blocked when active or blocked device slots already exceed the target limit.</constraint-3>
+    <constraint-4>Pending four-day trial behavior from M-063 remains unchanged; successful paid checkout cancels pending trial and activates paid access immediately after payment webhook.</constraint-4>
+    <constraint-5>Personal MTProto proxy entitlement remains verified-email based and is not moved behind paid tariffs in Phase-50.</constraint-5>
+    <constraint-6>Do not modify install.sh, deploy scripts, docker-compose, nginx routing, TLS material, VPN runtime topology, or MTProto runtime topology.</constraint-6>
+  </constraints>
+  <acceptance-metrics>
+    <metric-1>Public billing plans API returns exactly the three active canonical tariffs in sort order with 30-day duration, RUB currency, and device limits 1, 6, and 9.</metric-1>
+    <metric-2>Payment creation and YooKassa payload use backend-derived amounts 369.00, 693.00, and 936.00 and include non-secret tariff metadata.</metric-2>
+    <metric-3>Device provisioning enforces the purchased plan limit and checkout blocks incompatible downgrades before payment creation.</metric-3>
+    <metric-4>User and admin frontends build and show compact, Russian, mobile-safe tariff surfaces with no stale placeholder CRUD wording.</metric-4>
+    <metric-5>Backend tariff, billing, device-limit, migration, frontend build, admin build, static smoke, XML parse, MyGRACE lint, and protected deploy/install diff guard pass.</metric-5>
+  </acceptance-metrics>
+  <hotspot>H-055: Paid tariff catalog must keep server-authoritative prices, canonical device limits, no duplicate clean-deploy plans, and no deploy/install drift</hotspot>
+</M-068>
