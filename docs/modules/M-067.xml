@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<M-067 NAME="bimi-sender-branding" TYPE="ENTRY_POINT" STATUS="planned-phase49">
+  <path>frontend/public/.well-known/bimi/krotpn.svg frontend/nginx.conf scripts/phase49-bimi-branding-smoke.mjs docs/plans/Phase-49.xml</path>
+  <owns>Public BIMI SVG asset delivery for KrotPN sender-branding DNS records.</owns>
+  <purpose>Expose a BIMI-compliant KrotPN logo over HTTPS so mailbox providers can discover sender branding through the operator-managed BIMI DNS record.</purpose>
+  <exports>
+    <asset-bimi-logo>Serve the KrotPN BIMI SVG at /.well-known/bimi/krotpn.svg from the user frontend static build.</asset-bimi-logo>
+    <rule-well-known-bimi>Allow only the BIMI well-known path before the frontend hidden-file deny rule.</rule-well-known-bimi>
+    <smoke-phase49-bimi-branding>Validate SVG Tiny P/S structure, file size, unsafe SVG absence, nginx allow-rule, and DNS/live instructions.</smoke-phase49-bimi-branding>
+  </exports>
+  <depends>M-009,M-012,M-040,M-046,M-062</depends>
+  <verification-ref>V-M-067</verification-ref>
+  <files>
+    <file>frontend/public/.well-known/bimi/krotpn.svg</file>
+    <file>frontend/nginx.conf</file>
+    <file>scripts/phase49-bimi-branding-smoke.mjs</file>
+    <file>docs/plans/Phase-49.xml</file>
+    <file>docs/verification/V-M-067.xml</file>
+  </files>
+  <constraints>
+    <constraint-1>Do not change Resend request payloads, provider API keys, verification/reset token handling, or EMAIL_FROM semantics.</constraint-1>
+    <constraint-2>Do not change install.sh, deploy scripts, docker-compose, RU/DE routing, TLS material, or MTProto/VPN runtime topology during Phase-49 planning/execution.</constraint-2>
+    <constraint-3>The SVG must stay under 32 kilobytes, be square, include title/desc, set version=&quot;1.2&quot; and baseProfile=&quot;tiny-ps&quot;, and avoid scripts, animation, external references, raster images, and root x/y attributes.</constraint-3>
+    <constraint-4>The public URL must return the SVG itself with image/svg+xml over HTTPS; HTML SPA fallback or hidden-file denial is a verification failure.</constraint-4>
+    <constraint-5>Mailbox rendering is provider-side; KrotPN can publish the BIMI asset and DNS instructions but cannot force Gmail, Apple, Yahoo, or other providers to display the avatar.</constraint-5>
+  </constraints>
+  <acceptance-metrics>
+    <metric-1>frontend/public/.well-known/bimi/krotpn.svg is included in the frontend production build and remains BIMI Tiny P/S compliant.</metric-1>
+    <metric-2>frontend/nginx.conf allows /.well-known/bimi/krotpn.svg before the generic hidden-file deny rule while keeping other hidden files denied.</metric-2>
+    <metric-3>Phase-49 smoke fails on missing tiny-ps/version attributes, oversize SVG, unsafe SVG constructs, missing .well-known allow-rule, or protected deploy/install changes.</metric-3>
+    <metric-4>Operator DNS instructions use default._bimi.krotpn.xyz TXT with v=BIMI1 and l=https://krotpn.xyz/.well-known/bimi/krotpn.svg; a= remains omitted until VMC/CMC exists.</metric-4>
+  </acceptance-metrics>
+  <verification-design>
+    <evidence-level-1>Static SVG inspection checks file size, root attributes, title/desc, forbidden tags/attributes, and no external references.</evidence-level-1>
+    <evidence-level-2>Frontend build and nginx static review prove the asset is copied and the well-known route is not blocked by the hidden-file deny location.</evidence-level-2>
+    <evidence-level-3>Optional live smoke verifies curl -I returns 200 and image/svg+xml at https://krotpn.xyz/.well-known/bimi/krotpn.svg after clean deploy.</evidence-level-3>
+  </verification-design>
+  <hotspot>H-054: BIMI sender branding depends on strict SVG Tiny P/S compliance, public HTTPS delivery, DMARC enforcement, and mailbox-provider rendering policy outside the Resend send API</hotspot>
+</M-067>

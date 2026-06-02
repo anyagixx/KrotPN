@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Phase-49 NAME="BIMI Sender Branding Asset Deployment" STATUS="planned" VERSION="1.0.0" MODULES="M-067,M-009,M-012,M-040,M-046,M-062" CREATED="2026-06-02" UPDATED="2026-06-02">
+  <purpose>Deploy the prepared KrotPN BIMI SVG as a public HTTPS asset and document the DNS record needed for mailbox-provider sender-logo discovery.</purpose>
+  <scope>
+    <in>BIMI SVG normalization, frontend static asset placement, /.well-known/bimi nginx allowance, smoke verification, DNS runbook, and MyGRACE metadata.</in>
+    <out>Resend API payload changes, email verification/reset token logic, install.sh, deploy scripts, docker-compose, TLS certificate issuance, VMC/CMC procurement, and guarantees that every mailbox provider displays the avatar.</out>
+  </scope>
+  <problem>KrotPN has a prepared BIMI logo at /home/truffle/Загрузки/krotpn.svg, but it must be served from a stable HTTPS URL and referenced by DNS before non-Gmail/non-Apple providers can attempt sender-logo rendering.</problem>
+  <steps>
+    <step-1 MODULE="M-067,M-040,M-062" STATUS="planned">Confirm the prepared SVG is suitable for BIMI scope and record that sender avatars are provider-side, not a Resend send-API feature.</step-1>
+    <step-2 MODULE="M-067" STATUS="planned">Normalize the SVG root for BIMI Tiny P/S with version=&quot;1.2&quot;, baseProfile=&quot;tiny-ps&quot;, no root x/y attributes, title, desc, and size under 32 kilobytes.</step-2>
+    <step-3 MODULE="M-067,M-009" STATUS="planned">Place the normalized asset at frontend/public/.well-known/bimi/krotpn.svg so the frontend build copies it to the production static root.</step-3>
+    <step-4 MODULE="M-067,M-009,M-046" STATUS="planned">Update frontend/nginx.conf with a specific /.well-known/bimi/ static location before the hidden-file deny rule and preserve existing SPA/API behavior.</step-4>
+    <step-5 MODULE="M-067" STATUS="planned">Add scripts/phase49-bimi-branding-smoke.mjs to assert SVG compliance, route allowance, no unsafe SVG constructs, and no protected deploy/install changes.</step-5>
+    <step-6 MODULE="M-067,M-009" STATUS="planned">Run frontend npm build and verify the BIMI asset exists in dist/.well-known/bimi/krotpn.svg with unchanged content semantics.</step-6>
+    <step-7 MODULE="M-067" STATUS="planned">Run XML parse, MyGRACE lint, git diff --check, and protected deploy/install/docker-compose/TLS diff guard.</step-7>
+    <step-8 MODULE="M-067,M-012,M-046" STATUS="planned">After release deployment, operator validates live HTTPS headers and then publishes the default._bimi DNS TXT record.</step-8>
+  </steps>
+  <data-flow>
+    <flow-1>Operator-provided SVG -&gt; normalized BIMI Tiny P/S asset -&gt; frontend public directory -&gt; frontend container static root -&gt; nginx/SNI HTTPS fallback -&gt; https://krotpn.xyz/.well-known/bimi/krotpn.svg.</flow-1>
+    <flow-2>DNS default._bimi.krotpn.xyz TXT -&gt; mailbox provider BIMI lookup -&gt; provider fetches HTTPS SVG -&gt; provider decides whether to render sender avatar.</flow-2>
+    <flow-3>Future VMC/CMC path can add an a=https://.../krotpn.pem tag without changing email delivery logic.</flow-3>
+  </data-flow>
+  <mental-walkthroughs>
+    <walkthrough-1>A non-Gmail mailbox provider receives a KrotPN email, verifies SPF/DKIM/DMARC, looks up default._bimi.krotpn.xyz, fetches the SVG URL, validates it, and may display the KrotPN avatar.</walkthrough-1>
+    <walkthrough-2>Gmail or Apple receives the same email but may not display the logo without VMC/CMC even though the BIMI asset and DNS record are valid.</walkthrough-2>
+    <walkthrough-3>A direct browser or curl request to /.well-known/bimi/krotpn.svg returns the SVG with image/svg+xml instead of the React app shell or a 403 hidden-file denial.</walkthrough-3>
+  </mental-walkthroughs>
+  <phase-gates>
+    <gate-1>SVG size is under 32 kilobytes and root includes version=&quot;1.2&quot; plus baseProfile=&quot;tiny-ps&quot;.</gate-1>
+    <gate-2>SVG has title and desc, no script, no animation, no external href/xlink references, no raster image, no base64, no foreignObject, and no root x/y attributes.</gate-2>
+    <gate-3>frontend/nginx.conf permits /.well-known/bimi/ before the generic hidden-file deny rule and still denies unrelated hidden paths.</gate-3>
+    <gate-4>Frontend production build includes the asset at dist/.well-known/bimi/krotpn.svg.</gate-4>
+    <gate-5>install.sh, deploy scripts, docker-compose, TLS material, Resend provider code, and email token logic remain unchanged.</gate-5>
+    <gate-6>Operator DNS instruction is explicit, uses default._bimi, and omits a= until VMC/CMC exists.</gate-6>
+  </phase-gates>
+  <risks>
+    <risk-1 severity="medium">Mailbox providers can ignore valid BIMI records, especially without VMC/CMC; Phase-49 documents this limitation instead of treating rendering as guaranteed.</risk-1>
+    <risk-2 severity="medium">The frontend hidden-file deny rule currently blocks dot-prefixed paths unless /.well-known/bimi/ is allowed first.</risk-2>
+    <risk-3 severity="low">SVG validators can differ, so Phase-49 checks the core BIMI constraints locally and leaves external BIMI validator proof as optional operator evidence.</risk-3>
+  </risks>
+  <verification>
+    <matrix>
+      <module-local>Phase-49 smoke validates SVG compliance and nginx route ordering.</module-local>
+      <wave-level>Frontend build validates the public asset is copied into dist and the application still builds.</wave-level>
+      <phase-level>XML parse, MyGRACE lint, git diff --check, and protected deploy/install diff guard prove metadata consistency and operational isolation.</phase-level>
+      <live-optional>curl -I https://krotpn.xyz/.well-known/bimi/krotpn.svg verifies 200, image/svg+xml, and non-HTML response after clean deploy.</live-optional>
+    </matrix>
+    <commands>
+      <command status="planned">node scripts/phase49-bimi-branding-smoke.mjs</command>
+      <command status="planned">cd frontend &amp;&amp; npm run build</command>
+      <command status="planned">python3 -m xml.etree.ElementTree docs/plans/Phase-49.xml docs/modules/M-067.xml docs/verification/V-M-067.xml docs/graph-index.xml docs/plan-index.xml docs/verification-index.xml</command>
+      <command status="planned">mygrace lint</command>
+      <command status="planned">git diff --name-only HEAD -- install.sh docker-compose.yml nginx deploy deploy/mtproto-de-compose.yml .env.example</command>
+      <command status="operator-live">curl -I https://krotpn.xyz/.well-known/bimi/krotpn.svg</command>
+      <command status="operator-dns">dig +short TXT default._bimi.krotpn.xyz @1.1.1.1</command>
+    </commands>
+  </verification>
+  <dns-instruction>
+    <record>Name/Host: default._bimi</record>
+    <type>TXT</type>
+    <value>v=BIMI1; l=https://krotpn.xyz/.well-known/bimi/krotpn.svg;</value>
+    <note>If the DNS provider requires a fully qualified name, use default._bimi.krotpn.xyz. Do not add a= until a VMC/CMC PEM certificate is available.</note>
+  </dns-instruction>
+</Phase-49>

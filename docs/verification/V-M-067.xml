@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<V-M-067 MODULE="M-067" PRIORITY="medium" STATUS="planned">
+  <purpose>Verify Phase-49 BIMI sender-branding asset deployment across SVG compliance, frontend static delivery, nginx well-known routing, DNS instructions, and protected operational surfaces.</purpose>
+  <checks>BIMI Tiny P/S root attributes, file size, title/desc, absence of unsafe SVG constructs, frontend public asset copy, /.well-known/bimi allow-rule, image/svg+xml live headers, and unchanged deploy/install surfaces.</checks>
+  <test-files>
+    <file>frontend/public/.well-known/bimi/krotpn.svg</file>
+    <file>frontend/nginx.conf</file>
+    <file>scripts/phase49-bimi-branding-smoke.mjs</file>
+    <file>docs/plans/Phase-49.xml</file>
+  </test-files>
+  <commands>
+    <command status="planned">node scripts/phase49-bimi-branding-smoke.mjs</command>
+    <command status="planned">cd frontend &amp;&amp; npm run build</command>
+    <command status="planned">python3 -m xml.etree.ElementTree docs/plans/Phase-49.xml docs/modules/M-067.xml docs/verification/V-M-067.xml docs/graph-index.xml docs/plan-index.xml docs/verification-index.xml</command>
+    <command status="planned">mygrace lint</command>
+    <command status="planned">git diff --check</command>
+    <command status="planned">git diff --name-only HEAD -- install.sh docker-compose.yml nginx deploy deploy/mtproto-de-compose.yml .env.example produces no output</command>
+    <command status="operator-live">curl -I https://krotpn.xyz/.well-known/bimi/krotpn.svg returns 200 and image/svg+xml after clean deploy</command>
+    <command status="operator-dns">dig +short TXT default._bimi.krotpn.xyz @1.1.1.1 returns v=BIMI1 with l=https://krotpn.xyz/.well-known/bimi/krotpn.svg</command>
+  </commands>
+  <module-checks>
+    <check-1>The SVG root includes version=&quot;1.2&quot; and baseProfile=&quot;tiny-ps&quot;, and does not include root x or y attributes.</check-1>
+    <check-2>The SVG stays below 32 kilobytes, remains square, and includes title plus desc.</check-2>
+    <check-3>The SVG does not include script, animation, foreignObject, image, base64, style attributes, external href/xlink references, http/https URLs, or javascript URLs.</check-3>
+    <check-4>frontend/nginx.conf has a specific /.well-known/bimi/ static location before the hidden-file deny location.</check-4>
+    <check-5>Frontend build output includes dist/.well-known/bimi/krotpn.svg and does not rewrite it into the SPA HTML fallback.</check-5>
+    <check-6>Phase-49 does not change Resend provider code, email token logic, install.sh, deploy scripts, docker-compose, TLS paths, VPN runtime, or MTProto runtime.</check-6>
+    <check-7>DNS instructions publish default._bimi with the l= SVG URL and leave a= absent until VMC/CMC PEM material exists.</check-7>
+  </module-checks>
+  <verification-levels>
+    <module-local>Static smoke covers SVG safety, file size, Tiny P/S attributes, and nginx route ordering.</module-local>
+    <wave-level>Frontend build covers asset inclusion and unchanged user frontend compile behavior.</wave-level>
+    <phase-level>XML parse, MyGRACE lint, git diff --check, and protected deploy/install diff guard cover metadata integrity and operational isolation.</phase-level>
+    <live-optional>Public curl and dig checks after a clean deploy prove the asset and DNS are reachable, while mailbox avatar rendering remains provider-controlled.</live-optional>
+  </verification-levels>
+  <scenarios>
+    <scenario-1 kind="success">Mailbox provider fetches default._bimi.krotpn.xyz, follows the l= URL, receives a BIMI-compliant SVG over HTTPS, and may render the KrotPN sender avatar.</scenario-1>
+    <scenario-2 kind="success">A browser request to https://krotpn.xyz/.well-known/bimi/krotpn.svg returns the SVG asset rather than the frontend app shell.</scenario-2>
+    <scenario-3 kind="success">Unrelated hidden paths remain denied by the frontend nginx hidden-file rule.</scenario-3>
+    <scenario-4 kind="failure">SVG lacks tiny-ps/version attributes, exceeds 32 kilobytes, contains unsafe SVG constructs, or includes external references.</scenario-4>
+    <scenario-5 kind="failure">/.well-known/bimi/krotpn.svg returns 403, 404, text/html, or the SPA fallback.</scenario-5>
+    <scenario-6 kind="failure">Implementation changes install/deploy scripts, TLS material, Resend payload code, or email verification token behavior.</scenario-6>
+  </scenarios>
+  <telemetry-requirements>
+    <requirement-1>No runtime telemetry is required because Phase-49 is static asset and DNS/runbook behavior.</requirement-1>
+    <requirement-2>Smoke output may print aggregate pass/fail markers, SVG byte size, and route names; it must not print secrets, API keys, TLS private keys, email verification tokens, or user identifiers.</requirement-2>
+  </telemetry-requirements>
+  <required-markers>
+    <marker-1>[M-067][phase49_bimi_branding][SVG_TINY_PS]</marker-1>
+    <marker-2>[M-067][phase49_bimi_branding][WELL_KNOWN_ROUTE]</marker-2>
+    <marker-3>[M-067][phase49_bimi_branding][PROTECTED_SURFACES]</marker-3>
+  </required-markers>
+  <redaction-rules>
+    <rule-1>Do not log Resend API keys, verification/reset tokens, TLS private keys, MTProto secrets, VPN config bodies, Authorization headers, or live user identifiers during Phase-49 verification.</rule-1>
+  </redaction-rules>
+  <evidence status="planned" date="2026-06-02">Phase-49 verification is designed; execution evidence is expected after $mygrace:execute Phase-49.</evidence>
+  <autonomous-execution-safety>Allowed after plan and verification approval because Phase-49 is limited to public static branding asset delivery, nginx well-known allowance, smoke verification, and DNS/runbook docs.</autonomous-execution-safety>
+</V-M-067>
