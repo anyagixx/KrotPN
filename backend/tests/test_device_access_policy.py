@@ -8,10 +8,12 @@ MODULE_CONTRACT
 MODULE_MAP
 - session: In-memory async DB session fixture for device access policy tests.
 - test_create_device_record_rejects_when_limit_is_reached: Verifies deterministic device-limit rejection before provisioning.
+- test_create_device_record_respects_phase50_limits: Verifies Phase-50 paid limits 1, 6, and 9.
 - test_revoke_device_frees_slot: Verifies revoke deactivates the slot and allows another device.
 - test_rotate_and_block_preserve_logical_device_identity: Verifies rotate keeps the same device while block consumes the slot.
 
 CHANGE_SUMMARY
+- 2026-06-02: Added Phase-50 device-limit boundary coverage for 1, 6, and 9.
 - 2026-03-27: Added device access policy tests for plan limits and lifecycle transitions.
 """
 
@@ -92,6 +94,19 @@ async def test_create_device_record_rejects_when_limit_is_reached(session: Async
 
     with pytest.raises(DeviceLimitExceededError):
         await service.create_device_record(int(user.id), name="MacBook", platform="macos")
+
+
+@pytest.mark.parametrize("device_limit", [1, 6, 9])
+@pytest.mark.asyncio
+async def test_create_device_record_respects_phase50_limits(session: AsyncSession, device_limit: int):
+    user = await _seed_user_with_plan(session, device_limit=device_limit)
+    service = DeviceAccessPolicyService(session)
+
+    for index in range(device_limit):
+        await service.create_device_record(int(user.id), name=f"Device {index}", platform="test")
+
+    with pytest.raises(DeviceLimitExceededError):
+        await service.create_device_record(int(user.id), name="Extra", platform="test")
 
 
 @pytest.mark.asyncio

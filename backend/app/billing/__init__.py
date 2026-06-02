@@ -11,6 +11,7 @@
 #
 # START_MODULE_MAP
 #   Plan, Subscription, Payment - Database models for billing entities
+#   CANONICAL_TARIFFS, CANONICAL_TARIFF_SLUGS - Phase-50 paid tariff catalog exports
 #   PlanCreate, PlanUpdate, SubscribeRequest - Request/Response schemas
 #   BillingService - Subscription lifecycle, webhook processing, plan limit checks
 #   YooKassaClient, yookassa_client - Payment provider integration
@@ -18,6 +19,7 @@
 # END_MODULE_MAP
 #
 # START_CHANGE_SUMMARY
+#   LAST_CHANGE: v3.2.0 - Exported Phase-50 canonical paid tariff catalog.
 #   LAST_CHANGE: v2.8.0 - Added full GRACE MODULE_CONTRACT and MODULE_MAP per GRACE governance protocol
 # END_CHANGE_SUMMARY
 #
@@ -33,6 +35,7 @@ from app.billing.models import (
     SubscriptionResponse,
     PaymentResponse,
 )
+from app.billing.catalog import CANONICAL_TARIFFS, CANONICAL_TARIFF_SLUGS
 from app.billing.schemas import (
     PlanCreate,
     PlanUpdate,
@@ -57,6 +60,8 @@ __all__ = [
     "PlanResponse",
     "SubscriptionResponse",
     "PaymentResponse",
+    "CANONICAL_TARIFFS",
+    "CANONICAL_TARIFF_SLUGS",
     # Schemas
     "PlanCreate",
     "PlanUpdate",

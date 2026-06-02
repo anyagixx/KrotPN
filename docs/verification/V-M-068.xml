@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<V-M-068 MODULE="M-068" PRIORITY="critical" STATUS="verification-designed">
+<V-M-068 MODULE="M-068" PRIORITY="critical" STATUS="pass-local">
   <purpose>Verify Phase-50 canonical paid tariffs across billing catalog convergence, YooKassa payment creation, subscription activation, device-limit policy, and compact user/admin UI.</purpose>
   <checks>Exactly three canonical active tariffs, server-authoritative prices, idempotent clean-deploy upsert, downgrade guard, correct payment metadata, paid subscription activation, device-limit enforcement, user/admin UI rendering, and unchanged deploy/install surfaces.</checks>
   <evidence-priority>
@@ -8,7 +8,7 @@
     <level-3>Integration checks third: frontend build, frontend-admin build, static smoke, XML/MyGRACE, and protected deploy/install guard.</level-3>
   </evidence-priority>
   <test-files>
-    <file planned="true">backend/tests/test_billing_tariff_catalog.py</file>
+    <file>backend/tests/test_billing_tariff_catalog.py</file>
     <file>backend/tests/test_billing_plan_api.py</file>
     <file>backend/tests/test_billing_service.py</file>
     <file>backend/tests/test_device_access_policy.py</file>
@@ -17,17 +17,17 @@
     <file>frontend/src/pages/Subscription.tsx</file>
     <file>frontend-admin/src/pages/Plans.tsx</file>
     <file>frontend-admin/src/types/index.ts</file>
-    <file planned="true">scripts/phase50-tariff-catalog-smoke.mjs</file>
+    <file>scripts/phase50-tariff-catalog-smoke.mjs</file>
   </test-files>
   <commands>
-    <command status="planned">cd backend &amp;&amp; SECRET_KEY=test-secret-key-with-enough-length DATA_ENCRYPTION_KEY=dpFmfSVqfdAK3yx5MQV6Tcv35RZuw5MzaH0yhxJ01q0= PYTHONPATH=. ../.venv/bin/python -m pytest -o addopts='' tests/test_billing_tariff_catalog.py tests/test_billing_plan_api.py tests/test_billing_service.py tests/test_device_access_policy.py tests/test_db_migrations.py -v</command>
-    <command status="planned">cd frontend &amp;&amp; npm run build</command>
-    <command status="planned">cd frontend-admin &amp;&amp; npm run build</command>
-    <command status="planned">node scripts/phase50-tariff-catalog-smoke.mjs</command>
-    <command status="planned">python3 -m xml.etree.ElementTree docs/plans/Phase-50.xml docs/modules/M-068.xml docs/verification/V-M-068.xml docs/graph-index.xml docs/plan-index.xml docs/verification-index.xml docs/current-status.xml</command>
-    <command status="planned">mygrace lint</command>
-    <command status="planned">git diff --check</command>
-    <command status="planned">git diff --name-only HEAD -- install.sh docker-compose.yml nginx deploy deploy/mtproto-de-compose.yml .env.example produces no output</command>
+    <command status="pass-local">cd backend &amp;&amp; SECRET_KEY=test-secret-key-with-enough-length DATA_ENCRYPTION_KEY=dpFmfSVqfdAK3yx5MQV6Tcv35RZuw5MzaH0yhxJ01q0= PYTHONPATH=. ../.venv/bin/python -m pytest -o addopts='' tests/test_billing_tariff_catalog.py tests/test_billing_plan_api.py tests/test_billing_service.py tests/test_device_access_policy.py tests/test_db_migrations.py -v</command>
+    <command status="pass-local">cd frontend &amp;&amp; npm run build</command>
+    <command status="pass-local">cd frontend-admin &amp;&amp; npm run build</command>
+    <command status="pass-local">node scripts/phase50-tariff-catalog-smoke.mjs</command>
+    <command status="pass-local">python3 -m xml.etree.ElementTree docs/plans/Phase-50.xml docs/modules/M-068.xml docs/verification/V-M-068.xml docs/graph-index.xml docs/plan-index.xml docs/verification-index.xml docs/current-status.xml</command>
+    <command status="pass-local">mygrace lint</command>
+    <command status="pass-local">git diff --check</command>
+    <command status="pass-local">git diff --name-only HEAD -- install.sh docker-compose.yml nginx deploy deploy/mtproto-de-compose.yml .env.example produced no output</command>
   </commands>
   <module-checks>
     <check-1>Canonical catalog defines only krotpn-1, krotpn-6, and krotpn-9 as active paid storefront plans.</check-1>

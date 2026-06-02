@@ -16,13 +16,17 @@
 #   test_ensure_vpn_client_preshared_key_column_adds_nullable_column - Covers add path
 #   test_ensure_vpn_client_preshared_key_column_is_idempotent - Covers no-op path
 #   test_ensure_subscription_pending_trial_columns_adds_columns_and_indexes - Covers Phase-45 compatibility add path
+#   test_ensure_plan_catalog_columns_adds_phase50_columns_and_index - Covers Phase-50 compatibility add path
+#   test_ensure_canonical_tariff_catalog_converges_real_sqlite - Covers Phase-50 runtime catalog convergence
 #   test_mtproto_assignment_migration_is_registered_after_baseline - Covers MTProto assignment metadata
 #   test_mtproto_usage_telemetry_migration_is_registered_after_assignments - Covers Phase-42 analytics metadata
 #   test_mtproto_phase43_migration_is_registered_after_usage_telemetry - Covers Phase-43 analytics metadata
 #   test_phase44_password_reset_migration_is_registered_after_phase43 - Covers Phase-44 password reset migration metadata
+#   test_phase50_paid_tariff_catalog_migration_is_registered_after_phase45 - Covers Phase-50 tariff migration metadata
 # END_MODULE_MAP
 #
 # START_CHANGE_SUMMARY
+#   LAST_CHANGE: v1.6.0 - Added Phase-50 paid tariff catalog migration coverage
 #   LAST_CHANGE: v1.5.0 - Added Phase-45 pending trial migration metadata and compatibility helper coverage
 #   LAST_CHANGE: v1.4.0 - Added Phase-44 password reset migration metadata guard
 #   LAST_CHANGE: v1.3.0 - Added Phase-43 MTProto IP observability/admin alert migration metadata guard
@@ -35,8 +39,15 @@ from pathlib import Path
 from types import SimpleNamespace
 
 import pytest
+from sqlalchemy import text
+from sqlalchemy.ext.asyncio import create_async_engine
+from sqlalchemy.pool import StaticPool
+from sqlmodel import SQLModel
 
+from app.core.database import import_all_models
 from app.core.migrations import (
+    _ensure_canonical_tariff_catalog,
+    _ensure_plan_catalog_columns,
     _ensure_subscription_pending_trial_columns,
     _ensure_vpn_client_preshared_key_column,
     _partition_vpn_client_rows,
@@ -139,6 +150,53 @@ async def test_ensure_subscription_pending_trial_columns_adds_columns_and_indexe
     assert any("ix_subscriptions_user_pending_trial" in statement for statement in conn.statements)
 
 
+@pytest.mark.asyncio
+async def test_ensure_plan_catalog_columns_adds_phase50_columns_and_index():
+    conn = FakeConnection(has_column=False)
+
+    await _ensure_plan_catalog_columns(conn)
+
+    assert "ALTER TABLE plans ADD COLUMN slug VARCHAR(80)" in conn.statements
+    assert "ALTER TABLE plans ADD COLUMN is_canonical BOOLEAN DEFAULT FALSE" in conn.statements
+    assert any("ix_plans_slug" in statement for statement in conn.statements)
+
+
+@pytest.mark.asyncio
+async def test_ensure_canonical_tariff_catalog_converges_real_sqlite():
+    import_all_models()
+    engine = create_async_engine(
+        "sqlite+aiosqlite:///:memory:",
+        future=True,
+        poolclass=StaticPool,
+    )
+
+    async with engine.begin() as conn:
+        await conn.run_sync(SQLModel.metadata.create_all)
+        await _ensure_plan_catalog_columns(conn)
+        await _ensure_canonical_tariff_catalog(conn)
+        await _ensure_canonical_tariff_catalog(conn)
+
+        result = await conn.execute(
+            text(
+                """
+                SELECT slug, price, duration_days, device_limit, is_active, is_canonical
+                FROM plans
+                WHERE is_canonical = TRUE
+                ORDER BY sort_order
+                """
+            )
+        )
+        rows = [tuple(row) for row in result.fetchall()]
+
+    await engine.dispose()
+
+    assert rows == [
+        ("krotpn-1", 369.0, 30, 1, True, True),
+        ("krotpn-6", 693.0, 30, 6, True, True),
+        ("krotpn-9", 936.0, 30, 9, True, True),
+    ]
+
+
 def test_mtproto_assignment_migration_is_registered_after_baseline():
     migration_path = (
         Path(__file__).parents[1]
@@ -212,3 +270,20 @@ def test_phase45_pending_trial_migration_is_registered_after_phase44():
     assert 'down_revision: Union[str, Sequence[str], None] = "phase44_password_reset_tokens"' in migration_text
     assert "[M-063][migration][PENDING_TRIAL_SCHEMA]" in migration_text
     assert "pending_activation" in migration_text
+
+
+def test_phase50_paid_tariff_catalog_migration_is_registered_after_phase45():
+    migration_path = (
+        Path(__file__).parents[1]
+        / "alembic"
+        / "versions"
+        / "phase50_paid_tariff_catalog.py"
+    )
+    migration_text = migration_path.read_text(encoding="utf-8")
+
+    assert 'revision: str = "phase50_paid_tariff_catalog"' in migration_text
+    assert 'down_revision: Union[str, Sequence[str], None] = "phase45_pending_trial_activation"' in migration_text
+    assert "[M-068][migration][PAID_TARIFF_CATALOG_SCHEMA]" in migration_text
+    assert "krotpn-1" in migration_text
+    assert "krotpn-6" in migration_text
+    assert "krotpn-9" in migration_text

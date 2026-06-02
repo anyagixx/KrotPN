@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Phase-50 NAME="Three Paid Tariffs Catalog and Device-Limit Checkout" STATUS="verification-designed" VERSION="1.0.0" MODULES="M-068,M-001,M-004,M-006,M-009,M-010,M-021,M-022,M-028,M-036,M-038" CREATED="2026-06-02" UPDATED="2026-06-02">
+<Phase-50 NAME="Three Paid Tariffs Catalog and Device-Limit Checkout" STATUS="done-local" VERSION="1.0.0" MODULES="M-068,M-001,M-004,M-006,M-009,M-010,M-021,M-022,M-028,M-036,M-038" CREATED="2026-06-02" UPDATED="2026-06-02">
   <purpose>Implement the approved KrotPN paid tariff matrix across backend billing, device limits, YooKassa checkout, user frontend, and admin frontend.</purpose>
   <scope>
     <in>Canonical 30-day tariff catalog, idempotent clean-deploy plan convergence, server-authoritative prices, YooKassa payment metadata, downgrade guard, device-limit enforcement, compact user tariff cards, compact admin tariff matrix, tests, smoke checks, README/MyGRACE sync.</in>
@@ -11,16 +11,16 @@
     <tariff-3 slug="krotpn-9" name="KrotPN 9" price-rub="936" device-limit="9" duration-days="30" popular="false">Maximum standard plan.</tariff-3>
   </tariff-matrix>
   <steps>
-    <step-1 MODULE="M-068,M-004" STATUS="planned">Add a server-side canonical tariff catalog with stable slugs, names, RUB prices, 30-day duration, device limits, features, popular marker, and sort order.</step-1>
-    <step-2 MODULE="M-068,M-001,M-028" STATUS="planned">Add idempotent startup/migration convergence so clean deployments and existing deployments contain the three canonical active tariffs without duplicates.</step-2>
-    <step-3 MODULE="M-068,M-004" STATUS="planned">Extend billing service plan reads and checkout validation so public catalog output is canonical and inactive or noncanonical plans cannot be bought accidentally.</step-3>
-    <step-4 MODULE="M-068,M-004,M-021,M-022" STATUS="planned">Block incompatible lower-limit checkout when current active or blocked device slots exceed the selected tariff device_limit.</step-4>
-    <step-5 MODULE="M-068,M-004" STATUS="planned">Ensure YooKassa payment creation uses backend-derived amount/currency/description and metadata containing plan_id, slug, device_limit, duration_days, and payment_id.</step-5>
-    <step-6 MODULE="M-068,M-004,M-063" STATUS="planned">Preserve Phase-45 pending-trial behavior while making successful paid webhook cancel pending trial and activate paid access immediately.</step-6>
-    <step-7 MODULE="M-068,M-009,M-036,M-038" STATUS="planned">Rework user /subscription into exactly three compact tariff cards with price, duration, device limit, current usage, popular marker, and clear blocked-downgrade message.</step-7>
-    <step-8 MODULE="M-068,M-010,M-006,M-038" STATUS="planned">Rework admin Plans page into a compact canonical tariff matrix and remove accidental delete/edit affordances for canonical plans unless a future tariff-editor phase is approved.</step-8>
-    <step-9 MODULE="M-068" STATUS="planned">Add Phase-50 static smoke and README tariff documentation after implementation.</step-9>
-    <step-10 MODULE="M-068,M-004,M-009,M-010,M-021,M-028" STATUS="planned">Run backend tariff/billing/device/migration tests, frontend builds, Phase-50 smoke, XML parse, MyGRACE lint, git diff --check, and protected deploy/install diff guard.</step-10>
+    <step-1 MODULE="M-068,M-004" STATUS="done-local">Add a server-side canonical tariff catalog with stable slugs, names, RUB prices, 30-day duration, device limits, features, popular marker, and sort order.</step-1>
+    <step-2 MODULE="M-068,M-001,M-028" STATUS="done-local">Add idempotent startup/migration convergence so clean deployments and existing deployments contain the three canonical active tariffs without duplicates.</step-2>
+    <step-3 MODULE="M-068,M-004" STATUS="done-local">Extend billing service plan reads and checkout validation so public catalog output is canonical and inactive or noncanonical plans cannot be bought accidentally.</step-3>
+    <step-4 MODULE="M-068,M-004,M-021,M-022" STATUS="done-local">Block incompatible lower-limit checkout when current active or blocked device slots exceed the selected tariff device_limit.</step-4>
+    <step-5 MODULE="M-068,M-004" STATUS="done-local">Ensure YooKassa payment creation uses backend-derived amount/currency/description and metadata containing plan_id, slug, device_limit, duration_days, and payment_id.</step-5>
+    <step-6 MODULE="M-068,M-004,M-063" STATUS="done-local">Preserve Phase-45 pending-trial behavior while making successful paid webhook cancel pending trial and activate paid access immediately.</step-6>
+    <step-7 MODULE="M-068,M-009,M-036,M-038" STATUS="done-local">Rework user /subscription into exactly three compact tariff cards with price, duration, device limit, current usage, popular marker, and clear blocked-downgrade message.</step-7>
+    <step-8 MODULE="M-068,M-010,M-006,M-038" STATUS="done-local">Rework admin Plans page into a compact canonical tariff matrix and remove accidental delete/edit affordances for canonical plans unless a future tariff-editor phase is approved.</step-8>
+    <step-9 MODULE="M-068" STATUS="done-local">Add Phase-50 static smoke and README tariff documentation after implementation.</step-9>
+    <step-10 MODULE="M-068,M-004,M-009,M-010,M-021,M-028" STATUS="done-local">Run backend tariff/billing/device/migration tests, frontend builds, Phase-50 smoke, XML parse, MyGRACE lint, git diff --check, and protected deploy/install diff guard.</step-10>
   </steps>
   <data-flow>
     <flow-1>User opens /subscription -&gt; frontend calls GET /api/v1/billing/plans -&gt; backend returns canonical sorted tariffs -&gt; UI renders three compact cards.</flow-1>
@@ -64,14 +64,14 @@
       <live-optional>Operator clean deploy can verify the three tariffs in user/admin UI and create a test YooKassa payment when production credentials are available.</live-optional>
     </matrix>
     <commands>
-      <command status="planned">cd backend &amp;&amp; SECRET_KEY=test-secret-key-with-enough-length DATA_ENCRYPTION_KEY=dpFmfSVqfdAK3yx5MQV6Tcv35RZuw5MzaH0yhxJ01q0= PYTHONPATH=. ../.venv/bin/python -m pytest -o addopts='' tests/test_billing_tariff_catalog.py tests/test_billing_plan_api.py tests/test_billing_service.py tests/test_device_access_policy.py tests/test_db_migrations.py -v</command>
-      <command status="planned">cd frontend &amp;&amp; npm run build</command>
-      <command status="planned">cd frontend-admin &amp;&amp; npm run build</command>
-      <command status="planned">node scripts/phase50-tariff-catalog-smoke.mjs</command>
-      <command status="planned">python3 -m xml.etree.ElementTree docs/plans/Phase-50.xml docs/modules/M-068.xml docs/verification/V-M-068.xml docs/graph-index.xml docs/plan-index.xml docs/verification-index.xml docs/current-status.xml</command>
-      <command status="planned">mygrace lint</command>
-      <command status="planned">git diff --check</command>
-      <command status="planned">git diff --name-only HEAD -- install.sh docker-compose.yml nginx deploy deploy/mtproto-de-compose.yml .env.example produces no output</command>
+      <command status="pass-local">cd backend &amp;&amp; SECRET_KEY=test-secret-key-with-enough-length DATA_ENCRYPTION_KEY=dpFmfSVqfdAK3yx5MQV6Tcv35RZuw5MzaH0yhxJ01q0= PYTHONPATH=. ../.venv/bin/python -m pytest -o addopts='' tests/test_billing_tariff_catalog.py tests/test_billing_plan_api.py tests/test_billing_service.py tests/test_device_access_policy.py tests/test_db_migrations.py -v</command>
+      <command status="pass-local">cd frontend &amp;&amp; npm run build</command>
+      <command status="pass-local">cd frontend-admin &amp;&amp; npm run build</command>
+      <command status="pass-local">node scripts/phase50-tariff-catalog-smoke.mjs</command>
+      <command status="pass-local">python3 -m xml.etree.ElementTree docs/plans/Phase-50.xml docs/modules/M-068.xml docs/verification/V-M-068.xml docs/graph-index.xml docs/plan-index.xml docs/verification-index.xml docs/current-status.xml</command>
+      <command status="pass-local">mygrace lint</command>
+      <command status="pass-local">git diff --check</command>
+      <command status="pass-local">git diff --name-only HEAD -- install.sh docker-compose.yml nginx deploy deploy/mtproto-de-compose.yml .env.example produced no output</command>
     </commands>
   </verification>
   <implementation-order>

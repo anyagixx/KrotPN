@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<M-068 NAME="paid-tariff-catalog" TYPE="CORE_LOGIC" STATUS="verification-designed-phase50">
-  <path>backend/app/billing frontend/src/pages/Subscription.tsx frontend-admin/src/pages/Plans.tsx scripts/phase50-tariff-catalog-smoke.mjs docs/plans/Phase-50.xml</path>
+<M-068 NAME="paid-tariff-catalog" TYPE="CORE_LOGIC" STATUS="done-local-phase50">
+  <path>backend/app/billing backend/app/core/migrations.py backend/alembic/versions/phase50_paid_tariff_catalog.py frontend/src/pages/Subscription.tsx frontend-admin/src/pages/Plans.tsx scripts/phase50-tariff-catalog-smoke.mjs README.md docs/plans/Phase-50.xml</path>
   <owns>Canonical three-plan paid tariff catalog, server-authoritative payment amounts, device-limit checkout guards, and compact tariff presentation in user/admin frontends.</owns>
   <purpose>Guarantee that clean deployments and existing deployments converge to the approved KrotPN paid tariff matrix without trusting frontend-provided prices.</purpose>
   <exports>
@@ -14,21 +14,25 @@
   <depends>M-001,M-004,M-006,M-009,M-010,M-021,M-022,M-028,M-036,M-038</depends>
   <verification-ref>V-M-068</verification-ref>
   <files>
-    <file planned="true">backend/app/billing/catalog.py</file>
+    <file>backend/app/billing/catalog.py</file>
+    <file>backend/app/billing/__init__.py</file>
     <file>backend/app/billing/models.py</file>
     <file>backend/app/billing/service.py</file>
     <file>backend/app/billing/router.py</file>
     <file>backend/app/billing/yookassa.py</file>
-    <file>backend/app/core/database.py</file>
-    <file planned="true">backend/alembic/versions/phase50_paid_tariff_catalog.py</file>
-    <file planned="true">backend/tests/test_billing_tariff_catalog.py</file>
+    <file>backend/app/core/migrations.py</file>
+    <file>backend/alembic/versions/phase50_paid_tariff_catalog.py</file>
+    <file>backend/tests/test_billing_tariff_catalog.py</file>
+    <file>backend/tests/test_billing_service.py</file>
     <file>backend/tests/test_billing_plan_api.py</file>
     <file>backend/tests/test_device_access_policy.py</file>
+    <file>backend/tests/test_db_migrations.py</file>
     <file>frontend/src/lib/api.ts</file>
     <file>frontend/src/pages/Subscription.tsx</file>
     <file>frontend-admin/src/pages/Plans.tsx</file>
     <file>frontend-admin/src/types/index.ts</file>
-    <file planned="true">scripts/phase50-tariff-catalog-smoke.mjs</file>
+    <file>scripts/phase50-tariff-catalog-smoke.mjs</file>
+    <file>README.md</file>
   </files>
   <tariffs>
     <tariff-1 slug="krotpn-1" name="KrotPN 1" price-rub="369" duration-days="30" device-limit="1" sort-order="10" popular="false" />

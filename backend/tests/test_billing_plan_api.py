@@ -7,10 +7,11 @@ MODULE_CONTRACT
 
 MODULE_MAP
 - _build_client: Constructs a FastAPI client with billing routers and auth or DB overrides.
-- test_list_plan_endpoints_expose_device_limit: Verifies public and admin plan listings include device_limit.
+- test_list_plan_endpoints_expose_phase50_fields: Verifies public and admin plan listings include Phase-50 tariff fields.
 - test_admin_plan_create_and_update_accept_device_limit: Verifies admin create and update payloads pass device_limit through router logic.
 
 CHANGE_SUMMARY
+- 2026-06-02: Added Phase-50 canonical tariff API field coverage.
 - 2026-03-27: Added router-level coverage for plan device_limit visibility and admin mutation support.
 - 2026-05-19: Aligned plan route coverage with /api/v1 billing and admin billing router prefixes for Phase-28 debt closure.
 """
@@ -60,20 +61,22 @@ class StubBillingService:
     def __init__(self, session):
         self.session = session
 
-    async def get_plans(self, active_only: bool = True):
+    async def get_plans(self, active_only: bool = True, *, canonical_only: bool = False):
         return [
             SimpleNamespace(
                 id=7,
-                name="Plus",
-                description="Three-device plan",
-                price=999.0,
+                slug="krotpn-6",
+                name="KrotPN 6",
+                description="Six-device plan",
+                price=693.0,
                 currency="RUB",
                 duration_days=30,
-                device_limit=3,
+                device_limit=6,
                 features=json.dumps(["feature-a"]),
                 is_popular=True,
+                is_canonical=True,
                 is_active=True,
-                sort_order=0,
+                sort_order=20,
             )
         ]
 
@@ -84,6 +87,7 @@ class StubBillingService:
     async def get_plan(self, plan_id: int):
         plan = SimpleNamespace(
             id=plan_id,
+            slug=None,
             name="Base",
             description="Base plan",
             price=499.0,
@@ -92,6 +96,7 @@ class StubBillingService:
             device_limit=1,
             features=json.dumps(["feature-a"]),
             is_popular=False,
+            is_canonical=False,
             is_active=True,
             sort_order=0,
         )
@@ -99,7 +104,7 @@ class StubBillingService:
         return plan
 
 
-def test_list_plan_endpoints_expose_device_limit(monkeypatch):
+def test_list_plan_endpoints_expose_phase50_fields(monkeypatch):
     monkeypatch.setattr(billing_router_module, "BillingService", StubBillingService)
     client = _build_client()
 
@@ -107,9 +112,20 @@ def test_list_plan_endpoints_expose_device_limit(monkeypatch):
     admin_response = client.get("/api/v1/admin/billing/plans")
 
     assert public_response.status_code == 200
-    assert public_response.json()[0]["device_limit"] == 3
+    assert public_response.json()[0] | {
+        "slug": "krotpn-6",
+        "price": 693.0,
+        "duration_days": 30,
+        "device_limit": 6,
+        "is_active": True,
+        "is_canonical": True,
+        "is_popular": True,
+        "sort_order": 20,
+    } == public_response.json()[0]
     assert admin_response.status_code == 200
-    assert admin_response.json()[0]["device_limit"] == 3
+    assert admin_response.json()[0]["slug"] == "krotpn-6"
+    assert admin_response.json()[0]["device_limit"] == 6
+    assert admin_response.json()[0]["sort_order"] == 20
 
 
 def test_admin_plan_create_and_update_accept_device_limit(monkeypatch):

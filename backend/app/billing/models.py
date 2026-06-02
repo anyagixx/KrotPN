@@ -11,13 +11,14 @@
 #
 # START_MODULE_MAP
 #   PaymentProvider, PaymentStatus, SubscriptionStatus - Enum types for billing state
-#   Plan - Subscription plan table with pricing, duration, device_limit
+#   Plan - Subscription plan table with pricing, duration, device_limit, slug, and canonical storefront flags
 #   Subscription - User subscription table with lifecycle fields, pending trial activation, and countdown anchors
 #   Payment - Payment record table with provider integration
 #   PlanResponse, SubscriptionResponse, PaymentResponse - API response schemas
 # END_MODULE_MAP
 #
 # START_CHANGE_SUMMARY
+#   LAST_CHANGE: v3.2.0 - Added Phase-50 paid tariff slug/canonical fields and expanded plan API response contract.
 #   LAST_CHANGE: v3.1.0 - Added Phase-45 pending trial activation fields and countdown response anchors.
 #   LAST_CHANGE: v2.8.0 - Added full GRACE MODULE_CONTRACT, MODULE_MAP, and BLOCKS per GRACE governance protocol
 #   v2.8.0 - Added full GRACE MODULE_CONTRACT and MODULE_MAP per GRACE governance protocol
@@ -80,6 +81,7 @@ class Plan(SQLModel, table=True):
     __tablename__ = "plans"
 
     id: int | None = Field(default=None, primary_key=True)
+    slug: str | None = Field(default=None, index=True, max_length=80)
     name: str = Field(max_length=100)
     description: str | None = Field(default=None, max_length=500)
 
@@ -96,6 +98,7 @@ class Plan(SQLModel, table=True):
 
     # Status
     is_active: bool = Field(default=True)
+    is_canonical: bool = Field(default=False)
     is_popular: bool = Field(default=False)
     sort_order: int = Field(default=0)
 
@@ -190,6 +193,7 @@ class Payment(SQLModel, table=True):
 class PlanResponse(SQLModel):
     """Plan response for API."""
     id: int
+    slug: str | None = None
     name: str
     description: str | None
     price: float
@@ -197,7 +201,10 @@ class PlanResponse(SQLModel):
     duration_days: int
     device_limit: int
     features: list[str]
+    is_active: bool
+    is_canonical: bool = False
     is_popular: bool
+    sort_order: int
 
     model_config = {"from_attributes": True}
 # END_BLOCK

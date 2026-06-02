@@ -10,18 +10,19 @@
 # END_MODULE_CONTRACT
 #
 # START_MODULE_MAP
-#   list_plans - Returns active plans for user-facing storefront
+#   list_plans - Returns active canonical Phase-50 plans for user-facing storefront
 #   get_subscription_status - Returns compact subscription status/countdown for current user
 #   get_subscription_detail - Returns detailed subscription state for current user
 #   create_subscription_payment - Starts payment flow for one selected plan
 #   get_payment_history - Returns payment history for current user
 #   yookassa_webhook - Validates and processes YooKassa webhook events
-#   admin_list_plans, admin_create_plan, admin_update_plan, admin_delete_plan - Admin plan management
+#   admin_list_plans, admin_create_plan, admin_update_plan, admin_delete_plan - Admin plan management with canonical plan protection
 #   admin_get_billing_stats - Returns aggregate billing statistics
 #   admin_update_subscription, admin_extend_subscription - Admin subscription mutations
 # END_MODULE_MAP
 #
 # START_CHANGE_SUMMARY
+#   LAST_CHANGE: v3.2.0 - Added Phase-50 canonical plan API fields, storefront filtering, and checkout rejection mapping.
 #   LAST_CHANGE: v3.1.0 - Added Phase-45 pending trial countdown response fields.
 #   LAST_CHANGE: v2.8.0 - Added full GRACE MODULE_CONTRACT, MODULE_MAP, and BLOCKS per GRACE governance protocol
 #   v2.8.0 - Added full GRACE MODULE_CONTRACT and MODULE_MAP per GRACE governance protocol
@@ -82,7 +83,7 @@ from app.billing.schemas import (
     SubscribeRequest,
     SubscriptionStatusResponse,
 )
-from app.billing.service import BillingService
+from app.billing.service import BillingService, CheckoutPlanRejected
 from app.billing.yookassa import yookassa_client
 
 router = APIRouter(prefix="/api/v1/billing", tags=["billing"])
@@ -120,6 +121,38 @@ async def _plan_name_for_subscription(
 # END_BLOCK
 
 
+# START_BLOCK: plan_response_helpers
+def _features_for_plan(plan: Plan) -> list[str]:
+    """Decode stored JSON features defensively for API output."""
+    if not plan.features:
+        return []
+    try:
+        value = json.loads(plan.features)
+    except (TypeError, json.JSONDecodeError):
+        return []
+    return value if isinstance(value, list) else []
+
+
+def _plan_response(plan: Plan) -> PlanResponse:
+    """Serialize one plan with the Phase-50 public/admin tariff fields."""
+    return PlanResponse(
+        id=plan.id or 0,
+        slug=plan.slug,
+        name=plan.name,
+        description=plan.description,
+        price=plan.price,
+        currency=plan.currency,
+        duration_days=plan.duration_days,
+        device_limit=plan.device_limit,
+        features=_features_for_plan(plan),
+        is_active=plan.is_active,
+        is_canonical=getattr(plan, "is_canonical", False),
+        is_popular=plan.is_popular,
+        sort_order=plan.sort_order,
+    )
+# END_BLOCK
+
+
 # ==================== Public Plan Endpoints ====================
 
 # START_BLOCK: list_plans
@@ -129,22 +162,9 @@ async def list_plans(
 ):
     """List all active subscription plans."""
     service = BillingService(session)
-    plans = await service.get_plans(active_only=True)
+    plans = await service.get_plans(active_only=True, canonical_only=True)
 
-    return [
-        PlanResponse(
-            id=p.id,
-            name=p.name,
-            description=p.description,
-            price=p.price,
-            currency=p.currency,
-            duration_days=p.duration_days,
-            device_limit=p.device_limit,
-            features=json.loads(p.features) if p.features else [],
-            is_popular=p.is_popular,
-        )
-        for p in plans
-    ]
+    return [_plan_response(p) for p in plans]
 # END_BLOCK
 
 
@@ -284,13 +304,18 @@ async def create_subscription_payment(
     """Create a payment for subscription."""
     service = BillingService(session)
 
-    # Get plan
-    plan = await service.get_plan(data.plan_id)
-    if not plan or not plan.is_active:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Plan not found or inactive",
+    try:
+        plan = await service.validate_checkout_plan(current_user.id, data.plan_id)
+    except CheckoutPlanRejected as exc:
+        status_code_for_error = (
+            status.HTTP_409_CONFLICT
+            if exc.reason == "device_limit_exceeded"
+            else status.HTTP_404_NOT_FOUND
         )
+        raise HTTPException(
+            status_code=status_code_for_error,
+            detail=exc.detail,
+        ) from exc
 
     # Create payment
     return_url = str(request.url.replace(path="/subscription", query=""))
@@ -386,22 +411,9 @@ async def admin_list_plans(
 ):
     """List all plans (admin)."""
     service = BillingService(session)
-    plans = await service.get_plans(active_only=False)
+    plans = await service.get_plans(active_only=False, canonical_only=True)
 
-    return [
-        PlanResponse(
-            id=p.id,
-            name=p.name,
-            description=p.description,
-            price=p.price,
-            currency=p.currency,
-            duration_days=p.duration_days,
-            device_limit=p.device_limit,
-            features=json.loads(p.features) if p.features else [],
-            is_popular=p.is_popular,
-        )
-        for p in plans
-    ]
+    return [_plan_response(p) for p in plans]
 # END_BLOCK
 
 
@@ -435,6 +447,11 @@ async def admin_update_plan(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Plan not found",
         )
+    if getattr(plan, "is_canonical", False):
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="Canonical tariffs are managed by the Phase-50 catalog",
+        )
 
     update_data = data.model_dump(exclude_unset=True)
 
@@ -465,6 +482,11 @@ async def admin_delete_plan(
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Plan not found",
+        )
+    if getattr(plan, "is_canonical", False):
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="Canonical tariffs cannot be deleted",
         )
 
     # Soft delete - just deactivate

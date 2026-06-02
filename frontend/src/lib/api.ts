@@ -25,6 +25,7 @@
 // END_MODULE_MAP
 //
 // START_CHANGE_SUMMARY
+//   LAST_CHANGE: 2026-06-02 - Added Phase-50 paid tariff catalog fields to billing plan API contract
 //   LAST_CHANGE: 2026-06-01 - Added Phase-48 octet-stream MIME contract for VPN config downloads
 //   LAST_CHANGE: 2026-06-01 - Added Phase-45 subscription countdown and pending trial API fields
 //   LAST_CHANGE: 2026-06-01 - Added Phase-44 password reset auth API contracts
@@ -231,11 +232,18 @@ export interface UserStats {
 
 export interface Plan {
   id: number
+  slug: string | null
   name: string
+  description: string | null
   price: number
+  currency: string
   duration_days: number
+  device_limit: number
   features: string[]
   is_active: boolean
+  is_canonical: boolean
+  is_popular: boolean
+  sort_order: number
 }
 
 export interface SubscriptionStatus {

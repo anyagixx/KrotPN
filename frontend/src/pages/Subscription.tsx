@@ -17,6 +17,7 @@
 // END_MODULE_MAP
 //
 // START_CHANGE_SUMMARY
+//   LAST_CHANGE: v2.11.0 - Added Phase-50 three paid tariffs with device-limit usage and downgrade guard UX.
 //   LAST_CHANGE: v2.10.0 - Added Phase-45 pending trial countdown and compact active-date calendar.
 //   LAST_CHANGE: v2.8.0 - Added full GRACE MODULE_CONTRACT and MODULE_MAP per GRACE governance protocol
 //   LAST_CHANGE: v2.9.0 - Reworked billing surface into compact mobile-first plan rows for Phase-23
@@ -25,15 +26,15 @@
 // START_BLOCK_SUBSCRIPTION_PAGE
 import { useQuery } from 'react-query'
 import { useTranslation } from 'react-i18next'
-import { AlertTriangle, Calendar, Check, CreditCard, Crown, Rocket, ShieldCheck, Zap } from 'lucide-react'
+import { AlertTriangle, Calendar, Check, CreditCard, Crown, Laptop, Rocket, ShieldCheck, Smartphone, Zap } from 'lucide-react'
 import toast from 'react-hot-toast'
-import { billingApi, SubscriptionStatus } from '../lib/api'
+import { billingApi, deviceApi, SubscriptionStatus } from '../lib/api'
 import Loading from '../components/Loading'
 
 const planIcons = {
-  basic: Zap,
-  pro: Crown,
-  premium: Rocket,
+  'krotpn-1': Smartphone,
+  'krotpn-6': Crown,
+  'krotpn-9': Rocket,
 }
 
 const weekdayLabels = ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс']
@@ -90,6 +91,10 @@ export default function Subscription() {
   const { data: subData, isLoading: subLoading, isError: subError } = useQuery('subscription', () => billingApi.getSubscription(), {
     refetchInterval: 30000,
   })
+  const { data: deviceData } = useQuery('devices-for-tariffs', () => deviceApi.list(), {
+    retry: false,
+    refetchInterval: 30000,
+  })
 
   if (plansLoading || subLoading) {
     return <Loading text={t('loading')} />
@@ -107,9 +112,10 @@ export default function Subscription() {
     )
   }
 
-  const plans = plansData?.data || []
+  const plans = [...(plansData?.data || [])].sort((a, b) => a.sort_order - b.sort_order)
   const subscription = subData?.data
   const calendarDays = buildCalendarDays(subscription)
+  const consumedSlots = deviceData?.data.consumed_slots ?? 0
 
   const handleSubscribe = async (planId: number) => {
     try {
@@ -117,8 +123,8 @@ export default function Subscription() {
       if (data.payment_url) {
         window.location.href = data.payment_url
       }
-    } catch {
-      toast.error(t('error'))
+    } catch (error: any) {
+      toast.error(error?.response?.data?.detail || t('error'))
     }
   }
 
@@ -211,13 +217,15 @@ export default function Subscription() {
         <div className="flex items-end justify-between gap-3">
           <div className="min-w-0">
             <h2 className="text-xl font-extrabold">{t('plans')}</h2>
-            <p className="mt-1 text-sm muted">Компактный список тарифов для оплаты или продления.</p>
+            <p className="mt-1 text-sm muted">Три тарифа KrotPN на 30 дней. Оплата создается backend по выбранному plan_id.</p>
           </div>
         </div>
 
-        {plans.map((plan, index) => {
-          const Icon = planIcons[plan.name.toLowerCase() as keyof typeof planIcons] || Zap
-          const isPopular = index === 1
+        {plans.map((plan) => {
+          const Icon = planIcons[(plan.slug || '') as keyof typeof planIcons] || Zap
+          const isPopular = Boolean(plan.is_popular)
+          const blockedByDevices = consumedSlots > plan.device_limit
+          const usageText = `${Math.min(consumedSlots, plan.device_limit)} из ${plan.device_limit}`
 
           return (
             <article key={plan.id} className={`panel p-4 sm:p-5 ${isPopular ? 'ring-1 ring-emerald-200/16' : ''}`}>
@@ -231,21 +239,37 @@ export default function Subscription() {
                       <h3 className="truncate text-xl font-extrabold">{plan.name}</h3>
                       {isPopular ? <span className="status-badge-success">Популярный</span> : null}
                     </div>
+                    <p className="mt-1 text-sm muted">{plan.description}</p>
                     <div className="mt-1 flex flex-wrap items-end gap-x-2 gap-y-1">
                       <span className="text-2xl font-extrabold">{plan.price}₽</span>
                       <span className="text-sm muted">
                         / {plan.duration_days} {t('days')}
                       </span>
                     </div>
+                    <div className="mt-3 flex flex-wrap gap-2 text-xs">
+                      <span className="metric-pill">
+                        <Laptop className="h-3.5 w-3.5" />
+                        {plan.device_limit} устройств
+                      </span>
+                      <span className={blockedByDevices ? 'danger-pill' : 'metric-pill'}>
+                        Занято {usageText}
+                      </span>
+                    </div>
+                    {blockedByDevices ? (
+                      <p className="mt-2 text-sm text-amber-100">
+                        Для этого тарифа занято слишком много устройств. Сначала отзовите лишние в разделе конфигураций.
+                      </p>
+                    ) : null}
                   </div>
                 </div>
 
                 <button
+                  disabled={blockedByDevices}
                   onClick={() => handleSubscribe(plan.id)}
-                  className={`min-h-11 w-full rounded-lg px-3 py-2.5 md:w-auto ${isPopular ? 'btn-primary' : 'btn-secondary'}`}
+                  className={`min-h-11 w-full rounded-lg px-3 py-2.5 disabled:cursor-not-allowed disabled:opacity-55 md:w-auto ${isPopular ? 'btn-primary' : 'btn-secondary'}`}
                 >
                   <CreditCard className="h-5 w-5" />
-                  {subscription?.has_subscription ? t('extend') : t('buy')}
+                  {blockedByDevices ? 'Недоступно' : subscription?.has_subscription ? t('extend') : t('buy')}
                 </button>
               </div>
 

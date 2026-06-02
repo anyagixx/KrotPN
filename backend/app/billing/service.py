@@ -10,8 +10,9 @@
 # END_MODULE_CONTRACT
 #
 # START_MODULE_MAP
+#   CheckoutPlanRejected - Structured checkout rejection for noncanonical or incompatible device-limit plans
 #   BillingService - Main service class for all billing operations
-#   get_plans, get_plan, create_plan - Plan CRUD operations
+#   get_plans, get_plan, ensure_canonical_tariffs, validate_checkout_plan, create_plan - Plan CRUD and canonical checkout operations
 #   get_user_subscription, get_effective_device_limit, get_user_subscription_history - Subscription reads
 #   get_active_complimentary_access, ensure_complimentary_access - Complimentary access helpers
 #   create_pending_trial, create_trial_subscription, activate_trial_on_first_vpn_handshake, create_subscription, extend_subscription, deactivate_subscription - Subscription lifecycle
@@ -20,6 +21,7 @@
 # END_MODULE_MAP
 #
 # START_CHANGE_SUMMARY
+#   LAST_CHANGE: v3.2.0 - Added Phase-50 canonical tariff convergence, checkout validation, and payment metadata.
 #   LAST_CHANGE: v3.1.0 - Added Phase-45 pending trial lifecycle and first VPN handshake activation.
 #   LAST_CHANGE: v2.8.0 - Added full GRACE MODULE_CONTRACT, MODULE_MAP, and BLOCKS per GRACE governance protocol
 #   v2.8.0 - Added full GRACE MODULE_CONTRACT and MODULE_MAP per GRACE governance protocol
@@ -57,6 +59,13 @@ from app.billing.models import (
     Subscription,
     SubscriptionStatus,
 )
+from app.billing.catalog import (
+    CANONICAL_TARIFF_SLUGS,
+    CANONICAL_TARIFFS,
+    canonical_tariff_by_slug,
+    is_canonical_tariff_slug,
+    tariff_features_json,
+)
 from app.billing.yookassa import yookassa_client
 from loguru import logger
 
@@ -75,6 +84,26 @@ def _trial_duration_days() -> int:
 # END_BLOCK
 
 
+# START_BLOCK: CheckoutPlanRejected
+class CheckoutPlanRejected(ValueError):
+    """Raised when a selected plan cannot be used for checkout."""
+
+    def __init__(
+        self,
+        reason: str,
+        detail: str,
+        *,
+        consumed_slots: int | None = None,
+        device_limit: int | None = None,
+    ):
+        super().__init__(detail)
+        self.reason = reason
+        self.detail = detail
+        self.consumed_slots = consumed_slots
+        self.device_limit = device_limit
+# END_BLOCK
+
+
 # START_BLOCK: BillingService class
 class BillingService:
     """Service for billing operations."""
@@ -86,12 +115,19 @@ class BillingService:
     # ==================== Plans ====================
 
     # START_BLOCK: get_plans
-    async def get_plans(self, active_only: bool = True) -> list[Plan]:
+    async def get_plans(
+        self,
+        active_only: bool = True,
+        *,
+        canonical_only: bool = False,
+    ) -> list[Plan]:
         """Get all subscription plans."""
         query = select(Plan)
 
         if active_only:
             query = query.where(Plan.is_active == True)
+        if canonical_only:
+            query = query.where(Plan.slug.in_(CANONICAL_TARIFF_SLUGS))
 
         query = query.order_by(Plan.sort_order, Plan.price)
 
@@ -102,6 +138,113 @@ class BillingService:
     async def get_plan(self, plan_id: int) -> Plan | None:
         """Get plan by ID."""
         return await self.session.get(Plan, plan_id)
+
+    # START_BLOCK: ensure_canonical_tariffs
+    async def ensure_canonical_tariffs(self) -> list[Plan]:
+        """Create or update the approved Phase-50 paid tariff rows."""
+        plans: list[Plan] = []
+        now = datetime.now(timezone.utc)
+
+        for tariff in CANONICAL_TARIFFS:
+            result = await self.session.execute(
+                select(Plan)
+                .where(Plan.slug == tariff.slug)
+                .order_by(Plan.id.asc())
+            )
+            matches = list(result.scalars().all())
+            plan = matches[0] if matches else None
+            action = "updated" if plan is not None else "created"
+
+            if plan is None:
+                plan = Plan(slug=tariff.slug, name=tariff.name, price=tariff.price)
+                self.session.add(plan)
+
+            plan.slug = tariff.slug
+            plan.name = tariff.name
+            plan.description = tariff.description
+            plan.price = tariff.price
+            plan.currency = tariff.currency
+            plan.duration_days = tariff.duration_days
+            plan.device_limit = tariff.device_limit
+            plan.features = tariff_features_json(tariff)
+            plan.is_active = True
+            plan.is_canonical = True
+            plan.is_popular = tariff.is_popular
+            plan.sort_order = tariff.sort_order
+            plan.updated_at = now
+
+            for duplicate in matches[1:]:
+                duplicate.is_active = False
+                duplicate.is_canonical = False
+                duplicate.updated_at = now
+
+            plans.append(plan)
+            logger.info(
+                "[M-068][tariff_catalog][TARIFF_CATALOG_UPSERT] "
+                f"slug={tariff.slug} action={action} price={tariff.price:.2f} "
+                f"device_limit={tariff.device_limit} duplicates_deactivated={len(matches[1:])}"
+            )
+
+        await self.session.flush()
+        for plan in plans:
+            await self.session.refresh(plan)
+
+        return plans
+    # END_BLOCK
+
+    # START_BLOCK: validate_checkout_plan
+    async def validate_checkout_plan(self, user_id: int, plan_id: int) -> Plan:
+        """Validate that one plan can be purchased by one user before payment creation."""
+        plan = await self.get_plan(plan_id)
+        if (
+            plan is None
+            or not plan.is_active
+            or not getattr(plan, "is_canonical", False)
+            or not is_canonical_tariff_slug(plan.slug)
+        ):
+            logger.warning(
+                "[M-068][checkout][TARIFF_CHECKOUT_REJECTED] "
+                f"user_id={user_id} plan_id={plan_id} reason=noncanonical_or_inactive"
+            )
+            raise CheckoutPlanRejected(
+                "noncanonical_or_inactive",
+                "Тариф недоступен для оплаты.",
+            )
+
+        from app.devices.models import DeviceStatus, UserDevice
+
+        result = await self.session.execute(
+            select(func.count(UserDevice.id)).where(
+                UserDevice.user_id == user_id,
+                UserDevice.status.in_([DeviceStatus.ACTIVE, DeviceStatus.BLOCKED]),
+            )
+        )
+        consumed_slots = int(result.scalar() or 0)
+        device_limit = max(1, int(plan.device_limit))
+        if consumed_slots > device_limit:
+            logger.warning(
+                "[M-068][checkout][TARIFF_DOWNGRADE_BLOCKED] "
+                f"user_id={user_id} plan_slug={plan.slug} consumed_slots={consumed_slots} "
+                f"device_limit={device_limit}"
+            )
+            raise CheckoutPlanRejected(
+                "device_limit_exceeded",
+                (
+                    "Нельзя выбрать этот тариф: сейчас занято "
+                    f"{consumed_slots} устройств при лимите {device_limit}. "
+                    "Сначала отзовите лишние устройства."
+                ),
+                consumed_slots=consumed_slots,
+                device_limit=device_limit,
+            )
+
+        logger.info(
+            "[M-068][checkout][TARIFF_CHECKOUT_VALIDATED] "
+            f"user_id={user_id} plan_slug={plan.slug} consumed_slots={consumed_slots} "
+            f"device_limit={device_limit}"
+        )
+        return plan
+    # END_BLOCK
 
     # START_BLOCK: create_plan
     async def create_plan(self, data: dict) -> Plan:
@@ -114,6 +257,7 @@ class BillingService:
             duration_days=data["duration_days"],
             device_limit=data.get("device_limit", 1),
             features=json.dumps(data.get("features", [])),
+            is_canonical=False,
             is_popular=data.get("is_popular", False),
             sort_order=data.get("sort_order", 0),
         )
@@ -534,6 +678,21 @@ class BillingService:
         return_url: str | None = None,
     ) -> Payment:
         """Create a payment for a plan."""
+        if plan.id is None:
+            raise CheckoutPlanRejected("missing_plan_id", "Тариф недоступен для оплаты.")
+
+        plan = await self.validate_checkout_plan(user_id, int(plan.id))
+        tariff = canonical_tariff_by_slug(plan.slug or "")
+        payment_metadata = {
+            "user_id": user_id,
+            "plan_id": plan.id,
+            "plan_slug": plan.slug,
+            "device_limit": plan.device_limit,
+            "duration_days": plan.duration_days,
+        }
+        if tariff is not None:
+            payment_metadata["canonical_name"] = tariff.name
+
         # Create payment record
         payment = Payment(
             user_id=user_id,
@@ -543,10 +702,13 @@ class BillingService:
             provider=provider,
             status=PaymentStatus.PENDING,
             description=f"Подписка: {plan.name}",
+            payment_metadata=json.dumps(payment_metadata, ensure_ascii=False),
         )
 
         self.session.add(payment)
         await self.session.flush()
+        payment_metadata_with_id = {**payment_metadata, "payment_id": payment.id}
+        payment.payment_metadata = json.dumps(payment_metadata_with_id, ensure_ascii=False)
 
         # Create payment in provider
         if provider == PaymentProvider.YOOKASSA:
@@ -556,17 +718,17 @@ class BillingService:
                     currency=plan.currency,
                     description=f"KrotPN - {plan.name}",
                     return_url=return_url,
-                    metadata={
-                        "user_id": user_id,
-                        "plan_id": plan.id,
-                        "payment_id": payment.id,
-                    },
+                    metadata=payment_metadata_with_id,
                 )
 
                 payment.external_id = yookassa_payment["id"]
                 payment.payment_url = yookassa_payment["confirmation"].get("url")
 
-                logger.info(f"[BILLING] YooKassa payment created: {payment.external_id}")
+                logger.info(
+                    "[BillingService][create_payment][BILLING_PAYMENT_CREATED] "
+                    f"user_id={user_id} payment_id={payment.id} plan_slug={plan.slug} "
+                    f"amount={plan.price:.2f} currency={plan.currency} provider={provider.value}"
+                )
 
             except Exception as e:
                 logger.error(f"[BILLING] YooKassa error: {e}")
@@ -627,7 +789,13 @@ class BillingService:
             # Create subscription
             plan = await self.get_plan(payment.plan_id)
             if plan:
-                await self.create_subscription(payment.user_id, plan, payment)
+                subscription = await self.create_subscription(payment.user_id, plan, payment)
+                logger.info(
+                    "[BillingService][process_payment_webhook][BILLING_SUBSCRIPTION_UPDATED] "
+                    f"user_id={payment.user_id} payment_id={payment.id} "
+                    f"subscription_id={subscription.id} plan_slug={plan.slug} "
+                    f"device_limit={plan.device_limit}"
+                )
 
                 # Create VPN client if not exists
                 from app.vpn.service import VPNService

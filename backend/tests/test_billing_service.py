@@ -11,12 +11,16 @@ MODULE_MAP
 - test_get_active_subscription_returns_active_when_valid: Verifies active subscription lookup.
 - test_expire_subscription_marks_inactive: Verifies deactivation.
 - test_payment_webhook_succeeded_creates_subscription: Verifies happy-path webhook.
+- test_create_payment_uses_server_derived_canonical_amount_and_metadata: Verifies Phase-50 checkout payload.
+- test_validate_checkout_plan_blocks_device_limit_downgrade: Verifies incompatible lower-limit checkout guard.
 
 CHANGE_SUMMARY
+- 2026-06-02: Added Phase-50 canonical checkout and YooKassa metadata coverage.
 - 2026-06-01: Updated trial creation expectations for Phase-45 pending activation.
 - 2026-04-05: Added billing service tests for Phase 5.
 """
 
+import json
 from datetime import datetime, timedelta, timezone
 
 import pytest
@@ -32,8 +36,9 @@ from app.billing.models import (
     Subscription,
     SubscriptionStatus,
 )
-from app.billing.service import BillingService
+from app.billing.service import BillingService, CheckoutPlanRejected
 from app.core.database import import_all_models
+from app.devices.models import UserDevice
 
 
 @pytest.fixture
@@ -192,3 +197,64 @@ async def test_payment_webhook_succeeded_creates_subscription(billing_session: A
     subs = list(sub_result.scalars().all())
     assert len(subs) >= 1
     assert any(s.is_active for s in subs)
+
+
+@pytest.mark.asyncio
+async def test_create_payment_uses_server_derived_canonical_amount_and_metadata(
+    billing_session: AsyncSession,
+):
+    service = BillingService(billing_session)
+    plans = await service.ensure_canonical_tariffs()
+    plan = next(plan for plan in plans if plan.slug == "krotpn-6")
+    captured: dict = {}
+
+    class FakeYooKassa:
+        async def create_payment(self, **kwargs):
+            captured.update(kwargs)
+            return {
+                "id": "yk-phase50",
+                "confirmation": {"url": "https://pay.example/phase50"},
+            }
+
+    service.yookassa = FakeYooKassa()
+    payment = await service.create_payment(user_id=1, plan=plan, return_url="https://krotpn.xyz/subscription")
+
+    assert payment.amount == 693.0
+    assert payment.currency == "RUB"
+    assert payment.external_id == "yk-phase50"
+    assert captured["amount"] == 693.0
+    assert captured["currency"] == "RUB"
+    assert captured["metadata"]["plan_slug"] == "krotpn-6"
+    assert captured["metadata"]["device_limit"] == 6
+    assert captured["metadata"]["duration_days"] == 30
+    assert "payment_id" in captured["metadata"]
+    stored_metadata = json.loads(payment.payment_metadata or "{}")
+    assert stored_metadata["payment_id"] == payment.id
+
+
+@pytest.mark.asyncio
+async def test_validate_checkout_plan_blocks_device_limit_downgrade(billing_session: AsyncSession):
+    service = BillingService(billing_session)
+    plans = await service.ensure_canonical_tariffs()
+    one_device = next(plan for plan in plans if plan.slug == "krotpn-1")
+    nine_devices = next(plan for plan in plans if plan.slug == "krotpn-9")
+
+    for index in range(6):
+        billing_session.add(
+            UserDevice(
+                user_id=7,
+                name=f"device-{index}",
+                platform="test",
+            )
+        )
+    await billing_session.flush()
+
+    with pytest.raises(CheckoutPlanRejected) as exc_info:
+        await service.validate_checkout_plan(7, int(one_device.id))
+
+    assert exc_info.value.reason == "device_limit_exceeded"
+    assert exc_info.value.consumed_slots == 6
+    assert exc_info.value.device_limit == 1
+
+    allowed = await service.validate_checkout_plan(7, int(nine_devices.id))
+    assert allowed.slug == "krotpn-9"

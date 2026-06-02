@@ -19,6 +19,7 @@
 // END_MODULE_MAP
 //
 // START_CHANGE_SUMMARY
+//   LAST_CHANGE: v3.5.0 - Added Phase-50 canonical paid tariff fields to AdminPlan.
 //   LAST_CHANGE: v3.4.0 - Added Phase-43 MTProto alerts, IP investigation, timeseries, resource, and storage contracts
 //   LAST_CHANGE: v3.3.0 - Added Phase-42 MTProto analytics and promotion tag admin contracts
 //   LAST_CHANGE: v3.2.1 - Added safe MTProto runtime revoke result to admin action responses
@@ -59,15 +60,18 @@ export interface AdminDevice {
 // START_BLOCK: AdminPlan
 export interface AdminPlan {
   id: number
+  slug?: string | null
   name: string
   description?: string | null
   price: number
   currency: string
   duration_days: number
-  device_limit?: number
+  device_limit: number
   features: string[] | string
   is_active: boolean
+  is_canonical?: boolean
   is_popular?: boolean
+  sort_order?: number
 }
 // END_BLOCK: AdminPlan
 

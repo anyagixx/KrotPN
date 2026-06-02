@@ -17,6 +17,7 @@
 #   _ensure_subscription_internal_access_columns - Add complimentary access columns
 #   _ensure_subscription_pending_trial_columns - Add Phase-45 pending trial activation columns
 #   _ensure_plan_device_limit_column - Add device_limit to plans
+#   _ensure_plan_catalog_columns, _ensure_canonical_tariff_catalog - Add Phase-50 plan identity columns and seed canonical tariffs
 #   _ensure_unique_vpn_client_device_id - Create unique index on device_id
 #   _relax_vpn_client_user_uniqueness - Drop legacy user_id uniqueness constraint
 #   _table_exists, _table_has_column - Schema introspection helpers
@@ -28,6 +29,7 @@
 # END_MODULE_MAP
 #
 # START_CHANGE_SUMMARY
+#   LAST_CHANGE: v3.2.0 - Added Phase-50 canonical paid tariff catalog compatibility migration
 #   LAST_CHANGE: v3.1.0 - Added Phase-45 pending trial activation compatibility columns
 #   LAST_CHANGE: v3.0.0 - Added nullable vpn_clients.preshared_key_enc compatibility migration
 #   LAST_CHANGE: v2.8.0 - Split from original migrations.py (1003 lines) into core + legacy per GRACE <1000 line rule
@@ -39,6 +41,8 @@ Database migration helpers — schema compatibility layer.
 Contains the main migration entry point and lightweight schema helpers.
 Legacy data migration functions live in migrations_legacy.py.
 """
+
+from datetime import datetime, timezone
 
 from loguru import logger
 from sqlalchemy import bindparam, inspect, text
@@ -80,6 +84,8 @@ async def migrate_existing_schema(conn) -> None:
     await _ensure_subscription_internal_access_columns(conn)
     await _ensure_subscription_pending_trial_columns(conn)
     await _ensure_plan_device_limit_column(conn)
+    await _ensure_plan_catalog_columns(conn)
+    await _ensure_canonical_tariff_catalog(conn)
     await _ensure_vpn_client_topology_columns(conn)
     await _ensure_vpn_client_device_columns(conn)
     await _ensure_vpn_client_preshared_key_column(conn)
@@ -354,6 +360,137 @@ async def _ensure_plan_device_limit_column(conn) -> None:
             text("ALTER TABLE plans ADD COLUMN device_limit INTEGER DEFAULT 1")
         )
         logger.info("[DB] Added plans.device_limit compatibility column")
+
+
+async def _ensure_plan_catalog_columns(conn) -> None:
+    """Add Phase-50 plan identity columns on already deployed databases."""
+    has_plans = await conn.run_sync(_table_exists, "plans")
+    if not has_plans:
+        return
+
+    if not await conn.run_sync(_table_has_column, "plans", "slug"):
+        await conn.execute(text("ALTER TABLE plans ADD COLUMN slug VARCHAR(80)"))
+        logger.info("[DB] Added plans.slug compatibility column")
+
+    if not await conn.run_sync(_table_has_column, "plans", "is_canonical"):
+        await conn.execute(
+            text("ALTER TABLE plans ADD COLUMN is_canonical BOOLEAN DEFAULT FALSE")
+        )
+        logger.info("[DB] Added plans.is_canonical compatibility column")
+
+    await conn.execute(
+        text(
+            """
+            CREATE INDEX IF NOT EXISTS ix_plans_slug
+            ON plans (slug)
+            """
+        )
+    )
+
+
+async def _ensure_canonical_tariff_catalog(conn) -> None:
+    """Idempotently converge the Phase-50 canonical paid tariffs."""
+    has_plans = await conn.run_sync(_table_exists, "plans")
+    if not has_plans:
+        return
+
+    from app.billing.catalog import CANONICAL_TARIFFS, tariff_features_json
+
+    now = datetime.now(timezone.utc)
+    for tariff in CANONICAL_TARIFFS:
+        result = await conn.execute(
+            text(
+                """
+                SELECT id
+                FROM plans
+                WHERE slug = :slug
+                ORDER BY id ASC
+                """
+            ),
+            {"slug": tariff.slug},
+        )
+        matching_ids = [int(row[0]) for row in result.fetchall()]
+        keep_id = matching_ids[0] if matching_ids else None
+
+        values = {
+            "slug": tariff.slug,
+            "name": tariff.name,
+            "description": tariff.description,
+            "price": tariff.price,
+            "currency": tariff.currency,
+            "duration_days": tariff.duration_days,
+            "device_limit": tariff.device_limit,
+            "features": tariff_features_json(tariff),
+            "is_active": True,
+            "is_canonical": True,
+            "is_popular": tariff.is_popular,
+            "sort_order": tariff.sort_order,
+            "updated_at": now,
+        }
+
+        if keep_id is None:
+            await conn.execute(
+                text(
+                    """
+                    INSERT INTO plans (
+                        slug, name, description, price, currency, duration_days,
+                        device_limit, features, is_active, is_canonical,
+                        is_popular, sort_order, created_at, updated_at
+                    )
+                    VALUES (
+                        :slug, :name, :description, :price, :currency, :duration_days,
+                        :device_limit, :features, :is_active, :is_canonical,
+                        :is_popular, :sort_order, :updated_at, :updated_at
+                    )
+                    """
+                ),
+                values,
+            )
+            action = "created"
+        else:
+            await conn.execute(
+                text(
+                    """
+                    UPDATE plans
+                    SET
+                        slug = :slug,
+                        name = :name,
+                        description = :description,
+                        price = :price,
+                        currency = :currency,
+                        duration_days = :duration_days,
+                        device_limit = :device_limit,
+                        features = :features,
+                        is_active = :is_active,
+                        is_canonical = :is_canonical,
+                        is_popular = :is_popular,
+                        sort_order = :sort_order,
+                        updated_at = :updated_at
+                    WHERE id = :id
+                    """
+                ),
+                {**values, "id": keep_id},
+            )
+            action = "updated"
+
+        duplicate_ids = matching_ids[1:]
+        if duplicate_ids:
+            await conn.execute(
+                text(
+                    """
+                    UPDATE plans
+                    SET is_active = FALSE, is_canonical = FALSE, updated_at = :updated_at
+                    WHERE id IN :duplicate_ids
+                    """
+                ).bindparams(bindparam("duplicate_ids", expanding=True)),
+                {"duplicate_ids": duplicate_ids, "updated_at": now},
+            )
+
+        logger.info(
+            "[M-068][tariff_catalog][TARIFF_CATALOG_UPSERT] "
+            f"slug={tariff.slug} action={action} price={tariff.price:.2f} "
+            f"device_limit={tariff.device_limit} duplicates_deactivated={len(duplicate_ids)}"
+        )
 
 
 
