@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<M-038 NAME="compact-ui-system" TYPE="UI_COMPONENT" STATUS="done">
-  <path>frontend frontend-admin docs/plans/Phase-23.xml docs/plans/Phase-24.xml</path>
-  <owns>Shared compact UI rules for user and admin frontends: mobile-first layout, dense information surfaces, simple navigation, and readable controls</owns>
+<M-038 NAME="compact-ui-system" TYPE="UI_COMPONENT" STATUS="pass-local-phase52">
+  <path>frontend frontend-admin docs/plans/Phase-23.xml docs/plans/Phase-24.xml docs/plans/Phase-52.xml</path>
+  <owns>Shared compact UI rules for user and admin frontends: mobile-first layout, dense information surfaces, simple navigation, readable controls, and Matrix visual effects that do not break operational density</owns>
   <exports>
     <rule-mobile-layout>Responsive layout rules for phone-first screens without horizontal scroll</rule-mobile-layout>
     <rule-compact-controls>Standard sizes and interaction patterns for buttons, lists, tabs, dialogs, and confirmations</rule-compact-controls>
@@ -9,7 +9,7 @@
     <rule-visual-density>Reduced spacing, restrained panels, and non-decorative backgrounds for operational screens</rule-visual-density>
     <rule-safe-text>Wrapping, truncation, and stable sizing rules for long emails, device keys, status labels, and payment text</rule-safe-text>
   </exports>
-  <depends>M-009, M-010</depends>
+  <depends>M-009, M-010, M-070, M-071</depends>
   <verification-ref>V-M-038</verification-ref>
   <files>
     <file>frontend/src/components/Layout.tsx</file>
@@ -26,6 +26,7 @@
     <file>frontend-admin/src/index.css</file>
     <file>docs/plans/Phase-23.xml</file>
     <file>docs/plans/Phase-24.xml</file>
+    <file>docs/plans/Phase-52.xml</file>
   </files>
   <rules>
     <rule-1>Operational pages start with the usable product surface, not a marketing hero or explanatory landing section.</rule-1>
@@ -43,6 +44,7 @@
     <phase-23>User frontend adopts compact UI rules for the personal cabinet.</phase-23>
     <phase-24>Admin frontend adopted the same compact UI rules for operator overview, users, devices, payments, analytics, and system health workflows.</phase-24>
     <phase-25>Session security changes are separate and must not be bundled into UI simplification.</phase-25>
+    <phase-52>Matrix visual foundation must preserve compact controls, readable text, pointer-safe overlays, and mobile no-overflow rules.</phase-52>
   </phase-boundaries>
   <constraints>
     <constraint-1>No new marketing-style landing pages for operational surfaces.</constraint-1>
@@ -64,5 +66,6 @@
     <note-1>Phase-23 user frontend compact UI passed local build and mobile smoke.</note-1>
     <note-2>Phase-24 admin frontend compact UI passed local build and Chrome/CDP mobile smoke.</note-2>
     <note-3>M-038 is done locally for the planned user/admin compact UI scope; Phase-25 session security remains separate.</note-3>
+    <note-4>Phase-52 Matrix foundation passed local smoke, user/admin builds, and Chrome login screenshots while preserving compact UI constraints and leaving deploy/install surfaces untouched.</note-4>
   </execution-notes>
 </M-038>

@@ -1,3 +1,26 @@
+/* FILE: frontend-admin/src/index.css
+ * VERSION: 1.0.0
+ * ROLE: UI_COMPONENT
+ * MAP_MODE: SUMMARY
+ * START_MODULE_CONTRACT
+ *   PURPOSE: Shared admin-frontend styling tokens, compact admin surfaces, and Phase-52 Matrix visual foundation
+ *   SCOPE: Admin shell, navigation, panels, forms, data tables, Matrix background/canvas/CRT layers, focus and reduced-motion policy
+ *   DEPENDS: M-010 (frontend-admin), M-037 (admin-mtproto-ui), M-038 (compact-ui-system), M-070 (matrix-visual-runtime), M-071 (matrix-style-system)
+ *   LINKS: M-010 (frontend-admin), M-037, M-038, M-070, M-071
+ * END_MODULE_CONTRACT
+ *
+ * START_MODULE_MAP
+ *   base - Root color tokens, body typography, document background
+ *   matrix-visual-system - Canvas, scanline, vignette, and content stacking layers
+ *   admin-shell - Rail, topbar, mobile tabbar, content sizing
+ *   components - Panel, button, input, metric, list, table, and modal classes
+ * END_MODULE_MAP
+ *
+ * START_CHANGE_SUMMARY
+ *   LAST_CHANGE: v3.0.0 - Added Phase-52 Matrix visual foundation tokens, canvas layers, CRT overlays, focus states, and reduced-motion policy
+ * END_CHANGE_SUMMARY
+ */
+
 @import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap');
 
 @tailwind base;
@@ -6,18 +29,27 @@
 
 :root {
   color-scheme: dark;
-  --bg: #071015;
-  --bg-soft: #0b171d;
-  --panel: rgba(13, 24, 30, 0.9);
-  --panel-strong: rgba(15, 29, 36, 0.98);
-  --border: rgba(154, 188, 198, 0.16);
-  --text: #f3f8fa;
-  --muted: #8fa3ac;
-  --accent: #5cd5b6;
-  --accent-2: #75c7ff;
-  --danger: #ff8f88;
-  --warning: #ffd77d;
-  --shadow: 0 18px 44px rgba(0, 0, 0, 0.28);
+  --matrix-bg: #020503;
+  --matrix-grid: rgba(96, 255, 155, 0.08);
+  --matrix-green: #60ff9b;
+  --matrix-lime: #b8ff3d;
+  --matrix-cyan: #68e8ff;
+  --matrix-magenta: #ff4fd8;
+  --matrix-red: #ff6b78;
+  --matrix-amber: #ffd166;
+  --matrix-neutral: #d8f6e6;
+  --bg: #03100d;
+  --bg-soft: #061712;
+  --panel: rgba(5, 20, 15, 0.86);
+  --panel-strong: rgba(6, 24, 18, 0.96);
+  --border: rgba(96, 255, 155, 0.17);
+  --text: #effff7;
+  --muted: #91b5a6;
+  --accent: var(--matrix-green);
+  --accent-2: var(--matrix-cyan);
+  --danger: var(--matrix-red);
+  --warning: var(--matrix-amber);
+  --shadow: 0 18px 46px rgba(0, 5, 3, 0.42);
 }
 
 * {
@@ -27,7 +59,7 @@
 
 html {
   min-height: 100%;
-  background: var(--bg);
+  background: var(--matrix-bg);
 }
 
 body {
@@ -36,7 +68,7 @@ body {
   overflow-x: hidden;
   font-family: 'Manrope', system-ui, sans-serif;
   color: var(--text);
-  background: linear-gradient(180deg, #071015 0%, #0b171d 100%);
+  background: transparent;
   font-feature-settings: "cv02", "cv03", "cv04", "cv11";
 }
 
@@ -55,13 +87,94 @@ button {
   touch-action: manipulation;
 }
 
+a:focus-visible,
+button:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible,
+[role="button"]:focus-visible {
+  outline: 2px solid var(--matrix-cyan);
+  outline-offset: 3px;
+  box-shadow: 0 0 0 4px rgba(104, 232, 255, 0.16);
+}
+
+.matrix-visual-shell {
+  position: relative;
+  min-height: 100vh;
+  overflow-x: hidden;
+  isolation: isolate;
+  background:
+    radial-gradient(circle at 10% 14%, rgba(96, 255, 155, 0.16), transparent 26rem),
+    radial-gradient(circle at 90% 6%, rgba(104, 232, 255, 0.1), transparent 28rem),
+    linear-gradient(180deg, #020503 0%, #03100d 48%, #020705 100%);
+}
+
+.matrix-visual-shell::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 1;
+  opacity: 0.14;
+  background-image:
+    linear-gradient(var(--matrix-grid) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(104, 232, 255, 0.05) 1px, transparent 1px);
+  background-size: 44px 44px, 44px 44px;
+  transform: perspective(420px) rotateX(64deg) translateY(18vh) scale(1.35);
+  transform-origin: center bottom;
+}
+
+.matrix-canvas {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  width: 100vw;
+  height: 100vh;
+  pointer-events: none;
+  opacity: 0.52;
+  mix-blend-mode: screen;
+}
+
+.matrix-scanline-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 3;
+  pointer-events: none;
+  opacity: 0.18;
+  background:
+    repeating-linear-gradient(
+      180deg,
+      rgba(255, 255, 255, 0.04) 0,
+      rgba(255, 255, 255, 0.04) 1px,
+      transparent 1px,
+      transparent 5px
+    );
+  animation: matrixFlicker 6.2s steps(2, end) infinite;
+}
+
+.matrix-vignette {
+  position: fixed;
+  inset: 0;
+  z-index: 2;
+  pointer-events: none;
+  background:
+    radial-gradient(circle at 50% 45%, transparent 0%, rgba(1, 6, 3, 0.08) 48%, rgba(1, 6, 3, 0.72) 100%),
+    linear-gradient(90deg, rgba(255, 79, 216, 0.06), transparent 22%, transparent 78%, rgba(104, 232, 255, 0.06));
+}
+
+.matrix-visual-content {
+  position: relative;
+  z-index: 4;
+  min-height: 100vh;
+}
+
 .app-shell {
   @apply min-h-screen pb-24 lg:grid lg:grid-cols-[168px_minmax(0,1fr)] lg:pb-0;
 }
 
 .admin-rail {
   @apply sticky top-0 hidden h-screen flex-col gap-4 border-r px-3 py-4 lg:flex;
-  background: rgba(7, 16, 21, 0.96);
+  background: rgba(3, 12, 8, 0.94);
   border-color: var(--border);
 }
 
@@ -97,7 +210,7 @@ button {
 
 .topbar {
   @apply sticky top-0 z-20 flex min-h-[84px] items-center justify-between gap-3 border-b px-4 py-3 backdrop-blur md:px-6;
-  background: rgba(7, 16, 21, 0.92);
+  background: rgba(3, 12, 8, 0.88);
   border-color: var(--border);
 }
 
@@ -118,7 +231,7 @@ button {
 
 .mobile-tabbar {
   @apply fixed inset-x-0 bottom-0 z-30 flex gap-1 overflow-x-auto border-t px-2 py-2 lg:hidden;
-  background: rgba(7, 16, 21, 0.98);
+  background: rgba(3, 12, 8, 0.96);
   border-color: var(--border);
 }
 
@@ -137,13 +250,13 @@ button {
   background: var(--panel);
   border: 1px solid var(--border);
   border-radius: 8px;
-  box-shadow: var(--shadow);
+  box-shadow: var(--shadow), inset 0 1px 0 rgba(216, 246, 230, 0.04);
 }
 
 .panel-soft,
 .surface {
-  background: rgba(18, 33, 41, 0.72);
-  border: 1px solid rgba(154, 188, 198, 0.12);
+  background: rgba(4, 18, 13, 0.72);
+  border: 1px solid rgba(96, 255, 155, 0.1);
   border-radius: 8px;
 }
 
@@ -185,8 +298,8 @@ button {
 
 .input {
   @apply w-full min-h-10 px-3 py-2 text-sm text-slate-50 outline-none transition;
-  background: rgba(6, 15, 20, 0.9);
-  border: 1px solid rgba(154, 188, 198, 0.18);
+  background: rgba(2, 10, 7, 0.88);
+  border: 1px solid rgba(96, 255, 155, 0.16);
   border-radius: 8px;
 }
 
@@ -403,4 +516,39 @@ button {
 
 ::-webkit-scrollbar-thumb:hover {
   background: rgba(141, 166, 176, 0.85);
+}
+
+@keyframes matrixFlicker {
+  0%, 100% {
+    opacity: 0.16;
+  }
+  47% {
+    opacity: 0.24;
+  }
+  48% {
+    opacity: 0.1;
+  }
+  52% {
+    opacity: 0.22;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+
+  .matrix-canvas {
+    opacity: 0.26;
+  }
+
+  .matrix-scanline-overlay {
+    animation: none;
+    opacity: 0.1;
+  }
 }

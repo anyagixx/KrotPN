@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<V-M-070 MODULE="M-070" PRIORITY="high" STATUS="verification-designed">
+<V-M-070 MODULE="M-070" PRIORITY="high" STATUS="pass-local-phase52">
   <scope>
     <phase>Phase-52</phase>
     <purpose>Verify the shared React/Vite Matrix visual runtime before it is used by the full user/admin redesign phases.</purpose>
@@ -56,4 +56,15 @@
     <target-3>Canvas nonblank and reduced-motion screenshot checks pass on mobile and desktop.</target-3>
     <target-4>No protected deploy/install/runtime surface changes are present.</target-4>
   </acceptance>
+  <evidence>
+    <local-2026-06-03>
+      <result>PASS</result>
+      <command-1>node scripts/phase52-matrix-visual-smoke.mjs</command-1>
+      <command-2>cd frontend &amp;&amp; npm run build</command-2>
+      <command-3>cd frontend-admin &amp;&amp; npm run build</command-3>
+      <command-4>Chrome headless screenshot audit for user/admin /login at 360x740, 390x844, 430x932, 1440x900, plus --force-prefers-reduced-motion=reduce at 390x844.</command-4>
+      <screenshot-paths>/tmp/krotpn-phase52-user-360x740.png /tmp/krotpn-phase52-user-390x844.png /tmp/krotpn-phase52-user-430x932.png /tmp/krotpn-phase52-user-1440x900.png /tmp/krotpn-phase52-user-reduced-390x844.png /tmp/krotpn-phase52-admin-360x740.png /tmp/krotpn-phase52-admin-390x844.png /tmp/krotpn-phase52-admin-430x932.png /tmp/krotpn-phase52-admin-1440x900.png /tmp/krotpn-phase52-admin-reduced-390x844.png</screenshot-paths>
+      <protected-surface>No install.sh, deploy, nginx, docker-compose, or runtime topology diff.</protected-surface>
+    </local-2026-06-03>
+  </evidence>
 </V-M-070>

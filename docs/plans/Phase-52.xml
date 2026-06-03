@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Phase-52 NAME="KrotPN Matrix Visual System Foundation" STATUS="verification-designed" STEPS="8">
+<Phase-52 NAME="KrotPN Matrix Visual System Foundation" STATUS="done-local" STEPS="8">
   <summary>Create the shared Matrix visual runtime and style foundation for KrotPN user and admin frontends, based on the approved TRUFFLEX reference effects.</summary>
   <modules>M-070,M-071,M-009,M-010,M-038</modules>
   <references>
@@ -13,35 +13,35 @@
     <constraint-4>Every created source file must include MODULE_CONTRACT, MODULE_MAP, CHANGE_SUMMARY, and semantic block anchors.</constraint-4>
   </constraints>
   <steps>
-    <step-1 STATUS="pending" MODULES="M-070,M-071">
+    <step-1 STATUS="done-local" MODULES="M-070,M-071">
       <action>Translate the approved TRUFFLEX visual requirements into KrotPN-specific runtime and CSS contracts.</action>
       <acceptance>M-070 and M-071 contracts remain the source of truth before code execution starts.</acceptance>
     </step-1>
-    <step-2 STATUS="pending" MODULES="M-070">
+    <step-2 STATUS="done-local" MODULES="M-070">
       <action>Create React/Vite MatrixBackground runtime with canvas guard, resize recomputation, pointer influence, requestAnimationFrame lifecycle, and static reduced-motion frame.</action>
       <acceptance>Runtime can mount, resize, stop, and unmount without console errors or click interception.</acceptance>
     </step-2>
-    <step-3 STATUS="pending" MODULES="M-070,M-009,M-010">
+    <step-3 STATUS="done-local" MODULES="M-070,M-009,M-010">
       <action>Create VisualShell mount points for user and admin layouts with safe fixed canvas and overlay z-index boundaries.</action>
       <acceptance>User and admin content remains above the visual layer and all controls remain interactive.</acceptance>
     </step-3>
-    <step-4 STATUS="pending" MODULES="M-071,M-038">
+    <step-4 STATUS="done-local" MODULES="M-071,M-038">
       <action>Define Matrix design tokens, compact panel primitives, CRT scanlines, glitch/flicker accents, focus states, and reduced-motion CSS policy.</action>
       <acceptance>CSS remains compact, readable, and aligned with M-038 mobile-first operational rules.</acceptance>
     </step-4>
-    <step-5 STATUS="pending" MODULES="M-070,M-071">
+    <step-5 STATUS="done-local" MODULES="M-070,M-071">
       <action>Add smoke verification for canvas nonblank, reduced-motion fallback, pointer-events safety, no console errors, and no deploy/install diff.</action>
       <acceptance>scripts/phase52-matrix-visual-smoke.mjs is ready for execute phase verification.</acceptance>
     </step-5>
-    <step-6 STATUS="pending" MODULES="M-009,M-010,M-070,M-071">
+    <step-6 STATUS="done-local" MODULES="M-009,M-010,M-070,M-071">
       <action>Wire the visual foundation into both frontends without changing route structures, auth state, API clients, or business workflows.</action>
       <acceptance>Frontend and admin frontend builds pass locally.</acceptance>
     </step-6>
-    <step-7 STATUS="pending" MODULES="M-070,M-071">
+    <step-7 STATUS="done-local" MODULES="M-070,M-071">
       <action>Run desktop and mobile screenshot checks for canvas visibility, overlay readability, no horizontal scroll, and no text overlap.</action>
       <acceptance>Viewport checks cover 360x740, 390x844, 430x932, and desktop.</acceptance>
     </step-7>
-    <step-8 STATUS="pending" MODULES="M-070,M-071">
+    <step-8 STATUS="done-local" MODULES="M-070,M-071">
       <action>Update module contracts, verification evidence, MyGRACE indexes, and current-status once implementation evidence exists.</action>
       <acceptance>MyGRACE lint and XML parse pass after execution.</acceptance>
     </step-8>
@@ -54,6 +54,14 @@
   <verification>
     <entry-1>V-M-070 verifies Matrix runtime lifecycle, nonblank canvas, reduced-motion fallback, input pass-through, and runtime observability.</entry-1>
     <entry-2>V-M-071 verifies Matrix style tokens, compact mobile layout, readable CRT/glitch effects, focus states, and protected-surface isolation.</entry-2>
-    <phase-gate>Phase-52 execute may start after both verification entries are status verification-designed and MyGRACE lint passes.</phase-gate>
+    <phase-gate>Phase-52 execute completed locally on 2026-06-03 after smoke, user/admin builds, Chrome screenshot audit, protected-surface guard, XML parse, MyGRACE lint, and diff checks.</phase-gate>
   </verification>
+  <execution-evidence>
+    <command-1>node scripts/phase52-matrix-visual-smoke.mjs</command-1>
+    <command-2>cd frontend &amp;&amp; npm run build</command-2>
+    <command-3>cd frontend-admin &amp;&amp; npm run build</command-3>
+    <command-4>Chrome headless screenshots for user/admin /login at 360x740, 390x844, 430x932, 1440x900, plus reduced-motion 390x844.</command-4>
+    <screenshot-paths>/tmp/krotpn-phase52-user-360x740.png /tmp/krotpn-phase52-user-390x844.png /tmp/krotpn-phase52-user-430x932.png /tmp/krotpn-phase52-user-1440x900.png /tmp/krotpn-phase52-user-reduced-390x844.png /tmp/krotpn-phase52-admin-360x740.png /tmp/krotpn-phase52-admin-390x844.png /tmp/krotpn-phase52-admin-430x932.png /tmp/krotpn-phase52-admin-1440x900.png /tmp/krotpn-phase52-admin-reduced-390x844.png</screenshot-paths>
+    <protected-surface>No install.sh, deploy, nginx, docker-compose, or runtime topology change was made by Phase-52.</protected-surface>
+  </execution-evidence>
 </Phase-52>

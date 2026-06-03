@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<M-070 NAME="matrix-visual-runtime" TYPE="UI_COMPONENT" STATUS="planned">
+<M-070 NAME="matrix-visual-runtime" TYPE="UI_COMPONENT" STATUS="done-local-phase52">
   <path>frontend/src/components/MatrixBackground.tsx frontend/src/components/VisualShell.tsx frontend-admin/src/components/MatrixBackground.tsx frontend-admin/src/components/VisualShell.tsx scripts/phase52-matrix-visual-smoke.mjs docs/plans/Phase-52.xml</path>
   <owns>Shared React/Vite Matrix canvas runtime and CRT overlay mount points for the user frontend and admin frontend.</owns>
   <depends>M-009, M-010, M-038, M-071</depends>
@@ -16,7 +16,7 @@
   <public-interfaces>
     <interface-1>MatrixBackground React component renders a fixed, pointer-events-none canvas layer.</interface-1>
     <interface-2>VisualShell React component mounts MatrixBackground, scanline overlay, and app content with safe z-index boundaries.</interface-2>
-    <interface-3>useMatrixMotionPolicy helper applies prefers-reduced-motion, tab visibility, resize, and canvas context guards.</interface-3>
+    <interface-3>MatrixBackground internal motion policy applies prefers-reduced-motion, tab visibility, resize, and canvas context guards.</interface-3>
   </public-interfaces>
   <constraints>
     <constraint-1>Do not change backend APIs, auth flows, billing logic, VPN provisioning, MTProto provisioning, deploy scripts, install scripts, nginx, docker-compose, or runtime topology.</constraint-1>
@@ -31,6 +31,9 @@
     <metric-3>Frontend and frontend-admin builds pass with no deploy/install diff.</metric-3>
     <metric-4>Runtime smoke verifies no console errors from canvas init, resize, teardown, or missing context branches.</metric-4>
   </acceptance>
+  <evidence>
+    <local-2026-06-03>Phase-52 implemented MatrixBackground and VisualShell for user/admin frontends, mounted both route trees, added static smoke, passed user/admin builds, and captured Chrome screenshots at 360x740, 390x844, 430x932, 1440x900, plus reduced-motion 390x844.</local-2026-06-03>
+  </evidence>
   <crosslinks>
     <phase-52>Matrix runtime foundation and shared shell integration.</phase-52>
     <phase-53>User cabinet Matrix redesign uses this runtime.</phase-53>

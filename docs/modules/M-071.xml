@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<M-071 NAME="matrix-style-system" TYPE="UI_COMPONENT" STATUS="planned">
+<M-071 NAME="matrix-style-system" TYPE="UI_COMPONENT" STATUS="done-local-phase52">
   <path>frontend/src/index.css frontend-admin/src/index.css frontend/src/components/Layout.tsx frontend-admin/src/components/Layout.tsx scripts/phase52-matrix-visual-smoke.mjs scripts/phase53-user-matrix-ui-smoke.mjs scripts/phase54-admin-matrix-ui-smoke.mjs docs/plans/Phase-52.xml docs/plans/Phase-53.xml docs/plans/Phase-54.xml</path>
   <owns>Shared KrotPN Matrix visual language: color tokens, compact panels, CRT scanlines, neon flicker, glitch accents, focus states, and mobile-safe responsive rules.</owns>
   <depends>M-009, M-010, M-036, M-037, M-038</depends>
@@ -15,7 +15,7 @@
   </source-contract>
   <public-interfaces>
     <interface-1>CSS custom properties for KrotPN Matrix palette, surfaces, borders, focus rings, and status colors.</interface-1>
-    <interface-2>Reusable class layer for crt-shell, matrix-panel, matrix-row, matrix-action, matrix-status, matrix-table, and matrix-chart surfaces.</interface-2>
+    <interface-2>Reusable class layer for matrix-visual-shell, matrix-canvas, matrix-scanline-overlay, matrix-vignette, and matrix-visual-content surfaces.</interface-2>
     <interface-3>Reduced-motion and mobile viewport rules shared by user and admin frontends.</interface-3>
   </public-interfaces>
   <constraints>
@@ -31,6 +31,9 @@
     <metric-3>Reduced-motion mode disables transform-heavy and flicker-heavy effects while preserving visual identity.</metric-3>
     <metric-4>Screenshot review confirms Matrix style is present without hiding primary VPN, MTProto, tariff, or admin actions.</metric-4>
   </acceptance>
+  <evidence>
+    <local-2026-06-03>Phase-52 added Matrix palette tokens, canvas/scanline/vignette/content layers, focus-visible rules, reduced-motion CSS policy, protected-surface smoke markers, user/admin builds, and Chrome screenshot checks for mobile, desktop, and reduced-motion login shells.</local-2026-06-03>
+  </evidence>
   <crosslinks>
     <phase-52>Defines the foundation token system and shared effects.</phase-52>
     <phase-53>Applies the system to user cabinet routes.</phase-53>

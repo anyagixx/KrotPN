@@ -3,19 +3,21 @@
  * ROLE: UI_COMPONENT
  * MAP_MODE: SUMMARY
  * START_MODULE_CONTRACT
- *   PURPOSE: Shared user-frontend styling tokens and compact component utility classes
- *   SCOPE: Base typography, background, panel/button/input/status/metric/empty-state classes, compact motion
- *   DEPENDS: M-009 (frontend-user), M-036 (mobile-user-cabinet), M-038 (compact-ui-system)
- *   LINKS: M-009 (frontend-user), M-036 (mobile-user-cabinet), M-038 (compact-ui-system)
+ *   PURPOSE: Shared user-frontend styling tokens, compact component utility classes, and Phase-52 Matrix visual foundation
+ *   SCOPE: Base typography, Matrix background/canvas/CRT layers, panel/button/input/status/metric/empty-state classes, compact motion, focus and reduced-motion policy
+ *   DEPENDS: M-009 (frontend-user), M-036 (mobile-user-cabinet), M-038 (compact-ui-system), M-070 (matrix-visual-runtime), M-071 (matrix-style-system)
+ *   LINKS: M-009 (frontend-user), M-036 (mobile-user-cabinet), M-038 (compact-ui-system), M-070, M-071
  * END_MODULE_CONTRACT
  *
  * START_MODULE_MAP
  *   base - Root color tokens, body typography, document background
+ *   matrix-visual-system - Canvas, scanline, vignette, and content stacking layers
  *   components - App shell, panel, button, input, status, metric, empty-state classes
- *   utilities - text-balance and animate-in utility
+ *   utilities - text-balance, animate-in utility, focus-visible, and reduced-motion rules
  * END_MODULE_MAP
  *
  * START_CHANGE_SUMMARY
+ *   LAST_CHANGE: v3.0.0 - Added Phase-52 Matrix visual foundation tokens, canvas layers, CRT overlays, focus states, and reduced-motion policy
  *   LAST_CHANGE: v2.9.0 - Added compact Phase-23 UI tokens with reduced radii, shadows, spacing, and non-decorative background
  * END_CHANGE_SUMMARY
  */
@@ -29,18 +31,27 @@
 @layer base {
   :root {
     color-scheme: dark;
-    --bg: #05131b;
-    --bg-soft: #0a1c25;
-    --panel: rgba(12, 30, 39, 0.88);
-    --panel-strong: rgba(13, 34, 44, 0.96);
-    --border: rgba(157, 203, 216, 0.16);
-    --text: #f0f8fb;
-    --muted: #8da6b0;
-    --accent: #5cd5b6;
-    --accent-2: #75c7ff;
-    --danger: #ff8f88;
-    --warning: #ffd77d;
-    --shadow: 0 12px 32px rgba(2, 10, 14, 0.28);
+    --matrix-bg: #020503;
+    --matrix-grid: rgba(96, 255, 155, 0.08);
+    --matrix-green: #60ff9b;
+    --matrix-lime: #b8ff3d;
+    --matrix-cyan: #68e8ff;
+    --matrix-magenta: #ff4fd8;
+    --matrix-red: #ff6b78;
+    --matrix-amber: #ffd166;
+    --matrix-neutral: #d8f6e6;
+    --bg: #03100d;
+    --bg-soft: #061712;
+    --panel: rgba(5, 20, 15, 0.84);
+    --panel-strong: rgba(6, 24, 18, 0.94);
+    --border: rgba(96, 255, 155, 0.17);
+    --text: #effff7;
+    --muted: #91b5a6;
+    --accent: var(--matrix-green);
+    --accent-2: var(--matrix-cyan);
+    --danger: var(--matrix-red);
+    --warning: var(--matrix-amber);
+    --shadow: 0 16px 42px rgba(0, 5, 3, 0.42);
   }
 
   * {
@@ -50,12 +61,13 @@
 
   html {
     min-height: 100%;
-    background: linear-gradient(180deg, #07131a 0%, #091922 48%, #061117 100%);
+    background: var(--matrix-bg);
   }
 
   body {
     min-height: 100vh;
     margin: 0;
+    overflow-x: hidden;
     font-family: 'Manrope', system-ui, sans-serif;
     color: var(--text);
     background: transparent;
@@ -79,11 +91,93 @@
   }
 
   ::selection {
-    background: rgba(92, 213, 182, 0.22);
+    background: rgba(96, 255, 155, 0.26);
+    color: #f7fff9;
+  }
+
+  a:focus-visible,
+  button:focus-visible,
+  input:focus-visible,
+  select:focus-visible,
+  textarea:focus-visible,
+  [role="button"]:focus-visible {
+    outline: 2px solid var(--matrix-cyan);
+    outline-offset: 3px;
+    box-shadow: 0 0 0 4px rgba(104, 232, 255, 0.16);
   }
 }
 
 @layer components {
+  .matrix-visual-shell {
+    position: relative;
+    min-height: 100vh;
+    overflow-x: hidden;
+    isolation: isolate;
+    background:
+      radial-gradient(circle at 12% 18%, rgba(96, 255, 155, 0.18), transparent 28rem),
+      radial-gradient(circle at 92% 8%, rgba(104, 232, 255, 0.12), transparent 30rem),
+      linear-gradient(180deg, #020503 0%, #03100d 48%, #020705 100%);
+  }
+
+  .matrix-visual-shell::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 1;
+    opacity: 0.18;
+    background-image:
+      linear-gradient(var(--matrix-grid) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(104, 232, 255, 0.05) 1px, transparent 1px);
+    background-size: 44px 44px, 44px 44px;
+    transform: perspective(420px) rotateX(64deg) translateY(18vh) scale(1.35);
+    transform-origin: center bottom;
+  }
+
+  .matrix-canvas {
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+    width: 100vw;
+    height: 100vh;
+    pointer-events: none;
+    opacity: 0.62;
+    mix-blend-mode: screen;
+  }
+
+  .matrix-scanline-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 3;
+    pointer-events: none;
+    opacity: 0.22;
+    background:
+      repeating-linear-gradient(
+        180deg,
+        rgba(255, 255, 255, 0.04) 0,
+        rgba(255, 255, 255, 0.04) 1px,
+        transparent 1px,
+        transparent 5px
+      );
+    animation: matrixFlicker 5.8s steps(2, end) infinite;
+  }
+
+  .matrix-vignette {
+    position: fixed;
+    inset: 0;
+    z-index: 2;
+    pointer-events: none;
+    background:
+      radial-gradient(circle at 50% 45%, transparent 0%, rgba(1, 6, 3, 0.08) 48%, rgba(1, 6, 3, 0.76) 100%),
+      linear-gradient(90deg, rgba(255, 79, 216, 0.07), transparent 22%, transparent 78%, rgba(104, 232, 255, 0.07));
+  }
+
+  .matrix-visual-content {
+    position: relative;
+    z-index: 4;
+    min-height: 100vh;
+  }
+
   .app-shell {
     @apply min-h-screen px-2 py-2 sm:px-3 sm:py-3 lg:px-4 lg:py-4;
   }
@@ -92,19 +186,19 @@
     background: var(--panel-strong);
     border: 1px solid var(--border);
     border-radius: 8px;
-    box-shadow: var(--shadow);
+    box-shadow: var(--shadow), inset 0 1px 0 rgba(216, 246, 230, 0.05);
   }
 
   .panel {
     background: var(--panel);
     border: 1px solid var(--border);
     border-radius: 8px;
-    box-shadow: var(--shadow);
+    box-shadow: var(--shadow), inset 0 1px 0 rgba(216, 246, 230, 0.04);
   }
 
   .panel-soft {
-    background: rgba(12, 31, 39, 0.7);
-    border: 1px solid rgba(157, 203, 216, 0.1);
+    background: rgba(4, 18, 13, 0.72);
+    border: 1px solid rgba(96, 255, 155, 0.1);
     border-radius: 8px;
   }
 
@@ -146,7 +240,7 @@
   }
 
   .btn-primary:hover {
-    box-shadow: 0 10px 22px rgba(92, 213, 182, 0.22);
+    box-shadow: 0 10px 22px rgba(96, 255, 155, 0.25);
   }
 
   .btn-secondary {
@@ -167,8 +261,8 @@
 
   .input {
     @apply w-full rounded-lg px-3 py-2.5 text-sm text-slate-50 outline-none transition;
-    background: rgba(7, 20, 26, 0.86);
-    border: 1px solid rgba(157, 203, 216, 0.16);
+    background: rgba(2, 10, 7, 0.88);
+    border: 1px solid rgba(96, 255, 155, 0.16);
   }
 
   .input:focus {
@@ -256,6 +350,41 @@
 
   .animate-in {
     animation: animateIn 0.4s ease-out;
+  }
+
+  @keyframes matrixFlicker {
+    0%, 100% {
+      opacity: 0.18;
+    }
+    47% {
+      opacity: 0.26;
+    }
+    48% {
+      opacity: 0.12;
+    }
+    52% {
+      opacity: 0.24;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      scroll-behavior: auto !important;
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+    }
+
+    .matrix-canvas {
+      opacity: 0.28;
+    }
+
+    .matrix-scanline-overlay {
+      animation: none;
+      opacity: 0.12;
+    }
   }
 
   @keyframes animateIn {

@@ -1,11 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<M-010 NAME="frontend-admin" TYPE="UI_COMPONENT" STATUS="stable-pass-local-phase51">
+<M-010 NAME="frontend-admin" TYPE="UI_COMPONENT" STATUS="stable-pass-local-phase51-phase52">
   <path>frontend-admin frontend-admin/public frontend-admin/index.html</path>
   <owns>admin login, mobile-capable dashboard, users, devices, MTProto operations, servers, plans, analytics, settings, Full Tunnel status, and device anomaly review controls</owns>
-  <depends>M-006, M-024</depends>
+  <depends>M-006, M-024, M-070, M-071</depends>
   <verification-ref>V-M-010</verification-ref>
   <files>
     <file>frontend-admin/src/main.tsx</file>
+    <file>frontend-admin/src/components/MatrixBackground.tsx</file>
+    <file>frontend-admin/src/components/VisualShell.tsx</file>
     <file>frontend-admin/index.html</file>
     <file>frontend-admin/public/favicon.ico</file>
     <file>frontend-admin/public/favicon-16x16.png</file>
@@ -46,6 +48,10 @@
     <surface-2>No visible admin panel logo/layout change is introduced before the planned frontend redesign.</surface-2>
     <surface-3>2026-06-02: frontend-admin npm run build passed and Phase-51 smoke --expect-dist verified the browser asset surface.</surface-3>
   </phase-51-scope>
+  <phase-52-scope>
+    <surface-1>Shared Matrix visual shell wraps the admin route tree without changing admin auth, route structure, API clients, MTProto operations, billing, or deploy behavior.</surface-1>
+    <surface-2>2026-06-03: frontend-admin npm run build passed; Phase-52 smoke passed; Chrome screenshots for /login at 360x740, 390x844, 430x932, 1440x900, and reduced-motion 390x844 passed visual review.</surface-2>
+  </phase-52-scope>
   <constraints>
     <constraint-1>Frontend-admin must continue to call existing M-006 and M-024 API contracts unless an API change is separately approved.</constraint-1>
     <constraint-2>Admin auth/session hardening belongs to Phase-25 and must not be bundled into Phase-24 UI simplification.</constraint-2>

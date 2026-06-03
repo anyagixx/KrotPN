@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<M-009 NAME="frontend-user" TYPE="UI_COMPONENT" STATUS="pass-local-phase46-phase51">
+<M-009 NAME="frontend-user" TYPE="UI_COMPONENT" STATUS="pass-local-phase46-phase51-phase52">
   <path>frontend frontend/public frontend/index.html frontend/vite.config.ts</path>
   <owns>login, verified registration, password recovery, verify-email activation, dashboard, config delivery, subscription management, pending trial countdown/calendar UX, referrals and settings UI with per-device config awareness</owns>
-  <depends>M-002, M-003, M-004, M-005, M-022</depends>
+  <depends>M-002, M-003, M-004, M-005, M-022, M-070, M-071</depends>
   <verification-ref>V-M-009</verification-ref>
   <files>
     <file>frontend/src/main.tsx</file>
@@ -16,6 +16,8 @@
     <file>frontend/public/pwa-512x512.png</file>
     <file>frontend/public/brand/email-logo.png</file>
     <file>frontend/src/App.tsx</file>
+    <file>frontend/src/components/MatrixBackground.tsx</file>
+    <file>frontend/src/components/VisualShell.tsx</file>
     <file>frontend/src/pages/Register.tsx</file>
     <file>frontend/src/pages/ForgotPassword.tsx</file>
     <file>frontend/src/pages/ResetPassword.tsx</file>
@@ -63,4 +65,9 @@
     <primary-behaviors>Browser favicon/PWA asset delivery and public email-logo asset delivery without adding visible page logos before the planned frontend redesign.</primary-behaviors>
     <evidence>2026-06-02: frontend npm run build passed and Phase-51 smoke --expect-dist confirmed favicon/PWA/email-logo assets copied into dist.</evidence>
   </phase-51-scope>
+  <phase-52-scope>
+    <primary-files>App.tsx, components/MatrixBackground.tsx, components/VisualShell.tsx, index.css, scripts/phase52-matrix-visual-smoke.mjs</primary-files>
+    <primary-behaviors>Shared Matrix visual shell wraps the user route tree without changing auth, route structure, API clients, VPN, MTProto, billing, or deploy behavior.</primary-behaviors>
+    <evidence>2026-06-03: frontend npm run build passed; Phase-52 smoke passed; Chrome screenshots for /login at 360x740, 390x844, 430x932, 1440x900, and reduced-motion 390x844 passed visual review.</evidence>
+  </phase-52-scope>
 </M-009>

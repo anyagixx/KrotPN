@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<V-M-071 MODULE="M-071" PRIORITY="high" STATUS="verification-designed">
+<V-M-071 MODULE="M-071" PRIORITY="high" STATUS="pass-local-phase52">
   <scope>
     <phase>Phase-52</phase>
     <purpose>Verify the Matrix style system foundation for compact, readable, mobile-safe user and admin shells.</purpose>
@@ -68,4 +68,16 @@
     <target-3>Mobile and desktop screenshots show Matrix style without text overlap, control overlap, or one-note color dominance.</target-3>
     <target-4>No deploy/install/nginx/docker-compose/runtime topology changes are present.</target-4>
   </acceptance>
+  <evidence>
+    <local-2026-06-03>
+      <result>PASS</result>
+      <command-1>node scripts/phase52-matrix-visual-smoke.mjs</command-1>
+      <command-2>cd frontend &amp;&amp; npm run build</command-2>
+      <command-3>cd frontend-admin &amp;&amp; npm run build</command-3>
+      <command-4>Chrome headless screenshot audit for user/admin /login at 360x740, 390x844, 430x932, 1440x900, plus reduced-motion 390x844.</command-4>
+      <screenshot-paths>/tmp/krotpn-phase52-user-360x740.png /tmp/krotpn-phase52-user-390x844.png /tmp/krotpn-phase52-user-430x932.png /tmp/krotpn-phase52-user-1440x900.png /tmp/krotpn-phase52-user-reduced-390x844.png /tmp/krotpn-phase52-admin-360x740.png /tmp/krotpn-phase52-admin-390x844.png /tmp/krotpn-phase52-admin-430x932.png /tmp/krotpn-phase52-admin-1440x900.png /tmp/krotpn-phase52-admin-reduced-390x844.png</screenshot-paths>
+      <viewport-review>Login shells stayed readable, Matrix layer was visible, focus and reduced-motion selectors are present, and no obvious icon/text overlap was observed on captured login viewports.</viewport-review>
+      <protected-surface>No install.sh, deploy, nginx, docker-compose, or runtime topology diff.</protected-surface>
+    </local-2026-06-03>
+  </evidence>
 </V-M-071>
