@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Phase-52 NAME="KrotPN Matrix Visual System Foundation" STATUS="planned" STEPS="8">
+  <summary>Create the shared Matrix visual runtime and style foundation for KrotPN user and admin frontends, based on the approved TRUFFLEX reference effects.</summary>
+  <modules>M-070,M-071,M-009,M-010,M-038</modules>
+  <references>
+    <reference-1>TRUFFLEX matrix-background.js: Matrix rain canvas, pointer influence, resize recomputation, reduced-motion static frame.</reference-1>
+    <reference-2>TRUFFLEX styles.css: scanlines, neon flicker, glitch accents, matrix fade, focus states, and reduced-motion policy.</reference-2>
+  </references>
+  <constraints>
+    <constraint-1>No deploy/install/nginx/docker-compose/runtime topology changes.</constraint-1>
+    <constraint-2>No backend API or auth behavior changes.</constraint-2>
+    <constraint-3>No TRUFFLEX music, NFT copy, spider physics, fluid cursor, or WebGL glow in this phase.</constraint-3>
+    <constraint-4>Every created source file must include MODULE_CONTRACT, MODULE_MAP, CHANGE_SUMMARY, and semantic block anchors.</constraint-4>
+  </constraints>
+  <steps>
+    <step-1 STATUS="pending" MODULES="M-070,M-071">
+      <action>Translate the approved TRUFFLEX visual requirements into KrotPN-specific runtime and CSS contracts.</action>
+      <acceptance>M-070 and M-071 contracts remain the source of truth before code execution starts.</acceptance>
+    </step-1>
+    <step-2 STATUS="pending" MODULES="M-070">
+      <action>Create React/Vite MatrixBackground runtime with canvas guard, resize recomputation, pointer influence, requestAnimationFrame lifecycle, and static reduced-motion frame.</action>
+      <acceptance>Runtime can mount, resize, stop, and unmount without console errors or click interception.</acceptance>
+    </step-2>
+    <step-3 STATUS="pending" MODULES="M-070,M-009,M-010">
+      <action>Create VisualShell mount points for user and admin layouts with safe fixed canvas and overlay z-index boundaries.</action>
+      <acceptance>User and admin content remains above the visual layer and all controls remain interactive.</acceptance>
+    </step-3>
+    <step-4 STATUS="pending" MODULES="M-071,M-038">
+      <action>Define Matrix design tokens, compact panel primitives, CRT scanlines, glitch/flicker accents, focus states, and reduced-motion CSS policy.</action>
+      <acceptance>CSS remains compact, readable, and aligned with M-038 mobile-first operational rules.</acceptance>
+    </step-4>
+    <step-5 STATUS="pending" MODULES="M-070,M-071">
+      <action>Add smoke verification for canvas nonblank, reduced-motion fallback, pointer-events safety, no console errors, and no deploy/install diff.</action>
+      <acceptance>scripts/phase52-matrix-visual-smoke.mjs is ready for execute phase verification.</acceptance>
+    </step-5>
+    <step-6 STATUS="pending" MODULES="M-009,M-010,M-070,M-071">
+      <action>Wire the visual foundation into both frontends without changing route structures, auth state, API clients, or business workflows.</action>
+      <acceptance>Frontend and admin frontend builds pass locally.</acceptance>
+    </step-6>
+    <step-7 STATUS="pending" MODULES="M-070,M-071">
+      <action>Run desktop and mobile screenshot checks for canvas visibility, overlay readability, no horizontal scroll, and no text overlap.</action>
+      <acceptance>Viewport checks cover 360x740, 390x844, 430x932, and desktop.</acceptance>
+    </step-7>
+    <step-8 STATUS="pending" MODULES="M-070,M-071">
+      <action>Update module contracts, verification evidence, MyGRACE indexes, and current-status once implementation evidence exists.</action>
+      <acceptance>MyGRACE lint and XML parse pass after execution.</acceptance>
+    </step-8>
+  </steps>
+  <mental-walkthroughs>
+    <walkthrough-1>User opens /login: VisualShell mounts MatrixBackground behind the login form, form focus remains visible, and reduced-motion users receive a static readable frame.</walkthrough-1>
+    <walkthrough-2>Admin opens /mtproto: operational tables and actions remain compact above the canvas, no overlay intercepts click or hover actions.</walkthrough-2>
+    <walkthrough-3>Browser lacks canvas context: Matrix runtime logs a controlled marker and the app continues with a static dark Matrix surface.</walkthrough-3>
+  </mental-walkthroughs>
+  <verification>V-M-070,V-M-071</verification>
+</Phase-52>

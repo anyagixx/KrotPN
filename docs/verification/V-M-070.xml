@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<V-M-070 MODULE="M-070" PRIORITY="high" STATUS="planned">
+  <test-files>
+    <file>frontend/src/components/MatrixBackground.tsx</file>
+    <file>frontend/src/components/VisualShell.tsx</file>
+    <file>frontend-admin/src/components/MatrixBackground.tsx</file>
+    <file>frontend-admin/src/components/VisualShell.tsx</file>
+    <file>scripts/phase52-matrix-visual-smoke.mjs</file>
+    <file>scripts/phase53-user-matrix-ui-smoke.mjs</file>
+    <file>scripts/phase54-admin-matrix-ui-smoke.mjs</file>
+  </test-files>
+  <commands>
+    <check-1>cd frontend &amp;&amp; npm run build</check-1>
+    <check-2>cd frontend-admin &amp;&amp; npm run build</check-2>
+    <check-3>node scripts/phase52-matrix-visual-smoke.mjs</check-3>
+    <check-4>Optional Playwright/Chrome screenshots: desktop, 360x740, 390x844, 430x932, reduced-motion.</check-4>
+    <check-5>git diff --name-only -- install.sh deploy nginx docker-compose.yml</check-5>
+  </commands>
+  <scenarios>
+    <scenario-1 kind="success">Matrix canvas renders nonblank behind user and admin content without intercepting input.</scenario-1>
+    <scenario-2 kind="success">Reduced-motion users receive a static readable Matrix surface and no running animation loop.</scenario-2>
+    <scenario-3 kind="failure">Canvas context is unavailable; runtime logs a controlled fallback marker and the app stays usable.</scenario-3>
+    <scenario-4 kind="failure">Window resize, route navigation, or component unmount must not leak animation frames or duplicate listeners.</scenario-4>
+  </scenarios>
+  <log-markers>
+    <marker-1>[MatrixVisualRuntime][init][CANVAS_READY]</marker-1>
+    <marker-2>[MatrixVisualRuntime][resize][CANVAS_RESIZE]</marker-2>
+    <marker-3>[MatrixVisualRuntime][motionPolicy][REDUCED_MOTION]</marker-3>
+    <marker-4>[MatrixVisualRuntime][fallback][CANVAS_CONTEXT_UNAVAILABLE]</marker-4>
+  </log-markers>
+  <redaction>
+    <rule-1>Do not log user emails, access tokens, proxy secrets, tg links, VPN config contents, admin tokens, or screenshot binary data.</rule-1>
+    <rule-2>Console markers may record viewport dimensions and runtime branch only.</rule-2>
+  </redaction>
+  <acceptance>
+    <target-1>User and admin frontend builds pass.</target-1>
+    <target-2>Canvas nonblank and reduced-motion checks pass on mobile and desktop screenshots.</target-2>
+    <target-3>No protected deploy/install/runtime surface changes are present.</target-3>
+    <target-4>No uncaught console errors occur during init, resize, route navigation, or teardown.</target-4>
+  </acceptance>
+</V-M-070>

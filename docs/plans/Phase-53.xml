@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Phase-53 NAME="User Cabinet Matrix Redesign" STATUS="planned" STEPS="10">
+  <summary>Redesign the full user frontend into the approved KrotPN Matrix style while preserving compact mobile workflows and existing backend contracts.</summary>
+  <modules>M-009,M-036,M-045,M-063,M-064,M-068,M-070,M-071</modules>
+  <constraints>
+    <constraint-1>No backend API shape changes, auth behavior changes, VPN provisioning changes, MTProto provisioning changes, billing logic changes, or deploy/install changes.</constraint-1>
+    <constraint-2>Primary user workflows must remain reachable on phone viewports without horizontal scroll or large decorative dashboard sections.</constraint-2>
+    <constraint-3>Matrix effects must not hide proxy secrets, VPN config actions, tariff prices, subscription countdown, or password-recovery states.</constraint-3>
+  </constraints>
+  <steps>
+    <step-1 STATUS="pending" MODULES="M-009,M-036,M-071">
+      <action>Audit current user route hierarchy and map every page to Matrix compact surfaces.</action>
+      <acceptance>Route-by-route UI target matrix exists before edits.</acceptance>
+    </step-1>
+    <step-2 STATUS="pending" MODULES="M-009,M-062,M-071">
+      <action>Redesign login, register, check-email, verify-email, forgot-password, and reset-password screens with readable Matrix forms.</action>
+      <acceptance>Auth flows keep existing API calls, password guidance, duplicate-email recovery, spam hint, and empty admin-free defaults.</acceptance>
+    </step-2>
+    <step-3 STATUS="pending" MODULES="M-009,M-036,M-045,M-063,M-070,M-071">
+      <action>Redesign dashboard around VPN status, pending/active trial countdown, MTProto proxy, and primary config actions.</action>
+      <acceptance>VPN and MTProto actions are visible within one or two taps on mobile.</acceptance>
+    </step-3>
+    <step-4 STATUS="pending" MODULES="M-009,M-036,M-066,M-071">
+      <action>Redesign VPN config route with compact QR, copy, download, device create, rotate, and revoke surfaces.</action>
+      <acceptance>.conf download behavior and device API behavior remain unchanged.</acceptance>
+    </step-4>
+    <step-5 STATUS="pending" MODULES="M-009,M-063,M-068,M-071">
+      <action>Redesign subscription route with Matrix tariff cards, countdown, active date calendar, and payment CTA hierarchy.</action>
+      <acceptance>Canonical 1/6/9 tariff prices and device limits remain server-authoritative and readable.</acceptance>
+    </step-5>
+    <step-6 STATUS="pending" MODULES="M-009,M-036,M-071">
+      <action>Redesign referrals and settings routes with compact rows, clear status states, and safe long-text wrapping.</action>
+      <acceptance>Long emails, referral links, and device names fit without overlap.</acceptance>
+    </step-6>
+    <step-7 STATUS="pending" MODULES="M-009,M-036,M-071">
+      <action>Normalize loading, empty, success, warning, and error states to Matrix visual primitives.</action>
+      <acceptance>State changes do not resize fixed controls or hide primary actions.</acceptance>
+    </step-7>
+    <step-8 STATUS="pending" MODULES="M-009,M-036,M-070,M-071">
+      <action>Create Phase-53 user smoke covering mobile routes, desktop routes, reduced-motion, canvas visibility, no overlap, and no horizontal scroll.</action>
+      <acceptance>scripts/phase53-user-matrix-ui-smoke.mjs becomes the execution gate.</acceptance>
+    </step-8>
+    <step-9 STATUS="pending" MODULES="M-009,M-036,M-070,M-071">
+      <action>Run frontend build and screenshot verification across mobile and desktop viewports.</action>
+      <acceptance>Frontend build and viewport smoke pass.</acceptance>
+    </step-9>
+    <step-10 STATUS="pending" MODULES="M-009,M-036,M-070,M-071">
+      <action>Update MyGRACE docs, module maps, verification evidence, and current status after implementation.</action>
+      <acceptance>XML parse, MyGRACE lint, git diff check, and protected deploy/install guard pass.</acceptance>
+    </step-10>
+  </steps>
+  <mental-walkthroughs>
+    <walkthrough-1>New user registers: Matrix styling is visible, password guidance is readable, email confirmation guidance remains clear, and no stale VPN promise appears before verification.</walkthrough-1>
+    <walkthrough-2>Verified user opens dashboard on mobile: VPN status, config action, MTProto proxy, and subscription countdown are visible without scrolling through decorative sections.</walkthrough-2>
+    <walkthrough-3>User downloads config on Android/iOS browser: redesigned controls still call the hardened download path and keep .conf filename behavior intact.</walkthrough-3>
+  </mental-walkthroughs>
+  <verification>V-M-009,V-M-036,V-M-045,V-M-063,V-M-064,V-M-070,V-M-071</verification>
+</Phase-53>

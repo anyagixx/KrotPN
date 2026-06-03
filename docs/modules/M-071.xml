@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<M-071 NAME="matrix-style-system" TYPE="UI_COMPONENT" STATUS="planned">
+  <path>frontend/src/index.css frontend-admin/src/index.css frontend/src/components/Layout.tsx frontend-admin/src/components/Layout.tsx scripts/phase52-matrix-visual-smoke.mjs scripts/phase53-user-matrix-ui-smoke.mjs scripts/phase54-admin-matrix-ui-smoke.mjs docs/plans/Phase-52.xml docs/plans/Phase-53.xml docs/plans/Phase-54.xml</path>
+  <owns>Shared KrotPN Matrix visual language: color tokens, compact panels, CRT scanlines, neon flicker, glitch accents, focus states, and mobile-safe responsive rules.</owns>
+  <depends>M-009, M-010, M-036, M-037, M-038</depends>
+  <verification-ref>V-M-071</verification-ref>
+  <reference>
+    <source-1>TRUFFLEX styles.css neon flicker, scanline, glitch, matrix fade, and reduced-motion CSS blocks.</source-1>
+    <source-2>KrotPN compact UI rules from M-038 remain binding for operational dashboards.</source-2>
+  </reference>
+  <source-contract>
+    <required-header>MODULE_CONTRACT, MODULE_MAP, CHANGE_SUMMARY</required-header>
+    <role>UI_COMPONENT</role>
+    <map-mode>SELECTORS_AND_TOKENS</map-mode>
+  </source-contract>
+  <public-interfaces>
+    <interface-1>CSS custom properties for KrotPN Matrix palette, surfaces, borders, focus rings, and status colors.</interface-1>
+    <interface-2>Reusable class layer for crt-shell, matrix-panel, matrix-row, matrix-action, matrix-status, matrix-table, and matrix-chart surfaces.</interface-2>
+    <interface-3>Reduced-motion and mobile viewport rules shared by user and admin frontends.</interface-3>
+  </public-interfaces>
+  <constraints>
+    <constraint-1>Preserve compact operational UX: no marketing landing page, no nested cards, no decorative card-heavy dashboards.</constraint-1>
+    <constraint-2>Matrix green may be the signature color, but the final palette must use controlled cyan, magenta, neutral, warning, and danger accents so the UI is not a one-note green surface.</constraint-2>
+    <constraint-3>Text must not overlap icons, controls, status badges, charts, rows, or adjacent content at 360x740, 390x844, 430x932, tablet, and desktop viewports.</constraint-3>
+    <constraint-4>Glitch, scanline, and flicker effects must not reduce readability of form fields, tariff prices, proxy secrets, VPN config actions, admin tables, or incident controls.</constraint-4>
+    <constraint-5>Do not change API contracts, data shapes, auth state, deploy/install scripts, nginx, docker-compose, or backend runtime behavior.</constraint-5>
+  </constraints>
+  <acceptance>
+    <metric-1>User and admin builds pass with shared Matrix CSS tokens applied.</metric-1>
+    <metric-2>Viewport smoke confirms no horizontal scroll, no visible text overlap, and stable control dimensions.</metric-2>
+    <metric-3>Reduced-motion mode disables transform-heavy and flicker-heavy effects while preserving visual identity.</metric-3>
+    <metric-4>Screenshot review confirms Matrix style is present without hiding primary VPN, MTProto, tariff, or admin actions.</metric-4>
+  </acceptance>
+  <crosslinks>
+    <phase-52>Defines the foundation token system and shared effects.</phase-52>
+    <phase-53>Applies the system to user cabinet routes.</phase-53>
+    <phase-54>Applies the system to admin console routes.</phase-54>
+  </crosslinks>
+</M-071>

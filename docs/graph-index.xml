@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!-- MyGRACE Graph Index — lazy-loading entry point for module navigation -->
 <!-- MyGRACE index generated from per-module contracts; archived monoliths are reference-only -->
-<GraphIndex VERSION="1.0.0" PROJECT="KrotPN" MODULE-COUNT="64">
+<GraphIndex VERSION="1.0.0" PROJECT="KrotPN" MODULE-COUNT="66">
   <M-001 NAME="backend-core" TYPE="UTILITY" STATUS="pass-local-phase45" PATH="backend/app/core" DEPENDS="M-028" VERIFICATION-REF="V-M-001" />
   <M-002 NAME="users" TYPE="CORE_LOGIC" STATUS="pass-local-phase45" PATH="backend/app/users" DEPENDS="M-001,M-027,M-040" VERIFICATION-REF="V-M-002" />
   <M-003 NAME="vpn" TYPE="CORE_LOGIC" STATUS="pass-local-phase45" PATH="backend/app/vpn" DEPENDS="M-001,M-002,M-007,M-020,M-030" VERIFICATION-REF="V-M-003" />
@@ -66,6 +66,8 @@
   <M-067 NAME="bimi-sender-branding" TYPE="ENTRY_POINT" STATUS="done-local-phase49" PATH="frontend/public/.well-known/bimi/krotpn.svg frontend/nginx.conf scripts/phase49-bimi-branding-smoke.mjs README.md docs/plans/Phase-49.xml" DEPENDS="M-009,M-012,M-040,M-046,M-062" VERIFICATION-REF="V-M-067" />
   <M-068 NAME="paid-tariff-catalog" TYPE="CORE_LOGIC" STATUS="done-local-phase50" PATH="backend/app/billing backend/app/core/migrations.py backend/alembic/versions/phase50_paid_tariff_catalog.py frontend/src/pages/Subscription.tsx frontend-admin/src/pages/Plans.tsx scripts/phase50-tariff-catalog-smoke.mjs README.md docs/plans/Phase-50.xml" DEPENDS="M-001,M-004,M-006,M-009,M-010,M-021,M-022,M-028,M-036,M-038" VERIFICATION-REF="V-M-068" />
   <M-069 NAME="brand-assets-favicon-email-logo" TYPE="ENTRY_POINT" STATUS="done-local-phase51" PATH="frontend/public frontend/index.html frontend/vite.config.ts frontend-admin/public frontend-admin/index.html backend/app/email README.md scripts/phase51-brand-assets-smoke.mjs docs/plans/Phase-51.xml" DEPENDS="M-009,M-010,M-040,M-062,M-067" VERIFICATION-REF="V-M-069" />
+  <M-070 NAME="matrix-visual-runtime" TYPE="UI_COMPONENT" STATUS="planned" PATH="frontend/src/components/MatrixBackground.tsx frontend/src/components/VisualShell.tsx frontend-admin/src/components/MatrixBackground.tsx frontend-admin/src/components/VisualShell.tsx scripts/phase52-matrix-visual-smoke.mjs docs/plans/Phase-52.xml" DEPENDS="M-009,M-010,M-038,M-071" VERIFICATION-REF="V-M-070" />
+  <M-071 NAME="matrix-style-system" TYPE="UI_COMPONENT" STATUS="planned" PATH="frontend/src/index.css frontend-admin/src/index.css frontend/src/components/Layout.tsx frontend-admin/src/components/Layout.tsx scripts/phase52-matrix-visual-smoke.mjs scripts/phase53-user-matrix-ui-smoke.mjs scripts/phase54-admin-matrix-ui-smoke.mjs docs/plans/Phase-52.xml docs/plans/Phase-53.xml docs/plans/Phase-54.xml" DEPENDS="M-009,M-010,M-036,M-037,M-038" VERIFICATION-REF="V-M-071" />
 
   <CrossLinks>
     <link from="M-002" to="M-001" />
@@ -388,6 +390,15 @@
     <link from="M-069" to="M-040" />
     <link from="M-069" to="M-062" />
     <link from="M-069" to="M-067" />
+    <link from="M-070" to="M-009" />
+    <link from="M-070" to="M-010" />
+    <link from="M-070" to="M-038" />
+    <link from="M-070" to="M-071" />
+    <link from="M-071" to="M-009" />
+    <link from="M-071" to="M-010" />
+    <link from="M-071" to="M-036" />
+    <link from="M-071" to="M-037" />
+    <link from="M-071" to="M-038" />
   </CrossLinks>
 
   <Hotspots>
@@ -447,5 +458,7 @@
     <H-054 module="M-067" text="BIMI sender branding depends on strict SVG Tiny P/S compliance, public HTTPS delivery, DMARC enforcement, and mailbox-provider rendering policy outside the Resend send API" />
     <H-055 module="M-068" text="Paid tariff catalog must keep server-authoritative prices, canonical device limits, no duplicate clean-deploy plans, and no deploy/install drift" />
     <H-056 module="M-069" text="Favicon and email-logo assets must remain public static branding only, while BIMI/provider avatar rendering stays a separate mailbox-provider-controlled surface" />
+    <H-057 module="M-070" text="Matrix canvas effects must never block auth, VPN, billing, MTProto, or admin workflows; reduced-motion and canvas-failure fallbacks are release gates" />
+    <H-058 module="M-071" text="Matrix visual redesign must stay compact and mobile-safe; neon/glitch effects cannot create one-note color, text overlap, horizontal scroll, or unreadable admin controls" />
   </Hotspots>
 </GraphIndex>

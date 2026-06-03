@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Phase-54 NAME="Admin Console Matrix Redesign" STATUS="planned" STEPS="10">
+  <summary>Redesign the full admin frontend into the approved KrotPN Matrix style while keeping dense operator workflows, mobile usability, and safe admin actions.</summary>
+  <modules>M-010,M-037,M-047,M-058,M-068,M-070,M-071</modules>
+  <constraints>
+    <constraint-1>No admin API shape changes, auth/session behavior changes, MTProto runtime changes, billing backend changes, deploy/install changes, nginx changes, or docker-compose changes.</constraint-1>
+    <constraint-2>Admin surfaces must stay compact and operational, not marketing-style or decorative-first.</constraint-2>
+    <constraint-3>Destructive and disruptive actions must remain confirmation-safe and readable on mobile.</constraint-3>
+  </constraints>
+  <steps>
+    <step-1 STATUS="pending" MODULES="M-010,M-037,M-071">
+      <action>Audit admin route hierarchy and map every page to Matrix compact operator surfaces.</action>
+      <acceptance>Route-by-route admin UI target matrix exists before edits.</acceptance>
+    </step-1>
+    <step-2 STATUS="pending" MODULES="M-010,M-071">
+      <action>Redesign admin login with Matrix shell, empty credential fields, icon padding safety, and strong focus states.</action>
+      <acceptance>Login form remains compact, readable, and free of stale default credential hints.</acceptance>
+    </step-2>
+    <step-3 STATUS="pending" MODULES="M-010,M-037,M-071">
+      <action>Redesign admin layout/navigation with compact mobile-first access to dashboard, users, devices, MTProto, servers, plans, analytics, and settings.</action>
+      <acceptance>Navigation fits mobile without horizontal scroll or hidden emergency actions.</acceptance>
+    </step-3>
+    <step-4 STATUS="pending" MODULES="M-010,M-037,M-071">
+      <action>Redesign dashboard, KPI rows, health summaries, and system status surfaces with dense Matrix panels.</action>
+      <acceptance>Critical health and business metrics remain scannable without decorative card bloat.</acceptance>
+    </step-4>
+    <step-5 STATUS="pending" MODULES="M-010,M-037,M-071">
+      <action>Redesign users and devices pages with compact search, pagination, filters, and confirmation-safe actions.</action>
+      <acceptance>Large user lists remain usable without long unstructured scrolling.</acceptance>
+    </step-5>
+    <step-6 STATUS="pending" MODULES="M-010,M-047,M-058,M-071">
+      <action>Redesign MTProto admin and analytics pages with compact graphs, alert inbox, IP history panels, and runtime metrics.</action>
+      <acceptance>Secrets stay redacted and admin investigation data remains readable on mobile.</acceptance>
+    </step-6>
+    <step-7 STATUS="pending" MODULES="M-010,M-068,M-071">
+      <action>Redesign plans, servers, and analytics routes with Matrix tables, status badges, charts, and protected tariff matrix.</action>
+      <acceptance>Canonical tariff controls stay non-CRUD unless a later backend phase approves changes.</acceptance>
+    </step-7>
+    <step-8 STATUS="pending" MODULES="M-010,M-037,M-070,M-071">
+      <action>Create Phase-54 admin smoke covering mobile routes, desktop routes, reduced-motion, canvas visibility, no overlap, and confirmation dialogs.</action>
+      <acceptance>scripts/phase54-admin-matrix-ui-smoke.mjs becomes the execution gate.</acceptance>
+    </step-8>
+    <step-9 STATUS="pending" MODULES="M-010,M-037,M-070,M-071">
+      <action>Run admin frontend build and screenshot verification across mobile and desktop viewports.</action>
+      <acceptance>Frontend-admin build and viewport smoke pass.</acceptance>
+    </step-9>
+    <step-10 STATUS="pending" MODULES="M-010,M-037,M-070,M-071">
+      <action>Update MyGRACE docs, module maps, verification evidence, and current status after implementation.</action>
+      <acceptance>XML parse, MyGRACE lint, git diff check, and protected deploy/install guard pass.</acceptance>
+    </step-10>
+  </steps>
+  <mental-walkthroughs>
+    <walkthrough-1>Admin opens /users on a phone: search, filters, pagination, and user rows remain compact above the Matrix background without long unstructured scroll.</walkthrough-1>
+    <walkthrough-2>Admin opens /mtproto analytics: charts, current IPs, alert actions, and runtime metrics stay readable; no scanline/glitch layer hides incident controls.</walkthrough-2>
+    <walkthrough-3>Admin executes a destructive action: confirmation dialog remains focused, keyboard reachable, and visually separated from animated overlays.</walkthrough-3>
+  </mental-walkthroughs>
+  <verification>V-M-010,V-M-037,V-M-047,V-M-058,V-M-070,V-M-071</verification>
+</Phase-54>
