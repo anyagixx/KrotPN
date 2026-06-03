@@ -1,12 +1,12 @@
 // FILE: frontend-admin/src/pages/Users.tsx
-// VERSION: 1.2.0
+// VERSION: 1.3.0
 // ROLE: UI_COMPONENT
 // MAP_MODE: SUMMARY
 // START_MODULE_CONTRACT
-//   PURPOSE: Compact Matrix admin page for user management, search, pagination, role/status display, and mobile account summary
-//   SCOPE: Paginated user list with search, compact rows, role badges, active/blocked status, bounded scrolling, and phone-safe metadata
-//   DEPENDS: M-010 (frontend-admin), M-006 (admin API), M-037 (mobile-admin-console), M-038 (compact-ui-system), M-071 (matrix-style-system)
-//   LINKS: M-010, M-037, M-038, M-071, Phase-54
+//   PURPOSE: Compact Matrix admin page for user management, search, pagination, role/status display, mobile account summary, and Phase-58 bounded inventory proof
+//   SCOPE: Paginated user list with search, compact rows, role badges, active/blocked status, bounded scrolling, phone-safe metadata, and dense operator filters
+//   DEPENDS: M-010 (frontend-admin), M-006 (admin API), M-037 (mobile-admin-console), M-038 (compact-ui-system), M-071 (matrix-style-system), M-076 (premium-admin-cockpit)
+//   LINKS: M-010, M-037, M-038, M-071, M-076, Phase-54, Phase-58
 // END_MODULE_CONTRACT
 //
 // START_MODULE_MAP
@@ -17,6 +17,7 @@
 // END_MODULE_MAP
 //
 // START_CHANGE_SUMMARY
+//   LAST_CHANGE: v3.1.0 - Phase-58 added premium bounded inventory markers and denser user search frame.
 //   LAST_CHANGE: v3.0.0 - Phase-54 added Matrix route markers and bounded compact inventory behavior for large user sets.
 //   LAST_CHANGE: v2.8.0 - Added full GRACE MODULE_CONTRACT and MODULE_MAP per GRACE governance protocol
 //   LAST_CHANGE: v2.9.0 - Phase-24 compact mobile user search rows without table-only dependency
@@ -87,6 +88,7 @@ export default function Users() {
     <div
       className="page-shell"
       data-phase54-admin-route="users"
+      data-phase58-route="users"
       data-log-marker="[MobileAdminConsole][Phase54][PRIMARY_ACTIONS_REACHABLE]"
     >
       <div className="page-header">
@@ -96,7 +98,7 @@ export default function Users() {
         </div>
 
         <div className="grid gap-2 sm:min-w-[420px]" data-log-marker="[MobileAdminConsole][Phase54][ROUTE_VIEWPORT_SAFE]">
-          <div className="metric-strip">
+          <div className="metric-strip phase58-signal-strip">
             <div className="metric-strip-item">
               <span className="metric-label">Активные</span>
               <span className="block text-base font-bold">{counters.active}</span>
@@ -144,7 +146,10 @@ export default function Users() {
           </div>
         </div>
       ) : (
-        <div className="compact-list bounded-scroll max-h-[72vh]">
+        <div
+          className="compact-list bounded-scroll phase58-inventory-list phase58-scroll-rail"
+          data-phase58-inventory="[PremiumAdminCockpit][phase58][INVENTORIES_BOUNDED]"
+        >
           {users.map((user: AdminUser) => (
             <article key={user.id} className="list-row">
               <div className="row-main">

@@ -1,12 +1,12 @@
 // FILE: frontend-admin/src/pages/Devices.tsx
-// VERSION: 1.2.0
+// VERSION: 1.3.0
 // ROLE: UI_COMPONENT
 // MAP_MODE: SUMMARY
 // START_MODULE_CONTRACT
-//   PURPOSE: Compact Matrix admin page for device management with confirmation-safe block/unblock, rotate config, and revoke actions
-//   SCOPE: List devices with search, anti-sharing signals, device-level actions, confirmation surface, bounded scrolling, and feedback
-//   DEPENDS: M-010 (frontend-admin), M-006 (admin API), M-024 (device-admin-control), M-037 (mobile-admin-console), M-038 (compact-ui-system), M-071 (matrix-style-system)
-//   LINKS: M-010, M-024, M-037, M-038, M-071, Phase-54
+//   PURPOSE: Compact Matrix admin page for device management with confirmation-safe block/unblock, rotate config, revoke actions, and Phase-58 bounded inventory proof
+//   SCOPE: List devices with search, anti-sharing signals, device-level actions, confirmation surface, bounded scrolling, feedback, and dense operator guard markers
+//   DEPENDS: M-010 (frontend-admin), M-006 (admin API), M-024 (device-admin-control), M-037 (mobile-admin-console), M-038 (compact-ui-system), M-071 (matrix-style-system), M-076 (premium-admin-cockpit)
+//   LINKS: M-010, M-024, M-037, M-038, M-071, M-076, Phase-54, Phase-58
 // END_MODULE_CONTRACT
 //
 // START_MODULE_MAP
@@ -17,6 +17,7 @@
 // END_MODULE_MAP
 //
 // START_CHANGE_SUMMARY
+//   LAST_CHANGE: v3.1.0 - Phase-58 added premium inventory and confirmation guard markers for device actions.
 //   LAST_CHANGE: v3.0.0 - Phase-54 added Matrix route markers, bounded device inventory, and confirmation readability hooks.
 //   LAST_CHANGE: v2.8.0 - Added full GRACE MODULE_CONTRACT and MODULE_MAP per GRACE governance protocol
 //   LAST_CHANGE: v2.9.0 - Phase-24 compact mobile device rows with explicit one-peer action confirmation
@@ -148,6 +149,7 @@ export default function Devices() {
     <div
       className="page-shell"
       data-phase54-admin-route="devices"
+      data-phase58-route="devices"
       data-log-marker="[MobileAdminConsole][Phase54][PRIMARY_ACTIONS_REACHABLE]"
     >
       <div className="page-header">
@@ -157,7 +159,7 @@ export default function Devices() {
         </div>
 
         <div className="grid gap-2 sm:min-w-[420px]" data-log-marker="[MobileAdminConsole][Phase54][ROUTE_VIEWPORT_SAFE]">
-          <div className="metric-strip">
+          <div className="metric-strip phase58-signal-strip">
             <div className="metric-strip-item">
               <span className="metric-label">Активные</span>
               <span className="block text-base font-bold">{counters.active}</span>
@@ -208,7 +210,10 @@ export default function Devices() {
           </div>
         </div>
       ) : (
-        <div className="compact-list bounded-scroll max-h-[72vh]">
+        <div
+          className="compact-list bounded-scroll phase58-inventory-list phase58-scroll-rail"
+          data-phase58-inventory="[PremiumAdminCockpit][phase58][INVENTORIES_BOUNDED]"
+        >
           {items.map((item: AdminDevice) => (
             <article key={item.id} className="list-row">
               <div className="row-main">
@@ -289,8 +294,9 @@ export default function Devices() {
           aria-modal="true"
           aria-labelledby="device-action-title"
           data-log-marker="[MobileAdminConsole][Phase54][CONFIRMATIONS_READABLE]"
+          data-phase58-confirmation="[PremiumAdminCockpit][phase58][CONFIRMATION_GUARDS]"
         >
-          <div className="confirm-sheet">
+          <div className="confirm-sheet phase58-confirmation-surface">
             <div className="flex items-start justify-between gap-3">
               <div className="min-w-0">
                 <p id="device-action-title" className="text-lg font-bold text-white">

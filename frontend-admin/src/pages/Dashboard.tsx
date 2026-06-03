@@ -1,12 +1,12 @@
 // FILE: frontend-admin/src/pages/Dashboard.tsx
-// VERSION: 1.2.0
+// VERSION: 1.3.0
 // ROLE: UI_COMPONENT
 // MAP_MODE: SUMMARY
 // START_MODULE_CONTRACT
-//   PURPOSE: Compact Matrix admin dashboard page showing operational overview, revenue, subscriptions, users, and system health
-//   SCOPE: Display aggregated stats, system health, urgent admin paths, route-status strip, and compact mobile-first metric rows
-//   DEPENDS: M-010 (frontend-admin), M-006 (admin API), M-037 (mobile-admin-console), M-038 (compact-ui-system), M-070 (matrix-visual-runtime), M-071 (matrix-style-system)
-//   LINKS: M-010, M-037, M-038, M-070, M-071, Phase-54
+//   PURPOSE: Compact Matrix admin dashboard page showing operational overview, revenue, subscriptions, users, system health, and Phase-58 command center
+//   SCOPE: Display aggregated stats, system health, urgent admin paths, route-status strip, compact mobile-first metric rows, and premium operator cockpit actions
+//   DEPENDS: M-010 (frontend-admin), M-006 (admin API), M-037 (mobile-admin-console), M-038 (compact-ui-system), M-070 (matrix-visual-runtime), M-071 (matrix-style-system), M-076 (premium-admin-cockpit)
+//   LINKS: M-010, M-037, M-038, M-070, M-071, M-076, Phase-54, Phase-58
 // END_MODULE_CONTRACT
 //
 // START_MODULE_MAP
@@ -17,6 +17,7 @@
 // END_MODULE_MAP
 //
 // START_CHANGE_SUMMARY
+//   LAST_CHANGE: v3.1.0 - Phase-58 added premium command center, dense signal strip, and always-reachable admin action grid.
 //   LAST_CHANGE: v3.0.0 - Phase-54 added compact Matrix route markers, admin status strip, and mobile-safe quick action surface.
 //   LAST_CHANGE: v2.8.0 - Added full GRACE MODULE_CONTRACT and MODULE_MAP per GRACE governance protocol
 //   LAST_CHANGE: v2.9.0 - Phase-24 compact mobile operator overview without hero/table-first layout
@@ -29,6 +30,7 @@ import {
   AlertTriangle,
   CreditCard,
   DollarSign,
+  KeyRound,
   Server,
   ShieldAlert,
   ShieldCheck,
@@ -94,20 +96,68 @@ export default function Dashboard() {
     <div
       className="page-shell"
       data-phase54-admin-route="dashboard"
+      data-phase58-route="dashboard"
       data-log-marker="[MatrixStyleSystem][phase54][ADMIN_ROUTES_READABLE]"
     >
-      <section className="admin-hero-strip">
-        <div className="matrix-mini-card">
-          <span className="metric-label">Console</span>
-          <strong className="mt-1 block text-sm text-white">online</strong>
+      <section
+        className="phase58-command-center"
+        data-phase58-command-center="[PremiumAdminCockpit][phase58][OPS_COMMAND_CENTER]"
+      >
+        <div className="min-w-0">
+          <div className="phase58-command-header">
+            <div className="min-w-0">
+              <p className="metric-label">Admin cockpit</p>
+              <h2 className="phase58-command-title">Операционный обзор</h2>
+            </div>
+            <span className="metric-pill">
+              <ShieldCheck className="h-3.5 w-3.5" />
+              live
+            </span>
+          </div>
+
+          <div className="phase58-signal-strip mt-3">
+            <div className="phase58-signal-card">
+              <span className="metric-label">Console</span>
+              <strong className="mt-1 block text-sm text-white">online</strong>
+            </div>
+            <div className="phase58-signal-card">
+              <span className="metric-label">Routes</span>
+              <strong className="mt-1 block text-sm text-white">7 screens</strong>
+            </div>
+            <div className="phase58-signal-card">
+              <span className="metric-label">Mode</span>
+              <strong className="mt-1 block text-sm text-white">compact</strong>
+            </div>
+            <div className="phase58-signal-card">
+              <span className="metric-label">Health</span>
+              <strong className="mt-1 block text-sm text-white">{String(h.backend || 'ok')}</strong>
+            </div>
+          </div>
         </div>
-        <div className="matrix-mini-card">
-          <span className="metric-label">Routes</span>
-          <strong className="mt-1 block text-sm text-white">7 screens</strong>
-        </div>
-        <div className="matrix-mini-card">
-          <span className="metric-label">Mode</span>
-          <strong className="mt-1 block text-sm text-white">compact</strong>
+
+        <div className="phase58-card-compact">
+          <div className="flex items-center gap-2">
+            <AlertTriangle className="h-4 w-4 text-cyan-200" />
+            <p className="text-sm font-semibold text-white">Operator actions</p>
+          </div>
+          <div className="phase58-action-grid mt-3" data-phase58-actions="[PremiumAdminCockpit][phase58][ADMIN_ACTIONS_REACHABLE]">
+            <Link to="/devices" className="btn-danger justify-start">
+              <ShieldAlert className="h-4 w-4" />
+              Устройства
+            </Link>
+            <Link to="/mtproto" className="btn-secondary justify-start">
+              <KeyRound className="h-4 w-4" />
+              MTProto
+            </Link>
+            <Link to="/users" className="btn-secondary justify-start">
+              <Users className="h-4 w-4" />
+              Пользователи
+            </Link>
+            <Link to="/servers" className="btn-secondary justify-start">
+              <Server className="h-4 w-4" />
+              Ноды
+            </Link>
+          </div>
         </div>
       </section>
 

@@ -1,12 +1,12 @@
 // FILE: frontend-admin/src/pages/Servers.tsx
-// VERSION: 1.1.0
+// VERSION: 1.2.0
 // ROLE: UI_COMPONENT
 // MAP_MODE: SUMMARY
 // START_MODULE_CONTRACT
-//   PURPOSE: Compact Matrix admin page for server/node management
-//   SCOPE: List, create, edit, delete VPN servers/nodes, route topology, confirmation prompts, and Phase-54 compact viewport markers
-//   DEPENDS: M-010 (frontend-admin), M-006 (admin API), M-037 (mobile-admin-console), M-071 (matrix-style-system)
-//   LINKS: M-010, M-037, M-071, Phase-54
+//   PURPOSE: Compact Matrix admin page for server/node management and Phase-58 topology cockpit density
+//   SCOPE: List, create, edit, delete VPN servers/nodes, route topology, confirmation prompts, Phase-54 compact viewport markers, and bounded topology inventories
+//   DEPENDS: M-010 (frontend-admin), M-006 (admin API), M-037 (mobile-admin-console), M-071 (matrix-style-system), M-076 (premium-admin-cockpit)
+//   LINKS: M-010, M-037, M-071, M-076, Phase-54, Phase-58
 // END_MODULE_CONTRACT
 //
 // START_MODULE_MAP
@@ -22,6 +22,7 @@
 // END_MODULE_MAP
 //
 // START_CHANGE_SUMMARY
+//   LAST_CHANGE: v3.1.0 - Phase-58 added topology cockpit route, bounded inventory markers, and confirmation guard evidence.
 //   LAST_CHANGE: v3.0.0 - Phase-54 compact Matrix server topology layout with safe radii and route viewport markers.
 //   LAST_CHANGE: v2.8.0 - Added full GRACE MODULE_CONTRACT and MODULE_MAP per GRACE governance protocol
 // END_CHANGE_SUMMARY
@@ -336,6 +337,7 @@ export default function Servers() {
     <div
       className="page-shell"
       data-phase54-admin-route="servers"
+      data-phase58-route="servers"
       data-log-marker="[MatrixStyleSystem][phase54][ADMIN_ROUTES_READABLE]"
     >
       <div className="page-header">
@@ -418,7 +420,10 @@ export default function Servers() {
                 </div>
               </div>
             ) : (
-              <div className="grid grid-cols-1 gap-4 xl:grid-cols-2">
+              <div
+                className="grid grid-cols-1 gap-4 xl:grid-cols-2 bounded-scroll phase58-inventory-list phase58-scroll-rail"
+                data-phase58-inventory="[PremiumAdminCockpit][phase58][INVENTORIES_BOUNDED]"
+              >
                 {nodeItems.map((node: AdminNode) => (
                   <div key={node.id} className="panel p-4">
                     <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
@@ -458,7 +463,11 @@ export default function Servers() {
                         <button onClick={() => openNodeEdit(node)} className="btn-secondary px-3 py-2">
                           <Edit className="h-4 w-4" />
                         </button>
-                        <button onClick={() => handleDeleteNode(node)} className="btn-danger px-3 py-2">
+                        <button
+                          onClick={() => handleDeleteNode(node)}
+                          className="btn-danger px-3 py-2"
+                          data-phase58-confirmation="[PremiumAdminCockpit][phase58][CONFIRMATION_GUARDS]"
+                        >
                           <Trash2 className="h-4 w-4" />
                         </button>
                       </div>
@@ -535,7 +544,10 @@ export default function Servers() {
                 </div>
               </div>
             ) : (
-              <div className="grid grid-cols-1 gap-4 xl:grid-cols-2">
+              <div
+                className="grid grid-cols-1 gap-4 xl:grid-cols-2 bounded-scroll phase58-inventory-list phase58-scroll-rail"
+                data-phase58-inventory="[PremiumAdminCockpit][phase58][INVENTORIES_BOUNDED]"
+              >
                 {routeItems.map((route: AdminRoute) => (
                   <div key={route.id} className="panel p-4">
                     <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
@@ -577,7 +589,11 @@ export default function Servers() {
                         <button onClick={() => openRouteEdit(route)} className="btn-secondary px-3 py-2">
                           <Edit className="h-4 w-4" />
                         </button>
-                        <button onClick={() => handleDeleteRoute(route)} className="btn-danger px-3 py-2">
+                        <button
+                          onClick={() => handleDeleteRoute(route)}
+                          className="btn-danger px-3 py-2"
+                          data-phase58-confirmation="[PremiumAdminCockpit][phase58][CONFIRMATION_GUARDS]"
+                        >
                           <Trash2 className="h-4 w-4" />
                         </button>
                       </div>

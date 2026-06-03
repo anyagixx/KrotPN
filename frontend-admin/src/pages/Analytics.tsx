@@ -1,12 +1,12 @@
 // FILE: frontend-admin/src/pages/Analytics.tsx
-// VERSION: 1.2.0
+// VERSION: 1.3.0
 // ROLE: UI_COMPONENT
 // MAP_MODE: SUMMARY
 // START_MODULE_CONTRACT
-//   PURPOSE: Compact Matrix admin analytics page with payment, subscription, referral, conversion, and chart detail summaries
-//   SCOPE: Period-selectable KPI summaries, billing stats, referral funnel, trial-to-paid conversion, chart frames, and mobile-safe route markers
-//   DEPENDS: M-010 (frontend-admin), M-006 (admin API), M-037 (mobile-admin-console), M-038 (compact-ui-system), M-071 (matrix-style-system)
-//   LINKS: M-010, M-037, M-038, M-071, Phase-54
+//   PURPOSE: Compact Matrix admin analytics page with payment, subscription, referral, conversion, chart detail summaries, and Phase-58 readonly operator proof
+//   SCOPE: Period-selectable KPI summaries, billing stats, referral funnel, trial-to-paid conversion, chart frames, mobile-safe route markers, and premium readonly analytics guard
+//   DEPENDS: M-010 (frontend-admin), M-006 (admin API), M-037 (mobile-admin-console), M-038 (compact-ui-system), M-071 (matrix-style-system), M-076 (premium-admin-cockpit)
+//   LINKS: M-010, M-037, M-038, M-071, M-076, Phase-54, Phase-58
 // END_MODULE_CONTRACT
 //
 // START_MODULE_MAP
@@ -17,6 +17,7 @@
 // END_MODULE_MAP
 //
 // START_CHANGE_SUMMARY
+//   LAST_CHANGE: v3.1.0 - Phase-58 marked analytics as readonly premium cockpit chart surface.
 //   LAST_CHANGE: v3.0.0 - Phase-54 added Matrix route markers and compact chart frames for admin analytics.
 //   LAST_CHANGE: v2.8.0 - Added full GRACE MODULE_CONTRACT and MODULE_MAP per GRACE governance protocol
 //   LAST_CHANGE: v2.9.0 - Phase-24 compact payment/subscription KPI-first analytics layout
@@ -77,6 +78,8 @@ export default function Analytics() {
     <div
       className="page-shell"
       data-phase54-admin-route="analytics"
+      data-phase58-route="analytics"
+      data-phase58-runtime-readonly="[PremiumAdminCockpit][phase58][ANALYTICS_RUNTIME_READONLY]"
       data-log-marker="[MatrixStyleSystem][phase54][ADMIN_ROUTES_READABLE]"
     >
       <div className="page-header">
@@ -101,7 +104,7 @@ export default function Analytics() {
       </section>
 
       <section className="grid gap-3 lg:grid-cols-2">
-        <div className="panel p-4">
+        <div className="panel p-4 phase58-readonly-frame">
           <h2 className="text-sm font-semibold text-white">Подписки</h2>
           <div className="mt-3 grid gap-2">
             <div className="status-row">
@@ -123,7 +126,7 @@ export default function Analytics() {
           </div>
         </div>
 
-        <div className="panel p-4">
+        <div className="panel p-4 phase58-readonly-frame">
           <h2 className="text-sm font-semibold text-white">Реферальная воронка</h2>
           <div className="mt-3 grid gap-2">
             <div className="status-row">
@@ -147,7 +150,7 @@ export default function Analytics() {
       </section>
 
       <section className="grid gap-3 lg:grid-cols-2">
-        <div className="panel p-4">
+        <div className="panel p-4 phase58-chart-card">
           <h2 className="text-sm font-semibold text-white">Выручка по дням</h2>
           <p className="mt-1 text-xs muted">Факт успешных платежей за выбранный период.</p>
           <div className="chart-frame h-[220px]">
@@ -162,7 +165,7 @@ export default function Analytics() {
           </div>
         </div>
 
-        <div className="panel p-4">
+        <div className="panel p-4 phase58-chart-card">
           <h2 className="text-sm font-semibold text-white">Регистрации</h2>
           <p className="mt-1 text-xs muted">Новые пользователи, зарегистрированные за период.</p>
           <div className="chart-frame h-[220px]">

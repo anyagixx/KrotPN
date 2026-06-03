@@ -1,12 +1,12 @@
 /* FILE: frontend-admin/src/index.css
- * VERSION: 1.2.0
+ * VERSION: 1.3.0
  * ROLE: UI_COMPONENT
  * MAP_MODE: SUMMARY
  * START_MODULE_CONTRACT
- *   PURPOSE: Shared admin-frontend styling tokens, compact admin surfaces, Phase-52 Matrix visual foundation, Phase-54 admin console primitives, and Phase-55 premium art direction
- *   SCOPE: Admin shell, login console, navigation, panels, forms, data tables, charts, premium palette/type/density/logo tokens, Matrix background/canvas/CRT layers, focus and reduced-motion policy
- *   DEPENDS: M-010 (frontend-admin), M-037 (admin-mtproto-ui), M-038 (compact-ui-system), M-070 (matrix-visual-runtime), M-071 (matrix-style-system), M-072 (premium-art-direction-system)
- *   LINKS: M-010 (frontend-admin), M-037, M-038, M-070, M-071, M-072
+ *   PURPOSE: Shared admin-frontend styling tokens, compact admin surfaces, Phase-52 Matrix visual foundation, Phase-54 admin console primitives, Phase-55 premium art direction, and Phase-58 operator cockpit density
+ *   SCOPE: Admin shell, login console, navigation, panels, forms, data tables, charts, premium palette/type/density/logo tokens, Matrix background/canvas/CRT layers, Phase-58 command cockpit primitives, focus and reduced-motion policy
+ *   DEPENDS: M-010 (frontend-admin), M-037 (admin-mtproto-ui), M-038 (compact-ui-system), M-047 (mtproto-admin-ops), M-058 (mtproto-admin-analytics-ui), M-068 (tariff-catalog), M-070 (matrix-visual-runtime), M-071 (matrix-style-system), M-072 (premium-art-direction-system), M-076 (premium-admin-cockpit)
+ *   LINKS: M-010 (frontend-admin), M-037, M-038, M-047, M-058, M-068, M-070, M-071, M-072, M-076, Phase-58
  * END_MODULE_CONTRACT
  *
  * START_MODULE_MAP
@@ -15,10 +15,12 @@
  *   matrix-visual-system - Canvas, scanline, vignette, and content stacking layers
  *   admin-shell - Rail, topbar, mobile tabbar, content sizing
  *   admin-matrix-ui - Phase-54 compact login, toolbar, KPI, chart, route, and bounded-scroll primitives
+ *   premium-admin-cockpit - Phase-58 command center, dense signal strips, bounded inventories, readonly analytics, and confirmation surfaces
  *   components - Panel, button, input, metric, list, table, and modal classes
  * END_MODULE_MAP
  *
  * START_CHANGE_SUMMARY
+ *   LAST_CHANGE: v3.3.0 - Phase-58 added premium admin cockpit density, bounded inventory rails, readonly analytics frames, and reduced-motion markers.
  *   LAST_CHANGE: v3.2.0 - Added Phase-55 premium Matrix art-direction tokens, density rules, logo rules, and non-orb shell background.
  *   LAST_CHANGE: v3.1.0 - Added Phase-54 compact admin Matrix console primitives and route-safe viewport helpers
  *   LAST_CHANGE: v3.0.0 - Added Phase-52 Matrix visual foundation tokens, canvas layers, CRT overlays, focus states, and reduced-motion policy
@@ -272,6 +274,10 @@ textarea:focus-visible,
   @apply mx-auto w-full max-w-[1320px] px-4 py-4 md:px-6 md:py-5;
 }
 
+.phase58-cockpit-main {
+  @apply mx-auto w-full max-w-[1280px] px-3 py-3 sm:px-4 md:px-5 md:py-4;
+}
+
 .mobile-tabbar {
   @apply fixed inset-x-0 bottom-0 z-30 flex gap-1 overflow-x-auto border-t px-2 py-2 lg:hidden;
   background: rgba(3, 12, 8, 0.96);
@@ -368,6 +374,81 @@ textarea:focus-visible,
   @apply flex min-w-0 flex-wrap items-center gap-2 text-xs;
   color: var(--muted);
 }
+
+/* START_BLOCK_PHASE58_PREMIUM_ADMIN_COCKPIT */
+.phase58-command-center {
+  @apply grid min-w-0 gap-3 border p-3 lg:grid-cols-[minmax(0,1.15fr)_minmax(280px,0.85fr)];
+  background:
+    linear-gradient(180deg, rgba(4, 20, 14, 0.88), rgba(2, 10, 7, 0.78)),
+    linear-gradient(90deg, rgba(96, 255, 155, 0.08), rgba(104, 232, 255, 0.06));
+  border-color: rgba(104, 232, 255, 0.16);
+  border-radius: var(--premium-radius);
+  box-shadow: var(--premium-shadow-tight);
+}
+
+.phase58-command-header {
+  @apply flex min-w-0 flex-col gap-2 sm:flex-row sm:items-start sm:justify-between;
+}
+
+.phase58-command-title {
+  @apply text-lg font-extrabold text-white;
+  letter-spacing: 0;
+}
+
+.phase58-signal-strip {
+  @apply grid min-w-0 grid-cols-2 gap-2 md:grid-cols-4;
+}
+
+.phase58-signal-card {
+  @apply min-w-0 border px-3 py-2;
+  background: rgba(2, 12, 8, 0.78);
+  border-color: rgba(96, 255, 155, 0.12);
+  border-radius: var(--premium-radius-tight);
+}
+
+.phase58-action-grid {
+  @apply grid gap-2 sm:grid-cols-2;
+}
+
+.phase58-card-compact {
+  @apply min-w-0 border p-3;
+  background: rgba(4, 18, 13, 0.78);
+  border-color: rgba(104, 232, 255, 0.12);
+  border-radius: var(--premium-radius);
+}
+
+.phase58-inventory-list {
+  max-height: min(72vh, 760px);
+}
+
+.phase58-scroll-rail {
+  scrollbar-gutter: stable;
+}
+
+.phase58-chart-card {
+  @apply min-w-0;
+}
+
+.phase58-chart-card .chart-frame {
+  min-height: 240px;
+}
+
+.phase58-readonly-frame {
+  @apply border;
+  background: rgba(2, 10, 7, 0.64);
+  border-color: rgba(104, 232, 255, 0.12);
+  border-radius: var(--premium-radius);
+}
+
+.phase58-confirmation-surface {
+  border-color: rgba(255, 209, 102, 0.24);
+  box-shadow: 0 0 0 1px rgba(255, 209, 102, 0.08), var(--premium-shadow-tight);
+}
+
+.phase58-route-frame {
+  @apply grid gap-3;
+}
+/* END_BLOCK_PHASE58_PREMIUM_ADMIN_COCKPIT */
 
 .btn-primary,
 .btn-secondary,
@@ -679,5 +760,10 @@ textarea:focus-visible,
   .matrix-visual-shell::before {
     opacity: 0.08;
     transform: none;
+  }
+
+  [data-phase58-admin-shell] {
+    /* [PremiumAdminCockpit][phase58][REDUCED_MOTION_SAFE] */
+    scroll-behavior: auto;
   }
 }

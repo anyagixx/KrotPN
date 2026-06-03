@@ -1,12 +1,12 @@
 // FILE: frontend-admin/src/pages/MTProtoAnalytics.tsx
-// VERSION: 2.5.0
+// VERSION: 2.6.0
 // ROLE: UI_COMPONENT
 // MAP_MODE: SUMMARY
 // START_MODULE_CONTRACT
-//   PURPOSE: Compact Matrix admin MTProto analytics console with usage graphs, alert review, user investigation, runtime metrics, and promotion tag controls
-//   SCOPE: Overview, Users, Abuse, Settings tabs, top users, user detail drawer with IP history, alert actions with operator tooltips, auto-refresh, masked promotion tag update, and Phase-54 visibility guards
-//   DEPENDS: M-010 (frontend-admin), M-058 (mtproto-admin-analytics-ui), M-057 (admin analytics API), M-059 (promotion tag), M-060 (alerts), M-061 (IP observability), M-070 (matrix-visual-runtime), M-071 (matrix-style-system)
-//   LINKS: M-058, M-057, M-059, M-060, M-061, M-070, M-071, V-M-058, Phase-54
+//   PURPOSE: Compact Matrix admin MTProto analytics console with usage graphs, alert review, user investigation, runtime metrics, promotion tag controls, and Phase-58 readonly cockpit markers
+//   SCOPE: Overview, Users, Abuse, Settings tabs, top users, user detail drawer with IP history, alert actions with operator tooltips, auto-refresh, masked promotion tag update, Phase-54 visibility guards, and Phase-58 analytics/read-only proof
+//   DEPENDS: M-010 (frontend-admin), M-058 (mtproto-admin-analytics-ui), M-057 (admin analytics API), M-059 (promotion tag), M-060 (alerts), M-061 (IP observability), M-070 (matrix-visual-runtime), M-071 (matrix-style-system), M-076 (premium-admin-cockpit)
+//   LINKS: M-058, M-057, M-059, M-060, M-061, M-070, M-071, M-076, V-M-058, Phase-54, Phase-58
 // END_MODULE_CONTRACT
 //
 // START_MODULE_MAP
@@ -19,6 +19,7 @@
 // END_MODULE_MAP
 //
 // START_CHANGE_SUMMARY
+//   LAST_CHANGE: v2.6.0 - Phase-58 added readonly analytics, chart, bounded user/IP, and alert review cockpit markers.
 //   LAST_CHANGE: v2.5.0 - Phase-54 added compact Matrix chart frames, bounded analytics lists, and explicit redaction/Signals-hidden markers.
 //   LAST_CHANGE: v2.4.0 - Made IP history compact, scrollable, and removed visible CIDR prefix rows.
 //   LAST_CHANGE: v2.3.0 - Removed visible technical Signals panel/count and added Russian hover help for alert actions.
@@ -147,7 +148,7 @@ function MetricAreaChart({ data, metric }: { data: AdminMTProtoTimeseriesBucket[
           <strong className="block text-white">{metric === 'traffic' ? formatBytes(latest) : latest}</strong>
         </div>
       </div>
-      <div className="chart-frame h-64" data-log-marker="[M-058][phase54_mtproto_analytics][CHARTS_TABLES_READABLE]">
+      <div className="chart-frame h-64" data-log-marker="[M-058][phase54_mtproto_analytics][CHARTS_TABLES_READABLE]" data-phase58-chart="premium-operator-graph">
       <ResponsiveContainer width="100%" height="100%">
         <AreaChart data={chartData} margin={{ top: 12, right: 10, left: 0, bottom: 0 }}>
           <defs>
@@ -292,10 +293,11 @@ export default function MTProtoAnalyticsPanel() {
 
   return (
     <section
-      className="grid gap-3"
+      className="grid gap-3 phase58-route-frame"
       data-phase42-mtproto-analytics
       data-phase43-mtproto-analytics
       data-phase54-mtproto-analytics="compact"
+      data-phase58-runtime-readonly="[PremiumAdminCockpit][phase58][ANALYTICS_RUNTIME_READONLY]"
       data-observe-mode="observe-only"
       data-log-marker="[M-058][admin_mtproto_analytics_ui][REDACTED_RENDER]"
       data-phase43-recent-events="[M-058][admin_mtproto_analytics_ui][RECENT_EVENTS_REMOVED]"
@@ -363,7 +365,7 @@ export default function MTProtoAnalyticsPanel() {
 
       {activeTab === 'overview' ? (
         <div className="grid gap-3 xl:grid-cols-[1.35fr_0.65fr]">
-          <div className="surface p-3">
+          <div className="surface p-3 phase58-chart-card">
             <div className="compact-toolbar">
               <div className="flex items-center gap-2">
                 <BarChart3 className="h-4 w-4 text-cyan-200" />
@@ -379,7 +381,7 @@ export default function MTProtoAnalyticsPanel() {
             <MetricAreaChart data={timeseries} metric={metric} />
           </div>
 
-          <div className="surface p-3">
+          <div className="surface p-3 phase58-readonly-frame">
             <div className="flex items-center gap-2">
               <Cpu className="h-4 w-4 text-cyan-200" />
               <h3 className="text-sm font-semibold text-white">Runtime</h3>
@@ -441,7 +443,10 @@ export default function MTProtoAnalyticsPanel() {
                 </button>
               </div>
             </div>
-            <div className="mt-3 compact-list bounded-scroll max-h-[68vh]">
+            <div
+              className="mt-3 compact-list bounded-scroll phase58-inventory-list phase58-scroll-rail"
+              data-phase58-inventory="[PremiumAdminCockpit][phase58][INVENTORIES_BOUNDED]"
+            >
               {users.length === 0 ? (
                 <p className="py-4 text-sm muted">Нет данных.</p>
               ) : users.map((item: AdminMTProtoUserSearchItem) => (
@@ -518,7 +523,12 @@ export default function MTProtoAnalyticsPanel() {
                       </button>
                     ) : null}
                   </div>
-                  <div className="compact-list bounded-scroll max-h-[180px] pr-1" data-log-marker="[M-058][admin_mtproto_analytics_ui][COMPACT_IP_HISTORY]" data-mtproto-ip-history-scroll>
+                  <div
+                    className="compact-list bounded-scroll max-h-[180px] overflow-y-auto overscroll-contain pr-1 phase58-scroll-rail"
+                    data-log-marker="[M-058][admin_mtproto_analytics_ui][COMPACT_IP_HISTORY]"
+                    data-phase58-inventory="[PremiumAdminCockpit][phase58][INVENTORIES_BOUNDED]"
+                    data-mtproto-ip-history-scroll
+                  >
                     {selectedUsage.ip_observations.length === 0 ? (
                       <p className="py-2 text-sm muted">Нет IP history</p>
                     ) : selectedUsage.ip_observations.map((ip: AdminMTProtoIPObservation) => (
@@ -545,7 +555,7 @@ export default function MTProtoAnalyticsPanel() {
 
       {activeTab === 'abuse' ? (
         <div className="grid gap-3">
-          <div className="surface p-3" data-log-marker="[M-058][admin_mtproto_analytics_ui][ALERT_REVIEW]">
+          <div className="surface p-3 phase58-readonly-frame" data-log-marker="[M-058][admin_mtproto_analytics_ui][ALERT_REVIEW]">
             <div className="flex items-center gap-2">
               <AlertTriangle className="h-4 w-4 text-cyan-200" />
               <h3 className="text-sm font-semibold text-white">Alerts</h3>
@@ -555,7 +565,7 @@ export default function MTProtoAnalyticsPanel() {
               <h4 className="text-xs font-semibold uppercase text-slate-400">Open</h4>
               <span className="neutral-pill">{alerts.length}</span>
             </div>
-            <div className="mt-2 compact-list bounded-scroll max-h-[320px]">
+            <div className="mt-2 compact-list bounded-scroll max-h-[320px] phase58-scroll-rail">
               {alerts.length === 0 ? (
                 <p className="py-4 pl-4 text-sm muted">Нет открытых alerts</p>
               ) : alerts.map((alert: AdminMTProtoAlert) => (
@@ -617,7 +627,7 @@ export default function MTProtoAnalyticsPanel() {
               <h4 className="text-xs font-semibold uppercase text-slate-400">Archive</h4>
               <span className="neutral-pill">{archivedAlerts.length}</span>
             </div>
-            <div className="mt-2 compact-list bounded-scroll max-h-[260px]" data-log-marker="[M-058][admin_mtproto_analytics_ui][ALERT_ARCHIVE]">
+            <div className="mt-2 compact-list bounded-scroll max-h-[260px] phase58-scroll-rail" data-log-marker="[M-058][admin_mtproto_analytics_ui][ALERT_ARCHIVE]">
               {archivedAlerts.length === 0 ? (
                 <p className="py-4 pl-4 text-sm muted">Архив пуст</p>
               ) : archivedAlerts.map((alert: AdminMTProtoAlert) => (
@@ -660,7 +670,10 @@ export default function MTProtoAnalyticsPanel() {
                 <option value={100}>100</option>
               </select>
             </div>
-            <div className="mt-3 compact-list bounded-scroll max-h-[70vh]">
+            <div
+              className="mt-3 compact-list bounded-scroll phase58-inventory-list phase58-scroll-rail"
+              data-phase58-inventory="[PremiumAdminCockpit][phase58][INVENTORIES_BOUNDED]"
+            >
               {topUsers.length === 0 ? (
                 <p className="py-4 text-sm muted">Нет данных.</p>
               ) : topUsers.map((user: AdminMTProtoTopUser) => (

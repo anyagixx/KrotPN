@@ -1,12 +1,12 @@
 // FILE: frontend-admin/src/pages/Plans.tsx
-// VERSION: 1.2.0
+// VERSION: 1.3.0
 // ROLE: UI_COMPONENT
 // MAP_MODE: SUMMARY
 // START_MODULE_CONTRACT
-//   PURPOSE: Compact Matrix admin page for viewing the protected canonical paid tariff matrix
-//   SCOPE: Display Phase-50 canonical tariff matrix with price, device limit, active/popular state, Phase-54 compact styling, and no accidental CRUD controls
-//   DEPENDS: M-010 (frontend-admin), M-006 (admin API), M-068 (tariff-catalog), M-037 (mobile-admin-console), M-071 (matrix-style-system)
-//   LINKS: M-010, M-068, M-037, M-071, Phase-54
+//   PURPOSE: Compact Matrix admin page for viewing the protected canonical paid tariff matrix with Phase-58 tariff guard evidence
+//   SCOPE: Display Phase-50 canonical tariff matrix with price, device limit, active/popular state, Phase-54 compact styling, Phase-58 readonly guard, and no accidental CRUD controls
+//   DEPENDS: M-010 (frontend-admin), M-006 (admin API), M-068 (tariff-catalog), M-037 (mobile-admin-console), M-071 (matrix-style-system), M-076 (premium-admin-cockpit)
+//   LINKS: M-010, M-068, M-037, M-071, M-076, Phase-54, Phase-58
 // END_MODULE_CONTRACT
 //
 // START_MODULE_MAP
@@ -16,6 +16,7 @@
 // END_MODULE_MAP
 //
 // START_CHANGE_SUMMARY
+//   LAST_CHANGE: v3.1.0 - Phase-58 added premium tariff guard markers while keeping canonical plans readonly.
 //   LAST_CHANGE: v3.0.0 - Phase-54 added compact Matrix tariff route markers while preserving readonly canonical plan controls.
 //   LAST_CHANGE: v1.1.0 - Reworked admin plans into Phase-50 compact canonical matrix without create/edit/delete affordances.
 //   LAST_CHANGE: v2.8.0 - Added full GRACE MODULE_CONTRACT and MODULE_MAP per GRACE governance protocol
@@ -56,6 +57,8 @@ export default function Plans() {
     <div
       className="page-shell"
       data-phase54-admin-route="plans"
+      data-phase58-route="plans"
+      data-phase58-tariff-guard="[PremiumAdminCockpit][phase58][TARIFF_ADMIN_GUARD]"
       data-log-marker="[M-068][phase54_admin_tariff_ui][CANONICAL_TARIFFS_READABLE]"
       data-phase54-no-crud="[M-068][phase54_admin_tariff_ui][NO_CANONICAL_CRUD_DRIFT]"
     >
@@ -94,9 +97,9 @@ export default function Plans() {
           </div>
         </div>
       ) : (
-        <div className="grid grid-cols-1 gap-3 xl:grid-cols-3">
+        <div className="grid grid-cols-1 gap-3 xl:grid-cols-3" data-phase58-readonly="canonical-tariffs">
           {items.map((plan: AdminPlan) => (
-            <div key={plan.id} className={`panel p-4 ${!plan.is_active ? 'opacity-65' : ''}`}>
+            <div key={plan.id} className={`panel p-4 phase58-readonly-frame ${!plan.is_active ? 'opacity-65' : ''}`}>
               <div className="flex items-start justify-between gap-3">
                 <div className="min-w-0">
                   <div className="flex flex-wrap items-center gap-2">

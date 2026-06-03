@@ -1,12 +1,12 @@
 // FILE: frontend-admin/src/components/Layout.tsx
-// VERSION: 1.2.0
+// VERSION: 1.3.0
 // ROLE: UI_COMPONENT
 // MAP_MODE: SUMMARY
 // START_MODULE_CONTRACT
-//   PURPOSE: Compact Matrix admin layout shell with responsive operator navigation, header meta, and route outlet
-//   SCOPE: Desktop rail, mobile tab bar, page metadata display, MTProto admin entry, compact admin identity, logout, Phase-54 route-safety markers
-//   DEPENDS: M-010 (frontend-admin), M-037 (mobile-admin-console), M-038 (compact-ui-system), M-047 (mtproto-admin-ops), M-070 (matrix-visual-runtime), M-071 (matrix-style-system), auth store, react-router-dom
-//   LINKS: M-010, M-037, M-038, M-047, M-070, M-071, Phase-54
+//   PURPOSE: Compact Matrix admin layout shell with responsive operator navigation, header meta, route outlet, and Phase-58 cockpit density markers
+//   SCOPE: Desktop rail, mobile tab bar, page metadata display, MTProto admin entry, compact admin identity, logout, Phase-54 route-safety markers, and Phase-58 protected route shell
+//   DEPENDS: M-010 (frontend-admin), M-037 (mobile-admin-console), M-038 (compact-ui-system), M-047 (mtproto-admin-ops), M-070 (matrix-visual-runtime), M-071 (matrix-style-system), M-076 (premium-admin-cockpit), auth store, react-router-dom
+//   LINKS: M-010, M-037, M-038, M-047, M-070, M-071, M-076, Phase-54, Phase-58
 // END_MODULE_CONTRACT
 //
 // START_MODULE_MAP
@@ -17,6 +17,7 @@
 // END_MODULE_MAP
 //
 // START_CHANGE_SUMMARY
+//   LAST_CHANGE: v3.5.0 - Phase-58 marked the admin shell as premium cockpit routes with compact main density and protected route evidence.
 //   LAST_CHANGE: v3.4.0 - Phase-54 Matrix admin shell markers and compact route hints for mobile-safe operations.
 //   LAST_CHANGE: v3.2.0 - Added Phase-33 compact MTProto admin navigation entry
 //   LAST_CHANGE: v2.8.0 - Added full GRACE MODULE_CONTRACT and MODULE_MAP per GRACE governance protocol
@@ -87,6 +88,9 @@ export default function Layout() {
     <div
       className="app-shell"
       data-phase54-admin-shell="matrix-compact"
+      data-phase58-admin-shell="premium-cockpit"
+      data-phase58-routes="[PremiumAdminCockpit][phase58][ROUTES_READY]"
+      data-phase58-reduced-motion="[PremiumAdminCockpit][phase58][REDUCED_MOTION_SAFE]"
       data-log-marker="[MobileAdminConsole][Phase54][ROUTE_VIEWPORT_SAFE]"
     >
       <aside className="admin-rail" aria-label="Admin navigation">
@@ -136,7 +140,7 @@ export default function Layout() {
           </div>
         </header>
 
-        <main className="admin-main">
+        <main className="phase58-cockpit-main" data-phase58-protected-main="admin-routes">
           <Outlet />
         </main>
       </div>

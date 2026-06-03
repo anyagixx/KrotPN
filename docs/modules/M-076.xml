@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<M-076 NAME="premium-admin-cockpit" TYPE="UI_COMPONENT" STATUS="planned-phase58-phase62">
+<M-076 NAME="premium-admin-cockpit" TYPE="UI_COMPONENT" STATUS="done-local-phase58-planned-phase62">
   <path>frontend-admin/src/components/Layout.tsx frontend-admin/src/components/StatCard.tsx frontend-admin/src/pages/Dashboard.tsx frontend-admin/src/pages/Users.tsx frontend-admin/src/pages/Devices.tsx frontend-admin/src/pages/MTProto.tsx frontend-admin/src/pages/MTProtoAnalytics.tsx frontend-admin/src/pages/Analytics.tsx frontend-admin/src/pages/Servers.tsx frontend-admin/src/pages/Plans.tsx docs/plans/Phase-58.xml docs/plans/Phase-62.xml scripts/phase58-premium-admin-cockpit-smoke.mjs scripts/phase62-compactness-deletion-smoke.mjs</path>
   <owns>Premium compact admin cockpit for service health, users, devices, MTProto, tariffs, analytics, and operations.</owns>
   <purpose>Make admin operations scan-friendly and premium without reducing emergency control clarity.</purpose>
@@ -17,9 +17,13 @@
     <constraint-3>No backend API, auth/session, deploy, install, or runtime changes are included.</constraint-3>
   </constraints>
   <acceptance-metrics>
-    <metric-1>Frontend-admin build and premium admin smoke pass.</metric-1>
-    <metric-2>Phone/tablet screenshots prove bounded inventories and no long unusable scroll surfaces.</metric-2>
-    <metric-3>Deletion audit preserves user/device/MTProto/tariff/analytics workflows.</metric-3>
+    <metric-1 status="pass-local">Frontend-admin build and premium admin smoke pass.</metric-1>
+    <metric-2 status="pass-local-static-proof">Static route proof verifies bounded inventories and reduced-motion markers; authenticated phone/tablet screenshots remain clean-deploy follow-up.</metric-2>
+    <metric-3 status="planned-phase62">Deletion audit preserves user/device/MTProto/tariff/analytics workflows and remains Phase-62 scope.</metric-3>
   </acceptance-metrics>
+  <evidence>
+    <evidence-1>2026-06-04 pass-local: frontend-admin Layout, StatCard, Dashboard, Users, Devices, MTProto, MTProtoAnalytics, Analytics, Servers, Plans, shared admin CSS, and Phase-58 smoke were updated for premium command center, bounded inventories, MTProto redaction, confirmation guards, tariff readonly guard, analytics readonly guard, reduced-motion proof, and protected-surface isolation.</evidence-1>
+    <evidence-2>Verification passed: cd frontend-admin &amp;&amp; npm run build; node scripts/phase58-premium-admin-cockpit-smoke.mjs; node scripts/phase54-admin-matrix-ui-smoke.mjs; node scripts/phase42-mtproto-admin-analytics-smoke.mjs; node scripts/phase43-mtproto-admin-analytics-smoke.mjs; node scripts/phase50-tariff-catalog-smoke.mjs; node scripts/phase52-matrix-visual-smoke.mjs; node scripts/phase55-premium-art-direction-smoke.mjs; XML parse; mygrace lint; git diff --check; protected backend/deploy/runtime/frontend-user guard.</evidence-2>
+  </evidence>
   <hotspot>H-063: Premium admin cockpit must improve scanability without hiding emergency controls, MTProto redaction, or confirmation flows.</hotspot>
 </M-076>
