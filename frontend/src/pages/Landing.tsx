@@ -1,22 +1,23 @@
 // FILE: frontend/src/pages/Landing.tsx
-// VERSION: 1.0.0
+// VERSION: 1.1.0
 // ROLE: UI_COMPONENT
 // MAP_MODE: SUMMARY
 // START_MODULE_CONTRACT
-//   PURPOSE: Premium public KrotPN entry route with compact Matrix CTA, offer proof, tariff preview, and verified-email safety copy
-//   SCOPE: Public landing, login/register navigation, VPN and free MTProto value presentation, public tariff preview, no checkout or access side effects
-//   DEPENDS: M-073 (premium-public-site), M-009 (frontend-user), M-068 (paid tariff catalog), M-069 (brand assets), M-070 (matrix runtime), M-071 (matrix styles), M-072 (premium art direction)
-//   LINKS: M-073, V-M-073, docs/plans/Phase-56.xml
+//   PURPOSE: Premium public KrotPN entry route with compact Matrix CTA, offer proof, tariff preview, verified-email safety copy, and Phase-62 low-bulk public compaction
+//   SCOPE: Public landing, login/register navigation, VPN and free MTProto value presentation, public tariff preview, folded secondary proof, no checkout or access side effects
+//   DEPENDS: M-073 (premium-public-site), M-009 (frontend-user), M-038 (compact-ui-system), M-068 (paid tariff catalog), M-069 (brand assets), M-070 (matrix runtime), M-071 (matrix styles), M-072 (premium art direction), M-074 (responsive-device-adaptation)
+//   LINKS: M-073, V-M-073, docs/plans/Phase-56.xml, Phase-62
 // END_MODULE_CONTRACT
 //
 // START_MODULE_MAP
 //   PUBLIC_TARIFF_PREVIEW - Static fallback copy mirrored from M-068 and verified by Phase-56 smoke
-//   Landing - Public premium entry component with CTA and safe tariff preview
+//   Landing - Public premium entry component with CTA, safe tariff preview, and Phase-62 folded secondary proof
 //   BLOCK_PUBLIC_TARIFF_PREVIEW - Canonical fallback tariff preview values
 //   BLOCK_LANDING_PAGE - Public route rendering
 // END_MODULE_MAP
 //
 // START_CHANGE_SUMMARY
+//   LAST_CHANGE: v1.1.0 - Added Phase-62 public/auth compactness markers and folded secondary value/proof content.
 //   LAST_CHANGE: v1.0.0 - Added Phase-56 premium public entry route without changing backend billing or registration semantics
 // END_CHANGE_SUMMARY
 //
@@ -92,7 +93,11 @@ export default function Landing() {
     .sort((a, b) => a.sort_order - b.sort_order)
 
   return (
-    <main className="matrix-public-page animate-in" data-phase56-public-route="landing">
+    <main
+      className="matrix-public-page animate-in"
+      data-phase56-public-route="landing"
+      data-phase62-public-auth="[CompactDeletionAudit][phase62][PUBLIC_AUTH_CLARITY_PRESERVED]"
+    >
       <header className="matrix-public-nav">
         <Link to="/" className="matrix-public-brand" aria-label="KrotPN">
           <img src="/brand/email-logo.png" alt="" className="matrix-brand-logo" data-phase56-logo="true" />
@@ -146,7 +151,18 @@ export default function Landing() {
         </div>
       </section>
 
-      <section className="matrix-public-band" aria-label="KrotPN value">
+      <details
+        className="matrix-public-band phase62-public-fold"
+        aria-label="KrotPN value"
+        data-phase62-collapse="[CompactDeletionAudit][phase62][USER_SURFACES_PRUNED]"
+      >
+        <summary className="phase62-fold-summary md:col-span-3">
+          <span className="flex min-w-0 items-center gap-2">
+            <ShieldCheck className="h-4 w-4 shrink-0 text-emerald-100" />
+            <span className="truncate font-semibold">Почему KrotPN</span>
+          </span>
+          <span className="text-xs muted">3 факта</span>
+        </summary>
         <article className="matrix-public-feature">
           <ShieldCheck className="h-5 w-5 text-emerald-100" />
           <div>
@@ -168,7 +184,7 @@ export default function Landing() {
             <p>Оплата создается backend по plan_id; публичная страница показывает только preview.</p>
           </div>
         </article>
-      </section>
+      </details>
 
       <section className="matrix-public-tariffs" data-phase56-tariff-preview="canonical-three-plans">
         <div className="matrix-page-header">
@@ -197,14 +213,23 @@ export default function Landing() {
                   <small>/ {plan.duration_days} дней</small>
                 </div>
                 <div className="metric-pill w-fit">{plan.device_limit} устройств</div>
-                <ul>
-                  {plan.features.slice(0, 3).map((feature) => (
-                    <li key={feature}>
-                      <Check className="h-4 w-4 text-emerald-100" />
-                      <span>{feature}</span>
-                    </li>
-                  ))}
-                </ul>
+                <details className="phase62-inline-details">
+                  <summary className="phase62-fold-summary">
+                    <span className="flex min-w-0 items-center gap-2">
+                      <Check className="h-4 w-4 shrink-0 text-emerald-100" />
+                      <span className="truncate font-semibold">Внутри</span>
+                    </span>
+                    <span className="text-xs muted">{plan.features.length}</span>
+                  </summary>
+                  <ul className="mt-3">
+                    {plan.features.slice(0, 3).map((feature) => (
+                      <li key={feature}>
+                        <Check className="h-4 w-4 text-emerald-100" />
+                        <span>{feature}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </details>
               </article>
             )
           })}

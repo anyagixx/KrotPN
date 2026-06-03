@@ -1,12 +1,12 @@
 // FILE: frontend/src/pages/Dashboard.tsx
-// VERSION: 1.6.0
+// VERSION: 1.7.0
 // ROLE: UI_COMPONENT
 // MAP_MODE: SUMMARY
 // START_MODULE_CONTRACT
-//   PURPOSE: Premium compact Matrix command center showing VPN status, config action, subscription, MTProto proxy, traffic, device summary, and Phase-59 feedback
-//   SCOPE: Mobile first-screen workflow, primary config/subscription CTA, MTProto owner actions, active device summary, compact traffic and connection facts, copy microinteractions, and status transitions
-//   DEPENDS: M-009 (frontend-user), M-002 (auth API), M-003 (vpn stats API), M-004 (billing API), M-022 (device API), M-036 (mobile-user-cabinet), M-045 (mtproto-user-cabinet), M-051 (mtproto-availability-diagnostics), M-071 (matrix-style-system), M-075 (premium-user-cabinet), M-077 (matrix-motion-interactions)
-//   LINKS: M-009 (frontend-user), M-036 (mobile-user-cabinet), M-045, M-051, M-071, M-075, M-077, Phase-59
+//   PURPOSE: Premium compact Matrix command center showing VPN status, config action, subscription, MTProto proxy, traffic, device summary, Phase-59 feedback, and Phase-62 deletion-audit compaction
+//   SCOPE: Mobile first-screen workflow, primary config/subscription CTA, MTProto owner actions, compact diagnostics folded behind a secondary surface, active device summary, copy microinteractions, and status transitions
+//   DEPENDS: M-009 (frontend-user), M-002 (auth API), M-003 (vpn stats API), M-004 (billing API), M-022 (device API), M-036 (mobile-user-cabinet), M-038 (compact-ui-system), M-045 (mtproto-user-cabinet), M-051 (mtproto-availability-diagnostics), M-071 (matrix-style-system), M-074 (responsive-device-adaptation), M-075 (premium-user-cabinet), M-077 (matrix-motion-interactions)
+//   LINKS: M-009 (frontend-user), M-036 (mobile-user-cabinet), M-038, M-045, M-051, M-071, M-074, M-075, M-077, Phase-59, Phase-62
 // END_MODULE_CONTRACT
 //
 // START_MODULE_MAP
@@ -14,11 +14,12 @@
 //   buildMtprotoTelegramAppLink - Builds tg://proxy action link from the owner payload for Telegram app opening
 //   buildMtprotoBrowserLink - Builds https://t.me/proxy browser/copy link from the owner payload
 //   mtprotoIntroText - Builds a non-duplicating MTProto card intro line
-//   BLOCK_DASHBOARD_PAGE - DashboardPage default export with Phase-57 VPN, subscription, MTProto, config, device command surfaces, and Phase-59 feedback markers
+//   BLOCK_DASHBOARD_PAGE - DashboardPage default export with Phase-57 VPN, subscription, MTProto, config, device command surfaces, Phase-59 feedback markers, and Phase-62 folded diagnostics
 //   default - React component (default export)
 // END_MODULE_MAP
 //
 // START_CHANGE_SUMMARY
+//   LAST_CHANGE: v3.7.0 - Added Phase-62 dashboard deletion audit markers and folded duplicate traffic/device diagnostics behind a secondary surface.
 //   LAST_CHANGE: v3.6.0 - Added Phase-59 MTProto copy feedback, status transition markers, and motion-safe action classes.
 //   LAST_CHANGE: v3.5.0 - Added Phase-57 premium command center, one/two-tap protected route actions, and dense first-screen task strip.
 //   LAST_CHANGE: v3.4.0 - Applied Phase-53 compact Matrix dashboard surfaces without changing API refresh contracts.
@@ -237,12 +238,14 @@ export default function Dashboard() {
       className="content-section matrix-page animate-in"
       data-phase53-route="dashboard"
       data-phase57-route="dashboard"
+      data-phase62-user-surface="dashboard-compact"
       data-phase59-status-transitions="[MatrixMotion][phase59][STATUS_TRANSITIONS_READY]"
     >
       <section
         className="phase57-command-center"
         data-phase57-command-center="true"
         data-phase57-first-screen-tasks="vpn subscription mtproto devices"
+        data-phase62-keep="[CompactDeletionAudit][phase62][PRIMARY_WORKFLOWS_PRESERVED]"
       >
         <div className="phase57-command-header">
           <div className="min-w-0">
@@ -391,85 +394,101 @@ export default function Dashboard() {
         )}
       </section>
 
-      <section className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4" data-phase57-dashboard-metrics="compact">
-        <article className="metric-card" data-phase53-dashboard-metric="vpn-status" data-phase57-dashboard-metric="vpn-status">
-          <div className="flex items-center gap-3">
-            <Shield className="h-5 w-5 shrink-0 text-emerald-200" />
-            <div className="min-w-0">
-              <p className="metric-label">{t('status')}</p>
-              <p className="truncate font-bold">{isConnected ? t('connected') : t('disconnected')}</p>
-            </div>
-          </div>
-        </article>
+      <details
+        className="phase62-secondary-fold"
+        data-phase62-collapse="[CompactDeletionAudit][phase62][USER_SURFACES_PRUNED]"
+        data-phase62-dashboard-diagnostics="traffic-device-server"
+      >
+        <summary className="phase62-fold-summary">
+          <span className="flex min-w-0 items-center gap-2">
+            <Server className="h-4 w-4 shrink-0 text-cyan-100" />
+            <span className="truncate font-semibold">Трафик, сервер и устройства</span>
+          </span>
+          <span className="text-xs muted">вторичные детали</span>
+        </summary>
 
-        <article className="metric-card" data-phase53-dashboard-metric="devices" data-phase57-dashboard-metric="devices">
-          <div className="flex items-center gap-3">
-            <Smartphone className="h-5 w-5 shrink-0 text-cyan-100" />
-            <div className="min-w-0">
-              <p className="metric-label">Устройства</p>
-              <p className="truncate font-bold">
-                {devicesLoading ? 'Загрузка' : devicesError ? 'Недоступно' : `${consumedSlots}/${deviceLimit || '∞'}`}
-              </p>
-            </div>
-          </div>
-        </article>
-
-        <article className="metric-card" data-phase53-dashboard-metric="upload" data-phase57-dashboard-metric="upload">
-          <div className="flex items-center gap-3">
-            <ArrowUp className="h-5 w-5 shrink-0 text-emerald-200" />
-            <div className="min-w-0">
-              <p className="metric-label">{t('upload')}</p>
-              <p className="truncate font-bold">{stats?.total_upload_formatted || '0 B'}</p>
-            </div>
-          </div>
-        </article>
-
-        <article className="metric-card" data-phase53-dashboard-metric="download" data-phase57-dashboard-metric="download">
-          <div className="flex items-center gap-3">
-            <ArrowDown className="h-5 w-5 shrink-0 text-cyan-100" />
-            <div className="min-w-0">
-              <p className="metric-label">{t('download')}</p>
-              <p className="truncate font-bold">{stats?.total_download_formatted || '0 B'}</p>
-            </div>
-          </div>
-        </article>
-      </section>
-
-      <section className="grid gap-3 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
-        <article className="phase57-card-compact">
-          <div className="flex items-start gap-3">
-            <Server className="mt-1 h-5 w-5 shrink-0 text-cyan-100" />
-            <div className="min-w-0">
-              <h2 className="text-lg font-bold">Сервер и соединение</h2>
-              <p className="mt-1 truncate text-sm muted">{isConnected ? stats?.server_name || 'Connected' : 'Ожидает активации'}</p>
-              <div className="mt-3 flex items-start gap-3 text-sm text-slate-100">
-                <Clock className="mt-0.5 h-4 w-4 shrink-0 text-cyan-100" />
-                <span className="min-w-0 break-words">{lastHandshake}</span>
+        <div className="mt-3 grid gap-3">
+          <section className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4" data-phase57-dashboard-metrics="compact">
+            <article className="metric-card" data-phase53-dashboard-metric="vpn-status" data-phase57-dashboard-metric="vpn-status">
+              <div className="flex items-center gap-3">
+                <Shield className="h-5 w-5 shrink-0 text-emerald-200" />
+                <div className="min-w-0">
+                  <p className="metric-label">{t('status')}</p>
+                  <p className="truncate font-bold">{isConnected ? t('connected') : t('disconnected')}</p>
+                </div>
               </div>
-            </div>
-          </div>
-        </article>
+            </article>
 
-        <article className="phase57-card-compact">
-          <div className="flex items-start gap-3">
-            <Smartphone className="mt-1 h-5 w-5 shrink-0 text-cyan-100" />
-            <div className="min-w-0 flex-1">
-              <h2 className="text-lg font-bold">Device-bound конфиги</h2>
-              <p className="mt-1 text-sm muted">
-                {devicesError
-                  ? 'Список устройств временно недоступен.'
-                  : activeDevices
-                    ? `${activeDevices} активных устройств. QR и .conf открываются в разделе конфигурации.`
-                    : 'Создайте первое устройство, чтобы получить отдельный peer и конфиг.'}
-              </p>
-              <Link to="/dashboard/config" className="btn-secondary motion-interactive mt-4 min-h-11 w-full justify-start rounded-lg px-3 py-2.5">
-                <FileCode2 className="h-5 w-5" />
-                Открыть конфигурацию
-              </Link>
-            </div>
-          </div>
-        </article>
-      </section>
+            <article className="metric-card" data-phase53-dashboard-metric="devices" data-phase57-dashboard-metric="devices">
+              <div className="flex items-center gap-3">
+                <Smartphone className="h-5 w-5 shrink-0 text-cyan-100" />
+                <div className="min-w-0">
+                  <p className="metric-label">Устройства</p>
+                  <p className="truncate font-bold">
+                    {devicesLoading ? 'Загрузка' : devicesError ? 'Недоступно' : `${consumedSlots}/${deviceLimit || '∞'}`}
+                  </p>
+                </div>
+              </div>
+            </article>
+
+            <article className="metric-card" data-phase53-dashboard-metric="upload" data-phase57-dashboard-metric="upload">
+              <div className="flex items-center gap-3">
+                <ArrowUp className="h-5 w-5 shrink-0 text-emerald-200" />
+                <div className="min-w-0">
+                  <p className="metric-label">{t('upload')}</p>
+                  <p className="truncate font-bold">{stats?.total_upload_formatted || '0 B'}</p>
+                </div>
+              </div>
+            </article>
+
+            <article className="metric-card" data-phase53-dashboard-metric="download" data-phase57-dashboard-metric="download">
+              <div className="flex items-center gap-3">
+                <ArrowDown className="h-5 w-5 shrink-0 text-cyan-100" />
+                <div className="min-w-0">
+                  <p className="metric-label">{t('download')}</p>
+                  <p className="truncate font-bold">{stats?.total_download_formatted || '0 B'}</p>
+                </div>
+              </div>
+            </article>
+          </section>
+
+          <section className="grid gap-3 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
+            <article className="phase57-card-compact">
+              <div className="flex items-start gap-3">
+                <Server className="mt-1 h-5 w-5 shrink-0 text-cyan-100" />
+                <div className="min-w-0">
+                  <h2 className="text-lg font-bold">Сервер и соединение</h2>
+                  <p className="mt-1 truncate text-sm muted">{isConnected ? stats?.server_name || 'Connected' : 'Ожидает активации'}</p>
+                  <div className="mt-3 flex items-start gap-3 text-sm text-slate-100">
+                    <Clock className="mt-0.5 h-4 w-4 shrink-0 text-cyan-100" />
+                    <span className="min-w-0 break-words">{lastHandshake}</span>
+                  </div>
+                </div>
+              </div>
+            </article>
+
+            <article className="phase57-card-compact">
+              <div className="flex items-start gap-3">
+                <Smartphone className="mt-1 h-5 w-5 shrink-0 text-cyan-100" />
+                <div className="min-w-0 flex-1">
+                  <h2 className="text-lg font-bold">Device-bound конфиги</h2>
+                  <p className="mt-1 text-sm muted">
+                    {devicesError
+                      ? 'Список устройств временно недоступен.'
+                      : activeDevices
+                        ? `${activeDevices} активных устройств. QR и .conf открываются в разделе конфигурации.`
+                        : 'Создайте первое устройство, чтобы получить отдельный peer и конфиг.'}
+                  </p>
+                  <Link to="/dashboard/config" className="btn-secondary motion-interactive mt-4 min-h-11 w-full justify-start rounded-lg px-3 py-2.5">
+                    <FileCode2 className="h-5 w-5" />
+                    Открыть конфигурацию
+                  </Link>
+                </div>
+              </div>
+            </article>
+          </section>
+        </div>
+      </details>
 
       {!hasSubscription ? (
         <section className="phase57-card-compact">

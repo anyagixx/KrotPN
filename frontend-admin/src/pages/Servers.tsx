@@ -1,16 +1,16 @@
 // FILE: frontend-admin/src/pages/Servers.tsx
-// VERSION: 1.3.0
+// VERSION: 1.4.0
 // ROLE: UI_COMPONENT
 // MAP_MODE: SUMMARY
 // START_MODULE_CONTRACT
-//   PURPOSE: Compact Matrix admin page for server/node management, Phase-58 topology cockpit density, and Phase-61 responsive route bounds
-//   SCOPE: List, create, edit, delete VPN servers/nodes, route topology, confirmation prompts, Phase-54 compact viewport markers, bounded topology inventories, and min-width route containment
-//   DEPENDS: M-010 (frontend-admin), M-006 (admin API), M-037 (mobile-admin-console), M-071 (matrix-style-system), M-074 (responsive-device-adaptation), M-076 (premium-admin-cockpit)
-//   LINKS: M-010, M-037, M-071, M-074, M-076, Phase-54, Phase-58, Phase-61
+//   PURPOSE: Compact Matrix admin page for server/node management, Phase-58 topology cockpit density, Phase-61 responsive route bounds, and Phase-62 deletion-audit compaction
+//   SCOPE: List, create, edit, delete VPN servers/nodes, route topology, confirmation prompts, Phase-54 compact viewport markers, bounded topology inventories, folded legacy compatibility notes, and min-width route containment
+//   DEPENDS: M-010 (frontend-admin), M-006 (admin API), M-037 (mobile-admin-console), M-038 (compact-ui-system), M-071 (matrix-style-system), M-074 (responsive-device-adaptation), M-076 (premium-admin-cockpit)
+//   LINKS: M-010, M-037, M-038, M-071, M-074, M-076, Phase-54, Phase-58, Phase-61, Phase-62
 // END_MODULE_CONTRACT
 //
 // START_MODULE_MAP
-//   ServersPage - Main admin servers page component
+//   ServersPage - Main admin servers page component with Phase-62 folded secondary topology notes
 //   getLoadTone - Helper: load percentage tone
 //   getNodeRoleTone - Helper: node role badge tone
 //   getNodeRoleLabel - Helper: node role label text
@@ -22,6 +22,7 @@
 // END_MODULE_MAP
 //
 // START_CHANGE_SUMMARY
+//   LAST_CHANGE: v3.3.0 - Added Phase-62 topology deletion audit markers and folded legacy compatibility note behind secondary details.
 //   LAST_CHANGE: v3.2.0 - Phase-61 added root min-width containment for phone/tablet topology safety.
 //   LAST_CHANGE: v3.1.0 - Phase-58 added topology cockpit route, bounded inventory markers, and confirmation guard evidence.
 //   LAST_CHANGE: v3.0.0 - Phase-54 compact Matrix server topology layout with safe radii and route viewport markers.
@@ -339,6 +340,7 @@ export default function Servers() {
       className="page-shell min-w-0"
       data-phase54-admin-route="servers"
       data-phase58-route="servers"
+      data-phase62-admin-surface="[CompactDeletionAudit][phase62][ADMIN_SURFACES_INVENTORIED]"
       data-log-marker="[MatrixStyleSystem][phase54][ADMIN_ROUTES_READABLE]"
     >
       <div className="page-header">
@@ -424,6 +426,7 @@ export default function Servers() {
               <div
                 className="grid grid-cols-1 gap-4 xl:grid-cols-2 bounded-scroll phase58-inventory-list phase58-scroll-rail"
                 data-phase58-inventory="[PremiumAdminCockpit][phase58][INVENTORIES_BOUNDED]"
+                data-phase62-bounded="[CompactDeletionAudit][phase62][ADMIN_INVENTORIES_BOUNDED]"
               >
                 {nodeItems.map((node: AdminNode) => (
                   <div key={node.id} className="panel p-4">
@@ -548,6 +551,7 @@ export default function Servers() {
               <div
                 className="grid grid-cols-1 gap-4 xl:grid-cols-2 bounded-scroll phase58-inventory-list phase58-scroll-rail"
                 data-phase58-inventory="[PremiumAdminCockpit][phase58][INVENTORIES_BOUNDED]"
+                data-phase62-bounded="[CompactDeletionAudit][phase62][ADMIN_INVENTORIES_BOUNDED]"
               >
                 {routeItems.map((route: AdminRoute) => (
                   <div key={route.id} className="panel p-4">
@@ -636,12 +640,18 @@ export default function Servers() {
             )}
           </section>
 
-          <section className="panel p-4">
-            <h2 className="text-xl font-bold">Legacy compatibility</h2>
-            <p className="mt-2 text-sm muted">
+          <details
+            className="panel p-4 phase62-admin-fold"
+            data-phase62-collapse="[CompactDeletionAudit][phase62][ADMIN_SURFACES_PRUNED]"
+          >
+            <summary className="phase62-fold-summary">
+              <span className="truncate font-semibold">Legacy compatibility</span>
+              <span className="text-xs muted">rollback</span>
+            </summary>
+            <p className="mt-3 text-sm muted">
               Основной UI больше не зависит от `/admin/servers`. Legacy API сохранён для совместимости и rollback-сценариев.
             </p>
-          </section>
+          </details>
         </>
       )}
 

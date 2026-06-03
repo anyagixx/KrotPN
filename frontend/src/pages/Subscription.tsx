@@ -1,22 +1,23 @@
 // FILE: frontend/src/pages/Subscription.tsx
-// VERSION: 1.3.0
+// VERSION: 1.4.0
 // ROLE: UI_COMPONENT
 // MAP_MODE: SUMMARY
 // START_MODULE_CONTRACT
-//   PURPOSE: Premium compact Matrix subscription page with current status, countdown/calendar, readable plan rows, and payment initiation
-//   SCOPE: Subscription status summary, compact plan list, server-derived countdown/calendar, payment creation and redirect to payment URL
-//   DEPENDS: M-009 (frontend-user), M-004 (billing API), M-036 (mobile-user-cabinet), M-038 (compact-ui-system), M-071 (matrix-style-system), M-075 (premium-user-cabinet)
-//   LINKS: M-009 (frontend-user), M-036 (mobile-user-cabinet), M-038 (compact-ui-system), M-071, M-075
+//   PURPOSE: Premium compact Matrix subscription page with current status, countdown/calendar, readable plan rows, payment initiation, and Phase-62 folded plan details
+//   SCOPE: Subscription status summary, compact plan list, server-derived countdown/calendar, payment creation and redirect to payment URL, folded included/features copy
+//   DEPENDS: M-009 (frontend-user), M-004 (billing API), M-036 (mobile-user-cabinet), M-038 (compact-ui-system), M-071 (matrix-style-system), M-074 (responsive-device-adaptation), M-075 (premium-user-cabinet)
+//   LINKS: M-009 (frontend-user), M-036 (mobile-user-cabinet), M-038 (compact-ui-system), M-071, M-074, M-075, Phase-62
 // END_MODULE_CONTRACT
 //
 // START_MODULE_MAP
-//   SubscriptionPage - Premium compact plans listing, countdown, calendar, and subscription status component
+//   SubscriptionPage - Premium compact plans listing, countdown, calendar, subscription status component, and Phase-62 folded details
 //   planIcons - Icon mapping for plan rows
 //   BLOCK_SUBSCRIPTION_PAGE - SubscriptionPage default export with Phase-57 compact billing workflow
 //   default - React component (default export)
 // END_MODULE_MAP
 //
 // START_CHANGE_SUMMARY
+//   LAST_CHANGE: v2.14.0 - Added Phase-62 subscription deletion audit markers and folded secondary tariff/features copy.
 //   LAST_CHANGE: v2.13.0 - Added Phase-57 compact subscription command surface, countdown/calendar markers, and renewal CTA guard.
 //   LAST_CHANGE: v2.12.0 - Applied Phase-53 compact Matrix tariff/status/calendar surfaces without changing checkout shape.
 //   LAST_CHANGE: v2.11.0 - Added Phase-50 three paid tariffs with device-limit usage and downgrade guard UX.
@@ -131,9 +132,13 @@ export default function Subscription() {
   }
 
   return (
-    <div className="content-section matrix-page animate-in" data-phase53-route="subscription" data-phase57-route="subscription">
+    <div className="content-section matrix-page animate-in" data-phase53-route="subscription" data-phase57-route="subscription" data-phase62-user-surface="subscription-compact">
       <section className="grid gap-3 lg:grid-cols-[minmax(0,1fr)_minmax(260px,0.75fr)]">
-        <article className="phase57-command-center" data-phase57-subscription-countdown="server-derived">
+        <article
+          className="phase57-command-center"
+          data-phase57-subscription-countdown="server-derived"
+          data-phase62-keep="[CompactDeletionAudit][phase62][PRIMARY_WORKFLOWS_PRESERVED]"
+        >
           <div className="flex items-start justify-between gap-3">
             <div className="min-w-0">
               <p className="text-xs font-bold uppercase text-cyan-100/70">Текущая подписка</p>
@@ -168,15 +173,22 @@ export default function Subscription() {
           </div>
         </article>
 
-        <article className="phase57-card-compact">
-          <div className="flex items-start gap-3">
+        <details className="phase57-card-compact phase62-inline-details" data-phase62-collapse="subscription-included-copy">
+          <summary className="phase62-fold-summary">
+            <span className="flex min-w-0 items-center gap-2">
+              <ShieldCheck className="h-4 w-4 shrink-0 text-emerald-200" />
+              <span className="truncate font-semibold">Что включено</span>
+            </span>
+            <span className="text-xs muted">кратко</span>
+          </summary>
+          <div className="mt-3 flex items-start gap-3">
             <ShieldCheck className="mt-1 h-5 w-5 shrink-0 text-emerald-200" />
             <div className="min-w-0">
               <h2 className="text-lg font-bold">Что включено</h2>
               <p className="mt-1 text-sm muted">VPN-туннель, личный кабинет, QR, `.conf` и device-bound конфиги.</p>
             </div>
           </div>
-        </article>
+        </details>
       </section>
 
       <section className="phase57-card-compact" data-phase45-subscription-calendar="true" data-phase57-subscription-calendar="active-range">
@@ -282,14 +294,23 @@ export default function Subscription() {
               </div>
 
               {plan.features?.length ? (
-                <ul className="mt-4 grid gap-2 sm:grid-cols-2">
-                  {plan.features.map((feature: string, i: number) => (
-                    <li key={i} className="flex min-w-0 items-start gap-2 text-sm text-slate-100">
-                      <Check className="mt-0.5 h-4 w-4 shrink-0 text-emerald-200" />
-                      <span className="min-w-0 break-words">{feature}</span>
-                    </li>
-                  ))}
-                </ul>
+                <details className="phase62-inline-details mt-3" data-phase62-collapse="tariff-features">
+                  <summary className="phase62-fold-summary">
+                    <span className="flex min-w-0 items-center gap-2">
+                      <Check className="h-4 w-4 shrink-0 text-emerald-200" />
+                      <span className="truncate font-semibold">Детали тарифа</span>
+                    </span>
+                    <span className="text-xs muted">{plan.features.length}</span>
+                  </summary>
+                  <ul className="mt-3 grid gap-2 sm:grid-cols-2">
+                    {plan.features.map((feature: string, i: number) => (
+                      <li key={i} className="flex min-w-0 items-start gap-2 text-sm text-slate-100">
+                        <Check className="mt-0.5 h-4 w-4 shrink-0 text-emerald-200" />
+                        <span className="min-w-0 break-words">{feature}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </details>
               ) : null}
             </article>
           )

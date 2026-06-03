@@ -1,10 +1,10 @@
 /* FILE: frontend/src/index.css
- * VERSION: 1.5.0
+ * VERSION: 1.6.0
  * ROLE: UI_COMPONENT
  * MAP_MODE: SUMMARY
  * START_MODULE_CONTRACT
- *   PURPOSE: Shared user-frontend styling tokens, compact Matrix route surfaces, Matrix visual foundation, Phase-55 premium art direction, Phase-57 user command surfaces, Phase-59 motion language, and Phase-61 phone/tablet adaptation gates
- *   SCOPE: Base typography, premium palette/type/density/logo tokens, Matrix background/canvas/CRT layers, auth/page/layout surfaces, panel/button/input/status/metric/empty-state classes, Phase-57 dense command cards, Phase-59 motion/microinteraction primitives, Phase-61 responsive phone/tablet/safe-area rules, focus and reduced-motion policy
+ *   PURPOSE: Shared user-frontend styling tokens, compact Matrix route surfaces, Matrix visual foundation, Phase-55 premium art direction, Phase-57 user command surfaces, Phase-59 motion language, Phase-61 phone/tablet adaptation gates, and Phase-62 deletion-audit compaction
+ *   SCOPE: Base typography, premium palette/type/density/logo tokens, Matrix background/canvas/CRT layers, auth/page/layout surfaces, panel/button/input/status/metric/empty-state classes, Phase-57 dense command cards, Phase-59 motion/microinteraction primitives, Phase-61 responsive phone/tablet/safe-area rules, Phase-62 folded secondary surfaces, focus and reduced-motion policy
  *   DEPENDS: M-009 (frontend-user), M-036 (mobile-user-cabinet), M-038 (compact-ui-system), M-070 (matrix-visual-runtime), M-071 (matrix-style-system), M-072 (premium-art-direction-system), M-074 (responsive-device-adaptation), M-075 (premium-user-cabinet), M-077 (matrix-motion-interactions)
  *   LINKS: M-009 (frontend-user), M-036 (mobile-user-cabinet), M-038 (compact-ui-system), M-070, M-071, M-072, M-074, M-075, M-077, Phase-61
  * END_MODULE_CONTRACT
@@ -13,7 +13,7 @@
  *   base - Root color, typography, density, logo, and document background tokens
  *   premium-art-direction - Phase-55 balanced palette, compact type scale, density, and logo rules
  *   matrix-visual-system - Canvas, scanline, vignette, and content stacking layers
- *   route-surfaces - Matrix public, auth, layout, page, command, terminal, row, action-grid, and Phase-57 command center classes
+ *   route-surfaces - Matrix public, auth, layout, page, command, terminal, row, action-grid, Phase-57 command center classes, and Phase-62 folded secondary surfaces
  *   components - App shell, panel, button, input, status, metric, empty-state classes
  *   matrix-motion-interactions - Phase-59 motion budget, route transitions, copy feedback, status transitions, and safe interaction classes
  *   responsive-device-adaptation - Phase-61 phone, tablet, safe-area, no-overflow, bounded-scroll, and touch-target rules
@@ -21,6 +21,7 @@
  * END_MODULE_MAP
  *
  * START_CHANGE_SUMMARY
+ *   LAST_CHANGE: v3.7.0 - Added Phase-62 deletion audit fold primitives for public/auth, dashboard, config, and subscription secondary content.
  *   LAST_CHANGE: v3.6.0 - Added Phase-61 phone/tablet responsive adaptation, safe-area, no-overflow, bounded-scroll, and touch-target markers.
  *   LAST_CHANGE: v3.5.0 - Added Phase-59 Matrix motion budget, copy/status feedback primitives, route entrance motion, and reduced-motion fallback markers.
  *   LAST_CHANGE: v3.4.0 - Added Phase-57 premium user cabinet dense command center, signal strip, compact card, and scroll-list primitives.
@@ -606,6 +607,66 @@
     grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
   }
   /* END_BLOCK_PHASE57_USER_CABINET_SURFACES */
+
+  /* START_BLOCK_PHASE62_COMPACTNESS_DELETION_AUDIT */
+  .phase62-secondary-fold,
+  .phase62-inline-details,
+  .phase62-public-fold {
+    min-width: 0;
+    max-width: 100%;
+    border: 1px solid rgba(104, 232, 255, 0.12);
+    border-radius: var(--premium-radius);
+    background: rgba(2, 12, 9, 0.58);
+  }
+
+  .phase62-secondary-fold {
+    @apply p-3;
+  }
+
+  .phase62-inline-details {
+    @apply p-3;
+  }
+
+  .phase62-public-fold {
+    @apply p-3;
+  }
+
+  .phase62-public-fold[open] {
+    @apply gap-3;
+  }
+
+  .phase62-fold-summary {
+    @apply flex min-w-0 cursor-pointer list-none items-center justify-between gap-3 text-sm text-slate-100;
+    min-height: 44px;
+    overflow-wrap: anywhere;
+    word-break: break-word;
+  }
+
+  .phase62-fold-summary::-webkit-details-marker {
+    display: none;
+  }
+
+  .phase62-fold-summary::after {
+    content: '+';
+    flex-shrink: 0;
+    color: var(--matrix-cyan);
+  }
+
+  details[open] > .phase62-fold-summary::after {
+    content: '-';
+  }
+
+  .phase62-secondary-fold,
+  .phase62-inline-details,
+  .phase62-public-fold,
+  .phase62-fold-summary {
+    /* [CompactDeletionAudit][phase62][USER_SURFACES_INVENTORIED] */
+    /* [CompactDeletionAudit][phase62][USER_SURFACES_PRUNED] */
+    /* [CompactDeletionAudit][phase62][PRIMARY_WORKFLOWS_PRESERVED] */
+    /* [CompactDeletionAudit][phase62][PUBLIC_AUTH_CLARITY_PRESERVED] */
+    /* [CompactDeletionAudit][phase62][RESPONSIVE_COMPACTNESS_PRESERVED] */
+  }
+  /* END_BLOCK_PHASE62_COMPACTNESS_DELETION_AUDIT */
 
   .glass {
     background: var(--panel-strong);

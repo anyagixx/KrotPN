@@ -1,16 +1,16 @@
 // FILE: frontend-admin/src/pages/MTProtoAnalytics.tsx
-// VERSION: 2.7.0
+// VERSION: 2.8.0
 // ROLE: UI_COMPONENT
 // MAP_MODE: SUMMARY
 // START_MODULE_CONTRACT
-//   PURPOSE: Compact Matrix admin MTProto analytics console with usage graphs, alert review, user investigation, runtime metrics, promotion tag controls, Phase-58 readonly cockpit markers, and Phase-59 feedback
-//   SCOPE: Overview, Users, Abuse, Settings tabs, top users, user detail drawer with IP history, alert actions with operator tooltips, auto-refresh, masked promotion tag update, Phase-54 visibility guards, Phase-58 analytics/read-only proof, and status/feedback transitions
-//   DEPENDS: M-010 (frontend-admin), M-058 (mtproto-admin-analytics-ui), M-057 (admin analytics API), M-059 (promotion tag), M-060 (alerts), M-061 (IP observability), M-070 (matrix-visual-runtime), M-071 (matrix-style-system), M-076 (premium-admin-cockpit), M-077 (matrix-motion-interactions)
-//   LINKS: M-058, M-057, M-059, M-060, M-061, M-070, M-071, M-076, M-077, V-M-058, Phase-54, Phase-58, Phase-59
+//   PURPOSE: Compact Matrix admin MTProto analytics console with usage graphs, alert review, user investigation, runtime metrics, promotion tag controls, Phase-58 readonly cockpit markers, Phase-59 feedback, and Phase-62 deletion-audit compaction
+//   SCOPE: Overview, Users, Abuse, Settings tabs, top users, user detail drawer with IP history, folded alert archive, auto-refresh, masked promotion tag update, Phase-54 visibility guards, Phase-58 analytics/read-only proof, and status/feedback transitions
+//   DEPENDS: M-010 (frontend-admin), M-058 (mtproto-admin-analytics-ui), M-057 (admin analytics API), M-059 (promotion tag), M-060 (alerts), M-061 (IP observability), M-070 (matrix-visual-runtime), M-071 (matrix-style-system), M-074 (responsive-device-adaptation), M-076 (premium-admin-cockpit), M-077 (matrix-motion-interactions)
+//   LINKS: M-058, M-057, M-059, M-060, M-061, M-070, M-071, M-074, M-076, M-077, V-M-058, Phase-54, Phase-58, Phase-59, Phase-62
 // END_MODULE_CONTRACT
 //
 // START_MODULE_MAP
-//   MTProtoAnalyticsPanel - Compact analytics panel embedded in MTProto admin page
+//   MTProtoAnalyticsPanel - Compact analytics panel embedded in MTProto admin page with Phase-62 folded secondary surfaces
 //   formatBytes - Helper: render byte counters
 //   formatDuration - Helper: render millisecond durations
 //   formatDate - Helper: render ISO timestamps
@@ -19,6 +19,7 @@
 // END_MODULE_MAP
 //
 // START_CHANGE_SUMMARY
+//   LAST_CHANGE: v2.8.0 - Added Phase-62 admin deletion audit markers and folded alert archive/storage details without hiding abuse actions.
 //   LAST_CHANGE: v2.7.0 - Added Phase-59 analytics feedback, status transition, and chart motion markers.
 //   LAST_CHANGE: v2.6.0 - Phase-58 added readonly analytics, chart, bounded user/IP, and alert review cockpit markers.
 //   LAST_CHANGE: v2.5.0 - Phase-54 added compact Matrix chart frames, bounded analytics lists, and explicit redaction/Signals-hidden markers.
@@ -299,6 +300,7 @@ export default function MTProtoAnalyticsPanel() {
       data-phase43-mtproto-analytics
       data-phase54-mtproto-analytics="compact"
       data-phase58-runtime-readonly="[PremiumAdminCockpit][phase58][ANALYTICS_RUNTIME_READONLY]"
+      data-phase62-admin-surface="[CompactDeletionAudit][phase62][ADMIN_SURFACES_INVENTORIED]"
       data-phase59-status-transitions="[MatrixMotion][phase59][STATUS_TRANSITIONS_READY]"
       data-phase59-microinteractions="[MatrixMotion][phase59][MICROINTERACTIONS_READY]"
       data-observe-mode="observe-only"
@@ -558,7 +560,11 @@ export default function MTProtoAnalyticsPanel() {
 
       {activeTab === 'abuse' ? (
         <div className="grid gap-3">
-          <div className="surface p-3 phase58-readonly-frame" data-log-marker="[M-058][admin_mtproto_analytics_ui][ALERT_REVIEW]">
+          <div
+            className="surface p-3 phase58-readonly-frame"
+            data-log-marker="[M-058][admin_mtproto_analytics_ui][ALERT_REVIEW]"
+            data-phase62-keep="[CompactDeletionAudit][phase62][EMERGENCY_CONTROLS_PRESERVED]"
+          >
             <div className="flex items-center gap-2">
               <AlertTriangle className="h-4 w-4 text-cyan-200" />
               <h3 className="text-sm font-semibold text-white">Alerts</h3>
@@ -626,29 +632,35 @@ export default function MTProtoAnalyticsPanel() {
                 </div>
               ))}
             </div>
-            <div className="mt-4 flex items-center justify-between gap-2">
-              <h4 className="text-xs font-semibold uppercase text-slate-400">Archive</h4>
-              <span className="neutral-pill">{archivedAlerts.length}</span>
-            </div>
-            <div className="mt-2 compact-list bounded-scroll max-h-[260px] phase58-scroll-rail" data-log-marker="[M-058][admin_mtproto_analytics_ui][ALERT_ARCHIVE]">
-              {archivedAlerts.length === 0 ? (
-                <p className="py-4 pl-4 text-sm muted">Архив пуст</p>
-              ) : archivedAlerts.map((alert: AdminMTProtoAlert) => (
-                <div key={`archive-${alert.id}-${alert.status}`} className="list-row py-3">
-                  <div className="row-main">
-                    <div className="min-w-0">
-                      <p className="row-title">{alert.signal_type}</p>
-                      <p className="row-subtitle">{alert.user_email || `Assignment #${alert.assignment_id || 'unknown'}`} · {formatDate(alert.resolved_at || alert.acknowledged_at || alert.last_seen_at)}</p>
+            <details
+              className="phase62-admin-fold mt-4"
+              data-phase62-collapse="[CompactDeletionAudit][phase62][ADMIN_SURFACES_PRUNED]"
+              data-log-marker="[M-058][admin_mtproto_analytics_ui][ALERT_ARCHIVE]"
+            >
+              <summary className="phase62-fold-summary">
+                <span className="text-xs font-semibold uppercase text-slate-400">Archive</span>
+                <span className="neutral-pill">{archivedAlerts.length}</span>
+              </summary>
+              <div className="mt-2 compact-list bounded-scroll max-h-[260px] phase58-scroll-rail">
+                {archivedAlerts.length === 0 ? (
+                  <p className="py-4 pl-4 text-sm muted">Архив пуст</p>
+                ) : archivedAlerts.map((alert: AdminMTProtoAlert) => (
+                  <div key={`archive-${alert.id}-${alert.status}`} className="list-row py-3">
+                    <div className="row-main">
+                      <div className="min-w-0">
+                        <p className="row-title">{alert.signal_type}</p>
+                        <p className="row-subtitle">{alert.user_email || `Assignment #${alert.assignment_id || 'unknown'}`} · {formatDate(alert.resolved_at || alert.acknowledged_at || alert.last_seen_at)}</p>
+                      </div>
+                      <span className="neutral-pill motion-status">{alert.status}</span>
                     </div>
-                    <span className="neutral-pill motion-status">{alert.status}</span>
+                    <div className="row-meta">
+                      <span className="meta-cell"><span className="meta-label">Action</span><span className="meta-value">{alert.action_taken || 'review'}</span></span>
+                      <span className="meta-cell"><span className="meta-label">Result</span><span className="meta-value">{alert.action_result || alert.status}</span></span>
+                    </div>
                   </div>
-                  <div className="row-meta">
-                    <span className="meta-cell"><span className="meta-label">Action</span><span className="meta-value">{alert.action_taken || 'review'}</span></span>
-                    <span className="meta-cell"><span className="meta-label">Result</span><span className="meta-value">{alert.action_result || alert.status}</span></span>
-                  </div>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+            </details>
           </div>
         </div>
       ) : null}
@@ -727,16 +739,19 @@ export default function MTProtoAnalyticsPanel() {
               </div>
             </div>
 
-            <div className="surface p-3">
-              <div className="flex items-center gap-2">
-                <Database className="h-4 w-4 text-cyan-200" />
-                <h3 className="text-sm font-semibold text-white">Storage</h3>
-              </div>
+            <details className="surface p-3 phase62-admin-fold" data-phase62-collapse="mtproto-storage-secondary">
+              <summary className="phase62-fold-summary">
+                <span className="flex min-w-0 items-center gap-2">
+                  <Database className="h-4 w-4 shrink-0 text-cyan-200" />
+                  <span className="truncate font-semibold">Storage</span>
+                </span>
+                <span className="text-xs muted">retention</span>
+              </summary>
               <div className="mt-3 grid gap-2 sm:grid-cols-2">
                 <div className="metric-tile"><HardDrive className="mb-2 h-4 w-4 text-cyan-100" /><span className="metric-label">Estimated</span><strong className="mt-1 block text-sm text-white">{formatBytes(storage?.estimated_bytes)}</strong></div>
                 <div className="metric-tile"><MemoryStick className="mb-2 h-4 w-4 text-cyan-100" /><span className="metric-label">IP rows</span><strong className="mt-1 block text-sm text-white">{storage?.counts?.ip_observations ?? 0}</strong></div>
               </div>
-            </div>
+            </details>
           </div>
         </div>
       ) : null}

@@ -1,10 +1,10 @@
 /* FILE: frontend-admin/src/index.css
- * VERSION: 1.5.0
+ * VERSION: 1.6.0
  * ROLE: UI_COMPONENT
  * MAP_MODE: SUMMARY
  * START_MODULE_CONTRACT
- *   PURPOSE: Shared admin-frontend styling tokens, compact admin surfaces, Phase-52 Matrix visual foundation, Phase-54 admin console primitives, Phase-55 premium art direction, Phase-58 operator cockpit density, Phase-59 motion language, and Phase-61 phone/tablet adaptation gates
- *   SCOPE: Admin shell, login console, navigation, panels, forms, data tables, charts, premium palette/type/density/logo tokens, Matrix background/canvas/CRT layers, Phase-58 command cockpit primitives, Phase-59 motion/microinteraction primitives, Phase-61 responsive phone/tablet/safe-area rules, focus and reduced-motion policy
+ *   PURPOSE: Shared admin-frontend styling tokens, compact admin surfaces, Phase-52 Matrix visual foundation, Phase-54 admin console primitives, Phase-55 premium art direction, Phase-58 operator cockpit density, Phase-59 motion language, Phase-61 phone/tablet adaptation gates, and Phase-62 deletion-audit compaction
+ *   SCOPE: Admin shell, login console, navigation, panels, forms, data tables, charts, premium palette/type/density/logo tokens, Matrix background/canvas/CRT layers, Phase-58 command cockpit primitives, Phase-59 motion/microinteraction primitives, Phase-61 responsive phone/tablet/safe-area rules, Phase-62 folded admin secondary surfaces, focus and reduced-motion policy
  *   DEPENDS: M-010 (frontend-admin), M-037 (admin-mtproto-ui), M-038 (compact-ui-system), M-047 (mtproto-admin-ops), M-058 (mtproto-admin-analytics-ui), M-068 (tariff-catalog), M-070 (matrix-visual-runtime), M-071 (matrix-style-system), M-072 (premium-art-direction-system), M-074 (responsive-device-adaptation), M-076 (premium-admin-cockpit), M-077 (matrix-motion-interactions)
  *   LINKS: M-010 (frontend-admin), M-037, M-038, M-047, M-058, M-068, M-070, M-071, M-072, M-074, M-076, M-077, Phase-61
  * END_MODULE_CONTRACT
@@ -15,13 +15,14 @@
  *   matrix-visual-system - Canvas, scanline, vignette, and content stacking layers
  *   admin-shell - Rail, topbar, mobile tabbar, content sizing
  *   admin-matrix-ui - Phase-54 compact login, toolbar, KPI, chart, route, and bounded-scroll primitives
- *   premium-admin-cockpit - Phase-58 command center, dense signal strips, bounded inventories, readonly analytics, and confirmation surfaces
+ *   premium-admin-cockpit - Phase-58 command center, dense signal strips, bounded inventories, readonly analytics, confirmation surfaces, and Phase-62 folded secondary surfaces
  *   matrix-motion-interactions - Phase-59 motion budget, route transitions, feedback states, status transitions, and safe interaction classes
  *   responsive-device-adaptation - Phase-61 phone, tablet, safe-area, no-overflow, bounded-scroll, chart/table, and touch-target rules
  *   components - Panel, button, input, metric, list, table, and modal classes
  * END_MODULE_MAP
  *
  * START_CHANGE_SUMMARY
+ *   LAST_CHANGE: v3.6.0 - Added Phase-62 admin deletion audit fold primitives for secondary analytics, archive, storage, and topology notes.
  *   LAST_CHANGE: v3.5.0 - Added Phase-61 admin phone/tablet responsive adaptation, safe-area, bounded list/chart/table, and touch-target markers.
  *   LAST_CHANGE: v3.4.0 - Added Phase-59 Matrix motion budget, feedback/status primitives, route entrance motion, and reduced-motion fallback markers.
  *   LAST_CHANGE: v3.3.0 - Phase-58 added premium admin cockpit density, bounded inventory rails, readonly analytics frames, and reduced-motion markers.
@@ -536,6 +537,46 @@ textarea:focus-visible,
   @apply grid gap-3;
 }
 /* END_BLOCK_PHASE58_PREMIUM_ADMIN_COCKPIT */
+
+/* START_BLOCK_PHASE62_COMPACTNESS_DELETION_AUDIT */
+.phase62-admin-fold {
+  min-width: 0;
+  max-width: 100%;
+  border-radius: var(--premium-radius);
+}
+
+.phase62-fold-summary {
+  @apply flex min-w-0 cursor-pointer list-none items-center justify-between gap-3 text-sm text-slate-100;
+  min-height: 44px;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+.phase62-fold-summary::-webkit-details-marker {
+  display: none;
+}
+
+.phase62-fold-summary::after {
+  content: '+';
+  flex-shrink: 0;
+  color: var(--matrix-cyan);
+}
+
+details[open] > .phase62-fold-summary::after {
+  content: '-';
+}
+
+.phase62-admin-fold,
+.phase62-fold-summary,
+[data-phase62-admin-surface],
+[data-phase62-bounded] {
+  /* [CompactDeletionAudit][phase62][ADMIN_SURFACES_INVENTORIED] */
+  /* [CompactDeletionAudit][phase62][ADMIN_SURFACES_PRUNED] */
+  /* [CompactDeletionAudit][phase62][EMERGENCY_CONTROLS_PRESERVED] */
+  /* [CompactDeletionAudit][phase62][REDACTION_CONFIRMATION_PRESERVED] */
+  /* [CompactDeletionAudit][phase62][ADMIN_INVENTORIES_BOUNDED] */
+}
+/* END_BLOCK_PHASE62_COMPACTNESS_DELETION_AUDIT */
 
 .btn-primary,
 .btn-secondary,

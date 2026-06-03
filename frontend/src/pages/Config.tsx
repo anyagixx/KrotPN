@@ -1,16 +1,16 @@
 // FILE: frontend/src/pages/Config.tsx
-// VERSION: 1.4.0
+// VERSION: 1.5.0
 // ROLE: UI_COMPONENT
 // MAP_MODE: SUMMARY
 // START_MODULE_CONTRACT
-//   PURPOSE: Premium compact Matrix VPN configuration page for device registry, config download/copy/QR, raw-config fallback, and Phase-59 action feedback
-//   SCOPE: Device CRUD (create/rotate/revoke), selected config actions, QR modal, collapsed raw config, compact install guidance, copy/download microinteractions, and status transitions
-//   DEPENDS: M-009 (frontend-user), M-003 (vpn config API), M-002 (auth API), M-022 (device provisioning API), M-036 (mobile-user-cabinet), M-071 (matrix-style-system), M-075 (premium-user-cabinet), M-077 (matrix-motion-interactions)
-//   LINKS: M-009 (frontend-user), M-036 (mobile-user-cabinet), M-071, M-075, M-077, Phase-59
+//   PURPOSE: Premium compact Matrix VPN configuration page for device registry, config download/copy/QR, raw-config fallback, Phase-59 action feedback, and Phase-62 folded install guidance
+//   SCOPE: Device CRUD (create/rotate/revoke), selected config actions, QR modal, collapsed raw config, secondary install guidance, copy/download microinteractions, and status transitions
+//   DEPENDS: M-009 (frontend-user), M-003 (vpn config API), M-002 (auth API), M-022 (device provisioning API), M-036 (mobile-user-cabinet), M-038 (compact-ui-system), M-071 (matrix-style-system), M-074 (responsive-device-adaptation), M-075 (premium-user-cabinet), M-077 (matrix-motion-interactions)
+//   LINKS: M-009 (frontend-user), M-036 (mobile-user-cabinet), M-038, M-071, M-074, M-075, M-077, Phase-59, Phase-62
 // END_MODULE_CONTRACT
 //
 // START_MODULE_MAP
-//   ConfigPage - Premium compact config page component with device management, QR modal, and collapsed raw config
+//   ConfigPage - Premium compact config page component with device management, QR modal, collapsed raw config, and Phase-62 folded guidance
 //   QRModal - Client-side QR modal with AmneziaWG and AmneziaVPN guidance
 //   buildConfigDownloadBlob - Creates octet-stream config download blobs
 //   buildConfigDownloadFilename - Creates safe .conf download filenames
@@ -18,6 +18,7 @@
 // END_MODULE_MAP
 //
 // START_CHANGE_SUMMARY
+//   LAST_CHANGE: v3.4.0 - Added Phase-62 config deletion audit markers and folded install diagnostics behind compact details surfaces.
 //   LAST_CHANGE: v3.3.0 - Added Phase-59 copy/download microinteraction markers and status transition classes.
 //   LAST_CHANGE: v3.2.0 - Added Phase-57 compact config command surface, protected subscription link, scroll-safe device list, and workflow markers.
 //   LAST_CHANGE: v3.1.0 - Applied Phase-53 compact Matrix config/device surfaces without changing download semantics.
@@ -198,7 +199,7 @@ export default function Config() {
 
   if (hasNoConfig || isForbidden) {
     return (
-      <div className="content-section matrix-page animate-in" data-phase53-route="config" data-phase57-route="config">
+      <div className="content-section matrix-page animate-in" data-phase53-route="config" data-phase57-route="config" data-phase62-user-surface="config-compact">
         <section className="phase57-command-center" data-phase57-config-empty-state="true">
           <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
             <div className="min-w-0">
@@ -233,8 +234,12 @@ export default function Config() {
   }
 
   return (
-    <div className="content-section matrix-page animate-in" data-phase53-route="config" data-phase57-route="config">
-      <section className="grid gap-3 lg:grid-cols-[minmax(0,1fr)_minmax(260px,0.75fr)]" data-phase57-config-workflow="qr-download-copy-device">
+    <div className="content-section matrix-page animate-in" data-phase53-route="config" data-phase57-route="config" data-phase62-user-surface="config-compact">
+      <section
+        className="grid gap-3 lg:grid-cols-[minmax(0,1fr)_minmax(260px,0.75fr)]"
+        data-phase57-config-workflow="qr-download-copy-device"
+        data-phase62-keep="[CompactDeletionAudit][phase62][PRIMARY_WORKFLOWS_PRESERVED]"
+      >
         <article className="phase57-command-center">
           <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
             <div className="min-w-0">
@@ -399,48 +404,62 @@ export default function Config() {
         </article>
       </section>
 
-      <section className="grid gap-3 lg:grid-cols-2">
-        <article className="phase57-card-compact">
-          <div className="flex items-start gap-3">
-            <Smartphone className="mt-1 h-5 w-5 shrink-0 text-emerald-200" />
-            <div className="min-w-0">
-              <h2 className="text-lg font-bold">Телефон и планшет</h2>
-              <p className="mt-1 text-sm muted">Android и iPhone через QR или импорт файла.</p>
-            </div>
-          </div>
-          <ol className="mt-4 space-y-2 text-sm text-slate-200">
-            <li>1. Установите клиент AmneziaWG.</li>
-            <li>2. Откройте QR-код или импортируйте конфигурационный файл.</li>
-            <li>3. Активируйте профиль и включите туннель.</li>
-          </ol>
-          <button
-            onClick={() => setShowQR(true)}
-            className="btn-secondary motion-interactive mt-4 min-h-11 w-full rounded-lg px-3 py-2.5"
-          >
-            <QrCode className="h-5 w-5" />
-            Показать QR-код
-          </button>
-        </article>
+      <details
+        className="phase62-secondary-fold"
+        data-phase62-collapse="[CompactDeletionAudit][phase62][USER_SURFACES_PRUNED]"
+        data-phase62-config-guidance="folded-install-help"
+      >
+        <summary className="phase62-fold-summary">
+          <span className="flex min-w-0 items-center gap-2">
+            <Smartphone className="h-4 w-4 shrink-0 text-emerald-200" />
+            <span className="truncate font-semibold">Инструкции импорта</span>
+          </span>
+          <span className="text-xs muted">телефон / компьютер</span>
+        </summary>
 
-        <article className="phase57-card-compact">
-          <div className="flex items-start gap-3">
-            <Monitor className="mt-1 h-5 w-5 shrink-0 text-cyan-100" />
-            <div className="min-w-0">
-              <h2 className="text-lg font-bold">Компьютер</h2>
-              <p className="mt-1 text-sm muted">Windows, macOS и Linux через `.conf`.</p>
+        <section className="mt-3 grid gap-3 lg:grid-cols-2">
+          <article className="phase57-card-compact">
+            <div className="flex items-start gap-3">
+              <Smartphone className="mt-1 h-5 w-5 shrink-0 text-emerald-200" />
+              <div className="min-w-0">
+                <h2 className="text-lg font-bold">Телефон и планшет</h2>
+                <p className="mt-1 text-sm muted">Android и iPhone через QR или импорт файла.</p>
+              </div>
             </div>
-          </div>
-          <ol className="mt-4 space-y-2 text-sm text-slate-200">
-            <li>1. Скачайте AmneziaVPN или совместимый клиент.</li>
-            <li>2. Импортируйте выданный конфиг.</li>
-            <li>3. Сохраните профиль и нажмите подключение.</li>
-          </ol>
-          <button onClick={handleDownload} className="btn-primary motion-interactive mt-4 min-h-11 w-full rounded-lg px-3 py-2.5">
-            <Download className="h-5 w-5" />
-            {t('downloadConfig')}
-          </button>
-        </article>
-      </section>
+            <ol className="mt-4 space-y-2 text-sm text-slate-200">
+              <li>1. Установите клиент AmneziaWG.</li>
+              <li>2. Откройте QR-код или импортируйте конфигурационный файл.</li>
+              <li>3. Активируйте профиль и включите туннель.</li>
+            </ol>
+            <button
+              onClick={() => setShowQR(true)}
+              className="btn-secondary motion-interactive mt-4 min-h-11 w-full rounded-lg px-3 py-2.5"
+            >
+              <QrCode className="h-5 w-5" />
+              Показать QR-код
+            </button>
+          </article>
+
+          <article className="phase57-card-compact">
+            <div className="flex items-start gap-3">
+              <Monitor className="mt-1 h-5 w-5 shrink-0 text-cyan-100" />
+              <div className="min-w-0">
+                <h2 className="text-lg font-bold">Компьютер</h2>
+                <p className="mt-1 text-sm muted">Windows, macOS и Linux через `.conf`.</p>
+              </div>
+            </div>
+            <ol className="mt-4 space-y-2 text-sm text-slate-200">
+              <li>1. Скачайте AmneziaVPN или совместимый клиент.</li>
+              <li>2. Импортируйте выданный конфиг.</li>
+              <li>3. Сохраните профиль и нажмите подключение.</li>
+            </ol>
+            <button onClick={handleDownload} className="btn-primary motion-interactive mt-4 min-h-11 w-full rounded-lg px-3 py-2.5">
+              <Download className="h-5 w-5" />
+              {t('downloadConfig')}
+            </button>
+          </article>
+        </section>
+      </details>
 
       {showQR ? (
         <QRModal
@@ -469,20 +488,29 @@ export default function Config() {
       </section>
 
       {config ? (
-        <section className="grid gap-3 md:grid-cols-3">
-          <div className="metric-card">
-            <p className="metric-label">Статус</p>
-            <p className="mt-1 truncate font-bold">Connected to Server</p>
-          </div>
-          <div className="metric-card">
-            <p className="metric-label">VPN IP</p>
-            <p className="mt-1 break-all font-bold">{config.address}</p>
-          </div>
-          <div className="metric-card">
-            <p className="metric-label">Создан</p>
-            <p className="mt-1 font-bold">{new Date(config.created_at).toLocaleDateString('ru-RU')}</p>
-          </div>
-        </section>
+        <details className="phase62-secondary-fold" data-phase62-collapse="config-diagnostics">
+          <summary className="phase62-fold-summary">
+            <span className="flex min-w-0 items-center gap-2">
+              <FileCode2 className="h-4 w-4 shrink-0 text-cyan-100" />
+              <span className="truncate font-semibold">Диагностика конфига</span>
+            </span>
+            <span className="text-xs muted">{config.address}</span>
+          </summary>
+          <section className="mt-3 grid gap-3 md:grid-cols-3">
+            <div className="metric-card">
+              <p className="metric-label">Статус</p>
+              <p className="mt-1 truncate font-bold">Connected to Server</p>
+            </div>
+            <div className="metric-card">
+              <p className="metric-label">VPN IP</p>
+              <p className="mt-1 break-all font-bold">{config.address}</p>
+            </div>
+            <div className="metric-card">
+              <p className="metric-label">Создан</p>
+              <p className="mt-1 font-bold">{new Date(config.created_at).toLocaleDateString('ru-RU')}</p>
+            </div>
+          </section>
+        </details>
       ) : null}
     </div>
   )
