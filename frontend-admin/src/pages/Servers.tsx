@@ -1,12 +1,12 @@
 // FILE: frontend-admin/src/pages/Servers.tsx
-// VERSION: 1.2.0
+// VERSION: 1.3.0
 // ROLE: UI_COMPONENT
 // MAP_MODE: SUMMARY
 // START_MODULE_CONTRACT
-//   PURPOSE: Compact Matrix admin page for server/node management and Phase-58 topology cockpit density
-//   SCOPE: List, create, edit, delete VPN servers/nodes, route topology, confirmation prompts, Phase-54 compact viewport markers, and bounded topology inventories
-//   DEPENDS: M-010 (frontend-admin), M-006 (admin API), M-037 (mobile-admin-console), M-071 (matrix-style-system), M-076 (premium-admin-cockpit)
-//   LINKS: M-010, M-037, M-071, M-076, Phase-54, Phase-58
+//   PURPOSE: Compact Matrix admin page for server/node management, Phase-58 topology cockpit density, and Phase-61 responsive route bounds
+//   SCOPE: List, create, edit, delete VPN servers/nodes, route topology, confirmation prompts, Phase-54 compact viewport markers, bounded topology inventories, and min-width route containment
+//   DEPENDS: M-010 (frontend-admin), M-006 (admin API), M-037 (mobile-admin-console), M-071 (matrix-style-system), M-074 (responsive-device-adaptation), M-076 (premium-admin-cockpit)
+//   LINKS: M-010, M-037, M-071, M-074, M-076, Phase-54, Phase-58, Phase-61
 // END_MODULE_CONTRACT
 //
 // START_MODULE_MAP
@@ -22,6 +22,7 @@
 // END_MODULE_MAP
 //
 // START_CHANGE_SUMMARY
+//   LAST_CHANGE: v3.2.0 - Phase-61 added root min-width containment for phone/tablet topology safety.
 //   LAST_CHANGE: v3.1.0 - Phase-58 added topology cockpit route, bounded inventory markers, and confirmation guard evidence.
 //   LAST_CHANGE: v3.0.0 - Phase-54 compact Matrix server topology layout with safe radii and route viewport markers.
 //   LAST_CHANGE: v2.8.0 - Added full GRACE MODULE_CONTRACT and MODULE_MAP per GRACE governance protocol
@@ -335,7 +336,7 @@ export default function Servers() {
 
   return (
     <div
-      className="page-shell"
+      className="page-shell min-w-0"
       data-phase54-admin-route="servers"
       data-phase58-route="servers"
       data-log-marker="[MatrixStyleSystem][phase54][ADMIN_ROUTES_READABLE]"

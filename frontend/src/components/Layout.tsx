@@ -1,22 +1,23 @@
 // FILE: frontend/src/components/Layout.tsx
-// VERSION: 1.3.0
+// VERSION: 1.4.0
 // ROLE: UI_COMPONENT
 // MAP_MODE: SUMMARY
 // START_MODULE_CONTRACT
-//   PURPOSE: Compact premium Matrix application layout with phone-safe navigation, user identity, logout, and routed page outlet
-//   SCOPE: Desktop Matrix sidebar, mobile top bar, mobile bottom navigation, logout action, Outlet for routed protected user pages
-//   DEPENDS: M-009 (frontend-user), M-002 (auth API), M-036 (mobile-user-cabinet), M-038 (compact-ui-system), M-071 (matrix-style-system), M-075 (premium-user-cabinet)
-//   LINKS: M-009 (frontend-user), M-036 (mobile-user-cabinet), M-038 (compact-ui-system), M-071, M-075
+//   PURPOSE: Compact premium Matrix application layout with phone/tablet-safe navigation, user identity, logout, and routed page outlet
+//   SCOPE: Desktop Matrix sidebar, mobile top bar, mobile bottom navigation, logout action, safe-area responsive markers, Outlet for routed protected user pages
+//   DEPENDS: M-009 (frontend-user), M-002 (auth API), M-036 (mobile-user-cabinet), M-038 (compact-ui-system), M-071 (matrix-style-system), M-074 (responsive-device-adaptation), M-075 (premium-user-cabinet)
+//   LINKS: M-009 (frontend-user), M-036 (mobile-user-cabinet), M-038 (compact-ui-system), M-071, M-074, M-075
 // END_MODULE_CONTRACT
 //
 // START_MODULE_MAP
-//   Layout - Compact premium Matrix responsive layout component with desktop sidebar and mobile bars
+//   Layout - Compact premium Matrix responsive layout component with desktop sidebar, mobile bars, and Phase-61 responsive markers
 //   navItems - Route metadata for the compact user cabinet
 //   BLOCK_LAYOUT - Layout default export with responsive shell and Phase-57 protected cabinet navigation
 //   default - React component (default export)
 // END_MODULE_MAP
 //
 // START_CHANGE_SUMMARY
+//   LAST_CHANGE: v1.5.0 - Added Phase-61 phone/tablet responsive shell, safe-area, and protected-route static proof markers.
 //   LAST_CHANGE: v1.4.0 - Added Phase-57 premium user cabinet layout markers and compact protected-route shell ownership
 //   LAST_CHANGE: v1.3.1 - Moved user cabinet navigation to /dashboard routes and kept dashboard active state exact for Phase-56 public landing
 //   LAST_CHANGE: v3.0.0 - Reworked protected user shell into Phase-53 compact Matrix navigation surfaces
@@ -59,8 +60,8 @@ export default function Layout() {
   }
 
   return (
-    <div className="app-shell" data-phase53-layout="user-matrix" data-phase57-layout="premium-user-cabinet">
-      <div className="matrix-layout-frame">
+    <div className="app-shell" data-phase53-layout="user-matrix" data-phase57-layout="premium-user-cabinet" data-phase61-layout="phone-tablet-safe">
+      <div className="matrix-layout-frame" data-phase61-viewport-frame="[ResponsiveAdaptation][phase61][VIEWPORT_MATRIX_READY]">
         <aside className="matrix-sidebar">
           <div className="matrix-sidebar-header flex items-center gap-3 border-b px-4 py-4">
             <div className="matrix-brand-mark h-10 w-10">
@@ -105,7 +106,7 @@ export default function Layout() {
         </aside>
 
         <div className="flex min-w-0 flex-1 flex-col">
-          <header className="panel mb-2 flex items-center justify-between gap-3 px-3 py-3 lg:hidden">
+          <header className="panel mb-2 flex items-center justify-between gap-3 px-3 py-3 lg:hidden" data-phase61-mobile-header="safe-area-compact">
             <div className="flex min-w-0 items-center gap-3">
               <div className="matrix-brand-mark h-10 w-10">
                 <Shield className="h-5 w-5" />
@@ -120,14 +121,14 @@ export default function Layout() {
             </button>
           </header>
 
-          <main className="matrix-main-panel" data-phase57-protected-main="dashboard-routes">
+          <main className="matrix-main-panel" data-phase57-protected-main="dashboard-routes" data-phase61-protected-user-static="[ResponsiveAdaptation][phase61][PROTECTED_USER_STATIC_PROOF]">
             <div className="p-3 pb-24 sm:p-4 lg:p-5 lg:pb-5">
               <Outlet />
             </div>
           </main>
         </div>
 
-        <nav className="matrix-bottom-nav">
+        <nav className="matrix-bottom-nav" data-phase61-mobile-nav="[ResponsiveAdaptation][phase61][SAFE_AREA_PASS]">
           {navItems.map((item) => (
             <NavLink
               key={item.to}

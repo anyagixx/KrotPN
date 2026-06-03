@@ -1,22 +1,23 @@
 // FILE: frontend-admin/src/components/Layout.tsx
-// VERSION: 1.3.0
+// VERSION: 1.4.0
 // ROLE: UI_COMPONENT
 // MAP_MODE: SUMMARY
 // START_MODULE_CONTRACT
-//   PURPOSE: Compact Matrix admin layout shell with responsive operator navigation, header meta, route outlet, and Phase-58 cockpit density markers
-//   SCOPE: Desktop rail, mobile tab bar, page metadata display, MTProto admin entry, compact admin identity, logout, Phase-54 route-safety markers, and Phase-58 protected route shell
-//   DEPENDS: M-010 (frontend-admin), M-037 (mobile-admin-console), M-038 (compact-ui-system), M-047 (mtproto-admin-ops), M-070 (matrix-visual-runtime), M-071 (matrix-style-system), M-076 (premium-admin-cockpit), auth store, react-router-dom
-//   LINKS: M-010, M-037, M-038, M-047, M-070, M-071, M-076, Phase-54, Phase-58
+//   PURPOSE: Compact Matrix admin layout shell with phone/tablet-safe operator navigation, header meta, route outlet, and Phase-58 cockpit density markers
+//   SCOPE: Desktop rail, mobile tab bar, page metadata display, MTProto admin entry, compact admin identity, logout, Phase-54 route-safety markers, Phase-58 protected route shell, and Phase-61 responsive static proof markers
+//   DEPENDS: M-010 (frontend-admin), M-037 (mobile-admin-console), M-038 (compact-ui-system), M-047 (mtproto-admin-ops), M-070 (matrix-visual-runtime), M-071 (matrix-style-system), M-074 (responsive-device-adaptation), M-076 (premium-admin-cockpit), auth store, react-router-dom
+//   LINKS: M-010, M-037, M-038, M-047, M-070, M-071, M-074, M-076, Phase-54, Phase-58, Phase-61
 // END_MODULE_CONTRACT
 //
 // START_MODULE_MAP
 //   navItems - Admin navigation menu configuration (route, icon, label, hint)
 //   pageMeta - Route-to-title/description mapping for compact header display
-//   Layout - Default export: compact admin shell with desktop rail, mobile tab bar, header, and outlet
+//   Layout - Default export: compact admin shell with desktop rail, mobile tab bar, header, outlet, and Phase-61 responsive markers
 //   default - React component (default export)
 // END_MODULE_MAP
 //
 // START_CHANGE_SUMMARY
+//   LAST_CHANGE: v3.6.0 - Added Phase-61 phone/tablet responsive admin shell, safe-area, and static route proof markers.
 //   LAST_CHANGE: v3.5.0 - Phase-58 marked the admin shell as premium cockpit routes with compact main density and protected route evidence.
 //   LAST_CHANGE: v3.4.0 - Phase-54 Matrix admin shell markers and compact route hints for mobile-safe operations.
 //   LAST_CHANGE: v3.2.0 - Added Phase-33 compact MTProto admin navigation entry
@@ -91,6 +92,8 @@ export default function Layout() {
       data-phase58-admin-shell="premium-cockpit"
       data-phase58-routes="[PremiumAdminCockpit][phase58][ROUTES_READY]"
       data-phase58-reduced-motion="[PremiumAdminCockpit][phase58][REDUCED_MOTION_SAFE]"
+      data-phase61-layout="phone-tablet-safe"
+      data-phase61-viewport-frame="[ResponsiveAdaptation][phase61][VIEWPORT_MATRIX_READY]"
       data-log-marker="[MobileAdminConsole][Phase54][ROUTE_VIEWPORT_SAFE]"
     >
       <aside className="admin-rail" aria-label="Admin navigation">
@@ -120,7 +123,7 @@ export default function Layout() {
       </aside>
 
       <div className="admin-content">
-        <header className="topbar" data-log-marker="[FrontendAdmin][Phase54][ROUTE_MATRIX_READY]">
+        <header className="topbar" data-phase61-mobile-header="safe-area-compact" data-log-marker="[FrontendAdmin][Phase54][ROUTE_MATRIX_READY]">
           <div className="min-w-0">
             <div className="flex items-center gap-2 text-xs font-semibold uppercase text-emerald-200">
               <span>KrotPN</span>
@@ -140,12 +143,12 @@ export default function Layout() {
           </div>
         </header>
 
-        <main className="phase58-cockpit-main" data-phase58-protected-main="admin-routes">
+        <main className="phase58-cockpit-main" data-phase58-protected-main="admin-routes" data-phase61-admin-static="[ResponsiveAdaptation][phase61][ADMIN_STATIC_PROOF]">
           <Outlet />
         </main>
       </div>
 
-      <nav className="mobile-tabbar" aria-label="Mobile admin navigation">
+      <nav className="mobile-tabbar" aria-label="Mobile admin navigation" data-phase61-mobile-nav="[ResponsiveAdaptation][phase61][SAFE_AREA_PASS]">
         {navItems.map((item) => (
           <NavLink
             key={item.to}

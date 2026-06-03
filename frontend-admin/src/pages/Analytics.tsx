@@ -1,12 +1,12 @@
 // FILE: frontend-admin/src/pages/Analytics.tsx
-// VERSION: 1.3.0
+// VERSION: 1.4.0
 // ROLE: UI_COMPONENT
 // MAP_MODE: SUMMARY
 // START_MODULE_CONTRACT
-//   PURPOSE: Compact Matrix admin analytics page with payment, subscription, referral, conversion, chart detail summaries, and Phase-58 readonly operator proof
-//   SCOPE: Period-selectable KPI summaries, billing stats, referral funnel, trial-to-paid conversion, chart frames, mobile-safe route markers, and premium readonly analytics guard
-//   DEPENDS: M-010 (frontend-admin), M-006 (admin API), M-037 (mobile-admin-console), M-038 (compact-ui-system), M-071 (matrix-style-system), M-076 (premium-admin-cockpit)
-//   LINKS: M-010, M-037, M-038, M-071, M-076, Phase-54, Phase-58
+//   PURPOSE: Compact Matrix admin analytics page with payment, subscription, referral, conversion, chart detail summaries, Phase-58 readonly operator proof, and Phase-61 responsive route bounds
+//   SCOPE: Period-selectable KPI summaries, billing stats, referral funnel, trial-to-paid conversion, chart frames, mobile-safe route markers, premium readonly analytics guard, and min-width route containment
+//   DEPENDS: M-010 (frontend-admin), M-006 (admin API), M-037 (mobile-admin-console), M-038 (compact-ui-system), M-071 (matrix-style-system), M-074 (responsive-device-adaptation), M-076 (premium-admin-cockpit)
+//   LINKS: M-010, M-037, M-038, M-071, M-074, M-076, Phase-54, Phase-58, Phase-61
 // END_MODULE_CONTRACT
 //
 // START_MODULE_MAP
@@ -17,6 +17,7 @@
 // END_MODULE_MAP
 //
 // START_CHANGE_SUMMARY
+//   LAST_CHANGE: v3.2.0 - Phase-61 added root min-width containment for phone/tablet chart safety.
 //   LAST_CHANGE: v3.1.0 - Phase-58 marked analytics as readonly premium cockpit chart surface.
 //   LAST_CHANGE: v3.0.0 - Phase-54 added Matrix route markers and compact chart frames for admin analytics.
 //   LAST_CHANGE: v2.8.0 - Added full GRACE MODULE_CONTRACT and MODULE_MAP per GRACE governance protocol
@@ -76,7 +77,7 @@ export default function Analytics() {
 
   return (
     <div
-      className="page-shell"
+      className="page-shell min-w-0"
       data-phase54-admin-route="analytics"
       data-phase58-route="analytics"
       data-phase58-runtime-readonly="[PremiumAdminCockpit][phase58][ANALYTICS_RUNTIME_READONLY]"

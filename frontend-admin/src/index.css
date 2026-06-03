@@ -1,12 +1,12 @@
 /* FILE: frontend-admin/src/index.css
- * VERSION: 1.4.0
+ * VERSION: 1.5.0
  * ROLE: UI_COMPONENT
  * MAP_MODE: SUMMARY
  * START_MODULE_CONTRACT
- *   PURPOSE: Shared admin-frontend styling tokens, compact admin surfaces, Phase-52 Matrix visual foundation, Phase-54 admin console primitives, Phase-55 premium art direction, Phase-58 operator cockpit density, and Phase-59 motion language
- *   SCOPE: Admin shell, login console, navigation, panels, forms, data tables, charts, premium palette/type/density/logo tokens, Matrix background/canvas/CRT layers, Phase-58 command cockpit primitives, Phase-59 motion/microinteraction primitives, focus and reduced-motion policy
- *   DEPENDS: M-010 (frontend-admin), M-037 (admin-mtproto-ui), M-038 (compact-ui-system), M-047 (mtproto-admin-ops), M-058 (mtproto-admin-analytics-ui), M-068 (tariff-catalog), M-070 (matrix-visual-runtime), M-071 (matrix-style-system), M-072 (premium-art-direction-system), M-076 (premium-admin-cockpit), M-077 (matrix-motion-interactions)
- *   LINKS: M-010 (frontend-admin), M-037, M-038, M-047, M-058, M-068, M-070, M-071, M-072, M-076, M-077, Phase-58, Phase-59
+ *   PURPOSE: Shared admin-frontend styling tokens, compact admin surfaces, Phase-52 Matrix visual foundation, Phase-54 admin console primitives, Phase-55 premium art direction, Phase-58 operator cockpit density, Phase-59 motion language, and Phase-61 phone/tablet adaptation gates
+ *   SCOPE: Admin shell, login console, navigation, panels, forms, data tables, charts, premium palette/type/density/logo tokens, Matrix background/canvas/CRT layers, Phase-58 command cockpit primitives, Phase-59 motion/microinteraction primitives, Phase-61 responsive phone/tablet/safe-area rules, focus and reduced-motion policy
+ *   DEPENDS: M-010 (frontend-admin), M-037 (admin-mtproto-ui), M-038 (compact-ui-system), M-047 (mtproto-admin-ops), M-058 (mtproto-admin-analytics-ui), M-068 (tariff-catalog), M-070 (matrix-visual-runtime), M-071 (matrix-style-system), M-072 (premium-art-direction-system), M-074 (responsive-device-adaptation), M-076 (premium-admin-cockpit), M-077 (matrix-motion-interactions)
+ *   LINKS: M-010 (frontend-admin), M-037, M-038, M-047, M-058, M-068, M-070, M-071, M-072, M-074, M-076, M-077, Phase-61
  * END_MODULE_CONTRACT
  *
  * START_MODULE_MAP
@@ -17,10 +17,12 @@
  *   admin-matrix-ui - Phase-54 compact login, toolbar, KPI, chart, route, and bounded-scroll primitives
  *   premium-admin-cockpit - Phase-58 command center, dense signal strips, bounded inventories, readonly analytics, and confirmation surfaces
  *   matrix-motion-interactions - Phase-59 motion budget, route transitions, feedback states, status transitions, and safe interaction classes
+ *   responsive-device-adaptation - Phase-61 phone, tablet, safe-area, no-overflow, bounded-scroll, chart/table, and touch-target rules
  *   components - Panel, button, input, metric, list, table, and modal classes
  * END_MODULE_MAP
  *
  * START_CHANGE_SUMMARY
+ *   LAST_CHANGE: v3.5.0 - Added Phase-61 admin phone/tablet responsive adaptation, safe-area, bounded list/chart/table, and touch-target markers.
  *   LAST_CHANGE: v3.4.0 - Added Phase-59 Matrix motion budget, feedback/status primitives, route entrance motion, and reduced-motion fallback markers.
  *   LAST_CHANGE: v3.3.0 - Phase-58 added premium admin cockpit density, bounded inventory rails, readonly analytics frames, and reduced-motion markers.
  *   LAST_CHANGE: v3.2.0 - Added Phase-55 premium Matrix art-direction tokens, density rules, logo rules, and non-orb shell background.
@@ -789,6 +791,240 @@ textarea:focus-visible,
   border-radius: var(--premium-radius);
   box-shadow: var(--shadow);
 }
+
+/* START_BLOCK_PHASE61_RESPONSIVE_ADAPTATION */
+.app-shell,
+.admin-content,
+.phase58-cockpit-main,
+.page-shell,
+.page-header,
+.topbar,
+.panel,
+.surface,
+.glass,
+.compact-list,
+.list-row,
+.row-main,
+.row-meta,
+.metric-strip,
+.metric-tile,
+.metric-strip-item,
+.phase58-command-center,
+.phase58-card-compact,
+.phase58-readonly-frame,
+.chart-frame,
+.data-table,
+.confirm-sheet {
+  min-width: 0;
+  max-width: 100%;
+}
+
+.app-shell {
+  padding-left: env(safe-area-inset-left);
+  padding-right: env(safe-area-inset-right);
+}
+
+.phase58-cockpit-main {
+  padding-bottom: calc(5.75rem + env(safe-area-inset-bottom));
+}
+
+.mobile-tabbar {
+  padding-bottom: calc(0.5rem + env(safe-area-inset-bottom));
+}
+
+.mobile-tab,
+.rail-link,
+.btn-primary,
+.btn-secondary,
+.btn-danger,
+.input {
+  min-height: 44px;
+}
+
+.compact-list,
+.bounded-scroll,
+.phase58-inventory-list,
+.phase58-scroll-rail,
+.chart-frame {
+  overscroll-behavior: contain;
+  scrollbar-gutter: stable;
+}
+
+.chart-frame,
+.phase58-chart-card,
+.phase58-readonly-frame,
+.row-title,
+.row-subtitle,
+.meta-value,
+.metric-value,
+.metric-strip-item,
+.status-row {
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+.data-table {
+  table-layout: auto;
+}
+
+@media (min-width: 768px) and (max-width: 1023px) {
+  .app-shell {
+    min-height: 100dvh;
+  }
+
+  .topbar {
+    min-height: 72px;
+    padding-inline: 1rem;
+  }
+
+  .phase58-cockpit-main {
+    max-width: 940px;
+    padding: 1rem 1rem calc(6.25rem + env(safe-area-inset-bottom));
+  }
+
+  .phase58-command-center {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .phase58-signal-strip,
+  .metric-grid,
+  .mini-kpi-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+
+  .phase58-action-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .phase58-inventory-list {
+    max-height: min(64vh, 680px);
+  }
+}
+
+@media (max-width: 767px) {
+  .topbar {
+    align-items: flex-start;
+    min-height: 70px;
+    padding: 0.75rem;
+  }
+
+  .operator-chip {
+    max-width: 44px;
+  }
+
+  .phase58-cockpit-main {
+    padding-inline: 0.75rem;
+  }
+
+  .page-shell {
+    gap: 0.75rem;
+  }
+
+  .page-header,
+  .row-main,
+  .status-row {
+    align-items: stretch;
+  }
+
+  .row-main {
+    flex-direction: column;
+  }
+
+  .row-meta {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .metric-strip,
+  .phase58-signal-strip,
+  .mini-kpi-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .phase58-command-center,
+  .phase58-card-compact,
+  .surface,
+  .panel,
+  .glass {
+    padding: 0.75rem;
+  }
+
+  .chart-frame {
+    min-height: 190px;
+  }
+
+  .phase58-inventory-list {
+    max-height: min(56vh, 520px);
+  }
+
+  .action-row > *,
+  .compact-toolbar button,
+  .status-row > * {
+    flex: 1 1 min(100%, 10rem);
+  }
+}
+
+@media (max-width: 480px) {
+  .page-title,
+  .phase58-command-title {
+    font-size: 1.25rem;
+    line-height: 1.2;
+  }
+
+  .page-subtitle {
+    line-height: 1.45;
+  }
+
+  .topbar h1 {
+    font-size: 1.125rem;
+    line-height: 1.2;
+  }
+
+  .mobile-tabbar {
+    gap: 0.125rem;
+    padding-inline: 0.5rem;
+  }
+
+  .mobile-tab {
+    min-width: 64px;
+    padding-inline: 0.25rem;
+    font-size: 10px;
+    line-height: 1.1;
+  }
+
+  .row-meta {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .metric-strip-item,
+  .metric-tile,
+  .list-row,
+  .empty-state,
+  .confirm-sheet {
+    padding: 0.75rem;
+  }
+
+  .data-table thead th,
+  .data-table tbody td {
+    padding: 0.625rem;
+  }
+}
+
+@media (max-width: 360px) {
+  .metric-strip,
+  .phase58-signal-strip,
+  .mini-kpi-grid,
+  .phase58-action-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+/* [ResponsiveAdaptation][phase61][PHONE_LAYOUT_PASS] */
+/* [ResponsiveAdaptation][phase61][TABLET_LAYOUT_PASS] */
+/* [ResponsiveAdaptation][phase61][NO_HORIZONTAL_SCROLL] */
+/* [ResponsiveAdaptation][phase61][NO_OVERLAP_PASS] */
+/* [ResponsiveAdaptation][phase61][TOUCH_TARGETS_PASS] */
+/* [ResponsiveAdaptation][phase61][SAFE_AREA_PASS] */
+/* END_BLOCK_PHASE61_RESPONSIVE_ADAPTATION */
 
 ::-webkit-scrollbar {
   width: 8px;
