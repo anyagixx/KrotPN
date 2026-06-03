@@ -1,19 +1,20 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Phase-64 NAME="Premium Resend Email Templates" STATUS="verification-designed">
+<Phase-64 NAME="Premium Resend Email Templates" STATUS="done-local">
   <objective>Redesign verification and password-reset Resend email templates in the premium KrotPN Matrix style.</objective>
   <modules>M-079,M-040,M-062,M-069,M-072,M-080</modules>
   <non-goals>Changing Resend installer/deploy wiring, email provider semantics, verification token storage, or password policy.</non-goals>
   <steps>
-    <step-1>Audit current verification/reset HTML and text fallback templates.</step-1>
-    <step-2>Define premium email layout with logo, dark-compatible styling, action button, safety copy, and compact content.</step-2>
-    <step-3>Keep text fallback clean, readable, and independent of remote images.</step-3>
-    <step-4>Preserve token redaction, one-time reset semantics, and provider error safety.</step-4>
-    <step-5>Update backend email tests and Phase-64 template smoke requirements.</step-5>
-    <step-6>Verify public logo URL and remote-image-blocking behavior assumptions.</step-6>
-    <step-7>Run backend email tests, Phase-64 smoke, XML parse, MyGRACE lint, git diff --check, and protected surface guard.</step-7>
-    <step-8>Record evidence in M-079/V-M-079 and update M-040/M-062/M-069 if execution changes their contracts.</step-8>
+    <step-1 STATUS="done-local">Audit current verification/reset HTML and text fallback templates.</step-1>
+    <step-2 STATUS="done-local">Define premium email layout with logo, dark-compatible styling, action button, safety copy, and compact content.</step-2>
+    <step-3 STATUS="done-local">Keep text fallback clean, readable, and independent of remote images.</step-3>
+    <step-4 STATUS="done-local">Preserve token redaction, one-time reset semantics, and provider error safety.</step-4>
+    <step-5 STATUS="done-local">Update backend email tests and Phase-64 template smoke requirements.</step-5>
+    <step-6 STATUS="done-local">Verify public logo URL and remote-image-blocking behavior assumptions.</step-6>
+    <step-7 STATUS="done-local">Run backend email tests, Phase-64 smoke, XML parse, MyGRACE lint, git diff --check, and protected surface guard.</step-7>
+    <step-8 STATUS="done-local">Record evidence in M-079/V-M-079 and update M-040/M-062/M-069 if execution changes their contracts.</step-8>
   </steps>
   <verification>V-M-079</verification>
   <verification-design>Phase-64 is ready for execution only after V-M-079 gates prove email-client-safe HTML, readable text fallback, token redaction, public logo URL use, Resend/provider boundary safety, and protected deploy/install/runtime isolation.</verification-design>
   <acceptance>Email templates match the premium visual system while remaining transactional, token-safe, and readable.</acceptance>
+  <evidence>2026-06-04: Phase-64 upgraded verification and password-reset email templates to a compact premium Matrix-safe shell with public /brand/email-logo.png body logo, email-client-safe table/inline styling, clear CTA, image-blocking-safe fallback panel, plain text fallback without logo noise, Phase-64 log markers, backend email tests, Phase-64 smoke, Phase-51 brand regression, XML parse, MyGRACE lint, git diff --check, and protected deploy/provider/runtime/frontend guard. Resend provider semantics, installer/deploy wiring, DNS/BIMI, auth tokens, billing, VPN, and MTProto runtime were untouched.</evidence>
 </Phase-64>

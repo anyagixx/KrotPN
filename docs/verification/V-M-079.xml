@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<V-M-079 MODULE="M-079" PRIORITY="critical" STATUS="verification-designed-phase64" PHASE-64="verification-designed">
+<V-M-079 MODULE="M-079" PRIORITY="critical" STATUS="pass-local-phase64" PHASE-64="pass-local">
   <scope>Premium Resend email template verification for verification/reset flows, Matrix-compatible transactional layout, public body-logo rendering, text fallback, token redaction, provider boundary safety, and protected-surface isolation.</scope>
   <test-files>
-    <file phase="64-planned">scripts/phase64-premium-email-template-smoke.mjs</file>
+    <file phase="64-pass-local">scripts/phase64-premium-email-template-smoke.mjs</file>
     <file>backend/app/email/templates.py</file>
     <file>backend/app/email/service.py</file>
     <file>backend/tests/test_email_delivery.py</file>
@@ -12,13 +12,13 @@
     <file>docs/plans/Phase-64.xml</file>
   </test-files>
   <module-checks>
-    <check-1 status="planned-phase64">Audit current verification and password-reset HTML/text templates and identify shared layout primitives without changing Resend payload semantics.</check-1>
-    <check-2 status="planned-phase64">cd backend &amp;&amp; SECRET_KEY=test-secret-key-with-enough-length DATA_ENCRYPTION_KEY=dpFmfSVqfdAK3yx5MQV6Tcv35RZuw5MzaH0yhxJ01q0= PYTHONPATH=. ../.venv/bin/python -m pytest -o addopts='' tests/test_email_delivery.py -v</check-2>
-    <check-3 status="planned-phase64">node scripts/phase64-premium-email-template-smoke.mjs</check-3>
-    <check-4 status="planned-phase64">node scripts/phase51-brand-assets-smoke.mjs</check-4>
-    <check-5 status="planned-phase64">node scripts/phase63-visible-logo-integration-smoke.mjs</check-5>
-    <check-6 status="planned-phase64">python3 -m xml.etree.ElementTree docs/plans/Phase-64.xml docs/modules/M-079.xml docs/verification/V-M-079.xml docs/verification-index.xml docs/graph-index.xml docs/plan-index.xml</check-6>
-    <check-7 status="planned-phase64">mygrace lint; git diff --check; protected diff guard for deploy/install, nginx, docker-compose, VPN runtime, MTProto runtime, Resend provider env, DNS/BIMI, and secret surfaces</check-7>
+    <check-1 status="pass-local-phase64">Audit current verification and password-reset HTML/text templates and identify shared layout primitives without changing Resend payload semantics.</check-1>
+    <check-2 status="pass-local-phase64">cd backend &amp;&amp; SECRET_KEY=test-secret-key-with-enough-length DATA_ENCRYPTION_KEY=dpFmfSVqfdAK3yx5MQV6Tcv35RZuw5MzaH0yhxJ01q0= PYTHONPATH=. ../.venv/bin/python -m pytest -o addopts='' tests/test_email_delivery.py -v</check-2>
+    <check-3 status="pass-local-phase64">node scripts/phase64-premium-email-template-smoke.mjs</check-3>
+    <check-4 status="pass-local-phase64">node scripts/phase51-brand-assets-smoke.mjs</check-4>
+    <check-5 status="post-commit-regression">node scripts/phase63-visible-logo-integration-smoke.mjs remains a post-commit regression because its Phase-63 protected guard intentionally rejects uncommitted backend/email diffs.</check-5>
+    <check-6 status="pass-local-phase64">python3 -m xml.etree.ElementTree docs/plans/Phase-64.xml docs/modules/M-079.xml docs/verification/V-M-079.xml docs/verification-index.xml docs/graph-index.xml docs/plan-index.xml</check-6>
+    <check-7 status="pass-local-phase64">mygrace lint; git diff --check; protected diff guard for deploy/install, nginx, docker-compose, VPN runtime, MTProto runtime, Resend provider env, DNS/BIMI, and secret surfaces</check-7>
   </module-checks>
   <verification-matrix>
     <target-1 evidence="unit-and-static">Verification and password-reset HTML share a premium KrotPN Matrix email shell while preserving one-time token links, pending-registration activation, and password-reset semantics.</target-1>
@@ -56,10 +56,17 @@
     <redaction>Any evidence that references a tokenized verification/reset URL must use a redacted placeholder and must not include query strings or raw token material.</redaction>
   </telemetry-requirements>
   <phase-gates>
-    <gate-1 level="module-local" status="planned-phase64">M-079 execution must pass backend email tests and Phase-64 template smoke before template changes are accepted.</gate-1>
-    <gate-2 level="wave" status="planned-phase64">M-040 email delivery, M-062 onboarding/password recovery, M-069 email logo assets, M-072 premium visual tokens, and M-080 visible-logo boundary must remain compatible.</gate-2>
-    <gate-3 level="phase" status="planned-phase64">XML parse, MyGRACE lint, git diff --check, and protected deploy/install/runtime/provider/DNS guard must pass before Phase-64 can move from verification-designed to done-local.</gate-3>
+    <gate-1 level="module-local" status="passed-local">M-079 execution passed backend email tests and Phase-64 template smoke before template changes were accepted.</gate-1>
+    <gate-2 level="wave" status="passed-local">M-040 email delivery, M-062 onboarding/password recovery, M-069 email logo assets, M-072 premium visual tokens, and M-080 visible-logo boundary remain compatible.</gate-2>
+    <gate-3 level="phase" status="passed-local">XML parse, MyGRACE lint, git diff --check, and protected deploy/install/runtime/provider/DNS guard passed before Phase-64 moved to done-local.</gate-3>
     <gate-4 level="live-follow-up">Clean-deploy validation may send a real Resend email to inspect delivered rendering, but local verification must not claim mailbox sender-avatar/BIMI provider display proof.</gate-4>
   </phase-gates>
+  <execution-evidence date="2026-06-04">
+    <command-1>cd backend &amp;&amp; SECRET_KEY=test-secret-key-with-enough-length DATA_ENCRYPTION_KEY=dpFmfSVqfdAK3yx5MQV6Tcv35RZuw5MzaH0yhxJ01q0= PYTHONPATH=. ../.venv/bin/python -m pytest -o addopts='' tests/test_email_delivery.py -v</command-1>
+    <command-2>node scripts/phase64-premium-email-template-smoke.mjs</command-2>
+    <command-3>node scripts/phase51-brand-assets-smoke.mjs</command-3>
+    <command-4>python3 XML parse, mygrace lint, git diff --check, protected deploy/provider/runtime/frontend guard</command-4>
+    <result>PASS: premium verification/reset email templates render a public body logo, compact Matrix-safe shell, image-blocking-safe fallback panel, clean text fallback, token-safe logs, and unchanged provider/deploy/runtime surfaces.</result>
+  </execution-evidence>
   <autonomous-execution-safety>Safe for local autonomous execution if changes stay inside backend email template/service tests, Phase-64 smoke, approved public email-logo references, and MyGRACE docs. Stop execution if installer/deploy changes, Resend provider env changes, DNS/BIMI changes, auth-token semantics changes, billing changes, VPN/MTProto runtime changes, or secret-handling changes appear necessary.</autonomous-execution-safety>
 </V-M-079>
