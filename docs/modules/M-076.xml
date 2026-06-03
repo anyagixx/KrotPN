@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<M-076 NAME="premium-admin-cockpit" TYPE="UI_COMPONENT" STATUS="planned-phase58-phase62">
+  <path>frontend-admin/src/components/Layout.tsx frontend-admin/src/components/StatCard.tsx frontend-admin/src/pages/Dashboard.tsx frontend-admin/src/pages/Users.tsx frontend-admin/src/pages/Devices.tsx frontend-admin/src/pages/MTProto.tsx frontend-admin/src/pages/MTProtoAnalytics.tsx frontend-admin/src/pages/Analytics.tsx frontend-admin/src/pages/Servers.tsx frontend-admin/src/pages/Plans.tsx docs/plans/Phase-58.xml docs/plans/Phase-62.xml scripts/phase58-premium-admin-cockpit-smoke.mjs scripts/phase62-compactness-deletion-smoke.mjs</path>
+  <owns>Premium compact admin cockpit for service health, users, devices, MTProto, tariffs, analytics, and operations.</owns>
+  <purpose>Make admin operations scan-friendly and premium without reducing emergency control clarity.</purpose>
+  <exports>
+    <view-admin-command-home>Dense health, revenue, user, VPN, MTProto, and action summary.</view-admin-command-home>
+    <view-admin-inventories>Searchable compact users/devices/proxy lists with bounded scrolling and filters.</view-admin-inventories>
+    <view-admin-mtproto-ops>Redacted MTProto operations and analytics with confirmation-safe actions.</view-admin-mtproto-ops>
+    <rule-admin-deletion-audit>Remove bulky, duplicated, or low-value admin panels while preserving operations.</rule-admin-deletion-audit>
+  </exports>
+  <depends>M-010,M-037,M-047,M-058,M-068,M-070,M-071,M-072,M-074</depends>
+  <verification-ref>V-M-076</verification-ref>
+  <constraints>
+    <constraint-1>Admin emergency actions, destructive confirmations, and audit-sensitive feedback must remain visible.</constraint-1>
+    <constraint-2>MTProto tags, secrets, full links, raw tokens, and high-risk identifiers must remain redacted.</constraint-2>
+    <constraint-3>No backend API, auth/session, deploy, install, or runtime changes are included.</constraint-3>
+  </constraints>
+  <acceptance-metrics>
+    <metric-1>Frontend-admin build and premium admin smoke pass.</metric-1>
+    <metric-2>Phone/tablet screenshots prove bounded inventories and no long unusable scroll surfaces.</metric-2>
+    <metric-3>Deletion audit preserves user/device/MTProto/tariff/analytics workflows.</metric-3>
+  </acceptance-metrics>
+  <hotspot>H-063: Premium admin cockpit must improve scanability without hiding emergency controls, MTProto redaction, or confirmation flows.</hotspot>
+</M-076>

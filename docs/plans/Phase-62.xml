@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Phase-62 NAME="Compactness and Deletion Audit" STATUS="planned">
+  <objective>Remove, collapse, or compact bulky frontend surfaces after premium responsive adaptation.</objective>
+  <modules>M-075,M-076,M-038,M-073,M-074</modules>
+  <non-goals>Removing required user/admin workflows, backend APIs, deploy/install scripts, or security controls.</non-goals>
+  <steps>
+    <step-1>Inventory user, admin, public, and auth blocks that are duplicated, bulky, decorative, or low-value.</step-1>
+    <step-2>Classify each candidate as remove, collapse, move secondary, compact, or keep.</step-2>
+    <step-3>Apply user-cabinet compaction while preserving VPN, MTProto, subscription, devices, referrals, and settings.</step-3>
+    <step-4>Apply admin-cockpit compaction while preserving operations, confirmations, analytics, and redaction.</step-4>
+    <step-5>Apply public/auth compaction while preserving CTA, verification, reset, and tariff clarity.</step-5>
+    <step-6>Create deletion-audit smoke markers for removed/collapsed surfaces and preserved workflows.</step-6>
+    <step-7>Run user/admin builds, Phase-62 smoke, screenshots, XML parse, MyGRACE lint, and protected surface guard.</step-7>
+    <step-8>Record evidence in M-075/M-076/V-M-075/V-M-076.</step-8>
+  </steps>
+  <verification>V-M-075,V-M-076</verification>
+  <acceptance>Frontend becomes less bulky while all primary workflows remain present and verifiable.</acceptance>
+</Phase-62>

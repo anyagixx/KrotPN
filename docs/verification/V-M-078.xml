@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<V-M-078 MODULE="M-078" PRIORITY="critical" STATUS="planned">
+  <scope>Premium frontend QA and release candidate gates for user/admin/public/email surfaces.</scope>
+  <test-files>
+    <file>scripts/phase60-premium-qa-smoke.mjs</file>
+    <file>scripts/phase65-premium-rc-smoke.mjs</file>
+    <file>docs/plans/Phase-60.xml</file>
+    <file>docs/plans/Phase-65.xml</file>
+  </test-files>
+  <commands>
+    <command>cd frontend &amp;&amp; npm run build</command>
+    <command>cd frontend-admin &amp;&amp; npm run build</command>
+    <command>node scripts/phase60-premium-qa-smoke.mjs</command>
+    <command>node scripts/phase65-premium-rc-smoke.mjs</command>
+    <command>python3 -m xml.etree.ElementTree docs/graph-index.xml docs/plan-index.xml docs/verification-index.xml</command>
+    <command>mygrace lint</command>
+    <command>git diff --check</command>
+  </commands>
+  <success-scenarios>
+    <scenario-1>Screenshot matrix covers public/auth/user/admin/email-preview routes across mobile/tablet/desktop.</scenario-1>
+    <scenario-2>Lighthouse/Web Vitals and bundle budgets are explicit and pass or fail truthfully.</scenario-2>
+    <scenario-3>Protected deploy/install/nginx/docker-compose/runtime diff guard remains clean.</scenario-3>
+  </success-scenarios>
+  <failure-scenarios>
+    <failure-1>Any major viewport has overlap, horizontal scroll, unreadable text, blank canvas, or broken reduced-motion.</failure-1>
+    <failure-2>Release candidate is tagged before QA evidence is recorded.</failure-2>
+  </failure-scenarios>
+  <log-markers>
+    <marker>[PremiumQAGates][phase60][SCREENSHOTS_PASS]</marker>
+    <marker>[PremiumQAGates][phase60][PERFORMANCE_PASS]</marker>
+    <marker>[PremiumRCGate][phase65][RELEASE_READY]</marker>
+  </log-markers>
+</V-M-078>

@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<M-074 NAME="responsive-device-adaptation" TYPE="UI_COMPONENT" STATUS="planned-phase61">
+  <path>frontend frontend-admin docs/plans/Phase-61.xml scripts/phase61-responsive-adaptation-smoke.mjs</path>
+  <owns>Phone, tablet, and desktop responsive closure for public, user, and admin Matrix surfaces.</owns>
+  <purpose>Make the premium frontend usable and compact across mobile phones, tablets, and desktop screens.</purpose>
+  <exports>
+    <viewport-phone>360x740, 390x844, and 430x932 phone layout gates.</viewport-phone>
+    <viewport-tablet>768x1024, 820x1180, and 1024x1366 tablet layout gates.</viewport-tablet>
+    <viewport-desktop>1280x800 and 1440x900 desktop layout gates.</viewport-desktop>
+    <rule-responsive-density>Responsive spacing, grid, navigation, and bounded-scroll rules.</rule-responsive-density>
+  </exports>
+  <depends>M-009,M-010,M-036,M-037,M-038,M-071,M-072</depends>
+  <verification-ref>V-M-074</verification-ref>
+  <files>
+    <file>frontend</file>
+    <file>frontend-admin</file>
+    <file>scripts/phase61-responsive-adaptation-smoke.mjs</file>
+    <file>docs/plans/Phase-61.xml</file>
+  </files>
+  <constraints>
+    <constraint-1>No document-level horizontal scroll at any planned viewport.</constraint-1>
+    <constraint-2>Tablet layouts must not be lazy stretched phone layouts or cramped desktop layouts.</constraint-2>
+    <constraint-3>Primary VPN, MTProto, subscription, admin health, and emergency actions must stay reachable.</constraint-3>
+  </constraints>
+  <acceptance-metrics>
+    <metric-1>User and admin builds pass with viewport smoke screenshots.</metric-1>
+    <metric-2>No visible text overlap, icon overlap, or clipped critical values.</metric-2>
+    <metric-3>Reduced-motion proof remains readable across viewport classes.</metric-3>
+  </acceptance-metrics>
+  <hotspot>H-061: Tablet and mobile adaptation must be verified on real breakpoint classes, not inferred from desktop layouts.</hotspot>
+</M-074>

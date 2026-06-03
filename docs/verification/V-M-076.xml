@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<V-M-076 MODULE="M-076" PRIORITY="high" STATUS="planned">
+  <scope>Premium admin cockpit verification for operational density, inventories, MTProto analytics, confirmations, redaction, and deletion audit.</scope>
+  <test-files>
+    <file>scripts/phase58-premium-admin-cockpit-smoke.mjs</file>
+    <file>scripts/phase62-compactness-deletion-smoke.mjs</file>
+    <file>frontend-admin/src/pages/Dashboard.tsx</file>
+    <file>frontend-admin/src/pages/Users.tsx</file>
+    <file>frontend-admin/src/pages/MTProtoAnalytics.tsx</file>
+  </test-files>
+  <commands>
+    <command>cd frontend-admin &amp;&amp; npm run build</command>
+    <command>node scripts/phase58-premium-admin-cockpit-smoke.mjs</command>
+    <command>node scripts/phase62-compactness-deletion-smoke.mjs</command>
+    <command>mygrace lint</command>
+  </commands>
+  <success-scenarios>
+    <scenario-1>Admin dashboard, users, devices, MTProto, plans, analytics, and servers remain scan-friendly on phone/tablet.</scenario-1>
+    <scenario-2>Destructive and disruptive actions retain explicit confirmation and feedback.</scenario-2>
+    <scenario-3>MTProto secrets, tags, full links, and high-risk identifiers stay redacted.</scenario-3>
+  </success-scenarios>
+  <failure-scenarios>
+    <failure-1>Emergency controls are hidden by visual redesign or long lists become unusable.</failure-1>
+    <failure-2>Any admin route exposes proxy secrets, raw tokens, or unredacted identifiers.</failure-2>
+  </failure-scenarios>
+  <log-markers>
+    <marker>[PremiumAdminCockpit][phase58][OPS_REACHABLE]</marker>
+    <marker>[PremiumAdminCockpit][phase58][REDACTION_GUARD]</marker>
+    <marker>[CompactDeletionAudit][phase62][ADMIN_SURFACES_PRUNED]</marker>
+  </log-markers>
+</V-M-076>

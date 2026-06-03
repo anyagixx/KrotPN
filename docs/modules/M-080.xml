@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<M-080 NAME="visible-brand-logo-integration" TYPE="ENTRY_POINT" STATUS="planned-phase63">
+  <path>frontend/public frontend-admin/public frontend/src/components frontend-admin/src/components backend/app/email/templates.py docs/plans/Phase-63.xml scripts/phase63-visible-logo-integration-smoke.mjs</path>
+  <owns>Visible KrotPN logo usage across public site, auth, user cabinet, admin panel, PWA/favicons, and email templates.</owns>
+  <purpose>Use prepared logo assets consistently where the premium redesign needs visible brand identity.</purpose>
+  <exports>
+    <asset-source-logos>/home/truffle/Загрузки/ДЛЯ КРОТА/logos PNG assets from 16x16 through 1024x1024.</asset-source-logos>
+    <component-brand-mark>User and admin reusable brand mark placement.</component-brand-mark>
+    <rule-logo-sizing>Responsive logo sizing and asset selection for header, auth, PWA, email, and admin contexts.</rule-logo-sizing>
+  </exports>
+  <depends>M-009,M-010,M-040,M-062,M-069,M-072,M-073,M-075,M-076,M-079</depends>
+  <verification-ref>V-M-080</verification-ref>
+  <constraints>
+    <constraint-1>Do not overwrite BIMI semantics or claim mailbox sender-avatar control.</constraint-1>
+    <constraint-2>Use appropriately sized assets and avoid large logo files on first paint.</constraint-2>
+    <constraint-3>Logo placement must not crowd mobile navigation, forms, cards, or admin tables.</constraint-3>
+  </constraints>
+  <acceptance-metrics>
+    <metric-1>User and admin builds include visible logo usage without layout overlap.</metric-1>
+    <metric-2>Logo smoke verifies source dimensions, copied assets, HTML/PWA references, and email template references.</metric-2>
+    <metric-3>Screenshot review confirms premium brand presence on public/auth/user/admin surfaces.</metric-3>
+  </acceptance-metrics>
+  <hotspot>H-067: Visible logo integration must use prepared brand assets without bloating pages or conflicting with BIMI/email-avatar boundaries.</hotspot>
+</M-080>

@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<M-075 NAME="premium-user-cabinet" TYPE="UI_COMPONENT" STATUS="planned-phase57-phase62">
+  <path>frontend/src/components/Layout.tsx frontend/src/pages/Dashboard.tsx frontend/src/pages/Config.tsx frontend/src/pages/Subscription.tsx frontend/src/pages/Referrals.tsx frontend/src/pages/Settings.tsx docs/plans/Phase-57.xml docs/plans/Phase-62.xml scripts/phase57-premium-user-cabinet-smoke.mjs scripts/phase62-compactness-deletion-smoke.mjs</path>
+  <owns>Premium compact personal cabinet for VPN, MTProto, subscription, devices, referrals, and settings.</owns>
+  <purpose>Turn the user cabinet into a compact premium command center without hiding core actions.</purpose>
+  <exports>
+    <view-premium-user-home>First-screen VPN state, config action, subscription countdown, and MTProto access.</view-premium-user-home>
+    <view-premium-config>QR, download, copy, and raw config workflow with compact premium controls.</view-premium-config>
+    <view-premium-subscription>Tariff, countdown, calendar, and renewal flow with server-derived data.</view-premium-subscription>
+    <rule-user-deletion-audit>Remove duplicated, bulky, decorative, or non-actionable user-cabinet content.</rule-user-deletion-audit>
+  </exports>
+  <depends>M-009,M-036,M-045,M-063,M-064,M-068,M-070,M-071,M-072,M-074</depends>
+  <verification-ref>V-M-075</verification-ref>
+  <constraints>
+    <constraint-1>VPN config and subscription actions must remain reachable within one or two taps on phone.</constraint-1>
+    <constraint-2>Owner-only MTProto secrets and links must remain redacted from logs and unavailable to other users.</constraint-2>
+    <constraint-3>No backend API, deploy, install, billing, VPN, or MTProto runtime behavior changes are included.</constraint-3>
+  </constraints>
+  <acceptance-metrics>
+    <metric-1>Frontend build and premium user smoke pass.</metric-1>
+    <metric-2>Mobile/tablet screenshots prove compact first screen and no horizontal scroll.</metric-2>
+    <metric-3>Deletion audit documents removed or collapsed surfaces and preserves all primary workflows.</metric-3>
+  </acceptance-metrics>
+  <hotspot>H-062: Premium user cabinet must keep VPN config, subscription, MTProto, and device actions reachable in one or two taps.</hotspot>
+</M-075>

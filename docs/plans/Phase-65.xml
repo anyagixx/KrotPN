@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Phase-65 NAME="Premium Release Candidate Gate" STATUS="planned">
+  <objective>Close the premium frontend and email redesign as a release-candidate gate before tagging a release.</objective>
+  <modules>M-078,M-073,M-074,M-075,M-076,M-077,M-079,M-080</modules>
+  <non-goals>Implementing new UI features, changing deploy/install scripts, or promoting stable without live operator validation.</non-goals>
+  <steps>
+    <step-1>Run all premium smoke scripts from Phase-55 through Phase-64.</step-1>
+    <step-2>Run frontend and frontend-admin production builds.</step-2>
+    <step-3>Run backend email tests for premium Resend templates.</step-3>
+    <step-4>Capture or record public/auth/user/admin/email screenshots across phone/tablet/desktop and reduced-motion.</step-4>
+    <step-5>Run XML parse, MyGRACE lint, git diff --check, and protected deploy/install/nginx/docker-compose/runtime guard.</step-5>
+    <step-6>Document any clean-deploy-only screenshot or live validation gaps.</step-6>
+    <step-7>Prepare release notes for premium Matrix frontend, responsive adaptation, logo integration, and Resend templates.</step-7>
+    <step-8>Record release-candidate evidence in M-078/V-M-078.</step-8>
+  </steps>
+  <verification>V-M-078</verification>
+  <acceptance>Premium redesign is ready for a prerelease or stable-release decision based on operator validation.</acceptance>
+</Phase-65>

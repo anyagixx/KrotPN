@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<M-078 NAME="premium-frontend-qa-gates" TYPE="UTILITY" STATUS="planned-phase60-phase65">
+  <path>scripts/phase60-premium-qa-smoke.mjs scripts/phase65-premium-rc-smoke.mjs docs/plans/Phase-60.xml docs/plans/Phase-65.xml</path>
+  <owns>Premium frontend verification gates for screenshots, performance, reduced-motion, responsive safety, and release readiness.</owns>
+  <purpose>Prevent premium visual work from shipping with usability, performance, or MyGRACE drift regressions.</purpose>
+  <exports>
+    <gate-screenshot-matrix>Public, auth, user, admin, email-template preview screenshot matrix.</gate-screenshot-matrix>
+    <gate-performance-budget>Bundle, Lighthouse/Web Vitals, canvas CPU, and motion budget checks.</gate-performance-budget>
+    <gate-accessibility-motion>Reduced-motion, focus-visible, contrast, no-overlap, and keyboard reachability checks.</gate-accessibility-motion>
+    <gate-protected-surface>Deploy/install/nginx/docker-compose/runtime diff guard.</gate-protected-surface>
+  </exports>
+  <depends>M-009,M-010,M-036,M-037,M-038,M-070,M-071,M-073,M-074,M-075,M-076,M-077,M-079,M-080</depends>
+  <verification-ref>V-M-078</verification-ref>
+  <constraints>
+    <constraint-1>QA gates must fail on visual overlap, horizontal scroll, broken reduced-motion, or protected deploy/install drift.</constraint-1>
+    <constraint-2>Authenticated protected-route screenshot gaps must be explicit rather than implied as covered.</constraint-2>
+    <constraint-3>Release candidate gate must include MyGRACE lint and XML parse.</constraint-3>
+  </constraints>
+  <acceptance-metrics>
+    <metric-1>Phase-60 and Phase-65 smoke scripts pass before any premium release tag.</metric-1>
+    <metric-2>User/admin builds and git diff --check pass.</metric-2>
+    <metric-3>Protected deploy/install guard remains empty unless a separate approved deploy phase exists.</metric-3>
+  </acceptance-metrics>
+  <hotspot>H-065: Premium QA gates must include screenshots, performance budgets, reduced-motion, no-overlap, and protected deploy/install guards.</hotspot>
+</M-078>

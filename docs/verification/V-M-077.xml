@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<V-M-077 MODULE="M-077" PRIORITY="high" STATUS="planned">
+  <scope>Matrix motion and microinteraction verification for feedback, transitions, reduced-motion, and pointer/scroll safety.</scope>
+  <test-files>
+    <file>scripts/phase59-motion-interactions-smoke.mjs</file>
+    <file>frontend/src/components/MatrixBackground.tsx</file>
+    <file>frontend-admin/src/components/MatrixBackground.tsx</file>
+    <file>frontend/src/index.css</file>
+    <file>frontend-admin/src/index.css</file>
+  </test-files>
+  <commands>
+    <command>cd frontend &amp;&amp; npm run build</command>
+    <command>cd frontend-admin &amp;&amp; npm run build</command>
+    <command>node scripts/phase59-motion-interactions-smoke.mjs</command>
+    <command>mygrace lint</command>
+  </commands>
+  <success-scenarios>
+    <scenario-1>Copy, download, status, alert, and route feedback is short, intentional, and non-blocking.</scenario-1>
+    <scenario-2>Reduced-motion mode uses static or fade-only variants.</scenario-2>
+    <scenario-3>No pointer interception, scroll hijacking, or keyboard focus disruption occurs.</scenario-3>
+  </success-scenarios>
+  <failure-scenarios>
+    <failure-1>Animation hides operational controls, causes motion overload, or delays user tasks.</failure-1>
+    <failure-2>Canvas or overlay layers intercept clicks, focus, or mobile scroll gestures.</failure-2>
+  </failure-scenarios>
+  <log-markers>
+    <marker>[MatrixMotion][phase59][MICROINTERACTIONS_READY]</marker>
+    <marker>[MatrixMotion][phase59][REDUCED_MOTION_PASS]</marker>
+    <marker>[MatrixMotion][phase59][POINTER_SCROLL_SAFE]</marker>
+  </log-markers>
+</V-M-077>

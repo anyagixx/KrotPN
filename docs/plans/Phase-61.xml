@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Phase-61 NAME="Tablet and Mobile Adaptation Closure" STATUS="planned">
+  <objective>Close responsive gaps on phones and tablets immediately after the premium QA foundation.</objective>
+  <modules>M-074,M-009,M-010,M-036,M-037,M-038,M-071,M-072</modules>
+  <non-goals>Changing business logic, backend APIs, deploy/install scripts, or adding native mobile apps.</non-goals>
+  <steps>
+    <step-1>Audit public, auth, user, and admin routes at phone, tablet, and desktop viewports.</step-1>
+    <step-2>Fix phone density issues at 360x740, 390x844, and 430x932.</step-2>
+    <step-3>Fix tablet layouts at 768x1024, 820x1180, and 1024x1366.</step-3>
+    <step-4>Verify desktop layouts remain compact and not over-expanded.</step-4>
+    <step-5>Verify mobile navigation, tablet split surfaces, bounded lists, and form control spacing.</step-5>
+    <step-6>Run user/admin builds, responsive smoke, screenshots, XML parse, MyGRACE lint, and protected surface guard.</step-6>
+    <step-7>Document remaining live-only screenshot gaps if auth prevents local protected-route capture.</step-7>
+    <step-8>Record evidence in M-074/V-M-074.</step-8>
+  </steps>
+  <verification>V-M-074</verification>
+  <acceptance>Premium frontend is intentionally adapted for phones and tablets, not just desktop-safe.</acceptance>
+</Phase-61>

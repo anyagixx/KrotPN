@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Phase-55 NAME="Premium Matrix Art Direction" STATUS="planned">
+  <objective>Define the premium KrotPN Matrix/cyberpunk visual direction before changing route layouts.</objective>
+  <modules>M-072,M-038,M-069,M-070,M-071</modules>
+  <non-goals>Backend API changes, deploy/install changes, auth/session changes, VPN/MTProto/billing runtime changes.</non-goals>
+  <steps>
+    <step-1>Audit current user/admin Matrix tokens, layout density, colors, shadows, radii, and type usage.</step-1>
+    <step-2>Define premium palette with controlled Matrix green plus cyan, magenta, amber, red, neutral, and deep black.</step-2>
+    <step-3>Define compact typography scale for display, UI, KPI, terminal/data, and email-adjacent surfaces.</step-3>
+    <step-4>Define logo usage rules using prepared assets from /home/truffle/Загрузки/ДЛЯ КРОТА/logos.</step-4>
+    <step-5>Define premium density rules that avoid bulky cards, nested panels, and decorative clutter.</step-5>
+    <step-6>Design reduced-motion and low-performance fallbacks for premium visual effects.</step-6>
+    <step-7>Create Phase-55 smoke requirements for palette, density, focus-visible, reduced-motion, and protected surface guards.</step-7>
+    <step-8>Update M-072/V-M-072 evidence after execution.</step-8>
+  </steps>
+  <verification>V-M-072</verification>
+  <acceptance>Premium direction is ready for Phase-56/57/58 execution and does not change runtime behavior.</acceptance>
+</Phase-55>

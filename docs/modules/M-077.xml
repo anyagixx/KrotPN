@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<M-077 NAME="matrix-motion-interactions" TYPE="UI_COMPONENT" STATUS="planned-phase59">
+  <path>frontend/src/components/MatrixBackground.tsx frontend/src/components/VisualShell.tsx frontend/src/index.css frontend-admin/src/components/MatrixBackground.tsx frontend-admin/src/components/VisualShell.tsx frontend-admin/src/index.css docs/plans/Phase-59.xml scripts/phase59-motion-interactions-smoke.mjs</path>
+  <owns>Premium Matrix motion language and microinteractions across user and admin frontends.</owns>
+  <purpose>Add high-quality interaction feedback without scroll hijacking, motion overload, or workflow blocking.</purpose>
+  <exports>
+    <interaction-copy-success>Copy/download/proxy-link feedback animations.</interaction-copy-success>
+    <interaction-status-transition>VPN, MTProto, subscription, alert, and health state transitions.</interaction-status-transition>
+    <interaction-route-transition>Short route entrance transitions that preserve navigation speed.</interaction-route-transition>
+    <rule-reduced-motion>Static/fade-only fallback for all motion-heavy effects.</rule-reduced-motion>
+  </exports>
+  <depends>M-009,M-010,M-070,M-071,M-072,M-075,M-076</depends>
+  <verification-ref>V-M-077</verification-ref>
+  <constraints>
+    <constraint-1>No scroll hijacking, pointer interception, keyboard trap, blocking loader, or long decorative animation.</constraint-1>
+    <constraint-2>All motion must respect prefers-reduced-motion and inactive-tab lifecycle.</constraint-2>
+    <constraint-3>Critical text, forms, tables, QR/config, and admin controls must remain readable during transitions.</constraint-3>
+  </constraints>
+  <acceptance-metrics>
+    <metric-1>User and admin builds pass with motion smoke.</metric-1>
+    <metric-2>Reduced-motion screenshots prove static/fade fallback.</metric-2>
+    <metric-3>Smoke confirms pointer-events safety and no scroll hijacking markers.</metric-3>
+  </acceptance-metrics>
+  <hotspot>H-064: Motion and microinteractions must respect reduced-motion, avoid scroll hijacking, and never block operational workflows.</hotspot>
+</M-077>

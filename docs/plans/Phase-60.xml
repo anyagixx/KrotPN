@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Phase-60 NAME="Premium Frontend QA Gates" STATUS="planned">
+  <objective>Create verification gates that prevent premium frontend work from shipping with layout, performance, accessibility, or MyGRACE regressions.</objective>
+  <modules>M-078,M-009,M-010,M-036,M-037,M-038,M-070,M-071,M-073,M-075,M-076,M-077</modules>
+  <non-goals>Feature implementation, deployment script changes, live server changes.</non-goals>
+  <steps>
+    <step-1>Define screenshot matrix for public, auth, user, admin, and reduced-motion routes.</step-1>
+    <step-2>Define phone/tablet/desktop viewport set and no-overflow/no-overlap assertions.</step-2>
+    <step-3>Define bundle, Lighthouse/Web Vitals, canvas CPU, and motion performance budgets.</step-3>
+    <step-4>Define focus-visible, keyboard reachability, contrast, and reduced-motion assertions.</step-4>
+    <step-5>Implement or specify Phase-60 smoke script contract.</step-5>
+    <step-6>Verify protected deploy/install/nginx/docker-compose/runtime guard remains clean.</step-6>
+    <step-7>Run XML parse, MyGRACE lint, git diff --check, user/admin builds, and Phase-60 smoke.</step-7>
+    <step-8>Record evidence in M-078/V-M-078.</step-8>
+  </steps>
+  <verification>V-M-078</verification>
+  <acceptance>Premium frontend changes have explicit repeatable verification before release work continues.</acceptance>
+</Phase-60>

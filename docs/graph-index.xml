@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!-- MyGRACE Graph Index — lazy-loading entry point for module navigation -->
 <!-- MyGRACE index generated from per-module contracts; archived monoliths are reference-only -->
-<GraphIndex VERSION="1.0.0" PROJECT="KrotPN" MODULE-COUNT="66">
+<GraphIndex VERSION="1.0.0" PROJECT="KrotPN" MODULE-COUNT="75">
   <M-001 NAME="backend-core" TYPE="UTILITY" STATUS="pass-local-phase45" PATH="backend/app/core" DEPENDS="M-028" VERIFICATION-REF="V-M-001" />
   <M-002 NAME="users" TYPE="CORE_LOGIC" STATUS="pass-local-phase45" PATH="backend/app/users" DEPENDS="M-001,M-027,M-040" VERIFICATION-REF="V-M-002" />
   <M-003 NAME="vpn" TYPE="CORE_LOGIC" STATUS="pass-local-phase45" PATH="backend/app/vpn" DEPENDS="M-001,M-002,M-007,M-020,M-030" VERIFICATION-REF="V-M-003" />
@@ -68,6 +68,15 @@
   <M-069 NAME="brand-assets-favicon-email-logo" TYPE="ENTRY_POINT" STATUS="done-local-phase51" PATH="frontend/public frontend/index.html frontend/vite.config.ts frontend-admin/public frontend-admin/index.html backend/app/email README.md scripts/phase51-brand-assets-smoke.mjs docs/plans/Phase-51.xml" DEPENDS="M-009,M-010,M-040,M-062,M-067" VERIFICATION-REF="V-M-069" />
   <M-070 NAME="matrix-visual-runtime" TYPE="UI_COMPONENT" STATUS="done-local-phase52-phase53-phase54" PATH="frontend/src/components/MatrixBackground.tsx frontend/src/components/VisualShell.tsx frontend-admin/src/components/MatrixBackground.tsx frontend-admin/src/components/VisualShell.tsx scripts/phase52-matrix-visual-smoke.mjs scripts/phase53-user-matrix-ui-smoke.mjs scripts/phase54-admin-matrix-ui-smoke.mjs docs/plans/Phase-52.xml docs/plans/Phase-53.xml docs/plans/Phase-54.xml" DEPENDS="M-009,M-010,M-038,M-071" VERIFICATION-REF="V-M-070" />
   <M-071 NAME="matrix-style-system" TYPE="UI_COMPONENT" STATUS="done-local-phase52-phase53-phase54" PATH="frontend/src/index.css frontend-admin/src/index.css frontend/src/components/Layout.tsx frontend-admin/src/components/Layout.tsx scripts/phase52-matrix-visual-smoke.mjs scripts/phase53-user-matrix-ui-smoke.mjs scripts/phase54-admin-matrix-ui-smoke.mjs docs/plans/Phase-52.xml docs/plans/Phase-53.xml docs/plans/Phase-54.xml" DEPENDS="M-009,M-010,M-036,M-037,M-038,M-070" VERIFICATION-REF="V-M-071" />
+  <M-072 NAME="premium-art-direction-system" TYPE="UI_COMPONENT" STATUS="planned-phase55" PATH="frontend/src/index.css frontend-admin/src/index.css docs/plans/Phase-55.xml scripts/phase55-premium-art-direction-smoke.mjs" DEPENDS="M-038,M-069,M-070,M-071" VERIFICATION-REF="V-M-072" />
+  <M-073 NAME="premium-public-site" TYPE="UI_COMPONENT" STATUS="planned-phase56" PATH="frontend/src/App.tsx frontend/src/pages/Login.tsx frontend/src/pages/Register.tsx frontend/src/pages/ForgotPassword.tsx frontend/src/pages/ResetPassword.tsx frontend/src/pages/VerifyEmail.tsx frontend/src/pages/Landing.tsx docs/plans/Phase-56.xml scripts/phase56-premium-public-auth-smoke.mjs" DEPENDS="M-009,M-068,M-069,M-070,M-071,M-072" VERIFICATION-REF="V-M-073" />
+  <M-074 NAME="responsive-device-adaptation" TYPE="UI_COMPONENT" STATUS="planned-phase61" PATH="frontend frontend-admin docs/plans/Phase-61.xml scripts/phase61-responsive-adaptation-smoke.mjs" DEPENDS="M-009,M-010,M-036,M-037,M-038,M-071,M-072" VERIFICATION-REF="V-M-074" />
+  <M-075 NAME="premium-user-cabinet" TYPE="UI_COMPONENT" STATUS="planned-phase57-phase62" PATH="frontend/src/components/Layout.tsx frontend/src/pages/Dashboard.tsx frontend/src/pages/Config.tsx frontend/src/pages/Subscription.tsx frontend/src/pages/Referrals.tsx frontend/src/pages/Settings.tsx docs/plans/Phase-57.xml docs/plans/Phase-62.xml scripts/phase57-premium-user-cabinet-smoke.mjs scripts/phase62-compactness-deletion-smoke.mjs" DEPENDS="M-009,M-036,M-045,M-063,M-064,M-068,M-070,M-071,M-072,M-074" VERIFICATION-REF="V-M-075" />
+  <M-076 NAME="premium-admin-cockpit" TYPE="UI_COMPONENT" STATUS="planned-phase58-phase62" PATH="frontend-admin/src/components/Layout.tsx frontend-admin/src/components/StatCard.tsx frontend-admin/src/pages/Dashboard.tsx frontend-admin/src/pages/Users.tsx frontend-admin/src/pages/Devices.tsx frontend-admin/src/pages/MTProto.tsx frontend-admin/src/pages/MTProtoAnalytics.tsx frontend-admin/src/pages/Analytics.tsx frontend-admin/src/pages/Servers.tsx frontend-admin/src/pages/Plans.tsx docs/plans/Phase-58.xml docs/plans/Phase-62.xml scripts/phase58-premium-admin-cockpit-smoke.mjs scripts/phase62-compactness-deletion-smoke.mjs" DEPENDS="M-010,M-037,M-047,M-058,M-068,M-070,M-071,M-072,M-074" VERIFICATION-REF="V-M-076" />
+  <M-077 NAME="matrix-motion-interactions" TYPE="UI_COMPONENT" STATUS="planned-phase59" PATH="frontend/src/components/MatrixBackground.tsx frontend/src/components/VisualShell.tsx frontend/src/index.css frontend-admin/src/components/MatrixBackground.tsx frontend-admin/src/components/VisualShell.tsx frontend-admin/src/index.css docs/plans/Phase-59.xml scripts/phase59-motion-interactions-smoke.mjs" DEPENDS="M-009,M-010,M-070,M-071,M-072,M-075,M-076" VERIFICATION-REF="V-M-077" />
+  <M-078 NAME="premium-frontend-qa-gates" TYPE="UTILITY" STATUS="planned-phase60-phase65" PATH="scripts/phase60-premium-qa-smoke.mjs scripts/phase65-premium-rc-smoke.mjs docs/plans/Phase-60.xml docs/plans/Phase-65.xml" DEPENDS="M-009,M-010,M-036,M-037,M-038,M-070,M-071,M-073,M-074,M-075,M-076,M-077,M-079,M-080" VERIFICATION-REF="V-M-078" />
+  <M-079 NAME="premium-email-templates" TYPE="UI_COMPONENT" STATUS="planned-phase64" PATH="backend/app/email/templates.py backend/app/email/service.py backend/tests/test_email_delivery.py docs/plans/Phase-64.xml scripts/phase64-premium-email-template-smoke.mjs" DEPENDS="M-040,M-062,M-069,M-072,M-080" VERIFICATION-REF="V-M-079" />
+  <M-080 NAME="visible-brand-logo-integration" TYPE="ENTRY_POINT" STATUS="planned-phase63" PATH="frontend/public frontend-admin/public frontend/src/components frontend-admin/src/components backend/app/email/templates.py docs/plans/Phase-63.xml scripts/phase63-visible-logo-integration-smoke.mjs" DEPENDS="M-009,M-010,M-040,M-062,M-069,M-072,M-073,M-075,M-076,M-079" VERIFICATION-REF="V-M-080" />
 
   <CrossLinks>
     <link from="M-002" to="M-001" />
@@ -405,6 +414,71 @@
     <link from="M-071" to="M-036" />
     <link from="M-071" to="M-037" />
     <link from="M-071" to="M-038" />
+    <link from="M-072" to="M-038" />
+    <link from="M-072" to="M-069" />
+    <link from="M-072" to="M-070" />
+    <link from="M-072" to="M-071" />
+    <link from="M-073" to="M-009" />
+    <link from="M-073" to="M-068" />
+    <link from="M-073" to="M-069" />
+    <link from="M-073" to="M-070" />
+    <link from="M-073" to="M-071" />
+    <link from="M-073" to="M-072" />
+    <link from="M-074" to="M-009" />
+    <link from="M-074" to="M-010" />
+    <link from="M-074" to="M-036" />
+    <link from="M-074" to="M-037" />
+    <link from="M-074" to="M-038" />
+    <link from="M-074" to="M-071" />
+    <link from="M-074" to="M-072" />
+    <link from="M-075" to="M-009" />
+    <link from="M-075" to="M-036" />
+    <link from="M-075" to="M-045" />
+    <link from="M-075" to="M-063" />
+    <link from="M-075" to="M-064" />
+    <link from="M-075" to="M-068" />
+    <link from="M-075" to="M-070" />
+    <link from="M-075" to="M-071" />
+    <link from="M-075" to="M-072" />
+    <link from="M-075" to="M-074" />
+    <link from="M-076" to="M-010" />
+    <link from="M-076" to="M-037" />
+    <link from="M-076" to="M-047" />
+    <link from="M-076" to="M-058" />
+    <link from="M-076" to="M-068" />
+    <link from="M-076" to="M-070" />
+    <link from="M-076" to="M-071" />
+    <link from="M-076" to="M-072" />
+    <link from="M-076" to="M-074" />
+    <link from="M-077" to="M-009" />
+    <link from="M-077" to="M-010" />
+    <link from="M-077" to="M-070" />
+    <link from="M-077" to="M-071" />
+    <link from="M-077" to="M-072" />
+    <link from="M-077" to="M-075" />
+    <link from="M-077" to="M-076" />
+    <link from="M-078" to="M-073" />
+    <link from="M-078" to="M-074" />
+    <link from="M-078" to="M-075" />
+    <link from="M-078" to="M-076" />
+    <link from="M-078" to="M-077" />
+    <link from="M-078" to="M-079" />
+    <link from="M-078" to="M-080" />
+    <link from="M-079" to="M-040" />
+    <link from="M-079" to="M-062" />
+    <link from="M-079" to="M-069" />
+    <link from="M-079" to="M-072" />
+    <link from="M-079" to="M-080" />
+    <link from="M-080" to="M-009" />
+    <link from="M-080" to="M-010" />
+    <link from="M-080" to="M-040" />
+    <link from="M-080" to="M-062" />
+    <link from="M-080" to="M-069" />
+    <link from="M-080" to="M-072" />
+    <link from="M-080" to="M-073" />
+    <link from="M-080" to="M-075" />
+    <link from="M-080" to="M-076" />
+    <link from="M-080" to="M-079" />
   </CrossLinks>
 
   <Hotspots>
@@ -466,5 +540,14 @@
     <H-056 module="M-069" text="Favicon and email-logo assets must remain public static branding only, while BIMI/provider avatar rendering stays a separate mailbox-provider-controlled surface" />
     <H-057 module="M-070" text="Matrix canvas effects must never block auth, VPN, billing, MTProto, or admin workflows; reduced-motion and canvas-failure fallbacks are release gates" />
     <H-058 module="M-071" text="Matrix visual redesign must stay compact and mobile-safe; neon/glitch effects cannot create one-note color, text overlap, horizontal scroll, or unreadable admin controls" />
+    <H-059 module="M-072" text="Premium Matrix art direction must feel distinctive without becoming decorative noise or a one-note neon palette" />
+    <H-060 module="M-073" text="Public/auth premium presentation must not delay registration, hide verification states, or imply access before email proof" />
+    <H-061 module="M-074" text="Tablet and mobile adaptation must be verified on real breakpoint classes, not inferred from desktop layouts" />
+    <H-062 module="M-075" text="Premium user cabinet must keep VPN config, subscription, MTProto, and device actions reachable in one or two taps" />
+    <H-063 module="M-076" text="Premium admin cockpit must improve scanability without hiding emergency controls, MTProto redaction, or confirmation flows" />
+    <H-064 module="M-077" text="Motion and microinteractions must respect reduced-motion, avoid scroll hijacking, and never block operational workflows" />
+    <H-065 module="M-078" text="Premium QA gates must include screenshots, performance budgets, reduced-motion, no-overlap, and protected deploy/install guards" />
+    <H-066 module="M-079" text="Premium Resend templates must remain token-safe, text-fallback clean, and compatible with image-blocking email clients" />
+    <H-067 module="M-080" text="Visible logo integration must use prepared brand assets without bloating pages or conflicting with BIMI/email-avatar boundaries" />
   </Hotspots>
 </GraphIndex>

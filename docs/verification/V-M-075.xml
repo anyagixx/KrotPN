@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<V-M-075 MODULE="M-075" PRIORITY="high" STATUS="planned">
+  <scope>Premium user cabinet verification for first-screen density, VPN config, MTProto, subscription, devices, referrals, settings, and deletion audit.</scope>
+  <test-files>
+    <file>scripts/phase57-premium-user-cabinet-smoke.mjs</file>
+    <file>scripts/phase62-compactness-deletion-smoke.mjs</file>
+    <file>frontend/src/pages/Dashboard.tsx</file>
+    <file>frontend/src/pages/Config.tsx</file>
+    <file>frontend/src/pages/Subscription.tsx</file>
+  </test-files>
+  <commands>
+    <command>cd frontend &amp;&amp; npm run build</command>
+    <command>node scripts/phase57-premium-user-cabinet-smoke.mjs</command>
+    <command>node scripts/phase62-compactness-deletion-smoke.mjs</command>
+    <command>mygrace lint</command>
+  </commands>
+  <success-scenarios>
+    <scenario-1>VPN config and subscription actions are reachable within one or two taps on phone.</scenario-1>
+    <scenario-2>MTProto owner-only actions remain visible, compact, and redacted from logs.</scenario-2>
+    <scenario-3>Deletion audit removes bulky duplicate UI without losing workflows.</scenario-3>
+  </success-scenarios>
+  <failure-scenarios>
+    <failure-1>Premium layout hides QR/download/copy, trial countdown, tariff state, or device controls.</failure-1>
+    <failure-2>Critical values become clipped or hidden behind decorative Matrix surfaces.</failure-2>
+  </failure-scenarios>
+  <log-markers>
+    <marker>[PremiumUserCabinet][phase57][PRIMARY_ACTIONS_REACHABLE]</marker>
+    <marker>[PremiumUserCabinet][phase57][MTPROTO_REDACTION]</marker>
+    <marker>[CompactDeletionAudit][phase62][USER_SURFACES_PRUNED]</marker>
+  </log-markers>
+</V-M-075>

@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Phase-56 NAME="Premium Public Site and Auth" STATUS="planned">
+  <objective>Build a premium public entry and auth experience that presents KrotPN clearly while preserving verified-email gates.</objective>
+  <modules>M-073,M-009,M-068,M-069,M-070,M-071,M-072</modules>
+  <non-goals>Changing registration backend semantics, billing catalog ownership, deploy/install scripts, or MTProto/VPN provisioning.</non-goals>
+  <steps>
+    <step-1>Design public entry route with KrotPN offer, VPN value, free MTProto proxy value, tariffs, and CTA.</step-1>
+    <step-2>Retune login/register/reset/verify screens with premium compact Matrix style and visible logo.</step-2>
+    <step-3>Preserve spam-folder guidance, duplicate-email recovery CTA, and strong-password example.</step-3>
+    <step-4>Preserve no-access-before-email-verification language and side-effect guards.</step-4>
+    <step-5>Render tariff previews from existing canonical catalog shape without frontend price authority.</step-5>
+    <step-6>Verify phone/tablet/desktop first viewport and reduced-motion auth readability.</step-6>
+    <step-7>Create Phase-56 smoke markers for public routes, auth states, tariff canonicality, and email-proof guard.</step-7>
+    <step-8>Run frontend build, screenshots, smoke, XML parse, MyGRACE lint, and protected surface guard.</step-8>
+    <step-9>Record evidence in M-073/V-M-073.</step-9>
+  </steps>
+  <verification>V-M-073</verification>
+  <acceptance>Public and auth surfaces feel premium and remain safe, compact, and truthful.</acceptance>
+</Phase-56>

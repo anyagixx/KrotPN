@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<V-M-072 MODULE="M-072" PRIORITY="high" STATUS="planned">
+  <scope>Premium Matrix art direction verification for palette, typography, density, logo rules, and reduced-motion readability.</scope>
+  <test-files>
+    <file>scripts/phase55-premium-art-direction-smoke.mjs</file>
+    <file>frontend/src/index.css</file>
+    <file>frontend-admin/src/index.css</file>
+  </test-files>
+  <commands>
+    <command>cd frontend &amp;&amp; npm run build</command>
+    <command>cd frontend-admin &amp;&amp; npm run build</command>
+    <command>node scripts/phase55-premium-art-direction-smoke.mjs</command>
+    <command>mygrace lint</command>
+  </commands>
+  <success-scenarios>
+    <scenario-1>Palette is balanced and not a one-note green/purple/blue theme.</scenario-1>
+    <scenario-2>Premium tokens preserve compact density and focus-visible accessibility.</scenario-2>
+    <scenario-3>Reduced-motion visual identity remains readable without flicker-heavy effects.</scenario-3>
+  </success-scenarios>
+  <failure-scenarios>
+    <failure-1>Text overlap, oversized cards, nested panels, decorative orbs, or unreadable neon contrast.</failure-1>
+    <failure-2>Deploy/install/nginx/docker-compose diff appears during art direction work.</failure-2>
+  </failure-scenarios>
+  <log-markers>
+    <marker>[PremiumArtDirection][phase55][TOKENS_READY]</marker>
+    <marker>[PremiumArtDirection][phase55][BALANCED_PALETTE]</marker>
+    <marker>[PremiumArtDirection][phase55][DENSITY_SAFE]</marker>
+  </log-markers>
+</V-M-072>

@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<V-M-073 MODULE="M-073" PRIORITY="high" STATUS="planned">
+  <scope>Premium public site and auth verification for landing, login, registration, verification, reset, tariffs, and email-proof semantics.</scope>
+  <test-files>
+    <file>scripts/phase56-premium-public-auth-smoke.mjs</file>
+    <file>frontend/src/App.tsx</file>
+    <file>frontend/src/pages/Landing.tsx</file>
+    <file>frontend/src/pages/Register.tsx</file>
+    <file>frontend/src/pages/VerifyEmail.tsx</file>
+  </test-files>
+  <commands>
+    <command>cd frontend &amp;&amp; npm run build</command>
+    <command>node scripts/phase56-premium-public-auth-smoke.mjs</command>
+    <command>mygrace lint</command>
+  </commands>
+  <success-scenarios>
+    <scenario-1>Public route communicates VPN, MTProto, tariffs, and signup CTA without a bulky marketing layout.</scenario-1>
+    <scenario-2>Auth routes stay compact and usable on phone/tablet/desktop.</scenario-2>
+    <scenario-3>Registration still delays access until verified email proof.</scenario-3>
+  </success-scenarios>
+  <failure-scenarios>
+    <failure-1>Public/auth effects obscure forms or imply immediate access before verification.</failure-1>
+    <failure-2>Canonical tariff data drifts from M-068 backend-owned catalog.</failure-2>
+  </failure-scenarios>
+  <log-markers>
+    <marker>[PremiumPublicSite][phase56][ROUTES_READY]</marker>
+    <marker>[PremiumPublicSite][phase56][EMAIL_PROOF_GUARD]</marker>
+    <marker>[PremiumPublicSite][phase56][TARIFFS_CANONICAL]</marker>
+  </log-markers>
+</V-M-073>

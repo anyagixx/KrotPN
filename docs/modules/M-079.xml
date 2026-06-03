@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<M-079 NAME="premium-email-templates" TYPE="UI_COMPONENT" STATUS="planned-phase64">
+  <path>backend/app/email/templates.py backend/app/email/service.py backend/tests/test_email_delivery.py docs/plans/Phase-64.xml scripts/phase64-premium-email-template-smoke.mjs</path>
+  <owns>Premium Matrix/cyberpunk Resend verification and password-reset email templates.</owns>
+  <purpose>Bring transactional email visual quality in line with the premium KrotPN frontend without weakening token safety.</purpose>
+  <exports>
+    <template-premium-verification>Email verification HTML/text templates with logo, action button, security copy, and spam-safe structure.</template-premium-verification>
+    <template-premium-reset>Password reset HTML/text templates with one-time token semantics and clear safety copy.</template-premium-reset>
+    <rule-email-fallback>Readable text fallback without image URLs, raw tokens, or visual-only meaning.</rule-email-fallback>
+  </exports>
+  <depends>M-040,M-062,M-069,M-072,M-080</depends>
+  <verification-ref>V-M-079</verification-ref>
+  <constraints>
+    <constraint-1>Verification/reset tokens, provider keys, and full one-time URLs must never leak to logs or provider error details.</constraint-1>
+    <constraint-2>Email must remain usable when remote images are blocked by the mailbox client.</constraint-2>
+    <constraint-3>Template changes do not modify Resend deploy configuration or provider semantics.</constraint-3>
+  </constraints>
+  <acceptance-metrics>
+    <metric-1>Backend email tests pass for verification and reset templates.</metric-1>
+    <metric-2>Phase-64 smoke proves logo URL, text fallback, token redaction, and dark-email compatibility markers.</metric-2>
+    <metric-3>Protected deploy/install guard remains clean.</metric-3>
+  </acceptance-metrics>
+  <hotspot>H-066: Premium Resend templates must remain token-safe, text-fallback clean, and compatible with image-blocking email clients.</hotspot>
+</M-079>

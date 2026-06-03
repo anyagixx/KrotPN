@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Phase-58 NAME="Premium Admin Cockpit" STATUS="planned">
+  <objective>Convert the admin panel into a premium compact operator cockpit without hiding emergency controls.</objective>
+  <modules>M-076,M-010,M-037,M-047,M-058,M-068,M-070,M-071,M-072</modules>
+  <non-goals>Backend admin API changes, session/auth changes, deploy/install changes, MTProto runtime changes.</non-goals>
+  <steps>
+    <step-1>Map admin first-screen tasks: service health, users, devices, MTProto, tariffs, analytics, incidents.</step-1>
+    <step-2>Retune admin layout/navigation for compact phone/tablet/desktop operator use.</step-2>
+    <step-3>Retune dashboard as dense health and KPI command surface.</step-3>
+    <step-4>Retune users/devices with search, filters, bounded scrolling, and readable row density.</step-4>
+    <step-5>Retune MTProto and MTProto analytics while preserving redaction and confirmation actions.</step-5>
+    <step-6>Retune plans, servers, and analytics without changing canonical tariffs or runtime data.</step-6>
+    <step-7>Create Phase-58 smoke for admin route density, redaction, confirmations, and no-overlap.</step-7>
+    <step-8>Verify phone/tablet/desktop screenshots and reduced-motion admin surfaces.</step-8>
+    <step-9>Run frontend-admin build, smoke, XML parse, MyGRACE lint, and protected surface guard.</step-9>
+    <step-10>Record evidence in M-076/V-M-076.</step-10>
+  </steps>
+  <verification>V-M-076</verification>
+  <acceptance>Admin panel feels premium but remains a fast operational console.</acceptance>
+</Phase-58>

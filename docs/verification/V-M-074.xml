@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<V-M-074 MODULE="M-074" PRIORITY="critical" STATUS="planned">
+  <scope>Responsive adaptation verification for phone, tablet, and desktop layouts across public, user, and admin routes.</scope>
+  <test-files>
+    <file>scripts/phase61-responsive-adaptation-smoke.mjs</file>
+    <file>frontend</file>
+    <file>frontend-admin</file>
+  </test-files>
+  <commands>
+    <command>cd frontend &amp;&amp; npm run build</command>
+    <command>cd frontend-admin &amp;&amp; npm run build</command>
+    <command>node scripts/phase61-responsive-adaptation-smoke.mjs</command>
+    <command>mygrace lint</command>
+  </commands>
+  <success-scenarios>
+    <scenario-1>360x740, 390x844, 430x932, 768x1024, 820x1180, 1024x1366, and desktop screenshots pass.</scenario-1>
+    <scenario-2>No document horizontal scroll, text overlap, clipped buttons, or hidden primary controls.</scenario-2>
+    <scenario-3>Tablet layouts have intentional density, not stretched phone or cramped desktop behavior.</scenario-3>
+  </success-scenarios>
+  <failure-scenarios>
+    <failure-1>Any viewport hides VPN config, MTProto, subscription, admin health, or emergency action paths.</failure-1>
+    <failure-2>Reduced-motion or keyboard focus becomes inconsistent across breakpoints.</failure-2>
+  </failure-scenarios>
+  <log-markers>
+    <marker>[ResponsiveAdaptation][phase61][PHONE_PASS]</marker>
+    <marker>[ResponsiveAdaptation][phase61][TABLET_PASS]</marker>
+    <marker>[ResponsiveAdaptation][phase61][NO_OVERFLOW]</marker>
+  </log-markers>
+</V-M-074>

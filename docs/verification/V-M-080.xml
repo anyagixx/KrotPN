@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<V-M-080 MODULE="M-080" PRIORITY="medium" STATUS="planned">
+  <scope>Visible logo integration verification for public, auth, user, admin, PWA/favicon, and email surfaces.</scope>
+  <test-files>
+    <file>scripts/phase63-visible-logo-integration-smoke.mjs</file>
+    <file>frontend/public</file>
+    <file>frontend-admin/public</file>
+    <file>frontend/src</file>
+    <file>frontend-admin/src</file>
+    <file>backend/app/email/templates.py</file>
+  </test-files>
+  <commands>
+    <command>cd frontend &amp;&amp; npm run build</command>
+    <command>cd frontend-admin &amp;&amp; npm run build</command>
+    <command>node scripts/phase63-visible-logo-integration-smoke.mjs</command>
+    <command>mygrace lint</command>
+  </commands>
+  <success-scenarios>
+    <scenario-1>Prepared logo assets are selected at appropriate sizes for public/auth/user/admin/email contexts.</scenario-1>
+    <scenario-2>Logo placement strengthens brand presence without crowding mobile screens or admin tables.</scenario-2>
+    <scenario-3>Existing favicon/PWA/email-logo/BIMI boundaries remain documented and truthful.</scenario-3>
+  </success-scenarios>
+  <failure-scenarios>
+    <failure-1>Large logo files bloat first paint or visible logo overlaps form/navigation content.</failure-1>
+    <failure-2>Implementation claims control over mailbox sender avatars rather than body-logo/BIMI surfaces.</failure-2>
+  </failure-scenarios>
+  <log-markers>
+    <marker>[VisibleBrandLogo][phase63][ASSETS_SELECTED]</marker>
+    <marker>[VisibleBrandLogo][phase63][LAYOUT_SAFE]</marker>
+    <marker>[VisibleBrandLogo][phase63][EMAIL_BOUNDARY_SAFE]</marker>
+  </log-markers>
+</V-M-080>

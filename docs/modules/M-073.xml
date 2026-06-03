@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<M-073 NAME="premium-public-site" TYPE="UI_COMPONENT" STATUS="planned-phase56">
+  <path>frontend/src/App.tsx frontend/src/pages/Login.tsx frontend/src/pages/Register.tsx frontend/src/pages/ForgotPassword.tsx frontend/src/pages/ResetPassword.tsx frontend/src/pages/VerifyEmail.tsx frontend/src/pages/Landing.tsx docs/plans/Phase-56.xml scripts/phase56-premium-public-auth-smoke.mjs</path>
+  <owns>Premium public entry, auth, registration, verification, and password recovery surfaces.</owns>
+  <purpose>Present KrotPN as a premium Matrix/cyberpunk product while keeping registration and email verification clear.</purpose>
+  <exports>
+    <view-public-entry>Immersive first screen with KrotPN offer, VPN/MTProto value, tariffs, and direct registration CTA.</view-public-entry>
+    <view-premium-auth>Compact premium login/register/reset/verify screens with logo and clear state feedback.</view-premium-auth>
+    <view-tariff-preview>Server-authoritative tariff presentation without frontend-controlled pricing or limits.</view-tariff-preview>
+  </exports>
+  <depends>M-009,M-068,M-069,M-070,M-071,M-072</depends>
+  <verification-ref>V-M-073</verification-ref>
+  <files>
+    <file>frontend/src/App.tsx</file>
+    <file>frontend/src/pages/Landing.tsx</file>
+    <file>frontend/src/pages/Login.tsx</file>
+    <file>frontend/src/pages/Register.tsx</file>
+    <file>frontend/src/pages/ForgotPassword.tsx</file>
+    <file>frontend/src/pages/ResetPassword.tsx</file>
+    <file>frontend/src/pages/VerifyEmail.tsx</file>
+    <file>scripts/phase56-premium-public-auth-smoke.mjs</file>
+  </files>
+  <constraints>
+    <constraint-1>Do not issue or imply VPN, trial, JWT, referral, or MTProto access before verified email proof.</constraint-1>
+    <constraint-2>Public visual effects must not slow or obscure registration, reset, or verification forms.</constraint-2>
+    <constraint-3>Tariff information must stay aligned with M-068 canonical backend catalog.</constraint-3>
+  </constraints>
+  <acceptance-metrics>
+    <metric-1>Frontend build passes and public/auth route smoke covers mobile, tablet, desktop, and reduced-motion.</metric-1>
+    <metric-2>Registration pending and duplicate-email recovery states remain clear and token-safe.</metric-2>
+    <metric-3>Protected deploy/install guard remains clean.</metric-3>
+  </acceptance-metrics>
+  <hotspot>H-060: Public/auth premium presentation must not delay registration, hide verification states, or imply access before email proof.</hotspot>
+</M-073>

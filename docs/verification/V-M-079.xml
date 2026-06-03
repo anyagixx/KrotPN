@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<V-M-079 MODULE="M-079" PRIORITY="critical" STATUS="planned">
+  <scope>Premium Resend email template verification for verification/reset flows, logo rendering, text fallback, and token redaction.</scope>
+  <test-files>
+    <file>backend/tests/test_email_delivery.py</file>
+    <file>backend/app/email/templates.py</file>
+    <file>scripts/phase64-premium-email-template-smoke.mjs</file>
+  </test-files>
+  <commands>
+    <command>cd backend &amp;&amp; SECRET_KEY=test-secret-key-with-enough-length DATA_ENCRYPTION_KEY=dpFmfSVqfdAK3yx5MQV6Tcv35RZuw5MzaH0yhxJ01q0= PYTHONPATH=. ../.venv/bin/python -m pytest -o addopts='' tests/test_email_delivery.py -v</command>
+    <command>node scripts/phase64-premium-email-template-smoke.mjs</command>
+    <command>mygrace lint</command>
+  </commands>
+  <success-scenarios>
+    <scenario-1>Verification and reset HTML templates use premium Matrix style and visible KrotPN logo.</scenario-1>
+    <scenario-2>Text fallback remains clean, readable, and independent of remote images.</scenario-2>
+    <scenario-3>Tokens, provider API keys, and full one-time URLs remain redacted from logs and provider errors.</scenario-3>
+  </success-scenarios>
+  <failure-scenarios>
+    <failure-1>Email template depends on images for meaning or includes logo URL noise in text fallback.</failure-1>
+    <failure-2>Template changes alter Resend deployment/config semantics.</failure-2>
+  </failure-scenarios>
+  <log-markers>
+    <marker>[PremiumEmailTemplates][phase64][HTML_READY]</marker>
+    <marker>[PremiumEmailTemplates][phase64][TEXT_FALLBACK_CLEAN]</marker>
+    <marker>[PremiumEmailTemplates][phase64][TOKEN_REDACTION]</marker>
+  </log-markers>
+</V-M-079>

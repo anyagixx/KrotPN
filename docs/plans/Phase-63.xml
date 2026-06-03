@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Phase-63 NAME="Visible Logo Integration" STATUS="planned">
+  <objective>Integrate prepared KrotPN logos into visible premium surfaces where they improve brand identity.</objective>
+  <modules>M-080,M-009,M-010,M-069,M-072,M-073,M-075,M-076</modules>
+  <asset-source>/home/truffle/Загрузки/ДЛЯ КРОТА/logos</asset-source>
+  <non-goals>Changing BIMI DNS semantics, claiming mailbox sender-avatar control, deploy/install changes.</non-goals>
+  <steps>
+    <step-1>Audit available logo PNG sizes from 16x16 through 1024x1024.</step-1>
+    <step-2>Select optimized source sizes for public hero/auth, user layout, admin layout, PWA, favicon, and email body use.</step-2>
+    <step-3>Define visible logo placement rules for mobile, tablet, and desktop.</step-3>
+    <step-4>Integrate logo into premium public/auth surfaces.</step-4>
+    <step-5>Integrate compact logo into user and admin shells where it does not crowd navigation.</step-5>
+    <step-6>Coordinate email-logo use with Phase-64 and existing M-069/M-067 boundaries.</step-6>
+    <step-7>Run user/admin builds, logo smoke, screenshots, XML parse, MyGRACE lint, and protected surface guard.</step-7>
+    <step-8>Record evidence in M-080/V-M-080.</step-8>
+  </steps>
+  <verification>V-M-080</verification>
+  <acceptance>KrotPN logo appears consistently and compactly without asset bloat or BIMI/email-avatar confusion.</acceptance>
+</Phase-63>
