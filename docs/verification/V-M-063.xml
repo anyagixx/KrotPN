@@ -12,6 +12,7 @@
     <file>frontend/src/pages/Dashboard.tsx</file>
     <file>frontend/src/pages/Subscription.tsx</file>
     <file>scripts/phase45-trial-subscription-ux-smoke.mjs</file>
+    <file>scripts/phase53-user-matrix-ui-smoke.mjs</file>
   </test-files>
   <phase-45-gates>
     <gate-1>Verified registration creates a pending four-day trial that has no running countdown before first VPN handshake.</gate-1>
@@ -22,6 +23,12 @@
     <gate-6>Dashboard and subscription pages show pending activation, countdown, and calendar without horizontal mobile scroll.</gate-6>
     <gate-7>Deploy/install scripts show no diff.</gate-7>
   </phase-45-gates>
+  <phase-53-ui-gates status="verification-designed">
+    <gate-1>Matrix dashboard and subscription redesign keep pending-first-VPN state explicit and do not imply the countdown has started before the first successful VPN handshake.</gate-1>
+    <gate-2>Activated subscriptions show server-derived days, hours, minutes, start date, expiry date, and compact active-date calendar without text overlap.</gate-2>
+    <gate-3>Expired, paid, complimentary, and pending states remain visually distinct and do not reuse stale 3-day trial copy.</gate-3>
+    <gate-4>Phase-53 frontend changes do not alter billing, VPN, scheduler, migration, or API response semantics.</gate-4>
+  </phase-53-ui-gates>
   <verification-levels>
     <module-local>Billing pending-trial state, activation idempotency, VPN pending access, scheduler activation, and subscription countdown math are covered with deterministic backend assertions.</module-local>
     <wave-level>Verified-registration onboarding, VPN config access, scheduler stats refresh, billing state, and frontend subscription rendering are verified as one behavior wave.</wave-level>
@@ -33,6 +40,8 @@
     <scenario-3 kind="failure">Second handshake does not move expires_at forward.</scenario-3>
     <scenario-4 kind="success">Paid user handshake does not convert or shorten paid subscription.</scenario-4>
     <scenario-5 kind="failure">Expired pending or ineligible trial does not create unauthorized VPN access.</scenario-5>
+    <scenario-6 kind="success">Matrix subscription UI preserves pending/countdown/calendar semantics on mobile and desktop viewports.</scenario-6>
+    <scenario-7 kind="failure">Visual redesign hides pending activation guidance, active countdown, or calendar dates behind decorative sections.</scenario-7>
   </scenarios>
   <required-log-markers>
     <marker-1>[BillingService][create_pending_trial][CREATE_PENDING_TRIAL]</marker-1>
@@ -40,11 +49,14 @@
     <marker-3>[VPNRouter][get_config][PENDING_TRIAL_ACCESS]</marker-3>
     <marker-4>[Scheduler][activate_pending_trials][SCAN_PENDING_TRIALS]</marker-4>
     <marker-5>[BillingRouter][get_subscription][COUNTDOWN_RESPONSE]</marker-5>
+    <marker-6>[M-063][phase53_subscription_ui][COUNTDOWN_READABLE]</marker-6>
+    <marker-7>[M-063][phase53_subscription_ui][CALENDAR_READABLE]</marker-7>
   </required-log-markers>
   <commands>
     <command status="pass-local">cd backend &amp;&amp; SECRET_KEY=test-secret-key-with-enough-length DATA_ENCRYPTION_KEY=dpFmfSVqfdAK3yx5MQV6Tcv35RZuw5MzaH0yhxJ01q0= PYTHONPATH=. ../.venv/bin/python -m pytest -o addopts='' tests/test_trial_activation.py tests/test_billing_service.py tests/test_verified_registration.py tests/test_vpn_router_compat.py tests/test_scheduler.py tests/test_db_migrations.py -v</command>
     <command status="pass-local">cd frontend &amp;&amp; npm run build</command>
     <command status="pass-local">node scripts/phase45-trial-subscription-ux-smoke.mjs</command>
+    <command status="verification-designed">node scripts/phase53-user-matrix-ui-smoke.mjs</command>
     <command status="pass-local">python3 -m xml.etree.ElementTree docs/plans/Phase-45.xml docs/modules/M-063.xml docs/verification/V-M-063.xml docs/graph-index.xml docs/plan-index.xml docs/verification-index.xml docs/requirements.xml docs/current-status.xml</command>
     <command status="pass-local">mygrace lint</command>
   </commands>

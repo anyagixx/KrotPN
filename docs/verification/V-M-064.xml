@@ -7,10 +7,12 @@
     <file>frontend/src/pages/Dashboard.tsx</file>
     <file>frontend/src/lib/passwordPolicy.ts</file>
     <file>scripts/phase46-user-cabinet-ux-smoke.mjs</file>
+    <file>scripts/phase53-user-matrix-ui-smoke.mjs</file>
   </test-files>
   <commands>
     <command status="pass-local">cd frontend &amp;&amp; npm run build</command>
     <command status="pass-local">node scripts/phase46-user-cabinet-ux-smoke.mjs</command>
+    <command status="verification-designed">node scripts/phase53-user-matrix-ui-smoke.mjs</command>
     <command status="pass-local">python3 -m xml.etree.ElementTree docs/plans/Phase-46.xml docs/modules/M-064.xml docs/verification/V-M-064.xml docs/graph-index.xml docs/plan-index.xml docs/verification-index.xml</command>
     <command status="pass-local">mygrace lint</command>
   </commands>
@@ -20,7 +22,15 @@
     <check-3>Visible MTProto field/action labels are Ссылка, Сервер, Порт, and Секрет.</check-3>
     <check-4>MTProto status badge class is derived from live payload state and the query has bounded refresh or equivalent invalidation.</check-4>
     <check-5>Phase-46 verification fails if the protected deploy/install/nginx/docker-compose diff guard shows changes.</check-5>
+    <check-6>Phase-53 Matrix auth screens keep password example, duplicate-email recovery CTA, and reset/verify guidance readable without API changes.</check-6>
+    <check-7>Phase-53 Matrix dashboard keeps tg:// app link, https://t.me browser link, Russian labels, and bounded status refresh readable and compact.</check-7>
   </module-checks>
+  <phase-53-ux-gates status="verification-designed">
+    <gate-1>Registration Matrix form keeps strong-password hints and the safe example visible without encouraging literal reuse.</gate-1>
+    <gate-2>Login, forgot-password, reset-password, verify-email, and check-email states remain compact, readable, and free of stale trial/VPN copy.</gate-2>
+    <gate-3>MTProto status badge remains data-derived and must not become a static success badge after visual refactor.</gate-3>
+    <gate-4>Phase-53 smoke rejects unbounded polling, secret-bearing debug output, and any protected deploy/install diff.</gate-4>
+  </phase-53-ux-gates>
   <verification-levels>
     <module-local>Deterministic static smoke validates exact UX contract: safe password example, passwordStrengthIssues gate, dual MTProto link schemes, Russian labels, bounded status refresh, and no secret-bearing output.</module-local>
     <wave-level>Frontend build validates touched React/TypeScript surfaces and shared password policy imports.</wave-level>
@@ -43,6 +53,8 @@
     <marker-2>[M-064][phase46_user_cabinet_ux][DUAL_MTPROTO_LINKS]</marker-2>
     <marker-3>[M-064][phase46_user_cabinet_ux][RUSSIAN_LABELS]</marker-3>
     <marker-4>[M-064][phase46_user_cabinet_ux][DYNAMIC_STATUS]</marker-4>
+    <marker-5>[M-064][phase53_auth_matrix][PASSWORD_EXAMPLE_READABLE]</marker-5>
+    <marker-6>[M-064][phase53_mtproto_matrix][DYNAMIC_STATUS_PRESERVED]</marker-6>
   </required-markers>
   <redaction-rules>
     <rule-1>Smoke output must not print real MTProto secrets, full proxy links from live accounts, access tokens, refresh tokens, reset tokens, or private env values.</rule-1>

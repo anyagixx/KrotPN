@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<V-M-036 MODULE="M-036" PRIORITY="high" STATUS="pass-local-phase46" VERSION="1.2.0">
+<V-M-036 MODULE="M-036" PRIORITY="high" STATUS="pass-local-phase46" VERSION="1.3.0">
   <module>mobile-user-cabinet</module>
   <checks>User frontend must become compact, phone-friendly, and focused on VPN config, subscription, device workflows, and Phase-45 pending trial countdown/calendar UX.</checks>
-  <test-files>frontend/src/components/Layout.tsx frontend/src/pages/Dashboard.tsx frontend/src/pages/Config.tsx frontend/src/pages/Subscription.tsx frontend/src/index.css scripts/phase45-trial-subscription-ux-smoke.mjs scripts/phase46-user-cabinet-ux-smoke.mjs</test-files>
+  <test-files>frontend/src/components/Layout.tsx frontend/src/pages/Dashboard.tsx frontend/src/pages/Config.tsx frontend/src/pages/Subscription.tsx frontend/src/pages/Referrals.tsx frontend/src/pages/Settings.tsx frontend/src/index.css scripts/phase45-trial-subscription-ux-smoke.mjs scripts/phase46-user-cabinet-ux-smoke.mjs scripts/phase53-user-matrix-ui-smoke.mjs</test-files>
   <commands>cd frontend &amp;&amp; npm run build; Phase-23 mobile smoke for /, /config, and /subscription at 360x740, 390x844, and 430x932; node scripts/phase45-trial-subscription-ux-smoke.mjs; node scripts/phase46-user-cabinet-ux-smoke.mjs; assert documentElement.scrollWidth &lt;= innerWidth and primary config path &lt;= 2 taps</commands>
   <levels>
     <module-local>TypeScript/Vite build must pass for the user frontend after each execution step that changes Phase-23 files.</module-local>
@@ -35,7 +35,16 @@
     <check-6>Existing backend API request/response shapes are unchanged in Phase-23.</check-6>
     <check-7>Phase-45 dashboard and subscription pages render pending activation, remaining days/hours/minutes, and calendar marker from the subscription API fields.</check-7>
     <check-8>Phase-46 MTProto dashboard card keeps dual-link actions, Russian labels, and bounded status refresh compact in the mobile cabinet.</check-8>
+    <check-9>Phase-53 Matrix redesign keeps dashboard, config, subscription, referrals, and settings compact without decorative route bloat or nested cards.</check-9>
+    <check-10>Phase-53 route smoke confirms primary VPN/config/MTProto/subscription actions are reachable within one or two taps on phone viewports.</check-10>
   </module-checks>
+  <phase-53-matrix-route-gates status="verification-designed">
+    <gate-1>Dashboard first screen prioritizes VPN state, primary config action, MTProto proxy state, subscription countdown, and device slots over decorative content.</gate-1>
+    <gate-2>Config route keeps QR, copy, .conf download, create, rotate, and revoke controls compact and unchanged at the API layer.</gate-2>
+    <gate-3>Subscription route keeps countdown, calendar, current plan, and tariff CTA readable with stable dimensions.</gate-3>
+    <gate-4>Referrals and settings routes use compact rows and safe wrapping for long emails, referral links, device names, and status labels.</gate-4>
+    <gate-5>Loading, empty, success, warning, and error states do not resize fixed controls or hide primary actions.</gate-5>
+  </phase-53-matrix-route-gates>
   <scenarios>
     <scenario-1 kind="success">Authenticated user opens the cabinet on a phone and immediately sees VPN status, config action, subscription state, and active device summary.</scenario-1>
     <scenario-2 kind="success">User opens config flow, selects or creates a device, then reaches QR, copy, and .conf download without desktop-only layout.</scenario-2>
@@ -66,6 +75,9 @@
     <marker-2>[FrontendUser][Phase23][MOBILE_VIEWPORT_SAFE]</marker-2>
     <marker-3>[FrontendUser][Phase23][PRIMARY_CONFIG_REACHABLE]</marker-3>
     <marker-4>[FrontendUser][Phase23][API_SHAPE_UNCHANGED]</marker-4>
+    <marker-5>[MobileUserCabinet][Phase53][ROUTE_VIEWPORT_SAFE]</marker-5>
+    <marker-6>[MobileUserCabinet][Phase53][PRIMARY_ACTIONS_REACHABLE]</marker-6>
+    <marker-7>[MobileUserCabinet][Phase53][STATE_SURFACES_STABLE]</marker-7>
   </required-log-markers>
   <evidence>
     <evidence-1>Record frontend build result.</evidence-1>

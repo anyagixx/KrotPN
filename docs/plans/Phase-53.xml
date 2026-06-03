@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Phase-53 NAME="User Cabinet Matrix Redesign" STATUS="planned" STEPS="10">
+<Phase-53 NAME="User Cabinet Matrix Redesign" STATUS="verification-designed" STEPS="10">
   <summary>Redesign the full user frontend into the approved KrotPN Matrix style while preserving compact mobile workflows and existing backend contracts.</summary>
   <modules>M-009,M-036,M-045,M-063,M-064,M-068,M-070,M-071</modules>
   <constraints>
@@ -54,5 +54,10 @@
     <walkthrough-2>Verified user opens dashboard on mobile: VPN status, config action, MTProto proxy, and subscription countdown are visible without scrolling through decorative sections.</walkthrough-2>
     <walkthrough-3>User downloads config on Android/iOS browser: redesigned controls still call the hardened download path and keep .conf filename behavior intact.</walkthrough-3>
   </mental-walkthroughs>
-  <verification>V-M-009,V-M-036,V-M-045,V-M-063,V-M-064,V-M-070,V-M-071</verification>
+  <verification>V-M-009,V-M-036,V-M-045,V-M-063,V-M-064,V-M-068,V-M-070,V-M-071</verification>
+  <verification-design>
+    <gate-1>Phase-53 execute may start only after V-M-009, V-M-036, V-M-045, V-M-063, V-M-064, V-M-068, V-M-070, and V-M-071 include PHASE-53 verification-designed coverage.</gate-1>
+    <gate-2>Execution must add scripts/phase53-user-matrix-ui-smoke.mjs before marking step-8 done-local.</gate-2>
+    <gate-3>Final Phase-53 evidence must include frontend build, route/viewport smoke for auth/dashboard/config/subscription/referrals/settings, reduced-motion proof, screenshot review, XML parse, MyGRACE lint, git diff --check, and protected deploy/install guard.</gate-3>
+  </verification-design>
 </Phase-53>

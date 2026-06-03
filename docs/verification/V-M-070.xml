@@ -11,6 +11,7 @@
     <file>frontend-admin/src/components/MatrixBackground.tsx</file>
     <file>frontend-admin/src/components/VisualShell.tsx</file>
     <file>scripts/phase52-matrix-visual-smoke.mjs</file>
+    <file>scripts/phase53-user-matrix-ui-smoke.mjs</file>
   </test-files>
   <module-checks>
     <check-1>cd frontend &amp;&amp; npm run build</check-1>
@@ -19,7 +20,15 @@
     <check-4>Chrome/Playwright screenshot audit: /login user shell desktop 1440x900, 390x844, and reduced-motion.</check-4>
     <check-5>Chrome/Playwright screenshot audit: admin /login shell desktop 1440x900, 390x844, and reduced-motion.</check-5>
     <check-6>git diff --name-only -- install.sh deploy nginx docker-compose.yml</check-6>
+    <check-7>Phase-53 user route screenshot audit: auth, dashboard, config, subscription, referrals, settings, and reduced-motion dashboard.</check-7>
   </module-checks>
+  <phase-53-runtime-gates status="verification-designed">
+    <gate-1>MatrixBackground remains mounted once through VisualShell while user route navigation changes content.</gate-1>
+    <gate-2>Canvas and CRT overlays remain pointer-events-none and do not intercept VPN config download, copy, QR, tariff checkout, MTProto copy/open, or auth form controls.</gate-2>
+    <gate-3>Reduced-motion mode renders a readable static Matrix surface across dashboard/config/subscription routes without running animation loops.</gate-3>
+    <gate-4>Runtime cleanup markers remain available after route navigation, hot reload, unmount, hidden-tab pause, and resize paths.</gate-4>
+    <gate-5>Phase-53 smoke must fail if Matrix runtime changes deploy/install/nginx/docker-compose or backend runtime topology.</gate-5>
+  </phase-53-runtime-gates>
   <scenarios>
     <scenario-1 kind="success">Matrix canvas renders nonblank behind user and admin content without intercepting clicks, keyboard focus, text selection, or mobile scroll.</scenario-1>
     <scenario-2 kind="success">VisualShell keeps content in a higher readable layer while the canvas and CRT overlays remain pointer-events-none.</scenario-2>
@@ -34,6 +43,8 @@
     <marker-3>[MatrixVisualRuntime][motionPolicy][REDUCED_MOTION]</marker-3>
     <marker-4>[MatrixVisualRuntime][fallback][CANVAS_CONTEXT_UNAVAILABLE]</marker-4>
     <marker-5>[MatrixVisualRuntime][cleanup][ANIMATION_STOPPED]</marker-5>
+    <marker-6>[MatrixVisualRuntime][phase53][USER_ROUTE_CANVAS_READY]</marker-6>
+    <marker-7>[MatrixVisualRuntime][phase53][POINTER_EVENTS_SAFE]</marker-7>
   </required-log-markers>
   <evidence-levels>
     <module-local>Static smoke inspects source contracts, exported components, cleanup paths, reduced-motion branches, and protected imports.</module-local>
@@ -66,5 +77,10 @@
       <screenshot-paths>/tmp/krotpn-phase52-user-360x740.png /tmp/krotpn-phase52-user-390x844.png /tmp/krotpn-phase52-user-430x932.png /tmp/krotpn-phase52-user-1440x900.png /tmp/krotpn-phase52-user-reduced-390x844.png /tmp/krotpn-phase52-admin-360x740.png /tmp/krotpn-phase52-admin-390x844.png /tmp/krotpn-phase52-admin-430x932.png /tmp/krotpn-phase52-admin-1440x900.png /tmp/krotpn-phase52-admin-reduced-390x844.png</screenshot-paths>
       <protected-surface>No install.sh, deploy, nginx, docker-compose, or runtime topology diff.</protected-surface>
     </local-2026-06-03>
+    <phase-53-designed-2026-06-03>
+      <result>VERIFICATION_DESIGNED</result>
+      <required-command>node scripts/phase53-user-matrix-ui-smoke.mjs</required-command>
+      <required-proof>User route screenshots plus reduced-motion proof must show a nonblank pointer-safe Matrix background without hiding controls.</required-proof>
+    </phase-53-designed-2026-06-03>
   </evidence>
 </V-M-070>

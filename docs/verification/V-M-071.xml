@@ -11,6 +11,7 @@
     <file>frontend/src/components/Layout.tsx</file>
     <file>frontend-admin/src/components/Layout.tsx</file>
     <file>scripts/phase52-matrix-visual-smoke.mjs</file>
+    <file>scripts/phase53-user-matrix-ui-smoke.mjs</file>
   </test-files>
   <module-checks>
     <check-1>cd frontend &amp;&amp; npm run build</check-1>
@@ -19,7 +20,15 @@
     <check-4>Viewport smoke: 360x740, 390x844, 430x932, 768x1024, 1440x900.</check-4>
     <check-5>Reduced-motion smoke: all transform-heavy, flicker-heavy, and scanline-heavy effects are disabled or simplified.</check-5>
     <check-6>git diff --name-only -- install.sh deploy nginx docker-compose.yml</check-6>
+    <check-7>Phase-53 viewport smoke: auth, dashboard, config, subscription, referrals, settings, reduced-motion dashboard, and desktop user route screenshots.</check-7>
   </module-checks>
+  <phase-53-style-gates status="verification-designed">
+    <gate-1>User cabinet routes use Matrix palette/tokens while preserving compact operational layout and avoiding nested cards.</gate-1>
+    <gate-2>VPN config actions, QR/download/copy, MTProto secrets, countdown/calendar, tariff prices, referral links, and settings forms remain readable.</gate-2>
+    <gate-3>Focus states remain visible on buttons, links, inputs, segmented controls, copy actions, tariff CTAs, and navigation tabs.</gate-3>
+    <gate-4>Reduced-motion disables flicker-heavy/transform-heavy effects and keeps the Matrix identity as a static readable surface.</gate-4>
+    <gate-5>Palette review confirms cyan, magenta, amber, red, and neutral accents remain available and the UI is not a one-note green surface.</gate-5>
+  </phase-53-style-gates>
   <scenarios>
     <scenario-1 kind="success">Shared Matrix tokens apply to both frontends without breaking compact operational layout rules from M-038.</scenario-1>
     <scenario-2 kind="success">CRT scanlines, neon flicker, and glitch accents are visible but do not obscure forms, tables, proxy cards, tariffs, alerts, or primary actions.</scenario-2>
@@ -46,6 +55,9 @@
     <marker-3>[MatrixStyleSystem][smoke][VIEWPORT_NO_OVERFLOW]</marker-3>
     <marker-4>[MatrixStyleSystem][smoke][FOCUS_VISIBLE]</marker-4>
     <marker-5>[MatrixStyleSystem][smoke][PROTECTED_SURFACE_GUARD]</marker-5>
+    <marker-6>[MatrixStyleSystem][phase53][USER_ROUTES_READABLE]</marker-6>
+    <marker-7>[MatrixStyleSystem][phase53][NO_TEXT_OVERLAP]</marker-7>
+    <marker-8>[MatrixStyleSystem][phase53][BALANCED_PALETTE]</marker-8>
   </required-log-markers>
   <evidence-levels>
     <module-local>Static smoke validates CSS tokens, class primitives, reduced-motion selectors, focus selectors, and protected-surface guard.</module-local>
@@ -79,5 +91,10 @@
       <viewport-review>Login shells stayed readable, Matrix layer was visible, focus and reduced-motion selectors are present, and no obvious icon/text overlap was observed on captured login viewports.</viewport-review>
       <protected-surface>No install.sh, deploy, nginx, docker-compose, or runtime topology diff.</protected-surface>
     </local-2026-06-03>
+    <phase-53-designed-2026-06-03>
+      <result>VERIFICATION_DESIGNED</result>
+      <required-command>node scripts/phase53-user-matrix-ui-smoke.mjs</required-command>
+      <required-proof>User cabinet route screenshots must show Matrix style without text overlap, horizontal scroll, hidden primary actions, or one-note palette dominance.</required-proof>
+    </phase-53-designed-2026-06-03>
   </evidence>
 </V-M-071>

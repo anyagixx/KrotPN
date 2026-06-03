@@ -18,12 +18,14 @@
     <file>frontend-admin/src/pages/Plans.tsx</file>
     <file>frontend-admin/src/types/index.ts</file>
     <file>scripts/phase50-tariff-catalog-smoke.mjs</file>
+    <file>scripts/phase53-user-matrix-ui-smoke.mjs</file>
   </test-files>
   <commands>
     <command status="pass-local">cd backend &amp;&amp; SECRET_KEY=test-secret-key-with-enough-length DATA_ENCRYPTION_KEY=dpFmfSVqfdAK3yx5MQV6Tcv35RZuw5MzaH0yhxJ01q0= PYTHONPATH=. ../.venv/bin/python -m pytest -o addopts='' tests/test_billing_tariff_catalog.py tests/test_billing_plan_api.py tests/test_billing_service.py tests/test_device_access_policy.py tests/test_db_migrations.py -v</command>
     <command status="pass-local">cd frontend &amp;&amp; npm run build</command>
     <command status="pass-local">cd frontend-admin &amp;&amp; npm run build</command>
     <command status="pass-local">node scripts/phase50-tariff-catalog-smoke.mjs</command>
+    <command status="verification-designed">node scripts/phase53-user-matrix-ui-smoke.mjs</command>
     <command status="pass-local">python3 -m xml.etree.ElementTree docs/plans/Phase-50.xml docs/modules/M-068.xml docs/verification/V-M-068.xml docs/graph-index.xml docs/plan-index.xml docs/verification-index.xml docs/current-status.xml</command>
     <command status="pass-local">mygrace lint</command>
     <command status="pass-local">git diff --check</command>
@@ -40,7 +42,15 @@
     <check-8>User /subscription renders exactly three compact tariff cards with Russian labels, price, duration, device limit, current usage, and popular marker.</check-8>
     <check-9>Admin Plans renders a compact canonical tariff matrix and does not expose accidental canonical delete/edit actions.</check-9>
     <check-10>Phase-50 does not change install.sh, deploy scripts, docker-compose, nginx, TLS material, VPN runtime, or MTProto runtime.</check-10>
+    <check-11>Phase-53 subscription Matrix UI renders exactly three user-facing tariff cards with canonical 369/693/936 RUB prices and 1/6/9 device limits.</check-11>
+    <check-12>Phase-53 visual refactor does not allow frontend-provided price, duration, currency, or device limit to affect checkout.</check-12>
   </module-checks>
+  <phase-53-subscription-ui-gates status="verification-designed">
+    <gate-1>Matrix tariff cards remain compact and readable at 360x740, 390x844, 430x932, 768x1024, and 1440x900.</gate-1>
+    <gate-2>Current usage, selected plan, popular marker, duration, price, and device limit text do not overlap buttons or adjacent cards.</gate-2>
+    <gate-3>Checkout CTA sends only plan_id through the existing frontend API binding.</gate-3>
+    <gate-4>Phase-53 smoke fails on stale placeholder plan copy, missing canonical tariffs, non-Russian visible tariff labels, or protected deploy/install drift.</gate-4>
+  </phase-53-subscription-ui-gates>
   <phase-50-gates>
     <gate-1>Public GET /api/v1/billing/plans returns exactly krotpn-1, krotpn-6, and krotpn-9 in sort order with price, currency, duration_days, device_limit, slug, active status, and popular marker.</gate-1>
     <gate-2>Admin plan response exposes slug, is_active, is_popular, sort_order, price, currency, duration_days, and device_limit; frontend-admin build fails if the type contract drifts.</gate-2>
@@ -74,6 +84,8 @@
     <marker-3>[M-068][checkout][TARIFF_DOWNGRADE_BLOCKED]</marker-3>
     <marker-4>[BillingService][create_payment][BILLING_PAYMENT_CREATED]</marker-4>
     <marker-5>[BillingService][process_payment_webhook][BILLING_SUBSCRIPTION_UPDATED]</marker-5>
+    <marker-6>[M-068][phase53_tariff_ui][CANONICAL_TARIFFS_VISIBLE]</marker-6>
+    <marker-7>[M-068][phase53_tariff_ui][CHECKOUT_SHAPE_PRESERVED]</marker-7>
   </required-markers>
   <redaction-rules>
     <rule-1>Do not log YooKassa secret keys, raw Authorization headers, JWTs, payment provider credentials, email tokens, TLS private keys, VPN config bodies, MTProto secrets, or full user identifiers during Phase-50 verification.</rule-1>
