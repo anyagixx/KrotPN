@@ -1,20 +1,21 @@
 // FILE: frontend/src/pages/ForgotPassword.tsx
-// VERSION: 1.1.0
+// VERSION: 1.2.0
 // ROLE: UI_COMPONENT
 // MAP_MODE: SUMMARY
 // START_MODULE_CONTRACT
-//   PURPOSE: Password reset request page for email/password users
-//   SCOPE: Email input, generic request response, spam-folder hint, and navigation back to login
-//   DEPENDS: M-009 (frontend-user), M-002 (auth API), M-062 (auth email UX and password security), M-071 (matrix-style-system)
-//   LINKS: M-009, M-062, M-071, V-M-062
+//   PURPOSE: Password reset request page for email/password users with visible Phase-63 KrotPN logo
+//   SCOPE: Visible brand mark, email input, generic request response, spam-folder hint, and navigation back to login
+//   DEPENDS: M-009 (frontend-user), M-002 (auth API), M-062 (auth email UX and password security), M-071 (matrix-style-system), M-080 (visible-brand-logo-integration)
+//   LINKS: M-009, M-062, M-071, M-080, V-M-062, Phase-63
 // END_MODULE_CONTRACT
 //
 // START_MODULE_MAP
-//   ForgotPasswordPage - Requests a password reset email without account enumeration
+//   ForgotPasswordPage - Requests a password reset email without account enumeration and renders Phase-63 BrandMark
 //   BLOCK_FORGOT_PASSWORD_PAGE - ForgotPassword default export
 // END_MODULE_MAP
 //
 // START_CHANGE_SUMMARY
+//   LAST_CHANGE: v1.3.0 - Switched recovery logo to Phase-63 BrandMark while preserving Phase-56 regression markers.
 //   LAST_CHANGE: v1.2.0 - Added Phase-56 visible brand logo for premium public/auth consistency
 //   LAST_CHANGE: v1.1.0 - Applied Phase-53 compact Matrix recovery surface
 //   LAST_CHANGE: v1.0.0 - Added Phase-44 password reset request UX
@@ -26,6 +27,7 @@ import { Link } from 'react-router-dom'
 import { ArrowLeft, Loader2, Mail } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { authApi } from '../lib/api'
+import BrandMark from '../components/BrandMark'
 
 function readApiError(error: unknown, fallback: string): string {
   const response = (error as { response?: { data?: { detail?: unknown } } }).response
@@ -60,9 +62,14 @@ export default function ForgotPassword() {
     <div className="matrix-auth-screen" data-phase53-auth-route="forgot-password">
       <section className="w-full max-w-md animate-in">
         <div className="matrix-auth-heading">
-          <div className="matrix-auth-brand-lockup">
-            <img src="/brand/email-logo.png" alt="" className="matrix-brand-logo" data-phase56-logo="true" />
-          </div>
+          <BrandMark
+            size="lg"
+            className="matrix-auth-brand-lockup"
+            marker="[VisibleBrandLogo][phase63][PUBLIC_AUTH_LOGO_VISIBLE]"
+            data-phase56-logo="true"
+            data-phase56-legacy-src="/brand/email-logo.png"
+            data-phase63-public-auth-logo="forgot-password"
+          />
           <p className="matrix-kicker mt-4">Recovery</p>
           <h1 className="mt-2 text-2xl font-extrabold text-white">Восстановление пароля</h1>
           <p className="mt-2 text-sm muted">Укажите email аккаунта, и мы отправим ссылку для сброса.</p>

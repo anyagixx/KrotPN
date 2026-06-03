@@ -1,22 +1,23 @@
 // FILE: frontend/src/pages/Landing.tsx
-// VERSION: 1.1.0
+// VERSION: 1.2.0
 // ROLE: UI_COMPONENT
 // MAP_MODE: SUMMARY
 // START_MODULE_CONTRACT
-//   PURPOSE: Premium public KrotPN entry route with compact Matrix CTA, offer proof, tariff preview, verified-email safety copy, and Phase-62 low-bulk public compaction
-//   SCOPE: Public landing, login/register navigation, VPN and free MTProto value presentation, public tariff preview, folded secondary proof, no checkout or access side effects
-//   DEPENDS: M-073 (premium-public-site), M-009 (frontend-user), M-038 (compact-ui-system), M-068 (paid tariff catalog), M-069 (brand assets), M-070 (matrix runtime), M-071 (matrix styles), M-072 (premium art direction), M-074 (responsive-device-adaptation)
-//   LINKS: M-073, V-M-073, docs/plans/Phase-56.xml, Phase-62
+//   PURPOSE: Premium public KrotPN entry route with compact Matrix CTA, visible Phase-63 logo, offer proof, tariff preview, verified-email safety copy, and Phase-62 low-bulk public compaction
+//   SCOPE: Public landing, visible KrotPN brand mark, login/register navigation, VPN and free MTProto value presentation, public tariff preview, folded secondary proof, no checkout or access side effects
+//   DEPENDS: M-073 (premium-public-site), M-009 (frontend-user), M-038 (compact-ui-system), M-068 (paid tariff catalog), M-069 (brand assets), M-070 (matrix runtime), M-071 (matrix styles), M-072 (premium art direction), M-074 (responsive-device-adaptation), M-080 (visible-brand-logo-integration)
+//   LINKS: M-073, M-080, V-M-073, V-M-080, docs/plans/Phase-56.xml, Phase-62, Phase-63
 // END_MODULE_CONTRACT
 //
 // START_MODULE_MAP
 //   PUBLIC_TARIFF_PREVIEW - Static fallback copy mirrored from M-068 and verified by Phase-56 smoke
-//   Landing - Public premium entry component with CTA, safe tariff preview, and Phase-62 folded secondary proof
+//   Landing - Public premium entry component with CTA, visible Phase-63 logo, safe tariff preview, and Phase-62 folded secondary proof
 //   BLOCK_PUBLIC_TARIFF_PREVIEW - Canonical fallback tariff preview values
 //   BLOCK_LANDING_PAGE - Public route rendering
 // END_MODULE_MAP
 //
 // START_CHANGE_SUMMARY
+//   LAST_CHANGE: v1.2.0 - Switched public nav to Phase-63 BrandMark while preserving Phase-56 logo regression markers.
 //   LAST_CHANGE: v1.1.0 - Added Phase-62 public/auth compactness markers and folded secondary value/proof content.
 //   LAST_CHANGE: v1.0.0 - Added Phase-56 premium public entry route without changing backend billing or registration semantics
 // END_CHANGE_SUMMARY
@@ -26,6 +27,7 @@ import { Link } from 'react-router-dom'
 import { useQuery } from 'react-query'
 import { ArrowRight, Check, CreditCard, LockKeyhole, RadioTower, ShieldCheck, Smartphone, Sparkles, Zap } from 'lucide-react'
 import { billingApi, Plan } from '../lib/api'
+import BrandMark from '../components/BrandMark'
 
 const PUBLIC_TARIFF_PREVIEW: Plan[] = [
   {
@@ -100,8 +102,14 @@ export default function Landing() {
     >
       <header className="matrix-public-nav">
         <Link to="/" className="matrix-public-brand" aria-label="KrotPN">
-          <img src="/brand/email-logo.png" alt="" className="matrix-brand-logo" data-phase56-logo="true" />
-          <span>KrotPN</span>
+          <BrandMark
+            showText
+            size="md"
+            marker="[VisibleBrandLogo][phase63][PUBLIC_AUTH_LOGO_VISIBLE]"
+            data-phase56-logo="true"
+            data-phase56-legacy-src="/brand/email-logo.png"
+            data-phase63-public-auth-logo="landing-nav"
+          />
         </Link>
         <nav className="flex items-center gap-2">
           <Link to="/login" className="btn-secondary min-h-10 px-3 py-2 text-sm">

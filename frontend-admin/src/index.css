@@ -1,18 +1,19 @@
 /* FILE: frontend-admin/src/index.css
- * VERSION: 1.6.0
+ * VERSION: 1.7.0
  * ROLE: UI_COMPONENT
  * MAP_MODE: SUMMARY
  * START_MODULE_CONTRACT
- *   PURPOSE: Shared admin-frontend styling tokens, compact admin surfaces, Phase-52 Matrix visual foundation, Phase-54 admin console primitives, Phase-55 premium art direction, Phase-58 operator cockpit density, Phase-59 motion language, Phase-61 phone/tablet adaptation gates, and Phase-62 deletion-audit compaction
- *   SCOPE: Admin shell, login console, navigation, panels, forms, data tables, charts, premium palette/type/density/logo tokens, Matrix background/canvas/CRT layers, Phase-58 command cockpit primitives, Phase-59 motion/microinteraction primitives, Phase-61 responsive phone/tablet/safe-area rules, Phase-62 folded admin secondary surfaces, focus and reduced-motion policy
- *   DEPENDS: M-010 (frontend-admin), M-037 (admin-mtproto-ui), M-038 (compact-ui-system), M-047 (mtproto-admin-ops), M-058 (mtproto-admin-analytics-ui), M-068 (tariff-catalog), M-070 (matrix-visual-runtime), M-071 (matrix-style-system), M-072 (premium-art-direction-system), M-074 (responsive-device-adaptation), M-076 (premium-admin-cockpit), M-077 (matrix-motion-interactions)
- *   LINKS: M-010 (frontend-admin), M-037, M-038, M-047, M-058, M-068, M-070, M-071, M-072, M-074, M-076, M-077, Phase-61
+ *   PURPOSE: Shared admin-frontend styling tokens, compact admin surfaces, Phase-52 Matrix visual foundation, Phase-54 admin console primitives, Phase-55 premium art direction, Phase-58 operator cockpit density, Phase-59 motion language, Phase-61 phone/tablet adaptation gates, Phase-62 deletion-audit compaction, and Phase-63 visible brand logo placement
+ *   SCOPE: Admin shell, login console, visible Phase-63 brand mark classes, navigation, panels, forms, data tables, charts, premium palette/type/density/logo tokens, Matrix background/canvas/CRT layers, Phase-58 command cockpit primitives, Phase-59 motion/microinteraction primitives, Phase-61 responsive phone/tablet/safe-area rules, Phase-62 folded admin secondary surfaces, focus and reduced-motion policy
+ *   DEPENDS: M-010 (frontend-admin), M-037 (admin-mtproto-ui), M-038 (compact-ui-system), M-047 (mtproto-admin-ops), M-058 (mtproto-admin-analytics-ui), M-068 (tariff-catalog), M-070 (matrix-visual-runtime), M-071 (matrix-style-system), M-072 (premium-art-direction-system), M-074 (responsive-device-adaptation), M-076 (premium-admin-cockpit), M-077 (matrix-motion-interactions), M-080 (visible-brand-logo-integration)
+ *   LINKS: M-010 (frontend-admin), M-037, M-038, M-047, M-058, M-068, M-070, M-071, M-072, M-074, M-076, M-077, M-080, Phase-61, Phase-63
  * END_MODULE_CONTRACT
  *
  * START_MODULE_MAP
  *   base - Root color, typography, density, logo, and document background tokens
  *   premium-art-direction - Phase-55 balanced palette, compact type scale, density, and logo rules
  *   matrix-visual-system - Canvas, scanline, vignette, and content stacking layers
+ *   visible-brand-logo - Phase-63 compact KrotPN logo mark and admin lockup classes
  *   admin-shell - Rail, topbar, mobile tabbar, content sizing
  *   admin-matrix-ui - Phase-54 compact login, toolbar, KPI, chart, route, and bounded-scroll primitives
  *   premium-admin-cockpit - Phase-58 command center, dense signal strips, bounded inventories, readonly analytics, confirmation surfaces, and Phase-62 folded secondary surfaces
@@ -22,6 +23,7 @@
  * END_MODULE_MAP
  *
  * START_CHANGE_SUMMARY
+ *   LAST_CHANGE: v3.7.0 - Added Phase-63 visible brand logo classes for admin login, rail, and mobile topbar placement.
  *   LAST_CHANGE: v3.6.0 - Added Phase-62 admin deletion audit fold primitives for secondary analytics, archive, storage, and topology notes.
  *   LAST_CHANGE: v3.5.0 - Added Phase-61 admin phone/tablet responsive adaptation, safe-area, bounded list/chart/table, and touch-target markers.
  *   LAST_CHANGE: v3.4.0 - Added Phase-59 Matrix motion budget, feedback/status primitives, route entrance motion, and reduced-motion fallback markers.
@@ -316,6 +318,66 @@ textarea:focus-visible,
   border-radius: 8px;
   background: rgba(92, 213, 182, 0.1);
 }
+
+/* START_BLOCK_PHASE63_VISIBLE_BRAND_LOGO */
+.phase63-brand-lockup {
+  @apply inline-flex min-w-0 shrink-0 items-center justify-center gap-2 align-middle;
+}
+
+.phase63-brand-lockup-with-text {
+  justify-content: flex-start;
+}
+
+.phase63-brand-mark {
+  @apply flex shrink-0 items-center justify-center overflow-hidden rounded-lg;
+  background: rgba(96, 255, 155, 0.1);
+  border: 1px solid rgba(96, 255, 155, 0.2);
+  box-shadow: inset 0 0 0 1px rgba(216, 246, 230, 0.04), 0 10px 24px rgba(0, 5, 3, 0.32);
+}
+
+.phase63-brand-mark-sm {
+  width: 32px;
+  height: 32px;
+}
+
+.phase63-brand-mark-md {
+  width: 40px;
+  height: 40px;
+}
+
+.phase63-brand-mark-lg {
+  width: 48px;
+  height: 48px;
+}
+
+.phase63-brand-image {
+  @apply block h-full w-full object-contain;
+}
+
+.phase63-brand-text {
+  @apply min-w-0 truncate text-sm font-extrabold text-white;
+}
+
+.brand-mark.phase63-brand-lockup,
+.admin-login-mark.phase63-brand-lockup,
+.topbar-brand-mark.phase63-brand-lockup {
+  padding: 0;
+}
+
+.brand-mark .phase63-brand-mark,
+.admin-login-mark .phase63-brand-mark,
+.topbar-brand-mark .phase63-brand-mark {
+  width: 100%;
+  height: 100%;
+}
+
+.topbar-brand-mark {
+  width: 32px;
+  height: 32px;
+}
+/* [VisibleBrandLogo][phase63][ADMIN_SHELL_LOGO_SAFE] */
+/* [VisibleBrandLogo][phase63][RESPONSIVE_LAYOUT_SAFE] */
+/* END_BLOCK_PHASE63_VISIBLE_BRAND_LOGO */
 
 .rail-nav {
   @apply flex flex-1 flex-col gap-1;

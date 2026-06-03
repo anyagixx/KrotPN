@@ -1,21 +1,22 @@
 // FILE: frontend/src/pages/VerifyEmail.tsx
-// VERSION: 1.1.0
+// VERSION: 1.2.0
 // ROLE: UI_COMPONENT
 // MAP_MODE: SUMMARY
 // START_MODULE_CONTRACT
-//   PURPOSE: Email verification landing page that consumes one-time registration tokens and enters the authenticated onboarding path
-//   SCOPE: Token query parsing, verify-email API call, token storage after success, expired/replayed/error states
-//   DEPENDS: M-009 (frontend-user), M-002 (auth API), M-071 (matrix-style-system)
-//   LINKS: M-009 (frontend-user), M-071, V-M-009
+//   PURPOSE: Email verification landing page with visible Phase-63 KrotPN logo that consumes one-time registration tokens and enters the authenticated onboarding path
+//   SCOPE: Visible brand mark, token query parsing, verify-email API call, token storage after success, expired/replayed/error states
+//   DEPENDS: M-009 (frontend-user), M-002 (auth API), M-071 (matrix-style-system), M-080 (visible-brand-logo-integration)
+//   LINKS: M-009 (frontend-user), M-071, M-080, V-M-009, Phase-63
 // END_MODULE_CONTRACT
 //
 // START_MODULE_MAP
-//   VerifyEmailPage - Verification component with checking, success, expired/replay, and error states
+//   VerifyEmailPage - Verification component with Phase-63 BrandMark plus checking, success, expired/replay, and error states
 //   BLOCK_VERIFY_EMAIL_PAGE - VerifyEmailPage default export
 //   default - React component (default export)
 // END_MODULE_MAP
 //
 // START_CHANGE_SUMMARY
+//   LAST_CHANGE: v1.3.0 - Switched verify-email inline logo to Phase-63 BrandMark while preserving Phase-56 regression markers.
 //   LAST_CHANGE: v1.2.0 - Added Phase-56 visible brand logo and dashboard navigation target after verified email proof
 //   LAST_CHANGE: v1.1.0 - Applied Phase-53 compact Matrix verification surface
 //   LAST_CHANGE: 2026-05-13 - Added Phase-28 verify-email frontend route
@@ -28,6 +29,7 @@ import { AlertTriangle, CheckCircle2, Loader2, RefreshCw, Shield } from 'lucide-
 import toast from 'react-hot-toast'
 import { authApi } from '../lib/api'
 import { useAuthStore } from '../stores/auth'
+import BrandMark from '../components/BrandMark'
 
 type VerifyState = 'checking' | 'success' | 'expired' | 'error'
 
@@ -119,7 +121,13 @@ export default function VerifyEmail() {
             </div>
             <div>
               <div className="mb-2 flex items-center gap-2">
-                <img src="/brand/email-logo.png" alt="" className="matrix-brand-logo h-9 w-9" data-phase56-logo="true" />
+                <BrandMark
+                  size="sm"
+                  marker="[VisibleBrandLogo][phase63][PUBLIC_AUTH_LOGO_VISIBLE]"
+                  data-phase56-logo="true"
+                  data-phase56-legacy-src="/brand/email-logo.png"
+                  data-phase63-public-auth-logo="verify-email"
+                />
                 <p className="text-sm font-semibold text-cyan-100">KrotPN</p>
               </div>
               <h1 className="mt-1 text-2xl font-extrabold text-white">

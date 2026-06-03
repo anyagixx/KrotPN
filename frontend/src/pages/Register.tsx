@@ -1,21 +1,22 @@
 // FILE: frontend/src/pages/Register.tsx
-// VERSION: 1.3.0
+// VERSION: 1.5.0
 // ROLE: UI_COMPONENT
 // MAP_MODE: SUMMARY
 // START_MODULE_CONTRACT
-//   PURPOSE: User registration page with verified-email pending state, referral code support, and compact onboarding context
-//   SCOPE: Form validation, pending registration API call, check-email/resend state, no token storage before email verification
-//   DEPENDS: M-009 (frontend-user), M-002 (auth API), M-005 (referrals), M-071 (matrix-style-system)
-//   LINKS: M-009 (frontend-user), V-M-009, M-071
+//   PURPOSE: User registration page with visible Phase-63 KrotPN logo, verified-email pending state, referral code support, and compact onboarding context
+//   SCOPE: Visible brand mark, form validation, pending registration API call, check-email/resend state, no token storage before email verification
+//   DEPENDS: M-009 (frontend-user), M-002 (auth API), M-005 (referrals), M-071 (matrix-style-system), M-080 (visible-brand-logo-integration)
+//   LINKS: M-009 (frontend-user), V-M-009, M-071, M-080, Phase-63
 // END_MODULE_CONTRACT
 //
 // START_MODULE_MAP
-//   RegisterPage - Registration component with form, safe password example, pending check-email state, resend handling, and referral display
+//   RegisterPage - Registration component with Phase-63 BrandMark, form, safe password example, pending check-email state, resend handling, and referral display
 //   BLOCK_REGISTER_PAGE - RegisterPage default export
 //   default - React component (default export)
 // END_MODULE_MAP
 //
 // START_CHANGE_SUMMARY
+//   LAST_CHANGE: v1.5.0 - Switched registration logo to Phase-63 BrandMark while preserving Phase-56 regression markers.
 //   LAST_CHANGE: v1.4.0 - Added Phase-56 visible brand logo while preserving verified-email pending state
 //   LAST_CHANGE: v3.0.0 - Applied Phase-53 compact Matrix auth surface while preserving verified-email cutover
 //   LAST_CHANGE: 2026-06-01 - Added Phase-46 password format example tied to the active password policy
@@ -32,6 +33,7 @@ import { AlertCircle, ArrowLeft, Loader2, Lock, Mail, MailCheck, RefreshCw, Spar
 import toast from 'react-hot-toast'
 import { authApi } from '../lib/api'
 import { passwordPolicyExample, passwordPolicyHint, passwordStrengthIssues } from '../lib/passwordPolicy'
+import BrandMark from '../components/BrandMark'
 
 type RegistrationPhase = 'form' | 'pending'
 
@@ -108,9 +110,14 @@ export default function Register() {
     <div className="matrix-auth-screen" data-phase53-auth-route="register">
       <section className="w-full max-w-md animate-in">
         <div className="matrix-auth-heading">
-          <div className="matrix-auth-brand-lockup">
-            <img src="/brand/email-logo.png" alt="" className="matrix-brand-logo" data-phase56-logo="true" />
-          </div>
+          <BrandMark
+            size="lg"
+            className="matrix-auth-brand-lockup"
+            marker="[VisibleBrandLogo][phase63][PUBLIC_AUTH_LOGO_VISIBLE]"
+            data-phase56-logo="true"
+            data-phase56-legacy-src="/brand/email-logo.png"
+            data-phase63-public-auth-logo="register"
+          />
           <p className="matrix-kicker mt-4">Email gate</p>
           <h1 className="mt-2 text-2xl font-extrabold text-white">{t('registerTitle')}</h1>
           <p className="mt-2 text-sm muted">Подтвердите email, чтобы активировать личный кабинет.</p>

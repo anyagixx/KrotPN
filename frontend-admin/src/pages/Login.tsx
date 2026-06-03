@@ -1,20 +1,21 @@
 // FILE: frontend-admin/src/pages/Login.tsx
-// VERSION: 2.9.0
+// VERSION: 3.0.0
 // ROLE: UI_COMPONENT
 // MAP_MODE: SUMMARY
 // START_MODULE_CONTRACT
-//   PURPOSE: Compact Matrix-style admin authentication page with login form, role verification, and auth store integration
-//   SCOPE: Email/password login, role gate (admin/superadmin only), route-safe compact console shell, redirect to dashboard on success
-//   DEPENDS: M-010 (frontend-admin), M-006 (admin API), M-037 (mobile-admin-console), M-070 (matrix-visual-runtime), M-071 (matrix-style-system), auth store
-//   LINKS: M-010, M-037, M-070, M-071, Phase-54
+//   PURPOSE: Compact Matrix-style admin authentication page with visible Phase-63 KrotPN logo, login form, role verification, and auth store integration
+//   SCOPE: Visible brand mark, email/password login, role gate (admin/superadmin only), route-safe compact console shell, redirect to dashboard on success
+//   DEPENDS: M-010 (frontend-admin), M-006 (admin API), M-037 (mobile-admin-console), M-070 (matrix-visual-runtime), M-071 (matrix-style-system), M-080 (visible-brand-logo-integration), auth store
+//   LINKS: M-010, M-037, M-070, M-071, M-080, Phase-54, Phase-63
 // END_MODULE_CONTRACT
 //
 // START_MODULE_MAP
-//   LoginPage - Admin login page component with auth flow
+//   LoginPage - Admin login page component with auth flow and Phase-63 BrandMark
 //   default - React component (default export)
 // END_MODULE_MAP
 //
 // START_CHANGE_SUMMARY
+//   LAST_CHANGE: v3.0.0 - Switched admin login mark to Phase-63 BrandMark without restoring preset credentials.
 //   LAST_CHANGE: v2.9.0 - Phase-54 compact Matrix admin login without oversized split hero or preset credentials.
 //   LAST_CHANGE: v2.8.2 - Removed login field placeholders and standardized icon input padding.
 //   LAST_CHANGE: v2.8.0 - Added full GRACE MODULE_CONTRACT and MODULE_MAP per GRACE governance protocol
@@ -23,8 +24,9 @@
 
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Activity, Loader2, Lock, Mail, Server, Shield, Users } from 'lucide-react'
+import { Activity, Loader2, Lock, Mail, Server, Users } from 'lucide-react'
 import { adminApi } from '../lib/api'
+import BrandMark from '../components/BrandMark'
 import { useAuthStore } from '../stores/auth'
 
 // START_BLOCK: Login
@@ -87,9 +89,12 @@ export default function Login() {
       <div className="admin-login-card">
         <section className="flex min-w-0 flex-col justify-between gap-4">
           <div className="flex items-start gap-3">
-            <div className="admin-login-mark">
-              <Shield className="h-6 w-6" />
-            </div>
+            <BrandMark
+              size="lg"
+              className="admin-login-mark"
+              marker="[VisibleBrandLogo][phase63][ADMIN_SHELL_LOGO_SAFE]"
+              data-phase63-admin-shell-logo="login"
+            />
             <div className="min-w-0">
               <p className="text-xs font-semibold uppercase text-emerald-200">KrotPN Control Plane</p>
               <h1 className="mt-1 text-2xl font-extrabold text-white">Админ-консоль</h1>
