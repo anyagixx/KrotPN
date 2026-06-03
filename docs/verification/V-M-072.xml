@@ -1,29 +1,67 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<V-M-072 MODULE="M-072" PRIORITY="high" STATUS="planned">
-  <scope>Premium Matrix art direction verification for palette, typography, density, logo rules, and reduced-motion readability.</scope>
+<V-M-072 MODULE="M-072" PRIORITY="high" STATUS="pending">
+  <scope>Phase-55 premium Matrix art-direction verification for shared user/admin visual tokens, typography, density, logo rules, reduced-motion readability, and protected runtime boundaries.</scope>
   <test-files>
     <file>scripts/phase55-premium-art-direction-smoke.mjs</file>
     <file>frontend/src/index.css</file>
     <file>frontend-admin/src/index.css</file>
+    <file>frontend/src/components/MatrixBackground.tsx</file>
+    <file>frontend-admin/src/components/MatrixBackground.tsx</file>
+    <file>frontend/public/brand/email-logo.png</file>
+    <file>frontend/public/favicon.ico</file>
+    <file>frontend-admin/public/favicon.ico</file>
+    <file>docs/modules/M-072.xml</file>
+    <file>docs/plans/Phase-55.xml</file>
   </test-files>
-  <commands>
-    <command>cd frontend &amp;&amp; npm run build</command>
-    <command>cd frontend-admin &amp;&amp; npm run build</command>
-    <command>node scripts/phase55-premium-art-direction-smoke.mjs</command>
-    <command>mygrace lint</command>
-  </commands>
+  <module-checks>
+    <check-1>cd frontend &amp;&amp; npm run build</check-1>
+    <check-2>cd frontend-admin &amp;&amp; npm run build</check-2>
+    <check-3>node scripts/phase55-premium-art-direction-smoke.mjs</check-3>
+    <check-4>python3 -m xml.etree.ElementTree docs/modules/M-072.xml docs/plans/Phase-55.xml docs/verification/V-M-072.xml</check-4>
+    <check-5>mygrace lint</check-5>
+    <check-6>git diff --check</check-6>
+    <check-7>git diff --name-only HEAD -- install.sh docker-compose.yml nginx deploy deploy/mtproto-de-compose.yml .env.example must be empty</check-7>
+  </module-checks>
+  <verification-matrix>
+    <target-1 evidence="static">CSS exposes premium tokens for Matrix green, cyan, magenta, amber, red, neutral, deep-black surfaces, focus rings, data surfaces, chart accents, and status colors without becoming a one-note hue theme.</target-1>
+    <target-2 evidence="static">Typography rules keep display, UI, KPI, terminal/data, and email-adjacent scales compact; letter-spacing remains 0 for operational text and no viewport-width font scaling is introduced.</target-2>
+    <target-3 evidence="static">Density rules reject nested cards, oversized radius classes, large decorative hero/card grids, decorative orb/radial backgrounds, and excessive glass padding on operational surfaces.</target-3>
+    <target-4 evidence="static">Logo rules document approved source assets from /home/truffle/Загрузки/ДЛЯ КРОТА/logos, minimum readable sizes, clear-space, contrast, favicon/email-logo boundaries, and no stretched bitmap usage.</target-4>
+    <target-5 evidence="runtime-screenshot">Chrome screenshot audit covers 360x740, 390x844, 430x932, 768x1024, 1024x768, and 1440x900 for user login/admin login or equivalent shared shell routes.</target-5>
+    <target-6 evidence="runtime-screenshot">Reduced-motion screenshots prove Matrix identity remains visible while flicker, glitch, and transform-heavy effects are disabled or simplified.</target-6>
+    <target-7 evidence="static-and-runtime">Matrix canvas and overlay layers remain pointer-events none, never intercept scrolling/focus/clicks, and degrade to a readable static background if canvas context is unavailable.</target-7>
+  </verification-matrix>
   <success-scenarios>
-    <scenario-1>Palette is balanced and not a one-note green/purple/blue theme.</scenario-1>
-    <scenario-2>Premium tokens preserve compact density and focus-visible accessibility.</scenario-2>
-    <scenario-3>Reduced-motion visual identity remains readable without flicker-heavy effects.</scenario-3>
+    <scenario-1 kind="success">User and admin builds pass after premium token adoption.</scenario-1>
+    <scenario-2 kind="success">Phase-55 smoke proves balanced palette, compact density, focus-visible accessibility, reduced-motion policy, logo usage rules, and protected-surface isolation.</scenario-2>
+    <scenario-3 kind="success">Screenshot review confirms premium Matrix/cyberpunk style without hiding primary auth, VPN, MTProto, tariff, or admin workflows.</scenario-3>
+    <scenario-4 kind="success">No backend API, auth/session, billing, VPN, MTProto, deploy, install, nginx, docker-compose, or runtime topology changes appear in Phase-55 diff.</scenario-4>
   </success-scenarios>
   <failure-scenarios>
-    <failure-1>Text overlap, oversized cards, nested panels, decorative orbs, or unreadable neon contrast.</failure-1>
-    <failure-2>Deploy/install/nginx/docker-compose diff appears during art direction work.</failure-2>
+    <failure-1 kind="failure">Text overlaps icons, controls, status badges, chart labels, rows, or adjacent content on phone/tablet/desktop screenshots.</failure-1>
+    <failure-2 kind="failure">Palette collapses into a single green, purple, blue/slate, beige, brown/orange, or heavy gradient theme.</failure-2>
+    <failure-3 kind="failure">Large heroes, nested cards, decorative orbs, bokeh blobs, oversized rounded panels, or marketing-style sections enter operational route surfaces.</failure-3>
+    <failure-4 kind="failure">Reduced-motion mode still runs flicker/glitch/transform-heavy effects or the fallback loses visual identity/readability.</failure-4>
+    <failure-5 kind="failure">Phase-55 diff touches deploy/install/nginx/docker-compose/runtime surfaces or changes backend data/API behavior.</failure-5>
   </failure-scenarios>
-  <log-markers>
-    <marker>[PremiumArtDirection][phase55][TOKENS_READY]</marker>
-    <marker>[PremiumArtDirection][phase55][BALANCED_PALETTE]</marker>
-    <marker>[PremiumArtDirection][phase55][DENSITY_SAFE]</marker>
-  </log-markers>
+  <required-log-markers>
+    <marker-1>[PremiumArtDirection][phase55][TOKENS_READY]</marker-1>
+    <marker-2>[PremiumArtDirection][phase55][BALANCED_PALETTE]</marker-2>
+    <marker-3>[PremiumArtDirection][phase55][DENSITY_SAFE]</marker-3>
+    <marker-4>[PremiumArtDirection][phase55][LOGO_RULES_READY]</marker-4>
+    <marker-5>[PremiumArtDirection][phase55][REDUCED_MOTION_SAFE]</marker-5>
+    <marker-6>[PremiumArtDirection][phase55][SCREENSHOT_MATRIX_REVIEWED]</marker-6>
+    <marker-7>[PremiumArtDirection][phase55][PROTECTED_SURFACE_GUARD]</marker-7>
+  </required-log-markers>
+  <telemetry-requirements>
+    <requirement-1>Smoke script prints deterministic markers above without secrets, user emails, tokens, proxy secrets, payment IDs, or Resend keys.</requirement-1>
+    <requirement-2>Visual screenshot artifacts may be local-only; if stored, paths must not include credentials or operator server access material.</requirement-2>
+    <requirement-3>Console markers from MatrixBackground remain non-sensitive and limited to canvas lifecycle/reduced-motion fallback visibility.</requirement-3>
+  </telemetry-requirements>
+  <phase-gates>
+    <gate-1 level="module-local">M-072 static token/logo/density smoke passes.</gate-1>
+    <gate-2 level="wave">Existing M-038/M-069/M-070/M-071 contracts remain satisfied after token adoption.</gate-2>
+    <gate-3 level="phase">Frontend/admin builds, screenshot matrix, XML parse, MyGRACE lint, git diff check, and protected deploy/install guard pass before Phase-55 can be marked done-local.</gate-3>
+  </phase-gates>
+  <autonomous-execution-safety>Safe for local autonomous execution because Phase-55 is restricted to frontend visual tokens, art-direction documentation, and smoke verification; any deploy/install/runtime/backend change is a hard verification failure and must stop execution.</autonomous-execution-safety>
 </V-M-072>
