@@ -1,10 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<V-M-074 MODULE="M-074" PRIORITY="critical" STATUS="pass-local-phase61" PHASE-61="pass-local">
+<V-M-074 MODULE="M-074" PRIORITY="critical" STATUS="pass-local-phase61-phase62" PHASE-61="pass-local" PHASE-62="pass-local">
   <scope>Responsive adaptation verification for phone, tablet, and desktop layouts across public, auth, user-cabinet, and admin Matrix surfaces.</scope>
   <verification-intent>Phase-61 must prove that the premium Matrix UI is intentionally designed for mobile and tablet use, not merely tolerated by desktop CSS.</verification-intent>
   <test-files>
     <file>scripts/phase61-responsive-adaptation-smoke.mjs</file>
     <file>scripts/phase60-premium-qa-smoke.mjs</file>
+    <file phase="62-pass-local">scripts/phase62-compactness-deletion-smoke.mjs</file>
     <file>frontend/src/App.tsx</file>
     <file>frontend/src/components/Layout.tsx</file>
     <file>frontend/src/components/MatrixBackground.tsx</file>
@@ -45,6 +46,7 @@
     <command status="passed-local">cd frontend-admin &amp;&amp; npm run build</command>
     <command status="passed-local">node scripts/phase61-responsive-adaptation-smoke.mjs</command>
     <command status="passed-local">node scripts/phase60-premium-qa-smoke.mjs</command>
+    <command status="passed-local-phase62">node scripts/phase62-compactness-deletion-smoke.mjs</command>
     <command status="passed-local">python3 -m xml.etree.ElementTree docs/verification-index.xml docs/verification/V-M-074.xml docs/modules/M-074.xml docs/plans/Phase-61.xml</command>
     <command status="passed-local">mygrace lint</command>
     <command status="passed-local">git diff --check</command>
@@ -57,6 +59,7 @@
     <item>2026-06-04: scripts/phase60-premium-qa-smoke.mjs passed after the Phase-61 implementation commit and preserved Phase-52/55/56/57/58/59 regression smokes.</item>
     <item>2026-06-04: XML parse, MyGRACE lint, git diff --check, and protected backend/deploy/runtime guard passed.</item>
     <item>2026-06-04: Authenticated protected-route browser screenshots are not claimed locally; Phase-61 records static-route proof and leaves real backend-session screenshot review for clean-deploy validation.</item>
+    <item>2026-06-04: Phase-62 compactness/deletion audit preserved Phase-61 responsive compactness markers after folding secondary dashboard/config/subscription/public/admin surfaces; user/admin builds and Phase-61/60 regressions remained green.</item>
   </evidence>
   <viewport-matrix>
     <phone-1>320x568 proves smallest supported phone does not clip auth/public CTAs or cabinet actions.</phone-1>
@@ -135,6 +138,7 @@
     <gate-2 status="passed-local-static-proof">V-M-074 cannot move to pass-local if any protected-route screenshots are unavailable without a truthful auth-fixture/live-gap note.</gate-2>
     <gate-3 status="passed-local">Phase-61 execution must not modify deploy/install scripts or backend/runtime services; any required operational change must become a separate confirmed phase.</gate-3>
     <gate-4 status="passed-local">Known live-only evidence must be documented in M-074 and V-M-074 rather than hidden behind generic PASS wording.</gate-4>
+    <gate-5 status="passed-local-phase62">Phase-62 compactness changes must preserve Phase-61 responsive no-horizontal-scroll, no-overlap, touch-target, safe-area, bounded-scroll, and reduced-motion guarantees; local evidence passed on 2026-06-04.</gate-5>
   </phase-gates>
   <autonomous-execution-safety>
     <safety-1>Edits are limited to frontend, frontend-admin, Phase-61 smoke, and MyGRACE documentation unless the operator approves a new phase.</safety-1>

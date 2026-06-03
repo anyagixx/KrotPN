@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<V-M-038 MODULE="M-038" PRIORITY="high" STATUS="pass-local-phase52">
+<V-M-038 MODULE="M-038" PRIORITY="high" STATUS="pass-local-phase52-phase62" PHASE-62="pass-local">
   <module>compact-ui-system</module>
   <checks>Shared UI rules must make user and admin surfaces compact, consistent, and readable on mobile screens.</checks>
-  <test-files>frontend/src/components/Layout.tsx frontend/src/pages/Dashboard.tsx frontend/src/pages/Config.tsx frontend/src/pages/Subscription.tsx frontend/src/index.css frontend-admin/src/components/Layout.tsx frontend-admin/src/pages/Dashboard.tsx frontend-admin/src/pages/Users.tsx frontend-admin/src/pages/Devices.tsx frontend-admin/src/pages/Analytics.tsx frontend-admin/src/components/StatCard.tsx frontend-admin/src/index.css</test-files>
-  <commands>cd frontend &amp;&amp; npm run build; cd frontend-admin &amp;&amp; npm run build; node scripts/phase52-matrix-visual-smoke.mjs; Phase-23/24 compact UI evidence remains valid and Phase-52 login-shell screenshots preserve compact no-overlap/no-horizontal-scroll constraints</commands>
+  <test-files>frontend/src/components/Layout.tsx frontend/src/pages/Dashboard.tsx frontend/src/pages/Config.tsx frontend/src/pages/Subscription.tsx frontend/src/index.css frontend-admin/src/components/Layout.tsx frontend-admin/src/pages/Dashboard.tsx frontend-admin/src/pages/Users.tsx frontend-admin/src/pages/Devices.tsx frontend-admin/src/pages/Analytics.tsx frontend-admin/src/components/StatCard.tsx frontend-admin/src/index.css scripts/phase62-compactness-deletion-smoke.mjs</test-files>
+  <commands>cd frontend &amp;&amp; npm run build; cd frontend-admin &amp;&amp; npm run build; node scripts/phase52-matrix-visual-smoke.mjs; node scripts/phase62-compactness-deletion-smoke.mjs; Phase-23/24 compact UI evidence remains valid and Phase-52/62 screenshots/static markers preserve compact no-overlap/no-horizontal-scroll constraints</commands>
   <levels>
     <module-local>User frontend build and static compact UI review run after each compact shell, dashboard, config, or subscription change.</module-local>
     <wave-level>Phase-23 wave smoke checks layout density, no nested cards, no decorative hero/orb basis, stable controls, and safe text on user routes.</wave-level>
@@ -81,6 +81,7 @@
     <evidence-5>2026-05-10: Phase-24 admin frontend passed build and Chrome/CDP smoke for /, /users, /devices, and /analytics at 360x740, 390x844, and 430x932.</evidence-5>
     <evidence-6>2026-05-10: Admin device confirmation guard passed and deploy/install surfaces stayed unchanged.</evidence-6>
     <evidence-7>2026-06-03: Phase-52 Matrix foundation smoke, user/admin builds, and Chrome login screenshots at 360x740, 390x844, 430x932, 1440x900, plus reduced-motion 390x844 passed while keeping Matrix layers pointer-safe and compact UI controls readable.</evidence-7>
+    <evidence-8>2026-06-04: Phase-62 compactness/deletion audit smoke passed after folding secondary user/admin surfaces, preserving primary workflows, and keeping backend/deploy/runtime/install surfaces unchanged.</evidence-8>
   </evidence>
   <autonomous-execution-safety status="phase-23-user-only">
     Autonomous Phase-23 execution is complete for user frontend compact UI files. Admin frontend remains Phase-24 scope and deploy/install surfaces remain out of scope.

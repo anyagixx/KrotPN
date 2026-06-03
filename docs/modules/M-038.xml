@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<M-038 NAME="compact-ui-system" TYPE="UI_COMPONENT" STATUS="pass-local-phase52">
+<M-038 NAME="compact-ui-system" TYPE="UI_COMPONENT" STATUS="pass-local-phase52-pass-local-phase62">
   <path>frontend frontend-admin docs/plans/Phase-23.xml docs/plans/Phase-24.xml docs/plans/Phase-52.xml</path>
   <owns>Shared compact UI rules for user and admin frontends: mobile-first layout, dense information surfaces, simple navigation, readable controls, and Matrix visual effects that do not break operational density</owns>
   <exports>
@@ -45,6 +45,7 @@
     <phase-24>Admin frontend adopted the same compact UI rules for operator overview, users, devices, payments, analytics, and system health workflows.</phase-24>
     <phase-25>Session security changes are separate and must not be bundled into UI simplification.</phase-25>
     <phase-52>Matrix visual foundation must preserve compact controls, readable text, pointer-safe overlays, and mobile no-overflow rules.</phase-52>
+    <phase-62>Compactness/deletion audit folds secondary surfaces behind stable details controls while preserving primary workflows.</phase-62>
   </phase-boundaries>
   <constraints>
     <constraint-1>No new marketing-style landing pages for operational surfaces.</constraint-1>
@@ -67,5 +68,6 @@
     <note-2>Phase-24 admin frontend compact UI passed local build and Chrome/CDP mobile smoke.</note-2>
     <note-3>M-038 is done locally for the planned user/admin compact UI scope; Phase-25 session security remains separate.</note-3>
     <note-4>Phase-52 Matrix foundation passed local smoke, user/admin builds, and Chrome login screenshots while preserving compact UI constraints and leaving deploy/install surfaces untouched.</note-4>
+    <note-5>Phase-62 added fold primitives for user/public/admin secondary surfaces, passed Phase-62 smoke, user/admin builds, Phase-60/61 regressions, and protected backend/deploy/runtime guard.</note-5>
   </execution-notes>
 </M-038>

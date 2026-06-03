@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<M-074 NAME="responsive-device-adaptation" TYPE="UI_COMPONENT" STATUS="pass-local-phase61">
-  <path>frontend frontend-admin docs/plans/Phase-61.xml scripts/phase61-responsive-adaptation-smoke.mjs</path>
+<M-074 NAME="responsive-device-adaptation" TYPE="UI_COMPONENT" STATUS="pass-local-phase61-pass-local-phase62">
+  <path>frontend frontend-admin docs/plans/Phase-61.xml docs/plans/Phase-62.xml scripts/phase61-responsive-adaptation-smoke.mjs scripts/phase62-compactness-deletion-smoke.mjs</path>
   <owns>Phone, tablet, and desktop responsive closure for public, user, and admin Matrix surfaces.</owns>
   <purpose>Make the premium frontend usable and compact across mobile phones, tablets, and desktop screens.</purpose>
   <exports>
@@ -33,6 +33,7 @@
     <metric-1 status="pass-local-phase61">User and admin builds pass with Phase-61 viewport/static-route smoke evidence.</metric-1>
     <metric-2 status="pass-local-phase61">No visible text overlap, icon overlap, clipped critical values, or document-level horizontal-scroll static drift is allowed by the Phase-61 smoke.</metric-2>
     <metric-3 status="pass-local-phase61">Reduced-motion proof remains readable across phone and tablet viewport classes.</metric-3>
+    <metric-4 status="pass-local-phase62">Phase-62 folded surfaces keep 44px summaries, no horizontal-scroll guards, bounded lists, and responsive compactness markers.</metric-4>
   </acceptance-metrics>
   <evidence>
     <item>2026-06-04: Added Phase-61 responsive CSS blocks to user and admin Matrix style systems with phone/tablet breakpoints, safe-area padding, bounded scroll, text wrapping, and 44px touch-target policy.</item>
@@ -40,6 +41,7 @@
     <item>2026-06-04: Added root min-width containment to admin Analytics and Servers route surfaces to protect chart/topology pages on phones and tablets.</item>
     <item>2026-06-04: frontend and frontend-admin production builds passed; Phase-61 smoke and Phase-60 premium QA regression gate passed.</item>
     <item>2026-06-04: Protected backend/deploy/runtime guard remained empty; authenticated protected-route screenshots remain clean-deploy follow-up evidence.</item>
+    <item>2026-06-04: Phase-62 compactness/deletion audit smoke and Phase-61 responsive regression passed after adding user/admin details folds and bounded secondary surfaces.</item>
   </evidence>
   <hotspot>H-061: Tablet and mobile adaptation must be verified on real breakpoint classes, not inferred from desktop layouts.</hotspot>
 </M-074>

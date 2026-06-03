@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<M-073 NAME="premium-public-site" TYPE="UI_COMPONENT" STATUS="done-local-phase56">
-  <path>frontend/src/App.tsx frontend/src/components/Layout.tsx frontend/src/index.css frontend/src/pages/Login.tsx frontend/src/pages/Register.tsx frontend/src/pages/ForgotPassword.tsx frontend/src/pages/ResetPassword.tsx frontend/src/pages/VerifyEmail.tsx frontend/src/pages/Landing.tsx docs/plans/Phase-56.xml scripts/phase56-premium-public-auth-smoke.mjs</path>
+<M-073 NAME="premium-public-site" TYPE="UI_COMPONENT" STATUS="done-local-phase56-pass-local-phase62">
+  <path>frontend/src/App.tsx frontend/src/components/Layout.tsx frontend/src/index.css frontend/src/pages/Login.tsx frontend/src/pages/Register.tsx frontend/src/pages/ForgotPassword.tsx frontend/src/pages/ResetPassword.tsx frontend/src/pages/VerifyEmail.tsx frontend/src/pages/Landing.tsx docs/plans/Phase-56.xml docs/plans/Phase-62.xml scripts/phase56-premium-public-auth-smoke.mjs scripts/phase62-compactness-deletion-smoke.mjs</path>
   <owns>Premium public entry, auth, registration, verification, and password recovery surfaces.</owns>
   <purpose>Present KrotPN as a premium Matrix/cyberpunk product while keeping registration and email verification clear.</purpose>
   <exports>
@@ -8,7 +8,7 @@
     <view-premium-auth>Compact premium login/register/reset/verify screens with logo and clear state feedback.</view-premium-auth>
     <view-tariff-preview>Server-authoritative tariff presentation without frontend-controlled pricing or limits.</view-tariff-preview>
   </exports>
-  <depends>M-009,M-068,M-069,M-070,M-071,M-072</depends>
+  <depends>M-009,M-038,M-068,M-069,M-070,M-071,M-072,M-074</depends>
   <verification-ref>V-M-073</verification-ref>
   <files>
     <file>frontend/src/App.tsx</file>
@@ -31,9 +31,11 @@
     <metric-1>Frontend build passes and public/auth route smoke covers mobile, tablet, desktop, and reduced-motion.</metric-1>
     <metric-2>Registration pending and duplicate-email recovery states remain clear and token-safe.</metric-2>
     <metric-3>Protected deploy/install guard remains clean.</metric-3>
+    <metric-4 status="pass-local-phase62">Public value and tariff feature detail copy is folded while registration CTA, email-proof copy, reset, verify, and tariff clarity remain visible.</metric-4>
   </acceptance-metrics>
   <execution-evidence>
     <local-2026-06-03>Phase-56 added the public / landing route, moved authenticated user cabinet routes under /dashboard with legacy redirects, added visible logo lockups to auth flows, added compact public tariff preview verified against M-068, added scripts/phase56-premium-public-auth-smoke.mjs, passed frontend build, Phase-44/46/50/52/53/55 regression smokes, captured Chrome screenshot matrix in /tmp/krotpn-phase56-screenshots, passed XML/MyGRACE/diff checks, and kept deploy/install/backend/VPN/MTProto/billing runtime surfaces untouched.</local-2026-06-03>
+    <local-2026-06-04-phase62>Phase-62 folded secondary public feature/tariff details, preserved email-proof and auth clarity, and passed frontend build, Phase-56 smoke, Phase-62 smoke, Phase-60/61 regressions, XML parse, MyGRACE lint, git diff check, and protected backend/deploy/runtime guard.</local-2026-06-04-phase62>
   </execution-evidence>
   <hotspot>H-060: Public/auth premium presentation must not delay registration, hide verification states, or imply access before email proof.</hotspot>
 </M-073>

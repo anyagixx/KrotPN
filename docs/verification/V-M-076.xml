@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<V-M-076 MODULE="M-076" PRIORITY="high" STATUS="pass-local-phase59-pending-phase62" PHASE-58="pass-local" PHASE-59="pass-local" PHASE-62="pending">
+<V-M-076 MODULE="M-076" PRIORITY="high" STATUS="pass-local-phase59-phase62" PHASE-58="pass-local" PHASE-59="pass-local" PHASE-62="pass-local">
   <scope>Phase-58/Phase-59 premium admin cockpit evidence remains valid. Phase-62 verification now defines the compactness and deletion-audit contract for admin cockpit, MTProto analytics, operational inventories, emergency controls, redaction, responsive regressions, and protected backend/deploy/runtime isolation.</scope>
   <test-files>
     <file>scripts/phase58-premium-admin-cockpit-smoke.mjs</file>
@@ -10,7 +10,7 @@
     <file>scripts/phase52-matrix-visual-smoke.mjs</file>
     <file>scripts/phase55-premium-art-direction-smoke.mjs</file>
     <file phase="59-pass-local">scripts/phase59-motion-interactions-smoke.mjs</file>
-    <file phase="62-planned">scripts/phase62-compactness-deletion-smoke.mjs</file>
+    <file phase="62-pass-local">scripts/phase62-compactness-deletion-smoke.mjs</file>
     <file>frontend-admin/src/components/Layout.tsx</file>
     <file>frontend-admin/src/components/StatCard.tsx</file>
     <file>frontend-admin/src/pages/Dashboard.tsx</file>
@@ -27,7 +27,7 @@
     <file>backend/app/billing/catalog.py</file>
     <file>docs/modules/M-076.xml</file>
     <file>docs/plans/Phase-58.xml</file>
-    <file phase="62-pending">docs/plans/Phase-62.xml</file>
+    <file phase="62-pass-local">docs/plans/Phase-62.xml</file>
   </test-files>
   <module-checks>
     <check-1 status="pass-local">cd frontend-admin &amp;&amp; npm run build</check-1>
@@ -45,14 +45,14 @@
     <check-13 status="pass-local">git diff --name-only HEAD -- install.sh docker-compose.yml nginx deploy deploy/mtproto-de-compose.yml .env.example backend/app backend/tests mtproto-runtime official-mtproxy frontend must be empty</check-13>
     <check-14 status="pass-local-post-commit">node scripts/phase58-premium-admin-cockpit-smoke.mjs</check-14>
     <check-15 status="pass-local-phase59">node scripts/phase59-motion-interactions-smoke.mjs</check-15>
-    <check-16 status="planned-phase62">cd frontend-admin &amp;&amp; npm run build</check-16>
-    <check-17 status="planned-phase62">node scripts/phase62-compactness-deletion-smoke.mjs</check-17>
-    <check-18 status="planned-phase62">node scripts/phase58-premium-admin-cockpit-smoke.mjs</check-18>
-    <check-19 status="planned-phase62">node scripts/phase54-admin-matrix-ui-smoke.mjs</check-19>
-    <check-20 status="planned-phase62">node scripts/phase61-responsive-adaptation-smoke.mjs</check-20>
-    <check-21 status="planned-phase62">node scripts/phase60-premium-qa-smoke.mjs</check-21>
-    <check-22 status="planned-phase62">python3 -m xml.etree.ElementTree docs/plans/Phase-62.xml docs/modules/M-076.xml docs/verification/V-M-076.xml docs/verification-index.xml</check-22>
-    <check-23 status="planned-phase62">mygrace lint; git diff --check; protected diff guard for backend/deploy/runtime/install/frontend-user surfaces</check-23>
+    <check-16 status="pass-local-phase62">cd frontend-admin &amp;&amp; npm run build</check-16>
+    <check-17 status="pass-local-phase62">node scripts/phase62-compactness-deletion-smoke.mjs</check-17>
+    <check-18 status="pass-local-phase62">node scripts/phase58-premium-admin-cockpit-smoke.mjs</check-18>
+    <check-19 status="pass-local-phase62">node scripts/phase54-admin-matrix-ui-smoke.mjs</check-19>
+    <check-20 status="pass-local-phase62">node scripts/phase61-responsive-adaptation-smoke.mjs</check-20>
+    <check-21 status="pass-local-phase62">node scripts/phase60-premium-qa-smoke.mjs</check-21>
+    <check-22 status="pass-local-phase62">python3 -m xml.etree.ElementTree docs/plans/Phase-62.xml docs/modules/M-076.xml docs/verification/V-M-076.xml docs/verification-index.xml</check-22>
+    <check-23 status="pass-local-phase62">mygrace lint; git diff --check; protected diff guard for backend/deploy/runtime/install/frontend-user surfaces</check-23>
   </module-checks>
   <phase62-deletion-audit-contract>
     <classification>
@@ -104,12 +104,12 @@
     <marker-9>[PremiumAdminCockpit][phase58][REDUCED_MOTION_SAFE]</marker-9>
     <marker-10>[PremiumAdminCockpit][phase58][SCREENSHOT_MATRIX_REVIEWED]</marker-10>
     <marker-11>[PremiumAdminCockpit][phase58][PROTECTED_SURFACE_GUARD]</marker-11>
-    <marker-12 phase="62-pending">[CompactDeletionAudit][phase62][ADMIN_SURFACES_INVENTORIED]</marker-12>
-    <marker-13 phase="62-pending">[CompactDeletionAudit][phase62][ADMIN_SURFACES_PRUNED]</marker-13>
-    <marker-14 phase="62-pending">[CompactDeletionAudit][phase62][EMERGENCY_CONTROLS_PRESERVED]</marker-14>
-    <marker-15 phase="62-pending">[CompactDeletionAudit][phase62][REDACTION_CONFIRMATION_PRESERVED]</marker-15>
-    <marker-16 phase="62-pending">[CompactDeletionAudit][phase62][ADMIN_INVENTORIES_BOUNDED]</marker-16>
-    <marker-17 phase="62-pending">[CompactDeletionAudit][phase62][NO_BACKEND_DEPLOY_DRIFT]</marker-17>
+    <marker-12 phase="62-pass-local">[CompactDeletionAudit][phase62][ADMIN_SURFACES_INVENTORIED]</marker-12>
+    <marker-13 phase="62-pass-local">[CompactDeletionAudit][phase62][ADMIN_SURFACES_PRUNED]</marker-13>
+    <marker-14 phase="62-pass-local">[CompactDeletionAudit][phase62][EMERGENCY_CONTROLS_PRESERVED]</marker-14>
+    <marker-15 phase="62-pass-local">[CompactDeletionAudit][phase62][REDACTION_CONFIRMATION_PRESERVED]</marker-15>
+    <marker-16 phase="62-pass-local">[CompactDeletionAudit][phase62][ADMIN_INVENTORIES_BOUNDED]</marker-16>
+    <marker-17 phase="62-pass-local">[CompactDeletionAudit][phase62][NO_BACKEND_DEPLOY_DRIFT]</marker-17>
   </required-log-markers>
   <telemetry-requirements>
     <requirement-1>Allowed smoke output: route names, viewport names, selector markers, action names, redacted state names, screenshot paths, and pass/fail markers.</requirement-1>
@@ -120,7 +120,7 @@
     <gate-1 level="module-local">M-076 smoke proves admin dashboard, layout, users, devices, MTProto, MTProto analytics, plans, servers, analytics, compact primitives, confirmation guards, and redaction guards.</gate-1>
     <gate-2 level="wave">M-010, M-037, M-047, M-058, M-068, M-070, M-071, and M-072 regression smokes remain satisfied after admin cockpit edits.</gate-2>
     <gate-3 level="phase">Frontend-admin build, Phase-58 smoke, regression smokes, screenshot/static route proof, XML parse, MyGRACE lint, git diff check, and protected backend/deploy/runtime/frontend-user guard pass before Phase-58 can be marked done-local.</gate-3>
-    <gate-4 level="phase-62">Phase-62 cannot pass until inventory, classification, prune/collapse decisions, preserved workflow proof, screenshots/static-route proof, frontend-admin build, Phase-62 smoke, Phase-58/54/61/60 regressions, XML parse, MyGRACE lint, git diff check, and protected backend/deploy/runtime/frontend-user guard pass.</gate-4>
+    <gate-4 level="phase-62" status="passed-local">Phase-62 passed locally on 2026-06-04: inventory, classification, prune/collapse decisions, preserved workflow proof, static-route proof, frontend-admin build, Phase-62 smoke, Phase-58/54/61/60 regressions, XML parse, MyGRACE lint, git diff check, and protected backend/deploy/runtime/frontend-user guard passed.</gate-4>
     <gate-5 level="phase-62">Authenticated screenshots may use static-route proof locally; live clean-deploy authenticated screenshot review remains required before production-signoff claims.</gate-5>
   </phase-gates>
   <evidence>
@@ -128,6 +128,7 @@
     <evidence-2>Regression evidence passed: Phase-42 MTProto admin analytics smoke, Phase-43 MTProto analytics UX/IP/alerts smoke, Phase-50 tariff catalog smoke, Phase-52 Matrix visual smoke, Phase-54 admin Matrix smoke, and Phase-55 premium art-direction smoke.</evidence-2>
     <evidence-3>Protected-surface evidence passed: no diff in install.sh, docker-compose.yml, nginx, deploy, deploy/mtproto-de-compose.yml, .env.example, backend/app, backend/tests, mtproto-runtime, official-mtproxy, or frontend.</evidence-3>
     <evidence-4>2026-06-04 pass-local: Phase-59 admin motion smoke passed for Devices, MTProto, MTProtoAnalytics, VisualShell, MatrixBackground, shared admin CSS, and protected backend/deploy/runtime guard. Post-commit Phase-58 smoke passed after HEAD included Phase-59 user frontend changes.</evidence-4>
+    <evidence-5>2026-06-04 pass-local: Phase-62 compactness/deletion audit folded MTProto alert archive, MTProto storage details, and legacy VPN server compatibility diagnostics into compact secondary panels while preserving emergency controls, alert actions, confirmation/redaction guards, bounded inventories, and read-only analytics. Frontend-admin build, Phase-62 smoke, Phase-58/54/61/60 regressions, XML parse, MyGRACE lint, git diff --check, and protected backend/deploy/runtime/frontend-user guard passed. Implementation commit: 3d09fa8.</evidence-5>
   </evidence>
   <autonomous-execution-safety>Safe for local autonomous execution if changes stay inside frontend-admin cockpit routes/components/CSS, Phase-62 smoke verification, and MyGRACE docs. Stop execution if backend admin API changes, auth/session changes, billing catalog mutation, VPN/MTProto runtime changes, deploy/install/nginx/docker-compose changes, user frontend changes, or secret-handling changes appear necessary.</autonomous-execution-safety>
 </V-M-076>
