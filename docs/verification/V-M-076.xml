@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<V-M-076 MODULE="M-076" PRIORITY="high" STATUS="pass-local-phase59" PHASE-58="pass-local" PHASE-59="pass-local" PHASE-62="planned">
-  <scope>Phase-58 premium admin cockpit verification for dashboard command density, service health, users, devices, MTProto operations, MTProto analytics, tariffs, servers, analytics, confirmation-safe actions, redaction, responsive operator use, and protected-surface isolation. Phase-62 compactness/deletion audit remains planned and is not executed by this verification contract.</scope>
+<V-M-076 MODULE="M-076" PRIORITY="high" STATUS="pass-local-phase59-pending-phase62" PHASE-58="pass-local" PHASE-59="pass-local" PHASE-62="pending">
+  <scope>Phase-58/Phase-59 premium admin cockpit evidence remains valid. Phase-62 verification now defines the compactness and deletion-audit contract for admin cockpit, MTProto analytics, operational inventories, emergency controls, redaction, responsive regressions, and protected backend/deploy/runtime isolation.</scope>
   <test-files>
     <file>scripts/phase58-premium-admin-cockpit-smoke.mjs</file>
     <file>scripts/phase54-admin-matrix-ui-smoke.mjs</file>
@@ -27,6 +27,7 @@
     <file>backend/app/billing/catalog.py</file>
     <file>docs/modules/M-076.xml</file>
     <file>docs/plans/Phase-58.xml</file>
+    <file phase="62-pending">docs/plans/Phase-62.xml</file>
   </test-files>
   <module-checks>
     <check-1 status="pass-local">cd frontend-admin &amp;&amp; npm run build</check-1>
@@ -44,7 +45,30 @@
     <check-13 status="pass-local">git diff --name-only HEAD -- install.sh docker-compose.yml nginx deploy deploy/mtproto-de-compose.yml .env.example backend/app backend/tests mtproto-runtime official-mtproxy frontend must be empty</check-13>
     <check-14 status="pass-local-post-commit">node scripts/phase58-premium-admin-cockpit-smoke.mjs</check-14>
     <check-15 status="pass-local-phase59">node scripts/phase59-motion-interactions-smoke.mjs</check-15>
+    <check-16 status="planned-phase62">cd frontend-admin &amp;&amp; npm run build</check-16>
+    <check-17 status="planned-phase62">node scripts/phase62-compactness-deletion-smoke.mjs</check-17>
+    <check-18 status="planned-phase62">node scripts/phase58-premium-admin-cockpit-smoke.mjs</check-18>
+    <check-19 status="planned-phase62">node scripts/phase54-admin-matrix-ui-smoke.mjs</check-19>
+    <check-20 status="planned-phase62">node scripts/phase61-responsive-adaptation-smoke.mjs</check-20>
+    <check-21 status="planned-phase62">node scripts/phase60-premium-qa-smoke.mjs</check-21>
+    <check-22 status="planned-phase62">python3 -m xml.etree.ElementTree docs/plans/Phase-62.xml docs/modules/M-076.xml docs/verification/V-M-076.xml docs/verification-index.xml</check-22>
+    <check-23 status="planned-phase62">mygrace lint; git diff --check; protected diff guard for backend/deploy/runtime/install/frontend-user surfaces</check-23>
   </module-checks>
+  <phase62-deletion-audit-contract>
+    <classification>
+      <remove>Duplicated KPI cards, repeated explanatory copy, decorative-only wrappers, stale helper text, and status summaries that do not expose unique admin state or action.</remove>
+      <collapse>Secondary analytics details, long history blocks, verbose operation notes, alert archive details, and low-frequency metadata behind bounded panels, tabs, drawers, or expandable rows.</collapse>
+      <move-secondary>Verbose admin descriptions, secondary filters, low-priority archive views, and deep troubleshooting text when they compete with first-screen service health or incident/action surfaces.</move-secondary>
+      <compact>Dashboard, users, devices, MTProto, MTProto analytics, servers, plans, and analytics pages using denser rows, bounded inventories, compact chart frames, and mobile-first action grouping.</compact>
+      <keep>Emergency controls, destructive/disruptive confirmations, user/device actions, MTProto disable/reissue/revoke/block/IP alert workflows, alert archive access, promotion tag operations, redacted analytics, server health, canonical tariffs, logout, and admin redaction.</keep>
+    </classification>
+    <preservation-invariants>
+      <invariant-1>Admin health, users, devices, MTProto, alerts, servers, plans, and analytics remain reachable within one or two taps on phone layouts.</invariant-1>
+      <invariant-2>Emergency and destructive controls must remain visible with explicit confirmation text after any compaction or deletion.</invariant-2>
+      <invariant-3>MTProto analytics keeps useful admin signals while removing technical noise from visible UI; no secrets, full proxy links, bearer tokens, provider keys, or raw payment identifiers may appear in smoke output.</invariant-3>
+      <invariant-4>Phase-62 must not change backend admin APIs, auth/session behavior, billing catalog ownership, VPN/MTProto runtime, deploy/install scripts, nginx, docker-compose, secrets, or production topology.</invariant-4>
+    </preservation-invariants>
+  </phase62-deletion-audit-contract>
   <verification-matrix>
     <target-1 evidence="static-and-runtime">Admin layout keeps compact navigation, authenticated admin context, logout, route active state, and emergency surfaces reachable on phone/tablet/desktop.</target-1>
     <target-2 evidence="static-and-screenshot">Dashboard first viewport exposes service health, users, devices, revenue/billing, VPN, MTProto, analytics, and incident signals without decorative bulk or horizontal scroll.</target-2>
@@ -80,7 +104,12 @@
     <marker-9>[PremiumAdminCockpit][phase58][REDUCED_MOTION_SAFE]</marker-9>
     <marker-10>[PremiumAdminCockpit][phase58][SCREENSHOT_MATRIX_REVIEWED]</marker-10>
     <marker-11>[PremiumAdminCockpit][phase58][PROTECTED_SURFACE_GUARD]</marker-11>
-    <marker-12 phase="62-planned">[CompactDeletionAudit][phase62][ADMIN_SURFACES_PRUNED]</marker-12>
+    <marker-12 phase="62-pending">[CompactDeletionAudit][phase62][ADMIN_SURFACES_INVENTORIED]</marker-12>
+    <marker-13 phase="62-pending">[CompactDeletionAudit][phase62][ADMIN_SURFACES_PRUNED]</marker-13>
+    <marker-14 phase="62-pending">[CompactDeletionAudit][phase62][EMERGENCY_CONTROLS_PRESERVED]</marker-14>
+    <marker-15 phase="62-pending">[CompactDeletionAudit][phase62][REDACTION_CONFIRMATION_PRESERVED]</marker-15>
+    <marker-16 phase="62-pending">[CompactDeletionAudit][phase62][ADMIN_INVENTORIES_BOUNDED]</marker-16>
+    <marker-17 phase="62-pending">[CompactDeletionAudit][phase62][NO_BACKEND_DEPLOY_DRIFT]</marker-17>
   </required-log-markers>
   <telemetry-requirements>
     <requirement-1>Allowed smoke output: route names, viewport names, selector markers, action names, redacted state names, screenshot paths, and pass/fail markers.</requirement-1>
@@ -91,7 +120,8 @@
     <gate-1 level="module-local">M-076 smoke proves admin dashboard, layout, users, devices, MTProto, MTProto analytics, plans, servers, analytics, compact primitives, confirmation guards, and redaction guards.</gate-1>
     <gate-2 level="wave">M-010, M-037, M-047, M-058, M-068, M-070, M-071, and M-072 regression smokes remain satisfied after admin cockpit edits.</gate-2>
     <gate-3 level="phase">Frontend-admin build, Phase-58 smoke, regression smokes, screenshot/static route proof, XML parse, MyGRACE lint, git diff check, and protected backend/deploy/runtime/frontend-user guard pass before Phase-58 can be marked done-local.</gate-3>
-    <gate-4 level="future-phase">Phase-62 deletion audit remains planned and must not be marked pass-local by Phase-58 evidence alone.</gate-4>
+    <gate-4 level="phase-62">Phase-62 cannot pass until inventory, classification, prune/collapse decisions, preserved workflow proof, screenshots/static-route proof, frontend-admin build, Phase-62 smoke, Phase-58/54/61/60 regressions, XML parse, MyGRACE lint, git diff check, and protected backend/deploy/runtime/frontend-user guard pass.</gate-4>
+    <gate-5 level="phase-62">Authenticated screenshots may use static-route proof locally; live clean-deploy authenticated screenshot review remains required before production-signoff claims.</gate-5>
   </phase-gates>
   <evidence>
     <evidence-1>2026-06-04 pass-local: Phase-58 smoke printed all required PremiumAdminCockpit markers including routes, command center, actions, bounded inventories, MTProto redaction, confirmation guards, tariff guard, readonly analytics, reduced motion, static screenshot proof, and protected-surface guard.</evidence-1>
@@ -99,5 +129,5 @@
     <evidence-3>Protected-surface evidence passed: no diff in install.sh, docker-compose.yml, nginx, deploy, deploy/mtproto-de-compose.yml, .env.example, backend/app, backend/tests, mtproto-runtime, official-mtproxy, or frontend.</evidence-3>
     <evidence-4>2026-06-04 pass-local: Phase-59 admin motion smoke passed for Devices, MTProto, MTProtoAnalytics, VisualShell, MatrixBackground, shared admin CSS, and protected backend/deploy/runtime guard. Post-commit Phase-58 smoke passed after HEAD included Phase-59 user frontend changes.</evidence-4>
   </evidence>
-  <autonomous-execution-safety>Safe for local autonomous execution if changes stay inside frontend-admin cockpit routes/components/CSS, Phase-58 smoke verification, and MyGRACE docs. Stop execution if backend admin API changes, auth/session changes, billing catalog mutation, VPN/MTProto runtime changes, deploy/install/nginx/docker-compose changes, user frontend changes, or secret-handling changes appear necessary.</autonomous-execution-safety>
+  <autonomous-execution-safety>Safe for local autonomous execution if changes stay inside frontend-admin cockpit routes/components/CSS, Phase-62 smoke verification, and MyGRACE docs. Stop execution if backend admin API changes, auth/session changes, billing catalog mutation, VPN/MTProto runtime changes, deploy/install/nginx/docker-compose changes, user frontend changes, or secret-handling changes appear necessary.</autonomous-execution-safety>
 </V-M-076>
