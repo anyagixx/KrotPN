@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<M-080 NAME="visible-brand-logo-integration" TYPE="ENTRY_POINT" STATUS="planned-phase63">
+<M-080 NAME="visible-brand-logo-integration" TYPE="ENTRY_POINT" STATUS="verification-designed-phase63">
   <path>frontend/public frontend-admin/public frontend/src/components frontend-admin/src/components backend/app/email/templates.py docs/plans/Phase-63.xml scripts/phase63-visible-logo-integration-smoke.mjs</path>
   <owns>Visible KrotPN logo usage across public site, auth, user cabinet, admin panel, PWA/favicons, and email templates.</owns>
   <purpose>Use prepared logo assets consistently where the premium redesign needs visible brand identity.</purpose>
@@ -19,6 +19,13 @@
     <metric-1>User and admin builds include visible logo usage without layout overlap.</metric-1>
     <metric-2>Logo smoke verifies source dimensions, copied assets, HTML/PWA references, and email template references.</metric-2>
     <metric-3>Screenshot review confirms premium brand presence on public/auth/user/admin surfaces.</metric-3>
+    <metric-4>Phase-63 verification design is complete before execution: asset budgets, visible-placement rules, screenshot/static proof, email/BIMI boundary, and protected-surface guard are explicitly mapped in V-M-080.</metric-4>
   </acceptance-metrics>
+  <verification-design>
+    <target-1>Phase-63 smoke must validate selected asset dimensions and file weights before any visible logo placement is accepted.</target-1>
+    <target-2>User/admin builds and screenshot/static proof must show logo placement does not crowd mobile navigation, forms, admin tables, cards, or primary CTAs.</target-2>
+    <target-3>Email template checks remain boundary-only in Phase-63; premium email body redesign belongs to Phase-64 and mailbox sender-avatar/BIMI claims remain out of scope.</target-3>
+    <target-4>Protected install/deploy/backend/VPN/MTProto runtime surfaces must remain unchanged.</target-4>
+  </verification-design>
   <hotspot>H-067: Visible logo integration must use prepared brand assets without bloating pages or conflicting with BIMI/email-avatar boundaries.</hotspot>
 </M-080>

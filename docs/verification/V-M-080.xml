@@ -1,32 +1,79 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<V-M-080 MODULE="M-080" PRIORITY="medium" STATUS="planned">
-  <scope>Visible logo integration verification for public, auth, user, admin, PWA/favicon, and email surfaces.</scope>
+<V-M-080 MODULE="M-080" PRIORITY="high" STATUS="verification-designed-phase63" PHASE-63="verification-designed">
+  <scope>Phase-63 visible KrotPN logo verification for public landing, auth, protected user shell, admin shell, favicon/PWA adjacency, and Phase-64 email-template boundary.</scope>
   <test-files>
-    <file>scripts/phase63-visible-logo-integration-smoke.mjs</file>
+    <file phase="63-planned">scripts/phase63-visible-logo-integration-smoke.mjs</file>
     <file>frontend/public</file>
     <file>frontend-admin/public</file>
-    <file>frontend/src</file>
-    <file>frontend-admin/src</file>
+    <file>frontend/src/components</file>
+    <file>frontend/src/pages/Landing.tsx</file>
+    <file>frontend/src/pages/Login.tsx</file>
+    <file>frontend/src/pages/Register.tsx</file>
+    <file>frontend/src/pages/Dashboard.tsx</file>
+    <file>frontend-admin/src/components</file>
+    <file>frontend-admin/src/pages/Login.tsx</file>
+    <file>frontend-admin/src/pages/Dashboard.tsx</file>
     <file>backend/app/email/templates.py</file>
+    <file>docs/modules/M-080.xml</file>
+    <file>docs/plans/Phase-63.xml</file>
   </test-files>
-  <commands>
-    <command>cd frontend &amp;&amp; npm run build</command>
-    <command>cd frontend-admin &amp;&amp; npm run build</command>
-    <command>node scripts/phase63-visible-logo-integration-smoke.mjs</command>
-    <command>mygrace lint</command>
-  </commands>
+  <module-checks>
+    <check-1 status="planned-phase63">Audit /home/truffle/Загрузки/ДЛЯ КРОТА/logos and record selected logo source dimensions, output paths, and file sizes without committing oversized or unused assets.</check-1>
+    <check-2 status="planned-phase63">cd frontend &amp;&amp; npm run build</check-2>
+    <check-3 status="planned-phase63">cd frontend-admin &amp;&amp; npm run build</check-3>
+    <check-4 status="planned-phase63">node scripts/phase63-visible-logo-integration-smoke.mjs</check-4>
+    <check-5 status="planned-phase63">node scripts/phase55-premium-art-direction-smoke.mjs</check-5>
+    <check-6 status="planned-phase63">node scripts/phase56-premium-public-auth-smoke.mjs</check-6>
+    <check-7 status="planned-phase63">node scripts/phase57-premium-user-cabinet-smoke.mjs</check-7>
+    <check-8 status="planned-phase63">node scripts/phase58-premium-admin-cockpit-smoke.mjs</check-8>
+    <check-9 status="planned-phase63">node scripts/phase61-responsive-adaptation-smoke.mjs</check-9>
+    <check-10 status="planned-phase63">node scripts/phase62-compactness-deletion-smoke.mjs</check-10>
+    <check-11 status="planned-phase63">python3 -m xml.etree.ElementTree docs/plans/Phase-63.xml docs/modules/M-080.xml docs/verification/V-M-080.xml docs/verification-index.xml docs/graph-index.xml docs/plan-index.xml</check-11>
+    <check-12 status="planned-phase63">mygrace lint; git diff --check; protected diff guard for backend API, deploy/install, nginx, docker-compose, VPN runtime, MTProto runtime, and secret surfaces</check-12>
+  </module-checks>
+  <verification-matrix>
+    <target-1 evidence="static">Logo assets are selected from the operator-provided logo folder, copied into public asset paths with deterministic names, valid signatures, bounded dimensions, and no unnecessary large first-paint files.</target-1>
+    <target-2 evidence="static-and-build">Public/auth surfaces show KrotPN brand identity compactly while preserving registration, login, password recovery, email verification, and tariff CTA clarity.</target-2>
+    <target-3 evidence="static-and-build">User shell and user dashboard expose compact logo placement without crowding VPN, subscription, MTProto, config, referrals, settings, or mobile navigation workflows.</target-3>
+    <target-4 evidence="static-and-build">Admin shell/login/dashboard expose compact logo placement without crowding admin navigation, users/devices lists, MTProto analytics, emergency controls, servers, plans, or analytics tables.</target-4>
+    <target-5 evidence="static">Email template handling remains boundary-safe: existing body logo paths may be referenced, but Phase-63 must not redesign premium emails, change Resend payload semantics, or claim mailbox sender-avatar/BIMI control.</target-5>
+    <target-6 evidence="runtime-screenshot-or-static-proof">Phone, tablet, desktop, and reduced-motion proof shows no logo/text/icon overlap, no horizontal scroll, no hidden primary CTA, and no Matrix layer pointer interference.</target-6>
+    <target-7 evidence="protected-guard">No backend API, auth/session, billing, VPN, MTProto, deploy/install, nginx, docker-compose, certificate, DNS, or secret behavior changes are introduced.</target-7>
+  </verification-matrix>
   <success-scenarios>
-    <scenario-1>Prepared logo assets are selected at appropriate sizes for public/auth/user/admin/email contexts.</scenario-1>
-    <scenario-2>Logo placement strengthens brand presence without crowding mobile screens or admin tables.</scenario-2>
-    <scenario-3>Existing favicon/PWA/email-logo/BIMI boundaries remain documented and truthful.</scenario-3>
+    <scenario-1 kind="success">KrotPN logo is visible on public/auth entry points and compactly present in authenticated user/admin shells where it improves orientation.</scenario-1>
+    <scenario-2 kind="success">Logo variants use size-appropriate PNG/ICO/public assets and do not increase first-paint or bundle budgets beyond documented limits.</scenario-2>
+    <scenario-3 kind="success">Mobile and tablet layouts keep logo clear-space without hiding forms, bottom navigation, admin actions, cards, tables, charts, or copy/download controls.</scenario-3>
+    <scenario-4 kind="success">Existing favicon/PWA/email-logo/BIMI documentation stays truthful and Phase-64 remains the owner of full premium email template redesign.</scenario-4>
   </success-scenarios>
   <failure-scenarios>
-    <failure-1>Large logo files bloat first paint or visible logo overlaps form/navigation content.</failure-1>
-    <failure-2>Implementation claims control over mailbox sender avatars rather than body-logo/BIMI surfaces.</failure-2>
+    <failure-1 kind="failure">A visible logo overlaps text, icons, input placeholders, nav items, badges, admin rows, charts, or CTA buttons.</failure-1>
+    <failure-2 kind="failure">A large or wrong-format logo bloats public assets, dist output, or first-paint surfaces without an explicit budget note.</failure-2>
+    <failure-3 kind="failure">Implementation claims control over Gmail/Apple/Resend sender avatars instead of only body-logo/BIMI/static frontend surfaces.</failure-3>
+    <failure-4 kind="failure">Logo integration changes backend APIs, email token handling, Resend API payload semantics, deploy/install scripts, nginx, docker-compose, DNS, VPN, MTProto, or secrets.</failure-4>
+    <failure-5 kind="failure">Regression smokes lose Phase-55 art-direction balance, Phase-56 auth clarity, Phase-57/58 primary workflow reachability, Phase-61 responsive safety, or Phase-62 compactness.</failure-5>
   </failure-scenarios>
-  <log-markers>
-    <marker>[VisibleBrandLogo][phase63][ASSETS_SELECTED]</marker>
-    <marker>[VisibleBrandLogo][phase63][LAYOUT_SAFE]</marker>
-    <marker>[VisibleBrandLogo][phase63][EMAIL_BOUNDARY_SAFE]</marker>
-  </log-markers>
+  <required-log-markers>
+    <marker-1>[VisibleBrandLogo][phase63][ASSETS_AUDITED]</marker-1>
+    <marker-2>[VisibleBrandLogo][phase63][ASSETS_SELECTED]</marker-2>
+    <marker-3>[VisibleBrandLogo][phase63][PUBLIC_AUTH_LOGO_VISIBLE]</marker-3>
+    <marker-4>[VisibleBrandLogo][phase63][USER_SHELL_LOGO_SAFE]</marker-4>
+    <marker-5>[VisibleBrandLogo][phase63][ADMIN_SHELL_LOGO_SAFE]</marker-5>
+    <marker-6>[VisibleBrandLogo][phase63][EMAIL_BOUNDARY_SAFE]</marker-6>
+    <marker-7>[VisibleBrandLogo][phase63][RESPONSIVE_LAYOUT_SAFE]</marker-7>
+    <marker-8>[VisibleBrandLogo][phase63][ASSET_BUDGET_PASS]</marker-8>
+    <marker-9>[VisibleBrandLogo][phase63][PROTECTED_SURFACE_GUARD]</marker-9>
+  </required-log-markers>
+  <telemetry-requirements>
+    <allowed>Asset path, dimensions, byte size, route name, viewport size, selector marker, screenshot path, build asset size, and pass/fail marker.</allowed>
+    <forbidden>Passwords, access tokens, refresh tokens, reset/verify tokens, API keys, Resend/YooKassa secrets, WireGuard private keys, MTProto secrets, full proxy links, real emails, raw user IPs, payment identifiers, certificate private keys, and server credentials.</forbidden>
+    <redaction>Smoke output must not print email verification links, tokenized URLs, secret-bearing env values, or live operator infrastructure data.</redaction>
+  </telemetry-requirements>
+  <phase-gates>
+    <gate-1 level="module-local">M-080 cannot pass until asset audit, source selection, visible placement checks, asset budget checks, and email/BIMI boundary checks pass.</gate-1>
+    <gate-2 level="wave">M-009, M-010, M-069, M-072, M-073, M-075, and M-076 regressions must stay green after visible logo integration.</gate-2>
+    <gate-3 level="phase">User/admin builds, Phase-63 smoke, Phase-55/56/57/58/61/62 regressions, XML parse, MyGRACE lint, git diff check, and protected backend/deploy/runtime guard must pass before Phase-63 can be marked done-local.</gate-3>
+    <gate-4 level="live-follow-up">Clean-deploy visual review should confirm real browser logo rendering on public/auth/user/admin surfaces, but local execution must not claim live mailbox avatar or BIMI provider proof.</gate-4>
+  </phase-gates>
+  <autonomous-execution-safety>Safe for local autonomous execution if changes stay inside frontend/frontend-admin visible logo components/assets/CSS, existing email body-logo references, Phase-63 smoke, and MyGRACE docs. Stop execution if backend API changes, Resend payload changes, deploy/install/nginx/docker-compose changes, BIMI DNS changes, VPN/MTProto runtime changes, or secret-handling changes appear necessary.</autonomous-execution-safety>
 </V-M-080>
