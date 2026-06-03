@@ -1,30 +1,84 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<V-M-073 MODULE="M-073" PRIORITY="high" STATUS="planned">
-  <scope>Premium public site and auth verification for landing, login, registration, verification, reset, tariffs, and email-proof semantics.</scope>
+<V-M-073 MODULE="M-073" PRIORITY="high" STATUS="pending">
+  <scope>Phase-56 premium public site and auth verification for landing, login, registration, verification, password recovery, tariff preview, logo visibility, Matrix runtime safety, and email-proof semantics.</scope>
   <test-files>
     <file>scripts/phase56-premium-public-auth-smoke.mjs</file>
+    <file>scripts/phase44-auth-email-ux-smoke.mjs</file>
+    <file>scripts/phase46-user-cabinet-ux-smoke.mjs</file>
+    <file>scripts/phase50-tariff-catalog-smoke.mjs</file>
+    <file>scripts/phase55-premium-art-direction-smoke.mjs</file>
     <file>frontend/src/App.tsx</file>
     <file>frontend/src/pages/Landing.tsx</file>
+    <file>frontend/src/pages/Login.tsx</file>
     <file>frontend/src/pages/Register.tsx</file>
+    <file>frontend/src/pages/ForgotPassword.tsx</file>
+    <file>frontend/src/pages/ResetPassword.tsx</file>
     <file>frontend/src/pages/VerifyEmail.tsx</file>
+    <file>frontend/src/lib/api.ts</file>
+    <file>frontend/src/lib/passwordPolicy.ts</file>
+    <file>frontend/src/index.css</file>
+    <file>frontend/public/brand/email-logo.png</file>
+    <file>backend/app/billing/catalog.py</file>
+    <file>docs/modules/M-073.xml</file>
+    <file>docs/plans/Phase-56.xml</file>
   </test-files>
-  <commands>
-    <command>cd frontend &amp;&amp; npm run build</command>
-    <command>node scripts/phase56-premium-public-auth-smoke.mjs</command>
-    <command>mygrace lint</command>
-  </commands>
+  <module-checks>
+    <check-1>cd frontend &amp;&amp; npm run build</check-1>
+    <check-2>node scripts/phase56-premium-public-auth-smoke.mjs</check-2>
+    <check-3>node scripts/phase44-auth-email-ux-smoke.mjs</check-3>
+    <check-4>node scripts/phase46-user-cabinet-ux-smoke.mjs</check-4>
+    <check-5>node scripts/phase50-tariff-catalog-smoke.mjs</check-5>
+    <check-6>node scripts/phase55-premium-art-direction-smoke.mjs</check-6>
+    <check-7>Chrome screenshot audit for /, /login, /register, /forgot-password, /reset-password, /verify-email at 360x740, 390x844, 430x932, 768x1024, 1440x900, plus reduced-motion 390x844.</check-7>
+    <check-8>python3 -m xml.etree.ElementTree docs/modules/M-073.xml docs/plans/Phase-56.xml docs/verification/V-M-073.xml</check-8>
+    <check-9>mygrace lint</check-9>
+    <check-10>git diff --check</check-10>
+    <check-11>git diff --name-only HEAD -- install.sh docker-compose.yml nginx deploy deploy/mtproto-de-compose.yml .env.example must be empty</check-11>
+  </module-checks>
+  <verification-matrix>
+    <target-1 evidence="static">Public entry route exists in App routing, uses premium Matrix tokens, exposes visible KrotPN identity/logo, and gives direct registration CTA without replacing the usable first screen with a bulky marketing hero.</target-1>
+    <target-2 evidence="static-and-runtime">Public copy truthfully presents VPN, free individual MTProto proxy, verified-email registration, and paid tariff preview without implying VPN/trial/JWT/MTProto/referral access before email proof.</target-2>
+    <target-3 evidence="static">Login/register/forgot/reset/verify routes preserve existing auth API calls, token storage boundaries, duplicate-email recovery CTA, spam-folder guidance, password example, and reset/verify token query handling.</target-3>
+    <target-4 evidence="static">Tariff preview reads or mirrors only existing canonical M-068 shape and never owns prices, device limits, checkout amount, or frontend-controlled payment metadata.</target-4>
+    <target-5 evidence="runtime-screenshot">Phone, tablet, desktop, and reduced-motion screenshots prove no text/icon overlap, no horizontal scroll, no hidden primary CTA, and readable forms over Matrix effects.</target-5>
+    <target-6 evidence="static">MatrixBackground/VisualShell remain pointer-safe, reduced-motion-aware, and do not intercept auth form input, route navigation, or mobile scroll.</target-6>
+    <target-7 evidence="static">Brand assets from M-069 remain public static assets only; no tokenized URL, secret-bearing logo path, or mailbox-provider BIMI assumption is introduced.</target-7>
+  </verification-matrix>
   <success-scenarios>
-    <scenario-1>Public route communicates VPN, MTProto, tariffs, and signup CTA without a bulky marketing layout.</scenario-1>
-    <scenario-2>Auth routes stay compact and usable on phone/tablet/desktop.</scenario-2>
-    <scenario-3>Registration still delays access until verified email proof.</scenario-3>
+    <scenario-1 kind="success">Public route communicates KrotPN offer, VPN value, free MTProto proxy value, canonical tariffs, and registration CTA in a premium compact Matrix layout.</scenario-1>
+    <scenario-2 kind="success">Auth routes stay compact, readable, logo-aware, and usable on phone/tablet/desktop and in reduced-motion mode.</scenario-2>
+    <scenario-3 kind="success">Registration still creates pending email verification state only; access side effects remain delayed until verified email proof.</scenario-3>
+    <scenario-4 kind="success">Duplicate-email recovery, spam-folder guidance, password strength/example, reset, and verify-email states remain visible and token-safe.</scenario-4>
+    <scenario-5 kind="success">Tariff preview preserves KrotPN 1/6/9, 369/693/936 RUB, 30 days, and plan_id-only checkout ownership by backend catalog.</scenario-5>
   </success-scenarios>
   <failure-scenarios>
-    <failure-1>Public/auth effects obscure forms or imply immediate access before verification.</failure-1>
-    <failure-2>Canonical tariff data drifts from M-068 backend-owned catalog.</failure-2>
+    <failure-1 kind="failure">Public/auth effects obscure forms, delay registration, intercept clicks, or hide verification/reset states.</failure-1>
+    <failure-2 kind="failure">Copy promises immediate VPN/trial/MTProto/referral/JWT access before verified-email activation.</failure-2>
+    <failure-3 kind="failure">Canonical tariff data, prices, duration, device limits, or YooKassa metadata become frontend-authoritative.</failure-3>
+    <failure-4 kind="failure">Public landing creates a bulky generic marketing page, oversized cards, nested cards, decorative orbs, or a one-note palette that violates M-072.</failure-4>
+    <failure-5 kind="failure">Real emails, tokens, reset/verify secrets, API keys, MTProto secrets, or payment IDs are logged by smoke tests or console markers.</failure-5>
+    <failure-6 kind="failure">Phase-56 diff touches deploy/install/nginx/docker-compose/backend/VPN/MTProto/billing runtime surfaces.</failure-6>
   </failure-scenarios>
-  <log-markers>
-    <marker>[PremiumPublicSite][phase56][ROUTES_READY]</marker>
-    <marker>[PremiumPublicSite][phase56][EMAIL_PROOF_GUARD]</marker>
-    <marker>[PremiumPublicSite][phase56][TARIFFS_CANONICAL]</marker>
-  </log-markers>
+  <required-log-markers>
+    <marker-1>[PremiumPublicSite][phase56][ROUTES_READY]</marker-1>
+    <marker-2>[PremiumPublicSite][phase56][PUBLIC_CTA_VISIBLE]</marker-2>
+    <marker-3>[PremiumPublicSite][phase56][AUTH_STATES_READABLE]</marker-3>
+    <marker-4>[PremiumPublicSite][phase56][EMAIL_PROOF_GUARD]</marker-4>
+    <marker-5>[PremiumPublicSite][phase56][TARIFFS_CANONICAL]</marker-5>
+    <marker-6>[PremiumPublicSite][phase56][LOGO_VISIBLE]</marker-6>
+    <marker-7>[PremiumPublicSite][phase56][REDUCED_MOTION_SAFE]</marker-7>
+    <marker-8>[PremiumPublicSite][phase56][SCREENSHOT_MATRIX_REVIEWED]</marker-8>
+    <marker-9>[PremiumPublicSite][phase56][PROTECTED_SURFACE_GUARD]</marker-9>
+  </required-log-markers>
+  <telemetry-requirements>
+    <requirement-1>Smoke output may print route names, viewport names, selector markers, and screenshot paths only.</requirement-1>
+    <requirement-2>Smoke output must not print real emails, access/refresh tokens, reset/verify tokens, API keys, proxy secrets, VPN configs, payment IDs, or Resend/YooKassa secrets.</requirement-2>
+    <requirement-3>Console markers added to auth/public routes must be deterministic and non-sensitive; values from inputs and URL token query parameters must never be logged.</requirement-3>
+  </telemetry-requirements>
+  <phase-gates>
+    <gate-1 level="module-local">M-073 route/static smoke validates public/auth routes, state labels, CTA, logo visibility, email-proof guard, and tariff canonicality.</gate-1>
+    <gate-2 level="wave">M-009, M-068, M-069, M-070, M-071, and M-072 regression smokes remain satisfied after public/auth edits.</gate-2>
+    <gate-3 level="phase">Frontend build, screenshot matrix, Phase-44/46/50/55 regression smokes, XML parse, MyGRACE lint, git diff check, and protected deploy/install guard pass before Phase-56 can be marked done-local.</gate-3>
+  </phase-gates>
+  <autonomous-execution-safety>Safe for local autonomous execution if changes stay inside frontend public/auth routes, frontend CSS/components needed for M-073, and smoke verification. Stop execution if backend registration semantics, billing catalog ownership, deploy/install scripts, nginx, docker-compose, VPN, MTProto, or secret handling must change.</autonomous-execution-safety>
 </V-M-073>
