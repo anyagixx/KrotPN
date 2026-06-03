@@ -1,47 +1,71 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<V-M-071 MODULE="M-071" PRIORITY="high" STATUS="planned">
+<V-M-071 MODULE="M-071" PRIORITY="high" STATUS="verification-designed">
+  <scope>
+    <phase>Phase-52</phase>
+    <purpose>Verify the Matrix style system foundation for compact, readable, mobile-safe user and admin shells.</purpose>
+    <module-ref>docs/modules/M-071.xml</module-ref>
+  </scope>
   <test-files>
     <file>frontend/src/index.css</file>
     <file>frontend-admin/src/index.css</file>
     <file>frontend/src/components/Layout.tsx</file>
     <file>frontend-admin/src/components/Layout.tsx</file>
     <file>scripts/phase52-matrix-visual-smoke.mjs</file>
-    <file>scripts/phase53-user-matrix-ui-smoke.mjs</file>
-    <file>scripts/phase54-admin-matrix-ui-smoke.mjs</file>
   </test-files>
-  <commands>
+  <module-checks>
     <check-1>cd frontend &amp;&amp; npm run build</check-1>
     <check-2>cd frontend-admin &amp;&amp; npm run build</check-2>
     <check-3>node scripts/phase52-matrix-visual-smoke.mjs</check-3>
-    <check-4>node scripts/phase53-user-matrix-ui-smoke.mjs</check-4>
-    <check-5>node scripts/phase54-admin-matrix-ui-smoke.mjs</check-5>
+    <check-4>Viewport smoke: 360x740, 390x844, 430x932, 768x1024, 1440x900.</check-4>
+    <check-5>Reduced-motion smoke: all transform-heavy, flicker-heavy, and scanline-heavy effects are disabled or simplified.</check-5>
     <check-6>git diff --name-only -- install.sh deploy nginx docker-compose.yml</check-6>
-  </commands>
+  </module-checks>
   <scenarios>
-    <scenario-1 kind="success">Shared Matrix tokens style user and admin shells without breaking compact mobile workflows.</scenario-1>
-    <scenario-2 kind="success">Scanlines, flicker, and glitch accents are visible but do not reduce readability of forms, tables, proxy cards, tariffs, or incident controls.</scenario-2>
-    <scenario-3 kind="success">Mobile viewports have no document-level horizontal scroll and no text overlap.</scenario-3>
-    <scenario-4 kind="failure">Long emails, proxy hostnames, secrets, config labels, tariff prices, and admin row actions must wrap or truncate intentionally inside stable containers.</scenario-4>
-    <scenario-5 kind="failure">Reduced-motion mode must disable transform-heavy and flicker-heavy effects while preserving a recognizable Matrix style.</scenario-5>
+    <scenario-1 kind="success">Shared Matrix tokens apply to both frontends without breaking compact operational layout rules from M-038.</scenario-1>
+    <scenario-2 kind="success">CRT scanlines, neon flicker, and glitch accents are visible but do not obscure forms, tables, proxy cards, tariffs, alerts, or primary actions.</scenario-2>
+    <scenario-3 kind="success">Focus states are visible over the Matrix background for links, buttons, inputs, tabs, menus, and confirmation controls.</scenario-3>
+    <scenario-4 kind="success">Mobile shells have no document-level horizontal scroll, no nested card bloat, and stable compact control dimensions.</scenario-4>
+    <scenario-5 kind="failure">Long emails, CTA proxy hostnames, secrets, config labels, tariff prices, and admin row actions wrap or truncate intentionally inside stable containers.</scenario-5>
+    <scenario-6 kind="failure">Color scan confirms the final theme is not a one-note green surface: cyan, magenta, neutral, warning, and danger accents remain available.</scenario-6>
   </scenarios>
   <visual-checks>
     <viewport-1>360x740</viewport-1>
     <viewport-2>390x844</viewport-2>
     <viewport-3>430x932</viewport-3>
-    <viewport-4>desktop 1440x900</viewport-4>
+    <viewport-4>768x1024</viewport-4>
+    <viewport-5>1440x900</viewport-5>
     <check-1>No horizontal scroll.</check-1>
     <check-2>No icon/placeholder overlap in forms.</check-2>
     <check-3>No status badge, button, table, chart, proxy secret, or tariff text overlap.</check-3>
-    <check-4>Visible focus state remains clear over Matrix background.</check-4>
+    <check-4>Visible focus states remain clear over Matrix background and scanline overlays.</check-4>
+    <check-5>Primary VPN, MTProto, tariff, registration, and admin actions are visible and readable.</check-5>
   </visual-checks>
+  <required-log-markers>
+    <marker-1>[MatrixStyleSystem][smoke][TOKENS_PRESENT]</marker-1>
+    <marker-2>[MatrixStyleSystem][smoke][REDUCED_MOTION_POLICY]</marker-2>
+    <marker-3>[MatrixStyleSystem][smoke][VIEWPORT_NO_OVERFLOW]</marker-3>
+    <marker-4>[MatrixStyleSystem][smoke][FOCUS_VISIBLE]</marker-4>
+    <marker-5>[MatrixStyleSystem][smoke][PROTECTED_SURFACE_GUARD]</marker-5>
+  </required-log-markers>
+  <evidence-levels>
+    <module-local>Static smoke validates CSS tokens, class primitives, reduced-motion selectors, focus selectors, and protected-surface guard.</module-local>
+    <wave-level>User and admin builds validate shared style integration in both apps.</wave-level>
+    <phase-level>Viewport screenshots validate readability, no overlap, no horizontal scroll, and balanced Matrix palette.</phase-level>
+  </evidence-levels>
   <redaction>
-    <rule-1>Visual smoke must not print real tokens, proxy secrets, tg links, VPN config contents, admin tokens, or raw user IP history.</rule-1>
-    <rule-2>Screenshot paths may be logged; screenshot binary data must not be embedded in logs.</rule-2>
+    <rule-1>Visual smoke must not print real tokens, proxy secrets, tg links, VPN config contents, admin tokens, raw user IP history, or screenshot binary data.</rule-1>
+    <rule-2>Allowed output: route name, viewport, layout metrics, CSS selector presence, screenshot path, and redacted console marker counts.</rule-2>
   </redaction>
+  <autonomous-execution-safety>
+    <level>medium</level>
+    <allowed>Implement frontend-only CSS token system, shell classes, focus states, and smoke checks inside M-071 boundaries.</allowed>
+    <blocked>Changing data contracts, auth/session storage, billing/VPN/MTProto behavior, deploy/install scripts, nginx, docker-compose, or backend runtime behavior.</blocked>
+    <handoff-trigger>Stop and report if the theme makes operational content unreadable, creates horizontal scroll, hides primary actions, or conflicts with reduced-motion policy.</handoff-trigger>
+  </autonomous-execution-safety>
   <acceptance>
     <target-1>Frontend and frontend-admin builds pass.</target-1>
-    <target-2>Phase-52/53/54 smoke scripts pass when their implementation phases execute.</target-2>
-    <target-3>CSS remains mobile-safe, compact, readable, and not one-note despite the Matrix theme.</target-3>
+    <target-2>Phase-52 smoke passes with token, reduced-motion, viewport, focus, and protected-surface checks.</target-2>
+    <target-3>Mobile and desktop screenshots show Matrix style without text overlap, control overlap, or one-note color dominance.</target-3>
     <target-4>No deploy/install/nginx/docker-compose/runtime topology changes are present.</target-4>
   </acceptance>
 </V-M-071>

@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Phase-52 NAME="KrotPN Matrix Visual System Foundation" STATUS="planned" STEPS="8">
+<Phase-52 NAME="KrotPN Matrix Visual System Foundation" STATUS="verification-designed" STEPS="8">
   <summary>Create the shared Matrix visual runtime and style foundation for KrotPN user and admin frontends, based on the approved TRUFFLEX reference effects.</summary>
   <modules>M-070,M-071,M-009,M-010,M-038</modules>
   <references>
@@ -51,5 +51,9 @@
     <walkthrough-2>Admin opens /mtproto: operational tables and actions remain compact above the canvas, no overlay intercepts click or hover actions.</walkthrough-2>
     <walkthrough-3>Browser lacks canvas context: Matrix runtime logs a controlled marker and the app continues with a static dark Matrix surface.</walkthrough-3>
   </mental-walkthroughs>
-  <verification>V-M-070,V-M-071</verification>
+  <verification>
+    <entry-1>V-M-070 verifies Matrix runtime lifecycle, nonblank canvas, reduced-motion fallback, input pass-through, and runtime observability.</entry-1>
+    <entry-2>V-M-071 verifies Matrix style tokens, compact mobile layout, readable CRT/glitch effects, focus states, and protected-surface isolation.</entry-2>
+    <phase-gate>Phase-52 execute may start after both verification entries are status verification-designed and MyGRACE lint passes.</phase-gate>
+  </verification>
 </Phase-52>

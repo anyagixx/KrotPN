@@ -1,41 +1,59 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<V-M-070 MODULE="M-070" PRIORITY="high" STATUS="planned">
+<V-M-070 MODULE="M-070" PRIORITY="high" STATUS="verification-designed">
+  <scope>
+    <phase>Phase-52</phase>
+    <purpose>Verify the shared React/Vite Matrix visual runtime before it is used by the full user/admin redesign phases.</purpose>
+    <module-ref>docs/modules/M-070.xml</module-ref>
+  </scope>
   <test-files>
     <file>frontend/src/components/MatrixBackground.tsx</file>
     <file>frontend/src/components/VisualShell.tsx</file>
     <file>frontend-admin/src/components/MatrixBackground.tsx</file>
     <file>frontend-admin/src/components/VisualShell.tsx</file>
     <file>scripts/phase52-matrix-visual-smoke.mjs</file>
-    <file>scripts/phase53-user-matrix-ui-smoke.mjs</file>
-    <file>scripts/phase54-admin-matrix-ui-smoke.mjs</file>
   </test-files>
-  <commands>
+  <module-checks>
     <check-1>cd frontend &amp;&amp; npm run build</check-1>
     <check-2>cd frontend-admin &amp;&amp; npm run build</check-2>
     <check-3>node scripts/phase52-matrix-visual-smoke.mjs</check-3>
-    <check-4>Optional Playwright/Chrome screenshots: desktop, 360x740, 390x844, 430x932, reduced-motion.</check-4>
-    <check-5>git diff --name-only -- install.sh deploy nginx docker-compose.yml</check-5>
-  </commands>
+    <check-4>Chrome/Playwright screenshot audit: /login user shell desktop 1440x900, 390x844, and reduced-motion.</check-4>
+    <check-5>Chrome/Playwright screenshot audit: admin /login shell desktop 1440x900, 390x844, and reduced-motion.</check-5>
+    <check-6>git diff --name-only -- install.sh deploy nginx docker-compose.yml</check-6>
+  </module-checks>
   <scenarios>
-    <scenario-1 kind="success">Matrix canvas renders nonblank behind user and admin content without intercepting input.</scenario-1>
-    <scenario-2 kind="success">Reduced-motion users receive a static readable Matrix surface and no running animation loop.</scenario-2>
-    <scenario-3 kind="failure">Canvas context is unavailable; runtime logs a controlled fallback marker and the app stays usable.</scenario-3>
-    <scenario-4 kind="failure">Window resize, route navigation, or component unmount must not leak animation frames or duplicate listeners.</scenario-4>
+    <scenario-1 kind="success">Matrix canvas renders nonblank behind user and admin content without intercepting clicks, keyboard focus, text selection, or mobile scroll.</scenario-1>
+    <scenario-2 kind="success">VisualShell keeps content in a higher readable layer while the canvas and CRT overlays remain pointer-events-none.</scenario-2>
+    <scenario-3 kind="success">Resize recomputes canvas dimensions and drop columns without accumulating duplicate listeners or animation loops.</scenario-3>
+    <scenario-4 kind="success">Reduced-motion mode renders a static readable Matrix frame and suppresses requestAnimationFrame loops.</scenario-4>
+    <scenario-5 kind="failure">Canvas 2D context is unavailable; runtime logs a controlled fallback marker and the app remains usable.</scenario-5>
+    <scenario-6 kind="failure">Route navigation and component unmount cancel animation frames, timers, and listeners.</scenario-6>
   </scenarios>
-  <log-markers>
+  <required-log-markers>
     <marker-1>[MatrixVisualRuntime][init][CANVAS_READY]</marker-1>
     <marker-2>[MatrixVisualRuntime][resize][CANVAS_RESIZE]</marker-2>
     <marker-3>[MatrixVisualRuntime][motionPolicy][REDUCED_MOTION]</marker-3>
     <marker-4>[MatrixVisualRuntime][fallback][CANVAS_CONTEXT_UNAVAILABLE]</marker-4>
-  </log-markers>
+    <marker-5>[MatrixVisualRuntime][cleanup][ANIMATION_STOPPED]</marker-5>
+  </required-log-markers>
+  <evidence-levels>
+    <module-local>Static smoke inspects source contracts, exported components, cleanup paths, reduced-motion branches, and protected imports.</module-local>
+    <wave-level>User and admin frontend builds prove shared runtime integration across both apps.</wave-level>
+    <phase-level>Screenshot/pixel checks prove nonblank canvas, readable content, and reduced-motion behavior on desktop and mobile.</phase-level>
+  </evidence-levels>
   <redaction>
-    <rule-1>Do not log user emails, access tokens, proxy secrets, tg links, VPN config contents, admin tokens, or screenshot binary data.</rule-1>
-    <rule-2>Console markers may record viewport dimensions and runtime branch only.</rule-2>
+    <rule-1>Do not log user emails, access tokens, proxy secrets, tg links, VPN config contents, admin tokens, raw IP history, or screenshot binary data.</rule-1>
+    <rule-2>Allowed telemetry: viewport dimensions, runtime branch, canvas support state, reduced-motion state, and animation lifecycle state.</rule-2>
   </redaction>
+  <autonomous-execution-safety>
+    <level>medium</level>
+    <allowed>Implement frontend-only runtime, shell mounts, and smoke checks inside M-070 boundaries.</allowed>
+    <blocked>Changing backend APIs, auth state, billing, VPN, MTProto provisioning, deploy/install scripts, nginx, docker-compose, or production runtime topology.</blocked>
+    <handoff-trigger>Stop and report if screenshot checks show blank canvas, unreadable content, input interception, or reduced-motion failure.</handoff-trigger>
+  </autonomous-execution-safety>
   <acceptance>
     <target-1>User and admin frontend builds pass.</target-1>
-    <target-2>Canvas nonblank and reduced-motion checks pass on mobile and desktop screenshots.</target-2>
-    <target-3>No protected deploy/install/runtime surface changes are present.</target-3>
-    <target-4>No uncaught console errors occur during init, resize, route navigation, or teardown.</target-4>
+    <target-2>Phase-52 smoke passes with runtime lifecycle, protected surface, and redaction checks.</target-2>
+    <target-3>Canvas nonblank and reduced-motion screenshot checks pass on mobile and desktop.</target-3>
+    <target-4>No protected deploy/install/runtime surface changes are present.</target-4>
   </acceptance>
 </V-M-070>
