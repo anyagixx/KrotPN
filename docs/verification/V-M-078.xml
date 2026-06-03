@@ -1,33 +1,118 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<V-M-078 MODULE="M-078" PRIORITY="critical" STATUS="planned">
-  <scope>Premium frontend QA and release candidate gates for user/admin/public/email surfaces.</scope>
+<V-M-078 MODULE="M-078" PRIORITY="critical" STATUS="pending" PHASE-60="pending" PHASE-65="planned">
+  <scope>Phase-60 verification design for premium frontend QA gates across public, auth, protected user, protected admin, Matrix runtime, motion, responsive, performance, accessibility, MyGRACE, and protected-surface boundaries. Phase-65 release-candidate gate remains planned and consumes this evidence later.</scope>
   <test-files>
     <file>scripts/phase60-premium-qa-smoke.mjs</file>
-    <file>scripts/phase65-premium-rc-smoke.mjs</file>
+    <file>scripts/phase52-matrix-visual-smoke.mjs</file>
+    <file>scripts/phase55-premium-art-direction-smoke.mjs</file>
+    <file>scripts/phase56-premium-public-auth-smoke.mjs</file>
+    <file>scripts/phase57-premium-user-cabinet-smoke.mjs</file>
+    <file>scripts/phase58-premium-admin-cockpit-smoke.mjs</file>
+    <file>scripts/phase59-motion-interactions-smoke.mjs</file>
+    <file phase="65-planned">scripts/phase65-premium-rc-smoke.mjs</file>
+    <file>frontend/src/App.tsx</file>
+    <file>frontend/src/components/Layout.tsx</file>
+    <file>frontend/src/components/MatrixBackground.tsx</file>
+    <file>frontend/src/components/VisualShell.tsx</file>
+    <file>frontend/src/pages/Landing.tsx</file>
+    <file>frontend/src/pages/Login.tsx</file>
+    <file>frontend/src/pages/Register.tsx</file>
+    <file>frontend/src/pages/ForgotPassword.tsx</file>
+    <file>frontend/src/pages/ResetPassword.tsx</file>
+    <file>frontend/src/pages/VerifyEmail.tsx</file>
+    <file>frontend/src/pages/Dashboard.tsx</file>
+    <file>frontend/src/pages/Config.tsx</file>
+    <file>frontend/src/pages/Subscription.tsx</file>
+    <file>frontend/src/pages/Referrals.tsx</file>
+    <file>frontend/src/pages/Settings.tsx</file>
+    <file>frontend/src/index.css</file>
+    <file>frontend-admin/src/main.tsx</file>
+    <file>frontend-admin/src/components/Layout.tsx</file>
+    <file>frontend-admin/src/components/MatrixBackground.tsx</file>
+    <file>frontend-admin/src/components/VisualShell.tsx</file>
+    <file>frontend-admin/src/pages/Login.tsx</file>
+    <file>frontend-admin/src/pages/Dashboard.tsx</file>
+    <file>frontend-admin/src/pages/Users.tsx</file>
+    <file>frontend-admin/src/pages/Devices.tsx</file>
+    <file>frontend-admin/src/pages/MTProto.tsx</file>
+    <file>frontend-admin/src/pages/MTProtoAnalytics.tsx</file>
+    <file>frontend-admin/src/pages/Analytics.tsx</file>
+    <file>frontend-admin/src/pages/Servers.tsx</file>
+    <file>frontend-admin/src/pages/Plans.tsx</file>
+    <file>frontend-admin/src/index.css</file>
+    <file>docs/modules/M-078.xml</file>
     <file>docs/plans/Phase-60.xml</file>
-    <file>docs/plans/Phase-65.xml</file>
+    <file>docs/verification/V-M-078.xml</file>
   </test-files>
-  <commands>
-    <command>cd frontend &amp;&amp; npm run build</command>
-    <command>cd frontend-admin &amp;&amp; npm run build</command>
-    <command>node scripts/phase60-premium-qa-smoke.mjs</command>
-    <command>node scripts/phase65-premium-rc-smoke.mjs</command>
-    <command>python3 -m xml.etree.ElementTree docs/graph-index.xml docs/plan-index.xml docs/verification-index.xml</command>
-    <command>mygrace lint</command>
-    <command>git diff --check</command>
-  </commands>
+  <module-checks>
+    <check-1>cd frontend &amp;&amp; npm run build</check-1>
+    <check-2>cd frontend-admin &amp;&amp; npm run build</check-2>
+    <check-3>node scripts/phase60-premium-qa-smoke.mjs</check-3>
+    <check-4>node scripts/phase52-matrix-visual-smoke.mjs</check-4>
+    <check-5>node scripts/phase55-premium-art-direction-smoke.mjs</check-5>
+    <check-6>node scripts/phase56-premium-public-auth-smoke.mjs</check-6>
+    <check-7>node scripts/phase57-premium-user-cabinet-smoke.mjs</check-7>
+    <check-8>node scripts/phase58-premium-admin-cockpit-smoke.mjs</check-8>
+    <check-9>node scripts/phase59-motion-interactions-smoke.mjs</check-9>
+    <check-10>Chrome/Playwright screenshot matrix for public/auth routes: /, /login, /register, /forgot-password, /reset-password, /verify-email at 360x740, 390x844, 430x932, 768x1024, 1024x768, 1440x900, plus reduced-motion /login and / at 390x844.</check-10>
+    <check-11>Chrome/Playwright screenshot matrix for protected user routes: /dashboard, /dashboard/config, /dashboard/subscription, /dashboard/referrals, /dashboard/settings at 360x740, 390x844, 430x932, 768x1024, 1024x768, 1440x900, plus reduced-motion /dashboard at 390x844. If authenticated local fixtures are unavailable, emit static-route proof and record clean-deploy authenticated screenshot follow-up.</check-11>
+    <check-12>Chrome/Playwright screenshot matrix for admin routes: /login, /, /users, /devices, /mtproto, /servers, /plans, /analytics at 360x740, 390x844, 430x932, 768x1024, 1024x768, 1440x900, plus reduced-motion /mtproto at 390x844. If authenticated local fixtures are unavailable, emit static-route proof and record clean-deploy authenticated screenshot follow-up.</check-12>
+    <check-13>Layout assertions: no document-level horizontal scroll, no visible icon/text/control/status overlap, no hidden primary CTA/action, bounded table/list/graph heights, stable fixed-format controls, and no pointer interception by Matrix/canvas/overlay layers.</check-13>
+    <check-14>Performance budgets: user primary JS bundle <= 540 KB minified, user primary CSS <= 56 KB, admin primary JS bundle <= 940 KB minified, admin primary CSS <= 56 KB, no unexpected asset > 1.5 MB, no new unreferenced public bitmap > 512 KB, and build output records gzip sizes.</check-14>
+    <check-15>Lighthouse/Web Vitals local preview budget when Chrome is available: public/auth Performance >= 75, Accessibility >= 90, Best Practices >= 90, LCP <= 3000 ms, CLS <= 0.1, TBT <= 300 ms. If Lighthouse is unavailable, Phase-60 smoke must record an explicit tool-unavailable fallback rather than claiming pass.</check-15>
+    <check-16>Motion/runtime budget: Phase-59 motion tokens stay <= 220 ms for route/feedback transitions, no scroll hijacking, no setInterval-driven decorative loops, Matrix canvas remains pointer-events-none, reduced-motion renders static/fade fallback, and inactive-tab cleanup markers remain present.</check-16>
+    <check-17>Accessibility gates: focus-visible selectors, keyboard-reachable forms/buttons/nav/tabs/dialogs, reduced-motion media emulation, readable contrast for buttons/status/inputs, no keyboard traps in modals/confirmations, and no in-app visible instruction text that describes UI mechanics.</check-17>
+    <check-18>python3 -m xml.etree.ElementTree docs/graph-index.xml docs/plan-index.xml docs/verification-index.xml docs/modules/M-078.xml docs/plans/Phase-60.xml docs/verification/V-M-078.xml</check-18>
+    <check-19>mygrace lint</check-19>
+    <check-20>git diff --check</check-20>
+    <check-21>git diff --name-only HEAD -- install.sh docker-compose.yml nginx deploy deploy/mtproto-de-compose.yml .env.example backend/app backend/tests mtproto-runtime official-mtproxy telegram-bot must be empty</check-21>
+  </module-checks>
+  <verification-matrix>
+    <target-1 evidence="build-and-static">User and admin builds compile without TypeScript errors and produce budget-readable dist artifacts.</target-1>
+    <target-2 evidence="screenshot-and-static">Public/auth screenshots prove premium Matrix style, visible logo/CTA, readable email-proof copy, canonical tariff preview, no overlap, and reduced-motion fallback.</target-2>
+    <target-3 evidence="screenshot-and-static">Protected user screenshots or explicit static-route proof cover dashboard/config/subscription/referrals/settings workflows, copy/download/proxy feedback, subscription calendar, device controls, and MTProto redaction.</target-3>
+    <target-4 evidence="screenshot-and-static">Protected admin screenshots or explicit static-route proof cover dashboard/users/devices/MTProto/analytics/servers/plans workflows, redaction, confirmation guards, bounded inventories, and runtime readonly frames.</target-4>
+    <target-5 evidence="performance">Bundle size, asset size, Lighthouse/Web Vitals, canvas/motion, and route animation budgets are explicit and fail truthfully when unavailable or exceeded.</target-5>
+    <target-6 evidence="accessibility">Focus-visible, keyboard reachability, reduced-motion, contrast, no pointer interception, no scroll hijack, and no keyboard trap gates are enforced.</target-6>
+    <target-7 evidence="governance">XML parse, MyGRACE lint, git diff --check, regression smokes, and protected backend/deploy/runtime guard pass before Phase-60 can be marked done-local.</target-7>
+  </verification-matrix>
   <success-scenarios>
-    <scenario-1>Screenshot matrix covers public/auth/user/admin/email-preview routes across mobile/tablet/desktop.</scenario-1>
-    <scenario-2>Lighthouse/Web Vitals and bundle budgets are explicit and pass or fail truthfully.</scenario-2>
-    <scenario-3>Protected deploy/install/nginx/docker-compose/runtime diff guard remains clean.</scenario-3>
+    <scenario-1 kind="success">A local QA run produces deterministic build, smoke, screenshot/static-route, performance, accessibility, MyGRACE, and protected-surface evidence for Phase-53 through Phase-59 premium frontend work.</scenario-1>
+    <scenario-2 kind="success">When authenticated fixtures are unavailable, Phase-60 evidence clearly says which protected screenshots are static-route proof and which clean-deploy screenshots remain follow-up.</scenario-2>
+    <scenario-3 kind="success">Performance and motion budgets are conservative enough for current user/admin bundles while strict enough to catch accidental bloat, long animations, blank canvas, or pointer-intercepting overlays.</scenario-3>
+    <scenario-4 kind="success">Regression smoke confirms Phase-52/55/56/57/58/59 contracts still pass under the unified QA gate.</scenario-4>
   </success-scenarios>
   <failure-scenarios>
-    <failure-1>Any major viewport has overlap, horizontal scroll, unreadable text, blank canvas, or broken reduced-motion.</failure-1>
-    <failure-2>Release candidate is tagged before QA evidence is recorded.</failure-2>
+    <failure-1 kind="failure">Any target viewport shows horizontal scroll, text/control/status overlap, hidden CTA/action, unreadable form/table/chart, blank Matrix canvas, or broken reduced-motion fallback.</failure-1>
+    <failure-2 kind="failure">Phase-60 smoke claims authenticated screenshot coverage without a real authenticated fixture or clean-deploy evidence.</failure-2>
+    <failure-3 kind="failure">Bundle, asset, Lighthouse/Web Vitals, canvas, or motion budgets are missing, unavailable without explicit fallback, or exceeded without a recorded blocker.</failure-3>
+    <failure-4 kind="failure">Keyboard traversal cannot reach nav/actions/forms/tabs/dialogs, focus-visible is hidden, or any modal/confirmation traps focus incorrectly.</failure-4>
+    <failure-5 kind="failure">Smoke output, screenshots, console captures, or docs expose MTProto secrets, full proxy links, VPN config contents, bearer/refresh/reset/verify tokens, real emails, raw IP exports, payment/provider identifiers, database URLs, or API keys.</failure-5>
+    <failure-6 kind="failure">Phase-60 modifies backend API, auth/session, billing catalog, VPN/MTProto runtime, deploy/install/nginx/docker-compose, telegram-bot, or secret-handling surfaces.</failure-6>
   </failure-scenarios>
-  <log-markers>
-    <marker>[PremiumQAGates][phase60][SCREENSHOTS_PASS]</marker>
-    <marker>[PremiumQAGates][phase60][PERFORMANCE_PASS]</marker>
-    <marker>[PremiumRCGate][phase65][RELEASE_READY]</marker>
-  </log-markers>
+  <required-log-markers>
+    <marker-1>[PremiumQAGates][phase60][BUILDS_PASS]</marker-1>
+    <marker-2>[PremiumQAGates][phase60][SCREENSHOT_MATRIX_READY]</marker-2>
+    <marker-3>[PremiumQAGates][phase60][NO_OVERLAP_PASS]</marker-3>
+    <marker-4>[PremiumQAGates][phase60][RESPONSIVE_PASS]</marker-4>
+    <marker-5>[PremiumQAGates][phase60][REDUCED_MOTION_PASS]</marker-5>
+    <marker-6>[PremiumQAGates][phase60][ACCESSIBILITY_PASS]</marker-6>
+    <marker-7>[PremiumQAGates][phase60][PERFORMANCE_BUDGET_PASS]</marker-7>
+    <marker-8>[PremiumQAGates][phase60][REGRESSION_SMOKES_PASS]</marker-8>
+    <marker-9>[PremiumQAGates][phase60][MYGRACE_PASS]</marker-9>
+    <marker-10>[PremiumQAGates][phase60][PROTECTED_SURFACE_GUARD]</marker-10>
+    <marker-11 phase="65-planned">[PremiumRCGate][phase65][RELEASE_READY]</marker-11>
+  </required-log-markers>
+  <telemetry-requirements>
+    <requirement-1>Allowed output: route names, viewport names, selector names, synthetic fixture IDs, screenshot file paths, bundle byte/gzip sizes, Lighthouse category scores, Web Vitals numbers, budget names, unavailable-tool reason, and pass/fail markers.</requirement-1>
+    <requirement-2>Forbidden output: MTProto ee secrets, full tg:// or https://t.me proxy links, WireGuard/AWG config contents, bearer/refresh/reset/verify tokens, real user/admin emails, raw IP history exports, payment IDs, YooKassa/Resend keys, database URLs, API keys, private keys, or screenshot binary data.</requirement-2>
+    <requirement-3>Screenshots must use synthetic or redacted data only. Live clean-deploy screenshots require operator approval and must not include secrets, raw config, raw IP history exports, or provider keys.</requirement-3>
+  </telemetry-requirements>
+  <phase-gates>
+    <gate-1 level="module-local">M-078 Phase-60 smoke proves screenshot matrix specification, responsive/no-overlap assertions, performance budgets, accessibility/reduced-motion checks, regression smoke wiring, MyGRACE checks, and protected-surface guard.</gate-1>
+    <gate-2 level="wave">M-009, M-010, M-036, M-037, M-038, M-070, M-071, M-073, M-075, M-076, and M-077 regression smokes remain satisfied after QA gate implementation.</gate-2>
+    <gate-3 level="phase">User/admin builds, Phase-60 smoke, Phase-52/55/56/57/58/59 smokes, screenshot/static-route evidence, performance/accessibility budgets, XML parse, MyGRACE lint, git diff --check, and protected backend/deploy/runtime guard pass before Phase-60 can be marked done-local.</gate-3>
+    <gate-4 level="future-phase">Phase-65 release candidate gate remains planned and must not be marked release-ready by Phase-60 evidence alone.</gate-4>
+  </phase-gates>
+  <autonomous-execution-safety>Safe for autonomous local execution if changes stay inside QA scripts, screenshot/performance tooling, package metadata needed to run those scripts, and MyGRACE docs. Stop if execution appears to require backend API changes, auth/session changes, billing catalog mutation, VPN/MTProto runtime changes, deploy/install/nginx/docker-compose changes, telegram-bot changes, production server access, or secret-handling changes.</autonomous-execution-safety>
 </V-M-078>
