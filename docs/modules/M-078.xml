@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<M-078 NAME="premium-frontend-qa-gates" TYPE="UTILITY" STATUS="pass-local-phase60-planned-phase65">
+<M-078 NAME="premium-frontend-qa-gates" TYPE="UTILITY" STATUS="pass-local-phase60-verification-designed-phase65">
   <path>scripts/phase60-premium-qa-smoke.mjs scripts/phase65-premium-rc-smoke.mjs docs/plans/Phase-60.xml docs/plans/Phase-65.xml</path>
   <owns>Premium frontend verification gates for screenshots, performance, reduced-motion, responsive safety, and release readiness.</owns>
   <purpose>Prevent premium visual work from shipping with usability, performance, or MyGRACE drift regressions.</purpose>
@@ -17,10 +17,17 @@
     <constraint-3>Release candidate gate must include MyGRACE lint and XML parse.</constraint-3>
   </constraints>
   <acceptance-metrics>
-    <metric-1 status="pass-local-phase60">Phase-60 smoke script passes locally; Phase-65 release-candidate smoke remains planned.</metric-1>
+    <metric-1 status="pass-local-phase60">Phase-60 smoke script passes locally.</metric-1>
     <metric-2 status="pass-local-phase60">User/admin builds and git diff --check pass.</metric-2>
     <metric-3 status="pass-local-phase60">Protected deploy/install/backend/runtime guard remains empty unless a separate approved deploy phase exists.</metric-3>
+    <metric-4 status="verification-designed-phase65">Phase-65 release-candidate verification is designed with full premium regression smokes, builds, backend email tests, screenshot/static evidence, release notes, live-gap recording, MyGRACE checks, and protected-surface guard.</metric-4>
   </acceptance-metrics>
+  <verification-design-phase65>
+    <target-1>Phase-65 must run the complete premium regression train from Phase-55 through Phase-64 plus Phase-60 QA, user/admin builds, and backend email tests before any release-candidate decision.</target-1>
+    <target-2>Release-candidate evidence must separate local/static proof from clean-deploy-only proof, especially authenticated protected-route screenshots and delivered Resend email rendering.</target-2>
+    <target-3>Release notes must be generated for premium Matrix frontend, responsive adaptation, compactness, visible logos, and premium Resend templates without tagging or pushing a release during verification design.</target-3>
+    <target-4>Protected deploy/install/nginx/docker-compose/VPN/MTProto/runtime/provider surfaces must remain unchanged unless a separate approved release/deploy phase explicitly owns that change.</target-4>
+  </verification-design-phase65>
   <evidence>
     <item>2026-06-04: node scripts/phase60-premium-qa-smoke.mjs passed with required PremiumQAGates markers.</item>
     <item>2026-06-04: frontend and frontend-admin production builds passed; dist artifact budgets are below Phase-60 limits.</item>

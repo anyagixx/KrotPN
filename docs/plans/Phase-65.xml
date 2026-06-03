@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Phase-65 NAME="Premium Release Candidate Gate" STATUS="planned">
+<Phase-65 NAME="Premium Release Candidate Gate" STATUS="verification-designed">
   <objective>Close the premium frontend and email redesign as a release-candidate gate before tagging a release.</objective>
   <modules>M-078,M-073,M-074,M-075,M-076,M-077,M-079,M-080</modules>
   <non-goals>Implementing new UI features, changing deploy/install scripts, or promoting stable without live operator validation.</non-goals>
@@ -14,5 +14,6 @@
     <step-8>Record release-candidate evidence in M-078/V-M-078.</step-8>
   </steps>
   <verification>V-M-078</verification>
+  <verification-design>Phase-65 is ready for execution only after V-M-078 gates require full premium regression smoke coverage, user/admin builds, backend email tests, screenshot/static evidence, explicit live-only gaps, release notes, XML/MyGRACE checks, and protected deploy/install/runtime isolation.</verification-design>
   <acceptance>Premium redesign is ready for a prerelease or stable-release decision based on operator validation.</acceptance>
 </Phase-65>
