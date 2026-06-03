@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<V-M-068 MODULE="M-068" PRIORITY="critical" STATUS="pass-local-phase53">
+<V-M-068 MODULE="M-068" PRIORITY="critical" STATUS="pass-local-phase53" PHASE-54="verification-designed">
   <purpose>Verify Phase-50 canonical paid tariffs across billing catalog convergence, YooKassa payment creation, subscription activation, device-limit policy, and compact user/admin UI.</purpose>
   <checks>Exactly three canonical active tariffs, server-authoritative prices, idempotent clean-deploy upsert, downgrade guard, correct payment metadata, paid subscription activation, device-limit enforcement, user/admin UI rendering, and unchanged deploy/install surfaces.</checks>
   <evidence-priority>
@@ -19,6 +19,7 @@
     <file>frontend-admin/src/types/index.ts</file>
     <file>scripts/phase50-tariff-catalog-smoke.mjs</file>
     <file>scripts/phase53-user-matrix-ui-smoke.mjs</file>
+    <file phase="54-verification-designed">scripts/phase54-admin-matrix-ui-smoke.mjs</file>
   </test-files>
   <commands>
     <command status="pass-local">cd backend &amp;&amp; SECRET_KEY=test-secret-key-with-enough-length DATA_ENCRYPTION_KEY=dpFmfSVqfdAK3yx5MQV6Tcv35RZuw5MzaH0yhxJ01q0= PYTHONPATH=. ../.venv/bin/python -m pytest -o addopts='' tests/test_billing_tariff_catalog.py tests/test_billing_plan_api.py tests/test_billing_service.py tests/test_device_access_policy.py tests/test_db_migrations.py -v</command>
@@ -44,7 +45,16 @@
     <check-10>Phase-50 does not change install.sh, deploy scripts, docker-compose, nginx, TLS material, VPN runtime, or MTProto runtime.</check-10>
     <check-11>Phase-53 subscription Matrix UI renders exactly three user-facing tariff cards with canonical 369/693/936 RUB prices and 1/6/9 device limits.</check-11>
     <check-12>Phase-53 visual refactor does not allow frontend-provided price, duration, currency, or device limit to affect checkout.</check-12>
+    <check-13>Phase-54 admin Plans Matrix UI preserves the three canonical tariffs, prices, durations, device limits, active/popular state, and protected non-CRUD controls.</check-13>
+    <check-14>Phase-54 admin Plans layout remains readable at mobile widths without nested card bloat or horizontal document overflow.</check-14>
+    <check-15>Phase-54 does not introduce frontend-admin controls that can override canonical price, duration, currency, device_limit, or payment amount.</check-15>
   </module-checks>
+  <phase-54-admin-plans-ui-gates status="verification-designed">
+    <gate-1>/plans renders exactly KrotPN 1, KrotPN 6, and KrotPN 9 with 369, 693, and 936 RUB prices and device limits 1, 6, and 9.</gate-1>
+    <gate-2>Canonical tariff rows/cards use compact Matrix styling, readable badges, and stable dimensions at 360x740, 390x844, 430x932, 768x1024, and 1440x900.</gate-2>
+    <gate-3>Admin can inspect canonical tariff state but cannot delete/edit canonical plans unless a later backend/admin phase explicitly approves CRUD.</gate-3>
+    <gate-4>Smoke fails if stale placeholder CRUD copy, wrong prices, wrong device limits, duplicate canonical plans, or frontend-controlled money fields appear.</gate-4>
+  </phase-54-admin-plans-ui-gates>
   <phase-53-subscription-ui-gates status="pass-local">
     <gate-1>Matrix tariff cards remain compact and readable at 360x740, 390x844, 430x932, 768x1024, and 1440x900.</gate-1>
     <gate-2>Current usage, selected plan, popular marker, duration, price, and device limit text do not overlap buttons or adjacent cards.</gate-2>
@@ -86,6 +96,8 @@
     <marker-5>[BillingService][process_payment_webhook][BILLING_SUBSCRIPTION_UPDATED]</marker-5>
     <marker-6>[M-068][phase53_tariff_ui][CANONICAL_TARIFFS_VISIBLE]</marker-6>
     <marker-7>[M-068][phase53_tariff_ui][CHECKOUT_SHAPE_PRESERVED]</marker-7>
+    <marker-8>[M-068][phase54_admin_tariff_ui][CANONICAL_TARIFFS_READABLE]</marker-8>
+    <marker-9>[M-068][phase54_admin_tariff_ui][NO_CANONICAL_CRUD_DRIFT]</marker-9>
   </required-markers>
   <redaction-rules>
     <rule-1>Do not log YooKassa secret keys, raw Authorization headers, JWTs, payment provider credentials, email tokens, TLS private keys, VPN config bodies, MTProto secrets, or full user identifiers during Phase-50 verification.</rule-1>
@@ -93,6 +105,7 @@
   </redaction-rules>
   <evidence>
     <phase-53-local-2026-06-03>Frontend build and node scripts/phase53-user-matrix-ui-smoke.mjs passed for Matrix tariff UI, canonical slug/price/device-limit preservation, plan_id-only checkout shape, and protected deploy/install isolation.</phase-53-local-2026-06-03>
+    <phase-54-verification-design-2026-06-03>Phase-54 verification design added admin Plans Matrix UI gates for canonical tariff readability, no canonical CRUD drift, mobile compactness, and no frontend money-field control.</phase-54-verification-design-2026-06-03>
   </evidence>
   <autonomous-execution-safety>Allowed after Phase-50 verification approval because the scope is limited to billing catalog, payment validation, device-limit policy, UI presentation, tests, docs, and protected-surface guards.</autonomous-execution-safety>
 </V-M-068>

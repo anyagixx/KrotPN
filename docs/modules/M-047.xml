@@ -54,5 +54,10 @@
     <item-7>Phase-41 backend admin tests passed for KPprotoN bridge health, single-assignment reissue/revoke, audit-safe payloads, and no official manifest sync calls in the production path.</item-7>
     <item-8>Phase-43 local execution adds alert acknowledge/resolve, confirmation-safe proxy disable, and TTL IP-block record actions with audit-safe details and no decrypted raw IP strings in audit payloads.</item-8>
   </completion>
+  <phase-54-verification-design>
+    <surface-1>Matrix admin redesign must keep /mtproto assignment inventory, runtime health, search/filter, paging, reissue, revoke, and confirmation surfaces visible and compact.</surface-1>
+    <surface-2>Admin DOM/smoke output must remain free of owner proxy links, ee/dd secrets, base secret, salt, runtime tokens, and private key material.</surface-2>
+    <surface-3>No backend MTProto admin endpoint, audit schema, runtime policy, or provisioning behavior changes are included in Phase-54.</surface-3>
+  </phase-54-verification-design>
   <hotspot>H-033: Admin MTProto operations must never expose full secrets or proxy links in logs, tables, or audit payloads</hotspot>
 </M-047>

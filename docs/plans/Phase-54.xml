@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Phase-54 NAME="Admin Console Matrix Redesign" STATUS="planned" STEPS="10">
+<Phase-54 NAME="Admin Console Matrix Redesign" STATUS="verification-designed" STEPS="10">
   <summary>Redesign the full admin frontend into the approved KrotPN Matrix style while keeping dense operator workflows, mobile usability, and safe admin actions.</summary>
   <modules>M-010,M-037,M-047,M-058,M-068,M-070,M-071</modules>
   <constraints>
@@ -54,5 +54,14 @@
     <walkthrough-2>Admin opens /mtproto analytics: charts, current IPs, alert actions, and runtime metrics stay readable; no scanline/glitch layer hides incident controls.</walkthrough-2>
     <walkthrough-3>Admin executes a destructive action: confirmation dialog remains focused, keyboard reachable, and visually separated from animated overlays.</walkthrough-3>
   </mental-walkthroughs>
-  <verification>V-M-010,V-M-037,V-M-047,V-M-058,V-M-070,V-M-071</verification>
+  <verification>V-M-010,V-M-037,V-M-047,V-M-058,V-M-068,V-M-070,V-M-071</verification>
+  <verification-design>
+    <gate-1>Phase-54 execute may start only after V-M-010, V-M-037, V-M-047, V-M-058, V-M-068, V-M-070, and V-M-071 include PHASE-54 verification-designed coverage.</gate-1>
+    <gate-2>Execution must create scripts/phase54-admin-matrix-ui-smoke.mjs before marking step-8 done-local.</gate-2>
+    <gate-3>The smoke must cover admin routes /login, /, /users, /devices, /mtproto, /servers, /plans, and /analytics at 360x740, 390x844, 430x932, 768x1024, and 1440x900.</gate-3>
+    <gate-4>The smoke must include reduced-motion proof, Matrix canvas nonblank or controlled static fallback proof, no document horizontal overflow, no obvious text/icon/control overlap, and pointer-safe overlays.</gate-4>
+    <gate-5>The admin MTProto section must prove compact assignment inventory, embedded analytics, alert actions, IP history, promotion tag controls, reissue/revoke confirmations, and secret redaction.</gate-5>
+    <gate-6>The admin Plans section must preserve the canonical 369/693/936 RUB tariff matrix without enabling canonical CRUD actions or frontend-controlled payment fields.</gate-6>
+    <gate-7>Final Phase-54 evidence must include frontend-admin build, Phase-54 smoke, screenshot review, XML parse, MyGRACE lint, git diff --check, and protected deploy/install/nginx/docker-compose/runtime guard.</gate-7>
+  </verification-design>
 </Phase-54>

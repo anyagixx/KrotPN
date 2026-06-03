@@ -37,5 +37,10 @@
     <constraint-1>Admin UI must not hide existing MTProto reissue/revoke controls.</constraint-1>
     <constraint-2>Frontend build and mobile smoke must pass before phase closure.</constraint-2>
   </constraints>
+  <phase-54-verification-design>
+    <surface-1>Matrix admin verification covers embedded MTProto Overview, Users, Abuse, and Settings tabs inside /mtproto.</surface-1>
+    <surface-2>Smoke must prove graph readability, top-users large-list usability, auto-refresh stability, runtime CPU/RAM metrics, alert inbox/archive, compact IP history, promotion tag redaction, and hidden visible Signals noise.</surface-2>
+    <surface-3>Raw IP rendering remains limited to the explicit admin investigation drawer and must not appear in general cards or smoke logs.</surface-3>
+  </phase-54-verification-design>
   <hotspot>H-045: Admin analytics UI must remain compact on mobile while exposing enough filters for incident triage</hotspot>
 </M-058>

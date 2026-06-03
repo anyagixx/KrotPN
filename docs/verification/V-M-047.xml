@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<V-M-047 MODULE="M-047" PRIORITY="high" STATUS="pass-local-phase43" PHASE-43="pass-local" VERSION="1.7.0">
+<V-M-047 MODULE="M-047" PRIORITY="high" STATUS="pass-local-phase43" PHASE-43="pass-local" PHASE-54="verification-designed" VERSION="1.8.0">
   <module>mtproto-admin-ops</module>
   <phase-scope>
     <phase-33 status="pass-local">Admin MTProto operations and observability are implemented behind admin-only APIs and compact frontend-admin screens with strict secret redaction.</phase-33>
@@ -7,6 +7,7 @@
     <phase-40 status="pass-local">Official dd-secret admin revoke/reissue sync was verified locally but is superseded for production by Phase-41.</phase-40>
     <phase-41 status="pass-local">Admin operations show official-mode assignments as superseded/reissue-required and target KPprotoN SNI policy for revoke/reissue.</phase-41>
     <phase-43 status="pass-local">Admin operations add alert review actions, confirmation-safe proxy disable, and TTL IP block guardrails backed by M-060/M-061.</phase-43>
+    <phase-54 status="verification-designed">Admin MTProto operations must survive the Matrix admin redesign with compact assignment inventory, embedded analytics, confirmation-safe actions, and secret-free rendering.</phase-54>
   </phase-scope>
   <test-files>
     <file>backend/app/admin/router.py</file>
@@ -30,6 +31,7 @@
     <file phase="43-pass-local">backend/tests/test_mtproto_admin_alerts.py</file>
     <file phase="43-pass-local">backend/tests/test_mtproto_ip_observability.py</file>
     <file phase="43-pass-local">scripts/phase43-mtproto-admin-analytics-smoke.mjs</file>
+    <file phase="54-verification-designed">scripts/phase54-admin-matrix-ui-smoke.mjs</file>
   </test-files>
   <commands>
     <command-1>cd backend &amp;&amp; SECRET_KEY=test-secret-key-with-enough-length DATA_ENCRYPTION_KEY=dpFmfSVqfdAK3yx5MQV6Tcv35RZuw5MzaH0yhxJ01q0= PYTHONPATH=. ../.venv/bin/python -m pytest -o addopts='' tests/test_mtproto_admin_ops.py tests/test_admin_device_control.py tests/test_mtproto_assignment_registry.py tests/test_kpproton_runtime_bridge.py -v</command-1>
@@ -46,6 +48,7 @@
     <phase-level>Frontend-admin build and smoke prove the MTProto operator page is compact on mobile, exposes only redacted data, and requires explicit confirmation for destructive actions.</phase-level>
     <phase-41-level>Phase-41 gates must prove admin reissue/revoke targets KPprotoN SNI policy, official dd state is marked superseded, and admin output remains credential-free.</phase-41-level>
     <phase-43-level>Phase-43 gates must prove alert actions are confirmation-safe, audited, scoped to one assignment/IP evidence item, and do not expose decrypted IPs in audit details.</phase-43-level>
+    <phase-54-level>Phase-54 gates must prove visual redesign does not hide assignment search, runtime health, reissue/revoke, alert actions, or redaction boundaries.</phase-54-level>
   </verification-levels>
   <module-checks>
     <check-1 evidence="deterministic">Only authenticated admins can access MTProto admin endpoints; normal users and unauthenticated requests are rejected.</check-1>
@@ -66,7 +69,18 @@
     <check-16 evidence="phase-43-deterministic">Disable proxy from an alert delegates to the existing revoke path and affects exactly one MTProto assignment.</check-16>
     <check-17 evidence="phase-43-deterministic">TTL IP block refuses missing, stale, untrusted, or non-M-061 IP evidence and requires double confirmation.</check-17>
     <check-18 evidence="phase-43-redaction">Audit details for IP-related actions contain observation ids/hash prefixes, not decrypted raw IP strings.</check-18>
+    <check-19 evidence="phase-54-ui-smoke">Matrix redesign keeps assignment search, status filter, page-size controls, previous/next paging, runtime health, and row actions visible on mobile.</check-19>
+    <check-20 evidence="phase-54-ui-smoke">Reissue, revoke, alert disable, and TTL IP block confirmations stay above Matrix overlays and name the scoped target before mutation.</check-20>
+    <check-21 evidence="phase-54-redaction">Admin DOM snapshots and smoke output remain free of owner tg links, ee secrets, base secret, salt, runtime tokens, and full promotion tags.</check-21>
+    <check-22 evidence="phase-54-contract">Phase-54 does not change MTProto admin API endpoints, runtime policy behavior, audit detail schema, or backend tests.</check-22>
   </module-checks>
+  <phase-54-admin-mtproto-ui-gates status="verification-designed">
+    <gate-1>/mtproto renders compact Matrix assignment inventory with search, status filter, active/disabled/reissue counts, and bounded paging for large user sets.</gate-1>
+    <gate-2>Runtime health and assignment state remain readable without exposing owner proxy links or derived secrets.</gate-2>
+    <gate-3>Reissue and revoke actions open explicit confirmations and call existing adminApi.reissueMTProtoAssignment/adminApi.revokeMTProtoAssignment bindings only after confirmation.</gate-3>
+    <gate-4>Alert actions embedded through M-058 remain reviewable and do not bypass the Phase-43 alert action guards.</gate-4>
+    <gate-5>Visual smoke fails if Matrix effects obscure MTProto action buttons, row labels, status badges, or confirmation copy.</gate-5>
+  </phase-54-admin-mtproto-ui-gates>
   <phase-34-stabilization-gates>
     <gate-1>Admin surfaces must not disclose owner-only tg://proxy links or derived fake-TLS secrets even when Phase-34 creates real owner assignments in test fixtures.</gate-1>
     <gate-2>Admin revoke must remain scoped to MTProto assignment/runtime policy state and must not cancel KrotPN trial, subscription, account, or VPN device access.</gate-2>
@@ -107,6 +121,9 @@
     <marker-14>[M-047][admin_mtproto_alert_action][CONFIRM_ACTION]</marker-14>
     <marker-15>[M-047][admin_mtproto_alert_action][AUDIT_ALERT_ACTION]</marker-15>
     <marker-16>[M-047][admin_mtproto_ip_block][CONFIRM_TTL_BLOCK]</marker-16>
+    <marker-17>[M-047][phase54_mtproto_admin][OPS_CONTROLS_READABLE]</marker-17>
+    <marker-18>[M-047][phase54_mtproto_admin][CONFIRMATIONS_SAFE]</marker-18>
+    <marker-19>[M-047][phase54_mtproto_admin][REDACTION_PRESERVED]</marker-19>
   </required-log-markers>
   <redaction-rules>
     <rule-1>Admin API responses may include assignment id, user id, redacted or explicit user email per existing admin policy, SNI, status, credential mode, rotation marker, timestamps, safe bridge status, and safe failure codes.</rule-1>
@@ -121,6 +138,7 @@
     <gate-3>Reissue and revoke require an explicit confirmation surface with the selected assignment/user context visible before mutation.</gate-3>
     <gate-4>Mobile layout avoids desktop-only wide tables, nested cards, hero blocks, and oversized explanatory text.</gate-4>
     <gate-5>Secret-shaped values and tg://proxy strings are absent from rendered admin DOM snapshots and smoke output.</gate-5>
+    <gate-6>Phase-54 Matrix /mtproto layout at 360x740, 390x844, 430x932, 768x1024, and 1440x900 keeps operations readable without document horizontal overflow.</gate-6>
   </ui-smoke-gates>
   <telemetry-requirements>
     <metric-1>admin_mtproto_list_count tagged by status/filter shape without user secrets.</metric-1>
@@ -150,5 +168,6 @@
     <evidence-7>2026-05-19: Phase-41 verification design adds admin gates for official-mode supersession, KPprotoN reissue/revoke policy behavior, redaction, and mobile compactness.</evidence-7>
     <evidence-8>2026-05-19: Phase-41 local admin tests passed for KPprotoN bridge health, reissue/revoke through M-044, audit-safe redaction, and no official manifest sync in the normal production path.</evidence-8>
     <evidence-9>2026-05-20: Phase-43 alert action tests passed for acknowledge, resolve, confirmation-safe disable, TTL IP block record guardrails, audit-safe payloads, and no decrypted raw IP strings in audit details.</evidence-9>
+    <evidence-10>2026-06-03: Phase-54 verification design added Matrix admin MTProto UI gates for compact ops controls, confirmations, redaction, and no backend/runtime changes.</evidence-10>
   </evidence>
 </V-M-047>

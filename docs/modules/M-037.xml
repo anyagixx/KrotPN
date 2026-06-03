@@ -41,5 +41,10 @@
     <note-2>Device actions now open an explicit confirmation surface before block, unblock, rotate, or revoke calls.</note-2>
     <note-3>No backend API, deploy, install, docker, nginx, or billing provider changes were made.</note-3>
   </execution-notes>
+  <phase-54-verification-design>
+    <surface-1>Mobile Matrix admin verification covers dashboard, users, devices, MTProto, servers, plans, and analytics at 360x740, 390x844, and 430x932.</surface-1>
+    <surface-2>Smoke must prove no document horizontal overflow, bounded tables/lists, reachable search/filter/pagination, and confirmation-safe destructive actions.</surface-2>
+    <surface-3>Phase-54 must keep admin screens compact and operational, not decorative-first.</surface-3>
+  </phase-54-verification-design>
   <hotspot>H-024: Mobile admin console must keep emergency operator actions visible without desktop-only dashboards</hotspot>
 </M-037>

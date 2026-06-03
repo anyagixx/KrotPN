@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<V-M-058 MODULE="M-058" PRIORITY="high" STATUS="pass-local-phase43" PHASE-43="pass-local" VERSION="1.7.0">
+<V-M-058 MODULE="M-058" PRIORITY="high" STATUS="pass-local-phase43" PHASE-43="pass-local" PHASE-54="verification-designed" VERSION="1.8.0">
   <module>mtproto-admin-analytics-ui</module>
   <checks>Frontend-admin exposes compact MTProto analytics, alert review, and promotion tag controls without secret leakage, visible technical Signals noise, hidden existing controls, or mobile layout regressions.</checks>
   <test-files>
@@ -9,14 +9,16 @@
     <file status="pass-local">frontend-admin/src/types/index.ts</file>
     <file status="pass-local">scripts/phase43-mtproto-admin-analytics-smoke.mjs</file>
     <file status="pass-local">scripts/phase42-mtproto-admin-analytics-smoke.mjs</file>
+    <file status="phase54-verification-designed">scripts/phase54-admin-matrix-ui-smoke.mjs</file>
   </test-files>
-  <commands>pass-local 2026-05-23: cd frontend-admin &amp;&amp; npm run build; cd .. &amp;&amp; node scripts/phase42-mtproto-admin-analytics-smoke.mjs; node scripts/phase43-mtproto-admin-analytics-smoke.mjs</commands>
+  <commands>verification-designed 2026-06-03: Phase-54 requires cd frontend-admin &amp;&amp; npm run build; node scripts/phase54-admin-matrix-ui-smoke.mjs; static and viewport proof for embedded MTProto analytics tabs, graphs, alerts, IP history, resource metrics, promotion tag controls, auto-refresh, and redaction.</commands>
   <evidence>Frontend-admin build passed and Phase-42/Phase-43 static smokes confirm compact Overview/Users/Abuse/Settings UI, removed Recent events, hidden visible Signals panel/count, paginated proxy/user lists, compact area graphs, source-IP unavailable state, auto-refresh markers, Russian hover help for alert review actions, compact scrollable IP history without visible CIDR prefixes, open inbox/archive split, no-dot empty states, and redaction guards.</evidence>
   <verification-levels>
     <module-local>Build frontend-admin and run static UI smoke for route wiring, API names, redaction strings, confirmation flows, and mobile viewport overflow.</module-local>
     <wave-level>Run after V-M-057 to prove UI contracts match backend schemas for analytics and promotion tag state.</wave-level>
     <phase-level>Phase-42 cannot close unless admin can scan global and per-proxy analytics from mobile without exposing secrets or losing existing MTProto ops controls.</phase-level>
     <phase-43-level>Phase-43 cannot execute unless UI gates cover removed Recent events, Overview/Users/Abuse/Settings layout, long Top users, graphs, auto-refresh, raw-IP investigation scope, and mobile compactness.</phase-43-level>
+    <phase-54-level>Phase-54 cannot close unless the Matrix admin redesign keeps MTProto analytics dense, compact, auto-refreshing, and readable without restoring visible technical Signals noise.</phase-54-level>
   </verification-levels>
   <phase-43-checks>
     <check-1>Recent events section is absent from the visible admin MTProto analytics page.</check-1>
@@ -33,6 +35,16 @@
     <check-12>Open alert action buttons expose short Russian hover descriptions for review, acknowledge, resolve, disable, and follow-up TTL IP block decisions.</check-12>
     <check-13>IP history uses a bounded internal scroll area and renders only address/hash rows, not address/prefix mask rows.</check-13>
   </phase-43-checks>
+  <phase-54-checks status="verification-designed">
+    <check-1>Matrix /mtproto analytics keeps Overview, Users, Abuse, and Settings tabs compact and reachable on mobile.</check-1>
+    <check-2>Graphs for traffic, connections, active connections, duration, and errors render in stable bounded containers without layout shift during refresh.</check-2>
+    <check-3>Top users remains long-list friendly through page-size controls or bounded scroll, not unstructured document scrolling.</check-3>
+    <check-4>User investigation drawer keeps issued time, last seen, current IP, last IP, IP history, sessions, graph data, and errors readable with internal scrolling.</check-4>
+    <check-5>Abuse shows only Alerts plus Archive; visible technical Signals panel/count remains absent.</check-5>
+    <check-6>Promotion tag control shows masked current tag, validation state, pending_restart/applied/failed state, and confirmation copy without raw tag leakage.</check-6>
+    <check-7>Resource CPU/RAM/runtime metrics auto-refresh and show stale/unavailable states without resizing Matrix panels.</check-7>
+    <check-8>Raw IP values are limited to the explicit investigation drawer and remain excluded from smoke logs, general cards, and screenshots when fixtures can use masked data.</check-8>
+  </phase-54-checks>
   <module-checks>
     <check-1>Admin can scan global summary, traffic windows, top users, active connections, errors, runtime health, and availability proof on mobile.</check-1>
     <check-2>Per-proxy detail exposes last seen, session count, duration, traffic, errors, and alert context without hiding reissue/revoke controls.</check-2>
@@ -50,6 +62,8 @@
     <scenario-6>Phase-43 admin opens a high-abuse alert, reviews user/IP/session detail, and disables the selected proxy through confirmation UI.</scenario-6>
     <scenario-7>Auto-refresh updates summary, alerts, top users, graph data, and resource metrics without duplicating requests or resizing controls.</scenario-7>
     <scenario-8>Admin acknowledges, resolves, disables, or blocks from an alert; the alert leaves the open list and remains reviewable in the archive.</scenario-8>
+    <scenario-9>Phase-54 admin scans MTProto analytics on a phone and can still drill into one user without losing the overview context.</scenario-9>
+    <scenario-10>Phase-54 visual effects do not obscure CPU/RAM runtime metrics, availability proof, alert action buttons, or promotion tag status.</scenario-10>
   </scenarios>
   <redaction-rules>
     <rule-1>UI renders masked SNI and masked promotion tags only.</rule-1>
@@ -67,9 +81,16 @@
     <marker>[M-058][admin_mtproto_analytics_ui][ALERT_ARCHIVE]</marker>
     <marker>[M-058][admin_mtproto_analytics_ui][ALERT_ACTION_TOOLTIP]</marker>
     <marker>[M-058][admin_mtproto_analytics_ui][COMPACT_IP_HISTORY]</marker>
+    <marker>[M-058][phase54_mtproto_analytics][CHARTS_TABLES_READABLE]</marker>
+    <marker>[M-058][phase54_mtproto_analytics][AUTO_REFRESH_STABLE]</marker>
+    <marker>[M-058][phase54_mtproto_analytics][SIGNALS_STILL_HIDDEN]</marker>
+    <marker>[M-058][phase54_mtproto_analytics][PROMOTION_TAG_REDACTED]</marker>
   </required-log-markers>
   <autonomous-execution-safety>
     <safe-local>Frontend build and static smoke are safe to run locally.</safe-local>
     <blocked-live>Visual/live admin validation against production data requires operator approval and redacted screenshots only.</blocked-live>
   </autonomous-execution-safety>
+  <evidence>
+    <phase-54-verification-design-2026-06-03>Phase-54 verification design added Matrix analytics gates for compact tabs, stable graphs, top-users list, alert inbox/archive, IP history, resource metrics, promotion tag redaction, auto-refresh, and no visible Signals regression.</phase-54-verification-design-2026-06-03>
+  </evidence>
 </V-M-058>

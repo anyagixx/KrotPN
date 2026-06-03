@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<V-M-070 MODULE="M-070" PRIORITY="high" STATUS="pass-local-phase52-phase53">
+<V-M-070 MODULE="M-070" PRIORITY="high" STATUS="pass-local-phase52-phase53" PHASE-54="verification-designed">
   <scope>
     <phase>Phase-52</phase>
     <purpose>Verify the shared React/Vite Matrix visual runtime before it is used by the full user/admin redesign phases.</purpose>
@@ -12,6 +12,7 @@
     <file>frontend-admin/src/components/VisualShell.tsx</file>
     <file>scripts/phase52-matrix-visual-smoke.mjs</file>
     <file>scripts/phase53-user-matrix-ui-smoke.mjs</file>
+    <file phase="54-verification-designed">scripts/phase54-admin-matrix-ui-smoke.mjs</file>
   </test-files>
   <module-checks>
     <check-1>cd frontend &amp;&amp; npm run build</check-1>
@@ -21,6 +22,7 @@
     <check-5>Chrome/Playwright screenshot audit: admin /login shell desktop 1440x900, 390x844, and reduced-motion.</check-5>
     <check-6>git diff --name-only -- install.sh deploy nginx docker-compose.yml</check-6>
     <check-7>Phase-53 user route screenshot audit: auth, dashboard, config, subscription, referrals, settings, and reduced-motion dashboard.</check-7>
+    <check-8>Phase-54 admin route screenshot audit: /login, /, /users, /devices, /mtproto, /servers, /plans, /analytics, and reduced-motion admin shell.</check-8>
   </module-checks>
   <phase-53-runtime-gates status="pass-local">
     <gate-1>MatrixBackground remains mounted once through VisualShell while user route navigation changes content.</gate-1>
@@ -29,6 +31,13 @@
     <gate-4>Runtime cleanup markers remain available after route navigation, hot reload, unmount, hidden-tab pause, and resize paths.</gate-4>
     <gate-5>Phase-53 smoke must fail if Matrix runtime changes deploy/install/nginx/docker-compose or backend runtime topology.</gate-5>
   </phase-53-runtime-gates>
+  <phase-54-runtime-gates status="verification-designed">
+    <gate-1>Admin VisualShell keeps exactly one pointer-safe MatrixBackground mount while protected route content changes.</gate-1>
+    <gate-2>Canvas and CRT overlays remain pointer-events-none and do not intercept admin login, navigation, search, pagination, confirmation, form, MTProto action, or chart controls.</gate-2>
+    <gate-3>Reduced-motion mode renders a static readable Matrix admin shell without running animation loops on login and protected route smoke.</gate-3>
+    <gate-4>Admin route smoke records no console errors from canvas init, resize, hidden-tab pause, cleanup, or unavailable canvas context branches.</gate-4>
+    <gate-5>Phase-54 smoke must fail if Matrix runtime changes deploy/install/nginx/docker-compose or backend runtime topology.</gate-5>
+  </phase-54-runtime-gates>
   <scenarios>
     <scenario-1 kind="success">Matrix canvas renders nonblank behind user and admin content without intercepting clicks, keyboard focus, text selection, or mobile scroll.</scenario-1>
     <scenario-2 kind="success">VisualShell keeps content in a higher readable layer while the canvas and CRT overlays remain pointer-events-none.</scenario-2>
@@ -45,6 +54,9 @@
     <marker-5>[MatrixVisualRuntime][cleanup][ANIMATION_STOPPED]</marker-5>
     <marker-6>[MatrixVisualRuntime][phase53][USER_ROUTE_CANVAS_READY]</marker-6>
     <marker-7>[MatrixVisualRuntime][phase53][POINTER_EVENTS_SAFE]</marker-7>
+    <marker-8>[MatrixVisualRuntime][phase54][ADMIN_ROUTE_CANVAS_READY]</marker-8>
+    <marker-9>[MatrixVisualRuntime][phase54][POINTER_EVENTS_SAFE]</marker-9>
+    <marker-10>[MatrixVisualRuntime][phase54][REDUCED_MOTION_ADMIN]</marker-10>
   </required-log-markers>
   <evidence-levels>
     <module-local>Static smoke inspects source contracts, exported components, cleanup paths, reduced-motion branches, and protected imports.</module-local>
@@ -85,5 +97,9 @@
       <screenshot-paths>/tmp/krotpn-phase53-shots/login-mobile-v5.png /tmp/krotpn-phase53-shots/register-mobile-final.png /tmp/krotpn-phase53-shots/reset-mobile-final.png /tmp/krotpn-phase53-shots/login-desktop-final.png /tmp/krotpn-phase53-shots/login-mobile-reduced-motion.png</screenshot-paths>
       <protected-surface>No install.sh, deploy, nginx, docker-compose, or runtime topology diff.</protected-surface>
     </phase-53-local-2026-06-03>
+    <phase-54-verification-design-2026-06-03>
+      <result>DESIGNED</result>
+      <summary>Phase-54 runtime gates require admin VisualShell/MatrixBackground proof across login and protected admin routes, pointer-safe overlays, reduced-motion fallback, console-error guard, and protected deploy/install/runtime isolation.</summary>
+    </phase-54-verification-design-2026-06-03>
   </evidence>
 </V-M-070>

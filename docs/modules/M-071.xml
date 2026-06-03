@@ -35,6 +35,7 @@
   <evidence>
     <local-2026-06-03>Phase-52 added Matrix palette tokens, canvas/scanline/vignette/content layers, focus-visible rules, reduced-motion CSS policy, protected-surface smoke markers, user/admin builds, and Chrome screenshot checks for mobile, desktop, and reduced-motion login shells.</local-2026-06-03>
     <phase-53-local-2026-06-03>Phase-53 added compact Matrix user route primitives, removed the heavy login hero, strengthened auth contrast after screenshot review, passed frontend build and Phase-53 smoke, and captured readable production-preview mobile/desktop/reduced-motion auth screenshots.</phase-53-local-2026-06-03>
+    <phase-54-verification-design-2026-06-03>Phase-54 verification gates require compact Matrix admin route surfaces, readable tables/charts/forms, focus-visible controls, reduced-motion proof, no horizontal overflow, no text/icon overlap, balanced palette, and protected-surface isolation.</phase-54-verification-design-2026-06-03>
   </evidence>
   <crosslinks>
     <phase-52>Defines the foundation token system and shared effects.</phase-52>

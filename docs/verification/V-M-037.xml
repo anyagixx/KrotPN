@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<V-M-037 MODULE="M-037" PRIORITY="high" STATUS="pass-local">
+<V-M-037 MODULE="M-037" PRIORITY="high" STATUS="pass-local" PHASE-54="verification-designed">
   <module>mobile-admin-console</module>
   <checks>Admin frontend must become compact and usable from a phone for operational status, user search, devices, payments/analytics, and system health.</checks>
-  <test-files>frontend-admin/src/components/Layout.tsx frontend-admin/src/pages/Dashboard.tsx frontend-admin/src/pages/Users.tsx frontend-admin/src/pages/Devices.tsx frontend-admin/src/pages/Analytics.tsx frontend-admin/src/components/StatCard.tsx frontend-admin/src/index.css frontend-admin/src/lib/api.ts frontend-admin/src/types/index.ts</test-files>
-  <commands>cd frontend-admin &amp;&amp; npm run build; Phase-24 Chrome/CDP mobile admin smoke for /, /users, /devices, and /analytics at 360x740, 390x844, and 430x932; static review confirms device action buttons open confirmation state before mutation; git diff --name-only -- deploy install.sh nginx docker-compose.yml frontend-admin/Dockerfile frontend-admin/nginx.conf is empty</commands>
+  <test-files>frontend-admin/src/components/Layout.tsx frontend-admin/src/pages/Dashboard.tsx frontend-admin/src/pages/Users.tsx frontend-admin/src/pages/Devices.tsx frontend-admin/src/pages/MTProto.tsx frontend-admin/src/pages/Analytics.tsx frontend-admin/src/pages/Servers.tsx frontend-admin/src/pages/Plans.tsx frontend-admin/src/components/StatCard.tsx frontend-admin/src/index.css frontend-admin/src/lib/api.ts frontend-admin/src/types/index.ts scripts/phase54-admin-matrix-ui-smoke.mjs</test-files>
+  <commands>verification-designed 2026-06-03: Phase-54 requires cd frontend-admin &amp;&amp; npm run build; node scripts/phase54-admin-matrix-ui-smoke.mjs; mobile admin smoke for /, /users, /devices, /mtproto, /servers, /plans, and /analytics at 360x740, 390x844, and 430x932; static review confirms destructive actions still open confirmation state before mutation; protected deploy/install guard remains empty.</commands>
   <levels>
     <module-local>TypeScript/Vite build and static source review after every Phase-24 frontend-admin change.</module-local>
     <wave-level>Mobile smoke across overview, users, devices, and analytics/payment routes after each completed UI wave.</wave-level>
@@ -18,6 +18,9 @@
     <check-6>No deploy/install scripts are modified during Phase-24 execution.</check-6>
     <check-7>Admin API base path and device endpoint names remain compatible with M-006 and M-024 unless separately approved.</check-7>
     <check-8>Mobile smoke auth fixture uses a test admin state and does not require storing real production tokens in evidence.</check-8>
+    <check-9>Phase-54 Matrix mobile admin shell keeps navigation, search, pagination, filters, and action controls compact at 360px without long unstructured lists.</check-9>
+    <check-10>Phase-54 tables, graphs, and investigation panels use bounded internal scroll or pagination instead of document-level horizontal scroll.</check-10>
+    <check-11>Phase-54 confirms confirmation dialogs/sheets remain readable, focused, and visually above Matrix overlays.</check-11>
   </module-checks>
   <deterministic-assertions>
     <assert-1>cd frontend-admin &amp;&amp; npm run build exits 0.</assert-1>
@@ -25,6 +28,8 @@
     <assert-3>Device action controls do not call blockMutation.mutate, unblockMutation.mutate, rotateMutation.mutate, or revokeMutation.mutate directly from row buttons.</assert-3>
     <assert-4>Routes /, /users, /devices, and /analytics remain registered in frontend-admin/src/main.tsx and reachable from the compact navigation.</assert-4>
     <assert-5>deploy, install.sh, nginx, docker-compose.yml, frontend-admin/Dockerfile, and frontend-admin/nginx.conf have no Phase-24 diff.</assert-5>
+    <assert-6>Phase-54 checked routes /, /users, /devices, /mtproto, /servers, /plans, and /analytics report document.documentElement.scrollWidth &lt;= window.innerWidth on mobile viewports.</assert-6>
+    <assert-7>Phase-54 checked routes expose their primary search, pagination, or action controls within compact mobile surfaces.</assert-7>
   </deterministic-assertions>
   <static-probes>
     <probe-1>Review frontend-admin/src/pages/Devices.tsx for confirmation state, dialog/sheet/modal, or equivalent explicit confirmation before mutation.</probe-1>
@@ -38,6 +43,15 @@
     <viewport-3 route="/devices" size="430x932">Device rows, signals, and block/unblock/rotate/revoke confirmation paths fit within the viewport.</viewport-3>
     <viewport-4 route="/analytics" size="390x844">Payment and analytics status remains readable without charts dominating the first phone viewport.</viewport-4>
   </viewport-matrix>
+  <phase-54-viewport-matrix status="verification-designed">
+    <viewport-1 route="/" size="360x740">Matrix dashboard health/KPI rows remain readable and primary operational links are visible.</viewport-1>
+    <viewport-2 route="/users" size="390x844">Search, filters, user rows, role/status, and pagination fit compactly without document horizontal scroll.</viewport-2>
+    <viewport-3 route="/devices" size="430x932">Device rows and block/unblock/rotate/revoke confirmation paths remain reachable and non-overlapping.</viewport-3>
+    <viewport-4 route="/mtproto" size="390x844">Assignment inventory, embedded analytics, alerts, IP history, promotion tag, and reissue/revoke controls stay usable.</viewport-4>
+    <viewport-5 route="/servers" size="390x844">Nodes, routes, forms, and delete/edit actions stay bounded and confirmation-safe.</viewport-5>
+    <viewport-6 route="/plans" size="360x740">Canonical tariff matrix remains readable without accidental edit/delete controls.</viewport-6>
+    <viewport-7 route="/analytics" size="430x932">Business charts and summaries stay compact and do not dominate the first phone viewport.</viewport-7>
+  </phase-54-viewport-matrix>
   <smoke-fixture>
     <auth-fixture>Use a non-production persisted admin-auth/localStorage fixture or a test backend session; never record real admin_token or refresh token values.</auth-fixture>
     <api-fixture>Use local backend, mocked network responses, or existing dev fixtures sufficient to render stats, users, devices, billing, and health states.</api-fixture>
@@ -57,6 +71,10 @@
     <marker-3>[FrontendAdmin][Phase24][DEVICE_ACTION_CONFIRM]</marker-3>
     <marker-4>[FrontendAdmin][Phase24][NO_DEPLOY_INSTALL_DIFF]</marker-4>
     <marker-5>[FrontendAdmin][Phase24][ADMIN_API_CONTRACT_UNCHANGED]</marker-5>
+    <marker-6>[MobileAdminConsole][Phase54][ROUTE_VIEWPORT_SAFE]</marker-6>
+    <marker-7>[MobileAdminConsole][Phase54][PRIMARY_ACTIONS_REACHABLE]</marker-7>
+    <marker-8>[MobileAdminConsole][Phase54][TABLES_SCROLL_CONTAINED]</marker-8>
+    <marker-9>[MobileAdminConsole][Phase54][CONFIRMATIONS_READABLE]</marker-9>
   </required-log-markers>
   <telemetry>
     <telemetry-1>Record route, viewport width/height, scrollWidth, innerWidth, and primary visible controls for each smoke step.</telemetry-1>
@@ -76,5 +94,6 @@
     <evidence-3>2026-05-10: Device action smoke clicked Block, opened confirmation text containing the target device/user/scope, and observed 0 mutation requests before confirm.</evidence-3>
     <evidence-4>2026-05-10: Static review found no direct Mutation.mutate calls from device row buttons.</evidence-4>
     <evidence-5>2026-05-10: deploy/install/docker/nginx/frontend-admin deployment surfaces had no diff.</evidence-5>
+    <evidence-6>2026-06-03: Phase-54 verification design added mobile Matrix route, viewport, pagination, bounded scroll, confirmation, and protected-surface gates.</evidence-6>
   </planned-evidence>
 </V-M-037>

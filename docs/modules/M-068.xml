@@ -58,5 +58,10 @@
     <metric-7>Phase-53 smoke confirms Matrix subscription UI preserves canonical tariff slugs, server-authoritative checkout shape, and mobile readability.</metric-7>
   </acceptance-metrics>
   <evidence>2026-06-03: Phase-53 frontend build and smoke passed for Matrix tariff UI while preserving backend canonical 369/693/936 RUB prices, 1/6/9 device limits, and plan_id-only checkout shape.</evidence>
+  <phase-54-verification-design>
+    <surface-1>Admin Plans Matrix verification must preserve exactly KrotPN 1/6/9 with 369/693/936 RUB prices and 1/6/9 device limits.</surface-1>
+    <surface-2>Admin tariff UI must stay inspection-focused without accidental canonical edit/delete controls or frontend-controlled money fields.</surface-2>
+    <surface-3>Mobile smoke must prove compact readability for tariff rows/cards without horizontal overflow.</surface-3>
+  </phase-54-verification-design>
   <hotspot>H-055: Paid tariff catalog must keep server-authoritative prices, canonical device limits, no duplicate clean-deploy plans, and no deploy/install drift</hotspot>
 </M-068>

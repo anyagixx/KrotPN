@@ -52,6 +52,11 @@
     <surface-1>Shared Matrix visual shell wraps the admin route tree without changing admin auth, route structure, API clients, MTProto operations, billing, or deploy behavior.</surface-1>
     <surface-2>2026-06-03: frontend-admin npm run build passed; Phase-52 smoke passed; Chrome screenshots for /login at 360x740, 390x844, 430x932, 1440x900, and reduced-motion 390x844 passed visual review.</surface-2>
   </phase-52-scope>
+  <phase-54-verification-design>
+    <surface-1>Admin route redesign verification covers /login, /, /users, /devices, /mtproto, /servers, /plans, and /analytics in the Matrix shell.</surface-1>
+    <surface-2>Execution gate is cd frontend-admin &amp;&amp; npm run build plus scripts/phase54-admin-matrix-ui-smoke.mjs with mobile, tablet, desktop, reduced-motion, confirmation, redaction, and protected-surface checks.</surface-2>
+    <surface-3>Phase-54 remains frontend-admin UI only and must not change admin auth/session, API clients, backend schemas, billing, MTProto runtime, deploy, install, nginx, or docker-compose surfaces.</surface-3>
+  </phase-54-verification-design>
   <constraints>
     <constraint-1>Frontend-admin must continue to call existing M-006 and M-024 API contracts unless an API change is separately approved.</constraint-1>
     <constraint-2>Admin auth/session hardening belongs to Phase-25 and must not be bundled into Phase-24 UI simplification.</constraint-2>
