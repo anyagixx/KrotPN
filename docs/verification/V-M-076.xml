@@ -1,31 +1,94 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<V-M-076 MODULE="M-076" PRIORITY="high" STATUS="planned">
-  <scope>Premium admin cockpit verification for operational density, inventories, MTProto analytics, confirmations, redaction, and deletion audit.</scope>
+<V-M-076 MODULE="M-076" PRIORITY="high" STATUS="pending" PHASE-58="pending" PHASE-62="planned">
+  <scope>Phase-58 premium admin cockpit verification for dashboard command density, service health, users, devices, MTProto operations, MTProto analytics, tariffs, servers, analytics, confirmation-safe actions, redaction, responsive operator use, and protected-surface isolation. Phase-62 compactness/deletion audit remains planned and is not executed by this verification contract.</scope>
   <test-files>
     <file>scripts/phase58-premium-admin-cockpit-smoke.mjs</file>
-    <file>scripts/phase62-compactness-deletion-smoke.mjs</file>
+    <file>scripts/phase54-admin-matrix-ui-smoke.mjs</file>
+    <file>scripts/phase42-mtproto-admin-analytics-smoke.mjs</file>
+    <file>scripts/phase43-mtproto-admin-analytics-smoke.mjs</file>
+    <file>scripts/phase50-tariff-catalog-smoke.mjs</file>
+    <file>scripts/phase52-matrix-visual-smoke.mjs</file>
+    <file>scripts/phase55-premium-art-direction-smoke.mjs</file>
+    <file phase="62-planned">scripts/phase62-compactness-deletion-smoke.mjs</file>
+    <file>frontend-admin/src/components/Layout.tsx</file>
+    <file>frontend-admin/src/components/StatCard.tsx</file>
     <file>frontend-admin/src/pages/Dashboard.tsx</file>
     <file>frontend-admin/src/pages/Users.tsx</file>
+    <file>frontend-admin/src/pages/Devices.tsx</file>
+    <file>frontend-admin/src/pages/MTProto.tsx</file>
     <file>frontend-admin/src/pages/MTProtoAnalytics.tsx</file>
+    <file>frontend-admin/src/pages/Analytics.tsx</file>
+    <file>frontend-admin/src/pages/Servers.tsx</file>
+    <file>frontend-admin/src/pages/Plans.tsx</file>
+    <file>frontend-admin/src/lib/api.ts</file>
+    <file>frontend-admin/src/types/index.ts</file>
+    <file>frontend-admin/src/index.css</file>
+    <file>backend/app/billing/catalog.py</file>
+    <file>docs/modules/M-076.xml</file>
+    <file>docs/plans/Phase-58.xml</file>
   </test-files>
-  <commands>
-    <command>cd frontend-admin &amp;&amp; npm run build</command>
-    <command>node scripts/phase58-premium-admin-cockpit-smoke.mjs</command>
-    <command>node scripts/phase62-compactness-deletion-smoke.mjs</command>
-    <command>mygrace lint</command>
-  </commands>
+  <module-checks>
+    <check-1>cd frontend-admin &amp;&amp; npm run build</check-1>
+    <check-2>node scripts/phase58-premium-admin-cockpit-smoke.mjs</check-2>
+    <check-3>node scripts/phase54-admin-matrix-ui-smoke.mjs</check-3>
+    <check-4>node scripts/phase42-mtproto-admin-analytics-smoke.mjs</check-4>
+    <check-5>node scripts/phase43-mtproto-admin-analytics-smoke.mjs</check-5>
+    <check-6>node scripts/phase50-tariff-catalog-smoke.mjs</check-6>
+    <check-7>node scripts/phase52-matrix-visual-smoke.mjs</check-7>
+    <check-8>node scripts/phase55-premium-art-direction-smoke.mjs</check-8>
+    <check-9>Chrome screenshot audit for frontend-admin /login, /, /users, /devices, /mtproto, /servers, /plans, and /analytics at 360x740, 390x844, 430x932, 768x1024, 1440x900, plus reduced-motion / 390x844. If local preview has no authenticated admin backend session, use a deterministic admin fixture/harness or record static route proof plus clean-deploy authenticated screenshot follow-up.</check-9>
+    <check-10>python3 XML parse for docs/modules/M-076.xml docs/plans/Phase-58.xml docs/verification/V-M-076.xml docs/verification-index.xml</check-10>
+    <check-11>mygrace lint</check-11>
+    <check-12>git diff --check</check-12>
+    <check-13>git diff --name-only HEAD -- install.sh docker-compose.yml nginx deploy deploy/mtproto-de-compose.yml .env.example backend/app backend/tests mtproto-runtime official-mtproxy frontend must be empty</check-13>
+  </module-checks>
+  <verification-matrix>
+    <target-1 evidence="static-and-runtime">Admin layout keeps compact navigation, authenticated admin context, logout, route active state, and emergency surfaces reachable on phone/tablet/desktop.</target-1>
+    <target-2 evidence="static-and-screenshot">Dashboard first viewport exposes service health, users, devices, revenue/billing, VPN, MTProto, analytics, and incident signals without decorative bulk or horizontal scroll.</target-2>
+    <target-3 evidence="static">Users and devices pages preserve search, filters, bounded scrolling, readable dense rows, details, block/unblock or device-control actions, and explicit confirmation for destructive/disruptive operations.</target-3>
+    <target-4 evidence="static">MTProto and MTProto analytics preserve redacted assignment/secret/promotion-tag displays, confirmation-safe reissue/revoke/disable/block actions, alert inbox/archive, IP-history compactness, charts, top users, runtime health, and auto-refresh markers.</target-4>
+    <target-5 evidence="static">Plans page preserves canonical M-068 tariff matrix and does not introduce accidental CRUD controls, frontend-owned checkout amounts, or catalog mutation paths.</target-5>
+    <target-6 evidence="static">Servers and analytics pages stay operationally dense while preserving runtime-data read-only semantics, health visibility, and no backend API shape changes.</target-6>
+    <target-7 evidence="runtime-screenshot">Phone/tablet/desktop/reduced-motion screenshots show no text/icon/button/status overlap, no hidden emergency CTA, no long unbounded inventory, and no Matrix layer click/scroll interception.</target-7>
+  </verification-matrix>
   <success-scenarios>
-    <scenario-1>Admin dashboard, users, devices, MTProto, plans, analytics, and servers remain scan-friendly on phone/tablet.</scenario-1>
-    <scenario-2>Destructive and disruptive actions retain explicit confirmation and feedback.</scenario-2>
-    <scenario-3>MTProto secrets, tags, full links, and high-risk identifiers stay redacted.</scenario-3>
+    <scenario-1 kind="success">Admin can reach dashboard health, users, devices, MTProto, plans, servers, analytics, and incident review in one or two taps on phone.</scenario-1>
+    <scenario-2 kind="success">Users/devices/MTProto inventories are searchable, bounded, compact, and remain readable without losing row actions.</scenario-2>
+    <scenario-3 kind="success">Destructive and disruptive admin actions retain visible confirmation text, guarded buttons, and audit-safe feedback.</scenario-3>
+    <scenario-4 kind="success">MTProto secrets, full tg links, raw promotion tags when masked, access tokens, raw IP history exports, and payment/provider identifiers are not printed by smoke output, console markers, screenshots, or docs.</scenario-4>
+    <scenario-5 kind="success">Phase-58 does not touch backend admin APIs, auth/session handling, deploy/install scripts, nginx, docker-compose, MTProto/VPN runtime, or canonical tariff catalog behavior.</scenario-5>
   </success-scenarios>
   <failure-scenarios>
-    <failure-1>Emergency controls are hidden by visual redesign or long lists become unusable.</failure-1>
-    <failure-2>Any admin route exposes proxy secrets, raw tokens, or unredacted identifiers.</failure-2>
+    <failure-1 kind="failure">Premium visual redesign hides emergency controls, destructive confirmations, MTProto reissue/revoke/disable/block actions, user/device actions, tariff state, server health, or incident review.</failure-1>
+    <failure-2 kind="failure">Any admin route exposes MTProto secrets, full proxy links, raw promotion tags, bearer/refresh tokens, raw emails beyond synthetic fixtures, payment IDs, YooKassa/Resend keys, or backend secrets.</failure-2>
+    <failure-3 kind="failure">Users, devices, MTProto, analytics, or plans become unbounded long-scroll surfaces without search/filter/scroll containment.</failure-3>
+    <failure-4 kind="failure">Plans page introduces canonical tariff mutation, frontend-controlled payment amounts, or accidental CRUD controls.</failure-4>
+    <failure-5 kind="failure">Phase-58 changes backend API shape, auth/session behavior, billing catalog values, MTProto/VPN runtime behavior, deploy/install scripts, nginx, docker-compose, or production topology.</failure-5>
   </failure-scenarios>
-  <log-markers>
-    <marker>[PremiumAdminCockpit][phase58][OPS_REACHABLE]</marker>
-    <marker>[PremiumAdminCockpit][phase58][REDACTION_GUARD]</marker>
-    <marker>[CompactDeletionAudit][phase62][ADMIN_SURFACES_PRUNED]</marker>
-  </log-markers>
+  <required-log-markers>
+    <marker-1>[PremiumAdminCockpit][phase58][ROUTES_READY]</marker-1>
+    <marker-2>[PremiumAdminCockpit][phase58][OPS_COMMAND_CENTER]</marker-2>
+    <marker-3>[PremiumAdminCockpit][phase58][ADMIN_ACTIONS_REACHABLE]</marker-3>
+    <marker-4>[PremiumAdminCockpit][phase58][INVENTORIES_BOUNDED]</marker-4>
+    <marker-5>[PremiumAdminCockpit][phase58][MTPROTO_REDACTION]</marker-5>
+    <marker-6>[PremiumAdminCockpit][phase58][CONFIRMATION_GUARDS]</marker-6>
+    <marker-7>[PremiumAdminCockpit][phase58][TARIFF_ADMIN_GUARD]</marker-7>
+    <marker-8>[PremiumAdminCockpit][phase58][ANALYTICS_RUNTIME_READONLY]</marker-8>
+    <marker-9>[PremiumAdminCockpit][phase58][REDUCED_MOTION_SAFE]</marker-9>
+    <marker-10>[PremiumAdminCockpit][phase58][SCREENSHOT_MATRIX_REVIEWED]</marker-10>
+    <marker-11>[PremiumAdminCockpit][phase58][PROTECTED_SURFACE_GUARD]</marker-11>
+    <marker-12 phase="62-planned">[CompactDeletionAudit][phase62][ADMIN_SURFACES_PRUNED]</marker-12>
+  </required-log-markers>
+  <telemetry-requirements>
+    <requirement-1>Allowed smoke output: route names, viewport names, selector markers, action names, redacted state names, screenshot paths, and pass/fail markers.</requirement-1>
+    <requirement-2>Forbidden smoke output: MTProto ee secrets, full tg:// or https://t.me proxy links, raw promotion tags when masked in UI, bearer/refresh tokens, reset/verify tokens, real user emails, raw IP export data, payment IDs, YooKassa/Resend keys, database URLs, and API keys.</requirement-2>
+    <requirement-3>If screenshots require authenticated fixtures, fixtures must use synthetic admin/user/device/proxy/payment data only; live clean-deploy screenshots must be operator-approved and redacted.</requirement-3>
+  </telemetry-requirements>
+  <phase-gates>
+    <gate-1 level="module-local">M-076 smoke proves admin dashboard, layout, users, devices, MTProto, MTProto analytics, plans, servers, analytics, compact primitives, confirmation guards, and redaction guards.</gate-1>
+    <gate-2 level="wave">M-010, M-037, M-047, M-058, M-068, M-070, M-071, and M-072 regression smokes remain satisfied after admin cockpit edits.</gate-2>
+    <gate-3 level="phase">Frontend-admin build, Phase-58 smoke, regression smokes, screenshot/static route proof, XML parse, MyGRACE lint, git diff check, and protected backend/deploy/runtime/frontend-user guard pass before Phase-58 can be marked done-local.</gate-3>
+    <gate-4 level="future-phase">Phase-62 deletion audit remains planned and must not be marked pass-local by Phase-58 evidence alone.</gate-4>
+  </phase-gates>
+  <autonomous-execution-safety>Safe for local autonomous execution if changes stay inside frontend-admin cockpit routes/components/CSS, Phase-58 smoke verification, and MyGRACE docs. Stop execution if backend admin API changes, auth/session changes, billing catalog mutation, VPN/MTProto runtime changes, deploy/install/nginx/docker-compose changes, user frontend changes, or secret-handling changes appear necessary.</autonomous-execution-safety>
 </V-M-076>
