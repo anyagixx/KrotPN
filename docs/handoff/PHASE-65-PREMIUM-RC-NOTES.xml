@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<PHASE-65-PREMIUM-RC-NOTES STATUS="passed-local" DATE="2026-06-04">
+  <scope>Premium release-candidate notes for the Matrix frontend, responsive adaptation, compactness/deletion audit, visible logo integration, and premium Resend email templates.</scope>
+  <premium-scope>
+    <item-1>premium Matrix frontend: public/auth screens, protected user cabinet, and admin cockpit use the shared Matrix visual system with reduced-motion and pointer-safe canvas boundaries.</item-1>
+    <item-2>responsive adaptation: phone, tablet, desktop, no-horizontal-scroll, no-overlap, safe-area, touch-target, and bounded inventory gates are covered by local static proof.</item-2>
+    <item-3>compactness/deletion: secondary copy and bulky details were folded while primary VPN, subscription, MTProto, auth, admin, and emergency workflows remain reachable.</item-3>
+    <item-4>visible logo integration: prepared KrotPN logo assets are present in public/auth/user/admin surfaces without claiming mailbox sender-avatar control.</item-4>
+    <item-5>premium Resend email templates: verification and password-reset emails use the premium Matrix-safe shell, public email-logo body image, image-blocking-safe fallback panel, and clean text fallback.</item-5>
+  </premium-scope>
+  <local-evidence>
+    <command-1>cd frontend &amp;&amp; npm run build</command-1>
+    <command-2>cd frontend-admin &amp;&amp; npm run build</command-2>
+    <command-3>cd backend &amp;&amp; SECRET_KEY=test-secret-key-with-enough-length DATA_ENCRYPTION_KEY=redacted-test-key PYTHONPATH=. ../.venv/bin/python -m pytest -o addopts='' tests/test_email_delivery.py -v</command-3>
+    <command-4>node scripts/phase55-premium-art-direction-smoke.mjs</command-4>
+    <command-5>node scripts/phase56-premium-public-auth-smoke.mjs</command-5>
+    <command-6>node scripts/phase57-premium-user-cabinet-smoke.mjs</command-6>
+    <command-7>node scripts/phase58-premium-admin-cockpit-smoke.mjs</command-7>
+    <command-8>node scripts/phase59-motion-interactions-smoke.mjs</command-8>
+    <command-9>node scripts/phase60-premium-qa-smoke.mjs</command-9>
+    <command-10>node scripts/phase61-responsive-adaptation-smoke.mjs</command-10>
+    <command-11>node scripts/phase62-compactness-deletion-smoke.mjs</command-11>
+    <command-12>node scripts/phase63-visible-logo-integration-smoke.mjs</command-12>
+    <command-13>node scripts/phase64-premium-email-template-smoke.mjs</command-13>
+    <command-14>node scripts/phase65-premium-rc-smoke.mjs</command-14>
+    <command-15>XML parse, MyGRACE lint, git diff --check, and protected source/deploy/runtime guard</command-15>
+  </local-evidence>
+  <screenshot-static-evidence>
+    <public-auth status="static-route-proof">Public landing, login, register, forgot-password, reset-password, and verify-email surfaces are covered by Phase-56 and Phase-60 route/viewport static proof.</public-auth>
+    <user-cabinet status="static-route-proof">Protected dashboard, config, subscription, referrals, and settings surfaces are covered by Phase-57 and Phase-60 route/static proof; authenticated screenshots remain clean-deploy follow-up.</user-cabinet>
+    <admin-cockpit status="static-route-proof">Admin dashboard, users, devices, MTProto, servers, plans, and analytics surfaces are covered by Phase-58 and Phase-60 route/static proof; authenticated screenshots remain clean-deploy follow-up.</admin-cockpit>
+    <email-template status="render-smoke-proof">Premium verification and reset email HTML/text rendering is covered by backend tests and Phase-64 render smoke; delivered mailbox rendering remains clean-deploy follow-up.</email-template>
+    <reduced-motion status="static-proof">Reduced-motion policy is covered by Phase-55, Phase-59, Phase-60, and Phase-61 static markers.</reduced-motion>
+  </screenshot-static-evidence>
+  <live-validation-gaps>
+    <gap-1 status="clean-deploy-follow-up">Authenticated protected-route browser screenshots against a real backend session.</gap-1>
+    <gap-2 status="clean-deploy-follow-up">delivered Resend email rendering with remote images enabled and disabled.</gap-2>
+    <gap-3 status="clean-deploy-follow-up">Real phone/tablet browser review after deployment from GitHub main.</gap-3>
+    <gap-4 status="clean-deploy-follow-up">Operator decision on prerelease versus stable promotion after live validation.</gap-4>
+  </live-validation-gaps>
+  <release-notes>
+    <note-1>The premium frontend train is locally release-candidate ready for operator validation.</note-1>
+    <note-2>Local evidence is deterministic and redacted; live evidence remains explicitly separated.</note-2>
+    <note-3>No release tag, GitHub push, deploy, or stable promotion was performed by Phase-65.</note-3>
+  </release-notes>
+  <release-decision-boundary>No release tag, GitHub push, deploy, or stable promotion was performed by Phase-65. A separate explicit operator release request is required.</release-decision-boundary>
+  <redaction-boundary>Evidence must not include Telegram proxy links, VPN configs, auth tokens, provider keys, database URLs, private keys, real recipient emails, raw IP exports, or release credentials.</redaction-boundary>
+</PHASE-65-PREMIUM-RC-NOTES>

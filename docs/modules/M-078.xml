@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<M-078 NAME="premium-frontend-qa-gates" TYPE="UTILITY" STATUS="pass-local-phase60-verification-designed-phase65">
-  <path>scripts/phase60-premium-qa-smoke.mjs scripts/phase65-premium-rc-smoke.mjs docs/plans/Phase-60.xml docs/plans/Phase-65.xml</path>
+<M-078 NAME="premium-frontend-qa-gates" TYPE="UTILITY" STATUS="pass-local-phase60-done-local-phase65">
+  <path>scripts/phase60-premium-qa-smoke.mjs scripts/phase65-premium-rc-smoke.mjs docs/handoff/PHASE-65-PREMIUM-RC-NOTES.xml docs/plans/Phase-60.xml docs/plans/Phase-65.xml</path>
   <owns>Premium frontend verification gates for screenshots, performance, reduced-motion, responsive safety, and release readiness.</owns>
   <purpose>Prevent premium visual work from shipping with usability, performance, or MyGRACE drift regressions.</purpose>
   <exports>
@@ -20,7 +20,7 @@
     <metric-1 status="pass-local-phase60">Phase-60 smoke script passes locally.</metric-1>
     <metric-2 status="pass-local-phase60">User/admin builds and git diff --check pass.</metric-2>
     <metric-3 status="pass-local-phase60">Protected deploy/install/backend/runtime guard remains empty unless a separate approved deploy phase exists.</metric-3>
-    <metric-4 status="verification-designed-phase65">Phase-65 release-candidate verification is designed with full premium regression smokes, builds, backend email tests, screenshot/static evidence, release notes, live-gap recording, MyGRACE checks, and protected-surface guard.</metric-4>
+    <metric-4 status="pass-local-phase65">Phase-65 release-candidate verification passed with full premium regression smokes, builds, backend email tests, screenshot/static evidence, release notes, live-gap recording, MyGRACE checks, and protected-surface guard.</metric-4>
   </acceptance-metrics>
   <verification-design-phase65>
     <target-1>Phase-65 must run the complete premium regression train from Phase-55 through Phase-64 plus Phase-60 QA, user/admin builds, and backend email tests before any release-candidate decision.</target-1>
@@ -33,6 +33,7 @@
     <item>2026-06-04: frontend and frontend-admin production builds passed; dist artifact budgets are below Phase-60 limits.</item>
     <item>2026-06-04: Phase-52/55/56/57/58/59 regression smokes passed and are wired into the Phase-60 QA gate.</item>
     <item>2026-06-04: XML parse, MyGRACE lint, git diff --check, and protected backend/deploy/runtime guard passed.</item>
+    <item>2026-06-04: Phase-65 RC gate passed locally with frontend/admin builds, backend email tests 5/5, Phase-55 through Phase-64 premium smokes, Phase-65 RC smoke, release notes, live-gap manifest, XML parse, MyGRACE lint, git diff --check, and protected source/deploy/provider/runtime guard.</item>
   </evidence>
   <hotspot>H-065: Premium QA gates must include screenshots, performance budgets, reduced-motion, no-overlap, and protected deploy/install guards.</hotspot>
 </M-078>

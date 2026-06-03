@@ -1,19 +1,20 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Phase-65 NAME="Premium Release Candidate Gate" STATUS="verification-designed">
+<Phase-65 NAME="Premium Release Candidate Gate" STATUS="done-local">
   <objective>Close the premium frontend and email redesign as a release-candidate gate before tagging a release.</objective>
   <modules>M-078,M-073,M-074,M-075,M-076,M-077,M-079,M-080</modules>
   <non-goals>Implementing new UI features, changing deploy/install scripts, or promoting stable without live operator validation.</non-goals>
   <steps>
-    <step-1>Run all premium smoke scripts from Phase-55 through Phase-64.</step-1>
-    <step-2>Run frontend and frontend-admin production builds.</step-2>
-    <step-3>Run backend email tests for premium Resend templates.</step-3>
-    <step-4>Capture or record public/auth/user/admin/email screenshots across phone/tablet/desktop and reduced-motion.</step-4>
-    <step-5>Run XML parse, MyGRACE lint, git diff --check, and protected deploy/install/nginx/docker-compose/runtime guard.</step-5>
-    <step-6>Document any clean-deploy-only screenshot or live validation gaps.</step-6>
-    <step-7>Prepare release notes for premium Matrix frontend, responsive adaptation, logo integration, and Resend templates.</step-7>
-    <step-8>Record release-candidate evidence in M-078/V-M-078.</step-8>
+    <step-1 STATUS="done-local">Run all premium smoke scripts from Phase-55 through Phase-64.</step-1>
+    <step-2 STATUS="done-local">Run frontend and frontend-admin production builds.</step-2>
+    <step-3 STATUS="done-local">Run backend email tests for premium Resend templates.</step-3>
+    <step-4 STATUS="done-local">Capture or record public/auth/user/admin/email screenshots across phone/tablet/desktop and reduced-motion.</step-4>
+    <step-5 STATUS="done-local">Run XML parse, MyGRACE lint, git diff --check, and protected deploy/install/nginx/docker-compose/runtime guard.</step-5>
+    <step-6 STATUS="done-local">Document any clean-deploy-only screenshot or live validation gaps.</step-6>
+    <step-7 STATUS="done-local">Prepare release notes for premium Matrix frontend, responsive adaptation, logo integration, and Resend templates.</step-7>
+    <step-8 STATUS="done-local">Record release-candidate evidence in M-078/V-M-078.</step-8>
   </steps>
   <verification>V-M-078</verification>
   <verification-design>Phase-65 is ready for execution only after V-M-078 gates require full premium regression smoke coverage, user/admin builds, backend email tests, screenshot/static evidence, explicit live-only gaps, release notes, XML/MyGRACE checks, and protected deploy/install/runtime isolation.</verification-design>
   <acceptance>Premium redesign is ready for a prerelease or stable-release decision based on operator validation.</acceptance>
+  <evidence>2026-06-04: Phase-65 release-candidate gate passed locally. User and admin production builds passed, backend premium email tests passed 5/5, Phase-55 through Phase-64 premium smokes passed, Phase-65 RC smoke recorded release notes and live gaps, XML parse, MyGRACE lint, git diff --check, and protected source/deploy/provider/runtime guard passed. No release tag, GitHub push, deploy, or stable promotion was performed.</evidence>
 </Phase-65>
