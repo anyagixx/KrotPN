@@ -1,12 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<M-080 NAME="visible-brand-logo-integration" TYPE="ENTRY_POINT" STATUS="verification-designed-phase63">
-  <path>frontend/public frontend-admin/public frontend/src/components frontend-admin/src/components backend/app/email/templates.py docs/plans/Phase-63.xml scripts/phase63-visible-logo-integration-smoke.mjs</path>
+<M-080 NAME="visible-brand-logo-integration" TYPE="ENTRY_POINT" STATUS="done-local-phase63">
+  <path>frontend/public/brand/krotpn-mark-96.png frontend-admin/public/brand/krotpn-mark-96.png frontend/src/components/BrandMark.tsx frontend-admin/src/components/BrandMark.tsx frontend/src/pages/Landing.tsx frontend/src/pages/Login.tsx frontend/src/pages/Register.tsx frontend/src/pages/ForgotPassword.tsx frontend/src/pages/ResetPassword.tsx frontend/src/pages/VerifyEmail.tsx frontend/src/components/Layout.tsx frontend-admin/src/components/Layout.tsx frontend-admin/src/pages/Login.tsx frontend/src/index.css frontend-admin/src/index.css backend/app/email/templates.py docs/plans/Phase-63.xml scripts/phase63-visible-logo-integration-smoke.mjs</path>
   <owns>Visible KrotPN logo usage across public site, auth, user cabinet, admin panel, PWA/favicons, and email templates.</owns>
   <purpose>Use prepared logo assets consistently where the premium redesign needs visible brand identity.</purpose>
   <exports>
     <asset-source-logos>/home/truffle/Загрузки/ДЛЯ КРОТА/logos PNG assets from 16x16 through 1024x1024.</asset-source-logos>
     <component-brand-mark>User and admin reusable brand mark placement.</component-brand-mark>
     <rule-logo-sizing>Responsive logo sizing and asset selection for header, auth, PWA, email, and admin contexts.</rule-logo-sizing>
+    <asset-visible-mark>User/admin /brand/krotpn-mark-96.png copied from the prepared 96x96 PNG source for visible UI logo usage.</asset-visible-mark>
+    <smoke-phase63-visible-logo>Validate asset dimensions, UI placement markers, regression compatibility, email/BIMI boundary, asset budgets, and protected surfaces.</smoke-phase63-visible-logo>
   </exports>
   <depends>M-009,M-010,M-040,M-062,M-069,M-072,M-073,M-075,M-076,M-079</depends>
   <verification-ref>V-M-080</verification-ref>
@@ -16,9 +18,9 @@
     <constraint-3>Logo placement must not crowd mobile navigation, forms, cards, or admin tables.</constraint-3>
   </constraints>
   <acceptance-metrics>
-    <metric-1>User and admin builds include visible logo usage without layout overlap.</metric-1>
-    <metric-2>Logo smoke verifies source dimensions, copied assets, HTML/PWA references, and email template references.</metric-2>
-    <metric-3>Screenshot review confirms premium brand presence on public/auth/user/admin surfaces.</metric-3>
+    <metric-1 status="pass-local-phase63">User and admin builds include visible logo usage without layout overlap.</metric-1>
+    <metric-2 status="pass-local-phase63">Logo smoke verifies source dimensions, copied assets, placement markers, email/BIMI boundary, and protected deploy/runtime guard.</metric-2>
+    <metric-3 status="pass-local-static-proof">Static route proof and regression smokes confirm premium brand presence on public/auth/user/admin surfaces; live browser screenshots remain clean-deploy follow-up.</metric-3>
     <metric-4>Phase-63 verification design is complete before execution: asset budgets, visible-placement rules, screenshot/static proof, email/BIMI boundary, and protected-surface guard are explicitly mapped in V-M-080.</metric-4>
   </acceptance-metrics>
   <verification-design>
@@ -27,5 +29,9 @@
     <target-3>Email template checks remain boundary-only in Phase-63; premium email body redesign belongs to Phase-64 and mailbox sender-avatar/BIMI claims remain out of scope.</target-3>
     <target-4>Protected install/deploy/backend/VPN/MTProto runtime surfaces must remain unchanged.</target-4>
   </verification-design>
+  <execution-evidence>
+    <local-2026-06-04 commit="c385d62">Phase-63 selected 96x96.png from the prepared operator logo set, copied it as frontend/public/brand/krotpn-mark-96.png and frontend-admin/public/brand/krotpn-mark-96.png, added user/admin BrandMark components, integrated visible logos into public/auth routes, protected user shell, admin login, admin rail, and admin topbar, preserved existing email-logo/BIMI/provider-avatar boundaries, and kept deploy/install/backend/VPN/MTProto/runtime surfaces unchanged.</local-2026-06-04>
+    <verification-2026-06-04>Passed: frontend build, frontend-admin build, scripts/phase63-visible-logo-integration-smoke.mjs, Phase-55/56/57/58/60/61/62 regression smokes, XML parse, MyGRACE lint, git diff --check, and protected backend/deploy/runtime guard.</verification-2026-06-04>
+  </execution-evidence>
   <hotspot>H-067: Visible logo integration must use prepared brand assets without bloating pages or conflicting with BIMI/email-avatar boundaries.</hotspot>
 </M-080>

@@ -1,35 +1,43 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<V-M-080 MODULE="M-080" PRIORITY="high" STATUS="verification-designed-phase63" PHASE-63="verification-designed">
+<V-M-080 MODULE="M-080" PRIORITY="high" STATUS="pass-local-phase63" PHASE-63="pass-local">
   <scope>Phase-63 visible KrotPN logo verification for public landing, auth, protected user shell, admin shell, favicon/PWA adjacency, and Phase-64 email-template boundary.</scope>
   <test-files>
-    <file phase="63-planned">scripts/phase63-visible-logo-integration-smoke.mjs</file>
-    <file>frontend/public</file>
-    <file>frontend-admin/public</file>
-    <file>frontend/src/components</file>
+    <file phase="63-pass-local">scripts/phase63-visible-logo-integration-smoke.mjs</file>
+    <file>frontend/public/brand/krotpn-mark-96.png</file>
+    <file>frontend-admin/public/brand/krotpn-mark-96.png</file>
+    <file>frontend/src/components/BrandMark.tsx</file>
+    <file>frontend-admin/src/components/BrandMark.tsx</file>
     <file>frontend/src/pages/Landing.tsx</file>
     <file>frontend/src/pages/Login.tsx</file>
     <file>frontend/src/pages/Register.tsx</file>
+    <file>frontend/src/pages/ForgotPassword.tsx</file>
+    <file>frontend/src/pages/ResetPassword.tsx</file>
+    <file>frontend/src/pages/VerifyEmail.tsx</file>
+    <file>frontend/src/components/Layout.tsx</file>
     <file>frontend/src/pages/Dashboard.tsx</file>
-    <file>frontend-admin/src/components</file>
+    <file>frontend/src/index.css</file>
+    <file>frontend-admin/src/components/Layout.tsx</file>
     <file>frontend-admin/src/pages/Login.tsx</file>
     <file>frontend-admin/src/pages/Dashboard.tsx</file>
+    <file>frontend-admin/src/index.css</file>
     <file>backend/app/email/templates.py</file>
     <file>docs/modules/M-080.xml</file>
     <file>docs/plans/Phase-63.xml</file>
   </test-files>
   <module-checks>
-    <check-1 status="planned-phase63">Audit /home/truffle/Загрузки/ДЛЯ КРОТА/logos and record selected logo source dimensions, output paths, and file sizes without committing oversized or unused assets.</check-1>
-    <check-2 status="planned-phase63">cd frontend &amp;&amp; npm run build</check-2>
-    <check-3 status="planned-phase63">cd frontend-admin &amp;&amp; npm run build</check-3>
-    <check-4 status="planned-phase63">node scripts/phase63-visible-logo-integration-smoke.mjs</check-4>
-    <check-5 status="planned-phase63">node scripts/phase55-premium-art-direction-smoke.mjs</check-5>
-    <check-6 status="planned-phase63">node scripts/phase56-premium-public-auth-smoke.mjs</check-6>
-    <check-7 status="planned-phase63">node scripts/phase57-premium-user-cabinet-smoke.mjs</check-7>
-    <check-8 status="planned-phase63">node scripts/phase58-premium-admin-cockpit-smoke.mjs</check-8>
-    <check-9 status="planned-phase63">node scripts/phase61-responsive-adaptation-smoke.mjs</check-9>
-    <check-10 status="planned-phase63">node scripts/phase62-compactness-deletion-smoke.mjs</check-10>
-    <check-11 status="planned-phase63">python3 -m xml.etree.ElementTree docs/plans/Phase-63.xml docs/modules/M-080.xml docs/verification/V-M-080.xml docs/verification-index.xml docs/graph-index.xml docs/plan-index.xml</check-11>
-    <check-12 status="planned-phase63">mygrace lint; git diff --check; protected diff guard for backend API, deploy/install, nginx, docker-compose, VPN runtime, MTProto runtime, and secret surfaces</check-12>
+    <check-1 status="pass-local-phase63">Audit /home/truffle/Загрузки/ДЛЯ КРОТА/logos and record selected logo source dimensions, output paths, and file sizes without committing oversized or unused assets.</check-1>
+    <check-2 status="pass-local-phase63">cd frontend &amp;&amp; npm run build</check-2>
+    <check-3 status="pass-local-phase63">cd frontend-admin &amp;&amp; npm run build</check-3>
+    <check-4 status="pass-local-phase63">node scripts/phase63-visible-logo-integration-smoke.mjs</check-4>
+    <check-5 status="pass-local-phase63">node scripts/phase55-premium-art-direction-smoke.mjs</check-5>
+    <check-6 status="pass-local-phase63">node scripts/phase56-premium-public-auth-smoke.mjs</check-6>
+    <check-7 status="pass-local-phase63">node scripts/phase57-premium-user-cabinet-smoke.mjs</check-7>
+    <check-8 status="pass-local-phase63">node scripts/phase58-premium-admin-cockpit-smoke.mjs</check-8>
+    <check-9 status="pass-local-phase63">node scripts/phase61-responsive-adaptation-smoke.mjs</check-9>
+    <check-10 status="pass-local-phase63">node scripts/phase62-compactness-deletion-smoke.mjs</check-10>
+    <check-11 status="pass-local-phase63">node scripts/phase60-premium-qa-smoke.mjs</check-11>
+    <check-12 status="pass-local-phase63">python3 -m xml.etree.ElementTree docs/plans/Phase-63.xml docs/modules/M-080.xml docs/verification/V-M-080.xml docs/verification-index.xml docs/graph-index.xml docs/plan-index.xml</check-12>
+    <check-13 status="pass-local-phase63">mygrace lint; git diff --check; protected diff guard for backend API, deploy/install, nginx, docker-compose, VPN runtime, MTProto runtime, and secret surfaces</check-13>
   </module-checks>
   <verification-matrix>
     <target-1 evidence="static">Logo assets are selected from the operator-provided logo folder, copied into public asset paths with deterministic names, valid signatures, bounded dimensions, and no unnecessary large first-paint files.</target-1>
@@ -70,10 +78,18 @@
     <redaction>Smoke output must not print email verification links, tokenized URLs, secret-bearing env values, or live operator infrastructure data.</redaction>
   </telemetry-requirements>
   <phase-gates>
-    <gate-1 level="module-local">M-080 cannot pass until asset audit, source selection, visible placement checks, asset budget checks, and email/BIMI boundary checks pass.</gate-1>
-    <gate-2 level="wave">M-009, M-010, M-069, M-072, M-073, M-075, and M-076 regressions must stay green after visible logo integration.</gate-2>
-    <gate-3 level="phase">User/admin builds, Phase-63 smoke, Phase-55/56/57/58/61/62 regressions, XML parse, MyGRACE lint, git diff check, and protected backend/deploy/runtime guard must pass before Phase-63 can be marked done-local.</gate-3>
+    <gate-1 level="module-local" status="passed-local">M-080 passed asset audit, source selection, visible placement checks, asset budget checks, and email/BIMI boundary checks on 2026-06-04.</gate-1>
+    <gate-2 level="wave" status="passed-local">M-009, M-010, M-069, M-072, M-073, M-075, and M-076 regressions stayed green after visible logo integration.</gate-2>
+    <gate-3 level="phase" status="passed-local">User/admin builds, Phase-63 smoke, Phase-55/56/57/58/60/61/62 regressions, XML parse, MyGRACE lint, git diff check, and protected backend/deploy/runtime guard passed before Phase-63 was marked done-local.</gate-3>
     <gate-4 level="live-follow-up">Clean-deploy visual review should confirm real browser logo rendering on public/auth/user/admin surfaces, but local execution must not claim live mailbox avatar or BIMI provider proof.</gate-4>
   </phase-gates>
+  <execution-evidence date="2026-06-04" commit="c385d62">
+    <command-1>cd frontend &amp;&amp; npm run build</command-1>
+    <command-2>cd frontend-admin &amp;&amp; npm run build</command-2>
+    <command-3>node scripts/phase63-visible-logo-integration-smoke.mjs</command-3>
+    <command-4>node scripts/phase55-premium-art-direction-smoke.mjs; node scripts/phase56-premium-public-auth-smoke.mjs; node scripts/phase57-premium-user-cabinet-smoke.mjs; node scripts/phase58-premium-admin-cockpit-smoke.mjs; node scripts/phase60-premium-qa-smoke.mjs; node scripts/phase61-responsive-adaptation-smoke.mjs; node scripts/phase62-compactness-deletion-smoke.mjs</command-4>
+    <command-5>python3 XML parse, mygrace lint, git diff --check, protected backend/deploy/runtime guard</command-5>
+    <result>PASS: visible 96px logo mark is present in public/auth/user/admin surfaces, asset budget is bounded, email-logo/BIMI/provider-avatar boundaries remain truthful, and backend/deploy/runtime/install surfaces were untouched.</result>
+  </execution-evidence>
   <autonomous-execution-safety>Safe for local autonomous execution if changes stay inside frontend/frontend-admin visible logo components/assets/CSS, existing email body-logo references, Phase-63 smoke, and MyGRACE docs. Stop execution if backend API changes, Resend payload changes, deploy/install/nginx/docker-compose changes, BIMI DNS changes, VPN/MTProto runtime changes, or secret-handling changes appear necessary.</autonomous-execution-safety>
 </V-M-080>
