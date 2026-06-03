@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<M-071 NAME="matrix-style-system" TYPE="UI_COMPONENT" STATUS="done-local-phase52-phase53-phase54">
-  <path>frontend/src/index.css frontend-admin/src/index.css frontend/src/components/Layout.tsx frontend-admin/src/components/Layout.tsx scripts/phase52-matrix-visual-smoke.mjs scripts/phase53-user-matrix-ui-smoke.mjs scripts/phase54-admin-matrix-ui-smoke.mjs docs/plans/Phase-52.xml docs/plans/Phase-53.xml docs/plans/Phase-54.xml</path>
+<M-071 NAME="matrix-style-system" TYPE="UI_COMPONENT" STATUS="done-local-phase52-phase53-phase54-phase55">
+  <path>frontend/src/index.css frontend-admin/src/index.css frontend/src/components/Layout.tsx frontend-admin/src/components/Layout.tsx scripts/phase52-matrix-visual-smoke.mjs scripts/phase53-user-matrix-ui-smoke.mjs scripts/phase54-admin-matrix-ui-smoke.mjs scripts/phase55-premium-art-direction-smoke.mjs docs/plans/Phase-52.xml docs/plans/Phase-53.xml docs/plans/Phase-54.xml docs/plans/Phase-55.xml</path>
   <owns>Shared KrotPN Matrix visual language: color tokens, compact panels, CRT scanlines, neon flicker, glitch accents, focus states, and mobile-safe responsive rules.</owns>
   <depends>M-009, M-010, M-036, M-037, M-038, M-070</depends>
   <verification-ref>V-M-071</verification-ref>
@@ -19,6 +19,7 @@
     <interface-3>Reduced-motion and mobile viewport rules shared by user and admin frontends.</interface-3>
     <interface-4>Phase-53 user route classes for matrix-auth-screen, matrix-auth-card, matrix-layout-frame, matrix-page, matrix-action-grid, matrix-terminal, matrix-copy-box, matrix-row, and matrix-icon-tile.</interface-4>
     <interface-5>Phase-54 admin route classes for admin-login-shell, admin-login-card, admin-hero-strip, compact-toolbar, mini-kpi-grid, bounded-scroll, chart-frame, admin-route-card, and matrix-mini-card.</interface-5>
+    <interface-6>Phase-55 premium art-direction tokens for balanced palette, compact typography, density, logo sizing, shadow, focus, and reduced-motion shell rules.</interface-6>
   </public-interfaces>
   <constraints>
     <constraint-1>Preserve compact operational UX: no marketing landing page, no nested cards, no decorative card-heavy dashboards.</constraint-1>
@@ -38,10 +39,12 @@
     <phase-53-local-2026-06-03>Phase-53 added compact Matrix user route primitives, removed the heavy login hero, strengthened auth contrast after screenshot review, passed frontend build and Phase-53 smoke, and captured readable production-preview mobile/desktop/reduced-motion auth screenshots.</phase-53-local-2026-06-03>
     <phase-54-verification-design-2026-06-03>Phase-54 verification gates require compact Matrix admin route surfaces, readable tables/charts/forms, focus-visible controls, reduced-motion proof, no horizontal overflow, no text/icon overlap, balanced palette, and protected-surface isolation.</phase-54-verification-design-2026-06-03>
     <phase-54-local-2026-06-03>Phase-54 added compact Matrix admin primitives, retuned admin login/layout/routes, passed frontend-admin build and Phase-54 smoke, and kept protected deploy/install/runtime surfaces unchanged.</phase-54-local-2026-06-03>
+    <phase-55-local-2026-06-03>Phase-55 added premium Matrix art-direction tokens to user/admin CSS, removed decorative radial/orb shell backgrounds, passed frontend/admin builds, Phase-55 static/screenshot smoke, XML/MyGRACE/diff checks, and protected deploy/install guard.</phase-55-local-2026-06-03>
   </evidence>
   <crosslinks>
     <phase-52>Defines the foundation token system and shared effects.</phase-52>
     <phase-53>Applies the system to user cabinet routes.</phase-53>
     <phase-54>Applies the system to admin console routes.</phase-54>
+    <phase-55>Extends the system with premium art-direction tokens before Phase-56/57/58 route work.</phase-55>
   </crosslinks>
 </M-071>

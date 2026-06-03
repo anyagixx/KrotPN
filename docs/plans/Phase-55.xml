@@ -1,18 +1,50 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Phase-55 NAME="Premium Matrix Art Direction" STATUS="planned">
+<Phase-55 NAME="Premium Matrix Art Direction" STATUS="done-local" STEPS="8">
   <objective>Define the premium KrotPN Matrix/cyberpunk visual direction before changing route layouts.</objective>
   <modules>M-072,M-038,M-069,M-070,M-071</modules>
   <non-goals>Backend API changes, deploy/install changes, auth/session changes, VPN/MTProto/billing runtime changes.</non-goals>
   <steps>
-    <step-1>Audit current user/admin Matrix tokens, layout density, colors, shadows, radii, and type usage.</step-1>
-    <step-2>Define premium palette with controlled Matrix green plus cyan, magenta, amber, red, neutral, and deep black.</step-2>
-    <step-3>Define compact typography scale for display, UI, KPI, terminal/data, and email-adjacent surfaces.</step-3>
-    <step-4>Define logo usage rules using prepared assets from /home/truffle/Загрузки/ДЛЯ КРОТА/logos.</step-4>
-    <step-5>Define premium density rules that avoid bulky cards, nested panels, and decorative clutter.</step-5>
-    <step-6>Design reduced-motion and low-performance fallbacks for premium visual effects.</step-6>
-    <step-7>Create Phase-55 smoke requirements for palette, density, focus-visible, reduced-motion, and protected surface guards.</step-7>
-    <step-8>Update M-072/V-M-072 evidence after execution.</step-8>
+    <step-1 STATUS="done-local" MODULES="M-072,M-038,M-071">
+      <action>Audit current user/admin Matrix tokens, layout density, colors, shadows, radii, and type usage.</action>
+      <acceptance>User/admin CSS contracts and current Matrix shell primitives were reviewed before edits.</acceptance>
+    </step-1>
+    <step-2 STATUS="done-local" MODULES="M-072,M-071">
+      <action>Define premium palette with controlled Matrix green plus cyan, magenta, amber, red, neutral, and deep black.</action>
+      <acceptance>Shared premium palette tokens now exist in user/admin CSS and Phase-55 smoke rejects one-note or prohibited palette drift.</acceptance>
+    </step-2>
+    <step-3 STATUS="done-local" MODULES="M-072,M-071">
+      <action>Define compact typography scale for display, UI, KPI, terminal/data, and email-adjacent surfaces.</action>
+      <acceptance>Shared premium type variables cover display, UI, KPI, and data surfaces without viewport-width font scaling or negative letter spacing.</acceptance>
+    </step-3>
+    <step-4 STATUS="done-local" MODULES="M-072,M-069">
+      <action>Define logo usage rules using prepared assets from /home/truffle/Загрузки/ДЛЯ КРОТА/logos.</action>
+      <acceptance>Phase-55 smoke validates prepared logo source sizes plus public favicon/email-logo assets and records logo sizing variables.</acceptance>
+    </step-4>
+    <step-5 STATUS="done-local" MODULES="M-072,M-038,M-071">
+      <action>Define premium density rules that avoid bulky cards, nested panels, and decorative clutter.</action>
+      <acceptance>Shared density/radius/shadow variables preserve compact panels and smoke rejects oversized radii, decorative orbs, radial backgrounds, and large hero/card drift.</acceptance>
+    </step-5>
+    <step-6 STATUS="done-local" MODULES="M-072,M-070,M-071">
+      <action>Design reduced-motion and low-performance fallbacks for premium visual effects.</action>
+      <acceptance>Reduced-motion rules simplify scanline/grid effects and screenshot proof confirms readable static Matrix identity.</acceptance>
+    </step-6>
+    <step-7 STATUS="done-local" MODULES="M-072">
+      <action>Create Phase-55 smoke requirements for palette, density, focus-visible, reduced-motion, and protected surface guards.</action>
+      <acceptance>scripts/phase55-premium-art-direction-smoke.mjs validates static tokens, logo assets, screenshot PNG artifacts, and protected deploy/install guard.</acceptance>
+    </step-7>
+    <step-8 STATUS="done-local" MODULES="M-072,M-071">
+      <action>Update M-072/V-M-072 evidence after execution.</action>
+      <acceptance>M-072, V-M-072, M-071, indexes, and current-status record pass-local Phase-55 evidence.</acceptance>
+    </step-8>
   </steps>
   <verification>V-M-072</verification>
+  <execution-evidence status="pass-local" date="2026-06-03">
+    <command-1>cd frontend &amp;&amp; npm run build</command-1>
+    <command-2>cd frontend-admin &amp;&amp; npm run build</command-2>
+    <command-3>node scripts/phase55-premium-art-direction-smoke.mjs --expect-screenshots=/tmp/krotpn-phase55-screenshots</command-3>
+    <command-4>Chrome headless screenshots for user /login at 360x740, 390x844, 430x932, 768x1024; admin /login at 1024x768 and 1440x900; user/admin reduced-motion 390x844.</command-4>
+    <result>PASS: shared premium tokens, balanced palette, compact density, logo rules, reduced-motion policy, screenshot artifact validation, XML/MyGRACE/diff checks, and protected deploy/install guards passed locally.</result>
+    <protected-surface>No install.sh, deploy, nginx, docker-compose.yml, deploy/mtproto-de-compose.yml, .env.example, backend API, auth/session, VPN, MTProto, or billing runtime changes.</protected-surface>
+  </execution-evidence>
   <acceptance>Premium direction is ready for Phase-56/57/58 execution and does not change runtime behavior.</acceptance>
 </Phase-55>

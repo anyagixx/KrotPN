@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<V-M-071 MODULE="M-071" PRIORITY="high" STATUS="pass-local-phase52-phase53-phase54" PHASE-54="pass-local">
+<V-M-071 MODULE="M-071" PRIORITY="high" STATUS="pass-local-phase52-phase53-phase54-phase55" PHASE-54="pass-local" PHASE-55="pass-local">
   <scope>
     <phase>Phase-52</phase>
     <purpose>Verify the Matrix style system foundation for compact, readable, mobile-safe user and admin shells.</purpose>
@@ -13,6 +13,7 @@
     <file>scripts/phase52-matrix-visual-smoke.mjs</file>
     <file>scripts/phase53-user-matrix-ui-smoke.mjs</file>
     <file phase="54-pass-local">scripts/phase54-admin-matrix-ui-smoke.mjs</file>
+    <file phase="55-pass-local">scripts/phase55-premium-art-direction-smoke.mjs</file>
   </test-files>
   <module-checks>
     <check-1>cd frontend &amp;&amp; npm run build</check-1>
@@ -23,6 +24,7 @@
     <check-6>git diff --name-only -- install.sh deploy nginx docker-compose.yml</check-6>
     <check-7>Phase-53 viewport smoke: auth, dashboard, config, subscription, referrals, settings, reduced-motion dashboard, and desktop user route screenshots.</check-7>
     <check-8>Phase-54 local static viewport/style smoke: admin login, dashboard, users, devices, MTProto, servers, plans, analytics, reduced-motion markers, compact primitives, and protected route source guards; authenticated screenshots remain clean-deploy follow-up.</check-8>
+    <check-9>Phase-55 premium art-direction smoke: shared premium tokens, no radial/orb backgrounds, logo rules, reduced-motion markers, screenshot artifacts, and protected deploy/install guard.</check-9>
   </module-checks>
   <phase-53-style-gates status="pass-local">
     <gate-1>User cabinet routes use Matrix palette/tokens while preserving compact operational layout and avoiding nested cards.</gate-1>
@@ -38,6 +40,13 @@
     <gate-4>Reduced-motion disables flicker-heavy/transform-heavy effects and keeps the admin shell readable as a static Matrix surface.</gate-4>
     <gate-5>Palette review confirms cyan, magenta, amber, red, neutral, and green accents remain balanced so the admin UI is not a one-note green surface.</gate-5>
   </phase-54-style-gates>
+  <phase-55-style-gates status="pass-local">
+    <gate-1>User and admin CSS expose premium Matrix palette, type, density, shadow, focus, and logo tokens.</gate-1>
+    <gate-2>Decorative radial/orb shell backgrounds are removed while Matrix identity remains visible.</gate-2>
+    <gate-3>Reduced-motion fallback simplifies grid/scanline effects and preserves readability.</gate-3>
+    <gate-4>Phase-55 screenshot artifacts cover phone, tablet, desktop, and reduced-motion login shells.</gate-4>
+    <gate-5>Protected deploy/install/runtime surfaces remain untouched.</gate-5>
+  </phase-55-style-gates>
   <scenarios>
     <scenario-1 kind="success">Shared Matrix tokens apply to both frontends without breaking compact operational layout rules from M-038.</scenario-1>
     <scenario-2 kind="success">CRT scanlines, neon flicker, and glitch accents are visible but do not obscure forms, tables, proxy cards, tariffs, alerts, or primary actions.</scenario-2>
@@ -71,6 +80,10 @@
     <marker-10>[MatrixStyleSystem][phase54][NO_TEXT_OVERLAP]</marker-10>
     <marker-11>[MatrixStyleSystem][phase54][BALANCED_PALETTE]</marker-11>
     <marker-12>[MatrixStyleSystem][phase54][REDUCED_MOTION_ADMIN]</marker-12>
+    <marker-13>[PremiumArtDirection][phase55][TOKENS_READY]</marker-13>
+    <marker-14>[PremiumArtDirection][phase55][BALANCED_PALETTE]</marker-14>
+    <marker-15>[PremiumArtDirection][phase55][DENSITY_SAFE]</marker-15>
+    <marker-16>[PremiumArtDirection][phase55][SCREENSHOT_MATRIX_REVIEWED]</marker-16>
   </required-log-markers>
   <evidence-levels>
     <module-local>Static smoke validates CSS tokens, class primitives, reduced-motion selectors, focus selectors, and protected-surface guard.</module-local>
@@ -124,5 +137,12 @@
       <summary>Static style proof passed for compact Matrix admin primitives, login shell, route markers, bounded lists, chart frames, no oversized login hero/large radius/tracking drift, focus/reduced-motion markers, balanced palette markers, and protected-surface isolation.</summary>
       <follow-up>Authenticated screenshot review for protected admin routes remains clean-deploy follow-up.</follow-up>
     </phase-54-local-2026-06-03>
+    <phase-55-local-2026-06-03>
+      <result>PASS</result>
+      <command-1>cd frontend &amp;&amp; npm run build</command-1>
+      <command-2>cd frontend-admin &amp;&amp; npm run build</command-2>
+      <command-3>node scripts/phase55-premium-art-direction-smoke.mjs --expect-screenshots=/tmp/krotpn-phase55-screenshots</command-3>
+      <summary>Premium art-direction smoke passed for user/admin shared tokens, no radial/orb backgrounds, compact density, logo rules, reduced-motion policy, screenshot artifact validation, and protected deploy/install guard.</summary>
+    </phase-55-local-2026-06-03>
   </evidence>
 </V-M-071>

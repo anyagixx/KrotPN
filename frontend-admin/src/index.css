@@ -1,16 +1,17 @@
 /* FILE: frontend-admin/src/index.css
- * VERSION: 1.1.0
+ * VERSION: 1.2.0
  * ROLE: UI_COMPONENT
  * MAP_MODE: SUMMARY
  * START_MODULE_CONTRACT
- *   PURPOSE: Shared admin-frontend styling tokens, compact admin surfaces, Phase-52 Matrix visual foundation, and Phase-54 admin console primitives
- *   SCOPE: Admin shell, login console, navigation, panels, forms, data tables, charts, Matrix background/canvas/CRT layers, focus and reduced-motion policy
- *   DEPENDS: M-010 (frontend-admin), M-037 (admin-mtproto-ui), M-038 (compact-ui-system), M-070 (matrix-visual-runtime), M-071 (matrix-style-system)
- *   LINKS: M-010 (frontend-admin), M-037, M-038, M-070, M-071
+ *   PURPOSE: Shared admin-frontend styling tokens, compact admin surfaces, Phase-52 Matrix visual foundation, Phase-54 admin console primitives, and Phase-55 premium art direction
+ *   SCOPE: Admin shell, login console, navigation, panels, forms, data tables, charts, premium palette/type/density/logo tokens, Matrix background/canvas/CRT layers, focus and reduced-motion policy
+ *   DEPENDS: M-010 (frontend-admin), M-037 (admin-mtproto-ui), M-038 (compact-ui-system), M-070 (matrix-visual-runtime), M-071 (matrix-style-system), M-072 (premium-art-direction-system)
+ *   LINKS: M-010 (frontend-admin), M-037, M-038, M-070, M-071, M-072
  * END_MODULE_CONTRACT
  *
  * START_MODULE_MAP
- *   base - Root color tokens, body typography, document background
+ *   base - Root color, typography, density, logo, and document background tokens
+ *   premium-art-direction - Phase-55 balanced palette, compact type scale, density, and logo rules
  *   matrix-visual-system - Canvas, scanline, vignette, and content stacking layers
  *   admin-shell - Rail, topbar, mobile tabbar, content sizing
  *   admin-matrix-ui - Phase-54 compact login, toolbar, KPI, chart, route, and bounded-scroll primitives
@@ -18,6 +19,7 @@
  * END_MODULE_MAP
  *
  * START_CHANGE_SUMMARY
+ *   LAST_CHANGE: v3.2.0 - Added Phase-55 premium Matrix art-direction tokens, density rules, logo rules, and non-orb shell background.
  *   LAST_CHANGE: v3.1.0 - Added Phase-54 compact admin Matrix console primitives and route-safe viewport helpers
  *   LAST_CHANGE: v3.0.0 - Added Phase-52 Matrix visual foundation tokens, canvas layers, CRT overlays, focus states, and reduced-motion policy
  * END_CHANGE_SUMMARY
@@ -40,19 +42,53 @@
   --matrix-red: #ff6b78;
   --matrix-amber: #ffd166;
   --matrix-neutral: #d8f6e6;
-  --bg: #03100d;
+
+  /* START_BLOCK_PHASE55_PREMIUM_TOKENS */
+  --premium-black: #010301;
+  --premium-deep-black: #020503;
+  --premium-deep: #04110d;
+  --premium-surface: rgba(5, 22, 16, 0.88);
+  --premium-surface-strong: rgba(7, 30, 22, 0.96);
+  --premium-surface-muted: rgba(3, 15, 11, 0.72);
+  --premium-surface-elevated: rgba(10, 42, 31, 0.92);
+  --premium-line: rgba(118, 255, 183, 0.18);
+  --premium-line-cyan: rgba(104, 232, 255, 0.16);
+  --premium-line-strong: rgba(172, 255, 209, 0.28);
+  --premium-text: #f5fff8;
+  --premium-muted: #a9c7b9;
+  --premium-muted-strong: #d6f7e7;
+  --premium-focus-ring: rgba(104, 232, 255, 0.2);
+  --premium-shadow-panel: 0 18px 50px rgba(0, 5, 3, 0.48), inset 0 1px 0 rgba(216, 246, 230, 0.05);
+  --premium-shadow-tight: 0 12px 30px rgba(0, 5, 3, 0.36), inset 0 1px 0 rgba(216, 246, 230, 0.04);
+  --premium-radius: 8px;
+  --premium-radius-tight: 6px;
+  --premium-density-xs: 0.375rem;
+  --premium-density-sm: 0.625rem;
+  --premium-density-md: 0.875rem;
+  --premium-type-display: 1.375rem;
+  --premium-type-ui: 0.9375rem;
+  --premium-type-kpi: 1.5rem;
+  --premium-type-data: 0.8125rem;
+  --premium-font-ui: 'Manrope', system-ui, sans-serif;
+  --premium-font-data: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  --premium-logo-min: 32px;
+  --premium-logo-safe-space: 8px;
+  --premium-logo-email-size: 56px;
+  /* END_BLOCK_PHASE55_PREMIUM_TOKENS */
+
+  --bg: var(--premium-deep);
   --bg-soft: #061712;
-  --panel: rgba(5, 20, 15, 0.86);
-  --panel-strong: rgba(6, 24, 18, 0.96);
-  --border: rgba(96, 255, 155, 0.17);
-  --border-strong: rgba(104, 232, 255, 0.24);
-  --text: #effff7;
-  --muted: #91b5a6;
+  --panel: var(--premium-surface);
+  --panel-strong: var(--premium-surface-strong);
+  --border: var(--premium-line);
+  --border-strong: var(--premium-line-cyan);
+  --text: var(--premium-text);
+  --muted: var(--premium-muted);
   --accent: var(--matrix-green);
   --accent-2: var(--matrix-cyan);
   --danger: var(--matrix-red);
   --warning: var(--matrix-amber);
-  --shadow: 0 18px 46px rgba(0, 5, 3, 0.42);
+  --shadow: var(--premium-shadow-panel);
 }
 
 * {
@@ -69,7 +105,7 @@ body {
   margin: 0;
   min-height: 100vh;
   overflow-x: hidden;
-  font-family: 'Manrope', system-ui, sans-serif;
+  font-family: var(--premium-font-ui);
   color: var(--text);
   background: transparent;
   font-feature-settings: "cv02", "cv03", "cv04", "cv11";
@@ -98,7 +134,7 @@ textarea:focus-visible,
 [role="button"]:focus-visible {
   outline: 2px solid var(--matrix-cyan);
   outline-offset: 3px;
-  box-shadow: 0 0 0 4px rgba(104, 232, 255, 0.16);
+  box-shadow: 0 0 0 4px var(--premium-focus-ring);
 }
 
 .matrix-visual-shell {
@@ -107,9 +143,10 @@ textarea:focus-visible,
   overflow-x: hidden;
   isolation: isolate;
   background:
-    radial-gradient(circle at 10% 14%, rgba(96, 255, 155, 0.16), transparent 26rem),
-    radial-gradient(circle at 90% 6%, rgba(104, 232, 255, 0.1), transparent 28rem),
-    linear-gradient(180deg, #020503 0%, #03100d 48%, #020705 100%);
+    linear-gradient(180deg, rgba(1, 3, 2, 0.97) 0%, rgba(4, 17, 13, 0.94) 48%, rgba(1, 4, 2, 0.98) 100%),
+    linear-gradient(90deg, rgba(255, 79, 216, 0.035), transparent 28%, rgba(104, 232, 255, 0.045) 74%, transparent),
+    linear-gradient(120deg, rgba(96, 255, 155, 0.07) 0 1px, transparent 1px 12px),
+    var(--premium-black);
 }
 
 .matrix-visual-shell::before {
@@ -134,7 +171,7 @@ textarea:focus-visible,
   width: 100vw;
   height: 100vh;
   pointer-events: none;
-  opacity: 0.52;
+  opacity: 0.44;
   mix-blend-mode: screen;
 }
 
@@ -143,7 +180,7 @@ textarea:focus-visible,
   inset: 0;
   z-index: 3;
   pointer-events: none;
-  opacity: 0.18;
+  opacity: 0.12;
   background:
     repeating-linear-gradient(
       180deg,
@@ -161,8 +198,9 @@ textarea:focus-visible,
   z-index: 2;
   pointer-events: none;
   background:
-    radial-gradient(circle at 50% 45%, transparent 0%, rgba(1, 6, 3, 0.08) 48%, rgba(1, 6, 3, 0.72) 100%),
+    linear-gradient(180deg, rgba(1, 6, 3, 0.04) 0%, transparent 36%, rgba(1, 6, 3, 0.34) 100%),
     linear-gradient(90deg, rgba(255, 79, 216, 0.06), transparent 22%, transparent 78%, rgba(104, 232, 255, 0.06));
+  box-shadow: inset 0 0 150px rgba(0, 3, 2, 0.5);
 }
 
 .matrix-visual-content {
@@ -179,7 +217,7 @@ textarea:focus-visible,
   @apply sticky top-0 hidden h-screen flex-col gap-4 border-r px-3 py-4 lg:flex;
   background: rgba(3, 12, 8, 0.94);
   border-color: var(--border);
-  box-shadow: inset -1px 0 rgba(104, 232, 255, 0.07);
+  box-shadow: inset -1px 0 rgba(104, 232, 255, 0.07), var(--premium-shadow-tight);
 }
 
 .brand-mark {
@@ -254,7 +292,7 @@ textarea:focus-visible,
 .panel {
   background: var(--panel);
   border: 1px solid var(--border);
-  border-radius: 8px;
+  border-radius: var(--premium-radius);
   box-shadow: var(--shadow), inset 0 1px 0 rgba(216, 246, 230, 0.05), inset 0 0 0 1px rgba(104, 232, 255, 0.025);
 }
 
@@ -262,7 +300,7 @@ textarea:focus-visible,
 .surface {
   background: rgba(4, 18, 13, 0.72);
   border: 1px solid rgba(96, 255, 155, 0.1);
-  border-radius: 8px;
+  border-radius: var(--premium-radius);
 }
 
 .admin-login-shell {
@@ -273,13 +311,13 @@ textarea:focus-visible,
   @apply grid w-full max-w-[920px] gap-4 border p-4 shadow-2xl sm:p-5 lg:grid-cols-[minmax(0,0.72fr)_minmax(320px,0.48fr)] lg:items-stretch;
   background: rgba(3, 12, 8, 0.9);
   border-color: var(--border);
-  border-radius: 8px;
+  border-radius: var(--premium-radius);
 }
 
 .admin-login-mark {
   @apply flex h-11 w-11 items-center justify-center text-emerald-200;
   border: 1px solid rgba(96, 255, 155, 0.28);
-  border-radius: 8px;
+  border-radius: var(--premium-radius);
   background: rgba(96, 255, 155, 0.1);
 }
 
@@ -287,7 +325,7 @@ textarea:focus-visible,
   @apply grid min-w-0 gap-2 border p-3 sm:grid-cols-3;
   background: rgba(2, 10, 7, 0.58);
   border-color: rgba(104, 232, 255, 0.12);
-  border-radius: 8px;
+  border-radius: var(--premium-radius);
 }
 
 .admin-route-card,
@@ -295,13 +333,14 @@ textarea:focus-visible,
   @apply min-w-0 p-3;
   background: rgba(4, 18, 13, 0.76);
   border: 1px solid rgba(104, 232, 255, 0.12);
-  border-radius: 8px;
+  border-radius: var(--premium-radius);
 }
 
 .matrix-section-label,
 .matrix-panel-title {
   @apply text-sm font-semibold text-white;
   letter-spacing: 0;
+  font-size: var(--premium-type-ui);
 }
 
 .compact-toolbar {
@@ -322,7 +361,7 @@ textarea:focus-visible,
   min-height: 220px;
   background: rgba(2, 10, 7, 0.66);
   border-color: rgba(104, 232, 255, 0.12);
-  border-radius: 8px;
+  border-radius: var(--premium-radius);
 }
 
 .matrix-route-status {
@@ -334,7 +373,7 @@ textarea:focus-visible,
 .btn-secondary,
 .btn-danger {
   @apply inline-flex min-h-10 items-center justify-center gap-2 px-3 py-2 text-sm font-semibold transition disabled:cursor-not-allowed disabled:opacity-45;
-  border-radius: 8px;
+  border-radius: var(--premium-radius);
 }
 
 .btn-primary {
@@ -370,7 +409,7 @@ textarea:focus-visible,
   @apply w-full min-h-10 px-3 py-2 text-sm text-slate-50 outline-none transition;
   background: rgba(2, 10, 7, 0.88);
   border: 1px solid rgba(96, 255, 155, 0.16);
-  border-radius: 8px;
+  border-radius: var(--premium-radius);
 }
 
 .input-with-icon-left {
@@ -400,6 +439,8 @@ textarea:focus-visible,
 
 .page-title {
   @apply text-xl font-bold text-slate-50 sm:text-2xl;
+  font-size: var(--premium-type-display);
+  letter-spacing: 0;
 }
 
 .page-subtitle {
@@ -415,7 +456,7 @@ textarea:focus-visible,
   @apply min-w-0 p-3;
   background: var(--panel);
   border: 1px solid var(--border);
-  border-radius: 8px;
+  border-radius: var(--premium-radius);
 }
 
 .metric-label {
@@ -425,6 +466,8 @@ textarea:focus-visible,
 
 .metric-value {
   @apply mt-1 truncate text-xl font-bold text-white;
+  font-size: var(--premium-type-kpi);
+  letter-spacing: 0;
 }
 
 .metric-strip {
@@ -435,7 +478,7 @@ textarea:focus-visible,
   @apply min-w-0 px-3 py-2 text-sm;
   background: rgba(18, 33, 41, 0.72);
   border: 1px solid rgba(154, 188, 198, 0.12);
-  border-radius: 8px;
+  border-radius: var(--premium-radius);
 }
 
 .compact-grid {
@@ -446,7 +489,7 @@ textarea:focus-visible,
   @apply divide-y overflow-hidden;
   background: var(--panel);
   border: 1px solid var(--border);
-  border-radius: 8px;
+  border-radius: var(--premium-radius);
 }
 
 .compact-list.bounded-scroll {
@@ -546,8 +589,14 @@ textarea:focus-visible,
 .empty-state {
   @apply flex min-h-[180px] flex-col items-center justify-center gap-3 border border-dashed p-5 text-center;
   border-color: rgba(154, 188, 198, 0.16);
-  border-radius: 8px;
+  border-radius: var(--premium-radius);
   background: rgba(8, 18, 24, 0.5);
+}
+
+.data-table,
+.meta-value,
+.row-subtitle {
+  font-size: var(--premium-type-data);
 }
 
 .data-table {
@@ -571,7 +620,7 @@ textarea:focus-visible,
   @apply w-full max-w-lg p-4;
   background: var(--panel-strong);
   border: 1px solid var(--border);
-  border-radius: 8px;
+  border-radius: var(--premium-radius);
   box-shadow: var(--shadow);
 }
 
@@ -625,5 +674,10 @@ textarea:focus-visible,
   .matrix-scanline-overlay {
     animation: none;
     opacity: 0.1;
+  }
+
+  .matrix-visual-shell::before {
+    opacity: 0.08;
+    transform: none;
   }
 }
