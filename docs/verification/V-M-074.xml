@@ -1,29 +1,134 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<V-M-074 MODULE="M-074" PRIORITY="critical" STATUS="planned">
-  <scope>Responsive adaptation verification for phone, tablet, and desktop layouts across public, user, and admin routes.</scope>
+<V-M-074 MODULE="M-074" PRIORITY="critical" STATUS="pending" PHASE-61="pending">
+  <scope>Responsive adaptation verification for phone, tablet, and desktop layouts across public, auth, user-cabinet, and admin Matrix surfaces.</scope>
+  <verification-intent>Phase-61 must prove that the premium Matrix UI is intentionally designed for mobile and tablet use, not merely tolerated by desktop CSS.</verification-intent>
   <test-files>
     <file>scripts/phase61-responsive-adaptation-smoke.mjs</file>
-    <file>frontend</file>
-    <file>frontend-admin</file>
+    <file>scripts/phase60-premium-qa-smoke.mjs</file>
+    <file>frontend/src/App.tsx</file>
+    <file>frontend/src/components/Layout.tsx</file>
+    <file>frontend/src/components/MatrixBackground.tsx</file>
+    <file>frontend/src/components/VisualShell.tsx</file>
+    <file>frontend/src/pages/Landing.tsx</file>
+    <file>frontend/src/pages/Login.tsx</file>
+    <file>frontend/src/pages/Register.tsx</file>
+    <file>frontend/src/pages/ForgotPassword.tsx</file>
+    <file>frontend/src/pages/ResetPassword.tsx</file>
+    <file>frontend/src/pages/VerifyEmail.tsx</file>
+    <file>frontend/src/pages/Dashboard.tsx</file>
+    <file>frontend/src/pages/Config.tsx</file>
+    <file>frontend/src/pages/Subscription.tsx</file>
+    <file>frontend/src/pages/Referrals.tsx</file>
+    <file>frontend/src/pages/Settings.tsx</file>
+    <file>frontend/src/index.css</file>
+    <file>frontend-admin/src/main.tsx</file>
+    <file>frontend-admin/src/components/Layout.tsx</file>
+    <file>frontend-admin/src/components/MatrixBackground.tsx</file>
+    <file>frontend-admin/src/components/VisualShell.tsx</file>
+    <file>frontend-admin/src/components/StatCard.tsx</file>
+    <file>frontend-admin/src/pages/Login.tsx</file>
+    <file>frontend-admin/src/pages/Dashboard.tsx</file>
+    <file>frontend-admin/src/pages/Users.tsx</file>
+    <file>frontend-admin/src/pages/Devices.tsx</file>
+    <file>frontend-admin/src/pages/MTProto.tsx</file>
+    <file>frontend-admin/src/pages/MTProtoAnalytics.tsx</file>
+    <file>frontend-admin/src/pages/Analytics.tsx</file>
+    <file>frontend-admin/src/pages/Servers.tsx</file>
+    <file>frontend-admin/src/pages/Plans.tsx</file>
+    <file>frontend-admin/src/index.css</file>
   </test-files>
   <commands>
     <command>cd frontend &amp;&amp; npm run build</command>
     <command>cd frontend-admin &amp;&amp; npm run build</command>
     <command>node scripts/phase61-responsive-adaptation-smoke.mjs</command>
+    <command>node scripts/phase60-premium-qa-smoke.mjs</command>
+    <command>python3 -m xml.etree.ElementTree docs/verification-index.xml docs/verification/V-M-074.xml docs/modules/M-074.xml docs/plans/Phase-61.xml</command>
     <command>mygrace lint</command>
+    <command>git diff --check</command>
+    <command>git diff --name-only -- backend deploy docker-compose.yml install.sh mtproto-runtime official-mtproxy nginx | test -z "$(cat)"</command>
   </commands>
+  <viewport-matrix>
+    <phone-1>320x568 proves smallest supported phone does not clip auth/public CTAs or cabinet actions.</phone-1>
+    <phone-2>360x740 proves compact Android layout, bottom navigation spacing, forms, and MTProto/VPN cards.</phone-2>
+    <phone-3>375x667 proves legacy iPhone-height constraints without hidden primary controls.</phone-3>
+    <phone-4>390x844 proves common iPhone layout, safe-area padding, calendar/subscription and config panels.</phone-4>
+    <phone-5>430x932 proves large phone density without oversized hero, cards, or chart frames.</phone-5>
+    <tablet-1>768x1024 proves portrait tablet layout has intentional two-column or bounded single-column behavior.</tablet-1>
+    <tablet-2>820x1180 proves iPad-like portrait layout preserves readable public, cabinet, and admin surfaces.</tablet-2>
+    <tablet-3>1024x768 proves landscape tablet does not become cramped desktop or stretched phone layout.</tablet-3>
+    <tablet-4>1024x1366 proves tall tablet keeps navigation, charts, lists, and forms within predictable bounds.</tablet-4>
+    <desktop-1>1280x720 proves short desktop remains compact and primary content is not pushed below useful view.</desktop-1>
+    <desktop-2>1440x900 proves premium desktop regression remains stable after mobile/tablet changes.</desktop-2>
+    <reduced-motion-1>390x844 with reduced motion proves Matrix and route transitions remain readable.</reduced-motion-1>
+    <reduced-motion-2>768x1024 with reduced motion proves tablet UI remains usable without animated cues.</reduced-motion-2>
+  </viewport-matrix>
+  <route-matrix>
+    <public-routes>/, /login, /register, /forgot-password, /reset-password, /verify-email</public-routes>
+    <user-routes>/dashboard, /dashboard/config, /dashboard/subscription, /dashboard/referrals, /dashboard/settings</user-routes>
+    <admin-routes>/login, /, /users, /devices, /mtproto, /servers, /plans, /analytics</admin-routes>
+    <auth-limitation-policy>If local auth fixtures cannot enter protected routes, the smoke must produce static-route proof and record the remaining live screenshot gap instead of claiming false coverage.</auth-limitation-policy>
+  </route-matrix>
   <success-scenarios>
-    <scenario-1>360x740, 390x844, 430x932, 768x1024, 820x1180, 1024x1366, and desktop screenshots pass.</scenario-1>
-    <scenario-2>No document horizontal scroll, text overlap, clipped buttons, or hidden primary controls.</scenario-2>
-    <scenario-3>Tablet layouts have intentional density, not stretched phone or cramped desktop behavior.</scenario-3>
+    <scenario-1>All planned phone, tablet, desktop, and reduced-motion viewports render without document-level or route-level horizontal scroll.</scenario-1>
+    <scenario-2>Public/auth surfaces keep the first-screen brand signal, CTA, email/password forms, password hint, and recovery paths visible and non-overlapping.</scenario-2>
+    <scenario-3>User cabinet keeps VPN config, MTProto proxy links, subscription countdown/calendar, referrals, and settings actions reachable on phone and tablet.</scenario-3>
+    <scenario-4>Admin cockpit keeps dashboard metrics, users/devices lists, MTProto analytics, abuse alerts, servers, plans, and analytics charts bounded and readable.</scenario-4>
+    <scenario-5>Inputs, icons, placeholders, labels, badges, chart legends, copy buttons, and action buttons do not overlap or resize their containers unexpectedly.</scenario-5>
+    <scenario-6>Touch targets for primary navigation and actions are at least 44px in the planned phone/tablet breakpoints unless the element is non-interactive text.</scenario-6>
+    <scenario-7>Mobile bottom navigation, sticky headers, fixed backgrounds, Matrix canvas, and scroll containers do not cover primary content or block pointer/scroll gestures.</scenario-7>
+    <scenario-8>Tablet layouts show deliberate density and hierarchy: no lazy stretched phone layout, no cramped desktop table, and no nested-card visual bulk.</scenario-8>
+    <scenario-9>Reduced-motion mode disables or softens motion while preserving status feedback, Matrix atmosphere, route readability, and focus visibility.</scenario-9>
+    <scenario-10>Phase-60 premium QA smoke remains green after responsive edits, proving no regression in visual policy, assets, motion, accessibility, or bundle budgets.</scenario-10>
   </success-scenarios>
   <failure-scenarios>
-    <failure-1>Any viewport hides VPN config, MTProto, subscription, admin health, or emergency action paths.</failure-1>
-    <failure-2>Reduced-motion or keyboard focus becomes inconsistent across breakpoints.</failure-2>
+    <failure-1>Any viewport hides or clips registration, login, password reset, VPN config, MTProto link, subscription, admin health, or admin action paths.</failure-1>
+    <failure-2>Any document/body/route container produces horizontal scroll beyond a 2px measurement tolerance.</failure-2>
+    <failure-3>Any icon overlaps placeholder text, field value, label, badge, button text, or chart/table content.</failure-3>
+    <failure-4>Any phone/tablet route requires unreasonable vertical scanning because repeated cards, headings, or decorative surfaces dominate useful controls.</failure-4>
+    <failure-5>Any admin table/list grows without internal bounding or loses search/filter/action reachability on phones or tablets.</failure-5>
+    <failure-6>Any responsive fix changes backend APIs, deploy/install scripts, docker-compose, nginx, mtproto-runtime, official-mtproxy, or live operational behavior.</failure-6>
+    <failure-7>Any smoke output exposes secrets, tokens, real emails, raw config payloads, WireGuard keys, MTProto secrets, payment IDs, or operator infrastructure credentials.</failure-7>
   </failure-scenarios>
-  <log-markers>
-    <marker>[ResponsiveAdaptation][phase61][PHONE_PASS]</marker>
-    <marker>[ResponsiveAdaptation][phase61][TABLET_PASS]</marker>
-    <marker>[ResponsiveAdaptation][phase61][NO_OVERFLOW]</marker>
-  </log-markers>
+  <required-log-markers>
+    <marker>[ResponsiveAdaptation][phase61][BUILDS_PASS]</marker>
+    <marker>[ResponsiveAdaptation][phase61][VIEWPORT_MATRIX_READY]</marker>
+    <marker>[ResponsiveAdaptation][phase61][PHONE_LAYOUT_PASS]</marker>
+    <marker>[ResponsiveAdaptation][phase61][TABLET_LAYOUT_PASS]</marker>
+    <marker>[ResponsiveAdaptation][phase61][DESKTOP_REGRESSION_PASS]</marker>
+    <marker>[ResponsiveAdaptation][phase61][NO_HORIZONTAL_SCROLL]</marker>
+    <marker>[ResponsiveAdaptation][phase61][NO_OVERLAP_PASS]</marker>
+    <marker>[ResponsiveAdaptation][phase61][TOUCH_TARGETS_PASS]</marker>
+    <marker>[ResponsiveAdaptation][phase61][SAFE_AREA_PASS]</marker>
+    <marker>[ResponsiveAdaptation][phase61][PROTECTED_USER_STATIC_PROOF]</marker>
+    <marker>[ResponsiveAdaptation][phase61][ADMIN_STATIC_PROOF]</marker>
+    <marker>[ResponsiveAdaptation][phase61][REDUCED_MOTION_PASS]</marker>
+    <marker>[ResponsiveAdaptation][phase61][BUNDLE_BUDGET_PASS]</marker>
+    <marker>[ResponsiveAdaptation][phase61][REGRESSION_SMOKES_PASS]</marker>
+    <marker>[ResponsiveAdaptation][phase61][PROTECTED_SURFACE_GUARD]</marker>
+    <marker>[ResponsiveAdaptation][phase61][MYGRACE_PASS]</marker>
+  </required-log-markers>
+  <telemetry-requirements>
+    <allowed>route path, viewport size, app surface name, selector label, measured width/height, horizontal-scroll delta, screenshot artifact path, bundle size, and anonymized failure code.</allowed>
+    <forbidden>passwords, access tokens, refresh tokens, API keys, Resend/YooKassa secrets, WireGuard private keys, MTProto secrets, full proxy links, real emails, raw user IPs, payment identifiers, and server access credentials.</forbidden>
+    <retention>Local screenshot and smoke artifacts may be stored under /tmp/krotpn-phase61-* during verification and must not be committed.</retention>
+  </telemetry-requirements>
+  <performance-budgets>
+    <frontend-js>Built user frontend JavaScript should stay within the Phase-60 budget unless a justified delta is recorded.</frontend-js>
+    <frontend-css>Built user frontend CSS should stay within the Phase-60 budget unless a justified delta is recorded.</frontend-css>
+    <admin-js>Built admin frontend JavaScript should stay within the Phase-60 budget unless a justified delta is recorded.</admin-js>
+    <admin-css>Built admin frontend CSS should stay within the Phase-60 budget unless a justified delta is recorded.</admin-css>
+    <asset-policy>No new public visual asset may exceed 512KB without explicit documentation, and no single frontend asset may exceed 1.5MB.</asset-policy>
+  </performance-budgets>
+  <phase-gates>
+    <gate-1>V-M-074 cannot move to pass-local until user/admin builds, Phase-61 smoke, Phase-60 regression smoke, XML parse, MyGRACE lint, git diff --check, and protected surface guard pass.</gate-1>
+    <gate-2>V-M-074 cannot move to pass-local if any protected-route screenshots are unavailable without a truthful auth-fixture/live-gap note.</gate-2>
+    <gate-3>Phase-61 execution must not modify deploy/install scripts or backend/runtime services; any required operational change must become a separate confirmed phase.</gate-3>
+    <gate-4>Known live-only evidence must be documented in M-074 and V-M-074 rather than hidden behind generic PASS wording.</gate-4>
+  </phase-gates>
+  <autonomous-execution-safety>
+    <safety-1>Edits are limited to frontend, frontend-admin, Phase-61 smoke, and MyGRACE documentation unless the operator approves a new phase.</safety-1>
+    <safety-2>Use deterministic smoke assertions before screenshot review; screenshots are evidence, not the only gate.</safety-2>
+    <safety-3>Prefer compact responsive CSS and existing components over adding new visual systems or business workflows.</safety-3>
+    <safety-4>Do not commit generated screenshots, dist artifacts, local secrets, or temporary Playwright state.</safety-4>
+  </autonomous-execution-safety>
 </V-M-074>
