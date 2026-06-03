@@ -2,7 +2,7 @@
 
 **Коммерческий VPN-сервис с AmneziaWG Full Tunnel и персональным MTProto proxy для Telegram**
 
-![Version](https://img.shields.io/badge/version-2.24.0-blue)
+![Version](https://img.shields.io/badge/version-2.25.0-blue)
 ![Python](https://img.shields.io/badge/python-3.11-green)
 ![React](https://img.shields.io/badge/react-18-blue)
 ![License](https://img.shields.io/badge/license-MIT-green)
@@ -11,7 +11,7 @@
 
 - **AmneziaWG** - обфусцированный WireGuard протокол для обхода DPI
 - **Full Tunnel** - весь клиентский трафик проходит через RU Entry Node к DE Exit Node
-- **Персональный MTProto proxy** - каждый подтвержденный пользователь получает индивидуальный `u-*.krotpn.xyz` Telegram proxy
+- **Персональный MTProto proxy** - каждый подтвержденный пользователь получает индивидуальный CTA-домен вида `krot-vpn-xxxx.krotpn.xyz` для Telegram proxy
 - **KPprotoN fake-TLS edge** - RU SNI router на публичном 443 маршрутизирует web и MTProto трафик без раскрытия пользовательских секретов
 - **HTTPS production TLS** - операторский wildcard SSL сертификат используется для web, admin и MTProto edge
 - **Email verification** - регистрация активируется только после подтверждения почты через Resend
@@ -42,7 +42,7 @@
 │ - AWG entry                              │
 └────────┬────────────────────────┬────────┘
          │                        │
-         │ AWG full tunnel        │ u-*.krotpn.xyz SNI
+         │ AWG full tunnel        │ CTA *.krotpn.xyz SNI
          ▼                        ▼
 ┌──────────────────┐     ┌─────────────────────────┐
 │ DE Exit Node     │     │ DE KPprotoN Runtime      │
