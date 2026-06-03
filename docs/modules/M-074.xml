@@ -1,19 +1,26 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<M-074 NAME="responsive-device-adaptation" TYPE="UI_COMPONENT" STATUS="planned-phase61">
+<M-074 NAME="responsive-device-adaptation" TYPE="UI_COMPONENT" STATUS="pass-local-phase61">
   <path>frontend frontend-admin docs/plans/Phase-61.xml scripts/phase61-responsive-adaptation-smoke.mjs</path>
   <owns>Phone, tablet, and desktop responsive closure for public, user, and admin Matrix surfaces.</owns>
   <purpose>Make the premium frontend usable and compact across mobile phones, tablets, and desktop screens.</purpose>
   <exports>
-    <viewport-phone>360x740, 390x844, and 430x932 phone layout gates.</viewport-phone>
-    <viewport-tablet>768x1024, 820x1180, and 1024x1366 tablet layout gates.</viewport-tablet>
-    <viewport-desktop>1280x800 and 1440x900 desktop layout gates.</viewport-desktop>
+    <viewport-phone>320x568, 360x740, 375x667, 390x844, and 430x932 phone layout gates.</viewport-phone>
+    <viewport-tablet>768x1024, 820x1180, 1024x768, and 1024x1366 tablet layout gates.</viewport-tablet>
+    <viewport-desktop>1280x720 and 1440x900 desktop layout gates.</viewport-desktop>
     <rule-responsive-density>Responsive spacing, grid, navigation, and bounded-scroll rules.</rule-responsive-density>
+    <gate-phase61-smoke>scripts/phase61-responsive-adaptation-smoke.mjs static responsive gate.</gate-phase61-smoke>
   </exports>
   <depends>M-009,M-010,M-036,M-037,M-038,M-071,M-072</depends>
   <verification-ref>V-M-074</verification-ref>
   <files>
     <file>frontend</file>
     <file>frontend-admin</file>
+    <file>frontend/src/components/Layout.tsx</file>
+    <file>frontend/src/index.css</file>
+    <file>frontend-admin/src/components/Layout.tsx</file>
+    <file>frontend-admin/src/index.css</file>
+    <file>frontend-admin/src/pages/Analytics.tsx</file>
+    <file>frontend-admin/src/pages/Servers.tsx</file>
     <file>scripts/phase61-responsive-adaptation-smoke.mjs</file>
     <file>docs/plans/Phase-61.xml</file>
   </files>
@@ -23,9 +30,16 @@
     <constraint-3>Primary VPN, MTProto, subscription, admin health, and emergency actions must stay reachable.</constraint-3>
   </constraints>
   <acceptance-metrics>
-    <metric-1>User and admin builds pass with viewport smoke screenshots.</metric-1>
-    <metric-2>No visible text overlap, icon overlap, or clipped critical values.</metric-2>
-    <metric-3>Reduced-motion proof remains readable across viewport classes.</metric-3>
+    <metric-1 status="pass-local-phase61">User and admin builds pass with Phase-61 viewport/static-route smoke evidence.</metric-1>
+    <metric-2 status="pass-local-phase61">No visible text overlap, icon overlap, clipped critical values, or document-level horizontal-scroll static drift is allowed by the Phase-61 smoke.</metric-2>
+    <metric-3 status="pass-local-phase61">Reduced-motion proof remains readable across phone and tablet viewport classes.</metric-3>
   </acceptance-metrics>
+  <evidence>
+    <item>2026-06-04: Added Phase-61 responsive CSS blocks to user and admin Matrix style systems with phone/tablet breakpoints, safe-area padding, bounded scroll, text wrapping, and 44px touch-target policy.</item>
+    <item>2026-06-04: Added Phase-61 layout markers to user and admin shells for viewport matrix, mobile header/nav safe-area, protected user static proof, and admin static proof.</item>
+    <item>2026-06-04: Added root min-width containment to admin Analytics and Servers route surfaces to protect chart/topology pages on phones and tablets.</item>
+    <item>2026-06-04: frontend and frontend-admin production builds passed; Phase-61 smoke and Phase-60 premium QA regression gate passed.</item>
+    <item>2026-06-04: Protected backend/deploy/runtime guard remained empty; authenticated protected-route screenshots remain clean-deploy follow-up evidence.</item>
+  </evidence>
   <hotspot>H-061: Tablet and mobile adaptation must be verified on real breakpoint classes, not inferred from desktop layouts.</hotspot>
 </M-074>

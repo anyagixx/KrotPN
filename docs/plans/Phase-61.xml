@@ -1,18 +1,26 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Phase-61 NAME="Tablet and Mobile Adaptation Closure" STATUS="planned">
+<Phase-61 NAME="Tablet and Mobile Adaptation Closure" STATUS="done-local">
   <objective>Close responsive gaps on phones and tablets immediately after the premium QA foundation.</objective>
   <modules>M-074,M-009,M-010,M-036,M-037,M-038,M-071,M-072</modules>
   <non-goals>Changing business logic, backend APIs, deploy/install scripts, or adding native mobile apps.</non-goals>
   <steps>
-    <step-1>Audit public, auth, user, and admin routes at phone, tablet, and desktop viewports.</step-1>
-    <step-2>Fix phone density issues at 360x740, 390x844, and 430x932.</step-2>
-    <step-3>Fix tablet layouts at 768x1024, 820x1180, and 1024x1366.</step-3>
-    <step-4>Verify desktop layouts remain compact and not over-expanded.</step-4>
-    <step-5>Verify mobile navigation, tablet split surfaces, bounded lists, and form control spacing.</step-5>
-    <step-6>Run user/admin builds, responsive smoke, screenshots, XML parse, MyGRACE lint, and protected surface guard.</step-6>
-    <step-7>Document remaining live-only screenshot gaps if auth prevents local protected-route capture.</step-7>
-    <step-8>Record evidence in M-074/V-M-074.</step-8>
+    <step-1 status="done-local">Audit public, auth, user, and admin routes at phone, tablet, and desktop viewports.</step-1>
+    <step-2 status="done-local">Fix phone density issues at 360x740, 390x844, and 430x932.</step-2>
+    <step-3 status="done-local">Fix tablet layouts at 768x1024, 820x1180, and 1024x1366.</step-3>
+    <step-4 status="done-local">Verify desktop layouts remain compact and not over-expanded.</step-4>
+    <step-5 status="done-local">Verify mobile navigation, tablet split surfaces, bounded lists, and form control spacing.</step-5>
+    <step-6 status="done-local">Run user/admin builds, responsive smoke, screenshots, XML parse, MyGRACE lint, and protected surface guard.</step-6>
+    <step-7 status="done-local">Document remaining live-only screenshot gaps if auth prevents local protected-route capture.</step-7>
+    <step-8 status="done-local">Record evidence in M-074/V-M-074.</step-8>
   </steps>
   <verification>V-M-074</verification>
   <acceptance>Premium frontend is intentionally adapted for phones and tablets, not just desktop-safe.</acceptance>
+  <evidence>
+    <item>2026-06-04: frontend npm run build passed; primary JS 448870 bytes gzip 135741, primary CSS 44212 bytes gzip 8832.</item>
+    <item>2026-06-04: frontend-admin npm run build passed; primary JS 780907 bytes gzip 219491, primary CSS 39548 bytes gzip 8687. Vite large-chunk warning remains inside the Phase-61 940KB admin budget.</item>
+    <item>2026-06-04: scripts/phase61-responsive-adaptation-smoke.mjs passed with phone, tablet, desktop, reduced-motion, safe-area, no-horizontal-scroll, no-overlap, touch-target, user/admin static proof, bundle budget, and protected-surface markers.</item>
+    <item>2026-06-04: scripts/phase60-premium-qa-smoke.mjs passed after the implementation commit, including Phase-52/55/56/57/58/59 regression smokes and protected backend/deploy/runtime guard.</item>
+    <item>2026-06-04: XML parse, MyGRACE lint, git diff --check, and protected backend/deploy/runtime diff guard passed.</item>
+    <item>2026-06-04: Authenticated protected-route screenshots remain clean-deploy follow-up evidence; local Phase-61 uses static-route proof instead of claiming live session screenshots.</item>
+  </evidence>
 </Phase-61>

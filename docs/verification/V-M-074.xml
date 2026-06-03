@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<V-M-074 MODULE="M-074" PRIORITY="critical" STATUS="pending" PHASE-61="pending">
+<V-M-074 MODULE="M-074" PRIORITY="critical" STATUS="pass-local-phase61" PHASE-61="pass-local">
   <scope>Responsive adaptation verification for phone, tablet, and desktop layouts across public, auth, user-cabinet, and admin Matrix surfaces.</scope>
   <verification-intent>Phase-61 must prove that the premium Matrix UI is intentionally designed for mobile and tablet use, not merely tolerated by desktop CSS.</verification-intent>
   <test-files>
@@ -36,17 +36,28 @@
     <file>frontend-admin/src/pages/Servers.tsx</file>
     <file>frontend-admin/src/pages/Plans.tsx</file>
     <file>frontend-admin/src/index.css</file>
+    <file>docs/modules/M-074.xml</file>
+    <file>docs/plans/Phase-61.xml</file>
+    <file>docs/verification/V-M-074.xml</file>
   </test-files>
   <commands>
-    <command>cd frontend &amp;&amp; npm run build</command>
-    <command>cd frontend-admin &amp;&amp; npm run build</command>
-    <command>node scripts/phase61-responsive-adaptation-smoke.mjs</command>
-    <command>node scripts/phase60-premium-qa-smoke.mjs</command>
-    <command>python3 -m xml.etree.ElementTree docs/verification-index.xml docs/verification/V-M-074.xml docs/modules/M-074.xml docs/plans/Phase-61.xml</command>
-    <command>mygrace lint</command>
-    <command>git diff --check</command>
-    <command>git diff --name-only -- backend deploy docker-compose.yml install.sh mtproto-runtime official-mtproxy nginx | test -z "$(cat)"</command>
+    <command status="passed-local">cd frontend &amp;&amp; npm run build</command>
+    <command status="passed-local">cd frontend-admin &amp;&amp; npm run build</command>
+    <command status="passed-local">node scripts/phase61-responsive-adaptation-smoke.mjs</command>
+    <command status="passed-local">node scripts/phase60-premium-qa-smoke.mjs</command>
+    <command status="passed-local">python3 -m xml.etree.ElementTree docs/verification-index.xml docs/verification/V-M-074.xml docs/modules/M-074.xml docs/plans/Phase-61.xml</command>
+    <command status="passed-local">mygrace lint</command>
+    <command status="passed-local">git diff --check</command>
+    <command status="passed-local">git diff --name-only -- backend deploy docker-compose.yml install.sh mtproto-runtime official-mtproxy nginx telegram-bot is empty</command>
   </commands>
+  <evidence>
+    <item>2026-06-04: frontend npm run build passed; primary JS 448870 bytes gzip 135741, primary CSS 44212 bytes gzip 8832.</item>
+    <item>2026-06-04: frontend-admin npm run build passed; primary JS 780907 bytes gzip 219491, primary CSS 39548 bytes gzip 8687. Vite large-chunk warning remains inside the Phase-61 940KB admin budget.</item>
+    <item>2026-06-04: scripts/phase61-responsive-adaptation-smoke.mjs passed and emitted BUILDS_PASS, VIEWPORT_MATRIX_READY, PHONE_LAYOUT_PASS, TABLET_LAYOUT_PASS, DESKTOP_REGRESSION_PASS, NO_HORIZONTAL_SCROLL, NO_OVERLAP_PASS, TOUCH_TARGETS_PASS, SAFE_AREA_PASS, PROTECTED_USER_STATIC_PROOF, ADMIN_STATIC_PROOF, REDUCED_MOTION_PASS, BUNDLE_BUDGET_PASS, and PROTECTED_SURFACE_GUARD.</item>
+    <item>2026-06-04: scripts/phase60-premium-qa-smoke.mjs passed after the Phase-61 implementation commit and preserved Phase-52/55/56/57/58/59 regression smokes.</item>
+    <item>2026-06-04: XML parse, MyGRACE lint, git diff --check, and protected backend/deploy/runtime guard passed.</item>
+    <item>2026-06-04: Authenticated protected-route browser screenshots are not claimed locally; Phase-61 records static-route proof and leaves real backend-session screenshot review for clean-deploy validation.</item>
+  </evidence>
   <viewport-matrix>
     <phone-1>320x568 proves smallest supported phone does not clip auth/public CTAs or cabinet actions.</phone-1>
     <phone-2>360x740 proves compact Android layout, bottom navigation spacing, forms, and MTProto/VPN cards.</phone-2>
@@ -120,10 +131,10 @@
     <asset-policy>No new public visual asset may exceed 512KB without explicit documentation, and no single frontend asset may exceed 1.5MB.</asset-policy>
   </performance-budgets>
   <phase-gates>
-    <gate-1>V-M-074 cannot move to pass-local until user/admin builds, Phase-61 smoke, Phase-60 regression smoke, XML parse, MyGRACE lint, git diff --check, and protected surface guard pass.</gate-1>
-    <gate-2>V-M-074 cannot move to pass-local if any protected-route screenshots are unavailable without a truthful auth-fixture/live-gap note.</gate-2>
-    <gate-3>Phase-61 execution must not modify deploy/install scripts or backend/runtime services; any required operational change must become a separate confirmed phase.</gate-3>
-    <gate-4>Known live-only evidence must be documented in M-074 and V-M-074 rather than hidden behind generic PASS wording.</gate-4>
+    <gate-1 status="passed-local">V-M-074 cannot move to pass-local until user/admin builds, Phase-61 smoke, Phase-60 regression smoke, XML parse, MyGRACE lint, git diff --check, and protected surface guard pass.</gate-1>
+    <gate-2 status="passed-local-static-proof">V-M-074 cannot move to pass-local if any protected-route screenshots are unavailable without a truthful auth-fixture/live-gap note.</gate-2>
+    <gate-3 status="passed-local">Phase-61 execution must not modify deploy/install scripts or backend/runtime services; any required operational change must become a separate confirmed phase.</gate-3>
+    <gate-4 status="passed-local">Known live-only evidence must be documented in M-074 and V-M-074 rather than hidden behind generic PASS wording.</gate-4>
   </phase-gates>
   <autonomous-execution-safety>
     <safety-1>Edits are limited to frontend, frontend-admin, Phase-61 smoke, and MyGRACE documentation unless the operator approves a new phase.</safety-1>
