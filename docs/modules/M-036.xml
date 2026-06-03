@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<M-036 NAME="mobile-user-cabinet" TYPE="UI_COMPONENT" STATUS="pass-local-phase46">
-  <path>frontend scripts/phase45-trial-subscription-ux-smoke.mjs scripts/phase46-user-cabinet-ux-smoke.mjs docs/plans/Phase-23.xml docs/plans/Phase-45.xml docs/plans/Phase-46.xml</path>
+<M-036 NAME="mobile-user-cabinet" TYPE="UI_COMPONENT" STATUS="pass-local-phase46-phase53">
+  <path>frontend scripts/phase45-trial-subscription-ux-smoke.mjs scripts/phase46-user-cabinet-ux-smoke.mjs scripts/phase53-user-matrix-ui-smoke.mjs docs/plans/Phase-23.xml docs/plans/Phase-45.xml docs/plans/Phase-46.xml docs/plans/Phase-53.xml</path>
   <owns>Compact mobile-first personal cabinet for VPN status, subscription state, trial countdown/calendar, device management, and config access</owns>
   <exports>
     <view-mobile-home>Single compact home surface with VPN status, subscription state, and primary config action</view-mobile-home>
@@ -10,19 +10,23 @@
     <view-mobile-countdown-calendar>Compact Phase-45 pending-first-VPN state, remaining days/hours/minutes, and active subscription date calendar</view-mobile-countdown-calendar>
     <view-mobile-empty-states>Phone-safe unavailable, expired, loading, and error states with actionable next steps</view-mobile-empty-states>
   </exports>
-  <depends>M-002, M-003, M-004, M-005, M-022, M-038</depends>
+  <depends>M-002, M-003, M-004, M-005, M-022, M-038, M-071</depends>
   <verification-ref>V-M-036</verification-ref>
   <files>
     <file>frontend/src/components/Layout.tsx</file>
     <file>frontend/src/pages/Dashboard.tsx</file>
     <file>frontend/src/pages/Config.tsx</file>
     <file>frontend/src/pages/Subscription.tsx</file>
+    <file>frontend/src/pages/Referrals.tsx</file>
+    <file>frontend/src/pages/Settings.tsx</file>
     <file>frontend/src/index.css</file>
     <file>scripts/phase45-trial-subscription-ux-smoke.mjs</file>
     <file>scripts/phase46-user-cabinet-ux-smoke.mjs</file>
+    <file>scripts/phase53-user-matrix-ui-smoke.mjs</file>
     <file>docs/plans/Phase-23.xml</file>
     <file>docs/plans/Phase-45.xml</file>
     <file>docs/plans/Phase-46.xml</file>
+    <file>docs/plans/Phase-53.xml</file>
   </files>
   <workflows>
     <DF-UI-USER-HOME>Dashboard aggregates auth/user stats, VPN stats, subscription state, and device summary into the first mobile screen.</DF-UI-USER-HOME>
@@ -52,7 +56,8 @@
     <metric-5>Phase-31 MTProto card renders without horizontal scroll and keeps VPN config/subscription actions reachable.</metric-5>
     <metric-6>Phase-45 subscription UX smoke passes for pending trial copy, server-derived countdown fields, active-date calendar marker, and stale 3-day copy guard.</metric-6>
     <metric-7>Phase-46 UX smoke passes for password example, MTProto dual links, Russian labels, and bounded status refresh.</metric-7>
+    <metric-8>Phase-53 smoke and screenshot review pass for compact Matrix dashboard/config/subscription/referrals/settings routes without protected deploy/install changes.</metric-8>
   </acceptance-metrics>
-  <evidence>2026-06-01: frontend npm run build passed, node scripts/phase45-trial-subscription-ux-smoke.mjs passed, and node scripts/phase46-user-cabinet-ux-smoke.mjs passed for password guidance and compact MTProto link/status UX.</evidence>
+  <evidence>2026-06-01: frontend npm run build passed, node scripts/phase45-trial-subscription-ux-smoke.mjs passed, and node scripts/phase46-user-cabinet-ux-smoke.mjs passed for password guidance and compact MTProto link/status UX. 2026-06-03: frontend npm run build and node scripts/phase53-user-matrix-ui-smoke.mjs passed; production-preview auth screenshots confirmed readable Matrix mobile surfaces while protected route coverage is static due local auth redirect.</evidence>
   <hotspot>H-023: Mobile user cabinet must keep config download, QR, subscription and device actions reachable without clutter</hotspot>
 </M-036>

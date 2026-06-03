@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<V-M-070 MODULE="M-070" PRIORITY="high" STATUS="pass-local-phase52">
+<V-M-070 MODULE="M-070" PRIORITY="high" STATUS="pass-local-phase52-phase53">
   <scope>
     <phase>Phase-52</phase>
     <purpose>Verify the shared React/Vite Matrix visual runtime before it is used by the full user/admin redesign phases.</purpose>
@@ -22,7 +22,7 @@
     <check-6>git diff --name-only -- install.sh deploy nginx docker-compose.yml</check-6>
     <check-7>Phase-53 user route screenshot audit: auth, dashboard, config, subscription, referrals, settings, and reduced-motion dashboard.</check-7>
   </module-checks>
-  <phase-53-runtime-gates status="verification-designed">
+  <phase-53-runtime-gates status="pass-local">
     <gate-1>MatrixBackground remains mounted once through VisualShell while user route navigation changes content.</gate-1>
     <gate-2>Canvas and CRT overlays remain pointer-events-none and do not intercept VPN config download, copy, QR, tariff checkout, MTProto copy/open, or auth form controls.</gate-2>
     <gate-3>Reduced-motion mode renders a readable static Matrix surface across dashboard/config/subscription routes without running animation loops.</gate-3>
@@ -77,10 +77,13 @@
       <screenshot-paths>/tmp/krotpn-phase52-user-360x740.png /tmp/krotpn-phase52-user-390x844.png /tmp/krotpn-phase52-user-430x932.png /tmp/krotpn-phase52-user-1440x900.png /tmp/krotpn-phase52-user-reduced-390x844.png /tmp/krotpn-phase52-admin-360x740.png /tmp/krotpn-phase52-admin-390x844.png /tmp/krotpn-phase52-admin-430x932.png /tmp/krotpn-phase52-admin-1440x900.png /tmp/krotpn-phase52-admin-reduced-390x844.png</screenshot-paths>
       <protected-surface>No install.sh, deploy, nginx, docker-compose, or runtime topology diff.</protected-surface>
     </local-2026-06-03>
-    <phase-53-designed-2026-06-03>
-      <result>VERIFICATION_DESIGNED</result>
-      <required-command>node scripts/phase53-user-matrix-ui-smoke.mjs</required-command>
-      <required-proof>User route screenshots plus reduced-motion proof must show a nonblank pointer-safe Matrix background without hiding controls.</required-proof>
-    </phase-53-designed-2026-06-03>
+    <phase-53-local-2026-06-03>
+      <result>PASS</result>
+      <command-1>node scripts/phase53-user-matrix-ui-smoke.mjs</command-1>
+      <command-2>cd frontend &amp;&amp; npm run build</command-2>
+      <command-3>Chrome production-preview screenshot proof for /login, /register, /reset-password, desktop /login, and reduced-motion /login with virtual-time-budget.</command-3>
+      <screenshot-paths>/tmp/krotpn-phase53-shots/login-mobile-v5.png /tmp/krotpn-phase53-shots/register-mobile-final.png /tmp/krotpn-phase53-shots/reset-mobile-final.png /tmp/krotpn-phase53-shots/login-desktop-final.png /tmp/krotpn-phase53-shots/login-mobile-reduced-motion.png</screenshot-paths>
+      <protected-surface>No install.sh, deploy, nginx, docker-compose, or runtime topology diff.</protected-surface>
+    </phase-53-local-2026-06-03>
   </evidence>
 </V-M-070>

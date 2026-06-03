@@ -1,12 +1,12 @@
 // FILE: frontend/src/pages/Subscription.tsx
-// VERSION: 1.1.0
+// VERSION: 1.2.0
 // ROLE: UI_COMPONENT
 // MAP_MODE: SUMMARY
 // START_MODULE_CONTRACT
-//   PURPOSE: Compact subscription page with current status, readable plan rows, and payment initiation
+//   PURPOSE: Compact Matrix subscription page with current status, readable plan rows, and payment initiation
 //   SCOPE: Subscription status summary, compact plan list, payment creation and redirect to payment URL
-//   DEPENDS: M-009 (frontend-user), M-004 (billing API), M-036 (mobile-user-cabinet), M-038 (compact-ui-system)
-//   LINKS: M-009 (frontend-user), M-036 (mobile-user-cabinet), M-038 (compact-ui-system)
+//   DEPENDS: M-009 (frontend-user), M-004 (billing API), M-036 (mobile-user-cabinet), M-038 (compact-ui-system), M-071 (matrix-style-system)
+//   LINKS: M-009 (frontend-user), M-036 (mobile-user-cabinet), M-038 (compact-ui-system), M-071
 // END_MODULE_CONTRACT
 //
 // START_MODULE_MAP
@@ -17,6 +17,7 @@
 // END_MODULE_MAP
 //
 // START_CHANGE_SUMMARY
+//   LAST_CHANGE: v2.12.0 - Applied Phase-53 compact Matrix tariff/status/calendar surfaces without changing checkout shape.
 //   LAST_CHANGE: v2.11.0 - Added Phase-50 three paid tariffs with device-limit usage and downgrade guard UX.
 //   LAST_CHANGE: v2.10.0 - Added Phase-45 pending trial countdown and compact active-date calendar.
 //   LAST_CHANGE: v2.8.0 - Added full GRACE MODULE_CONTRACT and MODULE_MAP per GRACE governance protocol
@@ -129,7 +130,7 @@ export default function Subscription() {
   }
 
   return (
-    <div className="content-section animate-in">
+    <div className="content-section matrix-page animate-in" data-phase53-route="subscription">
       <section className="grid gap-3 lg:grid-cols-[minmax(0,1fr)_minmax(260px,0.75fr)]">
         <article className="panel p-4 sm:p-5">
           <div className="flex items-start justify-between gap-3">
@@ -213,8 +214,8 @@ export default function Subscription() {
         </div>
       </section>
 
-      <section className="grid gap-3">
-        <div className="flex items-end justify-between gap-3">
+      <section className="grid gap-3" data-phase53-tariff-catalog="canonical-three-plans">
+        <div className="matrix-page-header">
           <div className="min-w-0">
             <h2 className="text-xl font-extrabold">{t('plans')}</h2>
             <p className="mt-1 text-sm muted">Три тарифа KrotPN на 30 дней. Оплата создается backend по выбранному plan_id.</p>
@@ -228,7 +229,11 @@ export default function Subscription() {
           const usageText = `${Math.min(consumedSlots, plan.device_limit)} из ${plan.device_limit}`
 
           return (
-            <article key={plan.id} className={`panel p-4 sm:p-5 ${isPopular ? 'ring-1 ring-emerald-200/16' : ''}`}>
+            <article
+              key={plan.id}
+              className={`panel p-4 sm:p-5 ${isPopular ? 'ring-1 ring-emerald-200/16' : ''}`}
+              data-phase53-tariff-row={plan.slug}
+            >
               <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
                 <div className="flex min-w-0 items-start gap-3">
                   <div className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-lg ${isPopular ? 'gradient-bg text-slate-950' : 'bg-white/8 text-cyan-100'}`}>

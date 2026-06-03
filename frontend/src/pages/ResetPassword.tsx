@@ -1,12 +1,12 @@
 // FILE: frontend/src/pages/ResetPassword.tsx
-// VERSION: 1.0.0
+// VERSION: 1.1.0
 // ROLE: UI_COMPONENT
 // MAP_MODE: SUMMARY
 // START_MODULE_CONTRACT
 //   PURPOSE: Password reset confirmation page for one-time recovery tokens
 //   SCOPE: Token query parsing, strong-password validation, reset API call, and navigation back to login
-//   DEPENDS: M-009 (frontend-user), M-002 (auth API), M-062 (auth email UX and password security)
-//   LINKS: M-009, M-062, V-M-062
+//   DEPENDS: M-009 (frontend-user), M-002 (auth API), M-062 (auth email UX and password security), M-071 (matrix-style-system)
+//   LINKS: M-009, M-062, M-071, V-M-062
 // END_MODULE_CONTRACT
 //
 // START_MODULE_MAP
@@ -15,6 +15,7 @@
 // END_MODULE_MAP
 //
 // START_CHANGE_SUMMARY
+//   LAST_CHANGE: v1.1.0 - Applied Phase-53 compact Matrix reset surface
 //   LAST_CHANGE: v1.0.0 - Added Phase-44 password reset confirmation UX
 // END_CHANGE_SUMMARY
 //
@@ -74,19 +75,19 @@ export default function ResetPassword() {
   }
 
   return (
-    <div className="min-h-screen px-3 py-4 sm:px-4 sm:py-6">
-      <div className="mx-auto flex min-h-[calc(100vh-2rem)] max-w-xl items-center justify-center">
-        <section className="mx-auto w-full max-w-md">
-          <div className="mb-6 text-center">
-            <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-lg bg-emerald-300/12 text-emerald-100">
-              <ShieldCheck className="h-7 w-7" />
-            </div>
-            <h1 className="mt-4 text-2xl font-extrabold sm:text-3xl">Новый пароль</h1>
-            <p className="mt-2 text-sm muted">Задайте устойчивый пароль для личного кабинета.</p>
+    <div className="matrix-auth-screen" data-phase53-auth-route="reset-password">
+      <section className="w-full max-w-md animate-in">
+        <div className="matrix-auth-heading">
+          <div className="matrix-brand-mark mx-auto h-12 w-12">
+            <ShieldCheck className="h-6 w-6" />
           </div>
+          <p className="matrix-kicker mt-4">New password</p>
+          <h1 className="mt-2 text-2xl font-extrabold text-white">Новый пароль</h1>
+          <p className="mt-2 text-sm muted">Задайте устойчивый пароль для личного кабинета.</p>
+        </div>
 
           {done ? (
-            <div className="glass space-y-4 p-5 text-center sm:p-6">
+            <div className="matrix-auth-card space-y-4 text-center">
               <CheckCircle2 className="mx-auto h-10 w-10 text-emerald-200" />
               <div>
                 <h2 className="text-xl font-extrabold text-white">Пароль обновлён</h2>
@@ -97,7 +98,7 @@ export default function ResetPassword() {
               </button>
             </div>
           ) : (
-            <form onSubmit={handleSubmit} className="glass space-y-4 p-5 sm:p-6">
+            <form onSubmit={handleSubmit} className="matrix-auth-card space-y-4">
               {!token ? (
                 <div className="panel-soft px-4 py-3 text-sm text-slate-200">
                   В ссылке отсутствует одноразовый токен. Запросите новое письмо для сброса пароля.
@@ -147,8 +148,7 @@ export default function ResetPassword() {
               </Link>
             </form>
           )}
-        </section>
-      </div>
+      </section>
     </div>
   )
 }

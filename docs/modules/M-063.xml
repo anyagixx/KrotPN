@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<M-063 NAME="trial-activation-subscription-countdown" TYPE="CORE_LOGIC" STATUS="done-local-phase45">
-  <path>backend/app/billing backend/app/vpn backend/app/tasks frontend scripts/phase45-trial-subscription-ux-smoke.mjs docs/plans/Phase-45.xml</path>
+<M-063 NAME="trial-activation-subscription-countdown" TYPE="CORE_LOGIC" STATUS="done-local-phase45-phase53">
+  <path>backend/app/billing backend/app/vpn backend/app/tasks frontend scripts/phase45-trial-subscription-ux-smoke.mjs scripts/phase53-user-matrix-ui-smoke.mjs docs/plans/Phase-45.xml docs/plans/Phase-53.xml</path>
   <owns>Four-day trial policy, pending-trial lifecycle, first VPN handshake activation, subscription countdown API, and calendar UX.</owns>
   <purpose>Start the free KrotPN VPN trial only when the verified user first connects through VPN while keeping config access and billing state consistent.</purpose>
   <exports>
@@ -11,7 +11,7 @@
     <view-subscription-countdown>Render compact remaining time in the user cabinet.</view-subscription-countdown>
     <view-subscription-calendar>Render active subscription dates in a compact calendar view.</view-subscription-calendar>
   </exports>
-  <depends>M-001,M-003,M-004,M-008,M-009,M-022,M-028,M-036</depends>
+  <depends>M-001,M-003,M-004,M-008,M-009,M-022,M-028,M-036,M-071</depends>
   <verification-ref>V-M-063</verification-ref>
   <files>
     <file>backend/app/core/config.py</file>
@@ -27,6 +27,7 @@
     <file>frontend/src/pages/Subscription.tsx</file>
     <file>frontend/src/lib/api.ts</file>
     <file>scripts/phase45-trial-subscription-ux-smoke.mjs</file>
+    <file>scripts/phase53-user-matrix-ui-smoke.mjs</file>
     <file>backend/tests/test_trial_activation.py</file>
   </files>
   <phase-45-scope>
@@ -44,6 +45,7 @@
     <metric-2>Users who verify but never connect can still retrieve their first config and see pending activation state.</metric-2>
     <metric-3>Dashboard and subscription pages show days, hours, and minutes remaining plus a compact active-date calendar after activation.</metric-3>
     <metric-4>Backend tests, scheduler tests, frontend build, XML parse, MyGRACE lint, and Phase-45 smoke pass.</metric-4>
+    <metric-5>Phase-53 smoke confirms countdown/calendar semantics remain readable inside Matrix dashboard/subscription surfaces.</metric-5>
   </acceptance-metrics>
   <implementation-summary>
     <item-1>TRIAL_DAYS default is four days while env override behavior remains intact.</item-1>
@@ -52,6 +54,6 @@
     <item-4>Subscription API returns pending_activation, activated_at, active date range, and server-derived remaining seconds/days/hours/minutes.</item-4>
     <item-5>User dashboard and subscription page render pending-first-connection state, compact countdown, and highlighted active-date calendar.</item-5>
   </implementation-summary>
-  <evidence>2026-06-01: backend Phase-45 suite passed 35/35 outside sandbox due known aiosqlite sandbox hang; frontend npm run build and node scripts/phase45-trial-subscription-ux-smoke.mjs passed; py_compile passed for changed backend files; deploy/install diff guard showed no changes.</evidence>
+  <evidence>2026-06-01: backend Phase-45 suite passed 35/35 outside sandbox due known aiosqlite sandbox hang; frontend npm run build and node scripts/phase45-trial-subscription-ux-smoke.mjs passed; py_compile passed for changed backend files; deploy/install diff guard showed no changes. 2026-06-03: Phase-53 smoke passed for Matrix countdown/calendar readability, pending-first-VPN copy, and stale 3-day copy guard.</evidence>
   <hotspot>H-050: VPN trial activation must start from the first successful VPN handshake without locking verified users out of their first config</hotspot>
 </M-063>

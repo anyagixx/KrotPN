@@ -99,8 +99,8 @@
     <item>Phase-49 is passed-local for BIMI asset delivery and DNS runbook; live curl, default._bimi DNS propagation, and mailbox avatar rendering remain operator/provider-side validation after release deployment.</item>
     <item>Phase-50 is passed-local for tariff catalog, checkout, YooKassa payload shape, device-limit guard, UI/API contract, and protected-surface isolation; optional live validation remains clean-deploy review of the three tariffs plus a real or YooKassa test-mode payment.</item>
     <item>Phase-51 is passed-local for favicon/PWA asset delivery and Resend HTML email-logo rendering; optional live validation remains curl/browser proof for https://krotpn.xyz/favicon.ico and https://krotpn.xyz/brand/email-logo.png plus a real delivered Resend email with remote images enabled.</item>
-    <item>Phase-52 is passed-local for the shared Matrix visual foundation on login shells; full route-by-route Matrix UX redesign is intentionally deferred to Phase-53 user cabinet and Phase-54 admin console, where dense dashboards, MTProto panels, tariffs, tables, and charts still need visual retuning.</item>
-    <item>Phase-53 verification is designed for the user cabinet Matrix redesign: execution must add scripts/phase53-user-matrix-ui-smoke.mjs, preserve existing auth/VPN/MTProto/trial/tariff contracts, cover auth/dashboard/config/subscription/referrals/settings routes, prove reduced-motion behavior, and keep deploy/install surfaces untouched.</item>
+    <item>Phase-52 is passed-local for the shared Matrix visual foundation on login shells; Phase-53 has now applied that foundation to the user cabinet, while Phase-54 admin console redesign remains the next Matrix UI phase for dense admin tables, MTProto analytics, users, devices, plans, and operational charts.</item>
+    <item>Phase-53 is passed-local for the user cabinet Matrix redesign: compact auth screens, protected user Layout, dashboard, config, subscription, referrals, settings, Loading state, MTProto card, trial/calendar, and tariff surfaces are retuned with frontend build, Phase-53 smoke, production-preview screenshots, reduced-motion proof, and protected deploy/install isolation.</item>
     <item>Emergency relocation is documented but still blocked until a trusted backup bundle and isolated restore target exist for dry-run evidence.</item>
     <item>Cookie-only auth migration is planned but not executed because it requires explicit approval and HTTPS or production-like smoke evidence.</item>
   </what-is-fragile>
@@ -223,8 +223,8 @@
     <gate id="phase-52-matrix-visual-foundation" status="passed-local">
       <summary>Local execution passed for shared user/admin MatrixBackground and VisualShell, Matrix palette tokens, CRT scanlines, vignette layering, focus-visible and reduced-motion policies, Phase-52 static smoke, user/admin builds, Chrome screenshots at 360x740, 390x844, 430x932, 1440x900, reduced-motion 390x844, XML parse, MyGRACE lint, git diff --check, and protected deploy/install guard.</summary>
     </gate>
-    <gate id="phase-53-user-cabinet-matrix-redesign" status="verification-designed">
-      <summary>Verification design is ready for user-cabinet Matrix redesign: V-M-009, V-M-036, V-M-045, V-M-063, V-M-064, V-M-068, V-M-070, and V-M-071 require frontend build, Phase-53 smoke, route/viewport screenshots, reduced-motion proof, redaction checks, MyGRACE/XML/diff gates, and protected deploy/install isolation before Phase-53 can close.</summary>
+    <gate id="phase-53-user-cabinet-matrix-redesign" status="passed-local">
+      <summary>Local execution passed for compact Matrix user auth and cabinet routes, removed heavy login hero, preserved auth/VPN/MTProto/trial/tariff/config-download contracts, added scripts/phase53-user-matrix-ui-smoke.mjs, passed frontend build and smoke, captured production-preview mobile/desktop/reduced-motion screenshots with virtual-time-budget, and kept install.sh/deploy/nginx/docker-compose/runtime surfaces untouched.</summary>
     </gate>
     <gate id="release-v2.24.0-tariffs-branding-stable" status="passed-local">
       <summary>Stable release target includes Phase-44 through Phase-51 local verification: backend email, trial, tariff, billing, device, VPN compatibility, DB migration, MTProto provisioning, frontend/admin builds, Phase-45/46/47/48/49/50/51 smoke gates, XML parse, MyGRACE lint, git diff --check, and protected deploy/install guards. Operator clean-deploy validation remains the next live evidence step after GitHub push.</summary>
@@ -232,8 +232,8 @@
   </rollout-gates>
 
   <immediate-priorities>
-    <priority rank="1">Execute Phase-53 user cabinet Matrix redesign using the Phase-52 shared runtime/style foundation, with mobile-first checks for dashboard, config, subscription, referrals, settings, and MTProto proxy cards.</priority>
-    <priority rank="2">Execute Phase-54 admin console Matrix redesign using the same foundation, with compact checks for MTProto analytics, users, devices, plans, servers, and operational tables.</priority>
+    <priority rank="1">Execute Phase-54 admin console Matrix redesign using the Phase-52/53 foundation, with compact checks for MTProto analytics, users, devices, plans, servers, and operational tables.</priority>
+    <priority rank="2">Run clean-deploy validation for Phase-53 user cabinet Matrix redesign after GitHub push, including authenticated dashboard/config/subscription/referrals/settings review against a real backend session.</priority>
     <priority rank="3">Run clean-deploy validation for the current stable baseline from GitHub main, with review of three tariffs, registration email logo rendering, favicon delivery, and a real or YooKassa test-mode payment when credentials are available.</priority>
     <priority rank="4">Continue Phase-43 admin analytics hardening with real redacted runtime data: graph refresh polish, resource metrics, alert notifications, and TTL IP block runtime enforcement.</priority>
     <priority rank="5">Run Phase-22 non-production restore rehearsal with a trusted backup bundle and isolated restore target before production release.</priority>

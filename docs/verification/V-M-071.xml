@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<V-M-071 MODULE="M-071" PRIORITY="high" STATUS="pass-local-phase52">
+<V-M-071 MODULE="M-071" PRIORITY="high" STATUS="pass-local-phase52-phase53">
   <scope>
     <phase>Phase-52</phase>
     <purpose>Verify the Matrix style system foundation for compact, readable, mobile-safe user and admin shells.</purpose>
@@ -22,7 +22,7 @@
     <check-6>git diff --name-only -- install.sh deploy nginx docker-compose.yml</check-6>
     <check-7>Phase-53 viewport smoke: auth, dashboard, config, subscription, referrals, settings, reduced-motion dashboard, and desktop user route screenshots.</check-7>
   </module-checks>
-  <phase-53-style-gates status="verification-designed">
+  <phase-53-style-gates status="pass-local">
     <gate-1>User cabinet routes use Matrix palette/tokens while preserving compact operational layout and avoiding nested cards.</gate-1>
     <gate-2>VPN config actions, QR/download/copy, MTProto secrets, countdown/calendar, tariff prices, referral links, and settings forms remain readable.</gate-2>
     <gate-3>Focus states remain visible on buttons, links, inputs, segmented controls, copy actions, tariff CTAs, and navigation tabs.</gate-3>
@@ -91,10 +91,14 @@
       <viewport-review>Login shells stayed readable, Matrix layer was visible, focus and reduced-motion selectors are present, and no obvious icon/text overlap was observed on captured login viewports.</viewport-review>
       <protected-surface>No install.sh, deploy, nginx, docker-compose, or runtime topology diff.</protected-surface>
     </local-2026-06-03>
-    <phase-53-designed-2026-06-03>
-      <result>VERIFICATION_DESIGNED</result>
-      <required-command>node scripts/phase53-user-matrix-ui-smoke.mjs</required-command>
-      <required-proof>User cabinet route screenshots must show Matrix style without text overlap, horizontal scroll, hidden primary actions, or one-note palette dominance.</required-proof>
-    </phase-53-designed-2026-06-03>
+    <phase-53-local-2026-06-03>
+      <result>PASS</result>
+      <command-1>node scripts/phase53-user-matrix-ui-smoke.mjs</command-1>
+      <command-2>cd frontend &amp;&amp; npm run build</command-2>
+      <command-3>Chrome production-preview screenshots with virtual-time-budget for /login, /register, /reset-password, desktop /login, and reduced-motion /login.</command-3>
+      <screenshot-paths>/tmp/krotpn-phase53-shots/login-mobile-v5.png /tmp/krotpn-phase53-shots/register-mobile-final.png /tmp/krotpn-phase53-shots/reset-mobile-final.png /tmp/krotpn-phase53-shots/login-desktop-final.png /tmp/krotpn-phase53-shots/login-mobile-reduced-motion.png</screenshot-paths>
+      <viewport-review>Auth screenshots were readable after final animation frame, no visible input/icon overlap was observed, and Phase-53 static smoke covered protected dashboard/config/subscription/referrals/settings route surfaces that redirect without local auth session.</viewport-review>
+      <protected-surface>No install.sh, deploy, nginx, docker-compose, or runtime topology diff.</protected-surface>
+    </phase-53-local-2026-06-03>
   </evidence>
 </V-M-071>

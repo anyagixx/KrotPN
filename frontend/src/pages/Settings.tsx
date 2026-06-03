@@ -1,12 +1,12 @@
 // FILE: frontend/src/pages/Settings.tsx
-// VERSION: 1.0.0
+// VERSION: 1.1.0
 // ROLE: UI_COMPONENT
 // MAP_MODE: SUMMARY
 // START_MODULE_CONTRACT
-//   PURPOSE: User settings page -- profile update, language switch, password change
+//   PURPOSE: Compact Matrix user settings page for profile update, language switch, and password change
 //   SCOPE: Profile form, language toggle (ru/en), password change form with validation
-//   DEPENDS: M-009 (frontend-user), M-002 (auth API), M-003 (user profile API)
-//   LINKS: M-009 (frontend-user)
+//   DEPENDS: M-009 (frontend-user), M-002 (auth API), M-003 (user profile API), M-071 (matrix-style-system)
+//   LINKS: M-009 (frontend-user), M-071
 // END_MODULE_CONTRACT
 //
 // START_MODULE_MAP
@@ -15,6 +15,7 @@
 // END_MODULE_MAP
 //
 // START_CHANGE_SUMMARY
+//   LAST_CHANGE: v3.0.0 - Applied Phase-53 compact Matrix settings surfaces.
 //   LAST_CHANGE: 2026-06-01 - Reused Phase-44 strong-password policy for password changes
 //   LAST_CHANGE: v2.8.0 - Added full GRACE MODULE_CONTRACT and MODULE_MAP per GRACE governance protocol
 // END_CHANGE_SUMMARY
@@ -76,21 +77,21 @@ export default function Settings() {
   }
 
   return (
-    <div className="content-section animate-in">
-      <div className="section-header">
-        <div>
+    <div className="content-section matrix-page animate-in" data-phase53-route="settings">
+      <div className="section-header matrix-page-header">
+        <div className="min-w-0">
           <h1 className="section-title">{t('settings')}</h1>
           <p className="section-subtitle">Управляйте профилем, языком интерфейса и безопасностью учётной записи.</p>
         </div>
       </div>
 
       <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
-        <section className="panel p-6">
+        <section className="panel p-4 sm:p-5">
           <div className="mb-6 flex items-center gap-3">
-            <div className="rounded-2xl bg-white/8 p-3 text-cyan-100">
+            <div className="matrix-icon-tile">
               <User className="h-5 w-5" />
             </div>
-            <div>
+            <div className="min-w-0">
               <h2 className="text-lg font-bold">{t('profile')}</h2>
               <p className="text-sm muted">Основные данные аккаунта.</p>
             </div>
@@ -114,12 +115,12 @@ export default function Settings() {
           </div>
         </section>
 
-        <section className="panel p-6">
+        <section className="panel p-4 sm:p-5">
           <div className="mb-6 flex items-center gap-3">
-            <div className="rounded-2xl bg-emerald-300/12 p-3 text-emerald-200">
+            <div className="matrix-icon-tile">
               <Globe className="h-5 w-5" />
             </div>
-            <div>
+            <div className="min-w-0">
               <h2 className="text-lg font-bold">{t('language')}</h2>
               <p className="text-sm muted">Переключение языка интерфейса в один клик.</p>
             </div>
@@ -148,12 +149,12 @@ export default function Settings() {
         </section>
       </div>
 
-      <section className="panel max-w-3xl p-6">
+      <section className="panel max-w-3xl p-4 sm:p-5">
         <div className="mb-6 flex items-center gap-3">
-          <div className="rounded-2xl bg-red-300/10 p-3 text-red-100">
+          <div className="matrix-icon-tile">
             <Lock className="h-5 w-5" />
           </div>
-          <div>
+          <div className="min-w-0">
             <h2 className="text-lg font-bold">{t('changePassword')}</h2>
             <p className="text-sm muted">Используйте длинный уникальный пароль для защиты аккаунта.</p>
           </div>

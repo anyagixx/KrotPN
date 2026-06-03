@@ -1,12 +1,12 @@
 // FILE: frontend/src/pages/Config.tsx
-// VERSION: 1.1.0
+// VERSION: 1.2.0
 // ROLE: UI_COMPONENT
 // MAP_MODE: SUMMARY
 // START_MODULE_CONTRACT
-//   PURPOSE: Compact VPN configuration page for device registry, config download/copy/QR, and raw-config fallback
+//   PURPOSE: Compact Matrix VPN configuration page for device registry, config download/copy/QR, and raw-config fallback
 //   SCOPE: Device CRUD (create/rotate/revoke), selected config actions, QR modal, collapsed raw config, compact install guidance
-//   DEPENDS: M-009 (frontend-user), M-003 (vpn config API), M-002 (auth API), M-022 (device provisioning API), M-036 (mobile-user-cabinet)
-//   LINKS: M-009 (frontend-user), M-036 (mobile-user-cabinet)
+//   DEPENDS: M-009 (frontend-user), M-003 (vpn config API), M-002 (auth API), M-022 (device provisioning API), M-036 (mobile-user-cabinet), M-071 (matrix-style-system)
+//   LINKS: M-009 (frontend-user), M-036 (mobile-user-cabinet), M-071
 // END_MODULE_CONTRACT
 //
 // START_MODULE_MAP
@@ -18,6 +18,7 @@
 // END_MODULE_MAP
 //
 // START_CHANGE_SUMMARY
+//   LAST_CHANGE: v3.1.0 - Applied Phase-53 compact Matrix config/device surfaces without changing download semantics.
 //   LAST_CHANGE: v3.0.0 - Hardened frontend .conf downloads with octet-stream Blob type and safe filenames.
 //   LAST_CHANGE: v2.8.0 - Added full GRACE MODULE_CONTRACT and MODULE_MAP per GRACE governance protocol
 //   LAST_CHANGE: v2.8.1 - Fixed QR code not showing: removed disabled={Boolean(managedBundle)} from QR button so device-bound configs can also display QR
@@ -195,7 +196,7 @@ export default function Config() {
 
   if (hasNoConfig || isForbidden) {
     return (
-      <div className="content-section animate-in">
+      <div className="content-section matrix-page animate-in" data-phase53-route="config">
         <section className="panel p-4 sm:p-5">
           <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
             <div className="min-w-0">
@@ -230,7 +231,7 @@ export default function Config() {
   }
 
   return (
-    <div className="content-section animate-in">
+    <div className="content-section matrix-page animate-in" data-phase53-route="config">
       <section className="grid gap-3 lg:grid-cols-[minmax(0,1fr)_minmax(260px,0.75fr)]">
         <article className="panel p-4 sm:p-5">
           <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
@@ -247,7 +248,7 @@ export default function Config() {
             <span className="status-badge-success w-fit shrink-0">config ready</span>
           </div>
 
-          <div className="mt-4 grid gap-2 sm:grid-cols-3">
+          <div className="matrix-action-grid mt-4 sm:grid-cols-3">
             <button onClick={() => setShowQR(true)} disabled={!config?.config} className="btn-primary min-h-11 rounded-lg px-3 py-2.5">
               <QrCode className="h-5 w-5" />
               QR
@@ -300,7 +301,7 @@ export default function Config() {
                   || revokeDeviceMutation.isLoading && revokeDeviceMutation.variables === device.id
 
                 return (
-                  <div key={device.id} className="rounded-lg border border-white/10 bg-white/[0.03] p-3">
+                  <div key={device.id} className="matrix-row">
                     <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                       <div className="min-w-0">
                         <div className="flex flex-wrap items-center gap-2">
@@ -454,7 +455,7 @@ export default function Config() {
         </div>
 
         {showRawConfig ? (
-          <pre className="mt-4 max-h-72 overflow-y-auto whitespace-pre-wrap break-all rounded-lg bg-slate-950/55 p-3 text-xs text-cyan-100">
+          <pre className="matrix-terminal mt-4 max-h-72 whitespace-pre-wrap break-all">
             {config?.config || 'Конфигурация недоступна'}
           </pre>
         ) : null}
@@ -498,7 +499,7 @@ function QRModal({
   // 100% client-side QR generation — no server fetch, no blob, no CORS issues
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/70 p-4 backdrop-blur-sm">
-      <div className="glass w-full max-w-md p-6">
+      <div className="glass w-full max-w-md p-5 sm:p-6">
         <div className="flex items-center justify-between gap-4">
           <div>
             <h3 className="text-xl font-bold">{t('scanQR')}</h3>

@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<M-071 NAME="matrix-style-system" TYPE="UI_COMPONENT" STATUS="done-local-phase52">
+<M-071 NAME="matrix-style-system" TYPE="UI_COMPONENT" STATUS="done-local-phase52-phase53">
   <path>frontend/src/index.css frontend-admin/src/index.css frontend/src/components/Layout.tsx frontend-admin/src/components/Layout.tsx scripts/phase52-matrix-visual-smoke.mjs scripts/phase53-user-matrix-ui-smoke.mjs scripts/phase54-admin-matrix-ui-smoke.mjs docs/plans/Phase-52.xml docs/plans/Phase-53.xml docs/plans/Phase-54.xml</path>
   <owns>Shared KrotPN Matrix visual language: color tokens, compact panels, CRT scanlines, neon flicker, glitch accents, focus states, and mobile-safe responsive rules.</owns>
-  <depends>M-009, M-010, M-036, M-037, M-038</depends>
+  <depends>M-009, M-010, M-036, M-037, M-038, M-070</depends>
   <verification-ref>V-M-071</verification-ref>
   <reference>
     <source-1>TRUFFLEX styles.css neon flicker, scanline, glitch, matrix fade, and reduced-motion CSS blocks.</source-1>
@@ -17,6 +17,7 @@
     <interface-1>CSS custom properties for KrotPN Matrix palette, surfaces, borders, focus rings, and status colors.</interface-1>
     <interface-2>Reusable class layer for matrix-visual-shell, matrix-canvas, matrix-scanline-overlay, matrix-vignette, and matrix-visual-content surfaces.</interface-2>
     <interface-3>Reduced-motion and mobile viewport rules shared by user and admin frontends.</interface-3>
+    <interface-4>Phase-53 user route classes for matrix-auth-screen, matrix-auth-card, matrix-layout-frame, matrix-page, matrix-action-grid, matrix-terminal, matrix-copy-box, matrix-row, and matrix-icon-tile.</interface-4>
   </public-interfaces>
   <constraints>
     <constraint-1>Preserve compact operational UX: no marketing landing page, no nested cards, no decorative card-heavy dashboards.</constraint-1>
@@ -33,6 +34,7 @@
   </acceptance>
   <evidence>
     <local-2026-06-03>Phase-52 added Matrix palette tokens, canvas/scanline/vignette/content layers, focus-visible rules, reduced-motion CSS policy, protected-surface smoke markers, user/admin builds, and Chrome screenshot checks for mobile, desktop, and reduced-motion login shells.</local-2026-06-03>
+    <phase-53-local-2026-06-03>Phase-53 added compact Matrix user route primitives, removed the heavy login hero, strengthened auth contrast after screenshot review, passed frontend build and Phase-53 smoke, and captured readable production-preview mobile/desktop/reduced-motion auth screenshots.</phase-53-local-2026-06-03>
   </evidence>
   <crosslinks>
     <phase-52>Defines the foundation token system and shared effects.</phase-52>

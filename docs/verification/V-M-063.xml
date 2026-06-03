@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<V-M-063 MODULE="M-063" PRIORITY="critical" STATUS="pass-local">
+<V-M-063 MODULE="M-063" PRIORITY="critical" STATUS="pass-local-phase53">
   <purpose>Verify Phase-45 four-day trial and first-VPN-handshake activation semantics across billing, VPN, scheduler, and user cabinet UX.</purpose>
   <checks>Pending trial is created after email verification, first config remains available, first successful VPN handshake activates the four-day countdown exactly once, subscription API returns precise remaining time, and mobile UI shows countdown plus calendar without stale 3-day copy.</checks>
   <test-files>
@@ -23,7 +23,7 @@
     <gate-6>Dashboard and subscription pages show pending activation, countdown, and calendar without horizontal mobile scroll.</gate-6>
     <gate-7>Deploy/install scripts show no diff.</gate-7>
   </phase-45-gates>
-  <phase-53-ui-gates status="verification-designed">
+  <phase-53-ui-gates status="pass-local">
     <gate-1>Matrix dashboard and subscription redesign keep pending-first-VPN state explicit and do not imply the countdown has started before the first successful VPN handshake.</gate-1>
     <gate-2>Activated subscriptions show server-derived days, hours, minutes, start date, expiry date, and compact active-date calendar without text overlap.</gate-2>
     <gate-3>Expired, paid, complimentary, and pending states remain visually distinct and do not reuse stale 3-day trial copy.</gate-3>
@@ -56,7 +56,7 @@
     <command status="pass-local">cd backend &amp;&amp; SECRET_KEY=test-secret-key-with-enough-length DATA_ENCRYPTION_KEY=dpFmfSVqfdAK3yx5MQV6Tcv35RZuw5MzaH0yhxJ01q0= PYTHONPATH=. ../.venv/bin/python -m pytest -o addopts='' tests/test_trial_activation.py tests/test_billing_service.py tests/test_verified_registration.py tests/test_vpn_router_compat.py tests/test_scheduler.py tests/test_db_migrations.py -v</command>
     <command status="pass-local">cd frontend &amp;&amp; npm run build</command>
     <command status="pass-local">node scripts/phase45-trial-subscription-ux-smoke.mjs</command>
-    <command status="verification-designed">node scripts/phase53-user-matrix-ui-smoke.mjs</command>
+    <command status="pass-local">node scripts/phase53-user-matrix-ui-smoke.mjs</command>
     <command status="pass-local">python3 -m xml.etree.ElementTree docs/plans/Phase-45.xml docs/modules/M-063.xml docs/verification/V-M-063.xml docs/graph-index.xml docs/plan-index.xml docs/verification-index.xml docs/requirements.xml docs/current-status.xml</command>
     <command status="pass-local">mygrace lint</command>
   </commands>
@@ -74,6 +74,7 @@
     <evidence-3>2026-06-01: node scripts/phase45-trial-subscription-ux-smoke.mjs passed and confirmed pending/countdown/calendar wiring with no stale 3-day copy.</evidence-3>
     <evidence-4>2026-06-01: py_compile passed for changed backend runtime and test files; deploy/install diff guard showed no changes.</evidence-4>
     <evidence-5>2026-06-01: XML parse and MyGRACE lint passed with zero errors and zero warnings after documentation synchronization.</evidence-5>
+    <evidence-6>2026-06-03: Phase-53 frontend build and static smoke passed for Matrix countdown/calendar readability, pending-first-VPN state, no stale 3-day copy, and protected deploy/install isolation.</evidence-6>
   </evidence>
   <autonomous-execution-safety>Conditionally safe for local autonomous execute after Phase-44 or in a separate approved wave. Block execution if pending trial cannot retrieve first VPN config, if activation can extend paid/active subscriptions, or if migration coverage is missing.</autonomous-execution-safety>
 </V-M-063>

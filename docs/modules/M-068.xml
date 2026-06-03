@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<M-068 NAME="paid-tariff-catalog" TYPE="CORE_LOGIC" STATUS="done-local-phase50">
-  <path>backend/app/billing backend/app/core/migrations.py backend/alembic/versions/phase50_paid_tariff_catalog.py frontend/src/pages/Subscription.tsx frontend-admin/src/pages/Plans.tsx scripts/phase50-tariff-catalog-smoke.mjs README.md docs/plans/Phase-50.xml</path>
+<M-068 NAME="paid-tariff-catalog" TYPE="CORE_LOGIC" STATUS="done-local-phase50-phase53">
+  <path>backend/app/billing backend/app/core/migrations.py backend/alembic/versions/phase50_paid_tariff_catalog.py frontend/src/pages/Subscription.tsx frontend-admin/src/pages/Plans.tsx scripts/phase50-tariff-catalog-smoke.mjs scripts/phase53-user-matrix-ui-smoke.mjs README.md docs/plans/Phase-50.xml docs/plans/Phase-53.xml</path>
   <owns>Canonical three-plan paid tariff catalog, server-authoritative payment amounts, device-limit checkout guards, and compact tariff presentation in user/admin frontends.</owns>
   <purpose>Guarantee that clean deployments and existing deployments converge to the approved KrotPN paid tariff matrix without trusting frontend-provided prices.</purpose>
   <exports>
@@ -11,7 +11,7 @@
     <ui-admin-tariff-matrix>Render the canonical tariff matrix in admin panel without exposing accidental delete/edit paths for canonical plans.</ui-admin-tariff-matrix>
     <smoke-phase50-tariff-catalog>Static smoke for user/admin tariff copy, canonical price/device-limit values, and protected deploy/install surfaces.</smoke-phase50-tariff-catalog>
   </exports>
-  <depends>M-001,M-004,M-006,M-009,M-010,M-021,M-022,M-028,M-036,M-038</depends>
+  <depends>M-001,M-004,M-006,M-009,M-010,M-021,M-022,M-028,M-036,M-038,M-071</depends>
   <verification-ref>V-M-068</verification-ref>
   <files>
     <file>backend/app/billing/catalog.py</file>
@@ -32,6 +32,7 @@
     <file>frontend-admin/src/pages/Plans.tsx</file>
     <file>frontend-admin/src/types/index.ts</file>
     <file>scripts/phase50-tariff-catalog-smoke.mjs</file>
+    <file>scripts/phase53-user-matrix-ui-smoke.mjs</file>
     <file>README.md</file>
   </files>
   <tariffs>
@@ -54,6 +55,8 @@
     <metric-4>User and admin frontends build and show compact, Russian, mobile-safe tariff surfaces with no stale placeholder CRUD wording.</metric-4>
     <metric-5>Backend tariff, billing, device-limit, migration, frontend build, admin build, static smoke, XML parse, MyGRACE lint, and protected deploy/install diff guard pass.</metric-5>
     <metric-6>Phase-50 verification design is complete before execution: deterministic assertions, trace markers, UI/API contract, and protected-surface guard are explicitly mapped in V-M-068.</metric-6>
+    <metric-7>Phase-53 smoke confirms Matrix subscription UI preserves canonical tariff slugs, server-authoritative checkout shape, and mobile readability.</metric-7>
   </acceptance-metrics>
+  <evidence>2026-06-03: Phase-53 frontend build and smoke passed for Matrix tariff UI while preserving backend canonical 369/693/936 RUB prices, 1/6/9 device limits, and plan_id-only checkout shape.</evidence>
   <hotspot>H-055: Paid tariff catalog must keep server-authoritative prices, canonical device limits, no duplicate clean-deploy plans, and no deploy/install drift</hotspot>
 </M-068>

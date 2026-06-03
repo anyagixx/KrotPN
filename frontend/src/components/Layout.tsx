@@ -1,22 +1,23 @@
 // FILE: frontend/src/components/Layout.tsx
-// VERSION: 1.1.0
+// VERSION: 1.2.0
 // ROLE: UI_COMPONENT
 // MAP_MODE: SUMMARY
 // START_MODULE_CONTRACT
-//   PURPOSE: Compact application layout with phone-safe navigation, user identity, logout, and routed page outlet
-//   SCOPE: Desktop compact sidebar, mobile top bar, mobile bottom navigation, logout action, Outlet for routed pages
-//   DEPENDS: M-009 (frontend-user), M-002 (auth API), M-036 (mobile-user-cabinet), M-038 (compact-ui-system)
-//   LINKS: M-009 (frontend-user), M-036 (mobile-user-cabinet), M-038 (compact-ui-system)
+//   PURPOSE: Compact Matrix application layout with phone-safe navigation, user identity, logout, and routed page outlet
+//   SCOPE: Desktop Matrix sidebar, mobile top bar, mobile bottom navigation, logout action, Outlet for routed pages
+//   DEPENDS: M-009 (frontend-user), M-002 (auth API), M-036 (mobile-user-cabinet), M-038 (compact-ui-system), M-071 (matrix-style-system)
+//   LINKS: M-009 (frontend-user), M-036 (mobile-user-cabinet), M-038 (compact-ui-system), M-071
 // END_MODULE_CONTRACT
 //
 // START_MODULE_MAP
-//   Layout - Compact responsive layout component with desktop sidebar and mobile bars
+//   Layout - Compact Matrix responsive layout component with desktop sidebar and mobile bars
 //   navItems - Route metadata for the compact user cabinet
 //   BLOCK_LAYOUT - Layout default export with responsive shell and navigation
 //   default - React component (default export)
 // END_MODULE_MAP
 //
 // START_CHANGE_SUMMARY
+//   LAST_CHANGE: v3.0.0 - Reworked protected user shell into Phase-53 compact Matrix navigation surfaces
 //   LAST_CHANGE: v2.8.0 - Added full GRACE MODULE_CONTRACT and MODULE_MAP per GRACE governance protocol
 //   LAST_CHANGE: v2.9.0 - Reworked user cabinet shell into compact mobile-first navigation for Phase-23
 // END_CHANGE_SUMMARY
@@ -56,11 +57,11 @@ export default function Layout() {
   }
 
   return (
-    <div className="app-shell">
-      <div className="mx-auto flex min-h-[calc(100vh-1rem)] max-w-[1180px] gap-3 lg:min-h-[calc(100vh-2rem)]">
-        <aside className="panel hidden w-64 shrink-0 flex-col overflow-hidden lg:flex">
-          <div className="flex items-center gap-3 border-b border-white/5 px-4 py-4">
-            <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg bg-emerald-300/12 text-emerald-200 ring-1 ring-emerald-200/12">
+    <div className="app-shell" data-phase53-layout="user-matrix">
+      <div className="matrix-layout-frame">
+        <aside className="matrix-sidebar">
+          <div className="matrix-sidebar-header flex items-center gap-3 border-b px-4 py-4">
+            <div className="matrix-brand-mark h-10 w-10">
               <Shield className="h-5 w-5" />
             </div>
             <div className="min-w-0">
@@ -69,7 +70,7 @@ export default function Layout() {
             </div>
           </div>
 
-          <div className="border-b border-white/5 px-4 py-3">
+          <div className="matrix-sidebar-user border-b px-4 py-3">
             <p className="truncate text-sm font-semibold">{displayName}</p>
             <p className="mt-0.5 truncate text-xs muted">{accountLabel}</p>
           </div>
@@ -82,10 +83,8 @@ export default function Layout() {
                 end={item.to === '/'}
                 className={({ isActive }) =>
                   [
-                    'group flex min-h-11 items-center gap-3 rounded-lg px-3 py-2.5 text-sm transition',
-                    isActive
-                      ? 'bg-emerald-300/12 text-emerald-100 ring-1 ring-emerald-200/12'
-                      : 'text-slate-300 hover:bg-white/5 hover:text-white',
+                    'matrix-nav-link',
+                    isActive ? 'matrix-nav-link-active' : 'matrix-nav-link-idle',
                   ].join(' ')
                 }
               >
@@ -95,7 +94,7 @@ export default function Layout() {
             ))}
           </nav>
 
-          <div className="mt-auto border-t border-white/5 p-3">
+          <div className="matrix-sidebar-footer mt-auto border-t p-3">
             <button onClick={handleLogout} className="btn-secondary min-h-11 w-full justify-start rounded-lg px-3 py-2.5 text-sm">
               <LogOut className="h-4 w-4" />
               {t('logout')}
@@ -104,9 +103,9 @@ export default function Layout() {
         </aside>
 
         <div className="flex min-w-0 flex-1 flex-col">
-          <header className="panel mb-3 flex items-center justify-between gap-3 px-3 py-3 lg:hidden">
+          <header className="panel mb-2 flex items-center justify-between gap-3 px-3 py-3 lg:hidden">
             <div className="flex min-w-0 items-center gap-3">
-              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-emerald-300/12 text-emerald-200">
+              <div className="matrix-brand-mark h-10 w-10">
                 <Shield className="h-5 w-5" />
               </div>
               <div className="min-w-0">
@@ -119,14 +118,14 @@ export default function Layout() {
             </button>
           </header>
 
-          <main className="panel min-w-0 flex-1 overflow-hidden">
+          <main className="matrix-main-panel">
             <div className="p-3 pb-24 sm:p-4 lg:p-5 lg:pb-5">
               <Outlet />
             </div>
           </main>
         </div>
 
-        <nav className="fixed inset-x-3 bottom-3 z-40 grid grid-cols-5 rounded-lg border border-white/10 bg-slate-950/95 p-1.5 shadow-[0_12px_28px_rgba(2,10,14,0.35)] backdrop-blur lg:hidden">
+        <nav className="matrix-bottom-nav">
           {navItems.map((item) => (
             <NavLink
               key={item.to}
@@ -135,7 +134,7 @@ export default function Layout() {
               className={({ isActive }) =>
                 [
                   'flex min-h-12 min-w-0 flex-col items-center justify-center gap-1 rounded-lg px-1 text-[10px] font-semibold transition',
-                  isActive ? 'bg-emerald-300/10 text-emerald-100' : 'text-slate-400 hover:text-white',
+                  isActive ? 'matrix-nav-link-active' : 'matrix-nav-link-idle',
                 ].join(' ')
               }
             >

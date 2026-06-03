@@ -1,12 +1,12 @@
 // FILE: frontend/src/components/Loading.tsx
-// VERSION: 1.0.0
+// VERSION: 1.1.0
 // ROLE: UI_COMPONENT
 // MAP_MODE: SUMMARY
 // START_MODULE_CONTRACT
-//   PURPOSE: Loading spinner component displayed during async operations
+//   PURPOSE: Compact Matrix loading spinner component displayed during async operations
 //   SCOPE: Simple loading indicator with shield icon and optional text
-//   DEPENDS: M-009 (frontend-user)
-//   LINKS: M-009 (frontend-user)
+//   DEPENDS: M-009 (frontend-user), M-071 (matrix-style-system)
+//   LINKS: M-009 (frontend-user), M-071
 // END_MODULE_CONTRACT
 //
 // START_MODULE_MAP
@@ -16,6 +16,7 @@
 // END_MODULE_MAP
 //
 // START_CHANGE_SUMMARY
+//   LAST_CHANGE: v3.0.0 - Replaced oversized rounded loading tile with Phase-53 Matrix icon tile
 //   LAST_CHANGE: v2.8.0 - Added full GRACE MODULE_CONTRACT and MODULE_MAP per GRACE governance protocol
 // END_CHANGE_SUMMARY
 //
@@ -29,7 +30,7 @@ interface LoadingProps {
 export default function Loading({ text = 'Loading...' }: LoadingProps) {
   return (
     <div className="empty-state">
-      <div className="rounded-[28px] bg-emerald-300/12 p-4 text-emerald-200">
+      <div className="matrix-icon-tile h-12 w-12">
         <Shield className="h-8 w-8" />
       </div>
       <Loader2 className="h-8 w-8 animate-spin text-cyan-100" />

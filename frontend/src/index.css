@@ -1,10 +1,10 @@
 /* FILE: frontend/src/index.css
- * VERSION: 1.0.0
+ * VERSION: 1.1.0
  * ROLE: UI_COMPONENT
  * MAP_MODE: SUMMARY
  * START_MODULE_CONTRACT
- *   PURPOSE: Shared user-frontend styling tokens, compact component utility classes, and Phase-52 Matrix visual foundation
- *   SCOPE: Base typography, Matrix background/canvas/CRT layers, panel/button/input/status/metric/empty-state classes, compact motion, focus and reduced-motion policy
+ *   PURPOSE: Shared user-frontend styling tokens, compact Matrix route surfaces, and Matrix visual foundation
+ *   SCOPE: Base typography, Matrix background/canvas/CRT layers, auth/page/layout surfaces, panel/button/input/status/metric/empty-state classes, compact motion, focus and reduced-motion policy
  *   DEPENDS: M-009 (frontend-user), M-036 (mobile-user-cabinet), M-038 (compact-ui-system), M-070 (matrix-visual-runtime), M-071 (matrix-style-system)
  *   LINKS: M-009 (frontend-user), M-036 (mobile-user-cabinet), M-038 (compact-ui-system), M-070, M-071
  * END_MODULE_CONTRACT
@@ -12,11 +12,13 @@
  * START_MODULE_MAP
  *   base - Root color tokens, body typography, document background
  *   matrix-visual-system - Canvas, scanline, vignette, and content stacking layers
+ *   route-surfaces - Matrix auth, layout, page, command, terminal, row, and action-grid classes
  *   components - App shell, panel, button, input, status, metric, empty-state classes
  *   utilities - text-balance, animate-in utility, focus-visible, and reduced-motion rules
  * END_MODULE_MAP
  *
  * START_CHANGE_SUMMARY
+ *   LAST_CHANGE: v3.1.0 - Added Phase-53 compact Matrix user route surfaces and removed heavy auth hero styling
  *   LAST_CHANGE: v3.0.0 - Added Phase-52 Matrix visual foundation tokens, canvas layers, CRT overlays, focus states, and reduced-motion policy
  *   LAST_CHANGE: v2.9.0 - Added compact Phase-23 UI tokens with reduced radii, shadows, spacing, and non-decorative background
  * END_CHANGE_SUMMARY
@@ -42,11 +44,13 @@
     --matrix-neutral: #d8f6e6;
     --bg: #03100d;
     --bg-soft: #061712;
-    --panel: rgba(5, 20, 15, 0.84);
-    --panel-strong: rgba(6, 24, 18, 0.94);
+    --panel: rgba(7, 27, 19, 0.88);
+    --panel-strong: rgba(8, 34, 24, 0.94);
+    --panel-muted: rgba(4, 20, 14, 0.76);
     --border: rgba(96, 255, 155, 0.17);
-    --text: #effff7;
-    --muted: #91b5a6;
+    --border-soft: rgba(104, 232, 255, 0.12);
+    --text: #f7fff9;
+    --muted: #b7d9ca;
     --accent: var(--matrix-green);
     --accent-2: var(--matrix-cyan);
     --danger: var(--matrix-red);
@@ -69,6 +73,7 @@
     margin: 0;
     overflow-x: hidden;
     font-family: 'Manrope', system-ui, sans-serif;
+    line-height: 1.5;
     color: var(--text);
     background: transparent;
     font-feature-settings: "cv02", "cv03", "cv04", "cv11";
@@ -114,9 +119,9 @@
     overflow-x: hidden;
     isolation: isolate;
     background:
-      radial-gradient(circle at 12% 18%, rgba(96, 255, 155, 0.18), transparent 28rem),
-      radial-gradient(circle at 92% 8%, rgba(104, 232, 255, 0.12), transparent 30rem),
-      linear-gradient(180deg, #020503 0%, #03100d 48%, #020705 100%);
+      linear-gradient(180deg, rgba(2, 7, 4, 0.92) 0%, rgba(4, 21, 15, 0.9) 48%, rgba(2, 9, 6, 0.96) 100%),
+      linear-gradient(120deg, rgba(96, 255, 155, 0.07) 0 1px, transparent 1px 12px),
+      #020503;
   }
 
   .matrix-visual-shell::before {
@@ -141,7 +146,7 @@
     width: 100vw;
     height: 100vh;
     pointer-events: none;
-    opacity: 0.62;
+    opacity: 0.46;
     mix-blend-mode: screen;
   }
 
@@ -150,7 +155,7 @@
     inset: 0;
     z-index: 3;
     pointer-events: none;
-    opacity: 0.22;
+    opacity: 0.14;
     background:
       repeating-linear-gradient(
         180deg,
@@ -168,7 +173,7 @@
     z-index: 2;
     pointer-events: none;
     background:
-      radial-gradient(circle at 50% 45%, transparent 0%, rgba(1, 6, 3, 0.08) 48%, rgba(1, 6, 3, 0.76) 100%),
+      radial-gradient(circle at 50% 45%, transparent 0%, rgba(1, 6, 3, 0.03) 48%, rgba(1, 6, 3, 0.28) 100%),
       linear-gradient(90deg, rgba(255, 79, 216, 0.07), transparent 22%, transparent 78%, rgba(104, 232, 255, 0.07));
   }
 
@@ -180,6 +185,138 @@
 
   .app-shell {
     @apply min-h-screen px-2 py-2 sm:px-3 sm:py-3 lg:px-4 lg:py-4;
+  }
+
+  .matrix-layout-frame {
+    @apply mx-auto flex min-h-[calc(100vh-1rem)] w-full max-w-[1160px] gap-2 lg:min-h-[calc(100vh-2rem)] lg:gap-3;
+  }
+
+  .matrix-sidebar {
+    @apply panel hidden w-60 shrink-0 flex-col overflow-hidden lg:flex;
+  }
+
+  .matrix-sidebar-header,
+  .matrix-sidebar-user,
+  .matrix-sidebar-footer {
+    border-color: rgba(96, 255, 155, 0.1);
+  }
+
+  .matrix-brand-mark {
+    @apply flex shrink-0 items-center justify-center rounded-lg;
+    background: rgba(96, 255, 155, 0.12);
+    color: var(--matrix-green);
+    box-shadow: inset 0 0 0 1px rgba(96, 255, 155, 0.16);
+  }
+
+  .matrix-nav-link {
+    @apply flex min-h-10 min-w-0 items-center gap-3 rounded-lg px-3 py-2 text-sm transition;
+  }
+
+  .matrix-nav-link-active {
+    background: rgba(96, 255, 155, 0.13);
+    color: #eafff3;
+    box-shadow: inset 0 0 0 1px rgba(96, 255, 155, 0.18);
+  }
+
+  .matrix-nav-link-idle {
+    color: #b9d7cb;
+  }
+
+  .matrix-nav-link-idle:hover {
+    background: rgba(255, 255, 255, 0.045);
+    color: #ffffff;
+  }
+
+  .matrix-main-panel {
+    @apply panel min-w-0 flex-1 overflow-hidden;
+  }
+
+  .matrix-bottom-nav {
+    @apply fixed inset-x-2 bottom-2 z-40 grid grid-cols-5 rounded-lg border p-1 shadow-[0_12px_28px_rgba(0,5,3,0.42)] backdrop-blur lg:hidden;
+    background: rgba(2, 8, 6, 0.96);
+    border-color: rgba(96, 255, 155, 0.16);
+  }
+
+  .matrix-auth-screen {
+    @apply flex min-h-screen items-center justify-center px-3 py-4 sm:px-4 sm:py-6;
+  }
+
+  .matrix-auth-card {
+    @apply glass w-full max-w-md p-5 sm:p-6;
+    background: rgba(8, 38, 26, 0.98);
+    border-color: rgba(96, 255, 155, 0.36);
+  }
+
+  .matrix-auth-card label > span,
+  .matrix-auth-card .muted,
+  .matrix-auth-heading .muted {
+    color: #d6f7e7;
+  }
+
+  .matrix-auth-heading h1 {
+    color: #ffffff;
+    text-shadow: 0 0 18px rgba(96, 255, 155, 0.2);
+  }
+
+  .matrix-auth-heading {
+    @apply mb-5 text-center;
+  }
+
+  .matrix-kicker {
+    @apply text-xs font-bold uppercase;
+    color: #79ffd0;
+  }
+
+  .matrix-page {
+    @apply w-full space-y-3;
+  }
+
+  .matrix-page-header {
+    @apply flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between;
+  }
+
+  .matrix-command-grid {
+    @apply grid gap-2 sm:grid-cols-2;
+  }
+
+  .matrix-action-grid {
+    @apply grid gap-2;
+  }
+
+  .matrix-row {
+    @apply rounded-lg border p-3;
+    border-color: rgba(96, 255, 155, 0.11);
+    background: rgba(255, 255, 255, 0.035);
+  }
+
+  .matrix-terminal {
+    @apply overflow-auto rounded-lg border p-3 font-mono text-xs;
+    max-width: 100%;
+    border-color: rgba(104, 232, 255, 0.14);
+    background: rgba(0, 8, 6, 0.76);
+    color: #c3ffe0;
+  }
+
+  .matrix-copy-box {
+    @apply min-w-0 overflow-hidden rounded-lg border px-3 py-2 text-sm;
+    border-color: rgba(104, 232, 255, 0.14);
+    background: rgba(0, 8, 6, 0.52);
+  }
+
+  .matrix-state-line {
+    @apply flex min-w-0 items-start gap-3 text-sm;
+    color: #dff8ee;
+  }
+
+  .matrix-icon-tile {
+    @apply flex h-10 w-10 shrink-0 items-center justify-center rounded-lg;
+    background: rgba(255, 255, 255, 0.06);
+    color: var(--matrix-cyan);
+  }
+
+  .matrix-scroll-panel {
+    @apply overflow-y-auto pr-1;
+    max-height: min(420px, 58vh);
   }
 
   .glass {
@@ -211,7 +348,8 @@
   }
 
   .section-title {
-    @apply text-2xl font-extrabold tracking-tight text-white md:text-3xl;
+    @apply text-xl font-extrabold text-white md:text-2xl;
+    letter-spacing: 0;
   }
 
   .section-subtitle {
@@ -231,6 +369,16 @@
 
   .btn {
     @apply inline-flex items-center justify-center gap-2 rounded-lg px-3 py-2.5 font-semibold transition;
+    min-height: 2.5rem;
+    max-width: 100%;
+    line-height: 1.15;
+    text-align: center;
+    white-space: normal;
+    overflow-wrap: anywhere;
+  }
+
+  .btn svg {
+    flex-shrink: 0;
   }
 
   .btn-primary {
@@ -261,8 +409,10 @@
 
   .input {
     @apply w-full rounded-lg px-3 py-2.5 text-sm text-slate-50 outline-none transition;
-    background: rgba(2, 10, 7, 0.88);
-    border: 1px solid rgba(96, 255, 155, 0.16);
+    min-height: 2.75rem;
+    background: rgba(1, 20, 13, 0.96);
+    border: 1px solid rgba(96, 255, 155, 0.32);
+    color: #ffffff;
   }
 
   .input:focus {
@@ -271,7 +421,7 @@
   }
 
   .input::placeholder {
-    color: #6b8791;
+    color: #bddbd0;
   }
 
   .input-group {
@@ -279,12 +429,12 @@
   }
 
   .input-group .icon {
-    @apply absolute left-4 top-1/2 -translate-y-1/2;
+    @apply absolute left-3.5 top-1/2 -translate-y-1/2;
     color: #6b8791;
   }
 
   .input-group input {
-    @apply pl-12;
+    @apply pl-11;
   }
 
   .status-badge {
@@ -310,7 +460,7 @@
   }
 
   .metric-card {
-    @apply panel p-4;
+    @apply panel p-3 sm:p-4;
   }
 
   .metric-label {
@@ -319,7 +469,8 @@
   }
 
   .metric-value {
-    @apply mt-2 text-2xl font-extrabold tracking-tight text-white;
+    @apply mt-2 text-2xl font-extrabold text-white;
+    letter-spacing: 0;
   }
 
   .progress-bar {
@@ -340,6 +491,20 @@
 
   .muted {
     color: var(--muted);
+  }
+
+  .metric-pill,
+  .danger-pill {
+    @apply inline-flex min-h-7 items-center gap-1.5 rounded-lg px-2 py-1 font-semibold;
+    border: 1px solid rgba(104, 232, 255, 0.14);
+    background: rgba(104, 232, 255, 0.08);
+    color: #c7fff0;
+  }
+
+  .danger-pill {
+    border-color: rgba(255, 209, 102, 0.26);
+    background: rgba(255, 209, 102, 0.1);
+    color: #ffe5a8;
   }
 }
 
@@ -384,6 +549,25 @@
     .matrix-scanline-overlay {
       animation: none;
       opacity: 0.12;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .matrix-auth-card,
+    .glass,
+    .panel {
+      box-shadow: 0 12px 30px rgba(0, 5, 3, 0.32), inset 0 1px 0 rgba(216, 246, 230, 0.04);
+    }
+
+    .section-title {
+      font-size: 1.25rem;
+      line-height: 1.25;
+    }
+
+    .status-badge {
+      max-width: 100%;
+      white-space: normal;
+      overflow-wrap: anywhere;
     }
   }
 

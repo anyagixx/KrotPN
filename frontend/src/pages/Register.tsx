@@ -1,12 +1,12 @@
 // FILE: frontend/src/pages/Register.tsx
-// VERSION: 1.2.0
+// VERSION: 1.3.0
 // ROLE: UI_COMPONENT
 // MAP_MODE: SUMMARY
 // START_MODULE_CONTRACT
 //   PURPOSE: User registration page with verified-email pending state, referral code support, and compact onboarding context
 //   SCOPE: Form validation, pending registration API call, check-email/resend state, no token storage before email verification
-//   DEPENDS: M-009 (frontend-user), M-002 (auth API), M-005 (referrals)
-//   LINKS: M-009 (frontend-user), V-M-009
+//   DEPENDS: M-009 (frontend-user), M-002 (auth API), M-005 (referrals), M-071 (matrix-style-system)
+//   LINKS: M-009 (frontend-user), V-M-009, M-071
 // END_MODULE_CONTRACT
 //
 // START_MODULE_MAP
@@ -16,6 +16,7 @@
 // END_MODULE_MAP
 //
 // START_CHANGE_SUMMARY
+//   LAST_CHANGE: v3.0.0 - Applied Phase-53 compact Matrix auth surface while preserving verified-email cutover
 //   LAST_CHANGE: 2026-06-01 - Added Phase-46 password format example tied to the active password policy
 //   LAST_CHANGE: 2026-06-01 - Added Phase-44 compact check-email UX, spam hint, strong-password hints, and duplicate-email recovery CTA
 //   LAST_CHANGE: 2026-05-13 - Switched registration UX to pending email verification without token storage
@@ -103,20 +104,19 @@ export default function Register() {
     : null
 
   return (
-    <div className="min-h-screen px-3 py-4 sm:px-4 sm:py-6">
-      <div className="mx-auto flex min-h-[calc(100vh-2rem)] max-w-xl items-center justify-center">
-        <section className="w-full p-2 sm:p-4">
-          <div className="mx-auto w-full max-w-md">
-            <div className="mb-6 text-center">
-              <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-lg bg-emerald-300/12 text-emerald-200">
-                <Shield className="h-7 w-7" />
-              </div>
-              <h1 className="mt-4 text-2xl font-extrabold sm:text-3xl">{t('registerTitle')}</h1>
-              <p className="mt-2 text-sm muted">Подтвердите email, чтобы активировать личный кабинет.</p>
-            </div>
+    <div className="matrix-auth-screen" data-phase53-auth-route="register">
+      <section className="w-full max-w-md animate-in">
+        <div className="matrix-auth-heading">
+          <div className="matrix-brand-mark mx-auto h-12 w-12">
+            <Shield className="h-6 w-6" />
+          </div>
+          <p className="matrix-kicker mt-4">Email gate</p>
+          <h1 className="mt-2 text-2xl font-extrabold text-white">{t('registerTitle')}</h1>
+          <p className="mt-2 text-sm muted">Подтвердите email, чтобы активировать личный кабинет.</p>
+        </div>
 
             {phase === 'pending' ? (
-              <div className="glass space-y-4 p-5 sm:p-6">
+              <div className="matrix-auth-card space-y-4">
                 {/* REGISTER_PENDING_STATE */}
                 <div className="flex items-start gap-3">
                   <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg bg-emerald-300/12 text-emerald-100">
@@ -159,7 +159,7 @@ export default function Register() {
                 </div>
               </div>
             ) : (
-              <form onSubmit={handleSubmit} className="glass space-y-4 p-5 sm:p-6">
+              <form onSubmit={handleSubmit} className="matrix-auth-card space-y-4">
                 <label className="block">
                   <span className="mb-2 block text-sm muted">{t('email')}</span>
                   <div className="input-group">
@@ -237,15 +237,13 @@ export default function Register() {
               </form>
             )}
 
-            <div className="mt-5 text-center text-sm muted">
-              {t('hasAccount')}{' '}
-              <Link to="/login" className="font-semibold text-cyan-100 hover:text-emerald-100">
-                {t('login')}
-              </Link>
-            </div>
-          </div>
-        </section>
-      </div>
+        <div className="mt-5 text-center text-sm muted">
+          {t('hasAccount')}{' '}
+          <Link to="/login" className="font-semibold text-cyan-100 hover:text-emerald-100">
+            {t('login')}
+          </Link>
+        </div>
+      </section>
     </div>
   )
 }

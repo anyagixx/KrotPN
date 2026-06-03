@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<V-M-064 MODULE="M-064" PRIORITY="high" STATUS="pass-local">
+<V-M-064 MODULE="M-064" PRIORITY="high" STATUS="pass-local-phase53">
   <purpose>Verify Phase-46 registration password example and MTProto user-cabinet link/status UX polish.</purpose>
   <checks>Password example matches policy, MTProto Telegram app and browser links are separated, visible labels are Russian, status badge refresh is dynamic, and protected deploy surfaces remain unchanged.</checks>
   <test-files>
@@ -12,7 +12,7 @@
   <commands>
     <command status="pass-local">cd frontend &amp;&amp; npm run build</command>
     <command status="pass-local">node scripts/phase46-user-cabinet-ux-smoke.mjs</command>
-    <command status="verification-designed">node scripts/phase53-user-matrix-ui-smoke.mjs</command>
+    <command status="pass-local">node scripts/phase53-user-matrix-ui-smoke.mjs</command>
     <command status="pass-local">python3 -m xml.etree.ElementTree docs/plans/Phase-46.xml docs/modules/M-064.xml docs/verification/V-M-064.xml docs/graph-index.xml docs/plan-index.xml docs/verification-index.xml</command>
     <command status="pass-local">mygrace lint</command>
   </commands>
@@ -25,7 +25,7 @@
     <check-6>Phase-53 Matrix auth screens keep password example, duplicate-email recovery CTA, and reset/verify guidance readable without API changes.</check-6>
     <check-7>Phase-53 Matrix dashboard keeps tg:// app link, https://t.me browser link, Russian labels, and bounded status refresh readable and compact.</check-7>
   </module-checks>
-  <phase-53-ux-gates status="verification-designed">
+  <phase-53-ux-gates status="pass-local">
     <gate-1>Registration Matrix form keeps strong-password hints and the safe example visible without encouraging literal reuse.</gate-1>
     <gate-2>Login, forgot-password, reset-password, verify-email, and check-email states remain compact, readable, and free of stale trial/VPN copy.</gate-2>
     <gate-3>MTProto status badge remains data-derived and must not become a static success badge after visual refactor.</gate-3>
@@ -63,6 +63,7 @@
     <evidence-1>2026-06-01: cd frontend &amp;&amp; npm run build passed.</evidence-1>
     <evidence-2>2026-06-01: node scripts/phase46-user-cabinet-ux-smoke.mjs passed and emitted the required M-064 markers.</evidence-2>
     <evidence-3>2026-06-01: XML parse, MyGRACE lint, and deploy/install diff guard passed.</evidence-3>
+    <evidence-4>2026-06-03: Phase-53 frontend build and static smoke passed for readable Matrix auth screens, password example, duplicate-email recovery CTA, dual MTProto links, Russian labels, bounded refresh, and redaction.</evidence-4>
   </evidence>
   <autonomous-execution-safety>Allowed after plan approval because scope is frontend-only and deploy/install/backend runtime surfaces are out of scope.</autonomous-execution-safety>
 </V-M-064>

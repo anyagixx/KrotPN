@@ -1,12 +1,12 @@
 // FILE: frontend/src/pages/VerifyEmail.tsx
-// VERSION: 1.0.0
+// VERSION: 1.1.0
 // ROLE: UI_COMPONENT
 // MAP_MODE: SUMMARY
 // START_MODULE_CONTRACT
 //   PURPOSE: Email verification landing page that consumes one-time registration tokens and enters the authenticated onboarding path
 //   SCOPE: Token query parsing, verify-email API call, token storage after success, expired/replayed/error states
-//   DEPENDS: M-009 (frontend-user), M-002 (auth API)
-//   LINKS: M-009 (frontend-user), V-M-009
+//   DEPENDS: M-009 (frontend-user), M-002 (auth API), M-071 (matrix-style-system)
+//   LINKS: M-009 (frontend-user), M-071, V-M-009
 // END_MODULE_CONTRACT
 //
 // START_MODULE_MAP
@@ -16,6 +16,7 @@
 // END_MODULE_MAP
 //
 // START_CHANGE_SUMMARY
+//   LAST_CHANGE: v1.1.0 - Applied Phase-53 compact Matrix verification surface
 //   LAST_CHANGE: 2026-05-13 - Added Phase-28 verify-email frontend route
 // END_CHANGE_SUMMARY
 //
@@ -101,9 +102,8 @@ export default function VerifyEmail() {
   const isExpired = state === 'expired'
 
   return (
-    <div className="flex min-h-screen items-center justify-center px-3 py-4 sm:px-4 sm:py-6">
-      <div className="w-full max-w-md rounded-lg border border-white/10 bg-slate-950/35 p-4 shadow-[0_22px_70px_rgba(2,10,14,0.45)] backdrop-blur-sm sm:p-6">
-        <div className="glass space-y-5 p-5 sm:p-6">
+    <div className="matrix-auth-screen" data-phase53-auth-route="verify-email">
+      <section className="matrix-auth-card animate-in space-y-5">
           <div className="flex items-start gap-3">
             <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-emerald-300/12 text-emerald-100">
               {isChecking ? (
@@ -145,8 +145,7 @@ export default function VerifyEmail() {
               Вернуться к регистрации
             </Link>
           ) : null}
-        </div>
-      </div>
+      </section>
     </div>
   )
 }

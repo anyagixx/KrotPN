@@ -1,12 +1,12 @@
 // FILE: frontend/src/pages/Dashboard.tsx
-// VERSION: 1.3.0
+// VERSION: 1.4.0
 // ROLE: UI_COMPONENT
 // MAP_MODE: SUMMARY
 // START_MODULE_CONTRACT
-//   PURPOSE: Compact mobile-first dashboard showing VPN status, config action, subscription, MTProto proxy, traffic, and device summary
+//   PURPOSE: Compact Matrix mobile-first dashboard showing VPN status, config action, subscription, MTProto proxy, traffic, and device summary
 //   SCOPE: Mobile home workflow, primary config/subscription CTA, MTProto owner actions, active device summary, compact traffic and connection facts
-//   DEPENDS: M-009 (frontend-user), M-002 (auth API), M-003 (vpn stats API), M-004 (billing API), M-022 (device API), M-036 (mobile-user-cabinet), M-045 (mtproto-user-cabinet), M-051 (mtproto-availability-diagnostics)
-//   LINKS: M-009 (frontend-user), M-036 (mobile-user-cabinet), M-045, M-051
+//   DEPENDS: M-009 (frontend-user), M-002 (auth API), M-003 (vpn stats API), M-004 (billing API), M-022 (device API), M-036 (mobile-user-cabinet), M-045 (mtproto-user-cabinet), M-051 (mtproto-availability-diagnostics), M-071 (matrix-style-system)
+//   LINKS: M-009 (frontend-user), M-036 (mobile-user-cabinet), M-045, M-051, M-071
 // END_MODULE_CONTRACT
 //
 // START_MODULE_MAP
@@ -19,6 +19,7 @@
 // END_MODULE_MAP
 //
 // START_CHANGE_SUMMARY
+//   LAST_CHANGE: v3.4.0 - Applied Phase-53 compact Matrix dashboard surfaces without changing API refresh contracts.
 //   LAST_CHANGE: v3.3.0 - Added Phase-46 MTProto tg/browser link split, Russian labels, and bounded status refresh marker.
 //   LAST_CHANGE: v3.2.0 - Added Phase-45 pending trial state and subscription countdown summary.
 //   LAST_CHANGE: v3.1.1 - Avoid rendering pending/degraded MTProto safe_message twice in the dashboard card.
@@ -230,7 +231,7 @@ export default function Dashboard() {
   )
 
   return (
-    <div className="content-section animate-in">
+    <div className="content-section matrix-page animate-in" data-phase53-route="dashboard">
       <section className="grid gap-3 lg:grid-cols-[minmax(0,1.25fr)_minmax(260px,0.75fr)]">
         <article className="panel p-4 sm:p-5">
           <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
@@ -252,7 +253,7 @@ export default function Dashboard() {
             </span>
           </div>
 
-          <div className="mt-4 grid gap-2 sm:grid-cols-2">
+          <div className="matrix-command-grid mt-4">
             <Link to={hasSubscription ? '/config' : '/subscription'} className="btn-primary min-h-12 justify-start rounded-lg px-3 py-3">
               {hasSubscription ? <QrCode className="h-5 w-5" /> : <Zap className="h-5 w-5" />}
               {hasSubscription ? 'QR и .conf' : 'Активировать'}
@@ -284,6 +285,7 @@ export default function Dashboard() {
       <section
         className="panel p-4 sm:p-5"
         data-phase31-mtproto-card="true"
+        data-phase53-mtproto-card="compact"
         data-phase46-mtproto-status-refresh-ms={MTPROTO_STATUS_REFRESH_MS}
         data-mtproto-status={mtproto?.status || (mtprotoError ? 'degraded' : 'pending')}
       >
@@ -302,22 +304,22 @@ export default function Dashboard() {
 
         {mtprotoReady ? (
           <>
-            <dl className="mt-3 grid gap-x-4 gap-y-2 text-sm sm:grid-cols-[minmax(0,1fr)_88px_minmax(0,1.2fr)]">
+            <dl className="mt-3 grid gap-2 text-sm sm:grid-cols-[minmax(0,1fr)_88px_minmax(0,1.2fr)]">
               <div className="min-w-0">
                 <dt className="metric-label">Сервер</dt>
-                <dd className="mt-1 break-all font-semibold text-slate-50">{mtproto.server}</dd>
+                <dd className="matrix-copy-box mt-1 break-all font-semibold text-slate-50">{mtproto.server}</dd>
               </div>
               <div className="min-w-0">
                 <dt className="metric-label">Порт</dt>
-                <dd className="mt-1 font-semibold text-slate-50">{mtproto.port}</dd>
+                <dd className="matrix-copy-box mt-1 font-semibold text-slate-50">{mtproto.port}</dd>
               </div>
               <div className="min-w-0">
                 <dt className="metric-label">Секрет</dt>
-                <dd className="mt-1 break-all font-mono text-xs font-semibold text-slate-50">{mtproto.secret}</dd>
+                <dd className="matrix-terminal mt-1 max-h-20 break-all font-semibold">{mtproto.secret}</dd>
               </div>
             </dl>
 
-            <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-5">
+            <div className="matrix-action-grid mt-3 grid-cols-2 sm:grid-cols-5">
               <a
                 href={mtprotoTelegramAppLink || mtproto.tg_link}
                 className="btn-primary min-h-10 min-w-0 rounded-lg px-2 py-2 text-sm"
@@ -335,7 +337,7 @@ export default function Dashboard() {
             </div>
           </>
         ) : (
-          <div className="mt-3 flex items-start gap-3 text-sm text-slate-100">
+          <div className="matrix-state-line mt-3">
             {mtproto?.status === 'unverified' ? (
               <KeyRound className="mt-0.5 h-4 w-4 shrink-0 text-amber-100" />
             ) : (
@@ -353,7 +355,7 @@ export default function Dashboard() {
       </section>
 
       <section className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-        <article className="metric-card">
+        <article className="metric-card" data-phase53-dashboard-metric="vpn-status">
           <div className="flex items-center gap-3">
             <Shield className="h-5 w-5 shrink-0 text-emerald-200" />
             <div className="min-w-0">
@@ -363,7 +365,7 @@ export default function Dashboard() {
           </div>
         </article>
 
-        <article className="metric-card">
+        <article className="metric-card" data-phase53-dashboard-metric="devices">
           <div className="flex items-center gap-3">
             <Smartphone className="h-5 w-5 shrink-0 text-cyan-100" />
             <div className="min-w-0">
@@ -375,7 +377,7 @@ export default function Dashboard() {
           </div>
         </article>
 
-        <article className="metric-card">
+        <article className="metric-card" data-phase53-dashboard-metric="upload">
           <div className="flex items-center gap-3">
             <ArrowUp className="h-5 w-5 shrink-0 text-emerald-200" />
             <div className="min-w-0">
@@ -385,7 +387,7 @@ export default function Dashboard() {
           </div>
         </article>
 
-        <article className="metric-card">
+        <article className="metric-card" data-phase53-dashboard-metric="download">
           <div className="flex items-center gap-3">
             <ArrowDown className="h-5 w-5 shrink-0 text-cyan-100" />
             <div className="min-w-0">

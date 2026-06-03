@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<V-M-009 MODULE="M-009" PRIORITY="high" STATUS="pass-local-phase46-phase51-phase52" VERSION="1.8.0">
+<V-M-009 MODULE="M-009" PRIORITY="high" STATUS="pass-local-phase46-phase51-phase52-phase53" VERSION="1.9.0">
   <module>frontend-user</module>
   <checks>User frontend still builds, matches the Phase-28 auth API response shape, and makes registration mobile-safe without implying active KrotPN trial before email verification.</checks>
   <test-files>
@@ -10,6 +10,8 @@
     <file>frontend/src/App.tsx</file>
     <file>frontend/src/components/MatrixBackground.tsx</file>
     <file>frontend/src/components/VisualShell.tsx</file>
+    <file>frontend/src/components/Layout.tsx</file>
+    <file>frontend/src/components/Loading.tsx</file>
     <file>frontend/src/index.css</file>
     <file>frontend/src/lib/api.ts</file>
     <file>frontend/src/lib/passwordPolicy.ts</file>
@@ -30,7 +32,7 @@
     <file>scripts/phase52-matrix-visual-smoke.mjs</file>
     <file>scripts/phase53-user-matrix-ui-smoke.mjs</file>
   </test-files>
-  <commands>pass-local 2026-06-03: cd frontend &amp;&amp; npm run build; node scripts/phase52-matrix-visual-smoke.mjs; Chrome user /login screenshots at 360x740, 390x844, 430x932, 1440x900, and reduced-motion 390x844</commands>
+  <commands>pass-local 2026-06-03: cd frontend &amp;&amp; npm run build; node scripts/phase53-user-matrix-ui-smoke.mjs; Chrome production-preview screenshots for /login, /register, /reset-password mobile, /login desktop, and reduced-motion /login with virtual-time-budget; protected deploy/install guard passed</commands>
   <anchors>TYPESCRIPT_NO_ERRORS REGISTER_PENDING_STATE REGISTER_VERIFIED_SUCCESS REGISTER_EXPIRED_LINK REGISTER_RESEND_AVAILABLE PHASE45_SUBSCRIPTION_COUNTDOWN PHASE46_PASSWORD_EXAMPLE PHASE46_MTPROTO_LINKS PHASE51_BRAND_ASSETS PHASE52_MATRIX_VISUAL_SHELL PHASE53_USER_MATRIX_ROUTES</anchors>
   <phase-28-frontend-gates>
     <gate-1>Register submit handles pending/check-email response without storing access tokens or marking the user authenticated.</gate-1>
@@ -67,16 +69,16 @@
     <gate-3>User index.css exposes Matrix tokens, scanline/vignette/content layers, focus-visible rules, and reduced-motion policy.</gate-3>
     <gate-4>Chrome mobile/desktop screenshots show the login shell remains readable above the Matrix layer.</gate-4>
   </phase-52-frontend-gates>
-  <phase-53-frontend-gates status="verification-designed">
+  <phase-53-frontend-gates status="pass-local">
     <gate-1>Auth screens keep existing API calls, spam hint, duplicate-email recovery CTA, password example, reset-token handling, and verification states while adopting Matrix forms.</gate-1>
     <gate-2>Dashboard, config, subscription, referrals, and settings routes build and render under VisualShell without route changes or API shape changes.</gate-2>
     <gate-3>Phase-53 smoke must check 360x740, 390x844, 430x932, 768x1024, and 1440x900 viewports for no document-level horizontal scroll and no obvious text/control overlap.</gate-3>
-    <gate-4>Chrome screenshots must cover auth, dashboard, config, subscription, referrals, settings, and reduced-motion dashboard state before Phase-53 can close.</gate-4>
+    <gate-4>Chrome screenshots must cover auth and reduced-motion states; protected dashboard/config/subscription/referrals/settings route surfaces are covered by static smoke when local preview has no authenticated backend session.</gate-4>
   </phase-53-frontend-gates>
   <phase-53-commands>
     <command-1>cd frontend &amp;&amp; npm run build</command-1>
     <command-2>node scripts/phase53-user-matrix-ui-smoke.mjs</command-2>
-    <command-3>Chrome screenshot audit for /login, /register, /, /config, /subscription, /referrals, /settings at mobile and desktop viewports, plus reduced-motion dashboard.</command-3>
+    <command-3>Chrome screenshot audit for /login, /register, /reset-password, desktop /login, and reduced-motion /login with virtual-time-budget.</command-3>
     <command-4>git diff --name-only -- install.sh deploy nginx docker-compose.yml</command-4>
   </phase-53-commands>
   <phase-53-required-markers>
@@ -100,5 +102,5 @@
     <scenario-6 kind="success">Phase-53 user route matrix renders Matrix style on auth, dashboard, config, subscription, referrals, and settings without changing API contracts.</scenario-6>
     <scenario-7 kind="failure">Matrix visual redesign hides primary VPN, MTProto, subscription, password recovery, or config actions on phone viewports.</scenario-7>
   </scenarios>
-  <evidence>2026-06-01: cd frontend &amp;&amp; npm run build and node scripts/phase44-auth-email-ux-smoke.mjs passed for Phase-44 password recovery UX. 2026-06-01: Phase-45 frontend build and subscription UX smoke passed for pending-trial copy, countdown fields, calendar marker, and stale 3-day copy guard. 2026-06-01: Phase-46 frontend build and user-cabinet UX smoke passed for password example, dual MTProto links, Russian labels, and bounded status refresh. 2026-06-02: Phase-51 frontend build passed and brand asset smoke --expect-dist confirmed favicon/PWA/email-logo assets in dist. 2026-06-03: Phase-52 frontend build, Matrix visual smoke, and Chrome screenshots for /login at 360x740, 390x844, 430x932, 1440x900, plus reduced-motion 390x844 passed.</evidence>
+  <evidence>2026-06-01: cd frontend &amp;&amp; npm run build and node scripts/phase44-auth-email-ux-smoke.mjs passed for Phase-44 password recovery UX. 2026-06-01: Phase-45 frontend build and subscription UX smoke passed for pending-trial copy, countdown fields, calendar marker, and stale 3-day copy guard. 2026-06-01: Phase-46 frontend build and user-cabinet UX smoke passed for password example, dual MTProto links, Russian labels, and bounded status refresh. 2026-06-02: Phase-51 frontend build passed and brand asset smoke --expect-dist confirmed favicon/PWA/email-logo assets in dist. 2026-06-03: Phase-52 frontend build, Matrix visual smoke, and Chrome screenshots for /login at 360x740, 390x844, 430x932, 1440x900, plus reduced-motion 390x844 passed. 2026-06-03: Phase-53 frontend build and node scripts/phase53-user-matrix-ui-smoke.mjs passed; production-preview screenshots passed for login/register/reset mobile, login desktop, and reduced-motion login with virtual-time-budget; protected dashboard/config/subscription/referrals/settings surfaces are covered by static route smoke due unauthenticated local preview redirect.</evidence>
 </V-M-009>

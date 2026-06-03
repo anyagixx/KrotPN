@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<V-M-036 MODULE="M-036" PRIORITY="high" STATUS="pass-local-phase46" VERSION="1.3.0">
+<V-M-036 MODULE="M-036" PRIORITY="high" STATUS="pass-local-phase46-phase53" VERSION="1.4.0">
   <module>mobile-user-cabinet</module>
   <checks>User frontend must become compact, phone-friendly, and focused on VPN config, subscription, device workflows, and Phase-45 pending trial countdown/calendar UX.</checks>
-  <test-files>frontend/src/components/Layout.tsx frontend/src/pages/Dashboard.tsx frontend/src/pages/Config.tsx frontend/src/pages/Subscription.tsx frontend/src/pages/Referrals.tsx frontend/src/pages/Settings.tsx frontend/src/index.css scripts/phase45-trial-subscription-ux-smoke.mjs scripts/phase46-user-cabinet-ux-smoke.mjs scripts/phase53-user-matrix-ui-smoke.mjs</test-files>
-  <commands>cd frontend &amp;&amp; npm run build; Phase-23 mobile smoke for /, /config, and /subscription at 360x740, 390x844, and 430x932; node scripts/phase45-trial-subscription-ux-smoke.mjs; node scripts/phase46-user-cabinet-ux-smoke.mjs; assert documentElement.scrollWidth &lt;= innerWidth and primary config path &lt;= 2 taps</commands>
+  <test-files>frontend/src/components/Layout.tsx frontend/src/components/Loading.tsx frontend/src/pages/Dashboard.tsx frontend/src/pages/Config.tsx frontend/src/pages/Subscription.tsx frontend/src/pages/Referrals.tsx frontend/src/pages/Settings.tsx frontend/src/index.css scripts/phase45-trial-subscription-ux-smoke.mjs scripts/phase46-user-cabinet-ux-smoke.mjs scripts/phase53-user-matrix-ui-smoke.mjs</test-files>
+  <commands>cd frontend &amp;&amp; npm run build; Phase-23 mobile smoke for /, /config, and /subscription at 360x740, 390x844, and 430x932; node scripts/phase45-trial-subscription-ux-smoke.mjs; node scripts/phase46-user-cabinet-ux-smoke.mjs; node scripts/phase53-user-matrix-ui-smoke.mjs; assert documentElement.scrollWidth &lt;= innerWidth and primary config path &lt;= 2 taps</commands>
   <levels>
     <module-local>TypeScript/Vite build must pass for the user frontend after each execution step that changes Phase-23 files.</module-local>
     <wave-level>Authenticated mobile route smoke must cover dashboard, config/device, and subscription workflows after UI shell and page changes are merged.</wave-level>
@@ -38,7 +38,7 @@
     <check-9>Phase-53 Matrix redesign keeps dashboard, config, subscription, referrals, and settings compact without decorative route bloat or nested cards.</check-9>
     <check-10>Phase-53 route smoke confirms primary VPN/config/MTProto/subscription actions are reachable within one or two taps on phone viewports.</check-10>
   </module-checks>
-  <phase-53-matrix-route-gates status="verification-designed">
+  <phase-53-matrix-route-gates status="pass-local">
     <gate-1>Dashboard first screen prioritizes VPN state, primary config action, MTProto proxy state, subscription countdown, and device slots over decorative content.</gate-1>
     <gate-2>Config route keeps QR, copy, .conf download, create, rotate, and revoke controls compact and unchanged at the API layer.</gate-2>
     <gate-3>Subscription route keeps countdown, calendar, current plan, and tariff CTA readable with stable dimensions.</gate-3>
@@ -87,6 +87,7 @@
     <evidence-5>2026-05-10: npm run build passed; Chrome CDP smoke passed for /, /config, /subscription at 360x740, 390x844, 430x932 with no horizontal scroll and required actions present.</evidence-5>
     <evidence-6>2026-06-01: frontend npm run build passed and node scripts/phase45-trial-subscription-ux-smoke.mjs passed for pending trial copy, countdown fields, active-date calendar marker, and stale 3-day copy guard.</evidence-6>
     <evidence-7>2026-06-01: frontend npm run build passed and node scripts/phase46-user-cabinet-ux-smoke.mjs passed for password example, MTProto dual links, Russian labels, and bounded status refresh.</evidence-7>
+    <evidence-8>2026-06-03: frontend npm run build and node scripts/phase53-user-matrix-ui-smoke.mjs passed for Matrix dashboard/config/subscription/referrals/settings route structure, primary action reachability, state surfaces, and protected deploy/install isolation.</evidence-8>
   </evidence>
   <autonomous-execution-safety status="allowed-after-build-and-mobile-smoke">
     Autonomous execution may proceed inside Phase-23 user frontend files if each step preserves module contracts, keeps deploy/install out of scope, and records build plus viewport evidence before commit.

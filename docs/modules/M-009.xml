@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<M-009 NAME="frontend-user" TYPE="UI_COMPONENT" STATUS="pass-local-phase46-phase51-phase52">
+<M-009 NAME="frontend-user" TYPE="UI_COMPONENT" STATUS="pass-local-phase46-phase51-phase52-phase53">
   <path>frontend frontend/public frontend/index.html frontend/vite.config.ts</path>
   <owns>login, verified registration, password recovery, verify-email activation, dashboard, config delivery, subscription management, pending trial countdown/calendar UX, referrals and settings UI with per-device config awareness</owns>
   <depends>M-002, M-003, M-004, M-005, M-022, M-070, M-071</depends>
@@ -23,6 +23,7 @@
     <file>frontend/src/pages/ResetPassword.tsx</file>
     <file>frontend/src/pages/VerifyEmail.tsx</file>
     <file>frontend/src/components/Layout.tsx</file>
+    <file>frontend/src/components/Loading.tsx</file>
     <file>frontend/src/pages/Dashboard.tsx</file>
     <file>frontend/src/pages/Config.tsx</file>
     <file>frontend/src/pages/Subscription.tsx</file>
@@ -31,6 +32,7 @@
     <file>frontend/src/lib/api.ts</file>
     <file>frontend/src/lib/passwordPolicy.ts</file>
     <file>frontend/src/index.css</file>
+    <file>scripts/phase53-user-matrix-ui-smoke.mjs</file>
   </files>
   <phase-23-scope>
     <primary-files>Layout.tsx, Dashboard.tsx, Config.tsx, Subscription.tsx, index.css</primary-files>
@@ -70,4 +72,9 @@
     <primary-behaviors>Shared Matrix visual shell wraps the user route tree without changing auth, route structure, API clients, VPN, MTProto, billing, or deploy behavior.</primary-behaviors>
     <evidence>2026-06-03: frontend npm run build passed; Phase-52 smoke passed; Chrome screenshots for /login at 360x740, 390x844, 430x932, 1440x900, and reduced-motion 390x844 passed visual review.</evidence>
   </phase-52-scope>
+  <phase-53-scope>
+    <primary-files>Login.tsx, Register.tsx, ForgotPassword.tsx, ResetPassword.tsx, VerifyEmail.tsx, Layout.tsx, Loading.tsx, Dashboard.tsx, Config.tsx, Subscription.tsx, Referrals.tsx, Settings.tsx, index.css, scripts/phase53-user-matrix-ui-smoke.mjs</primary-files>
+    <primary-behaviors>Compact Matrix user auth and cabinet routes, protected route smoke, MTProto redaction/link guards, trial/tariff invariants, readable forms, reduced-motion visual proof, and protected deploy/install isolation.</primary-behaviors>
+    <evidence>2026-06-03: frontend npm run build passed; Phase-53 smoke passed; production-preview Chrome screenshots passed for login/register/reset mobile, login desktop, and reduced-motion login with virtual-time-budget.</evidence>
+  </phase-53-scope>
 </M-009>

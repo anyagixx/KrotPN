@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<M-064 NAME="user-cabinet-auth-mtproto-ux-polish" TYPE="UI_COMPONENT" STATUS="done-local-phase46">
-  <path>frontend scripts/phase46-user-cabinet-ux-smoke.mjs docs/plans/Phase-46.xml</path>
+<M-064 NAME="user-cabinet-auth-mtproto-ux-polish" TYPE="UI_COMPONENT" STATUS="done-local-phase46-phase53">
+  <path>frontend scripts/phase46-user-cabinet-ux-smoke.mjs scripts/phase53-user-matrix-ui-smoke.mjs docs/plans/Phase-46.xml docs/plans/Phase-53.xml</path>
   <owns>Registration password example UX, owner MTProto dual-link behavior, Russian MTProto field labels, and dynamic dashboard status badge refresh.</owns>
   <purpose>Polish the user cabinet and registration UX without changing backend MTProto, auth, or deploy/install contracts.</purpose>
   <exports>
@@ -10,13 +10,14 @@
     <view-mtproto-russian-labels>MTProto card labels visible user-facing fields as Ссылка, Сервер, Порт, and Секрет.</view-mtproto-russian-labels>
     <view-dynamic-status-badge>MTProto status badge refreshes from current owner proxy state instead of staying stale.</view-dynamic-status-badge>
   </exports>
-  <depends>M-009,M-036,M-045,M-062</depends>
+  <depends>M-009,M-036,M-045,M-062,M-071</depends>
   <verification-ref>V-M-064</verification-ref>
   <files>
     <file>frontend/src/pages/Register.tsx</file>
     <file>frontend/src/pages/Dashboard.tsx</file>
     <file>frontend/src/lib/passwordPolicy.ts</file>
     <file>scripts/phase46-user-cabinet-ux-smoke.mjs</file>
+    <file>scripts/phase53-user-matrix-ui-smoke.mjs</file>
     <file>docs/plans/Phase-46.xml</file>
   </files>
   <constraints>
@@ -31,6 +32,7 @@
     <metric-3>Visible MTProto card labels are localized as Ссылка, Сервер, Порт, and Секрет.</metric-3>
     <metric-4>Activated/degraded/pending MTProto status badge can refresh dynamically from the API state.</metric-4>
     <metric-5>Frontend build, Phase-46 smoke, MyGRACE lint, XML parse, and deploy/install diff guard pass.</metric-5>
+    <metric-6>Phase-53 smoke confirms Matrix auth/dashboard polish preserves password example, duplicate-email recovery CTA, dual MTProto links, labels, and bounded refresh.</metric-6>
   </acceptance-metrics>
   <verification-design>
     <evidence-level-1>Module-local deterministic smoke asserts password example, dual MTProto link schemes, Russian labels, bounded status refresh, and redaction.</evidence-level-1>
@@ -41,6 +43,7 @@
     <evidence-1>2026-06-01: node scripts/phase46-user-cabinet-ux-smoke.mjs passed for password example, dual MTProto links, Russian labels, bounded status refresh, and secret redaction guards.</evidence-1>
     <evidence-2>2026-06-01: cd frontend &amp;&amp; npm run build passed.</evidence-2>
     <evidence-3>2026-06-01: XML parse, MyGRACE lint, and deploy/install diff guard passed.</evidence-3>
+    <evidence-4>2026-06-03: Phase-53 frontend build and smoke passed for compact Matrix auth and MTProto UX preservation.</evidence-4>
   </evidence>
   <hotspot>H-051: User cabinet UX polish must separate tg app links from browser links, keep MTProto secrets owner-only, and avoid stale status badges</hotspot>
 </M-064>
