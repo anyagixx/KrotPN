@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Phase-64 NAME="Premium Resend Email Templates" STATUS="planned">
+<Phase-64 NAME="Premium Resend Email Templates" STATUS="verification-designed">
   <objective>Redesign verification and password-reset Resend email templates in the premium KrotPN Matrix style.</objective>
   <modules>M-079,M-040,M-062,M-069,M-072,M-080</modules>
   <non-goals>Changing Resend installer/deploy wiring, email provider semantics, verification token storage, or password policy.</non-goals>
@@ -14,5 +14,6 @@
     <step-8>Record evidence in M-079/V-M-079 and update M-040/M-062/M-069 if execution changes their contracts.</step-8>
   </steps>
   <verification>V-M-079</verification>
+  <verification-design>Phase-64 is ready for execution only after V-M-079 gates prove email-client-safe HTML, readable text fallback, token redaction, public logo URL use, Resend/provider boundary safety, and protected deploy/install/runtime isolation.</verification-design>
   <acceptance>Email templates match the premium visual system while remaining transactional, token-safe, and readable.</acceptance>
 </Phase-64>

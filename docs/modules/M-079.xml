@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<M-079 NAME="premium-email-templates" TYPE="UI_COMPONENT" STATUS="planned-phase64">
+<M-079 NAME="premium-email-templates" TYPE="UI_COMPONENT" STATUS="verification-designed-phase64">
   <path>backend/app/email/templates.py backend/app/email/service.py backend/tests/test_email_delivery.py docs/plans/Phase-64.xml scripts/phase64-premium-email-template-smoke.mjs</path>
   <owns>Premium Matrix/cyberpunk Resend verification and password-reset email templates.</owns>
   <purpose>Bring transactional email visual quality in line with the premium KrotPN frontend without weakening token safety.</purpose>
@@ -19,6 +19,13 @@
     <metric-1>Backend email tests pass for verification and reset templates.</metric-1>
     <metric-2>Phase-64 smoke proves logo URL, text fallback, token redaction, and dark-email compatibility markers.</metric-2>
     <metric-3>Protected deploy/install guard remains clean.</metric-3>
+    <metric-4 status="verification-designed-phase64">V-M-079 maps HTML/text/token/provider/logo/protected-surface gates before execution changes are made.</metric-4>
   </acceptance-metrics>
+  <verification-design>
+    <target-1>Verification and password-reset templates must share a premium email shell without changing one-time token, pending registration, or password reset semantics.</target-1>
+    <target-2>Text fallback must stay plain, readable, independent of remote images, and free of visual-only meaning.</target-2>
+    <target-3>Body logo usage must rely on an approved public frontend asset URL and must not claim mailbox sender-avatar, BIMI provider, or DNS behavior.</target-3>
+    <target-4>Phase-64 execution must not modify Resend installer wiring, EMAIL_FROM, provider credentials, deploy/install scripts, nginx, docker-compose, VPN, or MTProto runtime behavior.</target-4>
+  </verification-design>
   <hotspot>H-066: Premium Resend templates must remain token-safe, text-fallback clean, and compatible with image-blocking email clients.</hotspot>
 </M-079>

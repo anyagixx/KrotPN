@@ -65,6 +65,6 @@
   <Phase-61 NAME="Tablet and Mobile Adaptation Closure" STATUS="done-local" STEPS="8" MODULES="M-074,M-009,M-010,M-036,M-037,M-038,M-071,M-072" />
   <Phase-62 NAME="Compactness and Deletion Audit" STATUS="done-local" STEPS="8" MODULES="M-075,M-076,M-038,M-073,M-074" />
   <Phase-63 NAME="Visible Logo Integration" STATUS="done-local" STEPS="8" MODULES="M-080,M-009,M-010,M-069,M-072,M-073,M-075,M-076" />
-  <Phase-64 NAME="Premium Resend Email Templates" STATUS="planned" STEPS="8" MODULES="M-079,M-040,M-062,M-069,M-072,M-080" />
+  <Phase-64 NAME="Premium Resend Email Templates" STATUS="verification-designed" STEPS="8" MODULES="M-079,M-040,M-062,M-069,M-072,M-080" />
   <Phase-65 NAME="Premium Release Candidate Gate" STATUS="planned" STEPS="8" MODULES="M-078,M-073,M-074,M-075,M-076,M-077,M-079,M-080" />
 </PlanIndex>
