@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<V-M-076 MODULE="M-076" PRIORITY="high" STATUS="pass-local" PHASE-58="pass-local" PHASE-62="planned">
+<V-M-076 MODULE="M-076" PRIORITY="high" STATUS="pass-local-phase59" PHASE-58="pass-local" PHASE-59="pass-local" PHASE-62="planned">
   <scope>Phase-58 premium admin cockpit verification for dashboard command density, service health, users, devices, MTProto operations, MTProto analytics, tariffs, servers, analytics, confirmation-safe actions, redaction, responsive operator use, and protected-surface isolation. Phase-62 compactness/deletion audit remains planned and is not executed by this verification contract.</scope>
   <test-files>
     <file>scripts/phase58-premium-admin-cockpit-smoke.mjs</file>
@@ -9,6 +9,7 @@
     <file>scripts/phase50-tariff-catalog-smoke.mjs</file>
     <file>scripts/phase52-matrix-visual-smoke.mjs</file>
     <file>scripts/phase55-premium-art-direction-smoke.mjs</file>
+    <file phase="59-pass-local">scripts/phase59-motion-interactions-smoke.mjs</file>
     <file phase="62-planned">scripts/phase62-compactness-deletion-smoke.mjs</file>
     <file>frontend-admin/src/components/Layout.tsx</file>
     <file>frontend-admin/src/components/StatCard.tsx</file>
@@ -41,6 +42,8 @@
     <check-11 status="pass-local">mygrace lint</check-11>
     <check-12 status="pass-local">git diff --check</check-12>
     <check-13 status="pass-local">git diff --name-only HEAD -- install.sh docker-compose.yml nginx deploy deploy/mtproto-de-compose.yml .env.example backend/app backend/tests mtproto-runtime official-mtproxy frontend must be empty</check-13>
+    <check-14 status="pass-local-post-commit">node scripts/phase58-premium-admin-cockpit-smoke.mjs</check-14>
+    <check-15 status="pass-local-phase59">node scripts/phase59-motion-interactions-smoke.mjs</check-15>
   </module-checks>
   <verification-matrix>
     <target-1 evidence="static-and-runtime">Admin layout keeps compact navigation, authenticated admin context, logout, route active state, and emergency surfaces reachable on phone/tablet/desktop.</target-1>
@@ -94,6 +97,7 @@
     <evidence-1>2026-06-04 pass-local: Phase-58 smoke printed all required PremiumAdminCockpit markers including routes, command center, actions, bounded inventories, MTProto redaction, confirmation guards, tariff guard, readonly analytics, reduced motion, static screenshot proof, and protected-surface guard.</evidence-1>
     <evidence-2>Regression evidence passed: Phase-42 MTProto admin analytics smoke, Phase-43 MTProto analytics UX/IP/alerts smoke, Phase-50 tariff catalog smoke, Phase-52 Matrix visual smoke, Phase-54 admin Matrix smoke, and Phase-55 premium art-direction smoke.</evidence-2>
     <evidence-3>Protected-surface evidence passed: no diff in install.sh, docker-compose.yml, nginx, deploy, deploy/mtproto-de-compose.yml, .env.example, backend/app, backend/tests, mtproto-runtime, official-mtproxy, or frontend.</evidence-3>
+    <evidence-4>2026-06-04 pass-local: Phase-59 admin motion smoke passed for Devices, MTProto, MTProtoAnalytics, VisualShell, MatrixBackground, shared admin CSS, and protected backend/deploy/runtime guard. Post-commit Phase-58 smoke passed after HEAD included Phase-59 user frontend changes.</evidence-4>
   </evidence>
   <autonomous-execution-safety>Safe for local autonomous execution if changes stay inside frontend-admin cockpit routes/components/CSS, Phase-58 smoke verification, and MyGRACE docs. Stop execution if backend admin API changes, auth/session changes, billing catalog mutation, VPN/MTProto runtime changes, deploy/install/nginx/docker-compose changes, user frontend changes, or secret-handling changes appear necessary.</autonomous-execution-safety>
 </V-M-076>

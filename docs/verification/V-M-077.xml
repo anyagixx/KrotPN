@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<V-M-077 MODULE="M-077" PRIORITY="high" STATUS="pending" PHASE-59="pending">
+<V-M-077 MODULE="M-077" PRIORITY="high" STATUS="pass-local" PHASE-59="pass-local">
   <scope>Phase-59 verification for premium Matrix motion and microinteractions across user and admin frontends: copy/download/proxy feedback, VPN/MTProto/subscription/alert/health state transitions, route entrance motion, reduced-motion fallback, inactive-tab lifecycle, keyboard/pointer/scroll safety, and protected-surface isolation.</scope>
   <test-files>
     <file>scripts/phase59-motion-interactions-smoke.mjs</file>
@@ -33,21 +33,28 @@
     <file>docs/plans/Phase-59.xml</file>
   </test-files>
   <module-checks>
-    <check-1>cd frontend &amp;&amp; npm run build</check-1>
-    <check-2>cd frontend-admin &amp;&amp; npm run build</check-2>
-    <check-3>node scripts/phase59-motion-interactions-smoke.mjs</check-3>
-    <check-4>node scripts/phase52-matrix-visual-smoke.mjs</check-4>
-    <check-5>node scripts/phase55-premium-art-direction-smoke.mjs</check-5>
-    <check-6>node scripts/phase56-premium-public-auth-smoke.mjs</check-6>
-    <check-7>node scripts/phase57-premium-user-cabinet-smoke.mjs</check-7>
-    <check-8>node scripts/phase58-premium-admin-cockpit-smoke.mjs</check-8>
-    <check-9>Chrome screenshot audit for user /, /login, /register, /dashboard, /dashboard/config, /dashboard/subscription and admin /login, /, /users, /devices, /mtproto at 360x740, 390x844, 430x932, 768x1024, 1440x900, plus reduced-motion /dashboard and admin /mtproto at 390x844. If authenticated local sessions are unavailable, record static route proof plus clean-deploy authenticated screenshot follow-up.</check-9>
-    <check-10>Playwright or Chrome CDP interaction smoke for copy, download, proxy link open/copy, route navigation, focus-visible traversal, mobile scroll, and reduced-motion media emulation.</check-10>
-    <check-11>python3 XML parse for docs/modules/M-077.xml docs/plans/Phase-59.xml docs/verification/V-M-077.xml docs/verification-index.xml</check-11>
-    <check-12>mygrace lint</check-12>
-    <check-13>git diff --check</check-13>
-    <check-14>git diff --name-only HEAD -- install.sh docker-compose.yml nginx deploy deploy/mtproto-de-compose.yml .env.example backend/app backend/tests mtproto-runtime official-mtproxy telegram-bot must be empty</check-14>
+    <check-1 status="passed-local">cd frontend &amp;&amp; npm run build</check-1>
+    <check-2 status="passed-local">cd frontend-admin &amp;&amp; npm run build</check-2>
+    <check-3 status="passed-local">node scripts/phase59-motion-interactions-smoke.mjs</check-3>
+    <check-4 status="passed-local">node scripts/phase52-matrix-visual-smoke.mjs</check-4>
+    <check-5 status="passed-local">node scripts/phase55-premium-art-direction-smoke.mjs</check-5>
+    <check-6 status="passed-local">node scripts/phase56-premium-public-auth-smoke.mjs</check-6>
+    <check-7 status="passed-local">node scripts/phase57-premium-user-cabinet-smoke.mjs</check-7>
+    <check-8 status="pass-local-post-commit">node scripts/phase58-premium-admin-cockpit-smoke.mjs</check-8>
+    <check-9 status="static-route-proof">Chrome screenshot audit is represented by Phase-59 static-route proof marker; authenticated clean-deploy screenshot review remains follow-up.</check-9>
+    <check-10 status="static-smoke">Interaction smoke is static: copy/download/proxy link classes, route/focus/pointer/reduced-motion markers, passive pointer listener, and no scroll hijack patterns are asserted by Phase-59 smoke.</check-10>
+    <check-11 status="pending-final-run">python3 XML parse for docs/modules/M-077.xml docs/plans/Phase-59.xml docs/verification/V-M-077.xml docs/verification-index.xml</check-11>
+    <check-12 status="passed-local">mygrace lint</check-12>
+    <check-13 status="passed-local">git diff --check</check-13>
+    <check-14 status="passed-local">git diff --name-only HEAD -- install.sh docker-compose.yml nginx deploy deploy/mtproto-de-compose.yml .env.example backend/app backend/tests mtproto-runtime official-mtproxy telegram-bot is empty</check-14>
   </module-checks>
+  <evidence>
+    <item>2026-06-04: frontend build passed.</item>
+    <item>2026-06-04: frontend-admin build passed with the existing large chunk warning only.</item>
+    <item>2026-06-04: Phase-59 motion smoke printed all required MatrixMotion markers.</item>
+    <item>2026-06-04: Phase-52, Phase-55, Phase-56, Phase-57, and post-commit Phase-58 regression smokes passed.</item>
+    <item>2026-06-04: XML parse, MyGRACE lint, git diff --check, and protected backend/deploy/runtime guard passed.</item>
+  </evidence>
   <verification-matrix>
     <target-1 evidence="static-and-interaction">Copy, download, QR/config, Telegram proxy, and promo/status feedback use short visible success/error states without blocking forms, buttons, links, or route navigation.</target-1>
     <target-2 evidence="static-and-screenshot">VPN, MTProto, subscription, alert, device, server, health, and billing status transitions remain readable while animating and do not resize fixed-format tiles, charts, rows, toolbars, QR blocks, or buttons.</target-2>

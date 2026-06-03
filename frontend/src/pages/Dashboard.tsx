@@ -1,12 +1,12 @@
 // FILE: frontend/src/pages/Dashboard.tsx
-// VERSION: 1.5.0
+// VERSION: 1.6.0
 // ROLE: UI_COMPONENT
 // MAP_MODE: SUMMARY
 // START_MODULE_CONTRACT
-//   PURPOSE: Premium compact Matrix command center showing VPN status, config action, subscription, MTProto proxy, traffic, and device summary
-//   SCOPE: Mobile first-screen workflow, primary config/subscription CTA, MTProto owner actions, active device summary, compact traffic and connection facts
-//   DEPENDS: M-009 (frontend-user), M-002 (auth API), M-003 (vpn stats API), M-004 (billing API), M-022 (device API), M-036 (mobile-user-cabinet), M-045 (mtproto-user-cabinet), M-051 (mtproto-availability-diagnostics), M-071 (matrix-style-system), M-075 (premium-user-cabinet)
-//   LINKS: M-009 (frontend-user), M-036 (mobile-user-cabinet), M-045, M-051, M-071, M-075
+//   PURPOSE: Premium compact Matrix command center showing VPN status, config action, subscription, MTProto proxy, traffic, device summary, and Phase-59 feedback
+//   SCOPE: Mobile first-screen workflow, primary config/subscription CTA, MTProto owner actions, active device summary, compact traffic and connection facts, copy microinteractions, and status transitions
+//   DEPENDS: M-009 (frontend-user), M-002 (auth API), M-003 (vpn stats API), M-004 (billing API), M-022 (device API), M-036 (mobile-user-cabinet), M-045 (mtproto-user-cabinet), M-051 (mtproto-availability-diagnostics), M-071 (matrix-style-system), M-075 (premium-user-cabinet), M-077 (matrix-motion-interactions)
+//   LINKS: M-009 (frontend-user), M-036 (mobile-user-cabinet), M-045, M-051, M-071, M-075, M-077, Phase-59
 // END_MODULE_CONTRACT
 //
 // START_MODULE_MAP
@@ -14,11 +14,12 @@
 //   buildMtprotoTelegramAppLink - Builds tg://proxy action link from the owner payload for Telegram app opening
 //   buildMtprotoBrowserLink - Builds https://t.me/proxy browser/copy link from the owner payload
 //   mtprotoIntroText - Builds a non-duplicating MTProto card intro line
-//   BLOCK_DASHBOARD_PAGE - DashboardPage default export with Phase-57 VPN, subscription, MTProto, config, and device command surfaces
+//   BLOCK_DASHBOARD_PAGE - DashboardPage default export with Phase-57 VPN, subscription, MTProto, config, device command surfaces, and Phase-59 feedback markers
 //   default - React component (default export)
 // END_MODULE_MAP
 //
 // START_CHANGE_SUMMARY
+//   LAST_CHANGE: v3.6.0 - Added Phase-59 MTProto copy feedback, status transition markers, and motion-safe action classes.
 //   LAST_CHANGE: v3.5.0 - Added Phase-57 premium command center, one/two-tap protected route actions, and dense first-screen task strip.
 //   LAST_CHANGE: v3.4.0 - Applied Phase-53 compact Matrix dashboard surfaces without changing API refresh contracts.
 //   LAST_CHANGE: v3.3.0 - Added Phase-46 MTProto tg/browser link split, Russian labels, and bounded status refresh marker.
@@ -86,10 +87,10 @@ function mtprotoStatusLabel(payload?: MTProtoProxyResponse, isLoading?: boolean,
 }
 
 function mtprotoStatusClass(payload?: MTProtoProxyResponse, isLoading?: boolean, isError?: boolean) {
-  if (isLoading || payload?.status === 'pending') return 'status-badge-warning w-fit'
-  if (isError || payload?.status === 'degraded' || payload?.status === 'reissue_required') return 'status-badge-error w-fit'
-  if (payload?.status === 'activated') return 'status-badge-success w-fit'
-  return 'status-badge-warning w-fit'
+  if (isLoading || payload?.status === 'pending') return 'status-badge-warning motion-status w-fit'
+  if (isError || payload?.status === 'degraded' || payload?.status === 'reissue_required') return 'status-badge-error motion-status w-fit'
+  if (payload?.status === 'activated') return 'status-badge-success motion-status w-fit'
+  return 'status-badge-warning motion-status w-fit'
 }
 
 function buildMtprotoTelegramAppLink(payload?: MTProtoProxyResponse) {
@@ -221,7 +222,7 @@ export default function Dashboard() {
     <button
       type="button"
       onClick={() => handleMtprotoCopy(field, value)}
-      className="btn-secondary min-h-10 min-w-0 rounded-lg px-2 py-2 text-sm"
+      className={copiedMtprotoField === field ? 'btn-secondary motion-interactive motion-copy-success min-h-10 min-w-0 rounded-lg px-2 py-2 text-sm' : 'btn-secondary motion-interactive min-h-10 min-w-0 rounded-lg px-2 py-2 text-sm'}
       aria-label={`Copy MTProto ${field}`}
       title={`Copy MTProto ${field}`}
       disabled={!value}
@@ -232,7 +233,12 @@ export default function Dashboard() {
   )
 
   return (
-    <div className="content-section matrix-page animate-in" data-phase53-route="dashboard" data-phase57-route="dashboard">
+    <div
+      className="content-section matrix-page animate-in"
+      data-phase53-route="dashboard"
+      data-phase57-route="dashboard"
+      data-phase59-status-transitions="[MatrixMotion][phase59][STATUS_TRANSITIONS_READY]"
+    >
       <section
         className="phase57-command-center"
         data-phase57-command-center="true"
@@ -252,7 +258,7 @@ export default function Dashboard() {
                 : 'Активируйте подписку, чтобы получить рабочий конфиг.'}
             </p>
           </div>
-          <span className={isConnected ? 'status-badge-success w-fit shrink-0' : 'status-badge-warning w-fit shrink-0'}>
+          <span className={isConnected ? 'status-badge-success motion-status w-fit shrink-0' : 'status-badge-warning motion-status w-fit shrink-0'}>
             {isConnected ? t('connected') : t('disconnected')}
           </span>
         </div>
@@ -281,26 +287,27 @@ export default function Dashboard() {
         <div className="phase57-primary-actions mt-3" data-phase57-primary-actions-reachable="true">
           <Link
             to={hasSubscription ? '/dashboard/config' : '/dashboard/subscription'}
-            className="btn-primary min-h-11 justify-start rounded-lg px-3 py-2.5"
+            className="btn-primary motion-interactive min-h-11 justify-start rounded-lg px-3 py-2.5"
             data-phase57-primary-action="vpn-config"
           >
             {hasSubscription ? <QrCode className="h-5 w-5" /> : <Zap className="h-5 w-5" />}
             {hasSubscription ? 'QR и .conf' : 'Активировать'}
           </Link>
-          <Link to="/dashboard/config" className="btn-secondary min-h-11 justify-start rounded-lg px-3 py-2.5" data-phase57-primary-action="devices">
+          <Link to="/dashboard/config" className="btn-secondary motion-interactive min-h-11 justify-start rounded-lg px-3 py-2.5" data-phase57-primary-action="devices">
             <FileCode2 className="h-5 w-5" />
             Устройства
           </Link>
-          <Link to="/dashboard/subscription" className="btn-secondary min-h-11 justify-start rounded-lg px-3 py-2.5" data-phase57-primary-action="subscription">
+          <Link to="/dashboard/subscription" className="btn-secondary motion-interactive min-h-11 justify-start rounded-lg px-3 py-2.5" data-phase57-primary-action="subscription">
             <Calendar className="h-5 w-5" />
             {hasSubscription ? 'Продлить' : 'Тарифы'}
           </Link>
           <button
             type="button"
             onClick={() => handleMtprotoCopy('link', mtprotoBrowserLink)}
-            className="btn-secondary min-h-11 justify-start rounded-lg px-3 py-2.5"
+            className={copiedMtprotoField === 'link' ? 'btn-secondary motion-interactive motion-copy-success min-h-11 justify-start rounded-lg px-3 py-2.5' : 'btn-secondary motion-interactive min-h-11 justify-start rounded-lg px-3 py-2.5'}
             disabled={!mtprotoBrowserLink}
             data-phase57-primary-action="mtproto-copy"
+            data-phase59-microinteractions="[MatrixMotion][phase59][MICROINTERACTIONS_READY]"
           >
             <Link2 className="h-5 w-5" />
             Proxy
@@ -317,6 +324,7 @@ export default function Dashboard() {
         data-phase57-mtproto-owner-card="redacted-actions"
         data-phase46-mtproto-status-refresh-ms={MTPROTO_STATUS_REFRESH_MS}
         data-mtproto-status={mtproto?.status || (mtprotoError ? 'degraded' : 'pending')}
+        data-phase59-microinteractions="[MatrixMotion][phase59][MICROINTERACTIONS_READY]"
       >
         <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
           <div className="min-w-0">
@@ -351,7 +359,7 @@ export default function Dashboard() {
             <div className="matrix-action-grid mt-3 grid-cols-2 sm:grid-cols-5" data-phase57-mtproto-actions="tg-browser-copy-fields">
               <a
                 href={mtprotoTelegramAppLink || mtproto.tg_link}
-                className="btn-primary min-h-10 min-w-0 rounded-lg px-2 py-2 text-sm"
+                className="btn-primary motion-interactive min-h-10 min-w-0 rounded-lg px-2 py-2 text-sm"
                 aria-label="Open MTProto proxy in Telegram"
                 title="Open MTProto proxy in Telegram"
                 onClick={() => console.info(MTPROTO_OPEN_TELEGRAM_MARKER, { field: 'telegram_app_link' })}
@@ -454,7 +462,7 @@ export default function Dashboard() {
                     ? `${activeDevices} активных устройств. QR и .conf открываются в разделе конфигурации.`
                     : 'Создайте первое устройство, чтобы получить отдельный peer и конфиг.'}
               </p>
-              <Link to="/dashboard/config" className="btn-secondary mt-4 min-h-11 w-full justify-start rounded-lg px-3 py-2.5">
+              <Link to="/dashboard/config" className="btn-secondary motion-interactive mt-4 min-h-11 w-full justify-start rounded-lg px-3 py-2.5">
                 <FileCode2 className="h-5 w-5" />
                 Открыть конфигурацию
               </Link>
@@ -470,7 +478,7 @@ export default function Dashboard() {
               <h2 className="text-lg font-bold">Подписка нужна для рабочего конфига</h2>
               <p className="mt-1 text-sm muted">После оплаты появятся QR-код, `.conf` и управление устройствами.</p>
             </div>
-            <Link to="/dashboard/subscription" className="btn-primary min-h-11 shrink-0 rounded-lg px-3 py-2.5">
+            <Link to="/dashboard/subscription" className="btn-primary motion-interactive min-h-11 shrink-0 rounded-lg px-3 py-2.5">
               <Zap className="h-5 w-5" />
               Выбрать тариф
             </Link>

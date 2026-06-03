@@ -1,12 +1,12 @@
 /* FILE: frontend-admin/src/index.css
- * VERSION: 1.3.0
+ * VERSION: 1.4.0
  * ROLE: UI_COMPONENT
  * MAP_MODE: SUMMARY
  * START_MODULE_CONTRACT
- *   PURPOSE: Shared admin-frontend styling tokens, compact admin surfaces, Phase-52 Matrix visual foundation, Phase-54 admin console primitives, Phase-55 premium art direction, and Phase-58 operator cockpit density
- *   SCOPE: Admin shell, login console, navigation, panels, forms, data tables, charts, premium palette/type/density/logo tokens, Matrix background/canvas/CRT layers, Phase-58 command cockpit primitives, focus and reduced-motion policy
- *   DEPENDS: M-010 (frontend-admin), M-037 (admin-mtproto-ui), M-038 (compact-ui-system), M-047 (mtproto-admin-ops), M-058 (mtproto-admin-analytics-ui), M-068 (tariff-catalog), M-070 (matrix-visual-runtime), M-071 (matrix-style-system), M-072 (premium-art-direction-system), M-076 (premium-admin-cockpit)
- *   LINKS: M-010 (frontend-admin), M-037, M-038, M-047, M-058, M-068, M-070, M-071, M-072, M-076, Phase-58
+ *   PURPOSE: Shared admin-frontend styling tokens, compact admin surfaces, Phase-52 Matrix visual foundation, Phase-54 admin console primitives, Phase-55 premium art direction, Phase-58 operator cockpit density, and Phase-59 motion language
+ *   SCOPE: Admin shell, login console, navigation, panels, forms, data tables, charts, premium palette/type/density/logo tokens, Matrix background/canvas/CRT layers, Phase-58 command cockpit primitives, Phase-59 motion/microinteraction primitives, focus and reduced-motion policy
+ *   DEPENDS: M-010 (frontend-admin), M-037 (admin-mtproto-ui), M-038 (compact-ui-system), M-047 (mtproto-admin-ops), M-058 (mtproto-admin-analytics-ui), M-068 (tariff-catalog), M-070 (matrix-visual-runtime), M-071 (matrix-style-system), M-072 (premium-art-direction-system), M-076 (premium-admin-cockpit), M-077 (matrix-motion-interactions)
+ *   LINKS: M-010 (frontend-admin), M-037, M-038, M-047, M-058, M-068, M-070, M-071, M-072, M-076, M-077, Phase-58, Phase-59
  * END_MODULE_CONTRACT
  *
  * START_MODULE_MAP
@@ -16,10 +16,12 @@
  *   admin-shell - Rail, topbar, mobile tabbar, content sizing
  *   admin-matrix-ui - Phase-54 compact login, toolbar, KPI, chart, route, and bounded-scroll primitives
  *   premium-admin-cockpit - Phase-58 command center, dense signal strips, bounded inventories, readonly analytics, and confirmation surfaces
+ *   matrix-motion-interactions - Phase-59 motion budget, route transitions, feedback states, status transitions, and safe interaction classes
  *   components - Panel, button, input, metric, list, table, and modal classes
  * END_MODULE_MAP
  *
  * START_CHANGE_SUMMARY
+ *   LAST_CHANGE: v3.4.0 - Added Phase-59 Matrix motion budget, feedback/status primitives, route entrance motion, and reduced-motion fallback markers.
  *   LAST_CHANGE: v3.3.0 - Phase-58 added premium admin cockpit density, bounded inventory rails, readonly analytics frames, and reduced-motion markers.
  *   LAST_CHANGE: v3.2.0 - Added Phase-55 premium Matrix art-direction tokens, density rules, logo rules, and non-orb shell background.
  *   LAST_CHANGE: v3.1.0 - Added Phase-54 compact admin Matrix console primitives and route-safe viewport helpers
@@ -91,6 +93,15 @@
   --danger: var(--matrix-red);
   --warning: var(--matrix-amber);
   --shadow: var(--premium-shadow-panel);
+
+  /* START_BLOCK_PHASE59_MOTION_BUDGET */
+  --motion-duration-fast: 120ms;
+  --motion-duration-standard: 180ms;
+  --motion-duration-route: 220ms;
+  --motion-ease-out: cubic-bezier(0.2, 0.8, 0.2, 1);
+  --motion-ease-status: cubic-bezier(0.16, 1, 0.3, 1);
+  /* [MatrixMotion][phase59][MOTION_BUDGET_READY] */
+  /* END_BLOCK_PHASE59_MOTION_BUDGET */
 }
 
 * {
@@ -210,6 +221,80 @@ textarea:focus-visible,
   z-index: 4;
   min-height: 100vh;
 }
+
+/* START_BLOCK_PHASE59_MATRIX_MOTION */
+.motion-route-enter {
+  animation: matrixRouteEnter var(--motion-duration-route) var(--motion-ease-out) both;
+}
+
+.motion-safe-layer {
+  pointer-events: auto;
+}
+
+.motion-interactive,
+.btn-primary,
+.btn-secondary,
+.btn-danger,
+.rail-link,
+.mobile-tab,
+.list-row {
+  transition-property: transform, opacity, border-color, background-color, box-shadow, filter;
+  transition-duration: var(--motion-duration-fast);
+  transition-timing-function: var(--motion-ease-out);
+  transform: translateZ(0);
+}
+
+.motion-interactive:hover,
+.btn-primary:hover,
+.btn-secondary:hover,
+.btn-danger:hover,
+.rail-link:hover,
+.mobile-tab:hover {
+  transform: translateY(-1px);
+}
+
+.motion-interactive:active,
+.btn-primary:active,
+.btn-secondary:active,
+.btn-danger:active {
+  transform: translateY(0) scale(0.99);
+}
+
+.motion-interactive:disabled,
+.btn-primary:disabled,
+.btn-secondary:disabled,
+.btn-danger:disabled {
+  transform: none;
+}
+
+.motion-copy-success,
+.motion-feedback-success {
+  animation: matrixFeedbackPulse var(--motion-duration-standard) var(--motion-ease-status) both;
+  border-color: rgba(96, 255, 155, 0.34);
+  box-shadow: 0 0 0 1px rgba(96, 255, 155, 0.08), 0 0 18px rgba(96, 255, 155, 0.12);
+}
+
+.motion-feedback-error {
+  animation: matrixFeedbackPulse var(--motion-duration-standard) var(--motion-ease-status) both;
+  border-color: rgba(255, 209, 102, 0.34);
+  box-shadow: 0 0 0 1px rgba(255, 209, 102, 0.08), 0 0 18px rgba(255, 209, 102, 0.1);
+}
+
+.motion-status,
+.metric-pill,
+.danger-pill,
+.warning-pill,
+.neutral-pill {
+  transition-property: color, background-color, border-color, box-shadow, opacity, transform;
+  transition-duration: var(--motion-duration-standard);
+  transition-timing-function: var(--motion-ease-status);
+}
+/* [MatrixMotion][phase59][MICROINTERACTIONS_READY] */
+/* [MatrixMotion][phase59][STATUS_TRANSITIONS_READY] */
+/* [MatrixMotion][phase59][ROUTE_TRANSITIONS_FAST] */
+/* [MatrixMotion][phase59][POINTER_SCROLL_SAFE] */
+/* [MatrixMotion][phase59][KEYBOARD_FOCUS_SAFE] */
+/* END_BLOCK_PHASE59_MATRIX_MOTION */
 
 .app-shell {
   @apply min-h-screen pb-24 lg:grid lg:grid-cols-[168px_minmax(0,1fr)] lg:pb-0;
@@ -738,6 +823,26 @@ textarea:focus-visible,
   }
 }
 
+@keyframes matrixRouteEnter {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes matrixFeedbackPulse {
+  from {
+    transform: scale(0.99);
+  }
+  to {
+    transform: scale(1);
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
@@ -764,6 +869,21 @@ textarea:focus-visible,
 
   [data-phase58-admin-shell] {
     /* [PremiumAdminCockpit][phase58][REDUCED_MOTION_SAFE] */
+    scroll-behavior: auto;
+  }
+
+  .motion-route-enter,
+  .motion-interactive,
+  .motion-copy-success,
+  .motion-feedback-success,
+  .motion-feedback-error,
+  .motion-status {
+    animation: none !important;
+    transform: none !important;
+  }
+
+  [data-phase59-reduced-motion] {
+    /* [MatrixMotion][phase59][REDUCED_MOTION_PASS] */
     scroll-behavior: auto;
   }
 }

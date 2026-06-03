@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<M-009 NAME="frontend-user" TYPE="UI_COMPONENT" STATUS="pass-local-phase46-phase51-phase52-phase53-phase56">
-  <path>frontend frontend/public frontend/index.html frontend/vite.config.ts</path>
+<M-009 NAME="frontend-user" TYPE="UI_COMPONENT" STATUS="pass-local-phase46-phase51-phase52-phase53-phase56-phase59">
+  <path>frontend frontend/public frontend/index.html frontend/vite.config.ts scripts/phase59-motion-interactions-smoke.mjs</path>
   <owns>login, verified registration, password recovery, verify-email activation, dashboard, config delivery, subscription management, pending trial countdown/calendar UX, referrals and settings UI with per-device config awareness</owns>
-  <depends>M-002, M-003, M-004, M-005, M-022, M-070, M-071</depends>
+  <depends>M-002, M-003, M-004, M-005, M-022, M-070, M-071, M-077</depends>
   <verification-ref>V-M-009</verification-ref>
   <files>
     <file>frontend/src/main.tsx</file>
@@ -35,6 +35,7 @@
     <file>frontend/src/index.css</file>
     <file>scripts/phase53-user-matrix-ui-smoke.mjs</file>
     <file>scripts/phase56-premium-public-auth-smoke.mjs</file>
+    <file>scripts/phase59-motion-interactions-smoke.mjs</file>
   </files>
   <phase-23-scope>
     <primary-files>Layout.tsx, Dashboard.tsx, Config.tsx, Subscription.tsx, index.css</primary-files>
@@ -84,4 +85,9 @@
     <primary-behaviors>Public / route, protected /dashboard cabinet route split with legacy redirects, visible logo auth lockups, verified-email safety copy, canonical tariff preview, and no backend/deploy/runtime behavior changes.</primary-behaviors>
     <evidence>2026-06-03: frontend npm run build passed; Phase-56 smoke passed; Phase-44/46/50/52/53/55 regressions passed; Chrome screenshot matrix for public/auth routes passed local review.</evidence>
   </phase-56-scope>
+  <phase-59-scope>
+    <primary-files>components/MatrixBackground.tsx, components/VisualShell.tsx, pages/Dashboard.tsx, pages/Config.tsx, pages/Referrals.tsx, index.css, scripts/phase59-motion-interactions-smoke.mjs</primary-files>
+    <primary-behaviors>Short route motion, copy/download/proxy feedback, status transitions, reduced-motion fallback, pointer-scroll safety, keyboard-focus safety, and inactive-tab lifecycle markers.</primary-behaviors>
+    <evidence>2026-06-04: frontend npm run build, Phase-59 smoke, Phase-52/55/56/57 regressions, post-commit Phase-58 regression smoke, XML parse, MyGRACE lint, git diff --check, and protected backend/deploy/runtime guard passed.</evidence>
+  </phase-59-scope>
 </M-009>

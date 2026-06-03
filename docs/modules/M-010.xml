@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<M-010 NAME="frontend-admin" TYPE="UI_COMPONENT" STATUS="stable-pass-local-phase51-phase52-phase54">
-  <path>frontend-admin frontend-admin/public frontend-admin/index.html scripts/phase54-admin-matrix-ui-smoke.mjs docs/plans/Phase-54.xml</path>
+<M-010 NAME="frontend-admin" TYPE="UI_COMPONENT" STATUS="stable-pass-local-phase51-phase52-phase54-phase59">
+  <path>frontend-admin frontend-admin/public frontend-admin/index.html scripts/phase54-admin-matrix-ui-smoke.mjs scripts/phase59-motion-interactions-smoke.mjs docs/plans/Phase-54.xml docs/plans/Phase-59.xml</path>
   <owns>admin login, mobile-capable dashboard, users, devices, MTProto operations, servers, plans, analytics, settings, Full Tunnel status, and device anomaly review controls</owns>
-  <depends>M-006, M-024, M-070, M-071</depends>
+  <depends>M-006, M-024, M-070, M-071, M-077</depends>
   <verification-ref>V-M-010</verification-ref>
   <files>
     <file>frontend-admin/src/main.tsx</file>
@@ -27,6 +27,7 @@
     <file>frontend-admin/src/stores/auth.ts</file>
     <file>frontend-admin/src/types/index.ts</file>
     <file>frontend-admin/src/index.css</file>
+    <file>scripts/phase59-motion-interactions-smoke.mjs</file>
   </files>
   <phase-25-scope>
     <surface-1>Admin login persists admin_refresh_token so the existing 401 refresh interceptor can operate.</surface-1>
@@ -62,6 +63,11 @@
     <surface-2>scripts/phase54-admin-matrix-ui-smoke.mjs now gates route registration, compact primitives, bounded lists, confirmation markers, MTProto redaction, canonical Plans readonly behavior, reduced-motion markers, and protected deploy/install isolation.</surface-2>
     <surface-3>2026-06-03: cd frontend-admin &amp;&amp; npm run build passed; node scripts/phase54-admin-matrix-ui-smoke.mjs passed.</surface-3>
   </phase-54-execution>
+  <phase-59-scope>
+    <surface-1>Admin VisualShell/MatrixBackground and shared CSS expose Phase-59 route motion, reduced-motion, pointer-scroll, focus, and inactive-tab safety markers.</surface-1>
+    <surface-2>Devices, MTProto, and MTProtoAnalytics add compact feedback/status motion classes without changing API clients, admin auth, deploy, install, or runtime behavior.</surface-2>
+    <surface-3>2026-06-04: frontend-admin npm run build passed; Phase-59 smoke passed; post-commit Phase-58 regression smoke passed; protected backend/deploy/runtime guard passed.</surface-3>
+  </phase-59-scope>
   <constraints>
     <constraint-1>Frontend-admin must continue to call existing M-006 and M-024 API contracts unless an API change is separately approved.</constraint-1>
     <constraint-2>Admin auth/session hardening belongs to Phase-25 and must not be bundled into Phase-24 UI simplification.</constraint-2>

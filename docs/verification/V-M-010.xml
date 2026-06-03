@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<V-M-010 MODULE="M-010" PRIORITY="high" STATUS="pass-local-phase51-phase52-phase54" PHASE-54="pass-local" VERSION="1.5.0">
+<V-M-010 MODULE="M-010" PRIORITY="high" STATUS="pass-local-phase51-phase52-phase54-phase59" PHASE-54="pass-local" PHASE-59="pass-local" VERSION="1.6.0">
   <module>frontend-admin</module>
   <checks>Admin frontend builds and reflects current admin, Full Tunnel, system, analytics, and device-control surfaces without auth regression.</checks>
-  <test-files>frontend-admin/index.html frontend-admin/public/favicon.ico frontend-admin/public/favicon-16x16.png frontend-admin/public/favicon-32x32.png frontend-admin/public/apple-touch-icon.png frontend-admin/src/main.tsx frontend-admin/src/components/MatrixBackground.tsx frontend-admin/src/components/VisualShell.tsx frontend-admin/src/components/Layout.tsx frontend-admin/src/pages/Login.tsx frontend-admin/src/pages/Dashboard.tsx frontend-admin/src/pages/Users.tsx frontend-admin/src/pages/Devices.tsx frontend-admin/src/pages/MTProto.tsx frontend-admin/src/pages/MTProtoAnalytics.tsx frontend-admin/src/pages/Analytics.tsx frontend-admin/src/pages/Servers.tsx frontend-admin/src/pages/Plans.tsx frontend-admin/src/lib/api.ts frontend-admin/src/stores/auth.ts frontend-admin/src/types/index.ts frontend-admin/src/index.css scripts/phase51-brand-assets-smoke.mjs scripts/phase52-matrix-visual-smoke.mjs scripts/phase54-admin-matrix-ui-smoke.mjs</test-files>
-  <commands>pass-local 2026-06-03: cd frontend-admin &amp;&amp; npm run build; node scripts/phase54-admin-matrix-ui-smoke.mjs; static route/viewport review for /login, /, /users, /devices, /mtproto, /servers, /plans, and /analytics passed; authenticated screenshot review remains clean-deploy follow-up.</commands>
+  <test-files>frontend-admin/index.html frontend-admin/public/favicon.ico frontend-admin/public/favicon-16x16.png frontend-admin/public/favicon-32x32.png frontend-admin/public/apple-touch-icon.png frontend-admin/src/main.tsx frontend-admin/src/components/MatrixBackground.tsx frontend-admin/src/components/VisualShell.tsx frontend-admin/src/components/Layout.tsx frontend-admin/src/pages/Login.tsx frontend-admin/src/pages/Dashboard.tsx frontend-admin/src/pages/Users.tsx frontend-admin/src/pages/Devices.tsx frontend-admin/src/pages/MTProto.tsx frontend-admin/src/pages/MTProtoAnalytics.tsx frontend-admin/src/pages/Analytics.tsx frontend-admin/src/pages/Servers.tsx frontend-admin/src/pages/Plans.tsx frontend-admin/src/lib/api.ts frontend-admin/src/stores/auth.ts frontend-admin/src/types/index.ts frontend-admin/src/index.css scripts/phase51-brand-assets-smoke.mjs scripts/phase52-matrix-visual-smoke.mjs scripts/phase54-admin-matrix-ui-smoke.mjs scripts/phase59-motion-interactions-smoke.mjs</test-files>
+  <commands>pass-local 2026-06-04: Phase-59 frontend-admin build and motion smoke passed with admin feedback/status markers, reduced-motion proof, post-commit Phase-58 regression smoke, and protected backend/deploy/runtime guard.</commands>
   <levels>
     <module-local>Run npm build after frontend-admin route, component, API binding, or type changes.</module-local>
     <wave-level>During Phase-24, pair the build with V-M-037 mobile smoke for /, /users, /devices, and /analytics.</wave-level>
@@ -26,6 +26,7 @@
     <check-14>Phase-54 admin UI changes preserve adminApi base path, endpoint names, auth store behavior, and React Query mutation boundaries.</check-14>
     <check-15>Phase-54 smoke confirms compact Matrix surfaces do not create document-level horizontal overflow or icon/text/control overlap on mobile.</check-15>
     <check-16>Phase-54 protected-surface guard confirms install.sh, deploy, nginx, docker-compose, docker-compose.yml, and runtime topology stay unchanged.</check-16>
+    <check-17>Phase-59 motion smoke confirms admin feedback/status transitions, reduced-motion fallback, pointer-scroll/focus safety, and protected backend/deploy/runtime isolation.</check-17>
   </module-checks>
   <phase-54-admin-route-gates status="pass-local">
     <gate-1>Login uses Matrix shell, empty email/password fields, icon padding safety, visible focus states, and no stale default credential hints.</gate-1>
@@ -47,6 +48,7 @@
     <marker-3>[FrontendAdmin][Phase54][VIEWPORT_NO_OVERFLOW]</marker-3>
     <marker-4>[FrontendAdmin][Phase54][ADMIN_FLOW_UNCHANGED]</marker-4>
     <marker-5>[FrontendAdmin][Phase54][PROTECTED_SURFACE_GUARD]</marker-5>
+    <marker-6>[MatrixMotion][phase59][MICROINTERACTIONS_READY]</marker-6>
   </required-log-markers>
   <observability>
     <telemetry-1>Build evidence records command, exit code, and failing TypeScript/Vite output if any.</telemetry-1>
@@ -62,5 +64,6 @@
     <evidence-7>2026-06-03: Phase-52 frontend-admin build, Matrix visual smoke, and Chrome screenshots for admin /login at 360x740, 390x844, 430x932, 1440x900, plus reduced-motion 390x844 passed.</evidence-7>
     <evidence-8>2026-06-03: Phase-54 verification design added admin route, build, viewport, redaction, confirmation, and protected-surface gates before execution.</evidence-8>
     <evidence-9>2026-06-03: Phase-54 local execution passed frontend-admin build and scripts/phase54-admin-matrix-ui-smoke.mjs; route registration, compact Matrix primitives, bounded lists, MTProto redaction, canonical Plans readonly guard, reduced-motion markers, and protected deploy/install guard passed.</evidence-9>
+    <evidence-10>2026-06-04: Phase-59 frontend-admin build, scripts/phase59-motion-interactions-smoke.mjs, and post-commit scripts/phase58-premium-admin-cockpit-smoke.mjs passed; admin feedback/status motion markers are present and protected backend/deploy/runtime guard passed.</evidence-10>
   </evidence>
 </V-M-010>

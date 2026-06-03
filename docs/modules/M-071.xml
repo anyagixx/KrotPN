@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<M-071 NAME="matrix-style-system" TYPE="UI_COMPONENT" STATUS="done-local-phase52-phase53-phase54-phase55-phase56">
-  <path>frontend/src/index.css frontend-admin/src/index.css frontend/src/components/Layout.tsx frontend-admin/src/components/Layout.tsx scripts/phase52-matrix-visual-smoke.mjs scripts/phase53-user-matrix-ui-smoke.mjs scripts/phase54-admin-matrix-ui-smoke.mjs scripts/phase55-premium-art-direction-smoke.mjs scripts/phase56-premium-public-auth-smoke.mjs docs/plans/Phase-52.xml docs/plans/Phase-53.xml docs/plans/Phase-54.xml docs/plans/Phase-55.xml docs/plans/Phase-56.xml</path>
+<M-071 NAME="matrix-style-system" TYPE="UI_COMPONENT" STATUS="done-local-phase52-phase53-phase54-phase55-phase56-phase59">
+  <path>frontend/src/index.css frontend-admin/src/index.css frontend/src/components/Layout.tsx frontend-admin/src/components/Layout.tsx scripts/phase52-matrix-visual-smoke.mjs scripts/phase53-user-matrix-ui-smoke.mjs scripts/phase54-admin-matrix-ui-smoke.mjs scripts/phase55-premium-art-direction-smoke.mjs scripts/phase56-premium-public-auth-smoke.mjs scripts/phase59-motion-interactions-smoke.mjs docs/plans/Phase-52.xml docs/plans/Phase-53.xml docs/plans/Phase-54.xml docs/plans/Phase-55.xml docs/plans/Phase-56.xml docs/plans/Phase-59.xml</path>
   <owns>Shared KrotPN Matrix visual language: color tokens, compact panels, CRT scanlines, neon flicker, glitch accents, focus states, and mobile-safe responsive rules.</owns>
-  <depends>M-009, M-010, M-036, M-037, M-038, M-070</depends>
+  <depends>M-009, M-010, M-036, M-037, M-038, M-070, M-077</depends>
   <verification-ref>V-M-071</verification-ref>
   <reference>
     <source-1>TRUFFLEX styles.css neon flicker, scanline, glitch, matrix fade, and reduced-motion CSS blocks.</source-1>
@@ -21,6 +21,7 @@
     <interface-5>Phase-54 admin route classes for admin-login-shell, admin-login-card, admin-hero-strip, compact-toolbar, mini-kpi-grid, bounded-scroll, chart-frame, admin-route-card, and matrix-mini-card.</interface-5>
     <interface-6>Phase-55 premium art-direction tokens for balanced palette, compact typography, density, logo sizing, shadow, focus, and reduced-motion shell rules.</interface-6>
     <interface-7>Phase-56 public/auth classes for matrix-public-page, matrix-public-hero, matrix-public-band, matrix-public-tariff, matrix-brand-logo, and matrix-auth-brand-lockup.</interface-7>
+    <interface-8>Phase-59 motion classes for motion-route-enter, motion-interactive, motion-copy-success, motion-feedback-success/error, motion-status, and reduced-motion fallbacks.</interface-8>
   </public-interfaces>
   <constraints>
     <constraint-1>Preserve compact operational UX: no marketing landing page, no nested cards, no decorative card-heavy dashboards.</constraint-1>
@@ -42,6 +43,7 @@
     <phase-54-local-2026-06-03>Phase-54 added compact Matrix admin primitives, retuned admin login/layout/routes, passed frontend-admin build and Phase-54 smoke, and kept protected deploy/install/runtime surfaces unchanged.</phase-54-local-2026-06-03>
     <phase-55-local-2026-06-03>Phase-55 added premium Matrix art-direction tokens to user/admin CSS, removed decorative radial/orb shell backgrounds, passed frontend/admin builds, Phase-55 static/screenshot smoke, XML/MyGRACE/diff checks, and protected deploy/install guard.</phase-55-local-2026-06-03>
     <phase-56-local-2026-06-03>Phase-56 added compact premium public/auth CSS primitives, logo lockup rules, public tariff preview styling, passed Phase-52/53/55 style regressions plus Phase-56 screenshots, and kept protected deploy/install/runtime surfaces unchanged.</phase-56-local-2026-06-03>
+    <phase-59-local-2026-06-04>Phase-59 added short-duration motion budget tokens, route entrance transitions, feedback/status classes, reduced-motion fallbacks, and Phase-59 smoke markers to user/admin CSS; frontend/admin builds and style regressions passed.</phase-59-local-2026-06-04>
   </evidence>
   <crosslinks>
     <phase-52>Defines the foundation token system and shared effects.</phase-52>
@@ -49,5 +51,6 @@
     <phase-54>Applies the system to admin console routes.</phase-54>
     <phase-55>Extends the system with premium art-direction tokens before Phase-56/57/58 route work.</phase-55>
     <phase-56>Applies the premium style system to the public entry route and auth surfaces.</phase-56>
+    <phase-59>Adds bounded motion and microinteraction primitives to the premium Matrix style system.</phase-59>
   </crosslinks>
 </M-071>

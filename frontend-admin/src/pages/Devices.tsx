@@ -1,12 +1,12 @@
 // FILE: frontend-admin/src/pages/Devices.tsx
-// VERSION: 1.3.0
+// VERSION: 1.4.0
 // ROLE: UI_COMPONENT
 // MAP_MODE: SUMMARY
 // START_MODULE_CONTRACT
-//   PURPOSE: Compact Matrix admin page for device management with confirmation-safe block/unblock, rotate config, revoke actions, and Phase-58 bounded inventory proof
-//   SCOPE: List devices with search, anti-sharing signals, device-level actions, confirmation surface, bounded scrolling, feedback, and dense operator guard markers
-//   DEPENDS: M-010 (frontend-admin), M-006 (admin API), M-024 (device-admin-control), M-037 (mobile-admin-console), M-038 (compact-ui-system), M-071 (matrix-style-system), M-076 (premium-admin-cockpit)
-//   LINKS: M-010, M-024, M-037, M-038, M-071, M-076, Phase-54, Phase-58
+//   PURPOSE: Compact Matrix admin page for device management with confirmation-safe block/unblock, rotate config, revoke actions, Phase-58 bounded inventory proof, and Phase-59 feedback
+//   SCOPE: List devices with search, anti-sharing signals, device-level actions, confirmation surface, bounded scrolling, feedback, dense operator guard markers, and status transitions
+//   DEPENDS: M-010 (frontend-admin), M-006 (admin API), M-024 (device-admin-control), M-037 (mobile-admin-console), M-038 (compact-ui-system), M-071 (matrix-style-system), M-076 (premium-admin-cockpit), M-077 (matrix-motion-interactions)
+//   LINKS: M-010, M-024, M-037, M-038, M-071, M-076, M-077, Phase-54, Phase-58, Phase-59
 // END_MODULE_CONTRACT
 //
 // START_MODULE_MAP
@@ -17,6 +17,7 @@
 // END_MODULE_MAP
 //
 // START_CHANGE_SUMMARY
+//   LAST_CHANGE: v3.2.0 - Added Phase-59 admin feedback and status transition markers.
 //   LAST_CHANGE: v3.1.0 - Phase-58 added premium inventory and confirmation guard markers for device actions.
 //   LAST_CHANGE: v3.0.0 - Phase-54 added Matrix route markers, bounded device inventory, and confirmation readability hooks.
 //   LAST_CHANGE: v2.8.0 - Added full GRACE MODULE_CONTRACT and MODULE_MAP per GRACE governance protocol
@@ -150,6 +151,7 @@ export default function Devices() {
       className="page-shell"
       data-phase54-admin-route="devices"
       data-phase58-route="devices"
+      data-phase59-status-transitions="[MatrixMotion][phase59][STATUS_TRANSITIONS_READY]"
       data-log-marker="[MobileAdminConsole][Phase54][PRIMARY_ACTIONS_REACHABLE]"
     >
       <div className="page-header">
@@ -188,7 +190,10 @@ export default function Devices() {
       </div>
 
       {feedback ? (
-        <div className={feedback.tone === 'success' ? 'surface px-3 py-2 text-sm text-emerald-100' : 'surface px-3 py-2 text-sm text-amber-100'}>
+        <div
+          className={feedback.tone === 'success' ? 'surface motion-feedback-success px-3 py-2 text-sm text-emerald-100' : 'surface motion-feedback-error px-3 py-2 text-sm text-amber-100'}
+          data-phase59-microinteractions="[MatrixMotion][phase59][MICROINTERACTIONS_READY]"
+        >
           {feedback.text}
         </div>
       ) : null}
@@ -222,7 +227,7 @@ export default function Devices() {
                   <p className="row-subtitle">{item.user_display_name || item.user_email || `User #${item.user_id}`}</p>
                 </div>
 
-                <span className={item.status === 'blocked' ? 'danger-pill shrink-0' : 'metric-pill shrink-0'}>
+                <span className={item.status === 'blocked' ? 'danger-pill motion-status shrink-0' : 'metric-pill motion-status shrink-0'}>
                   {item.status === 'blocked' ? <Ban className="h-3.5 w-3.5" /> : <ShieldCheck className="h-3.5 w-3.5" />}
                   {item.status}
                 </span>
@@ -252,12 +257,12 @@ export default function Devices() {
               <div className="mt-3 flex flex-wrap gap-2">
                 {(item.recent_event_types ?? []).length ? (
                   (item.recent_event_types ?? []).map((event: string) => (
-                    <span key={`${item.id}-${event}`} className="warning-pill">
+                    <span key={`${item.id}-${event}`} className="warning-pill motion-status">
                       {event}
                     </span>
                   ))
                 ) : (
-                  <span className="neutral-pill">Нет сигналов</span>
+                  <span className="neutral-pill motion-status">Нет сигналов</span>
                 )}
               </div>
 

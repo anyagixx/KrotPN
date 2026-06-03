@@ -1,21 +1,22 @@
 // FILE: frontend/src/pages/Referrals.tsx
-// VERSION: 1.2.0
+// VERSION: 1.3.0
 // ROLE: UI_COMPONENT
 // MAP_MODE: SUMMARY
 // START_MODULE_CONTRACT
-//   PURPOSE: Premium compact Matrix referral program page showing referral code, link, stats, and referral history
-//   SCOPE: Code/link copy to clipboard, referral stats cards, referral list with bonus status
-//   DEPENDS: M-009 (frontend-user), M-005 (referrals API), M-071 (matrix-style-system), M-075 (premium-user-cabinet)
-//   LINKS: M-009 (frontend-user), M-071, M-075
+//   PURPOSE: Premium compact Matrix referral program page showing referral code, link, stats, referral history, and Phase-59 copy feedback
+//   SCOPE: Code/link copy to clipboard, referral stats cards, referral list with bonus status, copy microinteractions, and status transitions
+//   DEPENDS: M-009 (frontend-user), M-005 (referrals API), M-071 (matrix-style-system), M-075 (premium-user-cabinet), M-077 (matrix-motion-interactions)
+//   LINKS: M-009 (frontend-user), M-071, M-075, M-077, Phase-59
 // END_MODULE_CONTRACT
 //
 // START_MODULE_MAP
 //   ReferralsPage - Premium compact referral program component with code, link, stats, and history
-//   BLOCK_REFERRALS_PAGE - ReferralsPage default export with Phase-57 secondary surface markers
+//   BLOCK_REFERRALS_PAGE - ReferralsPage default export with Phase-57 secondary surface markers and Phase-59 copy feedback markers
 //   default - React component (default export)
 // END_MODULE_MAP
 //
 // START_CHANGE_SUMMARY
+//   LAST_CHANGE: v3.2.0 - Added Phase-59 referral copy feedback and status transition classes.
 //   LAST_CHANGE: v3.1.0 - Added Phase-57 compact secondary referral surface and scroll-safe history markers.
 //   LAST_CHANGE: v3.0.0 - Applied Phase-53 compact Matrix referral surfaces.
 //   LAST_CHANGE: v2.8.0 - Added full GRACE MODULE_CONTRACT and MODULE_MAP per GRACE governance protocol
@@ -55,7 +56,12 @@ export default function Referrals() {
   }
 
   return (
-    <div className="content-section matrix-page animate-in" data-phase53-route="referrals" data-phase57-route="referrals">
+    <div
+      className="content-section matrix-page animate-in"
+      data-phase53-route="referrals"
+      data-phase57-route="referrals"
+      data-phase59-microinteractions="[MatrixMotion][phase59][MICROINTERACTIONS_READY]"
+    >
       <div className="section-header matrix-page-header">
         <div className="min-w-0">
           <h1 className="section-title">{t('referralProgram')}</h1>
@@ -88,7 +94,7 @@ export default function Referrals() {
         </div>
         <div className="mt-5 flex flex-col gap-3 sm:flex-row">
           <input type="text" value={referralCode} readOnly className="input font-mono" />
-          <button onClick={() => handleCopy(referralCode)} className="btn-secondary sm:min-w-[150px]">
+          <button onClick={() => handleCopy(referralCode)} className={copied ? 'btn-secondary motion-interactive motion-copy-success sm:min-w-[150px]' : 'btn-secondary motion-interactive sm:min-w-[150px]'}>
             {copied ? <Check className="h-5 w-5 text-emerald-200" /> : <Copy className="h-5 w-5" />}
             Копировать
           </button>
@@ -107,7 +113,7 @@ export default function Referrals() {
         </div>
         <div className="mt-5 flex flex-col gap-3 sm:flex-row">
           <input type="text" value={referralLink} readOnly className="input font-mono text-sm" />
-          <button onClick={() => handleCopy(referralLink)} className="btn-primary sm:min-w-[170px]">
+          <button onClick={() => handleCopy(referralLink)} className={copied ? 'btn-primary motion-interactive motion-copy-success sm:min-w-[170px]' : 'btn-primary motion-interactive sm:min-w-[170px]'}>
             <Copy className="h-5 w-5" />
             Копировать ссылку
           </button>
@@ -139,11 +145,11 @@ export default function Referrals() {
                   <p className="mt-1 text-sm muted">Создан {new Date(item.created_at).toLocaleDateString('ru-RU')}</p>
                 </div>
                 <div className="flex flex-wrap items-center gap-2">
-                  <span className={item.bonus_given ? 'status-badge-success' : 'status-badge-warning'}>
+                  <span className={item.bonus_given ? 'status-badge-success motion-status' : 'status-badge-warning motion-status'}>
                     {item.bonus_given ? `Бонус начислен: +${item.bonus_days} дн.` : 'Ожидает первой оплаты'}
                   </span>
                   {item.first_payment_at ? (
-                    <span className="status-badge-success">Оплата {new Date(item.first_payment_at).toLocaleDateString('ru-RU')}</span>
+                    <span className="status-badge-success motion-status">Оплата {new Date(item.first_payment_at).toLocaleDateString('ru-RU')}</span>
                   ) : null}
                 </div>
               </div>

@@ -1,18 +1,24 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Phase-59 NAME="Matrix Motion and Microinteractions" STATUS="planned">
+<Phase-59 NAME="Matrix Motion and Microinteractions" STATUS="done-local">
   <objective>Add premium motion and microinteraction feedback without harming accessibility or operational speed.</objective>
   <modules>M-077,M-009,M-010,M-070,M-071,M-072,M-075,M-076</modules>
   <non-goals>WebGL migration, scroll hijacking, long cinematic loaders, backend/runtime changes, deploy/install changes.</non-goals>
   <steps>
-    <step-1>Define motion budget and allowed durations/easings for KrotPN premium interactions.</step-1>
-    <step-2>Add copy/download/proxy-link success feedback patterns.</step-2>
-    <step-3>Add VPN, MTProto, subscription, alert, and health status transition patterns.</step-3>
-    <step-4>Add route entrance transitions that preserve fast navigation.</step-4>
-    <step-5>Strengthen reduced-motion static/fade fallback behavior.</step-5>
-    <step-6>Verify no pointer interception, scroll hijacking, keyboard trap, or blocked forms.</step-6>
-    <step-7>Run user/admin builds, motion smoke, screenshots, XML parse, MyGRACE lint, and protected surface guard.</step-7>
-    <step-8>Record evidence in M-077/V-M-077.</step-8>
+    <step-1 status="done-local">Define motion budget and allowed durations/easings for KrotPN premium interactions.</step-1>
+    <step-2 status="done-local">Add copy/download/proxy-link success feedback patterns.</step-2>
+    <step-3 status="done-local">Add VPN, MTProto, subscription, alert, and health status transition patterns.</step-3>
+    <step-4 status="done-local">Add route entrance transitions that preserve fast navigation.</step-4>
+    <step-5 status="done-local">Strengthen reduced-motion static/fade fallback behavior.</step-5>
+    <step-6 status="done-local">Verify no pointer interception, scroll hijacking, keyboard trap, or blocked forms.</step-6>
+    <step-7 status="done-local">Run user/admin builds, motion smoke, regression smokes, XML parse, diff checks, and protected surface guard.</step-7>
+    <step-8 status="done-local">Record evidence in M-077/V-M-077.</step-8>
   </steps>
   <verification>V-M-077</verification>
   <acceptance>Motion feels premium but remains subtle, accessible, and task-focused.</acceptance>
+  <evidence>
+    <item>2026-06-04: frontend and frontend-admin production builds passed.</item>
+    <item>2026-06-04: scripts/phase59-motion-interactions-smoke.mjs passed with motion budget, microinteraction, status, route, reduced-motion, pointer/scroll/focus, inactive-tab, screenshot static proof, and protected-surface markers.</item>
+    <item>2026-06-04: Phase-52/55/56/57 regression smokes passed, and post-commit Phase-58 regression smoke passed.</item>
+    <item>2026-06-04: XML parse, MyGRACE lint, git diff --check, and protected backend/deploy/runtime diff guard passed.</item>
+  </evidence>
 </Phase-59>

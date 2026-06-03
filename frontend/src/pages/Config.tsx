@@ -1,12 +1,12 @@
 // FILE: frontend/src/pages/Config.tsx
-// VERSION: 1.3.0
+// VERSION: 1.4.0
 // ROLE: UI_COMPONENT
 // MAP_MODE: SUMMARY
 // START_MODULE_CONTRACT
-//   PURPOSE: Premium compact Matrix VPN configuration page for device registry, config download/copy/QR, and raw-config fallback
-//   SCOPE: Device CRUD (create/rotate/revoke), selected config actions, QR modal, collapsed raw config, compact install guidance
-//   DEPENDS: M-009 (frontend-user), M-003 (vpn config API), M-002 (auth API), M-022 (device provisioning API), M-036 (mobile-user-cabinet), M-071 (matrix-style-system), M-075 (premium-user-cabinet)
-//   LINKS: M-009 (frontend-user), M-036 (mobile-user-cabinet), M-071, M-075
+//   PURPOSE: Premium compact Matrix VPN configuration page for device registry, config download/copy/QR, raw-config fallback, and Phase-59 action feedback
+//   SCOPE: Device CRUD (create/rotate/revoke), selected config actions, QR modal, collapsed raw config, compact install guidance, copy/download microinteractions, and status transitions
+//   DEPENDS: M-009 (frontend-user), M-003 (vpn config API), M-002 (auth API), M-022 (device provisioning API), M-036 (mobile-user-cabinet), M-071 (matrix-style-system), M-075 (premium-user-cabinet), M-077 (matrix-motion-interactions)
+//   LINKS: M-009 (frontend-user), M-036 (mobile-user-cabinet), M-071, M-075, M-077, Phase-59
 // END_MODULE_CONTRACT
 //
 // START_MODULE_MAP
@@ -14,10 +14,11 @@
 //   QRModal - Client-side QR modal with AmneziaWG and AmneziaVPN guidance
 //   buildConfigDownloadBlob - Creates octet-stream config download blobs
 //   buildConfigDownloadFilename - Creates safe .conf download filenames
-//   BLOCK_CONFIG_PAGE - ConfigPage default export with Phase-57 compact device/config workflow
+//   BLOCK_CONFIG_PAGE - ConfigPage default export with Phase-57 compact device/config workflow and Phase-59 feedback markers
 // END_MODULE_MAP
 //
 // START_CHANGE_SUMMARY
+//   LAST_CHANGE: v3.3.0 - Added Phase-59 copy/download microinteraction markers and status transition classes.
 //   LAST_CHANGE: v3.2.0 - Added Phase-57 compact config command surface, protected subscription link, scroll-safe device list, and workflow markers.
 //   LAST_CHANGE: v3.1.0 - Applied Phase-53 compact Matrix config/device surfaces without changing download semantics.
 //   LAST_CHANGE: v3.0.0 - Hardened frontend .conf downloads with octet-stream Blob type and safe filenames.
@@ -209,7 +210,7 @@ export default function Config() {
                 {errorMessage || 'Сначала нужен активный доступ, после этого кабинет сможет выдать конфиг и QR-код.'}
               </p>
             </div>
-            <Link to="/dashboard/subscription" className="btn-primary min-h-11 shrink-0 rounded-lg px-3 py-2.5">
+            <Link to="/dashboard/subscription" className="btn-primary motion-interactive min-h-11 shrink-0 rounded-lg px-3 py-2.5">
               <Download className="h-5 w-5" />
               Открыть подписку
             </Link>
@@ -246,19 +247,24 @@ export default function Config() {
                 <p className="mt-2 break-all text-xs muted">key: {selectedDeviceKey}</p>
               ) : null}
             </div>
-            <span className="status-badge-success w-fit shrink-0">config ready</span>
+            <span className="status-badge-success motion-status w-fit shrink-0">config ready</span>
           </div>
 
-          <div className="matrix-action-grid mt-4 sm:grid-cols-3" data-phase57-config-actions="qr-download-copy">
-            <button onClick={() => setShowQR(true)} disabled={!config?.config} className="btn-primary min-h-11 rounded-lg px-3 py-2.5">
+          <div
+            className="matrix-action-grid mt-4 sm:grid-cols-3"
+            data-phase57-config-actions="qr-download-copy"
+            data-phase59-microinteractions="[MatrixMotion][phase59][MICROINTERACTIONS_READY]"
+            data-phase59-status-transitions="[MatrixMotion][phase59][STATUS_TRANSITIONS_READY]"
+          >
+            <button onClick={() => setShowQR(true)} disabled={!config?.config} className="btn-primary motion-interactive min-h-11 rounded-lg px-3 py-2.5">
               <QrCode className="h-5 w-5" />
               QR
             </button>
-            <button onClick={handleDownload} className="btn-secondary min-h-11 rounded-lg px-3 py-2.5">
+            <button onClick={handleDownload} className="btn-secondary motion-interactive min-h-11 rounded-lg px-3 py-2.5">
               <Download className="h-5 w-5" />
               .conf
             </button>
-            <button onClick={handleCopy} className="btn-secondary min-h-11 rounded-lg px-3 py-2.5">
+            <button onClick={handleCopy} className={copied ? 'btn-secondary motion-interactive motion-copy-success min-h-11 rounded-lg px-3 py-2.5' : 'btn-secondary motion-interactive min-h-11 rounded-lg px-3 py-2.5'}>
               {copied ? <Check className="h-5 w-5 text-emerald-200" /> : <Copy className="h-5 w-5" />}
               {copied ? t('copied') : t('copyConfig')}
             </button>
@@ -307,7 +313,7 @@ export default function Config() {
                       <div className="min-w-0">
                         <div className="flex flex-wrap items-center gap-2">
                           <p className="max-w-full truncate font-bold">{device.name}</p>
-                          <span className={device.status === 'active' ? 'status-badge-success' : 'status-badge-warning'}>
+                          <span className={device.status === 'active' ? 'status-badge-success motion-status' : 'status-badge-warning motion-status'}>
                             {device.status}
                           </span>
                         </div>
@@ -324,7 +330,7 @@ export default function Config() {
                         <button
                           onClick={() => rotateDeviceMutation.mutate(device.id)}
                           disabled={device.status !== 'active' || isBusy}
-                          className="btn-secondary min-h-10 rounded-lg px-3 py-2 text-sm"
+                          className="btn-secondary motion-interactive min-h-10 rounded-lg px-3 py-2 text-sm"
                         >
                           <RotateCw className="h-4 w-4" />
                           Обновить
@@ -332,7 +338,7 @@ export default function Config() {
                         <button
                           onClick={() => revokeDeviceMutation.mutate(device.id)}
                           disabled={device.status !== 'active' || isBusy}
-                          className="btn-danger min-h-10 rounded-lg px-3 py-2 text-sm"
+                          className="btn-danger motion-interactive min-h-10 rounded-lg px-3 py-2 text-sm"
                         >
                           <Trash2 className="h-4 w-4" />
                           Удалить
@@ -385,7 +391,7 @@ export default function Config() {
           <button
             onClick={handleCreateDevice}
             disabled={createDeviceMutation.isLoading}
-            className="btn-primary mt-4 min-h-11 w-full rounded-lg px-3 py-2.5"
+            className="btn-primary motion-interactive mt-4 min-h-11 w-full rounded-lg px-3 py-2.5"
           >
             <Plus className="h-5 w-5" />
             Создать устройство
@@ -409,7 +415,7 @@ export default function Config() {
           </ol>
           <button
             onClick={() => setShowQR(true)}
-            className="btn-secondary mt-4 min-h-11 w-full rounded-lg px-3 py-2.5"
+            className="btn-secondary motion-interactive mt-4 min-h-11 w-full rounded-lg px-3 py-2.5"
           >
             <QrCode className="h-5 w-5" />
             Показать QR-код
@@ -429,7 +435,7 @@ export default function Config() {
             <li>2. Импортируйте выданный конфиг.</li>
             <li>3. Сохраните профиль и нажмите подключение.</li>
           </ol>
-          <button onClick={handleDownload} className="btn-primary mt-4 min-h-11 w-full rounded-lg px-3 py-2.5">
+          <button onClick={handleDownload} className="btn-primary motion-interactive mt-4 min-h-11 w-full rounded-lg px-3 py-2.5">
             <Download className="h-5 w-5" />
             {t('downloadConfig')}
           </button>
@@ -449,7 +455,7 @@ export default function Config() {
             <h2 className="text-lg font-bold">Raw config fallback</h2>
             <p className="mt-1 text-sm muted">Текст скрыт по умолчанию, чтобы не ломать мобильную ширину.</p>
           </div>
-          <button onClick={() => setShowRawConfig((value) => !value)} className="btn-secondary min-h-11 shrink-0 rounded-lg px-3 py-2.5">
+          <button onClick={() => setShowRawConfig((value) => !value)} className="btn-secondary motion-interactive min-h-11 shrink-0 rounded-lg px-3 py-2.5">
             <FileCode2 className="h-5 w-5" />
             {showRawConfig ? 'Скрыть' : 'Показать'}
           </button>
@@ -510,7 +516,7 @@ function QRModal({
                 : t('qrInstructionsVPN')}
             </p>
           </div>
-          <button onClick={onClose} className="btn-secondary px-3 py-2">
+          <button onClick={onClose} className="btn-secondary motion-interactive px-3 py-2">
             {t('close')}
           </button>
         </div>

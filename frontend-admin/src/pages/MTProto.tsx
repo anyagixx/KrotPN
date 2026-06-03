@@ -1,12 +1,12 @@
 // FILE: frontend-admin/src/pages/MTProto.tsx
-// VERSION: 1.4.0
+// VERSION: 1.5.0
 // ROLE: UI_COMPONENT
 // MAP_MODE: SUMMARY
 // START_MODULE_CONTRACT
-//   PURPOSE: Compact Matrix admin page for redacted MTProto assignment observability, confirmation-safe lifecycle actions, and Phase-58 ops cockpit proof
-//   SCOPE: Runtime health, paginated assignment search/status filters, redacted rows, reissue/revoke confirmation, embedded analytics panel, bounded inventory, feedback, and premium admin redaction markers
-//   DEPENDS: M-010 (frontend-admin), M-047 (mtproto-admin-ops), M-058 (mtproto-admin-analytics-ui), M-037 (mobile-admin-console), M-038 (compact-ui-system), M-070 (matrix-visual-runtime), M-071 (matrix-style-system), M-076 (premium-admin-cockpit)
-//   LINKS: M-010, M-047, M-058, M-037, M-038, M-070, M-071, M-076, V-M-047, V-M-058, Phase-54, Phase-58
+//   PURPOSE: Compact Matrix admin page for redacted MTProto assignment observability, confirmation-safe lifecycle actions, Phase-58 ops cockpit proof, and Phase-59 feedback
+//   SCOPE: Runtime health, paginated assignment search/status filters, redacted rows, reissue/revoke confirmation, embedded analytics panel, bounded inventory, feedback, premium admin redaction markers, and status transitions
+//   DEPENDS: M-010 (frontend-admin), M-047 (mtproto-admin-ops), M-058 (mtproto-admin-analytics-ui), M-037 (mobile-admin-console), M-038 (compact-ui-system), M-070 (matrix-visual-runtime), M-071 (matrix-style-system), M-076 (premium-admin-cockpit), M-077 (matrix-motion-interactions)
+//   LINKS: M-010, M-047, M-058, M-037, M-038, M-070, M-071, M-076, M-077, V-M-047, V-M-058, Phase-54, Phase-58, Phase-59
 // END_MODULE_CONTRACT
 //
 // START_MODULE_MAP
@@ -18,6 +18,7 @@
 // END_MODULE_MAP
 //
 // START_CHANGE_SUMMARY
+//   LAST_CHANGE: v1.5.0 - Added Phase-59 MTProto admin feedback and status transition markers.
 //   LAST_CHANGE: v1.4.0 - Phase-58 added premium MTProto ops markers for redaction, bounded inventory, and confirmation guards.
 //   LAST_CHANGE: v1.3.0 - Phase-54 added Matrix route markers, bounded MTProto inventory, and confirmation/redaction smoke hooks.
 //   LAST_CHANGE: v1.2.0 - Added paginated compact assignment inventory for large MTProto user sets.
@@ -80,10 +81,10 @@ function formatDate(value?: string | null) {
 
 // START_BLOCK: statusClass
 function statusClass(status: string) {
-  if (status === 'active') return 'metric-pill shrink-0'
-  if (status === 'reissue_required') return 'warning-pill shrink-0'
-  if (status === 'disabled') return 'danger-pill shrink-0'
-  return 'neutral-pill shrink-0'
+  if (status === 'active') return 'metric-pill motion-status shrink-0'
+  if (status === 'reissue_required') return 'warning-pill motion-status shrink-0'
+  if (status === 'disabled') return 'danger-pill motion-status shrink-0'
+  return 'neutral-pill motion-status shrink-0'
 }
 // END_BLOCK: statusClass
 
@@ -162,6 +163,7 @@ export default function MTProtoPage() {
       data-phase33-mtproto-admin
       data-phase54-mtproto-admin="compact"
       data-phase58-route="mtproto"
+      data-phase59-status-transitions="[MatrixMotion][phase59][STATUS_TRANSITIONS_READY]"
       data-phase58-redaction="[PremiumAdminCockpit][phase58][MTPROTO_REDACTION]"
       data-log-marker="[M-047][admin_mtproto_ui][REDACTED_RENDER]"
       data-phase54-redaction-marker="[M-047][phase54_mtproto_admin][REDACTION_PRESERVED]"
@@ -227,7 +229,7 @@ export default function MTProtoPage() {
             <p className="text-xs muted">{health?.adapter_name || 'adapter pending'} · {formatDate(health?.last_checked_at)}</p>
           </div>
         </div>
-        <span className={health?.status === 'healthy' ? 'metric-pill' : health?.status === 'degraded' ? 'warning-pill' : 'neutral-pill'}>
+        <span className={health?.status === 'healthy' ? 'metric-pill motion-status' : health?.status === 'degraded' ? 'warning-pill motion-status' : 'neutral-pill motion-status'}>
           {health?.status === 'healthy' ? <ShieldCheck className="h-3.5 w-3.5" /> : <AlertTriangle className="h-3.5 w-3.5" />}
           {healthQuery.isLoading ? 'loading' : health?.status || 'unknown'}
         </span>
@@ -236,7 +238,10 @@ export default function MTProtoPage() {
       <MTProtoAnalyticsPanel />
 
       {feedback ? (
-        <div className={feedback.tone === 'success' ? 'surface px-3 py-2 text-sm text-emerald-100' : 'surface px-3 py-2 text-sm text-amber-100'}>
+        <div
+          className={feedback.tone === 'success' ? 'surface motion-feedback-success px-3 py-2 text-sm text-emerald-100' : 'surface motion-feedback-error px-3 py-2 text-sm text-amber-100'}
+          data-phase59-microinteractions="[MatrixMotion][phase59][MICROINTERACTIONS_READY]"
+        >
           {feedback.text}
         </div>
       ) : null}

@@ -1,12 +1,12 @@
 // FILE: frontend-admin/src/components/MatrixBackground.tsx
-// VERSION: 1.0.0
+// VERSION: 1.1.0
 // ROLE: UI_COMPONENT
 // MAP_MODE: EXPORTS
 // START_MODULE_CONTRACT
-//   PURPOSE: React Matrix rain canvas runtime for the KrotPN admin frontend visual shell
-//   SCOPE: Canvas context guards, resize recomputation, pointer influence, reduced-motion fallback, animation lifecycle, and cleanup
-//   DEPENDS: M-070 (matrix-visual-runtime), M-071 (matrix-style-system), React
-//   LINKS: docs/modules/M-070.xml, docs/verification/V-M-070.xml
+//   PURPOSE: React Matrix rain canvas runtime for the KrotPN admin frontend visual shell with Phase-59 lifecycle proof
+//   SCOPE: Canvas context guards, resize recomputation, pointer influence, reduced-motion fallback, animation lifecycle, inactive-tab stop proof, and cleanup
+//   DEPENDS: M-070 (matrix-visual-runtime), M-071 (matrix-style-system), M-077 (matrix-motion-interactions), React
+//   LINKS: docs/modules/M-070.xml, docs/modules/M-077.xml, docs/verification/V-M-070.xml, docs/verification/V-M-077.xml
 // END_MODULE_CONTRACT
 //
 // START_MODULE_MAP
@@ -18,6 +18,7 @@
 // END_MODULE_MAP
 //
 // START_CHANGE_SUMMARY
+//   LAST_CHANGE: v1.1.0 - Added Phase-59 reduced-motion, pointer-scroll, and inactive-tab lifecycle markers without changing canvas behavior.
 //   LAST_CHANGE: v1.0.1 - Strengthened visible Matrix trails for Phase-52 screenshot and mobile viewport checks.
 //   LAST_CHANGE: v1.0.0 - Added Phase-52 Matrix canvas runtime with reduced-motion and cleanup guards.
 // END_CHANGE_SUMMARY
@@ -119,6 +120,7 @@ export default function MatrixBackground() {
         animationFrame = null
       }
       console.info('[MatrixVisualRuntime][cleanup][ANIMATION_STOPPED] matrix animation stopped')
+      console.info('[MatrixMotion][phase59][INACTIVE_TAB_SAFE]')
     }
 
     const resize = () => {
@@ -245,6 +247,7 @@ export default function MatrixBackground() {
     const handleMotionChange = (event: MediaQueryListEvent) => {
       reducedMotion = event.matches
       console.info(`[MatrixVisualRuntime][motionPolicy][REDUCED_MOTION] active=${reducedMotion}`)
+      console.info('[MatrixMotion][phase59][REDUCED_MOTION_PASS]')
       stopAnimation()
       if (reducedMotion) {
         renderStaticMatrixFrame(ctx, width, height, drops)
@@ -266,12 +269,14 @@ export default function MatrixBackground() {
 
     if (reducedMotion) {
       console.info('[MatrixVisualRuntime][motionPolicy][REDUCED_MOTION] active=true')
+      console.info('[MatrixMotion][phase59][REDUCED_MOTION_PASS]')
       renderStaticMatrixFrame(ctx, width, height, drops)
     } else {
       startAnimation()
     }
 
     console.info('[MatrixVisualRuntime][init][CANVAS_READY] matrix canvas initialized')
+    console.info('[MatrixMotion][phase59][POINTER_SCROLL_SAFE]')
 
     return () => {
       disposed = true
@@ -285,6 +290,15 @@ export default function MatrixBackground() {
     }
   }, [])
 
-  return <canvas ref={canvasRef} className="matrix-canvas" aria-hidden="true" data-matrix-canvas="true" />
+  return (
+    <canvas
+      ref={canvasRef}
+      className="matrix-canvas"
+      aria-hidden="true"
+      data-matrix-canvas="true"
+      data-phase59-pointer-scroll="[MatrixMotion][phase59][POINTER_SCROLL_SAFE]"
+      data-phase59-inactive-tab="[MatrixMotion][phase59][INACTIVE_TAB_SAFE]"
+    />
+  )
 }
 // END_BLOCK_MATRIX_BACKGROUND

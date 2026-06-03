@@ -1,12 +1,12 @@
 // FILE: frontend-admin/src/pages/MTProtoAnalytics.tsx
-// VERSION: 2.6.0
+// VERSION: 2.7.0
 // ROLE: UI_COMPONENT
 // MAP_MODE: SUMMARY
 // START_MODULE_CONTRACT
-//   PURPOSE: Compact Matrix admin MTProto analytics console with usage graphs, alert review, user investigation, runtime metrics, promotion tag controls, and Phase-58 readonly cockpit markers
-//   SCOPE: Overview, Users, Abuse, Settings tabs, top users, user detail drawer with IP history, alert actions with operator tooltips, auto-refresh, masked promotion tag update, Phase-54 visibility guards, and Phase-58 analytics/read-only proof
-//   DEPENDS: M-010 (frontend-admin), M-058 (mtproto-admin-analytics-ui), M-057 (admin analytics API), M-059 (promotion tag), M-060 (alerts), M-061 (IP observability), M-070 (matrix-visual-runtime), M-071 (matrix-style-system), M-076 (premium-admin-cockpit)
-//   LINKS: M-058, M-057, M-059, M-060, M-061, M-070, M-071, M-076, V-M-058, Phase-54, Phase-58
+//   PURPOSE: Compact Matrix admin MTProto analytics console with usage graphs, alert review, user investigation, runtime metrics, promotion tag controls, Phase-58 readonly cockpit markers, and Phase-59 feedback
+//   SCOPE: Overview, Users, Abuse, Settings tabs, top users, user detail drawer with IP history, alert actions with operator tooltips, auto-refresh, masked promotion tag update, Phase-54 visibility guards, Phase-58 analytics/read-only proof, and status/feedback transitions
+//   DEPENDS: M-010 (frontend-admin), M-058 (mtproto-admin-analytics-ui), M-057 (admin analytics API), M-059 (promotion tag), M-060 (alerts), M-061 (IP observability), M-070 (matrix-visual-runtime), M-071 (matrix-style-system), M-076 (premium-admin-cockpit), M-077 (matrix-motion-interactions)
+//   LINKS: M-058, M-057, M-059, M-060, M-061, M-070, M-071, M-076, M-077, V-M-058, Phase-54, Phase-58, Phase-59
 // END_MODULE_CONTRACT
 //
 // START_MODULE_MAP
@@ -19,6 +19,7 @@
 // END_MODULE_MAP
 //
 // START_CHANGE_SUMMARY
+//   LAST_CHANGE: v2.7.0 - Added Phase-59 analytics feedback, status transition, and chart motion markers.
 //   LAST_CHANGE: v2.6.0 - Phase-58 added readonly analytics, chart, bounded user/IP, and alert review cockpit markers.
 //   LAST_CHANGE: v2.5.0 - Phase-54 added compact Matrix chart frames, bounded analytics lists, and explicit redaction/Signals-hidden markers.
 //   LAST_CHANGE: v2.4.0 - Made IP history compact, scrollable, and removed visible CIDR prefix rows.
@@ -298,6 +299,8 @@ export default function MTProtoAnalyticsPanel() {
       data-phase43-mtproto-analytics
       data-phase54-mtproto-analytics="compact"
       data-phase58-runtime-readonly="[PremiumAdminCockpit][phase58][ANALYTICS_RUNTIME_READONLY]"
+      data-phase59-status-transitions="[MatrixMotion][phase59][STATUS_TRANSITIONS_READY]"
+      data-phase59-microinteractions="[MatrixMotion][phase59][MICROINTERACTIONS_READY]"
       data-observe-mode="observe-only"
       data-log-marker="[M-058][admin_mtproto_analytics_ui][REDACTED_RENDER]"
       data-phase43-recent-events="[M-058][admin_mtproto_analytics_ui][RECENT_EVENTS_REMOVED]"
@@ -462,7 +465,7 @@ export default function MTProtoAnalyticsPanel() {
                       <p className="row-title">{item.user_display_name || item.user_email || `User #${item.user_id}`}</p>
                       <p className="row-subtitle">{item.sni_masked || `Assignment #${item.assignment_id}`}</p>
                     </div>
-                    <span className={item.status === 'active' ? 'metric-pill' : 'warning-pill'}>{item.status}</span>
+                    <span className={item.status === 'active' ? 'metric-pill motion-status' : 'warning-pill motion-status'}>{item.status}</span>
                   </div>
                   <div className="row-meta">
                     <span className="meta-cell"><span className="meta-label">Issued</span><span className="meta-value">{formatDate(item.issued_at)}</span></span>
@@ -487,7 +490,7 @@ export default function MTProtoAnalyticsPanel() {
                     <h3 className="truncate text-sm font-semibold text-white">{selectedUsage.assignment.user_email || `User #${selectedUsage.assignment.user_id}`}</h3>
                     <p className="row-subtitle">{selectedUsage.assignment.sni_masked}</p>
                   </div>
-                  <span className={selectedUsage.assignment.status === 'active' ? 'metric-pill' : 'warning-pill'}>{selectedUsage.assignment.status}</span>
+                  <span className={selectedUsage.assignment.status === 'active' ? 'metric-pill motion-status' : 'warning-pill motion-status'}>{selectedUsage.assignment.status}</span>
                 </div>
                 <div className="grid gap-2 sm:grid-cols-2">
                   <div className="metric-tile"><span className="metric-label">Issued</span><strong className="mt-1 block text-sm text-white">{formatDate(selectedUsage.assignment.issued_at)}</strong></div>
@@ -537,7 +540,7 @@ export default function MTProtoAnalyticsPanel() {
                           <div className="min-w-0">
                             <p className="row-title truncate font-mono text-xs">{ip.ip_address || ip.ip_hash_prefix}</p>
                           </div>
-                          <span className={ip.current_active ? 'metric-pill' : 'neutral-pill'}>{ip.current_active ? 'active' : 'seen'}</span>
+                          <span className={ip.current_active ? 'metric-pill motion-status' : 'neutral-pill motion-status'}>{ip.current_active ? 'active' : 'seen'}</span>
                         </div>
                         <div className="row-meta">
                           <span className="meta-cell"><span className="meta-label">Last</span><span className="meta-value">{formatDate(ip.last_seen_at)}</span></span>
@@ -575,7 +578,7 @@ export default function MTProtoAnalyticsPanel() {
                       <p className="row-title">{alert.signal_type}</p>
                       <p className="row-subtitle">{alert.user_email || `Assignment #${alert.assignment_id || 'unknown'}`} · {alert.metric_value}/{alert.threshold_value}</p>
                     </div>
-                    <span className={alert.severity === 'critical' ? 'warning-pill' : 'metric-pill'}>{alert.severity}</span>
+                    <span className={alert.severity === 'critical' ? 'warning-pill motion-status' : 'metric-pill motion-status'}>{alert.severity}</span>
                   </div>
                   <div className="mt-2 flex flex-wrap gap-2" data-log-marker="[M-058][admin_mtproto_analytics_ui][ALERT_ACTION_TOOLTIP]">
                     <button
@@ -637,7 +640,7 @@ export default function MTProtoAnalyticsPanel() {
                       <p className="row-title">{alert.signal_type}</p>
                       <p className="row-subtitle">{alert.user_email || `Assignment #${alert.assignment_id || 'unknown'}`} · {formatDate(alert.resolved_at || alert.acknowledged_at || alert.last_seen_at)}</p>
                     </div>
-                    <span className="neutral-pill">{alert.status}</span>
+                    <span className="neutral-pill motion-status">{alert.status}</span>
                   </div>
                   <div className="row-meta">
                     <span className="meta-cell"><span className="meta-label">Action</span><span className="meta-value">{alert.action_taken || 'review'}</span></span>
@@ -706,7 +709,7 @@ export default function MTProtoAnalyticsPanel() {
                 <div className="rounded-lg border border-white/10 bg-white/5 p-3">
                   <span className="metric-label">Current</span>
                   <strong className="mt-1 block text-lg text-white">{promotionTag?.masked_tag || '0000...0000'}</strong>
-                  <span className={promotionTag?.pending_restart ? 'warning-pill mt-2 inline-flex' : 'metric-pill mt-2 inline-flex'}>
+                  <span className={promotionTag?.pending_restart ? 'warning-pill motion-status mt-2 inline-flex' : 'metric-pill motion-status mt-2 inline-flex'}>
                     {promotionTag?.runtime_status || 'applied'}
                   </span>
                 </div>
@@ -739,7 +742,7 @@ export default function MTProtoAnalyticsPanel() {
       ) : null}
 
       {feedback ? (
-        <p className={feedback.tone === 'success' ? 'text-sm text-emerald-100' : 'text-sm text-amber-100'}>{feedback.text}</p>
+        <p className={feedback.tone === 'success' ? 'motion-feedback-success text-sm text-emerald-100' : 'motion-feedback-error text-sm text-amber-100'}>{feedback.text}</p>
       ) : null}
     </section>
   )
@@ -757,7 +760,7 @@ function IPPanel({ title, items }: { title: string; items: AdminMTProtoIPObserva
           {items.slice(0, 3).map((ip) => (
             <div key={ip.id} className="flex items-center justify-between gap-2 text-sm">
               <span className="truncate text-white">{ip.ip_address || ip.ip_hash_prefix}</span>
-              <span className="metric-pill">{ip.active_connections}</span>
+              <span className="metric-pill motion-status">{ip.active_connections}</span>
             </div>
           ))}
         </div>
