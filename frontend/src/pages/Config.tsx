@@ -1,23 +1,24 @@
 // FILE: frontend/src/pages/Config.tsx
-// VERSION: 1.2.0
+// VERSION: 1.3.0
 // ROLE: UI_COMPONENT
 // MAP_MODE: SUMMARY
 // START_MODULE_CONTRACT
-//   PURPOSE: Compact Matrix VPN configuration page for device registry, config download/copy/QR, and raw-config fallback
+//   PURPOSE: Premium compact Matrix VPN configuration page for device registry, config download/copy/QR, and raw-config fallback
 //   SCOPE: Device CRUD (create/rotate/revoke), selected config actions, QR modal, collapsed raw config, compact install guidance
-//   DEPENDS: M-009 (frontend-user), M-003 (vpn config API), M-002 (auth API), M-022 (device provisioning API), M-036 (mobile-user-cabinet), M-071 (matrix-style-system)
-//   LINKS: M-009 (frontend-user), M-036 (mobile-user-cabinet), M-071
+//   DEPENDS: M-009 (frontend-user), M-003 (vpn config API), M-002 (auth API), M-022 (device provisioning API), M-036 (mobile-user-cabinet), M-071 (matrix-style-system), M-075 (premium-user-cabinet)
+//   LINKS: M-009 (frontend-user), M-036 (mobile-user-cabinet), M-071, M-075
 // END_MODULE_CONTRACT
 //
 // START_MODULE_MAP
-//   ConfigPage - Compact config page component with device management, QR modal, and collapsed raw config
+//   ConfigPage - Premium compact config page component with device management, QR modal, and collapsed raw config
 //   QRModal - Client-side QR modal with AmneziaWG and AmneziaVPN guidance
 //   buildConfigDownloadBlob - Creates octet-stream config download blobs
 //   buildConfigDownloadFilename - Creates safe .conf download filenames
-//   BLOCK_CONFIG_PAGE - ConfigPage default export with compact device/config workflow
+//   BLOCK_CONFIG_PAGE - ConfigPage default export with Phase-57 compact device/config workflow
 // END_MODULE_MAP
 //
 // START_CHANGE_SUMMARY
+//   LAST_CHANGE: v3.2.0 - Added Phase-57 compact config command surface, protected subscription link, scroll-safe device list, and workflow markers.
 //   LAST_CHANGE: v3.1.0 - Applied Phase-53 compact Matrix config/device surfaces without changing download semantics.
 //   LAST_CHANGE: v3.0.0 - Hardened frontend .conf downloads with octet-stream Blob type and safe filenames.
 //   LAST_CHANGE: v2.8.0 - Added full GRACE MODULE_CONTRACT and MODULE_MAP per GRACE governance protocol
@@ -196,8 +197,8 @@ export default function Config() {
 
   if (hasNoConfig || isForbidden) {
     return (
-      <div className="content-section matrix-page animate-in" data-phase53-route="config">
-        <section className="panel p-4 sm:p-5">
+      <div className="content-section matrix-page animate-in" data-phase53-route="config" data-phase57-route="config">
+        <section className="phase57-command-center" data-phase57-config-empty-state="true">
           <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
             <div className="min-w-0">
               <p className="text-xs font-bold uppercase text-cyan-100/70">{t('vpnConfig')}</p>
@@ -208,7 +209,7 @@ export default function Config() {
                 {errorMessage || 'Сначала нужен активный доступ, после этого кабинет сможет выдать конфиг и QR-код.'}
               </p>
             </div>
-            <Link to="/subscription" className="btn-primary min-h-11 shrink-0 rounded-lg px-3 py-2.5">
+            <Link to="/dashboard/subscription" className="btn-primary min-h-11 shrink-0 rounded-lg px-3 py-2.5">
               <Download className="h-5 w-5" />
               Открыть подписку
             </Link>
@@ -231,9 +232,9 @@ export default function Config() {
   }
 
   return (
-    <div className="content-section matrix-page animate-in" data-phase53-route="config">
-      <section className="grid gap-3 lg:grid-cols-[minmax(0,1fr)_minmax(260px,0.75fr)]">
-        <article className="panel p-4 sm:p-5">
+    <div className="content-section matrix-page animate-in" data-phase53-route="config" data-phase57-route="config">
+      <section className="grid gap-3 lg:grid-cols-[minmax(0,1fr)_minmax(260px,0.75fr)]" data-phase57-config-workflow="qr-download-copy-device">
+        <article className="phase57-command-center">
           <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
             <div className="min-w-0">
               <p className="text-xs font-bold uppercase text-cyan-100/70">{t('vpnConfig')}</p>
@@ -248,7 +249,7 @@ export default function Config() {
             <span className="status-badge-success w-fit shrink-0">config ready</span>
           </div>
 
-          <div className="matrix-action-grid mt-4 sm:grid-cols-3">
+          <div className="matrix-action-grid mt-4 sm:grid-cols-3" data-phase57-config-actions="qr-download-copy">
             <button onClick={() => setShowQR(true)} disabled={!config?.config} className="btn-primary min-h-11 rounded-lg px-3 py-2.5">
               <QrCode className="h-5 w-5" />
               QR
@@ -264,7 +265,7 @@ export default function Config() {
           </div>
         </article>
 
-        <article className="panel p-4 sm:p-5">
+        <article className="phase57-card-compact">
           <p className="text-xs font-bold uppercase text-cyan-100/70">Устройства</p>
           <div className="mt-3 grid grid-cols-3 gap-2 text-sm">
             <div>
@@ -284,7 +285,7 @@ export default function Config() {
       </section>
 
       <section className="grid gap-3 xl:grid-cols-[minmax(0,1.15fr)_minmax(260px,0.85fr)]">
-        <article className="panel p-4 sm:p-5">
+        <article className="phase57-card-compact">
           <div className="flex items-start justify-between gap-3">
             <div className="min-w-0">
               <h2 className="text-lg font-bold">Device-bound список</h2>
@@ -293,7 +294,7 @@ export default function Config() {
             <Laptop2 className="h-5 w-5 shrink-0 text-cyan-100" />
           </div>
 
-          <div className="mt-4 grid gap-2">
+          <div className="phase57-scroll-list mt-4 grid gap-2" data-phase57-device-list="scroll-safe">
             {deviceList.length ? (
               deviceList.map((device) => {
                 const isBusy =
@@ -353,7 +354,7 @@ export default function Config() {
           </div>
         </article>
 
-        <article className="panel p-4 sm:p-5">
+        <article className="phase57-card-compact">
           <div className="flex items-start gap-3">
             <Plus className="mt-1 h-5 w-5 shrink-0 text-emerald-200" />
             <div className="min-w-0">
@@ -393,7 +394,7 @@ export default function Config() {
       </section>
 
       <section className="grid gap-3 lg:grid-cols-2">
-        <article className="panel p-4 sm:p-5">
+        <article className="phase57-card-compact">
           <div className="flex items-start gap-3">
             <Smartphone className="mt-1 h-5 w-5 shrink-0 text-emerald-200" />
             <div className="min-w-0">
@@ -415,7 +416,7 @@ export default function Config() {
           </button>
         </article>
 
-        <article className="panel p-4 sm:p-5">
+        <article className="phase57-card-compact">
           <div className="flex items-start gap-3">
             <Monitor className="mt-1 h-5 w-5 shrink-0 text-cyan-100" />
             <div className="min-w-0">
@@ -442,7 +443,7 @@ export default function Config() {
         />
       ) : null}
 
-      <section className="panel p-4 sm:p-5">
+      <section className="phase57-card-compact" data-phase57-raw-config="collapsed">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
           <div className="min-w-0">
             <h2 className="text-lg font-bold">Raw config fallback</h2>

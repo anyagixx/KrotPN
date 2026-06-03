@@ -1,22 +1,23 @@
 // FILE: frontend/src/components/Layout.tsx
-// VERSION: 1.2.0
+// VERSION: 1.3.0
 // ROLE: UI_COMPONENT
 // MAP_MODE: SUMMARY
 // START_MODULE_CONTRACT
-//   PURPOSE: Compact Matrix application layout with phone-safe navigation, user identity, logout, and routed page outlet
-//   SCOPE: Desktop Matrix sidebar, mobile top bar, mobile bottom navigation, logout action, Outlet for routed pages
-//   DEPENDS: M-009 (frontend-user), M-002 (auth API), M-036 (mobile-user-cabinet), M-038 (compact-ui-system), M-071 (matrix-style-system)
-//   LINKS: M-009 (frontend-user), M-036 (mobile-user-cabinet), M-038 (compact-ui-system), M-071
+//   PURPOSE: Compact premium Matrix application layout with phone-safe navigation, user identity, logout, and routed page outlet
+//   SCOPE: Desktop Matrix sidebar, mobile top bar, mobile bottom navigation, logout action, Outlet for routed protected user pages
+//   DEPENDS: M-009 (frontend-user), M-002 (auth API), M-036 (mobile-user-cabinet), M-038 (compact-ui-system), M-071 (matrix-style-system), M-075 (premium-user-cabinet)
+//   LINKS: M-009 (frontend-user), M-036 (mobile-user-cabinet), M-038 (compact-ui-system), M-071, M-075
 // END_MODULE_CONTRACT
 //
 // START_MODULE_MAP
-//   Layout - Compact Matrix responsive layout component with desktop sidebar and mobile bars
+//   Layout - Compact premium Matrix responsive layout component with desktop sidebar and mobile bars
 //   navItems - Route metadata for the compact user cabinet
-//   BLOCK_LAYOUT - Layout default export with responsive shell and navigation
+//   BLOCK_LAYOUT - Layout default export with responsive shell and Phase-57 protected cabinet navigation
 //   default - React component (default export)
 // END_MODULE_MAP
 //
 // START_CHANGE_SUMMARY
+//   LAST_CHANGE: v1.4.0 - Added Phase-57 premium user cabinet layout markers and compact protected-route shell ownership
 //   LAST_CHANGE: v1.3.1 - Moved user cabinet navigation to /dashboard routes and kept dashboard active state exact for Phase-56 public landing
 //   LAST_CHANGE: v3.0.0 - Reworked protected user shell into Phase-53 compact Matrix navigation surfaces
 //   LAST_CHANGE: v2.8.0 - Added full GRACE MODULE_CONTRACT and MODULE_MAP per GRACE governance protocol
@@ -58,7 +59,7 @@ export default function Layout() {
   }
 
   return (
-    <div className="app-shell" data-phase53-layout="user-matrix">
+    <div className="app-shell" data-phase53-layout="user-matrix" data-phase57-layout="premium-user-cabinet">
       <div className="matrix-layout-frame">
         <aside className="matrix-sidebar">
           <div className="matrix-sidebar-header flex items-center gap-3 border-b px-4 py-4">
@@ -119,7 +120,7 @@ export default function Layout() {
             </button>
           </header>
 
-          <main className="matrix-main-panel">
+          <main className="matrix-main-panel" data-phase57-protected-main="dashboard-routes">
             <div className="p-3 pb-24 sm:p-4 lg:p-5 lg:pb-5">
               <Outlet />
             </div>

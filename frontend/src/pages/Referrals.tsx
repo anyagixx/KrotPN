@@ -1,21 +1,22 @@
 // FILE: frontend/src/pages/Referrals.tsx
-// VERSION: 1.1.0
+// VERSION: 1.2.0
 // ROLE: UI_COMPONENT
 // MAP_MODE: SUMMARY
 // START_MODULE_CONTRACT
-//   PURPOSE: Compact Matrix referral program page showing referral code, link, stats, and referral history
+//   PURPOSE: Premium compact Matrix referral program page showing referral code, link, stats, and referral history
 //   SCOPE: Code/link copy to clipboard, referral stats cards, referral list with bonus status
-//   DEPENDS: M-009 (frontend-user), M-005 (referrals API), M-071 (matrix-style-system)
-//   LINKS: M-009 (frontend-user), M-071
+//   DEPENDS: M-009 (frontend-user), M-005 (referrals API), M-071 (matrix-style-system), M-075 (premium-user-cabinet)
+//   LINKS: M-009 (frontend-user), M-071, M-075
 // END_MODULE_CONTRACT
 //
 // START_MODULE_MAP
-//   ReferralsPage - Referral program component with code, link, stats, and history
-//   BLOCK_REFERRALS_PAGE - ReferralsPage default export (140 lines)
+//   ReferralsPage - Premium compact referral program component with code, link, stats, and history
+//   BLOCK_REFERRALS_PAGE - ReferralsPage default export with Phase-57 secondary surface markers
 //   default - React component (default export)
 // END_MODULE_MAP
 //
 // START_CHANGE_SUMMARY
+//   LAST_CHANGE: v3.1.0 - Added Phase-57 compact secondary referral surface and scroll-safe history markers.
 //   LAST_CHANGE: v3.0.0 - Applied Phase-53 compact Matrix referral surfaces.
 //   LAST_CHANGE: v2.8.0 - Added full GRACE MODULE_CONTRACT and MODULE_MAP per GRACE governance protocol
 // END_CHANGE_SUMMARY
@@ -54,7 +55,7 @@ export default function Referrals() {
   }
 
   return (
-    <div className="content-section matrix-page animate-in" data-phase53-route="referrals">
+    <div className="content-section matrix-page animate-in" data-phase53-route="referrals" data-phase57-route="referrals">
       <div className="section-header matrix-page-header">
         <div className="min-w-0">
           <h1 className="section-title">{t('referralProgram')}</h1>
@@ -62,7 +63,7 @@ export default function Referrals() {
         </div>
       </div>
 
-      <div className="grid gap-3 md:grid-cols-2">
+      <div className="phase57-mini-grid" data-phase57-referrals-settings-compact="referral-stats">
         <div className="metric-card text-center">
           <Users className="mx-auto h-8 w-8 text-cyan-100" />
           <p className="metric-value">{stats?.total_referrals || 0}</p>
@@ -75,7 +76,7 @@ export default function Referrals() {
         </div>
       </div>
 
-      <div className="panel p-4 sm:p-5">
+      <div className="phase57-card-compact" data-phase57-referral-copy="code">
         <div className="flex items-center gap-3">
           <div className="matrix-icon-tile">
             <Gift className="h-5 w-5" />
@@ -94,7 +95,7 @@ export default function Referrals() {
         </div>
       </div>
 
-      <div className="panel p-4 sm:p-5">
+      <div className="phase57-card-compact" data-phase57-referral-copy="link">
         <div className="flex items-center gap-3">
           <div className="matrix-icon-tile">
             <Link2 className="h-5 w-5" />
@@ -113,9 +114,9 @@ export default function Referrals() {
         </div>
       </div>
 
-      <div className="glass p-4 text-center sm:p-5">
-        <Gift className="mx-auto h-12 w-12 text-emerald-100" />
-        <h3 className="mt-4 text-2xl font-extrabold">{t('referralBonus', { days: 7 })}</h3>
+      <div className="phase57-card-compact text-center">
+        <Gift className="mx-auto h-8 w-8 text-emerald-100" />
+        <h3 className="mt-3 text-xl font-extrabold">{t('referralBonus', { days: 7 })}</h3>
         <p className="mt-2 text-sm text-slate-100">Каждый оплаченный реферал приносит тебе дополнительные 7 дней доступа.</p>
       </div>
 
@@ -128,9 +129,9 @@ export default function Referrals() {
           </div>
         </div>
       ) : referrals.length > 0 ? (
-        <div className="panel p-4 sm:p-5">
+        <div className="phase57-card-compact">
           <h2 className="text-xl font-bold">Последние приглашения</h2>
-          <div className="mt-5 space-y-3">
+          <div className="phase57-scroll-list mt-5 space-y-3" data-phase57-referral-history="scroll-safe">
             {referrals.slice(0, 5).map((item) => (
               <div key={item.id} className="matrix-row flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                 <div>

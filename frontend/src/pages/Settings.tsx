@@ -1,20 +1,21 @@
 // FILE: frontend/src/pages/Settings.tsx
-// VERSION: 1.1.0
+// VERSION: 1.2.0
 // ROLE: UI_COMPONENT
 // MAP_MODE: SUMMARY
 // START_MODULE_CONTRACT
-//   PURPOSE: Compact Matrix user settings page for profile update, language switch, and password change
-//   SCOPE: Profile form, language toggle (ru/en), password change form with validation
-//   DEPENDS: M-009 (frontend-user), M-002 (auth API), M-003 (user profile API), M-071 (matrix-style-system)
-//   LINKS: M-009 (frontend-user), M-071
+//   PURPOSE: Premium compact Matrix user settings page for profile update, language switch, and password change
+//   SCOPE: Profile form, language toggle (ru/en), password change form with strong-password validation
+//   DEPENDS: M-009 (frontend-user), M-002 (auth API), M-003 (user profile API), M-071 (matrix-style-system), M-075 (premium-user-cabinet)
+//   LINKS: M-009 (frontend-user), M-071, M-075
 // END_MODULE_CONTRACT
 //
 // START_MODULE_MAP
-//   SettingsPage - Settings component with profile, language, and password sections
-//   BLOCK_SETTINGS_PAGE - SettingsPage default export (172 lines)
+//   SettingsPage - Premium compact settings component with profile, language, and password sections
+//   BLOCK_SETTINGS_PAGE - SettingsPage default export with Phase-57 secondary surface markers
 // END_MODULE_MAP
 //
 // START_CHANGE_SUMMARY
+//   LAST_CHANGE: v3.1.0 - Added Phase-57 compact secondary settings surface markers while preserving strong-password policy.
 //   LAST_CHANGE: v3.0.0 - Applied Phase-53 compact Matrix settings surfaces.
 //   LAST_CHANGE: 2026-06-01 - Reused Phase-44 strong-password policy for password changes
 //   LAST_CHANGE: v2.8.0 - Added full GRACE MODULE_CONTRACT and MODULE_MAP per GRACE governance protocol
@@ -77,7 +78,7 @@ export default function Settings() {
   }
 
   return (
-    <div className="content-section matrix-page animate-in" data-phase53-route="settings">
+    <div className="content-section matrix-page animate-in" data-phase53-route="settings" data-phase57-route="settings">
       <div className="section-header matrix-page-header">
         <div className="min-w-0">
           <h1 className="section-title">{t('settings')}</h1>
@@ -85,8 +86,8 @@ export default function Settings() {
         </div>
       </div>
 
-      <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
-        <section className="panel p-4 sm:p-5">
+      <div className="grid gap-3 xl:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]" data-phase57-referrals-settings-compact="settings">
+        <section className="phase57-card-compact">
           <div className="mb-6 flex items-center gap-3">
             <div className="matrix-icon-tile">
               <User className="h-5 w-5" />
@@ -115,7 +116,7 @@ export default function Settings() {
           </div>
         </section>
 
-        <section className="panel p-4 sm:p-5">
+        <section className="phase57-card-compact">
           <div className="mb-6 flex items-center gap-3">
             <div className="matrix-icon-tile">
               <Globe className="h-5 w-5" />
@@ -149,7 +150,7 @@ export default function Settings() {
         </section>
       </div>
 
-      <section className="panel max-w-3xl p-4 sm:p-5">
+      <section className="phase57-card-compact max-w-3xl" data-phase57-settings-password-policy="strong-password">
         <div className="mb-6 flex items-center gap-3">
           <div className="matrix-icon-tile">
             <Lock className="h-5 w-5" />

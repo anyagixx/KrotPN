@@ -1,20 +1,20 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Phase-57 NAME="Premium User Cabinet" STATUS="planned">
+<Phase-57 NAME="Premium User Cabinet" STATUS="done-local">
   <objective>Turn the personal cabinet into a compact premium command center for VPN, MTProto, subscription, devices, referrals, and settings.</objective>
   <modules>M-075,M-009,M-036,M-045,M-063,M-064,M-068,M-070,M-071,M-072</modules>
   <non-goals>Backend API shape changes, VPN/MTProto runtime changes, deploy/install changes, tariff catalog mutations.</non-goals>
   <steps>
-    <step-1>Map primary first-screen user tasks: VPN config, subscription countdown, MTProto proxy, device state.</step-1>
-    <step-2>Retune dashboard into compact premium Matrix command surface.</step-2>
-    <step-3>Retune config page for QR, download, copy, raw config, and device selection without wide layouts.</step-3>
-    <step-4>Retune subscription page for tariff state, countdown, calendar, and renewal CTA.</step-4>
-    <step-5>Retune referrals and settings into compact secondary surfaces.</step-5>
-    <step-6>Preserve MTProto owner-only tg:// and https://t.me actions and redaction guards.</step-6>
-    <step-7>Verify one-or-two-tap reachability for primary phone workflows.</step-7>
-    <step-8>Create Phase-57 smoke for user routes, primary actions, no-overlap, no-overflow, and redaction.</step-8>
-    <step-9>Run frontend build, smoke, screenshots, XML parse, MyGRACE lint, and protected surface guard.</step-9>
-    <step-10>Record evidence in M-075/V-M-075.</step-10>
+    <step-1 status="done-local">Map primary first-screen user tasks: VPN config, subscription countdown, MTProto proxy, device state.</step-1>
+    <step-2 status="done-local">Retune dashboard into compact premium Matrix command surface.</step-2>
+    <step-3 status="done-local">Retune config page for QR, download, copy, raw config, and device selection without wide layouts.</step-3>
+    <step-4 status="done-local">Retune subscription page for tariff state, countdown, calendar, and renewal CTA.</step-4>
+    <step-5 status="done-local">Retune referrals and settings into compact secondary surfaces.</step-5>
+    <step-6 status="done-local">Preserve MTProto owner-only tg:// and https://t.me actions and redaction guards.</step-6>
+    <step-7 status="done-local">Verify one-or-two-tap reachability for primary phone workflows.</step-7>
+    <step-8 status="done-local">Create Phase-57 smoke for user routes, primary actions, no-overlap, no-overflow, and redaction.</step-8>
+    <step-9 status="done-local">Run frontend build, smoke, static screenshot-route proof, XML parse, MyGRACE lint, and protected surface guard.</step-9>
+    <step-10 status="done-local">Record evidence in M-075/V-M-075.</step-10>
   </steps>
   <verification>V-M-075</verification>
-  <acceptance>User cabinet becomes premium and more compact while preserving every core workflow.</acceptance>
+  <acceptance status="pass-local">User cabinet became a premium compact protected command center while preserving VPN config, MTProto, subscription, referrals, settings, and device workflows. Authenticated clean-deploy screenshots remain an operator follow-up; local evidence is static-route proof plus build/smoke guards.</acceptance>
 </Phase-57>

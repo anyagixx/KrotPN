@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<M-075 NAME="premium-user-cabinet" TYPE="UI_COMPONENT" STATUS="planned-phase57-phase62">
+<M-075 NAME="premium-user-cabinet" TYPE="UI_COMPONENT" STATUS="done-local-phase57-planned-phase62">
   <path>frontend/src/components/Layout.tsx frontend/src/pages/Dashboard.tsx frontend/src/pages/Config.tsx frontend/src/pages/Subscription.tsx frontend/src/pages/Referrals.tsx frontend/src/pages/Settings.tsx docs/plans/Phase-57.xml docs/plans/Phase-62.xml scripts/phase57-premium-user-cabinet-smoke.mjs scripts/phase62-compactness-deletion-smoke.mjs</path>
   <owns>Premium compact personal cabinet for VPN, MTProto, subscription, devices, referrals, and settings.</owns>
   <purpose>Turn the user cabinet into a compact premium command center without hiding core actions.</purpose>
@@ -17,9 +17,10 @@
     <constraint-3>No backend API, deploy, install, billing, VPN, or MTProto runtime behavior changes are included.</constraint-3>
   </constraints>
   <acceptance-metrics>
-    <metric-1>Frontend build and premium user smoke pass.</metric-1>
-    <metric-2>Mobile/tablet screenshots prove compact first screen and no horizontal scroll.</metric-2>
-    <metric-3>Deletion audit documents removed or collapsed surfaces and preserves all primary workflows.</metric-3>
+    <metric-1 status="pass-local">Frontend build and premium user smoke passed on 2026-06-03.</metric-1>
+    <metric-2 status="pass-local-static">Static route proof and CSS guards cover compact first screen, no legacy route redirects, and no horizontal scroll primitives; authenticated screenshots remain clean-deploy follow-up.</metric-2>
+    <metric-3 status="planned-phase62">Deletion audit remains Phase-62 scope; Phase-57 only collapsed and compacted protected user surfaces while preserving primary workflows.</metric-3>
   </acceptance-metrics>
+  <evidence>2026-06-03: Phase-57 added protected user command center, /dashboard/* primary actions, compact config/subscription/referral/settings surfaces, Phase-57 smoke, frontend build, Phase-45/46/48/50/52/53/55/56 regression smokes, XML parse, MyGRACE lint, git diff check, and protected backend/deploy/runtime guard.</evidence>
   <hotspot>H-062: Premium user cabinet must keep VPN config, subscription, MTProto, and device actions reachable in one or two taps.</hotspot>
 </M-075>

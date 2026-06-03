@@ -1,24 +1,25 @@
 // FILE: frontend/src/pages/Dashboard.tsx
-// VERSION: 1.4.0
+// VERSION: 1.5.0
 // ROLE: UI_COMPONENT
 // MAP_MODE: SUMMARY
 // START_MODULE_CONTRACT
-//   PURPOSE: Compact Matrix mobile-first dashboard showing VPN status, config action, subscription, MTProto proxy, traffic, and device summary
-//   SCOPE: Mobile home workflow, primary config/subscription CTA, MTProto owner actions, active device summary, compact traffic and connection facts
-//   DEPENDS: M-009 (frontend-user), M-002 (auth API), M-003 (vpn stats API), M-004 (billing API), M-022 (device API), M-036 (mobile-user-cabinet), M-045 (mtproto-user-cabinet), M-051 (mtproto-availability-diagnostics), M-071 (matrix-style-system)
-//   LINKS: M-009 (frontend-user), M-036 (mobile-user-cabinet), M-045, M-051, M-071
+//   PURPOSE: Premium compact Matrix command center showing VPN status, config action, subscription, MTProto proxy, traffic, and device summary
+//   SCOPE: Mobile first-screen workflow, primary config/subscription CTA, MTProto owner actions, active device summary, compact traffic and connection facts
+//   DEPENDS: M-009 (frontend-user), M-002 (auth API), M-003 (vpn stats API), M-004 (billing API), M-022 (device API), M-036 (mobile-user-cabinet), M-045 (mtproto-user-cabinet), M-051 (mtproto-availability-diagnostics), M-071 (matrix-style-system), M-075 (premium-user-cabinet)
+//   LINKS: M-009 (frontend-user), M-036 (mobile-user-cabinet), M-045, M-051, M-071, M-075
 // END_MODULE_CONTRACT
 //
 // START_MODULE_MAP
-//   DashboardPage - Compact dashboard component with mobile-first primary actions, MTProto owner card, and device summary
+//   DashboardPage - Premium command dashboard component with mobile-first primary actions, MTProto owner card, and device summary
 //   buildMtprotoTelegramAppLink - Builds tg://proxy action link from the owner payload for Telegram app opening
 //   buildMtprotoBrowserLink - Builds https://t.me/proxy browser/copy link from the owner payload
 //   mtprotoIntroText - Builds a non-duplicating MTProto card intro line
-//   BLOCK_DASHBOARD_PAGE - DashboardPage default export with VPN, subscription, MTProto, config, and device surfaces
+//   BLOCK_DASHBOARD_PAGE - DashboardPage default export with Phase-57 VPN, subscription, MTProto, config, and device command surfaces
 //   default - React component (default export)
 // END_MODULE_MAP
 //
 // START_CHANGE_SUMMARY
+//   LAST_CHANGE: v3.5.0 - Added Phase-57 premium command center, one/two-tap protected route actions, and dense first-screen task strip.
 //   LAST_CHANGE: v3.4.0 - Applied Phase-53 compact Matrix dashboard surfaces without changing API refresh contracts.
 //   LAST_CHANGE: v3.3.0 - Added Phase-46 MTProto tg/browser link split, Russian labels, and bounded status refresh marker.
 //   LAST_CHANGE: v3.2.0 - Added Phase-45 pending trial state and subscription countdown summary.
@@ -231,61 +232,89 @@ export default function Dashboard() {
   )
 
   return (
-    <div className="content-section matrix-page animate-in" data-phase53-route="dashboard">
-      <section className="grid gap-3 lg:grid-cols-[minmax(0,1.25fr)_minmax(260px,0.75fr)]">
-        <article className="panel p-4 sm:p-5">
-          <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-            <div className="min-w-0">
-              <p className="text-xs font-bold uppercase text-cyan-100/70">VPN доступ</p>
-              <h1 className="mt-1 truncate text-2xl font-extrabold text-white sm:text-3xl">
-                {user?.display_name || user?.email || 'Личный кабинет'}
-              </h1>
-              <p className="mt-2 text-sm muted">
-                {hasSubscription
-                  ? subscriptionPending
-                    ? 'Скачайте конфиг: trial начнется после первого VPN подключения.'
-                    : 'Конфиг, QR и устройства доступны из главного действия.'
-                  : 'Активируйте подписку, чтобы получить рабочий конфиг.'}
-              </p>
-            </div>
-            <span className={isConnected ? 'status-badge-success w-fit' : 'status-badge-warning w-fit'}>
-              {isConnected ? t('connected') : t('disconnected')}
-            </span>
+    <div className="content-section matrix-page animate-in" data-phase53-route="dashboard" data-phase57-route="dashboard">
+      <section
+        className="phase57-command-center"
+        data-phase57-command-center="true"
+        data-phase57-first-screen-tasks="vpn subscription mtproto devices"
+      >
+        <div className="phase57-command-header">
+          <div className="min-w-0">
+            <p className="text-xs font-bold uppercase text-cyan-100/70">VPN доступ</p>
+            <h1 className="mt-1 truncate text-2xl font-extrabold text-white">
+              {user?.display_name || user?.email || 'Личный кабинет'}
+            </h1>
+            <p className="mt-2 text-sm muted">
+              {hasSubscription
+                ? subscriptionPending
+                  ? 'Скачайте конфиг: trial начнется после первого VPN подключения.'
+                  : 'Конфиг, QR, устройства и Telegram proxy доступны на первом экране.'
+                : 'Активируйте подписку, чтобы получить рабочий конфиг.'}
+            </p>
           </div>
+          <span className={isConnected ? 'status-badge-success w-fit shrink-0' : 'status-badge-warning w-fit shrink-0'}>
+            {isConnected ? t('connected') : t('disconnected')}
+          </span>
+        </div>
 
-          <div className="matrix-command-grid mt-4">
-            <Link to={hasSubscription ? '/config' : '/subscription'} className="btn-primary min-h-12 justify-start rounded-lg px-3 py-3">
-              {hasSubscription ? <QrCode className="h-5 w-5" /> : <Zap className="h-5 w-5" />}
-              {hasSubscription ? 'QR и .conf' : 'Активировать'}
-            </Link>
-            <Link to="/config" className="btn-secondary min-h-12 justify-start rounded-lg px-3 py-3">
-              <FileCode2 className="h-5 w-5" />
-              Устройства
-            </Link>
+        <div className="phase57-signal-strip mt-3" data-phase57-dashboard-signal-strip="true">
+          <div className="phase57-signal-tile" data-phase57-task="vpn">
+            <p className="metric-label">VPN</p>
+            <p className="mt-1 truncate font-bold">{isConnected ? stats?.server_name || 'online' : 'ожидает'}</p>
           </div>
-        </article>
+          <div className="phase57-signal-tile" data-phase57-task="subscription">
+            <p className="metric-label">Подписка</p>
+            <p className="mt-1 truncate font-bold">{formatSubscriptionRemaining(subscription)}</p>
+          </div>
+          <div className="phase57-signal-tile" data-phase57-task="mtproto">
+            <p className="metric-label">MTProto</p>
+            <p className="mt-1 truncate font-bold">{mtprotoStatusLabel(mtproto, mtprotoLoading, mtprotoError)}</p>
+          </div>
+          <div className="phase57-signal-tile" data-phase57-task="devices">
+            <p className="metric-label">Устройства</p>
+            <p className="mt-1 truncate font-bold">
+              {devicesLoading ? 'Загрузка' : devicesError ? 'Недоступно' : `${consumedSlots}/${deviceLimit || '∞'}`}
+            </p>
+          </div>
+        </div>
 
-        <article className="panel p-4 sm:p-5">
-          <div className="flex items-center justify-between gap-3">
-            <div className="min-w-0">
-              <p className="text-xs font-bold uppercase text-cyan-100/70">Подписка</p>
-              <p className="mt-1 truncate text-xl font-extrabold">
-                {formatSubscriptionRemaining(subscription)}
-              </p>
-              <p className="mt-1 text-xs muted">{subscriptionHint(subscription)}</p>
-            </div>
-            <Calendar className="h-5 w-5 shrink-0 text-cyan-100" />
-          </div>
-          <Link to="/subscription" className={hasSubscription ? 'btn-secondary mt-4 min-h-11 w-full rounded-lg px-3 py-2.5' : 'btn-primary mt-4 min-h-11 w-full rounded-lg px-3 py-2.5'}>
-            {hasSubscription ? 'Продлить' : 'Выбрать тариф'}
+        <div className="phase57-primary-actions mt-3" data-phase57-primary-actions-reachable="true">
+          <Link
+            to={hasSubscription ? '/dashboard/config' : '/dashboard/subscription'}
+            className="btn-primary min-h-11 justify-start rounded-lg px-3 py-2.5"
+            data-phase57-primary-action="vpn-config"
+          >
+            {hasSubscription ? <QrCode className="h-5 w-5" /> : <Zap className="h-5 w-5" />}
+            {hasSubscription ? 'QR и .conf' : 'Активировать'}
           </Link>
-        </article>
+          <Link to="/dashboard/config" className="btn-secondary min-h-11 justify-start rounded-lg px-3 py-2.5" data-phase57-primary-action="devices">
+            <FileCode2 className="h-5 w-5" />
+            Устройства
+          </Link>
+          <Link to="/dashboard/subscription" className="btn-secondary min-h-11 justify-start rounded-lg px-3 py-2.5" data-phase57-primary-action="subscription">
+            <Calendar className="h-5 w-5" />
+            {hasSubscription ? 'Продлить' : 'Тарифы'}
+          </Link>
+          <button
+            type="button"
+            onClick={() => handleMtprotoCopy('link', mtprotoBrowserLink)}
+            className="btn-secondary min-h-11 justify-start rounded-lg px-3 py-2.5"
+            disabled={!mtprotoBrowserLink}
+            data-phase57-primary-action="mtproto-copy"
+          >
+            <Link2 className="h-5 w-5" />
+            Proxy
+          </button>
+        </div>
+
+        <p className="mt-3 text-xs muted">{subscriptionHint(subscription)}</p>
       </section>
 
       <section
-        className="panel p-4 sm:p-5"
+        className="phase57-card-compact"
         data-phase31-mtproto-card="true"
         data-phase53-mtproto-card="compact"
+        data-phase57-mtproto-owner-card="redacted-actions"
         data-phase46-mtproto-status-refresh-ms={MTPROTO_STATUS_REFRESH_MS}
         data-mtproto-status={mtproto?.status || (mtprotoError ? 'degraded' : 'pending')}
       >
@@ -319,7 +348,7 @@ export default function Dashboard() {
               </div>
             </dl>
 
-            <div className="matrix-action-grid mt-3 grid-cols-2 sm:grid-cols-5">
+            <div className="matrix-action-grid mt-3 grid-cols-2 sm:grid-cols-5" data-phase57-mtproto-actions="tg-browser-copy-fields">
               <a
                 href={mtprotoTelegramAppLink || mtproto.tg_link}
                 className="btn-primary min-h-10 min-w-0 rounded-lg px-2 py-2 text-sm"
@@ -354,8 +383,8 @@ export default function Dashboard() {
         )}
       </section>
 
-      <section className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-        <article className="metric-card" data-phase53-dashboard-metric="vpn-status">
+      <section className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4" data-phase57-dashboard-metrics="compact">
+        <article className="metric-card" data-phase53-dashboard-metric="vpn-status" data-phase57-dashboard-metric="vpn-status">
           <div className="flex items-center gap-3">
             <Shield className="h-5 w-5 shrink-0 text-emerald-200" />
             <div className="min-w-0">
@@ -365,7 +394,7 @@ export default function Dashboard() {
           </div>
         </article>
 
-        <article className="metric-card" data-phase53-dashboard-metric="devices">
+        <article className="metric-card" data-phase53-dashboard-metric="devices" data-phase57-dashboard-metric="devices">
           <div className="flex items-center gap-3">
             <Smartphone className="h-5 w-5 shrink-0 text-cyan-100" />
             <div className="min-w-0">
@@ -377,7 +406,7 @@ export default function Dashboard() {
           </div>
         </article>
 
-        <article className="metric-card" data-phase53-dashboard-metric="upload">
+        <article className="metric-card" data-phase53-dashboard-metric="upload" data-phase57-dashboard-metric="upload">
           <div className="flex items-center gap-3">
             <ArrowUp className="h-5 w-5 shrink-0 text-emerald-200" />
             <div className="min-w-0">
@@ -387,7 +416,7 @@ export default function Dashboard() {
           </div>
         </article>
 
-        <article className="metric-card" data-phase53-dashboard-metric="download">
+        <article className="metric-card" data-phase53-dashboard-metric="download" data-phase57-dashboard-metric="download">
           <div className="flex items-center gap-3">
             <ArrowDown className="h-5 w-5 shrink-0 text-cyan-100" />
             <div className="min-w-0">
@@ -399,7 +428,7 @@ export default function Dashboard() {
       </section>
 
       <section className="grid gap-3 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
-        <article className="panel p-4 sm:p-5">
+        <article className="phase57-card-compact">
           <div className="flex items-start gap-3">
             <Server className="mt-1 h-5 w-5 shrink-0 text-cyan-100" />
             <div className="min-w-0">
@@ -413,7 +442,7 @@ export default function Dashboard() {
           </div>
         </article>
 
-        <article className="panel p-4 sm:p-5">
+        <article className="phase57-card-compact">
           <div className="flex items-start gap-3">
             <Smartphone className="mt-1 h-5 w-5 shrink-0 text-cyan-100" />
             <div className="min-w-0 flex-1">
@@ -425,7 +454,7 @@ export default function Dashboard() {
                     ? `${activeDevices} активных устройств. QR и .conf открываются в разделе конфигурации.`
                     : 'Создайте первое устройство, чтобы получить отдельный peer и конфиг.'}
               </p>
-              <Link to="/config" className="btn-secondary mt-4 min-h-11 w-full justify-start rounded-lg px-3 py-2.5">
+              <Link to="/dashboard/config" className="btn-secondary mt-4 min-h-11 w-full justify-start rounded-lg px-3 py-2.5">
                 <FileCode2 className="h-5 w-5" />
                 Открыть конфигурацию
               </Link>
@@ -435,13 +464,13 @@ export default function Dashboard() {
       </section>
 
       {!hasSubscription ? (
-        <section className="panel p-4 sm:p-5">
+        <section className="phase57-card-compact">
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <div className="min-w-0">
               <h2 className="text-lg font-bold">Подписка нужна для рабочего конфига</h2>
               <p className="mt-1 text-sm muted">После оплаты появятся QR-код, `.conf` и управление устройствами.</p>
             </div>
-            <Link to="/subscription" className="btn-primary min-h-11 shrink-0 rounded-lg px-3 py-2.5">
+            <Link to="/dashboard/subscription" className="btn-primary min-h-11 shrink-0 rounded-lg px-3 py-2.5">
               <Zap className="h-5 w-5" />
               Выбрать тариф
             </Link>

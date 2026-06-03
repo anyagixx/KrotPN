@@ -1,24 +1,25 @@
 /* FILE: frontend/src/index.css
- * VERSION: 1.2.0
+ * VERSION: 1.3.0
  * ROLE: UI_COMPONENT
  * MAP_MODE: SUMMARY
  * START_MODULE_CONTRACT
- *   PURPOSE: Shared user-frontend styling tokens, compact Matrix route surfaces, Matrix visual foundation, and Phase-55 premium art direction
- *   SCOPE: Base typography, premium palette/type/density/logo tokens, Matrix background/canvas/CRT layers, auth/page/layout surfaces, panel/button/input/status/metric/empty-state classes, compact motion, focus and reduced-motion policy
- *   DEPENDS: M-009 (frontend-user), M-036 (mobile-user-cabinet), M-038 (compact-ui-system), M-070 (matrix-visual-runtime), M-071 (matrix-style-system), M-072 (premium-art-direction-system)
- *   LINKS: M-009 (frontend-user), M-036 (mobile-user-cabinet), M-038 (compact-ui-system), M-070, M-071, M-072
+ *   PURPOSE: Shared user-frontend styling tokens, compact Matrix route surfaces, Matrix visual foundation, Phase-55 premium art direction, and Phase-57 user command surfaces
+ *   SCOPE: Base typography, premium palette/type/density/logo tokens, Matrix background/canvas/CRT layers, auth/page/layout surfaces, panel/button/input/status/metric/empty-state classes, Phase-57 dense command cards, compact motion, focus and reduced-motion policy
+ *   DEPENDS: M-009 (frontend-user), M-036 (mobile-user-cabinet), M-038 (compact-ui-system), M-070 (matrix-visual-runtime), M-071 (matrix-style-system), M-072 (premium-art-direction-system), M-075 (premium-user-cabinet)
+ *   LINKS: M-009 (frontend-user), M-036 (mobile-user-cabinet), M-038 (compact-ui-system), M-070, M-071, M-072, M-075
  * END_MODULE_CONTRACT
  *
  * START_MODULE_MAP
  *   base - Root color, typography, density, logo, and document background tokens
  *   premium-art-direction - Phase-55 balanced palette, compact type scale, density, and logo rules
  *   matrix-visual-system - Canvas, scanline, vignette, and content stacking layers
- *   route-surfaces - Matrix public, auth, layout, page, command, terminal, row, and action-grid classes
+ *   route-surfaces - Matrix public, auth, layout, page, command, terminal, row, action-grid, and Phase-57 command center classes
  *   components - App shell, panel, button, input, status, metric, empty-state classes
  *   utilities - text-balance, animate-in utility, focus-visible, and reduced-motion rules
  * END_MODULE_MAP
  *
  * START_CHANGE_SUMMARY
+ *   LAST_CHANGE: v3.4.0 - Added Phase-57 premium user cabinet dense command center, signal strip, compact card, and scroll-list primitives.
  *   LAST_CHANGE: v3.3.0 - Added Phase-56 premium public route, logo lockups, and compact tariff preview styles.
  *   LAST_CHANGE: v3.2.0 - Added Phase-55 premium Matrix art-direction tokens, density rules, logo rules, and non-orb shell background.
  *   LAST_CHANGE: v3.1.0 - Added Phase-53 compact Matrix user route surfaces and removed heavy auth hero styling
@@ -483,6 +484,55 @@
     @apply overflow-y-auto pr-1;
     max-height: min(420px, 58vh);
   }
+
+  /* START_BLOCK_PHASE57_USER_CABINET_SURFACES */
+  .phase57-command-center {
+    @apply panel p-3 sm:p-4;
+    background: rgba(5, 24, 17, 0.94);
+    border-color: rgba(118, 255, 183, 0.22);
+    box-shadow: var(--premium-shadow-tight), inset 0 1px 0 rgba(216, 246, 230, 0.06);
+  }
+
+  .phase57-command-header {
+    @apply flex min-w-0 flex-col gap-3 sm:flex-row sm:items-start sm:justify-between;
+  }
+
+  .phase57-signal-strip {
+    @apply grid gap-2;
+    grid-template-columns: repeat(auto-fit, minmax(118px, 1fr));
+  }
+
+  .phase57-signal-tile {
+    @apply min-w-0 rounded-lg border px-3 py-2;
+    border-color: rgba(104, 232, 255, 0.13);
+    background: rgba(0, 10, 7, 0.44);
+  }
+
+  .phase57-primary-actions {
+    @apply grid gap-2;
+    grid-template-columns: repeat(auto-fit, minmax(128px, 1fr));
+  }
+
+  .phase57-card-compact {
+    @apply panel p-3 sm:p-4;
+  }
+
+  .phase57-data-row {
+    @apply flex min-w-0 items-center justify-between gap-3 rounded-lg border px-3 py-2 text-sm;
+    border-color: rgba(118, 255, 183, 0.11);
+    background: rgba(255, 255, 255, 0.028);
+  }
+
+  .phase57-scroll-list {
+    @apply overflow-y-auto pr-1;
+    max-height: min(360px, 52vh);
+  }
+
+  .phase57-mini-grid {
+    @apply grid gap-2;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  }
+  /* END_BLOCK_PHASE57_USER_CABINET_SURFACES */
 
   .glass {
     background: var(--panel-strong);
