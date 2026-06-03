@@ -1,31 +1,93 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<V-M-075 MODULE="M-075" PRIORITY="high" STATUS="planned">
-  <scope>Premium user cabinet verification for first-screen density, VPN config, MTProto, subscription, devices, referrals, settings, and deletion audit.</scope>
+<V-M-075 MODULE="M-075" PRIORITY="high" STATUS="pending" PHASE-57="pending" PHASE-62="planned">
+  <scope>Phase-57 premium user cabinet verification for first-screen density, VPN config, device actions, MTProto owner proxy, subscription countdown/calendar, tariffs, referrals, settings, Matrix runtime safety, and redaction. Phase-62 compactness/deletion audit remains planned and is not executed by this verification contract.</scope>
   <test-files>
     <file>scripts/phase57-premium-user-cabinet-smoke.mjs</file>
-    <file>scripts/phase62-compactness-deletion-smoke.mjs</file>
+    <file>scripts/phase53-user-matrix-ui-smoke.mjs</file>
+    <file>scripts/phase45-trial-subscription-ux-smoke.mjs</file>
+    <file>scripts/phase46-user-cabinet-ux-smoke.mjs</file>
+    <file>scripts/phase48-config-download-mime-smoke.mjs</file>
+    <file>scripts/phase50-tariff-catalog-smoke.mjs</file>
+    <file>scripts/phase52-matrix-visual-smoke.mjs</file>
+    <file>scripts/phase55-premium-art-direction-smoke.mjs</file>
+    <file>scripts/phase56-premium-public-auth-smoke.mjs</file>
+    <file phase="62-planned">scripts/phase62-compactness-deletion-smoke.mjs</file>
+    <file>frontend/src/components/Layout.tsx</file>
     <file>frontend/src/pages/Dashboard.tsx</file>
     <file>frontend/src/pages/Config.tsx</file>
     <file>frontend/src/pages/Subscription.tsx</file>
+    <file>frontend/src/pages/Referrals.tsx</file>
+    <file>frontend/src/pages/Settings.tsx</file>
+    <file>frontend/src/lib/api.ts</file>
+    <file>frontend/src/index.css</file>
+    <file>backend/app/billing/catalog.py</file>
+    <file>docs/modules/M-075.xml</file>
+    <file>docs/plans/Phase-57.xml</file>
   </test-files>
-  <commands>
-    <command>cd frontend &amp;&amp; npm run build</command>
-    <command>node scripts/phase57-premium-user-cabinet-smoke.mjs</command>
-    <command>node scripts/phase62-compactness-deletion-smoke.mjs</command>
-    <command>mygrace lint</command>
-  </commands>
+  <module-checks>
+    <check-1>cd frontend &amp;&amp; npm run build</check-1>
+    <check-2>node scripts/phase57-premium-user-cabinet-smoke.mjs</check-2>
+    <check-3>node scripts/phase53-user-matrix-ui-smoke.mjs</check-3>
+    <check-4>node scripts/phase45-trial-subscription-ux-smoke.mjs</check-4>
+    <check-5>node scripts/phase46-user-cabinet-ux-smoke.mjs</check-5>
+    <check-6>node scripts/phase48-config-download-mime-smoke.mjs</check-6>
+    <check-7>node scripts/phase50-tariff-catalog-smoke.mjs</check-7>
+    <check-8>node scripts/phase52-matrix-visual-smoke.mjs</check-8>
+    <check-9>node scripts/phase55-premium-art-direction-smoke.mjs</check-9>
+    <check-10>node scripts/phase56-premium-public-auth-smoke.mjs</check-10>
+    <check-11>Chrome screenshot audit for /dashboard, /dashboard/config, /dashboard/subscription, /dashboard/referrals, and /dashboard/settings at 360x740, 390x844, 430x932, 768x1024, 1440x900, plus reduced-motion /dashboard 390x844. If local preview has no authenticated backend session, use a deterministic auth fixture/harness or record static route proof plus clean-deploy authenticated screenshot follow-up.</check-11>
+    <check-12>python3 XML parse for docs/modules/M-075.xml docs/plans/Phase-57.xml docs/verification/V-M-075.xml docs/verification-index.xml</check-12>
+    <check-13>mygrace lint</check-13>
+    <check-14>git diff --check</check-14>
+    <check-15>git diff --name-only HEAD -- install.sh docker-compose.yml nginx deploy deploy/mtproto-de-compose.yml .env.example backend/app backend/tests mtproto-runtime official-mtproxy must be empty</check-15>
+  </module-checks>
+  <verification-matrix>
+    <target-1 evidence="static-and-runtime">Protected /dashboard route tree remains under Phase-56 route split and all user cabinet routes keep phone-safe navigation, visible current account state, logout, and primary actions.</target-1>
+    <target-2 evidence="static-and-screenshot">Dashboard first viewport surfaces VPN state/config entry, subscription countdown or pending-first-VPN state, MTProto proxy status/actions, and device/account context without bulky stacked panels or horizontal scroll.</target-2>
+    <target-3 evidence="static">Config page preserves QR, .conf download, copy, raw config, device create/rotate/revoke, and Phase-48 application/octet-stream .conf download guarantees.</target-3>
+    <target-4 evidence="static">Subscription page preserves server-derived days/hours/minutes, active date range/calendar, pending first-VPN wording, canonical M-068 tariffs, and plan_id-only checkout shape.</target-4>
+    <target-5 evidence="static">MTProto owner-only tg:// app link, https://t.me browser link, Russian labels, bounded 30s refresh, pending/degraded states, and no-secret console/log guards remain intact.</target-5>
+    <target-6 evidence="static">Referrals and settings are compact secondary surfaces that preserve referral copy action, password strength validation, profile language controls, and no localStorage/token leaks.</target-6>
+    <target-7 evidence="runtime-screenshot">Phone/tablet/desktop/reduced-motion screenshots show no text/icon/button/status overlap, no hidden primary CTA, and no Matrix layer click/scroll interception.</target-7>
+  </verification-matrix>
   <success-scenarios>
-    <scenario-1>VPN config and subscription actions are reachable within one or two taps on phone.</scenario-1>
-    <scenario-2>MTProto owner-only actions remain visible, compact, and redacted from logs.</scenario-2>
-    <scenario-3>Deletion audit removes bulky duplicate UI without losing workflows.</scenario-3>
+    <scenario-1 kind="success">VPN config, QR/download/copy, subscription renewal, MTProto copy/open, and device controls are reachable within one or two taps on phone.</scenario-1>
+    <scenario-2 kind="success">MTProto owner-only actions remain visible, compact, localized, dynamically refreshed, and redacted from smoke output and console traces.</scenario-2>
+    <scenario-3 kind="success">Trial/countdown/calendar/tariff UI stays server-derived and never reintroduces stale 3-day copy or frontend-owned payment amounts.</scenario-3>
+    <scenario-4 kind="success">Referrals and settings retain their workflows while adopting compact premium Matrix surfaces.</scenario-4>
+    <scenario-5 kind="success">Phase-57 does not touch backend API shape, billing catalog, VPN/MTProto runtime, deploy/install scripts, nginx, docker-compose, or secret handling.</scenario-5>
   </success-scenarios>
   <failure-scenarios>
-    <failure-1>Premium layout hides QR/download/copy, trial countdown, tariff state, or device controls.</failure-1>
-    <failure-2>Critical values become clipped or hidden behind decorative Matrix surfaces.</failure-2>
+    <failure-1 kind="failure">Premium layout hides QR/download/copy/raw config, trial countdown, tariff state, MTProto link, referral copy, settings forms, or device controls.</failure-1>
+    <failure-2 kind="failure">Critical values become clipped, unreadable, or hidden behind Matrix canvas/scanline surfaces on phone/tablet/desktop screenshots.</failure-2>
+    <failure-3 kind="failure">Smoke, console markers, screenshots, or docs print full VPN configs, QR data, proxy secrets, tg links, bearer/refresh tokens, raw emails, payment IDs, or API keys.</failure-3>
+    <failure-4 kind="failure">Phase-57 changes backend API shape, checkout payload ownership, billing catalog values, MTProto/VPN runtime behavior, deploy/install scripts, nginx, docker-compose, or production topology.</failure-4>
+    <failure-5 kind="failure">User cabinet becomes a decorative landing/dashboard surface and requires excessive scrolling for the primary VPN, subscription, MTProto, or device workflows.</failure-5>
   </failure-scenarios>
-  <log-markers>
-    <marker>[PremiumUserCabinet][phase57][PRIMARY_ACTIONS_REACHABLE]</marker>
-    <marker>[PremiumUserCabinet][phase57][MTPROTO_REDACTION]</marker>
-    <marker>[CompactDeletionAudit][phase62][USER_SURFACES_PRUNED]</marker>
-  </log-markers>
+  <required-log-markers>
+    <marker-1>[PremiumUserCabinet][phase57][ROUTES_READY]</marker-1>
+    <marker-2>[PremiumUserCabinet][phase57][DASHBOARD_COMMAND_CENTER]</marker-2>
+    <marker-3>[PremiumUserCabinet][phase57][PRIMARY_ACTIONS_REACHABLE]</marker-3>
+    <marker-4>[PremiumUserCabinet][phase57][CONFIG_WORKFLOW_SAFE]</marker-4>
+    <marker-5>[PremiumUserCabinet][phase57][SUBSCRIPTION_COUNTDOWN_SAFE]</marker-5>
+    <marker-6>[PremiumUserCabinet][phase57][MTPROTO_REDACTION]</marker-6>
+    <marker-7>[PremiumUserCabinet][phase57][TARIFF_CHECKOUT_SHAPE]</marker-7>
+    <marker-8>[PremiumUserCabinet][phase57][REFERRALS_SETTINGS_COMPACT]</marker-8>
+    <marker-9>[PremiumUserCabinet][phase57][REDUCED_MOTION_SAFE]</marker-9>
+    <marker-10>[PremiumUserCabinet][phase57][SCREENSHOT_MATRIX_REVIEWED]</marker-10>
+    <marker-11>[PremiumUserCabinet][phase57][PROTECTED_SURFACE_GUARD]</marker-11>
+    <marker-12 phase="62-planned">[CompactDeletionAudit][phase62][USER_SURFACES_PRUNED]</marker-12>
+  </required-log-markers>
+  <telemetry-requirements>
+    <requirement-1>Allowed smoke output: route names, viewport names, selector markers, redacted state names, screenshot paths, and pass/fail markers.</requirement-1>
+    <requirement-2>Forbidden smoke output: full VPN configs, QR payloads, WireGuard private keys, MTProto ee secrets, tg:// or https://t.me proxy links with secrets, bearer/refresh tokens, reset/verify tokens, real user emails, raw IP history, payment IDs, YooKassa/Resend keys, or API keys.</requirement-2>
+    <requirement-3>If screenshots require authenticated fixtures, fixtures must use synthetic emails and synthetic data only; live clean-deploy screenshots must be operator-approved and redacted.</requirement-3>
+  </telemetry-requirements>
+  <phase-gates>
+    <gate-1 level="module-local">M-075 smoke proves dashboard/config/subscription/referrals/settings route markers, primary actions, compact layout primitives, and redaction guards.</gate-1>
+    <gate-2 level="wave">M-036, M-045, M-063, M-064, M-068, M-070, M-071, M-072 regression smokes remain satisfied after user cabinet edits.</gate-2>
+    <gate-3 level="phase">Frontend build, Phase-57 smoke, regression smokes, screenshot matrix, XML parse, MyGRACE lint, git diff check, and protected deploy/backend/runtime guard pass before Phase-57 can be marked done-local.</gate-3>
+    <gate-4 level="future-phase">Phase-62 deletion audit remains planned and must not be marked pass-local by Phase-57 evidence alone.</gate-4>
+  </phase-gates>
+  <autonomous-execution-safety>Safe for local autonomous execution if changes stay inside frontend user cabinet routes, shared frontend CSS needed for those routes, and smoke verification. Stop execution if a backend API change, billing catalog mutation, VPN/MTProto runtime change, deploy/install/nginx/docker-compose change, or secret-handling change appears necessary.</autonomous-execution-safety>
 </V-M-075>
