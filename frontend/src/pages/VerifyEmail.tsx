@@ -16,6 +16,7 @@
 // END_MODULE_MAP
 //
 // START_CHANGE_SUMMARY
+//   LAST_CHANGE: v1.2.0 - Added Phase-56 visible brand logo and dashboard navigation target after verified email proof
 //   LAST_CHANGE: v1.1.0 - Applied Phase-53 compact Matrix verification surface
 //   LAST_CHANGE: 2026-05-13 - Added Phase-28 verify-email frontend route
 // END_CHANGE_SUMMARY
@@ -117,7 +118,10 @@ export default function VerifyEmail() {
               )}
             </div>
             <div>
-              <p className="text-sm font-semibold text-cyan-100">KrotPN</p>
+              <div className="mb-2 flex items-center gap-2">
+                <img src="/brand/email-logo.png" alt="" className="matrix-brand-logo h-9 w-9" data-phase56-logo="true" />
+                <p className="text-sm font-semibold text-cyan-100">KrotPN</p>
+              </div>
               <h1 className="mt-1 text-2xl font-extrabold text-white">
                 {isChecking ? 'Подтверждаем email' : isSuccess ? 'Email подтверждён' : 'Ссылка недоступна'}
               </h1>
@@ -126,7 +130,7 @@ export default function VerifyEmail() {
           </div>
 
           {isSuccess ? (
-            <button type="button" className="btn-primary w-full py-3" onClick={() => navigate('/')}>
+            <button type="button" className="btn-primary w-full py-3" onClick={() => navigate('/dashboard')}>
               <Shield className="h-4 w-4" />
               Открыть кабинет
             </button>

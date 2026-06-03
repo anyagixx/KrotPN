@@ -17,6 +17,7 @@
 // END_MODULE_MAP
 //
 // START_CHANGE_SUMMARY
+//   LAST_CHANGE: v1.3.1 - Moved user cabinet navigation to /dashboard routes and kept dashboard active state exact for Phase-56 public landing
 //   LAST_CHANGE: v3.0.0 - Reworked protected user shell into Phase-53 compact Matrix navigation surfaces
 //   LAST_CHANGE: v2.8.0 - Added full GRACE MODULE_CONTRACT and MODULE_MAP per GRACE governance protocol
 //   LAST_CHANGE: v2.9.0 - Reworked user cabinet shell into compact mobile-first navigation for Phase-23
@@ -37,11 +38,11 @@ import {
 import { useAuthStore } from '../stores/auth'
 
 const navItems = [
-  { to: '/', icon: LayoutDashboard, labelKey: 'dashboard' },
-  { to: '/config', icon: FileCode, labelKey: 'config' },
-  { to: '/subscription', icon: CreditCard, labelKey: 'subscription' },
-  { to: '/referrals', icon: Gift, labelKey: 'referrals' },
-  { to: '/settings', icon: Settings, labelKey: 'settings' },
+  { to: '/dashboard', icon: LayoutDashboard, labelKey: 'dashboard' },
+  { to: '/dashboard/config', icon: FileCode, labelKey: 'config' },
+  { to: '/dashboard/subscription', icon: CreditCard, labelKey: 'subscription' },
+  { to: '/dashboard/referrals', icon: Gift, labelKey: 'referrals' },
+  { to: '/dashboard/settings', icon: Settings, labelKey: 'settings' },
 ]
 
 export default function Layout() {
@@ -80,13 +81,13 @@ export default function Layout() {
               <NavLink
                 key={item.to}
                 to={item.to}
-                end={item.to === '/'}
                 className={({ isActive }) =>
                   [
                     'matrix-nav-link',
                     isActive ? 'matrix-nav-link-active' : 'matrix-nav-link-idle',
                   ].join(' ')
                 }
+                end={item.to === '/dashboard'}
               >
                 <item.icon className="h-4 w-4 shrink-0" />
                 <span className="min-w-0 truncate font-semibold">{t(item.labelKey)}</span>
@@ -130,7 +131,7 @@ export default function Layout() {
             <NavLink
               key={item.to}
               to={item.to}
-              end={item.to === '/'}
+              end={item.to === '/dashboard'}
               className={({ isActive }) =>
                 [
                   'flex min-h-12 min-w-0 flex-col items-center justify-center gap-1 rounded-lg px-1 text-[10px] font-semibold transition',

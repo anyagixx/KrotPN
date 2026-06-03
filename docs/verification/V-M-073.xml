@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<V-M-073 MODULE="M-073" PRIORITY="high" STATUS="pending">
+<V-M-073 MODULE="M-073" PRIORITY="high" STATUS="pass-local">
   <scope>Phase-56 premium public site and auth verification for landing, login, registration, verification, password recovery, tariff preview, logo visibility, Matrix runtime safety, and email-proof semantics.</scope>
   <test-files>
     <file>scripts/phase56-premium-public-auth-smoke.mjs</file>
@@ -8,6 +8,7 @@
     <file>scripts/phase50-tariff-catalog-smoke.mjs</file>
     <file>scripts/phase55-premium-art-direction-smoke.mjs</file>
     <file>frontend/src/App.tsx</file>
+    <file>frontend/src/components/Layout.tsx</file>
     <file>frontend/src/pages/Landing.tsx</file>
     <file>frontend/src/pages/Login.tsx</file>
     <file>frontend/src/pages/Register.tsx</file>
@@ -80,5 +81,19 @@
     <gate-2 level="wave">M-009, M-068, M-069, M-070, M-071, and M-072 regression smokes remain satisfied after public/auth edits.</gate-2>
     <gate-3 level="phase">Frontend build, screenshot matrix, Phase-44/46/50/55 regression smokes, XML parse, MyGRACE lint, git diff check, and protected deploy/install guard pass before Phase-56 can be marked done-local.</gate-3>
   </phase-gates>
+  <execution-evidence status="pass-local" date="2026-06-03">
+    <command-1>cd frontend &amp;&amp; npm run build</command-1>
+    <command-2>node scripts/phase56-premium-public-auth-smoke.mjs</command-2>
+    <command-3>node scripts/phase44-auth-email-ux-smoke.mjs</command-3>
+    <command-4>node scripts/phase46-user-cabinet-ux-smoke.mjs</command-4>
+    <command-5>node scripts/phase50-tariff-catalog-smoke.mjs</command-5>
+    <command-6>node scripts/phase52-matrix-visual-smoke.mjs</command-6>
+    <command-7>node scripts/phase53-user-matrix-ui-smoke.mjs</command-7>
+    <command-8>node scripts/phase55-premium-art-direction-smoke.mjs</command-8>
+    <command-9>Chrome headless screenshots with virtual-time-budget for /, /login, /register, /forgot-password, /reset-password, /verify-email at 360x740, 390x844, 430x932, 768x1024, 1440x900, plus reduced-motion 390x844.</command-9>
+    <command-10>python3 XML parse for Phase-56/M-073/V-M-073/index docs; mygrace lint; git diff --check; protected deploy/install guard.</command-10>
+    <screenshot-paths>/tmp/krotpn-phase56-screenshots</screenshot-paths>
+    <result>PASS: required markers emitted, public/auth screenshot dimensions validated, representative frames visually reviewed, verified-email copy preserved, canonical tariff preview matched M-068 markers, and protected deploy/install/runtime surfaces remained unchanged.</result>
+  </execution-evidence>
   <autonomous-execution-safety>Safe for local autonomous execution if changes stay inside frontend public/auth routes, frontend CSS/components needed for M-073, and smoke verification. Stop execution if backend registration semantics, billing catalog ownership, deploy/install scripts, nginx, docker-compose, VPN, MTProto, or secret handling must change.</autonomous-execution-safety>
 </V-M-073>

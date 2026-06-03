@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<M-009 NAME="frontend-user" TYPE="UI_COMPONENT" STATUS="pass-local-phase46-phase51-phase52-phase53">
+<M-009 NAME="frontend-user" TYPE="UI_COMPONENT" STATUS="pass-local-phase46-phase51-phase52-phase53-phase56">
   <path>frontend frontend/public frontend/index.html frontend/vite.config.ts</path>
   <owns>login, verified registration, password recovery, verify-email activation, dashboard, config delivery, subscription management, pending trial countdown/calendar UX, referrals and settings UI with per-device config awareness</owns>
   <depends>M-002, M-003, M-004, M-005, M-022, M-070, M-071</depends>
@@ -16,6 +16,7 @@
     <file>frontend/public/pwa-512x512.png</file>
     <file>frontend/public/brand/email-logo.png</file>
     <file>frontend/src/App.tsx</file>
+    <file>frontend/src/pages/Landing.tsx</file>
     <file>frontend/src/components/MatrixBackground.tsx</file>
     <file>frontend/src/components/VisualShell.tsx</file>
     <file>frontend/src/pages/Register.tsx</file>
@@ -33,6 +34,7 @@
     <file>frontend/src/lib/passwordPolicy.ts</file>
     <file>frontend/src/index.css</file>
     <file>scripts/phase53-user-matrix-ui-smoke.mjs</file>
+    <file>scripts/phase56-premium-public-auth-smoke.mjs</file>
   </files>
   <phase-23-scope>
     <primary-files>Layout.tsx, Dashboard.tsx, Config.tsx, Subscription.tsx, index.css</primary-files>
@@ -77,4 +79,9 @@
     <primary-behaviors>Compact Matrix user auth and cabinet routes, protected route smoke, MTProto redaction/link guards, trial/tariff invariants, readable forms, reduced-motion visual proof, and protected deploy/install isolation.</primary-behaviors>
     <evidence>2026-06-03: frontend npm run build passed; Phase-53 smoke passed; production-preview Chrome screenshots passed for login/register/reset mobile, login desktop, and reduced-motion login with virtual-time-budget.</evidence>
   </phase-53-scope>
+  <phase-56-scope>
+    <primary-files>App.tsx, Landing.tsx, Login.tsx, Register.tsx, ForgotPassword.tsx, ResetPassword.tsx, VerifyEmail.tsx, Layout.tsx, index.css, scripts/phase56-premium-public-auth-smoke.mjs</primary-files>
+    <primary-behaviors>Public / route, protected /dashboard cabinet route split with legacy redirects, visible logo auth lockups, verified-email safety copy, canonical tariff preview, and no backend/deploy/runtime behavior changes.</primary-behaviors>
+    <evidence>2026-06-03: frontend npm run build passed; Phase-56 smoke passed; Phase-44/46/50/52/53/55 regressions passed; Chrome screenshot matrix for public/auth routes passed local review.</evidence>
+  </phase-56-scope>
 </M-009>

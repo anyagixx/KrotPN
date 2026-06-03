@@ -16,6 +16,7 @@
 // END_MODULE_MAP
 //
 // START_CHANGE_SUMMARY
+//   LAST_CHANGE: v1.4.0 - Added Phase-56 visible brand logo while preserving verified-email pending state
 //   LAST_CHANGE: v3.0.0 - Applied Phase-53 compact Matrix auth surface while preserving verified-email cutover
 //   LAST_CHANGE: 2026-06-01 - Added Phase-46 password format example tied to the active password policy
 //   LAST_CHANGE: 2026-06-01 - Added Phase-44 compact check-email UX, spam hint, strong-password hints, and duplicate-email recovery CTA
@@ -27,7 +28,7 @@
 import { useState } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
-import { AlertCircle, ArrowLeft, Loader2, Lock, Mail, MailCheck, RefreshCw, Shield, Sparkles } from 'lucide-react'
+import { AlertCircle, ArrowLeft, Loader2, Lock, Mail, MailCheck, RefreshCw, Sparkles } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { authApi } from '../lib/api'
 import { passwordPolicyExample, passwordPolicyHint, passwordStrengthIssues } from '../lib/passwordPolicy'
@@ -107,8 +108,8 @@ export default function Register() {
     <div className="matrix-auth-screen" data-phase53-auth-route="register">
       <section className="w-full max-w-md animate-in">
         <div className="matrix-auth-heading">
-          <div className="matrix-brand-mark mx-auto h-12 w-12">
-            <Shield className="h-6 w-6" />
+          <div className="matrix-auth-brand-lockup">
+            <img src="/brand/email-logo.png" alt="" className="matrix-brand-logo" data-phase56-logo="true" />
           </div>
           <p className="matrix-kicker mt-4">Email gate</p>
           <h1 className="mt-2 text-2xl font-extrabold text-white">{t('registerTitle')}</h1>

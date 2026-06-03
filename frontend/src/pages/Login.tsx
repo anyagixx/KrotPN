@@ -16,6 +16,7 @@
 // END_MODULE_MAP
 //
 // START_CHANGE_SUMMARY
+//   LAST_CHANGE: v1.2.0 - Added Phase-56 visible brand logo and dashboard navigation target for public landing split
 //   LAST_CHANGE: v3.0.0 - Removed heavy marketing panel and applied Phase-53 compact Matrix auth surface
 //   LAST_CHANGE: 2026-06-01 - Added Phase-44 password recovery entry point
 //   LAST_CHANGE: v2.8.0 - Added full GRACE MODULE_CONTRACT and MODULE_MAP per GRACE governance protocol
@@ -25,7 +26,7 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
-import { Loader2, Lock, Mail, Shield } from 'lucide-react'
+import { Loader2, Lock, Mail } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { authApi } from '../lib/api'
 import { useAuthStore } from '../stores/auth'
@@ -51,7 +52,7 @@ export default function Login() {
 
       await fetchUser()
       toast.success(t('success'))
-      navigate('/')
+      navigate('/dashboard')
     } catch (error: any) {
       toast.error(error.response?.data?.detail || t('invalidCredentials'))
     } finally {
@@ -63,8 +64,8 @@ export default function Login() {
     <div className="matrix-auth-screen" data-phase53-auth-route="login">
       <section className="matrix-auth-card animate-in">
         <div className="matrix-auth-heading">
-          <div className="matrix-brand-mark mx-auto h-12 w-12">
-            <Shield className="h-6 w-6" />
+          <div className="matrix-auth-brand-lockup">
+            <img src="/brand/email-logo.png" alt="" className="matrix-brand-logo" data-phase56-logo="true" />
           </div>
           <p className="matrix-kicker mt-4">KrotPN Secure Access</p>
           <h1 className="mt-2 text-2xl font-extrabold text-white">{t('loginTitle')}</h1>

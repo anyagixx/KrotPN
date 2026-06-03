@@ -15,6 +15,7 @@
 // END_MODULE_MAP
 //
 // START_CHANGE_SUMMARY
+//   LAST_CHANGE: v1.2.0 - Added Phase-56 visible brand logo for premium reset flow consistency
 //   LAST_CHANGE: v1.1.0 - Applied Phase-53 compact Matrix reset surface
 //   LAST_CHANGE: v1.0.0 - Added Phase-44 password reset confirmation UX
 // END_CHANGE_SUMMARY
@@ -22,7 +23,7 @@
 // START_BLOCK_RESET_PASSWORD_PAGE
 import { useState } from 'react'
 import { Link, useNavigate, useSearchParams } from 'react-router-dom'
-import { ArrowLeft, CheckCircle2, Loader2, Lock, ShieldCheck } from 'lucide-react'
+import { ArrowLeft, CheckCircle2, Loader2, Lock } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { authApi } from '../lib/api'
 import { passwordPolicyHint, passwordStrengthIssues } from '../lib/passwordPolicy'
@@ -78,8 +79,8 @@ export default function ResetPassword() {
     <div className="matrix-auth-screen" data-phase53-auth-route="reset-password">
       <section className="w-full max-w-md animate-in">
         <div className="matrix-auth-heading">
-          <div className="matrix-brand-mark mx-auto h-12 w-12">
-            <ShieldCheck className="h-6 w-6" />
+          <div className="matrix-auth-brand-lockup">
+            <img src="/brand/email-logo.png" alt="" className="matrix-brand-logo" data-phase56-logo="true" />
           </div>
           <p className="matrix-kicker mt-4">New password</p>
           <h1 className="mt-2 text-2xl font-extrabold text-white">Новый пароль</h1>

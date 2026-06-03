@@ -13,12 +13,13 @@
  *   base - Root color, typography, density, logo, and document background tokens
  *   premium-art-direction - Phase-55 balanced palette, compact type scale, density, and logo rules
  *   matrix-visual-system - Canvas, scanline, vignette, and content stacking layers
- *   route-surfaces - Matrix auth, layout, page, command, terminal, row, and action-grid classes
+ *   route-surfaces - Matrix public, auth, layout, page, command, terminal, row, and action-grid classes
  *   components - App shell, panel, button, input, status, metric, empty-state classes
  *   utilities - text-balance, animate-in utility, focus-visible, and reduced-motion rules
  * END_MODULE_MAP
  *
  * START_CHANGE_SUMMARY
+ *   LAST_CHANGE: v3.3.0 - Added Phase-56 premium public route, logo lockups, and compact tariff preview styles.
  *   LAST_CHANGE: v3.2.0 - Added Phase-55 premium Matrix art-direction tokens, density rules, logo rules, and non-orb shell background.
  *   LAST_CHANGE: v3.1.0 - Added Phase-53 compact Matrix user route surfaces and removed heavy auth hero styling
  *   LAST_CHANGE: v3.0.0 - Added Phase-52 Matrix visual foundation tokens, canvas layers, CRT overlays, focus states, and reduced-motion policy
@@ -246,6 +247,22 @@
     box-shadow: inset 0 0 0 1px rgba(96, 255, 155, 0.16);
   }
 
+  .matrix-brand-logo {
+    @apply block rounded-lg object-contain;
+    width: 44px;
+    height: 44px;
+    min-width: var(--premium-logo-min);
+    background: rgba(96, 255, 155, 0.1);
+    box-shadow: inset 0 0 0 1px rgba(96, 255, 155, 0.18), 0 10px 24px rgba(0, 5, 3, 0.32);
+  }
+
+  .matrix-auth-brand-lockup {
+    @apply mx-auto flex h-14 w-14 items-center justify-center rounded-lg;
+    padding: var(--premium-logo-safe-space);
+    background: rgba(96, 255, 155, 0.08);
+    box-shadow: inset 0 0 0 1px rgba(96, 255, 155, 0.14);
+  }
+
   .matrix-nav-link {
     @apply flex min-h-10 min-w-0 items-center gap-3 rounded-lg px-3 py-2 text-sm transition;
   }
@@ -304,6 +321,113 @@
     @apply text-xs font-bold uppercase;
     color: #79ffd0;
     letter-spacing: 0;
+  }
+
+  .matrix-public-page {
+    @apply mx-auto flex min-h-screen w-full max-w-6xl flex-col px-3 py-3 sm:px-4 sm:py-4 lg:px-5 lg:py-5;
+  }
+
+  .matrix-public-nav {
+    @apply flex items-center justify-between gap-3;
+  }
+
+  .matrix-public-brand {
+    @apply flex min-w-0 items-center gap-3 text-lg font-extrabold text-white;
+  }
+
+  .matrix-public-hero {
+    @apply grid min-h-[420px] items-center gap-6 py-8 md:grid-cols-[minmax(0,1fr)_minmax(260px,0.48fr)] md:py-10 lg:py-12;
+  }
+
+  .matrix-public-hero-copy {
+    @apply max-w-3xl;
+  }
+
+  .matrix-public-hero h1 {
+    @apply mt-2 text-3xl font-extrabold text-white;
+    letter-spacing: 0;
+    text-shadow: 0 0 28px rgba(96, 255, 155, 0.18);
+  }
+
+  .matrix-public-lead {
+    @apply mt-4 max-w-2xl text-base leading-7 text-slate-100 sm:text-lg;
+  }
+
+  .matrix-public-actions {
+    @apply mt-5 flex flex-col gap-2 sm:flex-row sm:items-center;
+  }
+
+  .matrix-public-proof {
+    @apply mt-4 max-w-xl text-sm leading-6;
+    color: var(--premium-muted-strong);
+  }
+
+  .matrix-public-signal {
+    @apply grid gap-2 rounded-lg border p-3;
+    border-color: rgba(104, 232, 255, 0.14);
+    background: rgba(2, 12, 9, 0.58);
+    box-shadow: var(--premium-shadow-tight);
+  }
+
+  .matrix-public-signal-row {
+    @apply flex min-w-0 items-center gap-3 rounded-lg border px-3 py-3 text-sm font-semibold text-slate-100;
+    border-color: rgba(118, 255, 183, 0.13);
+    background: rgba(255, 255, 255, 0.035);
+  }
+
+  .matrix-public-band {
+    @apply grid gap-3 md:grid-cols-3;
+  }
+
+  .matrix-public-feature {
+    @apply flex min-w-0 items-start gap-3 rounded-lg border p-4;
+    border-color: rgba(118, 255, 183, 0.14);
+    background: rgba(4, 18, 13, 0.7);
+  }
+
+  .matrix-public-feature h2 {
+    @apply text-base font-extrabold text-white;
+  }
+
+  .matrix-public-feature p {
+    @apply mt-1 text-sm leading-6;
+    color: var(--premium-muted);
+  }
+
+  .matrix-public-tariffs {
+    @apply mt-5 space-y-3 pb-8;
+  }
+
+  .matrix-public-tariff {
+    @apply flex min-w-0 flex-col gap-3 rounded-lg border p-4;
+    border-color: rgba(118, 255, 183, 0.14);
+    background: rgba(5, 22, 16, 0.78);
+    box-shadow: var(--premium-shadow-tight);
+  }
+
+  .matrix-public-tariff h3 {
+    @apply text-lg font-extrabold text-white;
+  }
+
+  .matrix-public-price {
+    @apply flex flex-wrap items-end gap-2;
+  }
+
+  .matrix-public-price span {
+    @apply text-2xl font-extrabold text-white;
+  }
+
+  .matrix-public-price small {
+    @apply text-sm;
+    color: var(--premium-muted);
+  }
+
+  .matrix-public-tariff ul {
+    @apply grid gap-2 text-sm text-slate-100;
+  }
+
+  .matrix-public-tariff li {
+    @apply flex min-w-0 items-start gap-2;
   }
 
   .matrix-page {

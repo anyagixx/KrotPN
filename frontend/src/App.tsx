@@ -3,10 +3,10 @@
 // ROLE: ENTRY_POINT
 // MAP_MODE: SUMMARY
 // START_MODULE_CONTRACT
-//   PURPOSE: Root application component with routing setup, auth guard, and toaster configuration
-//   SCOPE: BrowserRouter, route definitions (login, register, verify-email, password recovery, protected layout + child routes), PrivateRoute HOC, Toaster config, Matrix visual shell mount
-//   DEPENDS: M-009 (frontend-user), M-002 (auth API), M-070 (matrix-visual-runtime), M-071 (matrix-style-system)
-//   LINKS: M-009 (frontend-user)
+//   PURPOSE: Root application component with public landing, routing setup, auth guard, and toaster configuration
+//   SCOPE: BrowserRouter, route definitions (public landing, login, register, verify-email, password recovery, protected dashboard layout + child routes), legacy route redirects, PrivateRoute HOC, Toaster config, Matrix visual shell mount
+//   DEPENDS: M-009 (frontend-user), M-002 (auth API), M-070 (matrix-visual-runtime), M-071 (matrix-style-system), M-073 (premium-public-site)
+//   LINKS: M-009 (frontend-user), M-073
 // END_MODULE_CONTRACT
 //
 // START_MODULE_MAP
@@ -17,6 +17,7 @@
 // END_MODULE_MAP
 //
 // START_CHANGE_SUMMARY
+//   LAST_CHANGE: v3.1.0 - Added Phase-56 public landing route and moved authenticated cabinet routes under /dashboard with legacy redirects
 //   LAST_CHANGE: v3.0.0 - Mounted Phase-52 Matrix VisualShell around the user route tree
 //   LAST_CHANGE: 2026-06-01 - Added Phase-44 forgot/reset password routes
 //   LAST_CHANGE: 2026-05-13 - Added Phase-28 verify-email route for pending registration activation
@@ -35,6 +36,7 @@ import Register from './pages/Register'
 import ForgotPassword from './pages/ForgotPassword'
 import ResetPassword from './pages/ResetPassword'
 import VerifyEmail from './pages/VerifyEmail'
+import Landing from './pages/Landing'
 import Dashboard from './pages/Dashboard'
 import Config from './pages/Config'
 import Subscription from './pages/Subscription'
@@ -67,13 +69,14 @@ function App() {
       <VisualShell>
         <div className="min-h-screen">
           <Routes>
+            <Route path="/" element={<Landing />} />
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
             <Route path="/forgot-password" element={<ForgotPassword />} />
             <Route path="/reset-password" element={<ResetPassword />} />
             <Route path="/verify-email" element={<VerifyEmail />} />
             <Route
-              path="/"
+              path="/dashboard"
               element={
                 <PrivateRoute>
                   <Layout />
@@ -86,6 +89,10 @@ function App() {
               <Route path="referrals" element={<Referrals />} />
               <Route path="settings" element={<Settings />} />
             </Route>
+            <Route path="/config" element={<Navigate to="/dashboard/config" replace />} />
+            <Route path="/subscription" element={<Navigate to="/dashboard/subscription" replace />} />
+            <Route path="/referrals" element={<Navigate to="/dashboard/referrals" replace />} />
+            <Route path="/settings" element={<Navigate to="/dashboard/settings" replace />} />
           </Routes>
           <Toaster
             position="top-right"
