@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<V-M-058 MODULE="M-058" PRIORITY="high" STATUS="pass-local-phase43" PHASE-43="pass-local" PHASE-54="verification-designed" VERSION="1.8.0">
+<V-M-058 MODULE="M-058" PRIORITY="high" STATUS="pass-local-phase43-phase54" PHASE-43="pass-local" PHASE-54="pass-local" VERSION="1.9.0">
   <module>mtproto-admin-analytics-ui</module>
   <checks>Frontend-admin exposes compact MTProto analytics, alert review, and promotion tag controls without secret leakage, visible technical Signals noise, hidden existing controls, or mobile layout regressions.</checks>
   <test-files>
@@ -9,9 +9,9 @@
     <file status="pass-local">frontend-admin/src/types/index.ts</file>
     <file status="pass-local">scripts/phase43-mtproto-admin-analytics-smoke.mjs</file>
     <file status="pass-local">scripts/phase42-mtproto-admin-analytics-smoke.mjs</file>
-    <file status="phase54-verification-designed">scripts/phase54-admin-matrix-ui-smoke.mjs</file>
+    <file status="phase54-pass-local">scripts/phase54-admin-matrix-ui-smoke.mjs</file>
   </test-files>
-  <commands>verification-designed 2026-06-03: Phase-54 requires cd frontend-admin &amp;&amp; npm run build; node scripts/phase54-admin-matrix-ui-smoke.mjs; static and viewport proof for embedded MTProto analytics tabs, graphs, alerts, IP history, resource metrics, promotion tag controls, auto-refresh, and redaction.</commands>
+  <commands>pass-local 2026-06-03: cd frontend-admin &amp;&amp; npm run build; node scripts/phase54-admin-matrix-ui-smoke.mjs; static proof passed for embedded MTProto analytics tabs, chart frames, alerts, IP history, resource metrics, promotion tag controls, auto-refresh, hidden visible Signals, and redaction.</commands>
   <evidence>Frontend-admin build passed and Phase-42/Phase-43 static smokes confirm compact Overview/Users/Abuse/Settings UI, removed Recent events, hidden visible Signals panel/count, paginated proxy/user lists, compact area graphs, source-IP unavailable state, auto-refresh markers, Russian hover help for alert review actions, compact scrollable IP history without visible CIDR prefixes, open inbox/archive split, no-dot empty states, and redaction guards.</evidence>
   <verification-levels>
     <module-local>Build frontend-admin and run static UI smoke for route wiring, API names, redaction strings, confirmation flows, and mobile viewport overflow.</module-local>
@@ -35,7 +35,7 @@
     <check-12>Open alert action buttons expose short Russian hover descriptions for review, acknowledge, resolve, disable, and follow-up TTL IP block decisions.</check-12>
     <check-13>IP history uses a bounded internal scroll area and renders only address/hash rows, not address/prefix mask rows.</check-13>
   </phase-43-checks>
-  <phase-54-checks status="verification-designed">
+  <phase-54-checks status="pass-local">
     <check-1>Matrix /mtproto analytics keeps Overview, Users, Abuse, and Settings tabs compact and reachable on mobile.</check-1>
     <check-2>Graphs for traffic, connections, active connections, duration, and errors render in stable bounded containers without layout shift during refresh.</check-2>
     <check-3>Top users remains long-list friendly through page-size controls or bounded scroll, not unstructured document scrolling.</check-3>
@@ -92,5 +92,6 @@
   </autonomous-execution-safety>
   <evidence>
     <phase-54-verification-design-2026-06-03>Phase-54 verification design added Matrix analytics gates for compact tabs, stable graphs, top-users list, alert inbox/archive, IP history, resource metrics, promotion tag redaction, auto-refresh, and no visible Signals regression.</phase-54-verification-design-2026-06-03>
+    <phase-54-local-2026-06-03>Frontend-admin build and Phase-54 smoke passed for compact Matrix analytics: CHARTS_TABLES_READABLE, AUTO_REFRESH_STABLE, SIGNALS_STILL_HIDDEN, PROMOTION_TAG_REDACTED, bounded user/top-user/alert/IP-history lists, and protected-surface isolation.</phase-54-local-2026-06-03>
   </evidence>
 </V-M-058>

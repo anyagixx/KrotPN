@@ -1,12 +1,12 @@
 // FILE: frontend-admin/src/pages/MTProtoAnalytics.tsx
-// VERSION: 2.4.0
+// VERSION: 2.5.0
 // ROLE: UI_COMPONENT
 // MAP_MODE: SUMMARY
 // START_MODULE_CONTRACT
-//   PURPOSE: Compact admin MTProto analytics console with usage graphs, alert review, user investigation, runtime metrics, and promotion tag controls
-//   SCOPE: Overview, Users, Abuse, Settings tabs, top users, user detail drawer with IP history, alert actions with operator tooltips, auto-refresh, and masked promotion tag update
-//   DEPENDS: M-010 (frontend-admin), M-058 (mtproto-admin-analytics-ui), M-057 (admin analytics API), M-059 (promotion tag), M-060 (alerts), M-061 (IP observability)
-//   LINKS: M-058, M-057, M-059, M-060, M-061, V-M-058
+//   PURPOSE: Compact Matrix admin MTProto analytics console with usage graphs, alert review, user investigation, runtime metrics, and promotion tag controls
+//   SCOPE: Overview, Users, Abuse, Settings tabs, top users, user detail drawer with IP history, alert actions with operator tooltips, auto-refresh, masked promotion tag update, and Phase-54 visibility guards
+//   DEPENDS: M-010 (frontend-admin), M-058 (mtproto-admin-analytics-ui), M-057 (admin analytics API), M-059 (promotion tag), M-060 (alerts), M-061 (IP observability), M-070 (matrix-visual-runtime), M-071 (matrix-style-system)
+//   LINKS: M-058, M-057, M-059, M-060, M-061, M-070, M-071, V-M-058, Phase-54
 // END_MODULE_CONTRACT
 //
 // START_MODULE_MAP
@@ -19,6 +19,7 @@
 // END_MODULE_MAP
 //
 // START_CHANGE_SUMMARY
+//   LAST_CHANGE: v2.5.0 - Phase-54 added compact Matrix chart frames, bounded analytics lists, and explicit redaction/Signals-hidden markers.
 //   LAST_CHANGE: v2.4.0 - Made IP history compact, scrollable, and removed visible CIDR prefix rows.
 //   LAST_CHANGE: v2.3.0 - Removed visible technical Signals panel/count and added Russian hover help for alert actions.
 //   LAST_CHANGE: v2.2.0 - Split Abuse into open inbox and archive, and standardized icon input padding.
@@ -127,7 +128,11 @@ function MetricAreaChart({ data, metric }: { data: AdminMTProtoTimeseriesBucket[
   const peak = chartData.reduce((max, row) => Math.max(max, row.value), 0)
   const latest = chartData[chartData.length - 1]?.value || 0
   return (
-    <div className="grid gap-2" data-log-marker="[M-058][admin_mtproto_analytics_ui][AUTO_REFRESH]">
+    <div
+      className="grid gap-2"
+      data-log-marker="[M-058][admin_mtproto_analytics_ui][AUTO_REFRESH]"
+      data-phase54-auto-refresh="[M-058][phase54_mtproto_analytics][AUTO_REFRESH_STABLE]"
+    >
       <div className="grid grid-cols-3 gap-2 text-xs">
         <div className="rounded-lg border border-white/10 bg-white/5 px-3 py-2">
           <span className="metric-label">Total</span>
@@ -142,7 +147,7 @@ function MetricAreaChart({ data, metric }: { data: AdminMTProtoTimeseriesBucket[
           <strong className="block text-white">{metric === 'traffic' ? formatBytes(latest) : latest}</strong>
         </div>
       </div>
-      <div className="h-64 w-full">
+      <div className="chart-frame h-64" data-log-marker="[M-058][phase54_mtproto_analytics][CHARTS_TABLES_READABLE]">
       <ResponsiveContainer width="100%" height="100%">
         <AreaChart data={chartData} margin={{ top: 12, right: 10, left: 0, bottom: 0 }}>
           <defs>
@@ -290,12 +295,15 @@ export default function MTProtoAnalyticsPanel() {
       className="grid gap-3"
       data-phase42-mtproto-analytics
       data-phase43-mtproto-analytics
+      data-phase54-mtproto-analytics="compact"
       data-observe-mode="observe-only"
       data-log-marker="[M-058][admin_mtproto_analytics_ui][REDACTED_RENDER]"
       data-phase43-recent-events="[M-058][admin_mtproto_analytics_ui][RECENT_EVENTS_REMOVED]"
+      data-phase54-signals-hidden="[M-058][phase54_mtproto_analytics][SIGNALS_STILL_HIDDEN]"
+      data-phase54-redaction="[M-058][phase54_mtproto_analytics][PROMOTION_TAG_REDACTED]"
     >
       <div className="surface p-3">
-        <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+        <div className="compact-toolbar">
           <div className="min-w-0">
             <h2 className="text-base font-bold text-white">MTProto analytics</h2>
             <div className="mt-2 flex flex-wrap gap-2">
@@ -325,7 +333,7 @@ export default function MTProtoAnalyticsPanel() {
           </div>
         </div>
 
-        <div className="mt-3 grid gap-2 sm:grid-cols-2 xl:grid-cols-4">
+        <div className="mt-3 mini-kpi-grid">
           <div className="metric-tile">
             <RadioTower className="mb-2 h-4 w-4 text-cyan-100" />
             <span className="metric-label">Issued</span>
@@ -356,7 +364,7 @@ export default function MTProtoAnalyticsPanel() {
       {activeTab === 'overview' ? (
         <div className="grid gap-3 xl:grid-cols-[1.35fr_0.65fr]">
           <div className="surface p-3">
-            <div className="flex flex-wrap items-center justify-between gap-2">
+            <div className="compact-toolbar">
               <div className="flex items-center gap-2">
                 <BarChart3 className="h-4 w-4 text-cyan-200" />
                 <h3 className="text-sm font-semibold text-white">{metricLabel}</h3>
@@ -422,7 +430,7 @@ export default function MTProtoAnalyticsPanel() {
                 </select>
               </div>
             </div>
-            <div className="mt-3 flex flex-wrap items-center justify-between gap-2 text-xs muted">
+            <div className="compact-toolbar mt-3 text-xs muted">
               <span>Найдено {userTotal} · страница {userCurrentPage}/{userTotalPages}</span>
               <div className="flex gap-2">
                 <button type="button" className="btn-secondary px-3 py-2" onClick={() => setUserPage((value) => Math.max(value - 1, 0))} disabled={userPage === 0}>
@@ -433,7 +441,7 @@ export default function MTProtoAnalyticsPanel() {
                 </button>
               </div>
             </div>
-            <div className="mt-3 compact-list max-h-[68vh] overflow-y-auto">
+            <div className="mt-3 compact-list bounded-scroll max-h-[68vh]">
               {users.length === 0 ? (
                 <p className="py-4 text-sm muted">Нет данных.</p>
               ) : users.map((item: AdminMTProtoUserSearchItem) => (
@@ -510,9 +518,9 @@ export default function MTProtoAnalyticsPanel() {
                       </button>
                     ) : null}
                   </div>
-                  <div className="compact-list max-h-[180px] overflow-y-auto overscroll-contain pr-1" data-log-marker="[M-058][admin_mtproto_analytics_ui][COMPACT_IP_HISTORY]" data-mtproto-ip-history-scroll>
+                  <div className="compact-list bounded-scroll max-h-[180px] pr-1" data-log-marker="[M-058][admin_mtproto_analytics_ui][COMPACT_IP_HISTORY]" data-mtproto-ip-history-scroll>
                     {selectedUsage.ip_observations.length === 0 ? (
-                      <p className="py-2 text-sm muted">Нет IP history.</p>
+                      <p className="py-2 text-sm muted">Нет IP history</p>
                     ) : selectedUsage.ip_observations.map((ip: AdminMTProtoIPObservation) => (
                       <div key={ip.id} className="list-row py-2">
                         <div className="row-main">
@@ -547,7 +555,7 @@ export default function MTProtoAnalyticsPanel() {
               <h4 className="text-xs font-semibold uppercase text-slate-400">Open</h4>
               <span className="neutral-pill">{alerts.length}</span>
             </div>
-            <div className="mt-2 compact-list max-h-[320px] overflow-y-auto">
+            <div className="mt-2 compact-list bounded-scroll max-h-[320px]">
               {alerts.length === 0 ? (
                 <p className="py-4 pl-4 text-sm muted">Нет открытых alerts</p>
               ) : alerts.map((alert: AdminMTProtoAlert) => (
@@ -609,7 +617,7 @@ export default function MTProtoAnalyticsPanel() {
               <h4 className="text-xs font-semibold uppercase text-slate-400">Archive</h4>
               <span className="neutral-pill">{archivedAlerts.length}</span>
             </div>
-            <div className="mt-2 compact-list max-h-[260px] overflow-y-auto" data-log-marker="[M-058][admin_mtproto_analytics_ui][ALERT_ARCHIVE]">
+            <div className="mt-2 compact-list bounded-scroll max-h-[260px]" data-log-marker="[M-058][admin_mtproto_analytics_ui][ALERT_ARCHIVE]">
               {archivedAlerts.length === 0 ? (
                 <p className="py-4 pl-4 text-sm muted">Архив пуст</p>
               ) : archivedAlerts.map((alert: AdminMTProtoAlert) => (
@@ -652,7 +660,7 @@ export default function MTProtoAnalyticsPanel() {
                 <option value={100}>100</option>
               </select>
             </div>
-            <div className="mt-3 compact-list max-h-[70vh] overflow-y-auto">
+            <div className="mt-3 compact-list bounded-scroll max-h-[70vh]">
               {topUsers.length === 0 ? (
                 <p className="py-4 text-sm muted">Нет данных.</p>
               ) : topUsers.map((user: AdminMTProtoTopUser) => (

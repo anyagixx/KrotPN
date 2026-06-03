@@ -1,12 +1,12 @@
 // FILE: frontend-admin/src/pages/Users.tsx
-// VERSION: 1.1.0
+// VERSION: 1.2.0
 // ROLE: UI_COMPONENT
 // MAP_MODE: SUMMARY
 // START_MODULE_CONTRACT
-//   PURPOSE: Compact admin page for user management, search, pagination, role/status display, and mobile account summary
-//   SCOPE: Paginated user list with search, compact rows, role badges, active/blocked status, and phone-safe metadata
-//   DEPENDS: M-010 (frontend-admin), M-006 (admin API), M-037 (mobile-admin-console), M-038 (compact-ui-system)
-//   LINKS: M-010, M-037, M-038
+//   PURPOSE: Compact Matrix admin page for user management, search, pagination, role/status display, and mobile account summary
+//   SCOPE: Paginated user list with search, compact rows, role badges, active/blocked status, bounded scrolling, and phone-safe metadata
+//   DEPENDS: M-010 (frontend-admin), M-006 (admin API), M-037 (mobile-admin-console), M-038 (compact-ui-system), M-071 (matrix-style-system)
+//   LINKS: M-010, M-037, M-038, M-071, Phase-54
 // END_MODULE_CONTRACT
 //
 // START_MODULE_MAP
@@ -17,6 +17,7 @@
 // END_MODULE_MAP
 //
 // START_CHANGE_SUMMARY
+//   LAST_CHANGE: v3.0.0 - Phase-54 added Matrix route markers and bounded compact inventory behavior for large user sets.
 //   LAST_CHANGE: v2.8.0 - Added full GRACE MODULE_CONTRACT and MODULE_MAP per GRACE governance protocol
 //   LAST_CHANGE: v2.9.0 - Phase-24 compact mobile user search rows without table-only dependency
 // END_CHANGE_SUMMARY
@@ -83,14 +84,18 @@ export default function Users() {
   }, [users])
 
   return (
-    <div className="page-shell">
+    <div
+      className="page-shell"
+      data-phase54-admin-route="users"
+      data-log-marker="[MobileAdminConsole][Phase54][PRIMARY_ACTIONS_REACHABLE]"
+    >
       <div className="page-header">
         <div>
           <h1 className="page-title">Пользователи</h1>
           <p className="page-subtitle">Найдено {total} аккаунтов. Поиск и статусы остаются читаемыми на телефоне.</p>
         </div>
 
-        <div className="grid gap-2 sm:min-w-[420px]">
+        <div className="grid gap-2 sm:min-w-[420px]" data-log-marker="[MobileAdminConsole][Phase54][ROUTE_VIEWPORT_SAFE]">
           <div className="metric-strip">
             <div className="metric-strip-item">
               <span className="metric-label">Активные</span>
@@ -139,7 +144,7 @@ export default function Users() {
           </div>
         </div>
       ) : (
-        <div className="compact-list">
+        <div className="compact-list bounded-scroll max-h-[72vh]">
           {users.map((user: AdminUser) => (
             <article key={user.id} className="list-row">
               <div className="row-main">

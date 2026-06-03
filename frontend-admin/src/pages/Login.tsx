@@ -1,12 +1,12 @@
 // FILE: frontend-admin/src/pages/Login.tsx
-// VERSION: 2.8.2
+// VERSION: 2.9.0
 // ROLE: UI_COMPONENT
 // MAP_MODE: SUMMARY
 // START_MODULE_CONTRACT
-//   PURPOSE: Admin authentication page (login form, role verification, auth store integration)
-//   SCOPE: Email/password login, role gate (admin/superadmin only), redirect to dashboard on success
-//   DEPENDS: M-010 (frontend-admin), M-006 (admin API), auth store
-//   LINKS: M-010
+//   PURPOSE: Compact Matrix-style admin authentication page with login form, role verification, and auth store integration
+//   SCOPE: Email/password login, role gate (admin/superadmin only), route-safe compact console shell, redirect to dashboard on success
+//   DEPENDS: M-010 (frontend-admin), M-006 (admin API), M-037 (mobile-admin-console), M-070 (matrix-visual-runtime), M-071 (matrix-style-system), auth store
+//   LINKS: M-010, M-037, M-070, M-071, Phase-54
 // END_MODULE_CONTRACT
 //
 // START_MODULE_MAP
@@ -15,6 +15,7 @@
 // END_MODULE_MAP
 //
 // START_CHANGE_SUMMARY
+//   LAST_CHANGE: v2.9.0 - Phase-54 compact Matrix admin login without oversized split hero or preset credentials.
 //   LAST_CHANGE: v2.8.2 - Removed login field placeholders and standardized icon input padding.
 //   LAST_CHANGE: v2.8.0 - Added full GRACE MODULE_CONTRACT and MODULE_MAP per GRACE governance protocol
 //   LAST_CHANGE: v2.8.1 - Phase-25 stores admin refresh token so existing 401 refresh retry can operate
@@ -22,7 +23,7 @@
 
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Loader2, Lock, Mail, Shield } from 'lucide-react'
+import { Activity, Loader2, Lock, Mail, Server, Shield, Users } from 'lucide-react'
 import { adminApi } from '../lib/api'
 import { useAuthStore } from '../stores/auth'
 
@@ -78,47 +79,52 @@ export default function Login() {
   }
 
   return (
-    <div className="min-h-screen bg-transparent px-4 py-8">
-      <div className="mx-auto grid min-h-[calc(100vh-4rem)] max-w-6xl grid-cols-1 overflow-hidden rounded-[32px] border border-white/10 bg-slate-950/40 shadow-[0_36px_120px_rgba(2,10,14,0.55)] backdrop-blur-sm lg:grid-cols-[1.15fr_0.85fr]">
-        <section className="hidden border-r border-white/5 p-10 lg:flex lg:flex-col lg:justify-between">
-          <div>
-            <div className="inline-flex items-center gap-3 rounded-full border border-emerald-200/12 bg-emerald-300/10 px-4 py-2 text-sm font-semibold text-emerald-100">
-              <Shield className="h-4 w-4" />
-              KrotPN Control Plane
+    <div
+      className="admin-login-shell"
+      data-phase54-admin-login="compact"
+      data-log-marker="[FrontendAdmin][Phase54][ROUTE_MATRIX_READY]"
+    >
+      <div className="admin-login-card">
+        <section className="flex min-w-0 flex-col justify-between gap-4">
+          <div className="flex items-start gap-3">
+            <div className="admin-login-mark">
+              <Shield className="h-6 w-6" />
             </div>
-            <h1 className="mt-8 max-w-xl text-5xl font-extrabold tracking-tight text-white">
-              Админ-панель для живого управления VPN-сервисом
-            </h1>
-            <p className="mt-5 max-w-xl text-base leading-7 text-slate-300">
-              Мониторинг подписок, пользователей, серверов и системного состояния из одной защищённой консоли.
-            </p>
+            <div className="min-w-0">
+              <p className="text-xs font-semibold uppercase text-emerald-200">KrotPN Control Plane</p>
+              <h1 className="mt-1 text-2xl font-extrabold text-white">Админ-консоль</h1>
+              <p className="mt-2 max-w-xl text-sm leading-6 muted">
+                Компактный вход для оператора: пользователи, серверы, MTProto, тарифы и аварийная сводка.
+              </p>
+            </div>
           </div>
 
-          <div className="grid gap-4">
+          <div className="admin-hero-strip">
             {[
-              ['Пользователи', 'Поиск, роли и оперативный аудит аккаунтов.'],
-              ['Серверы', 'Нагрузка, доступность и ёмкость VPN-инфраструктуры.'],
-              ['Аналитика', 'Выручка, trial-пул и реферальная конверсия.'],
-            ].map(([title, description]) => (
-              <div key={title} className="panel-soft p-5">
-                <p className="text-lg font-bold">{title}</p>
-                <p className="mt-2 text-sm muted">{description}</p>
-              </div>
-            ))}
+              [Users, 'Users', 'поиск и роли'],
+              [Server, 'Nodes', 'маршруты и health'],
+              [Activity, 'MTProto', 'proxy ops'],
+            ].map(([Icon, title, description]) => {
+              const ItemIcon = Icon as typeof Users
+              return (
+                <div key={String(title)} className="admin-route-card">
+                  <ItemIcon className="mb-2 h-4 w-4 text-cyan-200" />
+                  <p className="text-sm font-semibold text-white">{String(title)}</p>
+                  <p className="mt-1 text-xs muted">{String(description)}</p>
+                </div>
+              )
+            })}
           </div>
         </section>
 
-        <section className="flex items-center justify-center p-6 md:p-10">
-          <div className="w-full max-w-md">
-            <div className="mb-8 text-center lg:text-left">
-              <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-[24px] bg-emerald-300/12 text-emerald-200 lg:mx-0">
-                <Shield className="h-8 w-8" />
-              </div>
-              <h2 className="mt-5 text-3xl font-extrabold">Вход в админку</h2>
-              <p className="mt-2 text-sm muted">Используй учётную запись администратора KrotPN.</p>
+        <section className="flex items-center justify-center">
+          <div className="w-full">
+            <div className="mb-4">
+              <h2 className="text-xl font-extrabold text-white">Вход в админку</h2>
+              <p className="mt-1 text-sm muted">Поля пустые, без подсказок и заранее подставленных credentials.</p>
             </div>
 
-            <form onSubmit={handleSubmit} className="glass space-y-4 p-6">
+            <form onSubmit={handleSubmit} className="glass space-y-4 p-4 sm:p-5">
               <label className="block">
                 <span className="mb-2 block text-sm muted">Email</span>
                 <div className="relative">
@@ -149,7 +155,7 @@ export default function Login() {
                 </div>
               </label>
 
-              {error ? <p className="rounded-2xl bg-red-400/10 px-4 py-3 text-sm text-red-100">{error}</p> : null}
+              {error ? <p className="rounded-lg bg-red-400/10 px-4 py-3 text-sm text-red-100">{error}</p> : null}
 
               <button type="submit" className="btn-primary w-full py-3.5" disabled={loading}>
                 {loading ? <Loader2 className="h-5 w-5 animate-spin" /> : null}
@@ -157,7 +163,7 @@ export default function Login() {
               </button>
             </form>
 
-            <p className="mt-5 text-center text-sm muted lg:text-left">
+            <p className="mt-4 text-sm muted">
               Для операционной работы используй только административную учётную запись.
             </p>
           </div>

@@ -1,12 +1,12 @@
 // FILE: frontend-admin/src/pages/MTProto.tsx
-// VERSION: 1.2.0
+// VERSION: 1.3.0
 // ROLE: UI_COMPONENT
 // MAP_MODE: SUMMARY
 // START_MODULE_CONTRACT
-//   PURPOSE: Compact admin page for redacted MTProto assignment observability and confirmation-safe lifecycle actions
-//   SCOPE: Runtime health, paginated assignment search/status filters, redacted rows, reissue/revoke confirmation, analytics panel, and feedback
-//   DEPENDS: M-010 (frontend-admin), M-047 (mtproto-admin-ops), M-058 (mtproto-admin-analytics-ui), M-037 (mobile-admin-console), M-038 (compact-ui-system)
-//   LINKS: M-010, M-047, M-058, M-037, M-038, V-M-047, V-M-058
+//   PURPOSE: Compact Matrix admin page for redacted MTProto assignment observability and confirmation-safe lifecycle actions
+//   SCOPE: Runtime health, paginated assignment search/status filters, redacted rows, reissue/revoke confirmation, embedded analytics panel, bounded inventory, and feedback
+//   DEPENDS: M-010 (frontend-admin), M-047 (mtproto-admin-ops), M-058 (mtproto-admin-analytics-ui), M-037 (mobile-admin-console), M-038 (compact-ui-system), M-070 (matrix-visual-runtime), M-071 (matrix-style-system)
+//   LINKS: M-010, M-047, M-058, M-037, M-038, M-070, M-071, V-M-047, V-M-058, Phase-54
 // END_MODULE_CONTRACT
 //
 // START_MODULE_MAP
@@ -18,6 +18,7 @@
 // END_MODULE_MAP
 //
 // START_CHANGE_SUMMARY
+//   LAST_CHANGE: v1.3.0 - Phase-54 added Matrix route markers, bounded MTProto inventory, and confirmation/redaction smoke hooks.
 //   LAST_CHANGE: v1.2.0 - Added paginated compact assignment inventory for large MTProto user sets.
 //   LAST_CHANGE: v1.1.0 - Embedded Phase-42 compact MTProto analytics panel
 //   LAST_CHANGE: v1.0.0 - Added Phase-33 redacted MTProto admin operations UI
@@ -158,7 +159,9 @@ export default function MTProtoPage() {
     <div
       className="page-shell"
       data-phase33-mtproto-admin
+      data-phase54-mtproto-admin="compact"
       data-log-marker="[M-047][admin_mtproto_ui][REDACTED_RENDER]"
+      data-phase54-redaction-marker="[M-047][phase54_mtproto_admin][REDACTION_PRESERVED]"
     >
       <div className="page-header">
         <div>
@@ -166,7 +169,7 @@ export default function MTProtoPage() {
           <p className="page-subtitle">Assignment inventory, runtime health и точечные действия без доступа к owner-only credentials.</p>
         </div>
 
-        <div className="grid gap-2 sm:min-w-[460px]">
+        <div className="grid gap-2 sm:min-w-[460px]" data-log-marker="[M-047][phase54_mtproto_admin][OPS_CONTROLS_READABLE]">
           <div className="metric-strip">
             <div className="metric-strip-item">
               <span className="metric-label">Page active</span>
@@ -209,7 +212,7 @@ export default function MTProtoPage() {
         </div>
       </div>
 
-      <section className="status-row surface p-3">
+      <section className="status-row surface p-3" data-log-marker="[MatrixVisualRuntime][phase54][ADMIN_ROUTE_CANVAS_READY]">
         <div className="flex min-w-0 items-center gap-2">
           <ServerCog className="h-5 w-5 shrink-0 text-cyan-200" />
           <div className="min-w-0">
@@ -249,7 +252,7 @@ export default function MTProtoPage() {
         </div>
       ) : (
         <section className="surface p-3">
-          <div className="mb-3 flex flex-wrap items-center justify-between gap-2 text-xs muted">
+          <div className="compact-toolbar mb-3 text-xs muted">
             <span>Показаны {items.length} из {total} · страница {currentPage}/{totalPages}</span>
             <div className="flex gap-2">
               <button type="button" className="btn-secondary px-3 py-2" onClick={() => setPage((value) => Math.max(value - 1, 0))} disabled={page === 0}>
@@ -260,7 +263,7 @@ export default function MTProtoPage() {
               </button>
             </div>
           </div>
-          <div className="compact-list max-h-[70vh] overflow-y-auto">
+          <div className="compact-list bounded-scroll max-h-[70vh]">
             {items.map((item: AdminMTProtoAssignment) => (
               <article key={item.id} className="list-row">
               <div className="row-main">
@@ -317,6 +320,7 @@ export default function MTProtoPage() {
           aria-modal="true"
           aria-labelledby="mtproto-action-title"
           data-log-marker="[M-047][admin_mtproto_ui][CONFIRM_ACTION]"
+          data-phase54-confirmation="[M-047][phase54_mtproto_admin][CONFIRMATIONS_SAFE]"
         >
           <div className="confirm-sheet">
             <div className="flex items-start justify-between gap-3">

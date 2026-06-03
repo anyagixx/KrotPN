@@ -1,12 +1,12 @@
 // FILE: frontend-admin/src/pages/Plans.tsx
-// VERSION: 1.0.0
+// VERSION: 1.2.0
 // ROLE: UI_COMPONENT
 // MAP_MODE: SUMMARY
 // START_MODULE_CONTRACT
-//   PURPOSE: Admin page for viewing the protected canonical paid tariff matrix
-//   SCOPE: Display Phase-50 canonical tariff matrix with price, device limit, active/popular state, and no accidental CRUD controls
-//   DEPENDS: M-010 (frontend-admin), M-006 (admin API)
-//   LINKS: M-010
+//   PURPOSE: Compact Matrix admin page for viewing the protected canonical paid tariff matrix
+//   SCOPE: Display Phase-50 canonical tariff matrix with price, device limit, active/popular state, Phase-54 compact styling, and no accidental CRUD controls
+//   DEPENDS: M-010 (frontend-admin), M-006 (admin API), M-068 (tariff-catalog), M-037 (mobile-admin-console), M-071 (matrix-style-system)
+//   LINKS: M-010, M-068, M-037, M-071, Phase-54
 // END_MODULE_CONTRACT
 //
 // START_MODULE_MAP
@@ -16,6 +16,7 @@
 // END_MODULE_MAP
 //
 // START_CHANGE_SUMMARY
+//   LAST_CHANGE: v3.0.0 - Phase-54 added compact Matrix tariff route markers while preserving readonly canonical plan controls.
 //   LAST_CHANGE: v1.1.0 - Reworked admin plans into Phase-50 compact canonical matrix without create/edit/delete affordances.
 //   LAST_CHANGE: v2.8.0 - Added full GRACE MODULE_CONTRACT and MODULE_MAP per GRACE governance protocol
 // END_CHANGE_SUMMARY
@@ -52,7 +53,12 @@ export default function Plans() {
   const totalDevices = items.reduce((sum: number, plan: AdminPlan) => sum + plan.device_limit, 0)
 
   return (
-    <div className="page-shell">
+    <div
+      className="page-shell"
+      data-phase54-admin-route="plans"
+      data-log-marker="[M-068][phase54_admin_tariff_ui][CANONICAL_TARIFFS_READABLE]"
+      data-phase54-no-crud="[M-068][phase54_admin_tariff_ui][NO_CANONICAL_CRUD_DRIFT]"
+    >
       <div className="page-header">
         <div>
           <h1 className="page-title">Тарифы KrotPN</h1>
@@ -129,7 +135,7 @@ export default function Plans() {
               </div>
 
               <div className="mt-4 rounded-lg bg-white/5 p-3">
-                <p className="text-xs uppercase tracking-[0.12em] muted">Состав</p>
+                <p className="text-xs uppercase muted">Состав</p>
                 <ul className="mt-3 space-y-2">
                   {getFeatures(plan).length > 0 ? (
                     getFeatures(plan).map((feature: string, index: number) => (

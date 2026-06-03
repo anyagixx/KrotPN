@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<M-037 NAME="mobile-admin-console" TYPE="UI_COMPONENT" STATUS="done">
-  <path>frontend-admin docs/plans/Phase-24.xml</path>
+<M-037 NAME="mobile-admin-console" TYPE="UI_COMPONENT" STATUS="pass-local-phase54">
+  <path>frontend-admin docs/plans/Phase-24.xml docs/plans/Phase-54.xml scripts/phase54-admin-matrix-ui-smoke.mjs</path>
   <owns>Compact mobile-first admin console for operational status, users, devices, payments, analytics summary, system health, and emergency device actions</owns>
   <exports>
     <view-admin-mobile-overview>Dense service overview with health, users, subscriptions, revenue, VPN/system status, and urgent navigation</view-admin-mobile-overview>
@@ -9,7 +9,7 @@
     <view-admin-mobile-device-actions>Block, unblock, rotate, and revoke device controls with explicit confirmation and feedback</view-admin-mobile-device-actions>
     <view-admin-mobile-payments>Compact payment/analytics status for revenue, subscriptions, referrals, and conversion signals</view-admin-mobile-payments>
   </exports>
-  <depends>M-006, M-010, M-024, M-038</depends>
+  <depends>M-006, M-010, M-024, M-038, M-071</depends>
   <verification-ref>V-M-037</verification-ref>
   <files>
     <file>frontend-admin/src/components/Layout.tsx</file>
@@ -22,6 +22,8 @@
     <file>frontend-admin/src/lib/api.ts</file>
     <file>frontend-admin/src/types/index.ts</file>
     <file>docs/plans/Phase-24.xml</file>
+    <file>docs/plans/Phase-54.xml</file>
+    <file>scripts/phase54-admin-matrix-ui-smoke.mjs</file>
   </files>
   <data-flows>
     <DF-UI-ADMIN-OVERVIEW>Stats and system health render as a compact first-screen operator status surface.</DF-UI-ADMIN-OVERVIEW>
@@ -46,5 +48,10 @@
     <surface-2>Smoke must prove no document horizontal overflow, bounded tables/lists, reachable search/filter/pagination, and confirmation-safe destructive actions.</surface-2>
     <surface-3>Phase-54 must keep admin screens compact and operational, not decorative-first.</surface-3>
   </phase-54-verification-design>
+  <phase-54-execution>
+    <surface-1>Phase-54 keeps dashboard, users, devices, MTProto, servers, plans, and analytics as compact phone-safe operator routes with bounded inventories and reachable primary actions.</surface-1>
+    <surface-2>Device and MTProto disruptive actions retain confirmation surfaces above pointer-safe Matrix overlays.</surface-2>
+    <surface-3>2026-06-03: frontend-admin build and scripts/phase54-admin-matrix-ui-smoke.mjs passed the mobile route, bounded-scroll, and confirmation markers.</surface-3>
+  </phase-54-execution>
   <hotspot>H-024: Mobile admin console must keep emergency operator actions visible without desktop-only dashboards</hotspot>
 </M-037>

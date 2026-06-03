@@ -1,12 +1,12 @@
 // FILE: frontend-admin/src/pages/Servers.tsx
-// VERSION: 1.0.0
+// VERSION: 1.1.0
 // ROLE: UI_COMPONENT
 // MAP_MODE: SUMMARY
 // START_MODULE_CONTRACT
-//   PURPOSE: Admin page for server/node management
-//   SCOPE: List, create, edit, delete VPN servers/nodes
-//   DEPENDS: M-010 (frontend-admin), M-006 (admin API)
-//   LINKS: M-010
+//   PURPOSE: Compact Matrix admin page for server/node management
+//   SCOPE: List, create, edit, delete VPN servers/nodes, route topology, confirmation prompts, and Phase-54 compact viewport markers
+//   DEPENDS: M-010 (frontend-admin), M-006 (admin API), M-037 (mobile-admin-console), M-071 (matrix-style-system)
+//   LINKS: M-010, M-037, M-071, Phase-54
 // END_MODULE_CONTRACT
 //
 // START_MODULE_MAP
@@ -22,6 +22,7 @@
 // END_MODULE_MAP
 //
 // START_CHANGE_SUMMARY
+//   LAST_CHANGE: v3.0.0 - Phase-54 compact Matrix server topology layout with safe radii and route viewport markers.
 //   LAST_CHANGE: v2.8.0 - Added full GRACE MODULE_CONTRACT and MODULE_MAP per GRACE governance protocol
 // END_CHANGE_SUMMARY
 
@@ -332,7 +333,11 @@ export default function Servers() {
   // END_BLOCK: Servers - submitRoute
 
   return (
-    <div className="page-shell">
+    <div
+      className="page-shell"
+      data-phase54-admin-route="servers"
+      data-log-marker="[MatrixStyleSystem][phase54][ADMIN_ROUTES_READABLE]"
+    >
       <div className="page-header">
         <div>
           <h1 className="page-title">Ноды и маршруты</h1>
@@ -357,25 +362,25 @@ export default function Servers() {
         </div>
       </div>
 
-      <div className="grid gap-4 xl:grid-cols-4">
-        <div className="panel p-5">
-          <p className="text-xs uppercase tracking-[0.18em] muted">Entry nodes</p>
-          <p className="mt-3 text-3xl font-extrabold">{entryNodes.length}</p>
+      <div className="mini-kpi-grid">
+        <div className="panel p-3">
+          <p className="text-xs uppercase muted">Entry nodes</p>
+          <p className="mt-2 text-xl font-extrabold">{entryNodes.length}</p>
           <p className="mt-2 text-sm muted">Точки входа для клиентских подключений.</p>
         </div>
-        <div className="panel p-5">
-          <p className="text-xs uppercase tracking-[0.18em] muted">Exit nodes</p>
-          <p className="mt-3 text-3xl font-extrabold">{exitNodes.length}</p>
+        <div className="panel p-3">
+          <p className="text-xs uppercase muted">Exit nodes</p>
+          <p className="mt-2 text-xl font-extrabold">{exitNodes.length}</p>
           <p className="mt-2 text-sm muted">Узлы, через которые выходит внешний трафик.</p>
         </div>
-        <div className="panel p-5">
-          <p className="text-xs uppercase tracking-[0.18em] muted">Активные маршруты</p>
-          <p className="mt-3 text-3xl font-extrabold">{activeRoutes}</p>
+        <div className="panel p-3">
+          <p className="text-xs uppercase muted">Активные маршруты</p>
+          <p className="mt-2 text-xl font-extrabold">{activeRoutes}</p>
           <p className="mt-2 text-sm muted">Route-aware выдача для клиентов и будущего масштабирования.</p>
         </div>
-        <div className="panel p-5">
-          <p className="text-xs uppercase tracking-[0.18em] muted">Legacy API</p>
-          <p className="mt-3 text-3xl font-extrabold">compat</p>
+        <div className="panel p-3">
+          <p className="text-xs uppercase muted">Legacy API</p>
+          <p className="mt-2 text-xl font-extrabold">compat</p>
           <p className="mt-2 text-sm muted">`/admin/servers` сохранён только как rollback-слой.</p>
         </div>
       </div>
@@ -393,7 +398,7 @@ export default function Servers() {
           <section className="space-y-4">
             <div className="flex items-end justify-between gap-4">
               <div>
-                <h2 className="text-2xl font-bold">Ноды</h2>
+                <h2 className="text-xl font-bold">Ноды</h2>
                 <p className="mt-1 text-sm muted">
                   Физические entry/exit узлы, из которых собираются клиентские маршруты.
                 </p>
@@ -415,12 +420,12 @@ export default function Servers() {
             ) : (
               <div className="grid grid-cols-1 gap-4 xl:grid-cols-2">
                 {nodeItems.map((node: AdminNode) => (
-                  <div key={node.id} className="panel p-6">
-                    <div className="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
+                  <div key={node.id} className="panel p-4">
+                    <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
                       <div className="flex items-start gap-4">
                         <div
                           className={[
-                            'rounded-2xl p-3 ring-1',
+                            'rounded-lg p-3 ring-1',
                             node.is_online
                               ? 'bg-emerald-300/12 text-emerald-200 ring-emerald-200/10'
                               : 'bg-red-300/12 text-red-200 ring-red-200/10',
@@ -430,7 +435,7 @@ export default function Servers() {
                         </div>
                         <div>
                           <div className="flex flex-wrap items-center gap-3">
-                            <h3 className="text-xl font-bold">{node.name}</h3>
+                            <h3 className="text-lg font-bold">{node.name}</h3>
                             <span className={node.is_online ? 'metric-pill' : 'danger-pill'}>
                               {node.is_online ? 'online' : 'offline'}
                             </span>
@@ -464,24 +469,24 @@ export default function Servers() {
                       <p className="mt-1 font-semibold break-all">{node.endpoint}:{node.port}</p>
                     </div>
 
-                    <div className="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-                      <div className="panel-soft px-4 py-4">
-                        <p className="text-xs uppercase tracking-[0.18em] muted">Клиенты</p>
+                    <div className="mt-4 grid gap-3 md:grid-cols-2 xl:grid-cols-4">
+                      <div className="panel-soft px-4 py-3">
+                        <p className="text-xs uppercase muted">Клиенты</p>
                         <p className="mt-2 flex items-center gap-2 text-lg font-bold">
                           <Users className="h-4 w-4 text-cyan-200" />
                           {node.current_clients} / {node.max_clients}
                         </p>
                       </div>
-                      <div className="panel-soft px-4 py-4">
-                        <p className="text-xs uppercase tracking-[0.18em] muted">Нагрузка</p>
+                      <div className="panel-soft px-4 py-3">
+                        <p className="text-xs uppercase muted">Нагрузка</p>
                         <p className="mt-2">
                           <span className={getLoadTone(node.load_percent)}>
                             {(node.load_percent || 0).toFixed(1)}%
                           </span>
                         </p>
                       </div>
-                      <div className="panel-soft px-4 py-4">
-                        <p className="text-xs uppercase tracking-[0.18em] muted">Роль в цепочке</p>
+                      <div className="panel-soft px-4 py-3">
+                        <p className="text-xs uppercase muted">Роль в цепочке</p>
                         <p className="mt-2 text-lg font-bold">
                           {node.is_entry_node && node.is_exit_node
                             ? 'Combined node'
@@ -510,7 +515,7 @@ export default function Servers() {
           <section className="space-y-4">
             <div className="flex items-end justify-between gap-4">
               <div>
-                <h2 className="text-2xl font-bold">Маршруты</h2>
+                <h2 className="text-xl font-bold">Маршруты</h2>
                 <p className="mt-1 text-sm muted">
                   Логические цепочки, по которым пользователю выдаётся маршрут, а не просто один сервер.
                 </p>
@@ -532,11 +537,11 @@ export default function Servers() {
             ) : (
               <div className="grid grid-cols-1 gap-4 xl:grid-cols-2">
                 {routeItems.map((route: AdminRoute) => (
-                  <div key={route.id} className="panel p-6">
+                  <div key={route.id} className="panel p-4">
                     <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
                       <div>
                         <div className="flex flex-wrap items-center gap-3">
-                          <h3 className="text-xl font-bold">{route.name}</h3>
+                          <h3 className="text-lg font-bold">{route.name}</h3>
                           <span className={route.is_active ? 'metric-pill' : 'danger-pill'}>
                             {route.is_active ? 'active' : 'inactive'}
                           </span>
@@ -553,7 +558,7 @@ export default function Servers() {
 
                         <div className="mt-4 flex flex-col gap-3 text-sm">
                           <div className="panel-soft px-4 py-3">
-                            <p className="text-xs uppercase tracking-[0.16em] muted">Entry</p>
+                            <p className="text-xs uppercase muted">Entry</p>
                             <p className="mt-2 font-semibold">{route.entry_node_name}</p>
                             <p className="mt-1 muted">{route.entry_node_location}</p>
                           </div>
@@ -561,7 +566,7 @@ export default function Servers() {
                             <ArrowRightLeft className="h-5 w-5" />
                           </div>
                           <div className="panel-soft px-4 py-3">
-                            <p className="text-xs uppercase tracking-[0.16em] muted">Exit</p>
+                            <p className="text-xs uppercase muted">Exit</p>
                             <p className="mt-2 font-semibold">{route.exit_node_name || 'Не задан'}</p>
                             <p className="mt-1 muted">{route.exit_node_location || 'Маршрут ещё не замкнут'}</p>
                           </div>
@@ -578,31 +583,31 @@ export default function Servers() {
                       </div>
                     </div>
 
-                    <div className="mt-6 grid gap-4 md:grid-cols-3">
-                      <div className="panel-soft px-4 py-4">
-                        <p className="text-xs uppercase tracking-[0.18em] muted">Клиенты</p>
+                    <div className="mt-4 grid gap-3 md:grid-cols-3">
+                      <div className="panel-soft px-4 py-3">
+                        <p className="text-xs uppercase muted">Клиенты</p>
                         <p className="mt-2 flex items-center gap-2 text-lg font-bold">
                           <Users className="h-4 w-4 text-cyan-200" />
                           {route.current_clients} / {route.max_clients}
                         </p>
                       </div>
-                      <div className="panel-soft px-4 py-4">
-                        <p className="text-xs uppercase tracking-[0.18em] muted">Нагрузка</p>
+                      <div className="panel-soft px-4 py-3">
+                        <p className="text-xs uppercase muted">Нагрузка</p>
                         <p className="mt-2">
                           <span className={getLoadTone(route.load_percent)}>
                             {(route.load_percent || 0).toFixed(1)}%
                           </span>
                         </p>
                       </div>
-                      <div className="panel-soft px-4 py-4">
-                        <p className="text-xs uppercase tracking-[0.18em] muted">Tunnel</p>
+                      <div className="panel-soft px-4 py-3">
+                        <p className="text-xs uppercase muted">Tunnel</p>
                         <p className="mt-2 text-lg font-bold">
                           {route.tunnel_interface || 'awg0'}
                         </p>
                         <p className="mt-1 text-sm muted">{getTunnelLabel(route.tunnel_status)}</p>
                       </div>
-                      <div className="panel-soft px-4 py-4">
-                        <p className="text-xs uppercase tracking-[0.18em] muted">Назначение</p>
+                      <div className="panel-soft px-4 py-3">
+                        <p className="text-xs uppercase muted">Назначение</p>
                         <p className="mt-2 text-lg font-bold">
                           {route.is_default ? 'Основной маршрут' : 'Резерв / доп. маршрут'}
                         </p>
@@ -614,8 +619,8 @@ export default function Servers() {
             )}
           </section>
 
-          <section className="panel p-6">
-            <h2 className="text-2xl font-bold">Legacy compatibility</h2>
+          <section className="panel p-4">
+            <h2 className="text-xl font-bold">Legacy compatibility</h2>
             <p className="mt-2 text-sm muted">
               Основной UI больше не зависит от `/admin/servers`. Legacy API сохранён для совместимости и rollback-сценариев.
             </p>
@@ -625,10 +630,10 @@ export default function Servers() {
 
       {showNodeModal ? (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/70 p-4 backdrop-blur-sm">
-          <div className="glass w-full max-w-3xl p-6">
+          <div className="glass w-full max-w-3xl p-4 sm:p-5">
             <div className="flex items-start justify-between gap-4">
               <div>
-                <h2 className="text-2xl font-bold">{editingNode ? 'Редактирование node' : 'Новая node'}</h2>
+                <h2 className="text-xl font-bold">{editingNode ? 'Редактирование node' : 'Новая node'}</h2>
                 <p className="mt-2 text-sm muted">Entry-ноды синхронизируются с legacy `vpn_servers`, чтобы текущая выдача клиентов не ломалась.</p>
               </div>
               <button onClick={() => setShowNodeModal(false)} className="btn-secondary px-3 py-2">
@@ -636,7 +641,7 @@ export default function Servers() {
               </button>
             </div>
 
-            <div className="mt-6 grid gap-4 md:grid-cols-2">
+            <div className="mt-4 grid gap-3 md:grid-cols-2">
               <label className="space-y-2">
                 <span className="text-sm muted">Name</span>
                 <input className="input" value={nodeForm.name} onChange={(e) => setNodeForm({ ...nodeForm, name: e.target.value })} />
@@ -690,7 +695,7 @@ export default function Servers() {
             </div>
 
             {nodeError ? (
-              <div className="mt-4 rounded-2xl border border-red-300/20 bg-red-300/10 px-4 py-3 text-sm text-red-100">
+              <div className="mt-4 rounded-lg border border-red-300/20 bg-red-300/10 px-4 py-3 text-sm text-red-100">
                 {nodeError}
               </div>
             ) : null}
@@ -707,10 +712,10 @@ export default function Servers() {
 
       {showRouteModal ? (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/70 p-4 backdrop-blur-sm">
-          <div className="glass w-full max-w-2xl p-6">
+          <div className="glass w-full max-w-2xl p-4 sm:p-5">
             <div className="flex items-start justify-between gap-4">
               <div>
-                <h2 className="text-2xl font-bold">{editingRoute ? 'Редактирование route' : 'Новый route'}</h2>
+                <h2 className="text-xl font-bold">{editingRoute ? 'Редактирование route' : 'Новый route'}</h2>
                 <p className="mt-2 text-sm muted">Маршрут связывает клиентский entry-узел с exit-узлом и задаёт default path для новых выдач.</p>
               </div>
               <button onClick={() => setShowRouteModal(false)} className="btn-secondary px-3 py-2">
@@ -718,7 +723,7 @@ export default function Servers() {
               </button>
             </div>
 
-            <div className="mt-6 grid gap-4 md:grid-cols-2">
+            <div className="mt-4 grid gap-3 md:grid-cols-2">
               <label className="space-y-2 md:col-span-2">
                 <span className="text-sm muted">Name</span>
                 <input className="input" value={routeForm.name} onChange={(e) => setRouteForm({ ...routeForm, name: e.target.value })} />
@@ -762,7 +767,7 @@ export default function Servers() {
             </div>
 
             {routeError ? (
-              <div className="mt-4 rounded-2xl border border-red-300/20 bg-red-300/10 px-4 py-3 text-sm text-red-100">
+              <div className="mt-4 rounded-lg border border-red-300/20 bg-red-300/10 px-4 py-3 text-sm text-red-100">
                 {routeError}
               </div>
             ) : null}

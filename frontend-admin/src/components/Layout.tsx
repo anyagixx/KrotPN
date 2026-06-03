@@ -1,12 +1,12 @@
 // FILE: frontend-admin/src/components/Layout.tsx
-// VERSION: 1.1.0
+// VERSION: 1.2.0
 // ROLE: UI_COMPONENT
 // MAP_MODE: SUMMARY
 // START_MODULE_CONTRACT
-//   PURPOSE: Compact admin layout shell with responsive operator navigation, header meta, and route outlet
-//   SCOPE: Desktop rail, mobile tab bar, page metadata display, MTProto admin entry, compact admin identity, logout
-//   DEPENDS: M-010 (frontend-admin), M-037 (mobile-admin-console), M-038 (compact-ui-system), M-047 (mtproto-admin-ops), auth store, react-router-dom
-//   LINKS: M-010, M-037, M-038, M-047
+//   PURPOSE: Compact Matrix admin layout shell with responsive operator navigation, header meta, and route outlet
+//   SCOPE: Desktop rail, mobile tab bar, page metadata display, MTProto admin entry, compact admin identity, logout, Phase-54 route-safety markers
+//   DEPENDS: M-010 (frontend-admin), M-037 (mobile-admin-console), M-038 (compact-ui-system), M-047 (mtproto-admin-ops), M-070 (matrix-visual-runtime), M-071 (matrix-style-system), auth store, react-router-dom
+//   LINKS: M-010, M-037, M-038, M-047, M-070, M-071, Phase-54
 // END_MODULE_CONTRACT
 //
 // START_MODULE_MAP
@@ -17,6 +17,7 @@
 // END_MODULE_MAP
 //
 // START_CHANGE_SUMMARY
+//   LAST_CHANGE: v3.4.0 - Phase-54 Matrix admin shell markers and compact route hints for mobile-safe operations.
 //   LAST_CHANGE: v3.2.0 - Added Phase-33 compact MTProto admin navigation entry
 //   LAST_CHANGE: v2.8.0 - Added full GRACE MODULE_CONTRACT and MODULE_MAP per GRACE governance protocol
 //   LAST_CHANGE: v2.9.0 - Phase-24 compact mobile admin shell with phone-safe navigation and reduced panels
@@ -83,7 +84,11 @@ export default function Layout() {
   const adminInitial = user?.email?.[0]?.toUpperCase() || 'A'
 
   return (
-    <div className="app-shell">
+    <div
+      className="app-shell"
+      data-phase54-admin-shell="matrix-compact"
+      data-log-marker="[MobileAdminConsole][Phase54][ROUTE_VIEWPORT_SAFE]"
+    >
       <aside className="admin-rail" aria-label="Admin navigation">
         <div className="brand-mark" aria-label="KrotPN admin">
           <Shield className="h-5 w-5" />
@@ -95,7 +100,7 @@ export default function Layout() {
               key={item.to}
               to={item.to}
               end={item.to === '/'}
-              title={item.label}
+              title={`${item.label}: ${item.hint}`}
               className={({ isActive }) => (isActive ? 'rail-link rail-link-active' : 'rail-link')}
             >
               <item.icon className="h-5 w-5" />
@@ -111,7 +116,7 @@ export default function Layout() {
       </aside>
 
       <div className="admin-content">
-        <header className="topbar">
+        <header className="topbar" data-log-marker="[FrontendAdmin][Phase54][ROUTE_MATRIX_READY]">
           <div className="min-w-0">
             <div className="flex items-center gap-2 text-xs font-semibold uppercase text-emerald-200">
               <span>KrotPN</span>
@@ -142,6 +147,7 @@ export default function Layout() {
             key={item.to}
             to={item.to}
             end={item.to === '/'}
+            title={`${item.label}: ${item.hint}`}
             className={({ isActive }) => (isActive ? 'mobile-tab mobile-tab-active' : 'mobile-tab')}
           >
             <item.icon className="h-5 w-5" />

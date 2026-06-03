@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<V-M-068 MODULE="M-068" PRIORITY="critical" STATUS="pass-local-phase53" PHASE-54="verification-designed">
+<V-M-068 MODULE="M-068" PRIORITY="critical" STATUS="pass-local-phase53-phase54" PHASE-54="pass-local">
   <purpose>Verify Phase-50 canonical paid tariffs across billing catalog convergence, YooKassa payment creation, subscription activation, device-limit policy, and compact user/admin UI.</purpose>
   <checks>Exactly three canonical active tariffs, server-authoritative prices, idempotent clean-deploy upsert, downgrade guard, correct payment metadata, paid subscription activation, device-limit enforcement, user/admin UI rendering, and unchanged deploy/install surfaces.</checks>
   <evidence-priority>
@@ -19,7 +19,7 @@
     <file>frontend-admin/src/types/index.ts</file>
     <file>scripts/phase50-tariff-catalog-smoke.mjs</file>
     <file>scripts/phase53-user-matrix-ui-smoke.mjs</file>
-    <file phase="54-verification-designed">scripts/phase54-admin-matrix-ui-smoke.mjs</file>
+    <file phase="54-pass-local">scripts/phase54-admin-matrix-ui-smoke.mjs</file>
   </test-files>
   <commands>
     <command status="pass-local">cd backend &amp;&amp; SECRET_KEY=test-secret-key-with-enough-length DATA_ENCRYPTION_KEY=dpFmfSVqfdAK3yx5MQV6Tcv35RZuw5MzaH0yhxJ01q0= PYTHONPATH=. ../.venv/bin/python -m pytest -o addopts='' tests/test_billing_tariff_catalog.py tests/test_billing_plan_api.py tests/test_billing_service.py tests/test_device_access_policy.py tests/test_db_migrations.py -v</command>
@@ -27,6 +27,7 @@
     <command status="pass-local">cd frontend-admin &amp;&amp; npm run build</command>
     <command status="pass-local">node scripts/phase50-tariff-catalog-smoke.mjs</command>
     <command status="pass-local">node scripts/phase53-user-matrix-ui-smoke.mjs</command>
+    <command status="pass-local">node scripts/phase54-admin-matrix-ui-smoke.mjs</command>
     <command status="pass-local">python3 -m xml.etree.ElementTree docs/plans/Phase-50.xml docs/modules/M-068.xml docs/verification/V-M-068.xml docs/graph-index.xml docs/plan-index.xml docs/verification-index.xml docs/current-status.xml</command>
     <command status="pass-local">mygrace lint</command>
     <command status="pass-local">git diff --check</command>
@@ -49,7 +50,7 @@
     <check-14>Phase-54 admin Plans layout remains readable at mobile widths without nested card bloat or horizontal document overflow.</check-14>
     <check-15>Phase-54 does not introduce frontend-admin controls that can override canonical price, duration, currency, device_limit, or payment amount.</check-15>
   </module-checks>
-  <phase-54-admin-plans-ui-gates status="verification-designed">
+  <phase-54-admin-plans-ui-gates status="pass-local">
     <gate-1>/plans renders exactly KrotPN 1, KrotPN 6, and KrotPN 9 with 369, 693, and 936 RUB prices and device limits 1, 6, and 9.</gate-1>
     <gate-2>Canonical tariff rows/cards use compact Matrix styling, readable badges, and stable dimensions at 360x740, 390x844, 430x932, 768x1024, and 1440x900.</gate-2>
     <gate-3>Admin can inspect canonical tariff state but cannot delete/edit canonical plans unless a later backend/admin phase explicitly approves CRUD.</gate-3>
@@ -106,6 +107,7 @@
   <evidence>
     <phase-53-local-2026-06-03>Frontend build and node scripts/phase53-user-matrix-ui-smoke.mjs passed for Matrix tariff UI, canonical slug/price/device-limit preservation, plan_id-only checkout shape, and protected deploy/install isolation.</phase-53-local-2026-06-03>
     <phase-54-verification-design-2026-06-03>Phase-54 verification design added admin Plans Matrix UI gates for canonical tariff readability, no canonical CRUD drift, mobile compactness, and no frontend money-field control.</phase-54-verification-design-2026-06-03>
+    <phase-54-local-2026-06-03>Phase-54 smoke passed for admin Plans Matrix readability, canonical 369/693/936 RUB prices, 1/6/9 device limits, no canonical CRUD controls, no frontend money-field control, and protected deploy/install guard.</phase-54-local-2026-06-03>
   </evidence>
   <autonomous-execution-safety>Allowed after Phase-50 verification approval because the scope is limited to billing catalog, payment validation, device-limit policy, UI presentation, tests, docs, and protected-surface guards.</autonomous-execution-safety>
 </V-M-068>

@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<V-M-070 MODULE="M-070" PRIORITY="high" STATUS="pass-local-phase52-phase53" PHASE-54="verification-designed">
+<V-M-070 MODULE="M-070" PRIORITY="high" STATUS="pass-local-phase52-phase53-phase54" PHASE-54="pass-local">
   <scope>
     <phase>Phase-52</phase>
     <purpose>Verify the shared React/Vite Matrix visual runtime before it is used by the full user/admin redesign phases.</purpose>
@@ -12,7 +12,7 @@
     <file>frontend-admin/src/components/VisualShell.tsx</file>
     <file>scripts/phase52-matrix-visual-smoke.mjs</file>
     <file>scripts/phase53-user-matrix-ui-smoke.mjs</file>
-    <file phase="54-verification-designed">scripts/phase54-admin-matrix-ui-smoke.mjs</file>
+    <file phase="54-pass-local">scripts/phase54-admin-matrix-ui-smoke.mjs</file>
   </test-files>
   <module-checks>
     <check-1>cd frontend &amp;&amp; npm run build</check-1>
@@ -22,7 +22,7 @@
     <check-5>Chrome/Playwright screenshot audit: admin /login shell desktop 1440x900, 390x844, and reduced-motion.</check-5>
     <check-6>git diff --name-only -- install.sh deploy nginx docker-compose.yml</check-6>
     <check-7>Phase-53 user route screenshot audit: auth, dashboard, config, subscription, referrals, settings, and reduced-motion dashboard.</check-7>
-    <check-8>Phase-54 admin route screenshot audit: /login, /, /users, /devices, /mtproto, /servers, /plans, /analytics, and reduced-motion admin shell.</check-8>
+    <check-8>Phase-54 local static admin route smoke: /login, /, /users, /devices, /mtproto, /servers, /plans, /analytics, pointer-safe overlays, reduced-motion markers, and protected-surface guard; authenticated screenshots remain clean-deploy follow-up.</check-8>
   </module-checks>
   <phase-53-runtime-gates status="pass-local">
     <gate-1>MatrixBackground remains mounted once through VisualShell while user route navigation changes content.</gate-1>
@@ -31,7 +31,7 @@
     <gate-4>Runtime cleanup markers remain available after route navigation, hot reload, unmount, hidden-tab pause, and resize paths.</gate-4>
     <gate-5>Phase-53 smoke must fail if Matrix runtime changes deploy/install/nginx/docker-compose or backend runtime topology.</gate-5>
   </phase-53-runtime-gates>
-  <phase-54-runtime-gates status="verification-designed">
+  <phase-54-runtime-gates status="pass-local">
     <gate-1>Admin VisualShell keeps exactly one pointer-safe MatrixBackground mount while protected route content changes.</gate-1>
     <gate-2>Canvas and CRT overlays remain pointer-events-none and do not intercept admin login, navigation, search, pagination, confirmation, form, MTProto action, or chart controls.</gate-2>
     <gate-3>Reduced-motion mode renders a static readable Matrix admin shell without running animation loops on login and protected route smoke.</gate-3>
@@ -101,5 +101,12 @@
       <result>DESIGNED</result>
       <summary>Phase-54 runtime gates require admin VisualShell/MatrixBackground proof across login and protected admin routes, pointer-safe overlays, reduced-motion fallback, console-error guard, and protected deploy/install/runtime isolation.</summary>
     </phase-54-verification-design-2026-06-03>
+    <phase-54-local-2026-06-03>
+      <result>PASS</result>
+      <command-1>cd frontend-admin &amp;&amp; npm run build</command-1>
+      <command-2>node scripts/phase54-admin-matrix-ui-smoke.mjs</command-2>
+      <summary>Static runtime proof passed for admin VisualShell/MatrixBackground source integration, pointer-events-none overlays, reduced-motion admin markers, route matrix markers, and protected deploy/install/runtime isolation.</summary>
+      <follow-up>Authenticated protected-route screenshot review remains clean-deploy follow-up because this local execution did not run a real admin backend session.</follow-up>
+    </phase-54-local-2026-06-03>
   </evidence>
 </V-M-070>

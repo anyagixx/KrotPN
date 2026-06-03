@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<M-070 NAME="matrix-visual-runtime" TYPE="UI_COMPONENT" STATUS="done-local-phase52-phase53">
-  <path>frontend/src/components/MatrixBackground.tsx frontend/src/components/VisualShell.tsx frontend-admin/src/components/MatrixBackground.tsx frontend-admin/src/components/VisualShell.tsx scripts/phase52-matrix-visual-smoke.mjs scripts/phase53-user-matrix-ui-smoke.mjs docs/plans/Phase-52.xml docs/plans/Phase-53.xml</path>
+<M-070 NAME="matrix-visual-runtime" TYPE="UI_COMPONENT" STATUS="done-local-phase52-phase53-phase54">
+  <path>frontend/src/components/MatrixBackground.tsx frontend/src/components/VisualShell.tsx frontend-admin/src/components/MatrixBackground.tsx frontend-admin/src/components/VisualShell.tsx scripts/phase52-matrix-visual-smoke.mjs scripts/phase53-user-matrix-ui-smoke.mjs scripts/phase54-admin-matrix-ui-smoke.mjs docs/plans/Phase-52.xml docs/plans/Phase-53.xml docs/plans/Phase-54.xml</path>
   <owns>Shared React/Vite Matrix canvas runtime and CRT overlay mount points for the user frontend and admin frontend.</owns>
   <depends>M-009, M-010, M-038, M-071</depends>
   <verification-ref>V-M-070</verification-ref>
@@ -35,6 +35,7 @@
     <local-2026-06-03>Phase-52 implemented MatrixBackground and VisualShell for user/admin frontends, mounted both route trees, added static smoke, passed user/admin builds, and captured Chrome screenshots at 360x740, 390x844, 430x932, 1440x900, plus reduced-motion 390x844.</local-2026-06-03>
     <phase-53-local-2026-06-03>Phase-53 reused the runtime on all user routes, passed frontend build and Phase-53 smoke, captured production-preview auth screenshots with virtual-time-budget, and preserved pointer-events-none plus reduced-motion policy without deploy/install changes.</phase-53-local-2026-06-03>
     <phase-54-verification-design-2026-06-03>Phase-54 verification gates require admin route canvas proof, pointer-safe overlays, reduced-motion admin fallback, no console canvas errors, and protected deploy/install/runtime isolation.</phase-54-verification-design-2026-06-03>
+    <phase-54-local-2026-06-03>Phase-54 reused the existing admin VisualShell/MatrixBackground runtime, passed frontend-admin build and Phase-54 smoke, proved pointer-safe/reduced-motion admin markers statically, and made no deploy/install/nginx/docker-compose/runtime changes.</phase-54-local-2026-06-03>
   </evidence>
   <crosslinks>
     <phase-52>Matrix runtime foundation and shared shell integration.</phase-52>

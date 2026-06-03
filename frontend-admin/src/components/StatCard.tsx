@@ -1,12 +1,12 @@
 // FILE: frontend-admin/src/components/StatCard.tsx
-// VERSION: 1.1.0
+// VERSION: 1.2.0
 // ROLE: UI_COMPONENT
 // MAP_MODE: SUMMARY
 // START_MODULE_CONTRACT
-//   PURPOSE: Reusable compact metric tile with icon, value, label, and optional trend indicator
-//   SCOPE: Props interface, StatCard presentational component
-//   DEPENDS: M-010 (frontend-admin), M-038 (compact-ui-system), React
-//   LINKS: M-010, M-038
+//   PURPOSE: Reusable compact Matrix metric tile with icon, value, label, and optional trend indicator
+//   SCOPE: Props interface, StatCard presentational component, Phase-54 KPI marker
+//   DEPENDS: M-010 (frontend-admin), M-038 (compact-ui-system), M-071 (matrix-style-system), React
+//   LINKS: M-010, M-038, M-071, Phase-54
 // END_MODULE_CONTRACT
 //
 // START_MODULE_MAP
@@ -16,6 +16,7 @@
 // END_MODULE_MAP
 //
 // START_CHANGE_SUMMARY
+//   LAST_CHANGE: v3.0.0 - Phase-54 marked KPI tiles for compact admin Matrix smoke coverage.
 //   LAST_CHANGE: v2.8.0 - Added full GRACE MODULE_CONTRACT and MODULE_MAP per GRACE governance protocol
 //   LAST_CHANGE: v2.9.0 - Phase-24 compact metric tile with reduced spacing and stable mobile sizing
 // END_CHANGE_SUMMARY
@@ -43,7 +44,7 @@ interface Props {
 // DEPENDS: React, compact CSS classes (metric-tile, metric-pill, danger-pill, muted)
 export default function StatCard({ icon, label, value, suffix, trend }: Props) {
   return (
-    <div className="metric-tile">
+    <div className="metric-tile" data-phase54-kpi="compact-admin">
       <div className="mb-2 flex items-center justify-between gap-2">
         <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-emerald-300/10 text-emerald-200">
           {icon}

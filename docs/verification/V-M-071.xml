@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<V-M-071 MODULE="M-071" PRIORITY="high" STATUS="pass-local-phase52-phase53" PHASE-54="verification-designed">
+<V-M-071 MODULE="M-071" PRIORITY="high" STATUS="pass-local-phase52-phase53-phase54" PHASE-54="pass-local">
   <scope>
     <phase>Phase-52</phase>
     <purpose>Verify the Matrix style system foundation for compact, readable, mobile-safe user and admin shells.</purpose>
@@ -12,7 +12,7 @@
     <file>frontend-admin/src/components/Layout.tsx</file>
     <file>scripts/phase52-matrix-visual-smoke.mjs</file>
     <file>scripts/phase53-user-matrix-ui-smoke.mjs</file>
-    <file phase="54-verification-designed">scripts/phase54-admin-matrix-ui-smoke.mjs</file>
+    <file phase="54-pass-local">scripts/phase54-admin-matrix-ui-smoke.mjs</file>
   </test-files>
   <module-checks>
     <check-1>cd frontend &amp;&amp; npm run build</check-1>
@@ -22,7 +22,7 @@
     <check-5>Reduced-motion smoke: all transform-heavy, flicker-heavy, and scanline-heavy effects are disabled or simplified.</check-5>
     <check-6>git diff --name-only -- install.sh deploy nginx docker-compose.yml</check-6>
     <check-7>Phase-53 viewport smoke: auth, dashboard, config, subscription, referrals, settings, reduced-motion dashboard, and desktop user route screenshots.</check-7>
-    <check-8>Phase-54 viewport smoke: admin login, dashboard, users, devices, MTProto, servers, plans, analytics, reduced-motion admin shell, and desktop route screenshots.</check-8>
+    <check-8>Phase-54 local static viewport/style smoke: admin login, dashboard, users, devices, MTProto, servers, plans, analytics, reduced-motion markers, compact primitives, and protected route source guards; authenticated screenshots remain clean-deploy follow-up.</check-8>
   </module-checks>
   <phase-53-style-gates status="pass-local">
     <gate-1>User cabinet routes use Matrix palette/tokens while preserving compact operational layout and avoiding nested cards.</gate-1>
@@ -31,7 +31,7 @@
     <gate-4>Reduced-motion disables flicker-heavy/transform-heavy effects and keeps the Matrix identity as a static readable surface.</gate-4>
     <gate-5>Palette review confirms cyan, magenta, amber, red, and neutral accents remain available and the UI is not a one-note green surface.</gate-5>
   </phase-53-style-gates>
-  <phase-54-style-gates status="verification-designed">
+  <phase-54-style-gates status="pass-local">
     <gate-1>Admin console routes use Matrix palette/tokens while preserving dense operational layout and avoiding nested card bloat.</gate-1>
     <gate-2>Admin tables, forms, graph panels, MTProto IP history, alert controls, tariff rows, node/route forms, and status badges remain readable.</gate-2>
     <gate-3>Focus states remain visible on login inputs, sidebar/mobile navigation, filters, pagination, confirmation buttons, alert buttons, and form controls.</gate-3>
@@ -117,5 +117,12 @@
       <result>DESIGNED</result>
       <summary>Phase-54 style gates require compact Matrix admin route surfaces, readable tables/charts/forms, focus-visible controls, reduced-motion proof, no horizontal overflow, no text/icon overlap, balanced palette, and protected-surface isolation.</summary>
     </phase-54-verification-design-2026-06-03>
+    <phase-54-local-2026-06-03>
+      <result>PASS</result>
+      <command-1>cd frontend-admin &amp;&amp; npm run build</command-1>
+      <command-2>node scripts/phase54-admin-matrix-ui-smoke.mjs</command-2>
+      <summary>Static style proof passed for compact Matrix admin primitives, login shell, route markers, bounded lists, chart frames, no oversized login hero/large radius/tracking drift, focus/reduced-motion markers, balanced palette markers, and protected-surface isolation.</summary>
+      <follow-up>Authenticated screenshot review for protected admin routes remains clean-deploy follow-up.</follow-up>
+    </phase-54-local-2026-06-03>
   </evidence>
 </V-M-071>

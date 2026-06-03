@@ -99,8 +99,9 @@
     <item>Phase-49 is passed-local for BIMI asset delivery and DNS runbook; live curl, default._bimi DNS propagation, and mailbox avatar rendering remain operator/provider-side validation after release deployment.</item>
     <item>Phase-50 is passed-local for tariff catalog, checkout, YooKassa payload shape, device-limit guard, UI/API contract, and protected-surface isolation; optional live validation remains clean-deploy review of the three tariffs plus a real or YooKassa test-mode payment.</item>
     <item>Phase-51 is passed-local for favicon/PWA asset delivery and Resend HTML email-logo rendering; optional live validation remains curl/browser proof for https://krotpn.xyz/favicon.ico and https://krotpn.xyz/brand/email-logo.png plus a real delivered Resend email with remote images enabled.</item>
-    <item>Phase-52 is passed-local for the shared Matrix visual foundation on login shells; Phase-53 has now applied that foundation to the user cabinet, and Phase-54 admin console redesign now has verification-designed gates for dense admin tables, MTProto analytics, users, devices, plans, and operational charts.</item>
+    <item>Phase-52 is passed-local for the shared Matrix visual foundation on login shells, Phase-53 is passed-local for the user cabinet Matrix redesign, and Phase-54 is passed-local for the admin console Matrix redesign with compact route/static smoke evidence.</item>
     <item>Phase-53 is passed-local for the user cabinet Matrix redesign: compact auth screens, protected user Layout, dashboard, config, subscription, referrals, settings, Loading state, MTProto card, trial/calendar, and tariff surfaces are retuned with frontend build, Phase-53 smoke, production-preview screenshots, reduced-motion proof, and protected deploy/install isolation.</item>
+    <item>Phase-54 is passed-local for the admin console Matrix redesign: admin login, layout, dashboard, users, devices, MTProto, MTProto analytics, servers, plans, analytics, StatCard, and shared admin CSS are retuned into compact Matrix operator surfaces; frontend-admin build, Phase-54 static smoke, MTProto redaction/confirmation markers, canonical Plans guard, reduced-motion markers, and protected deploy/install/nginx/docker-compose/runtime isolation passed on 2026-06-03. Authenticated protected-route screenshot review remains clean-deploy follow-up.</item>
     <item>Emergency relocation is documented but still blocked until a trusted backup bundle and isolated restore target exist for dry-run evidence.</item>
     <item>Cookie-only auth migration is planned but not executed because it requires explicit approval and HTTPS or production-like smoke evidence.</item>
   </what-is-fragile>
@@ -226,8 +227,8 @@
     <gate id="phase-53-user-cabinet-matrix-redesign" status="passed-local">
       <summary>Local execution passed for compact Matrix user auth and cabinet routes, removed heavy login hero, preserved auth/VPN/MTProto/trial/tariff/config-download contracts, added scripts/phase53-user-matrix-ui-smoke.mjs, passed frontend build and smoke, captured production-preview mobile/desktop/reduced-motion screenshots with virtual-time-budget, and kept install.sh/deploy/nginx/docker-compose/runtime surfaces untouched.</summary>
     </gate>
-    <gate id="phase-54-admin-console-matrix-redesign" status="verification-designed">
-      <summary>Verification design is ready for the admin Matrix redesign: V-M-010/V-M-037/V-M-047/V-M-058/V-M-068/V-M-070/V-M-071 now require frontend-admin build, scripts/phase54-admin-matrix-ui-smoke.mjs, route smoke for /login, /, /users, /devices, /mtproto, /servers, /plans, and /analytics, mobile/desktop/reduced-motion screenshot review, MTProto redaction/confirmation gates, canonical Plans guard, XML/MyGRACE/diff checks, and protected deploy/install/nginx/docker-compose/runtime isolation.</summary>
+    <gate id="phase-54-admin-console-matrix-redesign" status="passed-local">
+      <summary>Local execution passed for compact Matrix admin login/layout/dashboard/users/devices/MTProto/servers/plans/analytics routes, scripts/phase54-admin-matrix-ui-smoke.mjs, frontend-admin build, MTProto redaction/confirmation gates, canonical Plans no-CRUD guard, reduced-motion/pointer-safe markers, XML/MyGRACE/diff checks, and protected deploy/install/nginx/docker-compose/runtime isolation; authenticated protected-route screenshot review remains clean-deploy follow-up.</summary>
     </gate>
     <gate id="release-v2.24.0-tariffs-branding-stable" status="passed-local">
       <summary>Stable release target includes Phase-44 through Phase-51 local verification: backend email, trial, tariff, billing, device, VPN compatibility, DB migration, MTProto provisioning, frontend/admin builds, Phase-45/46/47/48/49/50/51 smoke gates, XML parse, MyGRACE lint, git diff --check, and protected deploy/install guards. Operator clean-deploy validation remains the next live evidence step after GitHub push.</summary>
@@ -235,12 +236,11 @@
   </rollout-gates>
 
   <immediate-priorities>
-    <priority rank="1">Execute Phase-54 admin console Matrix redesign using the completed verification design and Phase-52/53 foundation, with compact checks for MTProto analytics, users, devices, plans, servers, and operational tables.</priority>
-    <priority rank="2">Run clean-deploy validation for Phase-53 user cabinet Matrix redesign after GitHub push, including authenticated dashboard/config/subscription/referrals/settings review against a real backend session.</priority>
-    <priority rank="3">Run clean-deploy validation for the current stable baseline from GitHub main, with review of three tariffs, registration email logo rendering, favicon delivery, and a real or YooKassa test-mode payment when credentials are available.</priority>
-    <priority rank="4">Continue Phase-43 admin analytics hardening with real redacted runtime data: graph refresh polish, resource metrics, alert notifications, and TTL IP block runtime enforcement.</priority>
-    <priority rank="5">Run Phase-22 non-production restore rehearsal with a trusted backup bundle and isolated restore target before production release.</priority>
-    <priority rank="6">Decide whether to approve cookie-only auth migration and provide HTTPS or production-like auth smoke target.</priority>
+    <priority rank="1">Run clean-deploy validation for Phase-53 and Phase-54 Matrix redesigns after GitHub push, including authenticated dashboard/config/subscription/referrals/settings and admin dashboard/users/devices/MTProto/servers/plans/analytics review against a real backend session.</priority>
+    <priority rank="2">Run clean-deploy validation for the current stable baseline from GitHub main, with review of three tariffs, registration email logo rendering, favicon delivery, and a real or YooKassa test-mode payment when credentials are available.</priority>
+    <priority rank="3">Continue Phase-43 admin analytics hardening with real redacted runtime data: graph refresh polish, resource metrics, alert notifications, and TTL IP block runtime enforcement.</priority>
+    <priority rank="4">Run Phase-22 non-production restore rehearsal with a trusted backup bundle and isolated restore target before production release.</priority>
+    <priority rank="5">Decide whether to approve cookie-only auth migration and provide HTTPS or production-like auth smoke target.</priority>
   </immediate-priorities>
 
   <known-risks>

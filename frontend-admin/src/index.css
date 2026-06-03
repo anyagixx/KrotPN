@@ -1,10 +1,10 @@
 /* FILE: frontend-admin/src/index.css
- * VERSION: 1.0.0
+ * VERSION: 1.1.0
  * ROLE: UI_COMPONENT
  * MAP_MODE: SUMMARY
  * START_MODULE_CONTRACT
- *   PURPOSE: Shared admin-frontend styling tokens, compact admin surfaces, and Phase-52 Matrix visual foundation
- *   SCOPE: Admin shell, navigation, panels, forms, data tables, Matrix background/canvas/CRT layers, focus and reduced-motion policy
+ *   PURPOSE: Shared admin-frontend styling tokens, compact admin surfaces, Phase-52 Matrix visual foundation, and Phase-54 admin console primitives
+ *   SCOPE: Admin shell, login console, navigation, panels, forms, data tables, charts, Matrix background/canvas/CRT layers, focus and reduced-motion policy
  *   DEPENDS: M-010 (frontend-admin), M-037 (admin-mtproto-ui), M-038 (compact-ui-system), M-070 (matrix-visual-runtime), M-071 (matrix-style-system)
  *   LINKS: M-010 (frontend-admin), M-037, M-038, M-070, M-071
  * END_MODULE_CONTRACT
@@ -13,10 +13,12 @@
  *   base - Root color tokens, body typography, document background
  *   matrix-visual-system - Canvas, scanline, vignette, and content stacking layers
  *   admin-shell - Rail, topbar, mobile tabbar, content sizing
+ *   admin-matrix-ui - Phase-54 compact login, toolbar, KPI, chart, route, and bounded-scroll primitives
  *   components - Panel, button, input, metric, list, table, and modal classes
  * END_MODULE_MAP
  *
  * START_CHANGE_SUMMARY
+ *   LAST_CHANGE: v3.1.0 - Added Phase-54 compact admin Matrix console primitives and route-safe viewport helpers
  *   LAST_CHANGE: v3.0.0 - Added Phase-52 Matrix visual foundation tokens, canvas layers, CRT overlays, focus states, and reduced-motion policy
  * END_CHANGE_SUMMARY
  */
@@ -43,6 +45,7 @@
   --panel: rgba(5, 20, 15, 0.86);
   --panel-strong: rgba(6, 24, 18, 0.96);
   --border: rgba(96, 255, 155, 0.17);
+  --border-strong: rgba(104, 232, 255, 0.24);
   --text: #effff7;
   --muted: #91b5a6;
   --accent: var(--matrix-green);
@@ -176,6 +179,7 @@ textarea:focus-visible,
   @apply sticky top-0 hidden h-screen flex-col gap-4 border-r px-3 py-4 lg:flex;
   background: rgba(3, 12, 8, 0.94);
   border-color: var(--border);
+  box-shadow: inset -1px 0 rgba(104, 232, 255, 0.07);
 }
 
 .brand-mark {
@@ -198,6 +202,7 @@ textarea:focus-visible,
 .rail-link-active {
   background: rgba(92, 213, 182, 0.12);
   color: #ddfff5;
+  box-shadow: inset 2px 0 rgba(96, 255, 155, 0.62);
 }
 
 .rail-logout {
@@ -209,7 +214,7 @@ textarea:focus-visible,
 }
 
 .topbar {
-  @apply sticky top-0 z-20 flex min-h-[84px] items-center justify-between gap-3 border-b px-4 py-3 backdrop-blur md:px-6;
+  @apply sticky top-0 z-20 flex min-h-[78px] items-center justify-between gap-3 border-b px-4 py-3 backdrop-blur md:px-6;
   background: rgba(3, 12, 8, 0.88);
   border-color: var(--border);
 }
@@ -250,7 +255,7 @@ textarea:focus-visible,
   background: var(--panel);
   border: 1px solid var(--border);
   border-radius: 8px;
-  box-shadow: var(--shadow), inset 0 1px 0 rgba(216, 246, 230, 0.04);
+  box-shadow: var(--shadow), inset 0 1px 0 rgba(216, 246, 230, 0.05), inset 0 0 0 1px rgba(104, 232, 255, 0.025);
 }
 
 .panel-soft,
@@ -258,6 +263,71 @@ textarea:focus-visible,
   background: rgba(4, 18, 13, 0.72);
   border: 1px solid rgba(96, 255, 155, 0.1);
   border-radius: 8px;
+}
+
+.admin-login-shell {
+  @apply flex min-h-screen items-center justify-center px-4 py-6;
+}
+
+.admin-login-card {
+  @apply grid w-full max-w-[920px] gap-4 border p-4 shadow-2xl sm:p-5 lg:grid-cols-[minmax(0,0.72fr)_minmax(320px,0.48fr)] lg:items-stretch;
+  background: rgba(3, 12, 8, 0.9);
+  border-color: var(--border);
+  border-radius: 8px;
+}
+
+.admin-login-mark {
+  @apply flex h-11 w-11 items-center justify-center text-emerald-200;
+  border: 1px solid rgba(96, 255, 155, 0.28);
+  border-radius: 8px;
+  background: rgba(96, 255, 155, 0.1);
+}
+
+.admin-hero-strip {
+  @apply grid min-w-0 gap-2 border p-3 sm:grid-cols-3;
+  background: rgba(2, 10, 7, 0.58);
+  border-color: rgba(104, 232, 255, 0.12);
+  border-radius: 8px;
+}
+
+.admin-route-card,
+.matrix-mini-card {
+  @apply min-w-0 p-3;
+  background: rgba(4, 18, 13, 0.76);
+  border: 1px solid rgba(104, 232, 255, 0.12);
+  border-radius: 8px;
+}
+
+.matrix-section-label,
+.matrix-panel-title {
+  @apply text-sm font-semibold text-white;
+  letter-spacing: 0;
+}
+
+.compact-toolbar {
+  @apply flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between;
+}
+
+.mini-kpi-grid {
+  @apply grid grid-cols-2 gap-2 md:grid-cols-4;
+}
+
+.bounded-scroll {
+  @apply overflow-y-auto overscroll-contain;
+  scrollbar-gutter: stable;
+}
+
+.chart-frame {
+  @apply mt-3 min-w-0 overflow-hidden border p-2;
+  min-height: 220px;
+  background: rgba(2, 10, 7, 0.66);
+  border-color: rgba(104, 232, 255, 0.12);
+  border-radius: 8px;
+}
+
+.matrix-route-status {
+  @apply flex min-w-0 flex-wrap items-center gap-2 text-xs;
+  color: var(--muted);
 }
 
 .btn-primary,
@@ -350,6 +420,7 @@ textarea:focus-visible,
 
 .metric-label {
   @apply text-xs font-semibold uppercase text-slate-400;
+  letter-spacing: 0;
 }
 
 .metric-value {
@@ -376,6 +447,10 @@ textarea:focus-visible,
   background: var(--panel);
   border: 1px solid var(--border);
   border-radius: 8px;
+}
+
+.compact-list.bounded-scroll {
+  overflow-y: auto;
 }
 
 .compact-list > :not([hidden]) ~ :not([hidden]) {

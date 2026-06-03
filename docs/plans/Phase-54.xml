@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Phase-54 NAME="Admin Console Matrix Redesign" STATUS="verification-designed" STEPS="10">
+<Phase-54 NAME="Admin Console Matrix Redesign" STATUS="done-local" STEPS="10">
   <summary>Redesign the full admin frontend into the approved KrotPN Matrix style while keeping dense operator workflows, mobile usability, and safe admin actions.</summary>
   <modules>M-010,M-037,M-047,M-058,M-068,M-070,M-071</modules>
   <constraints>
@@ -8,43 +8,43 @@
     <constraint-3>Destructive and disruptive actions must remain confirmation-safe and readable on mobile.</constraint-3>
   </constraints>
   <steps>
-    <step-1 STATUS="pending" MODULES="M-010,M-037,M-071">
+    <step-1 STATUS="done-local" MODULES="M-010,M-037,M-071">
       <action>Audit admin route hierarchy and map every page to Matrix compact operator surfaces.</action>
       <acceptance>Route-by-route admin UI target matrix exists before edits.</acceptance>
     </step-1>
-    <step-2 STATUS="pending" MODULES="M-010,M-071">
+    <step-2 STATUS="done-local" MODULES="M-010,M-071">
       <action>Redesign admin login with Matrix shell, empty credential fields, icon padding safety, and strong focus states.</action>
       <acceptance>Login form remains compact, readable, and free of stale default credential hints.</acceptance>
     </step-2>
-    <step-3 STATUS="pending" MODULES="M-010,M-037,M-071">
+    <step-3 STATUS="done-local" MODULES="M-010,M-037,M-071">
       <action>Redesign admin layout/navigation with compact mobile-first access to dashboard, users, devices, MTProto, servers, plans, analytics, and settings.</action>
       <acceptance>Navigation fits mobile without horizontal scroll or hidden emergency actions.</acceptance>
     </step-3>
-    <step-4 STATUS="pending" MODULES="M-010,M-037,M-071">
+    <step-4 STATUS="done-local" MODULES="M-010,M-037,M-071">
       <action>Redesign dashboard, KPI rows, health summaries, and system status surfaces with dense Matrix panels.</action>
       <acceptance>Critical health and business metrics remain scannable without decorative card bloat.</acceptance>
     </step-4>
-    <step-5 STATUS="pending" MODULES="M-010,M-037,M-071">
+    <step-5 STATUS="done-local" MODULES="M-010,M-037,M-071">
       <action>Redesign users and devices pages with compact search, pagination, filters, and confirmation-safe actions.</action>
       <acceptance>Large user lists remain usable without long unstructured scrolling.</acceptance>
     </step-5>
-    <step-6 STATUS="pending" MODULES="M-010,M-047,M-058,M-071">
+    <step-6 STATUS="done-local" MODULES="M-010,M-047,M-058,M-071">
       <action>Redesign MTProto admin and analytics pages with compact graphs, alert inbox, IP history panels, and runtime metrics.</action>
       <acceptance>Secrets stay redacted and admin investigation data remains readable on mobile.</acceptance>
     </step-6>
-    <step-7 STATUS="pending" MODULES="M-010,M-068,M-071">
+    <step-7 STATUS="done-local" MODULES="M-010,M-068,M-071">
       <action>Redesign plans, servers, and analytics routes with Matrix tables, status badges, charts, and protected tariff matrix.</action>
       <acceptance>Canonical tariff controls stay non-CRUD unless a later backend phase approves changes.</acceptance>
     </step-7>
-    <step-8 STATUS="pending" MODULES="M-010,M-037,M-070,M-071">
+    <step-8 STATUS="done-local" MODULES="M-010,M-037,M-070,M-071">
       <action>Create Phase-54 admin smoke covering mobile routes, desktop routes, reduced-motion, canvas visibility, no overlap, and confirmation dialogs.</action>
       <acceptance>scripts/phase54-admin-matrix-ui-smoke.mjs becomes the execution gate.</acceptance>
     </step-8>
-    <step-9 STATUS="pending" MODULES="M-010,M-037,M-070,M-071">
-      <action>Run admin frontend build and screenshot verification across mobile and desktop viewports.</action>
-      <acceptance>Frontend-admin build and viewport smoke pass.</acceptance>
+    <step-9 STATUS="done-local" MODULES="M-010,M-037,M-070,M-071">
+      <action>Run admin frontend build and local route smoke across mobile and desktop viewport contracts; reserve authenticated screenshot proof for clean-deploy/live admin session.</action>
+      <acceptance>Frontend-admin build and Phase-54 static viewport/route smoke pass locally.</acceptance>
     </step-9>
-    <step-10 STATUS="pending" MODULES="M-010,M-037,M-070,M-071">
+    <step-10 STATUS="done-local" MODULES="M-010,M-037,M-070,M-071">
       <action>Update MyGRACE docs, module maps, verification evidence, and current status after implementation.</action>
       <acceptance>XML parse, MyGRACE lint, git diff check, and protected deploy/install guard pass.</acceptance>
     </step-10>
@@ -54,7 +54,23 @@
     <walkthrough-2>Admin opens /mtproto analytics: charts, current IPs, alert actions, and runtime metrics stay readable; no scanline/glitch layer hides incident controls.</walkthrough-2>
     <walkthrough-3>Admin executes a destructive action: confirmation dialog remains focused, keyboard reachable, and visually separated from animated overlays.</walkthrough-3>
   </mental-walkthroughs>
+  <route-audit status="done-local">
+    <route-1 path="/login" target="Compact Matrix login shell with empty credential fields, icon padding safety, focus-visible state, and no default credential hints." />
+    <route-2 path="/" target="Operational dashboard with compact KPI grid, service health, quick actions, and route status strip." />
+    <route-3 path="/users" target="Searchable bounded user inventory with counters, pagination, compact rows, and mobile-safe metadata." />
+    <route-4 path="/devices" target="Bounded device inventory with search, anti-sharing signals, one-peer actions, and readable confirmation dialog." />
+    <route-5 path="/mtproto" target="Redacted assignment inventory, runtime health, embedded analytics, bounded lists, IP history, alerts, promotion tag controls, and confirmation-safe reissue/revoke." />
+    <route-6 path="/servers" target="Compact node/route topology, smaller KPI cards, safe radii, readable forms, and preserved CRUD API behavior." />
+    <route-7 path="/plans" target="Readonly canonical tariff matrix preserving KrotPN 1/6/9, 369/693/936 RUB, and no accidental CRUD controls." />
+    <route-8 path="/analytics" target="Compact payment/subscription/referral summaries and Matrix chart frames." />
+  </route-audit>
   <verification>V-M-010,V-M-037,V-M-047,V-M-058,V-M-068,V-M-070,V-M-071</verification>
+  <execution-evidence status="pass-local" date="2026-06-03">
+    <command-1>cd frontend-admin &amp;&amp; npm run build</command-1>
+    <command-2>node scripts/phase54-admin-matrix-ui-smoke.mjs</command-2>
+    <result>PASS: frontend-admin TypeScript/Vite build passed; Phase-54 static smoke passed for admin route matrix, compact primitives, mobile route safety, confirmation markers, MTProto redaction/analytics, canonical Plans guard, reduced-motion markers, and protected deploy/install/nginx/docker-compose/runtime isolation.</result>
+    <protected-surface>No install.sh, deploy, nginx, docker-compose.yml, deploy/mtproto-de-compose.yml, or .env.example diff.</protected-surface>
+  </execution-evidence>
   <verification-design>
     <gate-1>Phase-54 execute may start only after V-M-010, V-M-037, V-M-047, V-M-058, V-M-068, V-M-070, and V-M-071 include PHASE-54 verification-designed coverage.</gate-1>
     <gate-2>Execution must create scripts/phase54-admin-matrix-ui-smoke.mjs before marking step-8 done-local.</gate-2>
@@ -62,6 +78,6 @@
     <gate-4>The smoke must include reduced-motion proof, Matrix canvas nonblank or controlled static fallback proof, no document horizontal overflow, no obvious text/icon/control overlap, and pointer-safe overlays.</gate-4>
     <gate-5>The admin MTProto section must prove compact assignment inventory, embedded analytics, alert actions, IP history, promotion tag controls, reissue/revoke confirmations, and secret redaction.</gate-5>
     <gate-6>The admin Plans section must preserve the canonical 369/693/936 RUB tariff matrix without enabling canonical CRUD actions or frontend-controlled payment fields.</gate-6>
-    <gate-7>Final Phase-54 evidence must include frontend-admin build, Phase-54 smoke, screenshot review, XML parse, MyGRACE lint, git diff --check, and protected deploy/install/nginx/docker-compose/runtime guard.</gate-7>
+    <gate-7>Final local Phase-54 evidence must include frontend-admin build, Phase-54 static route/viewport smoke, XML parse, MyGRACE lint, git diff --check, and protected deploy/install/nginx/docker-compose/runtime guard; authenticated screenshot review remains clean-deploy follow-up.</gate-7>
   </verification-design>
 </Phase-54>

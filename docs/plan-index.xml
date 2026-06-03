@@ -55,5 +55,5 @@
   <Phase-51 NAME="Favicon and Resend Email Logo Branding" STATUS="done-local" STEPS="8" MODULES="M-069,M-009,M-010,M-040,M-062,M-067" />
   <Phase-52 NAME="KrotPN Matrix Visual System Foundation" STATUS="done-local" STEPS="8" MODULES="M-070,M-071,M-009,M-010,M-038" />
   <Phase-53 NAME="User Cabinet Matrix Redesign" STATUS="done-local" STEPS="10" MODULES="M-009,M-036,M-045,M-063,M-064,M-068,M-070,M-071" />
-  <Phase-54 NAME="Admin Console Matrix Redesign" STATUS="verification-designed" STEPS="10" MODULES="M-010,M-037,M-047,M-058,M-068,M-070,M-071" />
+  <Phase-54 NAME="Admin Console Matrix Redesign" STATUS="done-local" STEPS="10" MODULES="M-010,M-037,M-047,M-058,M-068,M-070,M-071" />
 </PlanIndex>

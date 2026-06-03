@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<V-M-037 MODULE="M-037" PRIORITY="high" STATUS="pass-local" PHASE-54="verification-designed">
+<V-M-037 MODULE="M-037" PRIORITY="high" STATUS="pass-local-phase54" PHASE-54="pass-local">
   <module>mobile-admin-console</module>
   <checks>Admin frontend must become compact and usable from a phone for operational status, user search, devices, payments/analytics, and system health.</checks>
   <test-files>frontend-admin/src/components/Layout.tsx frontend-admin/src/pages/Dashboard.tsx frontend-admin/src/pages/Users.tsx frontend-admin/src/pages/Devices.tsx frontend-admin/src/pages/MTProto.tsx frontend-admin/src/pages/Analytics.tsx frontend-admin/src/pages/Servers.tsx frontend-admin/src/pages/Plans.tsx frontend-admin/src/components/StatCard.tsx frontend-admin/src/index.css frontend-admin/src/lib/api.ts frontend-admin/src/types/index.ts scripts/phase54-admin-matrix-ui-smoke.mjs</test-files>
-  <commands>verification-designed 2026-06-03: Phase-54 requires cd frontend-admin &amp;&amp; npm run build; node scripts/phase54-admin-matrix-ui-smoke.mjs; mobile admin smoke for /, /users, /devices, /mtproto, /servers, /plans, and /analytics at 360x740, 390x844, and 430x932; static review confirms destructive actions still open confirmation state before mutation; protected deploy/install guard remains empty.</commands>
+  <commands>pass-local 2026-06-03: cd frontend-admin &amp;&amp; npm run build; node scripts/phase54-admin-matrix-ui-smoke.mjs; static mobile admin smoke passed for /, /users, /devices, /mtproto, /servers, /plans, and /analytics route sources, compact navigation, bounded lists, primary actions, confirmation markers, and protected deploy/install guard.</commands>
   <levels>
     <module-local>TypeScript/Vite build and static source review after every Phase-24 frontend-admin change.</module-local>
     <wave-level>Mobile smoke across overview, users, devices, and analytics/payment routes after each completed UI wave.</wave-level>
@@ -43,7 +43,7 @@
     <viewport-3 route="/devices" size="430x932">Device rows, signals, and block/unblock/rotate/revoke confirmation paths fit within the viewport.</viewport-3>
     <viewport-4 route="/analytics" size="390x844">Payment and analytics status remains readable without charts dominating the first phone viewport.</viewport-4>
   </viewport-matrix>
-  <phase-54-viewport-matrix status="verification-designed">
+  <phase-54-viewport-matrix status="pass-local">
     <viewport-1 route="/" size="360x740">Matrix dashboard health/KPI rows remain readable and primary operational links are visible.</viewport-1>
     <viewport-2 route="/users" size="390x844">Search, filters, user rows, role/status, and pagination fit compactly without document horizontal scroll.</viewport-2>
     <viewport-3 route="/devices" size="430x932">Device rows and block/unblock/rotate/revoke confirmation paths remain reachable and non-overlapping.</viewport-3>
@@ -95,5 +95,6 @@
     <evidence-4>2026-05-10: Static review found no direct Mutation.mutate calls from device row buttons.</evidence-4>
     <evidence-5>2026-05-10: deploy/install/docker/nginx/frontend-admin deployment surfaces had no diff.</evidence-5>
     <evidence-6>2026-06-03: Phase-54 verification design added mobile Matrix route, viewport, pagination, bounded scroll, confirmation, and protected-surface gates.</evidence-6>
+    <evidence-7>2026-06-03: Phase-54 local execution passed frontend-admin build and smoke markers [MobileAdminConsole][Phase54][ROUTE_VIEWPORT_SAFE], [PRIMARY_ACTIONS_REACHABLE], [TABLES_SCROLL_CONTAINED], and [CONFIRMATIONS_READABLE].</evidence-7>
   </planned-evidence>
 </V-M-037>

@@ -1,12 +1,12 @@
 // FILE: frontend-admin/src/pages/Dashboard.tsx
-// VERSION: 1.1.0
+// VERSION: 1.2.0
 // ROLE: UI_COMPONENT
 // MAP_MODE: SUMMARY
 // START_MODULE_CONTRACT
-//   PURPOSE: Compact admin dashboard page showing operational overview, revenue, subscriptions, users, and system health
-//   SCOPE: Display aggregated stats, system health, urgent admin paths, and compact mobile-first metric rows
-//   DEPENDS: M-010 (frontend-admin), M-006 (admin API), M-037 (mobile-admin-console), M-038 (compact-ui-system)
-//   LINKS: M-010, M-037, M-038
+//   PURPOSE: Compact Matrix admin dashboard page showing operational overview, revenue, subscriptions, users, and system health
+//   SCOPE: Display aggregated stats, system health, urgent admin paths, route-status strip, and compact mobile-first metric rows
+//   DEPENDS: M-010 (frontend-admin), M-006 (admin API), M-037 (mobile-admin-console), M-038 (compact-ui-system), M-070 (matrix-visual-runtime), M-071 (matrix-style-system)
+//   LINKS: M-010, M-037, M-038, M-070, M-071, Phase-54
 // END_MODULE_CONTRACT
 //
 // START_MODULE_MAP
@@ -17,6 +17,7 @@
 // END_MODULE_MAP
 //
 // START_CHANGE_SUMMARY
+//   LAST_CHANGE: v3.0.0 - Phase-54 added compact Matrix route markers, admin status strip, and mobile-safe quick action surface.
 //   LAST_CHANGE: v2.8.0 - Added full GRACE MODULE_CONTRACT and MODULE_MAP per GRACE governance protocol
 //   LAST_CHANGE: v2.9.0 - Phase-24 compact mobile operator overview without hero/table-first layout
 // END_CHANGE_SUMMARY
@@ -90,7 +91,26 @@ export default function Dashboard() {
   }
 
   return (
-    <div className="page-shell">
+    <div
+      className="page-shell"
+      data-phase54-admin-route="dashboard"
+      data-log-marker="[MatrixStyleSystem][phase54][ADMIN_ROUTES_READABLE]"
+    >
+      <section className="admin-hero-strip">
+        <div className="matrix-mini-card">
+          <span className="metric-label">Console</span>
+          <strong className="mt-1 block text-sm text-white">online</strong>
+        </div>
+        <div className="matrix-mini-card">
+          <span className="metric-label">Routes</span>
+          <strong className="mt-1 block text-sm text-white">7 screens</strong>
+        </div>
+        <div className="matrix-mini-card">
+          <span className="metric-label">Mode</span>
+          <strong className="mt-1 block text-sm text-white">compact</strong>
+        </div>
+      </section>
+
       <section className="metric-grid">
         <StatCard icon={<Users className="h-5 w-5" />} label="Пользователи" value={s?.users?.total || 0} />
         <StatCard icon={<CreditCard className="h-5 w-5" />} label="Подписки" value={s?.subscriptions?.active || 0} />
