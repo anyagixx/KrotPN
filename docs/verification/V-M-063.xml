@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<V-M-063 MODULE="M-063" PRIORITY="critical" STATUS="pass-local-phase53-pass-local-phase68-pass-local-phase69-pass-local-phase71" PHASE-68="pass-local" PHASE-69="pass-local" PHASE-71="pass-local">
+<V-M-063 MODULE="M-063" PRIORITY="critical" STATUS="pass-local-phase53-pass-local-phase68-pass-local-phase69-pass-local-phase71" PHASE-68="pass-local" PHASE-69="pass-local" PHASE-71="pass-local" PHASE-72="planned">
   <purpose>Verify Phase-45 four-day trial and first-VPN-handshake activation semantics across billing, VPN, scheduler, and user cabinet UX.</purpose>
   <checks>Pending trial is created after email verification, first config remains available, first successful VPN handshake activates the four-day countdown exactly once, subscription API returns precise remaining time, and mobile UI shows countdown plus calendar without stale 3-day copy.</checks>
   <test-files>
@@ -103,4 +103,15 @@
     <commands>cd frontend &amp;&amp; npm run build; node scripts/phase45-trial-subscription-ux-smoke.mjs; node scripts/phase71-device-config-master-detail-smoke.mjs</commands>
   </phase-71-verification-design>
   <phase-71-evidence status="pass-local" date="2026-06-04">Backend trial activation tests passed within the 31-test backend suite; frontend build and Phase-71 smoke passed for backend-time copy removal and rangeStart/rangeEnd subscription calendar boundary markers.</phase-71-evidence>
+  <phase-72-verification-design status="planned">
+    <scope>Subscription calendar density verification without changing server-derived trial/subscription semantics.</scope>
+    <gate-1>Desktop "Календарь подписки" cells must be substantially smaller while preserving active date range readability and Phase-71 rangeStart/rangeEnd boundary markers.</gate-1>
+    <gate-2>Mobile calendar presentation must not regress from the accepted compact mobile version.</gate-2>
+    <gate-3>Countdown days/hours/minutes must remain server-derived; Phase-72 must not change trial activation, billing expiry, referral bonus, or scheduler semantics.</gate-3>
+    <commands>cd frontend &amp;&amp; npm run build; node scripts/phase45-trial-subscription-ux-smoke.mjs; node scripts/phase72-user-auth-navigation-smoke.mjs</commands>
+  </phase-72-verification-design>
+  <phase-72-required-markers status="planned">
+    <marker-1>[TrialSubscription][phase72][DESKTOP_CALENDAR_COMPACT]</marker-1>
+    <marker-2>[TrialSubscription][phase72][SERVER_COUNTDOWN_UNCHANGED]</marker-2>
+  </phase-72-required-markers>
 </V-M-063>

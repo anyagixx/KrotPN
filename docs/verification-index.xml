@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!-- MyGRACE Verification Index — lazy-loading entry point for verification navigation -->
 <!-- MyGRACE verification index generated from per-verification files; archived monoliths are reference-only -->
-<VerificationIndex VERSION="1.0.0" PROJECT="KrotPN" ENTRY-COUNT="77">
+<VerificationIndex VERSION="1.0.0" PROJECT="KrotPN" ENTRY-COUNT="78">
   <V-M-001 MODULE="M-001" PRIORITY="critical" STATUS="pass-local-phase45-pass-local-session60" PHASE-36="pass-local" TESTS="backend/tests/test_security.py backend/tests/test_mtproto_provisioning.py backend/tests/test_trial_activation.py" PHASE-36-TESTS="backend/tests/test_email_delivery.py scripts/phase36-resend-deploy-smoke.mjs" COMMANDS="pass-local 2026-06-04: Settings refresh-token default is guarded at 60 days alongside existing backend security tests" />
   <V-M-002 MODULE="M-002" PRIORITY="critical" STATUS="pass-local-phase45" TESTS="backend/tests/test_verified_registration.py backend/tests/test_password_recovery.py backend/tests/test_telegram_auth.py backend/tests/test_manual_access_policy.py backend/tests/test_manual_client_cli.py backend/tests/test_security.py" COMMANDS="pass-local 2026-06-01: Phase-45 backend suite proves verified-email onboarding creates pending trial access instead of a running countdown" />
   <V-M-003 MODULE="M-003" PRIORITY="critical" STATUS="pass-local-phase45-pass-local-phase70" PHASE-70="pass-local" TESTS="backend/tests/test_vpn_service.py backend/tests/test_vpn_router_compat.py backend/tests/test_manual_client_cli.py backend/tests/test_trial_activation.py scripts/phase70-config-qr-parity-smoke.mjs" COMMANDS="pass-local 2026-06-04: Phase-70 proves /vpn/config JSON, /vpn/config/download bytes, and backend QR payload source stay identical while QR rendering uses lighter level-M settings" />
@@ -98,4 +98,9 @@
     <planned-tests status="pass-local">backend device/vpn/trial tests, frontend build, scripts/phase71-device-config-master-detail-smoke.mjs, Phase-57/59/61/62/70 regressions, XML parse, MyGRACE lint, git diff --check, and protected deploy/runtime guard.</planned-tests>
     <acceptance>PASS local: existing active devices are selectable and exportable through QR/.conf/Copy without rotation; mobile/desktop config UX is compact; requested logo, QR close, calendar, logout, copy, label, and i18n fixes are verified; deploy/install surfaces remain untouched.</acceptance>
   </Phase-71-Verification>
+  <Phase-72-Verification NAME="User Auth and Cabinet Navigation Polish Verification" STATUS="planned" MODULES="M-009 M-036 M-063 M-071 M-074 M-075 M-077">
+    <verification-docs>docs/verification/V-M-009.xml docs/verification/V-M-036.xml docs/verification/V-M-063.xml docs/verification/V-M-071.xml docs/verification/V-M-074.xml docs/verification/V-M-075.xml docs/verification/V-M-077.xml</verification-docs>
+    <planned-tests status="planned">cd frontend &amp;&amp; npm run build; node scripts/phase72-user-auth-navigation-smoke.mjs; node scripts/phase57-premium-user-cabinet-smoke.mjs; node scripts/phase61-responsive-adaptation-smoke.mjs; node scripts/phase68-dashboard-subscription-smoke.mjs; node scripts/phase71-device-config-master-detail-smoke.mjs; XML parse; MyGRACE lint; git diff --check; protected admin/backend/deploy/runtime guard.</planned-tests>
+    <acceptance>PLANNED: user /login shows "Неверный логин или пароль"; desktop logout sits under Настройки; mobile bottom navigation is reachable without overlap; desktop subscription calendar is compact; Settings language controls are removed; admin/backend/deploy/runtime surfaces remain untouched.</acceptance>
+  </Phase-72-Verification>
 </VerificationIndex>

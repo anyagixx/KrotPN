@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<V-M-075 MODULE="M-075" PRIORITY="high" STATUS="pass-local-phase59-phase62-pass-local-phase68-pass-local-phase69-pass-local-phase70-pass-local-phase71" PHASE-57="pass-local" PHASE-59="pass-local" PHASE-62="pass-local" PHASE-68="pass-local" PHASE-69="pass-local" PHASE-70="pass-local" PHASE-71="pass-local">
+<V-M-075 MODULE="M-075" PRIORITY="high" STATUS="pass-local-phase59-phase62-pass-local-phase68-pass-local-phase69-pass-local-phase70-pass-local-phase71" PHASE-57="pass-local" PHASE-59="pass-local" PHASE-62="pass-local" PHASE-68="pass-local" PHASE-69="pass-local" PHASE-70="pass-local" PHASE-71="pass-local" PHASE-72="planned">
   <scope>Phase-57/Phase-59 premium user cabinet evidence remains valid. Phase-62 verification now defines the compactness and deletion-audit contract for user cabinet, public/auth adjacency, compact UI invariants, responsive regressions, preserved primary workflows, redaction, and protected backend/deploy/runtime isolation.</scope>
   <test-files>
     <file>scripts/phase57-premium-user-cabinet-smoke.mjs</file>
@@ -167,4 +167,16 @@
     <commands>cd frontend &amp;&amp; npm run build; node scripts/phase71-device-config-master-detail-smoke.mjs; node scripts/phase57-premium-user-cabinet-smoke.mjs; node scripts/phase62-compactness-deletion-smoke.mjs</commands>
   </phase-71-verification-design>
   <phase-71-evidence status="pass-local" date="2026-06-04">Frontend build and Phase-71 smoke passed for config master-detail, secondary destructive actions, QR close icon, device label replacement, backend-time copy removal, settings i18n, and Phase-62 collapse marker preservation.</phase-71-evidence>
+  <phase-72-verification-design status="planned">
+    <scope>Premium user cabinet verification for logout placement, mobile navigation, Settings language deletion, and compact calendar.</scope>
+    <gate-1>Desktop cabinet navigation must show Settings followed by Logout and must keep Logout visible without moving it into low-priority footer copy.</gate-1>
+    <gate-2>Mobile cabinet navigation must keep core routes reachable in one tap and must not cover primary actions.</gate-2>
+    <gate-3>Settings must no longer expose language selection controls, language labels, or untranslated English/Russian mode toggles.</gate-3>
+    <gate-4>Calendar compaction must preserve subscription date meaning and not make the dashboard feel bulky.</gate-4>
+    <commands>cd frontend &amp;&amp; npm run build; node scripts/phase57-premium-user-cabinet-smoke.mjs; node scripts/phase72-user-auth-navigation-smoke.mjs</commands>
+  </phase-72-verification-design>
+  <phase-72-required-markers status="planned">
+    <marker-1>[PremiumUserCabinet][phase72][LOGOUT_UNDER_SETTINGS]</marker-1>
+    <marker-2>[PremiumUserCabinet][phase72][RUSSIAN_ONLY_SETTINGS]</marker-2>
+  </phase-72-required-markers>
 </V-M-075>

@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<V-M-074 MODULE="M-074" PRIORITY="critical" STATUS="pass-local-phase61-phase62-pass-local-phase67-pass-local-rainfix-pass-local-phase68-pass-local-phase71" PHASE-61="pass-local" PHASE-62="pass-local" PHASE-67="pass-local" RAINFIX="pass-local" PHASE-68="pass-local" PHASE-71="pass-local">
+<V-M-074 MODULE="M-074" PRIORITY="critical" STATUS="pass-local-phase61-phase62-pass-local-phase67-pass-local-rainfix-pass-local-phase68-pass-local-phase71" PHASE-61="pass-local" PHASE-62="pass-local" PHASE-67="pass-local" RAINFIX="pass-local" PHASE-68="pass-local" PHASE-71="pass-local" PHASE-72="planned">
   <scope>Responsive adaptation verification for phone, tablet, and desktop layouts across public, auth, user-cabinet, and admin Matrix surfaces.</scope>
   <verification-intent>Phase-61 must prove that the premium Matrix UI is intentionally designed for mobile and tablet use, not merely tolerated by desktop CSS.</verification-intent>
   <test-files>
@@ -185,4 +185,15 @@
     <commands>node scripts/phase61-responsive-adaptation-smoke.mjs; node scripts/phase71-device-config-master-detail-smoke.mjs</commands>
   </phase-71-verification-design>
   <phase-71-evidence status="pass-local" date="2026-06-04">Frontend build and Phase-71 smoke passed for compact selected-device UX and sticky-action markers; post-commit Phase-61 and Phase-62 protected regression guards passed cleanly.</phase-71-evidence>
+  <phase-72-verification-design status="planned">
+    <scope>Responsive verification for mobile bottom user navigation and compact desktop calendar.</scope>
+    <gate-1>Phone and tablet viewports must show the bottom navigation without document-level horizontal scroll or overlap with QR, config, subscription, referral, settings, or auth controls.</gate-1>
+    <gate-2>Desktop viewports must show the smaller subscription calendar without broken wrapping, clipped dates, or unreadable range boundary markers.</gate-2>
+    <gate-3>Reduced-motion mode must keep the bottom navigation and calendar state visible without transform-heavy reveal animations.</gate-3>
+    <commands>node scripts/phase61-responsive-adaptation-smoke.mjs; node scripts/phase72-user-auth-navigation-smoke.mjs; browser screenshot review for /dashboard and /dashboard/settings</commands>
+  </phase-72-verification-design>
+  <phase-72-required-markers status="planned">
+    <marker-1>[ResponsiveAdaptation][phase72][MOBILE_DOCK_NO_OVERLAP]</marker-1>
+    <marker-2>[ResponsiveAdaptation][phase72][DESKTOP_CALENDAR_NO_OVERFLOW]</marker-2>
+  </phase-72-required-markers>
 </V-M-074>

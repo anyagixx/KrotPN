@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<V-M-009 MODULE="M-009" PRIORITY="high" STATUS="pass-local-phase46-phase51-phase52-phase53-phase56-phase59-pass-local-phase67-pass-local-session60-pass-local-phase68-pass-local-phase69-pass-local-phase70-pass-local-phase71" VERSION="1.17.0" PHASE-59="pass-local" PHASE-67="pass-local" PHASE-68="pass-local" PHASE-69="pass-local" PHASE-70="pass-local" PHASE-71="pass-local">
+<V-M-009 MODULE="M-009" PRIORITY="high" STATUS="pass-local-phase46-phase51-phase52-phase53-phase56-phase59-pass-local-phase67-pass-local-session60-pass-local-phase68-pass-local-phase69-pass-local-phase70-pass-local-phase71" VERSION="1.18.0" PHASE-59="pass-local" PHASE-67="pass-local" PHASE-68="pass-local" PHASE-69="pass-local" PHASE-70="pass-local" PHASE-71="pass-local" PHASE-72="planned">
   <module>frontend-user</module>
   <checks>User frontend still builds, matches the Phase-28 auth API response shape, makes registration mobile-safe without implying active KrotPN trial before email verification, and resumes valid stored sessions across tabs within the 60-day idle TTL.</checks>
   <test-files>
@@ -190,4 +190,16 @@
     <commands>cd frontend &amp;&amp; npm run build; node scripts/phase71-device-config-master-detail-smoke.mjs; node scripts/phase70-config-qr-parity-smoke.mjs</commands>
   </phase-71-verification-design>
   <phase-71-evidence status="pass-local" date="2026-06-04">Frontend build passed; Phase-71 smoke passed for deviceApi selected-device methods, config master-detail markers, i18n cleanup, QR close icon, sticky actions, and protected deploy/runtime diff guard; Phase-70 QR parity smoke remained green.</phase-71-evidence>
+  <phase-72-verification-design status="planned">
+    <scope>Frontend auth and user-cabinet route verification for invalid-login localization, navigation reachability, Settings language removal, and compact calendar presentation.</scope>
+    <gate-1>/login must render "Неверный логин или пароль" for invalid credentials and must not render "Invalid email or password".</gate-1>
+    <gate-2>Login error mapping must remain frontend-only unless backend auth contract changes are explicitly approved.</gate-2>
+    <gate-3>Layout, Settings, SubscriptionPanel, Dashboard, and route registration must continue to build after removing visible language settings and adding mobile bottom navigation.</gate-3>
+    <gate-4>Smoke output must not print passwords, access tokens, refresh tokens, real emails, or backend auth responses containing credentials.</gate-4>
+    <commands>cd frontend &amp;&amp; npm run build; node scripts/phase72-user-auth-navigation-smoke.mjs; node scripts/session-security-smoke.mjs</commands>
+  </phase-72-verification-design>
+  <phase-72-required-markers status="planned">
+    <marker-1>[FrontendUser][phase72][LOGIN_ERROR_LOCALIZED]</marker-1>
+    <marker-2>[FrontendUser][phase72][LANGUAGE_SETTINGS_REMOVED]</marker-2>
+  </phase-72-required-markers>
 </V-M-009>
