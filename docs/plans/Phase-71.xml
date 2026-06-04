@@ -1,0 +1,129 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Phase-71 NAME="Device Config Retrieval API and Config Page Master-Detail UX" STATUS="done-local" STEPS="16">
+  <summary>Approved plan for per-device VPN config retrieval, compact master-detail device UX, and user-cabinet polish without touching deploy/install/runtime topology.</summary>
+  <approved-by-operator date="2026-06-04">Phase-71 plan confirmed by operator.</approved-by-operator>
+  <modules>M-022,M-066,M-075,M-036,M-063,M-071,M-077,M-080,M-009,M-074,M-003,M-021</modules>
+  <scope>
+    <in>Authenticated read-only per-device config API, per-device .conf download, per-device QR/Amnezia QR rendering, frontend API methods, /dashboard/config master-detail UX, mobile sticky actions, QR modal close-icon polish, frameless cabinet logo, subscription calendar boundary pulse, logout/sidebar ordering, user-cabinet i18n cleanup, and copy removals requested by operator.</in>
+    <out>Deploy/install scripts, nginx, docker-compose, TLS/DNS, VPN topology, MTProto runtime, billing catalog prices, YooKassa flow, database schema changes unless execution proves unavoidable, automatic config rotation on read, and secret-bearing logs.</out>
+  </scope>
+  <data-flow>
+    <flow-1>User selects an existing active device in /dashboard/config.</flow-1>
+    <flow-2>Frontend calls GET /api/v1/devices/{device_id}/config.</flow-2>
+    <flow-3>Backend enforces current-user ownership through device policy and rejects revoked, blocked, missing, or foreign devices.</flow-3>
+    <flow-4>Backend loads the existing active VPN client through VPNService.get_device_client(device_id) and renders with VPNService.get_client_config(client).</flow-4>
+    <flow-5>Frontend detail panel exposes QR, .conf, and Copy for the selected device without rotate/create side effects.</flow-5>
+    <flow-6>Rotate and delete remain available only through a secondary menu and confirmation flow.</flow-6>
+  </data-flow>
+  <steps>
+    <step-1>Update MyGRACE module and verification contracts for Phase-71 planning boundaries.</step-1>
+    <step-2>Add GET /api/v1/devices/{device_id}/config as read-only active-device config retrieval.</step-2>
+    <step-3>Add GET /api/v1/devices/{device_id}/config/download using the existing mobile-safe .conf attachment helper.</step-3>
+    <step-4>Add GET /api/v1/devices/{device_id}/config/qr using the existing QR payload renderer without printing config data.</step-4>
+    <step-5>Add GET /api/v1/devices/{device_id}/config/qr/amnezia if the current Amnezia container helper can preserve exact config_data parity.</step-5>
+    <step-6>Extend frontend deviceApi types and methods for getConfig, downloadConfig, getQRCode, and getAmneziaQRCode.</step-6>
+    <step-7>Rebuild /dashboard/config into compact master-detail: header slots, device list rows, selected-device detail, QR/.conf/Copy primary actions, and disabled create state at device limit.</step-7>
+    <step-8>Move rotate and revoke into a secondary ellipsis menu with confirmation and no adjacent destructive placement near primary QR/.conf/Copy actions.</step-8>
+    <step-9>Implement mobile-safe config UX: compact list, tap-to-select detail, bottom or sticky QR/.conf/Copy actions, safe-area spacing, and no horizontal scroll.</step-9>
+    <step-10>Replace the visible Закрыть button in the QR modal with an animated X icon button and remove the AmneziaVPN QR instruction text requested by operator.</step-10>
+    <step-11>Remove the green square frame around the user-cabinet PNG logo while preserving transparent logo edges and asset budget boundaries.</step-11>
+    <step-12>Add cyberpunk pulse/flicker borders for subscription rangeStart and rangeEnd calendar days with reduced-motion fallback.</step-12>
+    <step-13>Move desktop Выйти below Настройки in the user sidebar ordering.</step-13>
+    <step-14>Remove the backend-time explanatory copy from the trial/subscription card and replace Device-bound список with Список ваших устройств.</step-14>
+    <step-15>Run an i18n pass for Settings, Config, SubscriptionPanel, Layout, and user-cabinet shared labels so English mode does not leak Russian copy for controlled interface strings.</step-15>
+    <step-16>Run backend, frontend, smoke, XML, MyGRACE, diff, and protected-surface verification before marking execution complete.</step-16>
+  </steps>
+  <verification-refs>
+    <verification-ref>V-M-022</verification-ref>
+    <verification-ref>V-M-066</verification-ref>
+    <verification-ref>V-M-075</verification-ref>
+    <verification-ref>V-M-036</verification-ref>
+    <verification-ref>V-M-063</verification-ref>
+    <verification-ref>V-M-071</verification-ref>
+    <verification-ref>V-M-077</verification-ref>
+    <verification-ref>V-M-080</verification-ref>
+    <verification-ref>V-M-009</verification-ref>
+    <verification-ref>V-M-074</verification-ref>
+  </verification-refs>
+  <acceptance>
+    <criterion-1>Existing active devices can be selected and their config, QR, and .conf downloaded without config_version changes or VPN peer rotation.</criterion-1>
+    <criterion-2>Users with up to 9 devices can find, select, and export any device config on desktop and mobile without long awkward scrolling or hidden actions.</criterion-2>
+    <criterion-3>Destructive device actions are secondary, confirmation-safe, and visually separated from QR/.conf/Copy.</criterion-3>
+    <criterion-4>Logo, QR modal, calendar, logout order, subscription copy, devices title, and English settings translation issues match operator requests.</criterion-4>
+    <criterion-5>No deploy/install/nginx/docker-compose/runtime topology changes are present.</criterion-5>
+  </acceptance>
+  <risks>
+    <risk-1>Config retrieval could accidentally reprovision or rotate; backend tests must assert config_version and peer identity are stable on GET.</risk-1>
+    <risk-2>Config, QR payload, private keys, and tokens are secret material; logs and smokes must stay marker-only and redacted.</risk-2>
+    <risk-3>Mobile master-detail or sticky actions can overlap bottom navigation; viewport smoke must cover phone and tablet sizes.</risk-3>
+    <risk-4>i18n cleanup may expose many hardcoded strings; execution should prioritize controlled user-cabinet strings and avoid broad unrelated rewrites.</risk-4>
+  </risks>
+  <verification-commands>
+    <command>cd backend &amp;&amp; SECRET_KEY=test-secret-key-with-enough-length DATA_ENCRYPTION_KEY=dpFmfSVqfdAK3yx5MQV6Tcv35RZuw5MzaH0yhxJ01q0= PYTHONPATH=. ../.venv/bin/python -m pytest -o addopts='' tests/test_device_api.py tests/test_vpn_router_compat.py tests/test_trial_activation.py -v</command>
+    <command>cd frontend &amp;&amp; npm run build</command>
+    <command>node scripts/phase71-device-config-master-detail-smoke.mjs</command>
+    <command>node scripts/phase57-premium-user-cabinet-smoke.mjs; node scripts/phase61-responsive-adaptation-smoke.mjs; node scripts/phase70-config-qr-parity-smoke.mjs</command>
+    <command>python3 -m xml.etree.ElementTree docs/graph-index.xml docs/plan-index.xml docs/verification-index.xml docs/plans/Phase-71.xml</command>
+    <command>mygrace lint; git diff --check; git diff --name-only -- install.sh deploy nginx docker-compose.yml deploy/mtproto-de-compose.yml .env.example mtproto-runtime official-mtproxy telegram-bot</command>
+  </verification-commands>
+  <verification-matrix status="pass-local">
+    <backend-module-local>
+      <target-1 module="M-022">Device config endpoints must enforce current-user ownership and reject missing, foreign, revoked, blocked, inactive, and unprovisioned devices.</target-1>
+      <target-2 module="M-022">GET config, download, QR, and optional Amnezia QR must be read-only: no config_version increment, no key rotation, no new device row, and no new peer provisioning.</target-2>
+      <target-3 module="M-022 M-003">Selected-device config text must be rendered through the existing VPN service path so global config, per-device config, QR payload, and CLI parity stay aligned.</target-3>
+      <target-4 module="M-066">Per-device .conf download must preserve application/octet-stream, attachment, filename and filename-star .conf metadata, nosniff, private/no-store headers, and no .conf.txt fallback.</target-4>
+      <target-5 module="M-063 M-021">Pending trial first-config compatibility and device-limit policy remain unchanged by read-only retrieval endpoints.</target-5>
+    </backend-module-local>
+    <frontend-module-local>
+      <target-1 module="M-009 M-075">/dashboard/config must use compact master-detail UX with device count, disabled create state at plan limit, selected-device detail, and primary QR/.conf/Copy actions.</target-1>
+      <target-2 module="M-075">Rotate and delete must be secondary menu actions with confirmation, separated from QR/.conf/Copy.</target-2>
+      <target-3 module="M-075">QR modal must use an animated icon-only X close button and must not show the removed AmneziaVPN scan instruction.</target-3>
+      <target-4 module="M-009 M-036">Frontend API methods must target selected devices and must not silently fall back to a global/current-device config endpoint.</target-4>
+      <target-5 module="M-009 M-075">Settings, Config, SubscriptionPanel, Layout, and shared cabinet labels must not leak controlled Russian strings in English mode.</target-5>
+    </frontend-module-local>
+    <visual-responsive-wave>
+      <target-1 module="M-080">User-cabinet logo must render transparent PNG edges without a green square frame.</target-1>
+      <target-2 module="M-071 M-077">Calendar rangeStart and rangeEnd days must have cyberpunk pulse/flicker boundaries with reduced-motion fallback.</target-2>
+      <target-3 module="M-074">Mobile views must support 1, 6, and 9 device rows without horizontal scroll, clipped text, bottom-nav overlap, or hidden sticky actions.</target-3>
+      <target-4 module="M-036 M-075">Desktop sidebar must place Выйти below Настройки and keep primary cabinet actions reachable without excessive scrolling.</target-4>
+      <target-5 module="M-071 M-077">All new buttons and icon controls must keep Matrix motion styling while preserving focus visibility and reduced-motion safety.</target-5>
+    </visual-responsive-wave>
+    <phase-level>
+      <gate-1>Backend device/vpn/trial tests must pass before API work can be called done-local.</gate-1>
+      <gate-2>Frontend production build and Phase-71 smoke must pass before UX work can be called done-local.</gate-2>
+      <gate-3>Phase-57, Phase-59, Phase-61, Phase-62, and Phase-70 regressions must stay green because Phase-71 touches their protected surfaces.</gate-3>
+      <gate-4>XML parse, MyGRACE lint, and git diff --check must pass.</gate-4>
+      <gate-5>Protected-surface guard must prove no deploy/install/nginx/docker-compose/runtime/topology drift.</gate-5>
+    </phase-level>
+  </verification-matrix>
+  <execution-evidence status="pass-local" date="2026-06-04">
+    <backend>PASS: backend device/vpn/trial suite passed 31/31 with tests/test_device_api.py, tests/test_vpn_router_compat.py, and tests/test_trial_activation.py.</backend>
+    <frontend>PASS: frontend production build passed after Config master-detail, i18n, subscription calendar, layout logo, and settings updates.</frontend>
+    <smokes>PASS: scripts/phase71-device-config-master-detail-smoke.mjs and scripts/phase70-config-qr-parity-smoke.mjs passed locally; post-commit Phase-57, Phase-59, Phase-61, and Phase-62 regression smokes passed with protected backend/deploy/runtime guards clean.</smokes>
+    <protected-surfaces>PASS: git diff --name-only over install.sh, deploy, nginx, docker-compose.yml, deploy/mtproto-de-compose.yml, .env.example, mtproto-runtime, official-mtproxy, telegram-bot, and frontend-admin returned empty.</protected-surfaces>
+    <notes>Pre-commit Phase-57, Phase-59, Phase-61, and Phase-62 regression scripts initially failed only their own backend protected-diff guards because Phase-71 intentionally changed backend/app/devices/router.py and backend/tests/test_device_api.py; after commit those regression scripts passed cleanly.</notes>
+  </execution-evidence>
+  <required-log-markers status="observed-local">
+    <marker-1>[M-022][get_device_config][DEVICE_CONFIG_READ]</marker-1>
+    <marker-2>[M-022][download_device_config][DEVICE_CONFIG_DOWNLOAD]</marker-2>
+    <marker-3>[M-022][get_device_config_qr][DEVICE_CONFIG_QR]</marker-3>
+    <marker-4>[M-066][build_config_download_response][DOWNLOAD_HEADERS]</marker-4>
+    <marker-5>[PremiumUserCabinet][phase71][DEVICE_MASTER_DETAIL_READY]</marker-5>
+    <marker-6>[PremiumUserCabinet][phase71][SELECTED_DEVICE_EXPORTS_SAFE]</marker-6>
+    <marker-7>[PremiumUserCabinet][phase71][DESTRUCTIVE_ACTIONS_SECONDARY]</marker-7>
+    <marker-8>[PremiumUserCabinet][phase71][I18N_NO_RU_LEAKS]</marker-8>
+    <marker-9>[ResponsiveAdaptation][phase71][MOBILE_STICKY_ACTIONS_SAFE]</marker-9>
+    <marker-10>[MatrixMotion][phase71][CALENDAR_BOUNDARY_PULSE_SAFE]</marker-10>
+    <marker-11>[VisibleLogo][phase71][FRAMELESS_USER_LOGO]</marker-11>
+  </required-log-markers>
+  <telemetry-requirements>
+    <allowed>Route names, device counts, synthetic device IDs, redacted selected-device labels, viewport names, selector markers, response header names, screenshot paths, and pass/fail markers.</allowed>
+    <forbidden>WireGuard private keys, preshared keys, full VPN configs, QR payload bodies, access tokens, refresh tokens, verify/reset tokens, MTProto secrets, tg proxy links with secrets, real user emails, IP history, payment IDs, Resend/YooKassa keys, and deployment secrets.</forbidden>
+    <redaction>Smoke tests and logs must prove behavior with synthetic fixtures or redacted identifiers only; live clean-deploy evidence must be operator-approved before any real user data is captured.</redaction>
+  </telemetry-requirements>
+  <autonomous-execution-safety status="done-local">
+    <allowed>Local execution may modify backend device/VPN read-only route code, frontend user-cabinet code, frontend i18n/CSS, focused tests, smoke scripts, and MyGRACE docs inside Phase-71 scope.</allowed>
+    <blocked>Stop and ask the operator before changing install.sh, deploy scripts, nginx, docker-compose, MTProto runtime, VPN topology, TLS/DNS wiring, billing catalog prices, YooKassa flow, database schema, or secret-handling policy.</blocked>
+    <handoff>If read-only per-device config requires schema changes or runtime topology changes, Phase-71 must be paused and split into a new plan instead of silently expanding scope.</handoff>
+  </autonomous-execution-safety>
+</Phase-71>

@@ -11,12 +11,17 @@ MODULE_MAP
 - test_create_device_returns_device_bound_config_bundle: Verifies create flow provisions a device and returns rendered config.
 - test_create_device_returns_conflict_when_limit_is_exhausted: Verifies device limit failures map to HTTP 409.
 - test_revoke_device_returns_updated_device_state: Verifies revoke flow only returns the caller-owned device.
+- test_get_device_config_returns_existing_config_without_rotation: Verifies read-only selected-device config retrieval.
+- test_device_config_download_uses_mobile_safe_headers: Verifies selected-device .conf download MIME hardening.
+- test_device_config_qr_uses_selected_device_payload: Verifies selected-device QR payload parity.
+- test_device_config_rejects_blocked_or_missing_device: Verifies inactive or foreign devices cannot read configs.
 - test_rotate_device_returns_fresh_config_bundle: Verifies rotate flow returns updated config_version and rendered config.
 - test_blocked_device_cannot_be_used: Verifies blocked device returns blocked status and cannot create new configs.
 
 CHANGE_SUMMARY
 - 2026-03-27: Added router-level device API tests for list/create/revoke/rotate flows.
 - 2026-04-05: Added blocked-device reconnection test.
+- 2026-06-04: Added Phase-71 selected-device read-only config/download/QR tests.
 - 2026-04-20: Aligned test paths with /api/v1/devices prefix and 172.29 client addressing.
 """
 
@@ -152,6 +157,21 @@ class StubVPNService:
             public_key="pub-92",
         )
 
+    async def get_device_client(self, device_id: int, active_only: bool = True):
+        assert device_id == 10
+        assert active_only is True
+        return SimpleNamespace(
+            id=93,
+            user_id=1,
+            device_id=10,
+            is_active=True,
+            route_id=None,
+            entry_node_id=10,
+            created_at=datetime.utcnow(),
+            address="172.29.0.11",
+            public_key="pub-93",
+        )
+
     async def get_client_config(self, client):
         return SimpleNamespace(
             config="[Interface]\nAddress = 172.29.0.9/32",
@@ -216,6 +236,89 @@ def test_create_device_returns_conflict_when_limit_is_exhausted(monkeypatch):
 
     assert response.status_code == 409
     assert response.json()["detail"] == "Device limit exceeded"
+
+
+def test_get_device_config_returns_existing_config_without_rotation(monkeypatch):
+    monkeypatch.setattr(devices_router_module, "DeviceAccessPolicyService", StubPolicyService)
+    monkeypatch.setattr(devices_router_module, "VPNService", StubVPNService)
+    client = _build_app()
+
+    response = client.get("/api/v1/devices/10/config")
+
+    assert response.status_code == 200
+    body = response.json()
+    assert body["device"]["id"] == 10
+    assert body["device"]["config_version"] == 1
+    assert body["config"] == "[Interface]\nAddress = 172.29.0.9/32"
+    assert body["address"] == "172.29.0.11"
+
+
+def test_device_config_download_uses_mobile_safe_headers(monkeypatch):
+    monkeypatch.setattr(devices_router_module, "DeviceAccessPolicyService", StubPolicyService)
+    monkeypatch.setattr(devices_router_module, "VPNService", StubVPNService)
+    client = _build_app()
+
+    response = client.get("/api/v1/devices/10/config/download")
+
+    assert response.status_code == 200
+    assert response.content == b"[Interface]\nAddress = 172.29.0.9/32"
+    assert response.headers["content-type"] == "application/octet-stream"
+    assert response.headers["x-content-type-options"] == "nosniff"
+    assert "no-store" in response.headers["cache-control"]
+    disposition = response.headers["content-disposition"]
+    assert "attachment" in disposition
+    assert 'filename="krotpn-device-10.conf"' in disposition
+    assert ".conf.txt" not in disposition
+
+
+def test_device_config_qr_uses_selected_device_payload(monkeypatch):
+    monkeypatch.setattr(devices_router_module, "DeviceAccessPolicyService", StubPolicyService)
+    monkeypatch.setattr(devices_router_module, "VPNService", StubVPNService)
+
+    def fake_qr(payload: str, *, route_label: str):
+        assert payload == "[Interface]\nAddress = 172.29.0.9/32"
+        assert route_label == "device_config"
+        return b"phase71-device-qr"
+
+    monkeypatch.setattr(devices_router_module, "build_config_qr_png", fake_qr)
+    client = _build_app()
+
+    response = client.get("/api/v1/devices/10/config/qr")
+
+    assert response.status_code == 200
+    assert response.headers["content-type"] == "image/png"
+    assert response.content == b"phase71-device-qr"
+
+
+def test_device_config_amnezia_qr_wraps_selected_device_payload(monkeypatch):
+    monkeypatch.setattr(devices_router_module, "DeviceAccessPolicyService", StubPolicyService)
+    monkeypatch.setattr(devices_router_module, "VPNService", StubVPNService)
+
+    def fake_qr(payload: str, *, route_label: str):
+        assert '"config_data": "[Interface]\\nAddress = 172.29.0.9/32"' in payload
+        assert route_label == "device_config_amnezia"
+        return b"phase71-device-amnezia-qr"
+
+    monkeypatch.setattr(devices_router_module, "build_config_qr_png", fake_qr)
+    client = _build_app()
+
+    response = client.get("/api/v1/devices/10/config/qr/amnezia")
+
+    assert response.status_code == 200
+    assert response.content == b"phase71-device-amnezia-qr"
+
+
+def test_device_config_rejects_blocked_or_missing_device(monkeypatch):
+    monkeypatch.setattr(devices_router_module, "DeviceAccessPolicyService", BlockedDevicePolicyService)
+    monkeypatch.setattr(devices_router_module, "VPNService", StubVPNService)
+    client = _build_app()
+
+    blocked_response = client.get("/api/v1/devices/10/config")
+    missing_response = client.get("/api/v1/devices/999/config")
+
+    assert blocked_response.status_code == 409
+    assert blocked_response.json()["detail"] == "Only active devices can be used for config retrieval"
+    assert missing_response.status_code == 404
 
 
 def test_revoke_device_returns_updated_device_state(monkeypatch):

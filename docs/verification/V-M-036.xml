@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<V-M-036 MODULE="M-036" PRIORITY="high" STATUS="pass-local-phase46-phase53-pass-local-phase68-pass-local-phase69-pass-local-phase70" VERSION="1.6.0" PHASE-68="pass-local" PHASE-69="pass-local" PHASE-70="pass-local">
+<V-M-036 MODULE="M-036" PRIORITY="high" STATUS="pass-local-phase46-phase53-pass-local-phase68-pass-local-phase69-pass-local-phase70-pass-local-phase71" VERSION="1.7.0" PHASE-68="pass-local" PHASE-69="pass-local" PHASE-70="pass-local" PHASE-71="pass-local">
   <module>mobile-user-cabinet</module>
   <checks>User frontend must become compact, phone-friendly, and focused on VPN config, subscription, device workflows, and Phase-45 pending trial countdown/calendar UX.</checks>
   <test-files>frontend/src/components/Layout.tsx frontend/src/components/Loading.tsx frontend/src/pages/Dashboard.tsx frontend/src/pages/Config.tsx frontend/src/pages/Subscription.tsx frontend/src/pages/Referrals.tsx frontend/src/pages/Settings.tsx frontend/src/index.css scripts/phase45-trial-subscription-ux-smoke.mjs scripts/phase46-user-cabinet-ux-smoke.mjs scripts/phase53-user-matrix-ui-smoke.mjs</test-files>
@@ -114,4 +114,12 @@
     <commands>cd frontend &amp;&amp; npm run build; node scripts/phase70-config-qr-parity-smoke.mjs</commands>
   </phase-70-verification-design>
   <phase-70-evidence status="pass-local">2026-06-04: frontend build and Phase-70/57/62 smokes passed; QR/download/copy/device workflows remain compact and reachable while frontend QR settings are lighter.</phase-70-evidence>
+  <phase-71-verification-design status="pass-local">
+    <scope>Mobile and tablet master-detail config workflow verification.</scope>
+    <gate-1>Device list, selected-device detail, QR/.conf/Copy sticky actions, and create-disabled-at-limit state must fit 360x740, 390x844, 430x932, and tablet viewports.</gate-1>
+    <gate-2>Bottom navigation and sticky action controls must not overlap QR, device rows, form fields, or destructive confirmation controls.</gate-2>
+    <gate-3>Users with 9 devices must not be forced through long uncontrolled scrolling to reach the selected-device export actions.</gate-3>
+    <commands>cd frontend &amp;&amp; npm run build; node scripts/phase71-device-config-master-detail-smoke.mjs; node scripts/phase61-responsive-adaptation-smoke.mjs</commands>
+  </phase-71-verification-design>
+  <phase-71-evidence status="pass-local" date="2026-06-04">Frontend build and Phase-71 smoke passed for compact device master-detail, mobile sticky QR/.conf/Copy actions, QR close icon, user-shell logo frame removal, and controlled user-cabinet labels.</phase-71-evidence>
 </V-M-036>

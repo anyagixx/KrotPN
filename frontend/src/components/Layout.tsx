@@ -17,6 +17,7 @@
 // END_MODULE_MAP
 //
 // START_CHANGE_SUMMARY
+//   LAST_CHANGE: v1.8.0 - Added Phase-71 localized user-shell subtitle and final frameless logo marker.
 //   LAST_CHANGE: v1.7.0 - Applied Phase-68 frameless user-shell logo styling without changing brand assets or navigation.
 //   LAST_CHANGE: v1.6.0 - Added Phase-63 visible KrotPN logo marks to desktop and mobile protected user shell without changing navigation.
 //   LAST_CHANGE: v1.5.0 - Added Phase-61 phone/tablet responsive shell, safe-area, and protected-route static proof markers.
@@ -75,7 +76,7 @@ export default function Layout() {
             />
             <div className="min-w-0">
               <h1 className="truncate text-lg font-extrabold">{t('appName')}</h1>
-              <p className="truncate text-xs muted">Личный кабинет</p>
+              <p className="truncate text-xs muted">{t('personalCabinet')}</p>
             </div>
           </div>
 

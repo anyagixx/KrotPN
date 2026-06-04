@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<V-M-063 MODULE="M-063" PRIORITY="critical" STATUS="pass-local-phase53-pass-local-phase68-pass-local-phase69" PHASE-68="pass-local" PHASE-69="pass-local">
+<V-M-063 MODULE="M-063" PRIORITY="critical" STATUS="pass-local-phase53-pass-local-phase68-pass-local-phase69-pass-local-phase71" PHASE-68="pass-local" PHASE-69="pass-local" PHASE-71="pass-local">
   <purpose>Verify Phase-45 four-day trial and first-VPN-handshake activation semantics across billing, VPN, scheduler, and user cabinet UX.</purpose>
   <checks>Pending trial is created after email verification, first config remains available, first successful VPN handshake activates the four-day countdown exactly once, subscription API returns precise remaining time, and mobile UI shows countdown plus calendar without stale 3-day copy.</checks>
   <test-files>
@@ -13,6 +13,7 @@
     <file>frontend/src/pages/Subscription.tsx</file>
     <file>scripts/phase45-trial-subscription-ux-smoke.mjs</file>
     <file>scripts/phase53-user-matrix-ui-smoke.mjs</file>
+    <file phase="71-pass-local">scripts/phase71-device-config-master-detail-smoke.mjs</file>
   </test-files>
   <phase-45-gates>
     <gate-1>Verified registration creates a pending four-day trial that has no running countdown before first VPN handshake.</gate-1>
@@ -94,4 +95,12 @@
     <commands>backend referral, billing, trial activation, scheduler, and migration tests; node scripts/phase69-referral-bonus-smoke.mjs</commands>
   </phase-69-verification-design>
   <phase-69-evidence status="pass-local">2026-06-04: tests/test_trial_activation.py and tests/test_scheduler.py passed for pending referral-bonus activation from first VPN handshake and scheduler scan; frontend build and Phase-69 smoke passed for truthful pending bonus copy.</phase-69-evidence>
+  <phase-71-verification-design status="pass-local">
+    <scope>Subscription copy and calendar boundary marker verification.</scope>
+    <gate-1>The user-visible backend-time explanatory sentence must be absent while countdown fields remain server-derived.</gate-1>
+    <gate-2>Calendar rangeStart and rangeEnd days must have distinct pulsing/flicker cyberpunk boundary classes with reduced-motion fallback.</gate-2>
+    <gate-3>Pending first-VPN activation, active countdown, and cross-month calendar behavior from Phase-45/68 must remain intact.</gate-3>
+    <commands>cd frontend &amp;&amp; npm run build; node scripts/phase45-trial-subscription-ux-smoke.mjs; node scripts/phase71-device-config-master-detail-smoke.mjs</commands>
+  </phase-71-verification-design>
+  <phase-71-evidence status="pass-local" date="2026-06-04">Backend trial activation tests passed within the 31-test backend suite; frontend build and Phase-71 smoke passed for backend-time copy removal and rangeStart/rangeEnd subscription calendar boundary markers.</phase-71-evidence>
 </V-M-063>

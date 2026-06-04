@@ -16,6 +16,7 @@
 // END_MODULE_MAP
 //
 // START_CHANGE_SUMMARY
+//   LAST_CHANGE: v1.2.0 - Added Phase-71 localized subscription copy and calendar boundary markers.
 //   LAST_CHANGE: v1.1.0 - Added Phase-69 referral-bonus pending access copy via access_label.
 //   LAST_CHANGE: v1.0.0 - Added Phase-68 shared dashboard-owned subscription/tariff/calendar panel.
 // END_CHANGE_SUMMARY
@@ -38,7 +39,10 @@ import toast from 'react-hot-toast'
 import { billingApi, deviceApi, Plan, SubscriptionStatus } from '../lib/api'
 import Loading from './Loading'
 
-const weekdayLabels = ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс']
+const weekdayLabelsByLanguage = {
+  ru: ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс'],
+  en: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+}
 
 const planPresentation = {
   'krotpn-1': {
@@ -87,28 +91,28 @@ function getPlanPresentation(plan: Plan) {
   }
 }
 
-function formatRemaining(subscription?: SubscriptionStatus) {
-  if (!subscription?.has_subscription) return 'Нет активного доступа'
-  if (subscription.pending_activation && subscription.access_label === 'referral-bonus') return 'Бонус ожидает подключения'
-  if (subscription.pending_activation && subscription.access_label === 'trial-referral-bonus') return 'Trial + бонус ожидают'
-  if (subscription.pending_activation) return 'Ожидает подключения'
-  if (!subscription.is_active) return 'Доступ закончился'
+function formatRemaining(subscription: SubscriptionStatus | undefined, t: (key: string) => string) {
+  if (!subscription?.has_subscription) return t('noActiveAccess')
+  if (subscription.pending_activation && subscription.access_label === 'referral-bonus') return t('bonusWaitingConnection')
+  if (subscription.pending_activation && subscription.access_label === 'trial-referral-bonus') return t('trialBonusWaitingConnection')
+  if (subscription.pending_activation) return t('waitingForConnection')
+  if (!subscription.is_active) return t('accessExpired')
   return `${subscription.remaining_days}д ${subscription.remaining_hours}ч ${subscription.remaining_minutes}м`
 }
 
-function subscriptionDescription(subscription?: SubscriptionStatus) {
-  if (!subscription?.has_subscription) return 'Выберите тариф, оплатите и сразу откройте конфиг.'
+function subscriptionDescription(subscription: SubscriptionStatus | undefined, t: (key: string, options?: Record<string, unknown>) => string) {
+  if (!subscription?.has_subscription) return t('subscriptionDescriptionNone')
   if (subscription.pending_activation && subscription.access_label === 'referral-bonus') {
     const days = subscription.pending_duration_days || 7
-    return `Бонусные ${days} дней уже доступны. Таймер стартует после первого подключения.`
+    return t('subscriptionDescriptionReferral', { days })
   }
   if (subscription.pending_activation && subscription.access_label === 'trial-referral-bonus') {
     const days = subscription.pending_duration_days || 11
-    return `Конфиг уже доступен. ${days} дней trial и бонуса стартуют после первого подключения.`
+    return t('subscriptionDescriptionTrialReferral', { days })
   }
-  if (subscription.pending_activation) return 'Конфиг уже доступен. Таймер на 4 дня стартует после первого подключения.'
-  if (subscription.is_active) return 'Оставшееся время рассчитано backend по серверному времени.'
-  return 'Продлите подписку, чтобы снова открыть VPN доступ.'
+  if (subscription.pending_activation) return t('subscriptionDescriptionPending')
+  if (subscription.is_active) return t('subscriptionDescriptionActive')
+  return t('subscriptionDescriptionExpired')
 }
 
 function startOfDay(value: Date) {
@@ -119,12 +123,12 @@ function sameMonth(left: Date, right: Date) {
   return left.getFullYear() === right.getFullYear() && left.getMonth() === right.getMonth()
 }
 
-function buildMonthGrid(monthAnchor: Date, rangeStart: Date | null, rangeEnd: Date | null): CalendarMonth {
+function buildMonthGrid(monthAnchor: Date, rangeStart: Date | null, rangeEnd: Date | null, locale: string): CalendarMonth {
   const monthStart = new Date(monthAnchor.getFullYear(), monthAnchor.getMonth(), 1)
   const gridStart = new Date(monthStart)
   gridStart.setDate(monthStart.getDate() - ((monthStart.getDay() + 6) % 7))
   const today = startOfDay(new Date()).getTime()
-  const formatter = new Intl.DateTimeFormat('ru-RU', { month: 'long', year: 'numeric' })
+  const formatter = new Intl.DateTimeFormat(locale, { month: 'long', year: 'numeric' })
 
   const days = Array.from({ length: 42 }, (_, index) => {
     const date = new Date(gridStart)
@@ -140,7 +144,7 @@ function buildMonthGrid(monthAnchor: Date, rangeStart: Date | null, rangeEnd: Da
       today: dayStart === today,
       rangeStart: !!rangeStart && dayStart === rangeStart.getTime(),
       rangeEnd: !!rangeEnd && dayStart === rangeEnd.getTime(),
-      dateLabel: date.toLocaleDateString('ru-RU'),
+      dateLabel: date.toLocaleDateString(locale),
     }
   })
 
@@ -151,23 +155,23 @@ function buildMonthGrid(monthAnchor: Date, rangeStart: Date | null, rangeEnd: Da
   }
 }
 
-function buildCalendarMonths(subscription?: SubscriptionStatus): CalendarMonth[] {
+function buildCalendarMonths(subscription: SubscriptionStatus | undefined, locale: string): CalendarMonth[] {
   const activeFrom = subscription?.active_from || subscription?.activated_at || subscription?.started_at
   const activeUntil = subscription?.active_until || subscription?.expires_at
   const rangeStart = activeFrom ? startOfDay(new Date(activeFrom)) : null
   const rangeEnd = activeUntil ? startOfDay(new Date(activeUntil)) : null
   const anchor = rangeStart || startOfDay(new Date())
-  const months = [buildMonthGrid(anchor, rangeStart, rangeEnd)]
+  const months = [buildMonthGrid(anchor, rangeStart, rangeEnd, locale)]
 
   if (rangeStart && rangeEnd && !sameMonth(rangeStart, rangeEnd)) {
-    months.push(buildMonthGrid(rangeEnd, rangeStart, rangeEnd))
+    months.push(buildMonthGrid(rangeEnd, rangeStart, rangeEnd, locale))
   }
 
   return months
 }
 
 export default function SubscriptionPanel({ compact = false }: SubscriptionPanelProps) {
-  const { t } = useTranslation()
+  const { t, i18n } = useTranslation()
   const { data: plansData, isLoading: plansLoading, isError: plansError } = useQuery('plans', () => billingApi.getPlans())
   const { data: subData, isLoading: subLoading, isError: subError } = useQuery('subscription', () => billingApi.getSubscription(), {
     refetchInterval: 30000,
@@ -195,7 +199,9 @@ export default function SubscriptionPanel({ compact = false }: SubscriptionPanel
 
   const plans = [...(plansData?.data || [])].sort((a, b) => a.sort_order - b.sort_order)
   const subscription = subData?.data
-  const calendarMonths = buildCalendarMonths(subscription)
+  const locale = i18n.language === 'en' ? 'en-US' : 'ru-RU'
+  const weekdayLabels = i18n.language === 'en' ? weekdayLabelsByLanguage.en : weekdayLabelsByLanguage.ru
+  const calendarMonths = buildCalendarMonths(subscription, locale)
   const consumedSlots = deviceData?.data.consumed_slots ?? 0
 
   const handleSubscribe = async (planId: number) => {
@@ -225,11 +231,11 @@ export default function SubscriptionPanel({ compact = false }: SubscriptionPanel
               {subscription?.has_subscription ? subscription.plan_name || 'Доступ KrotPN' : 'Нет активного доступа'}
             </h2>
             <p className="mt-2 text-sm muted">
-              {subscriptionDescription(subscription)}
+              {subscriptionDescription(subscription, t)}
             </p>
             {subscription?.active_until ? (
               <p className="mt-2 text-xs muted">
-                до {new Date(subscription.active_until).toLocaleString('ru-RU')}
+                {new Date(subscription.active_until).toLocaleString(locale)}
               </p>
             ) : null}
           </div>
@@ -240,7 +246,7 @@ export default function SubscriptionPanel({ compact = false }: SubscriptionPanel
                 : 'status-badge-warning motion-status w-fit shrink-0'
             }
           >
-            {formatRemaining(subscription)}
+            {formatRemaining(subscription, t)}
           </span>
         </div>
       </article>
@@ -258,7 +264,6 @@ export default function SubscriptionPanel({ compact = false }: SubscriptionPanel
             const Icon = presentation.icon
             const isPopular = Boolean(plan.is_popular)
             const blockedByDevices = consumedSlots > plan.device_limit
-            const usageText = `${Math.min(consumedSlots, plan.device_limit)} из ${plan.device_limit}`
 
             return (
               <article
@@ -276,7 +281,7 @@ export default function SubscriptionPanel({ compact = false }: SubscriptionPanel
                     <div className="min-w-0">
                       <div className="flex flex-wrap items-center gap-2">
                         <h3 className="truncate text-lg font-extrabold">{presentation.name}</h3>
-                        {isPopular ? <span className="status-badge-success">Популярный</span> : null}
+                        {isPopular ? <span className="status-badge-success">{t('popular')}</span> : null}
                       </div>
                       <p className="mt-1 text-sm muted">{presentation.description}</p>
                       <div className="mt-2 flex flex-wrap items-end gap-x-2 gap-y-1">
@@ -292,15 +297,15 @@ export default function SubscriptionPanel({ compact = false }: SubscriptionPanel
                     <div className="flex flex-wrap gap-2 text-xs">
                       <span className="metric-pill">
                         <Laptop className="h-3.5 w-3.5" />
-                        {plan.device_limit} устройств
+                        {t('devicesCount', { count: plan.device_limit })}
                       </span>
                       <span className={blockedByDevices ? 'danger-pill' : 'metric-pill'}>
-                        Занято {usageText}
+                        {t('devicesOccupied', { used: Math.min(consumedSlots, plan.device_limit), limit: plan.device_limit })}
                       </span>
                     </div>
                     {blockedByDevices ? (
                       <p className="text-sm text-amber-100">
-                        Для этого тарифа занято слишком много устройств. Сначала отзовите лишние в разделе конфигураций.
+                        {t('planBlockedByDevices')}
                       </p>
                     ) : null}
                     <button
@@ -310,7 +315,7 @@ export default function SubscriptionPanel({ compact = false }: SubscriptionPanel
                       data-phase57-renewal-cta="plan-id-only"
                     >
                       <CreditCard className="h-5 w-5" />
-                      {blockedByDevices ? 'Недоступно' : subscription?.has_subscription ? t('extend') : t('buy')}
+                      {blockedByDevices ? t('planUnavailable') : subscription?.has_subscription ? t('extend') : t('buy')}
                     </button>
                   </div>
                 </div>
@@ -324,8 +329,8 @@ export default function SubscriptionPanel({ compact = false }: SubscriptionPanel
         <div className="empty-state">
           <ShieldCheck className="h-10 w-10 text-cyan-100" />
           <div>
-            <p className="text-lg font-semibold">Активные планы пока не опубликованы</p>
-            <p className="mt-1 text-sm muted">Когда администратор добавит тарифы, они появятся здесь автоматически.</p>
+            <p className="text-lg font-semibold">{t('activePlansNotPublished')}</p>
+            <p className="mt-1 text-sm muted">{t('activePlansHint')}</p>
           </div>
         </div>
       ) : null}
@@ -338,13 +343,13 @@ export default function SubscriptionPanel({ compact = false }: SubscriptionPanel
       >
         <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
           <div className="min-w-0">
-            <p className="text-xs font-bold uppercase text-cyan-100/70">Календарь подписки</p>
+            <p className="text-xs font-bold uppercase text-cyan-100/70">{t('subscriptionCalendar')}</p>
             <p className="mt-1 text-sm muted">
               {subscription?.pending_activation
-                ? 'Даты подсветятся после первого подключения.'
+                ? t('subscriptionCalendarPending')
                 : subscription?.active_from && subscription?.active_until
-                  ? `${new Date(subscription.active_from).toLocaleDateString('ru-RU')} - ${new Date(subscription.active_until).toLocaleDateString('ru-RU')}`
-                  : 'Нет активного диапазона подписки.'}
+                  ? `${new Date(subscription.active_from).toLocaleDateString(locale)} - ${new Date(subscription.active_until).toLocaleDateString(locale)}`
+                  : t('subscriptionCalendarEmpty')}
             </p>
           </div>
           <Calendar className="h-5 w-5 shrink-0 text-cyan-100" />
@@ -370,6 +375,7 @@ export default function SubscriptionPanel({ compact = false }: SubscriptionPanel
                       day.rangeStart ? 'phase68-calendar-day-start' : '',
                       day.rangeEnd ? 'phase68-calendar-day-end' : '',
                     ].join(' ')}
+                    data-phase71-calendar-boundary={day.rangeStart ? 'range-start' : day.rangeEnd ? 'range-end' : undefined}
                   >
                     {day.label}
                   </span>

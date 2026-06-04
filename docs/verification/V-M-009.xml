@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<V-M-009 MODULE="M-009" PRIORITY="high" STATUS="pass-local-phase46-phase51-phase52-phase53-phase56-phase59-pass-local-phase67-pass-local-session60-pass-local-phase68-pass-local-phase69-pass-local-phase70" VERSION="1.16.0" PHASE-59="pass-local" PHASE-67="pass-local" PHASE-68="pass-local" PHASE-69="pass-local" PHASE-70="pass-local">
+<V-M-009 MODULE="M-009" PRIORITY="high" STATUS="pass-local-phase46-phase51-phase52-phase53-phase56-phase59-pass-local-phase67-pass-local-session60-pass-local-phase68-pass-local-phase69-pass-local-phase70-pass-local-phase71" VERSION="1.17.0" PHASE-59="pass-local" PHASE-67="pass-local" PHASE-68="pass-local" PHASE-69="pass-local" PHASE-70="pass-local" PHASE-71="pass-local">
   <module>frontend-user</module>
   <checks>User frontend still builds, matches the Phase-28 auth API response shape, makes registration mobile-safe without implying active KrotPN trial before email verification, and resumes valid stored sessions across tabs within the 60-day idle TTL.</checks>
   <test-files>
@@ -37,6 +37,7 @@
     <file>scripts/phase59-motion-interactions-smoke.mjs</file>
     <file phase="67-pass-local">scripts/phase67-auth-splash-smoke.mjs</file>
     <file phase="70-pass-local">scripts/phase70-config-qr-parity-smoke.mjs</file>
+    <file phase="71-pass-local">scripts/phase71-device-config-master-detail-smoke.mjs</file>
     <file>scripts/session-security-smoke.mjs</file>
   </test-files>
   <commands>pass-local 2026-06-04: Verify-email frameless polish, login stored-session redirect, and 60-day session helper token persistence passed frontend build plus Phase-28/53/56/67/session smokes.</commands>
@@ -181,4 +182,12 @@
     <commands>cd frontend &amp;&amp; npm run build; node scripts/phase70-config-qr-parity-smoke.mjs</commands>
   </phase-70-verification-design>
   <phase-70-evidence status="pass-local">2026-06-04: frontend build and scripts/phase70-config-qr-parity-smoke.mjs passed for level-M QR settings, preserved download/copy/config API flows, compact config page markers, and protected deploy/runtime guard.</phase-70-evidence>
+  <phase-71-verification-design status="pass-local">
+    <scope>Frontend API, i18n, and user-cabinet route verification for per-device config retrieval.</scope>
+    <gate-1>deviceApi must expose selected-device config, download, QR, and optional Amnezia QR methods with typed responses and without breaking existing create/rotate/revoke/list APIs.</gate-1>
+    <gate-2>English language mode must not leak the known hardcoded Russian strings in Settings, Config, SubscriptionPanel, and Layout controlled labels.</gate-2>
+    <gate-3>Frontend smokes must not print full config payloads, private keys, selected-device config text, auth tokens, or real emails.</gate-3>
+    <commands>cd frontend &amp;&amp; npm run build; node scripts/phase71-device-config-master-detail-smoke.mjs; node scripts/phase70-config-qr-parity-smoke.mjs</commands>
+  </phase-71-verification-design>
+  <phase-71-evidence status="pass-local" date="2026-06-04">Frontend build passed; Phase-71 smoke passed for deviceApi selected-device methods, config master-detail markers, i18n cleanup, QR close icon, sticky actions, and protected deploy/runtime diff guard; Phase-70 QR parity smoke remained green.</phase-71-evidence>
 </V-M-009>

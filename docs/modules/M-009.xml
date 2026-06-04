@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<M-009 NAME="frontend-user" TYPE="UI_COMPONENT" STATUS="pass-local-phase46-phase51-phase52-phase53-phase56-phase59-pass-local-phase67-pass-local-session60-pass-local-phase68-pass-local-phase69-pass-local-phase70">
-  <path>frontend frontend/public frontend/index.html frontend/vite.config.ts frontend/src/lib/session.ts scripts/session-security-smoke.mjs scripts/phase59-motion-interactions-smoke.mjs docs/plans/Phase-67.xml docs/plans/Phase-68.xml docs/plans/Phase-69.xml docs/plans/Phase-70.xml scripts/phase67-auth-splash-smoke.mjs scripts/phase68-dashboard-subscription-smoke.mjs scripts/phase69-referral-bonus-smoke.mjs scripts/phase70-config-qr-parity-smoke.mjs</path>
+<M-009 NAME="frontend-user" TYPE="UI_COMPONENT" STATUS="pass-local-phase46-phase51-phase52-phase53-phase56-phase59-pass-local-phase67-pass-local-session60-pass-local-phase68-pass-local-phase69-pass-local-phase70-pass-local-phase71">
+  <path>frontend frontend/public frontend/index.html frontend/vite.config.ts frontend/src/lib/session.ts scripts/session-security-smoke.mjs scripts/phase59-motion-interactions-smoke.mjs docs/plans/Phase-67.xml docs/plans/Phase-68.xml docs/plans/Phase-69.xml docs/plans/Phase-70.xml docs/plans/Phase-71.xml scripts/phase67-auth-splash-smoke.mjs scripts/phase68-dashboard-subscription-smoke.mjs scripts/phase69-referral-bonus-smoke.mjs scripts/phase70-config-qr-parity-smoke.mjs scripts/phase71-device-config-master-detail-smoke.mjs</path>
   <owns>login, verified registration, password recovery, verify-email activation, dashboard, config delivery, subscription management, pending trial countdown/calendar UX, referrals and settings UI with per-device config awareness</owns>
   <depends>M-002, M-003, M-004, M-005, M-022, M-039, M-070, M-071, M-077</depends>
   <verification-ref>V-M-009</verification-ref>
@@ -42,6 +42,7 @@
     <file>scripts/phase68-dashboard-subscription-smoke.mjs</file>
     <file>scripts/phase69-referral-bonus-smoke.mjs</file>
     <file>scripts/phase70-config-qr-parity-smoke.mjs</file>
+    <file>scripts/phase71-device-config-master-detail-smoke.mjs</file>
   </files>
   <phase-23-scope>
     <primary-files>Layout.tsx, Dashboard.tsx, Config.tsx, Subscription.tsx, index.css</primary-files>
@@ -117,4 +118,10 @@
   <phase-70-execution-evidence>
     <local-2026-06-04>Phase-70 retunes frontend/src/pages/Config.tsx QRCodeCanvas to level M, 224px size, and included margin, adds data-phase70 QR parity/lightweight markers, preserves application/octet-stream config download behavior, and passes frontend build plus Phase-70 smoke.</local-2026-06-04>
   </phase-70-execution-evidence>
+  <phase-71-executed-scope>
+    <primary-files>frontend/src/lib/api.ts frontend/src/pages/Config.tsx frontend/src/components/Layout.tsx frontend/src/components/SubscriptionPanel.tsx frontend/src/pages/Settings.tsx frontend/src/i18n/index.ts frontend/src/index.css scripts/phase71-device-config-master-detail-smoke.mjs</primary-files>
+    <primary-behaviors>Add typed per-device config API methods, remove hardcoded Russian strings from controlled user-cabinet labels in English mode, and keep existing auth/session/dashboard route contracts unchanged.</primary-behaviors>
+    <verification>Frontend build and Phase-71 smoke prove English settings/config/subscription strings are not leaking the known Russian literals while redacting config payloads.</verification>
+  </phase-71-executed-scope>
+  <phase-71-evidence status="pass-local" date="2026-06-04">Frontend build and Phase-71 smoke passed for selected-device API methods, Config master-detail, Layout/Settings/SubscriptionPanel i18n, compact labels, QR close icon, and no secret-bearing output.</phase-71-evidence>
 </M-009>

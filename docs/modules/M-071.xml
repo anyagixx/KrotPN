@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<M-071 NAME="matrix-style-system" TYPE="UI_COMPONENT" STATUS="done-local-phase52-phase53-phase54-phase55-phase56-phase59-pass-local-phase67-pass-local-rainfix-pass-local-phase68-pass-local-phase70">
+<M-071 NAME="matrix-style-system" TYPE="UI_COMPONENT" STATUS="done-local-phase52-phase53-phase54-phase55-phase56-phase59-pass-local-phase67-pass-local-rainfix-pass-local-phase68-pass-local-phase70-pass-local-phase71">
   <path>frontend/src/index.css frontend-admin/src/index.css frontend/src/components/Layout.tsx frontend-admin/src/components/Layout.tsx scripts/phase52-matrix-visual-smoke.mjs scripts/phase53-user-matrix-ui-smoke.mjs scripts/phase54-admin-matrix-ui-smoke.mjs scripts/phase55-premium-art-direction-smoke.mjs scripts/phase56-premium-public-auth-smoke.mjs scripts/phase59-motion-interactions-smoke.mjs scripts/phase61-responsive-adaptation-smoke.mjs docs/plans/Phase-52.xml docs/plans/Phase-53.xml docs/plans/Phase-54.xml docs/plans/Phase-55.xml docs/plans/Phase-56.xml docs/plans/Phase-59.xml docs/plans/Phase-67.xml docs/plans/Phase-68.xml docs/plans/Phase-70.xml scripts/phase67-auth-splash-smoke.mjs scripts/phase68-dashboard-subscription-smoke.mjs scripts/phase70-config-qr-parity-smoke.mjs</path>
   <owns>Shared KrotPN Matrix visual language: color tokens, compact panels, CRT scanlines, neon flicker, glitch accents, focus states, and mobile-safe responsive rules.</owns>
   <depends>M-009, M-010, M-036, M-037, M-038, M-070, M-077</depends>
@@ -22,6 +22,7 @@
     <interface-6>Phase-55 premium art-direction tokens for balanced palette, compact typography, density, logo sizing, shadow, focus, and reduced-motion shell rules.</interface-6>
     <interface-7>Phase-56 public/auth classes for matrix-public-page, matrix-public-hero, matrix-public-band, matrix-public-tariff, matrix-brand-logo, and matrix-auth-brand-lockup.</interface-7>
     <interface-8>Phase-59 motion classes for motion-route-enter, motion-interactive, motion-copy-success, motion-feedback-success/error, motion-status, and reduced-motion fallbacks.</interface-8>
+    <interface-9 phase="71-pass-local">Phase-71 implemented classes for frameless protected logo, icon-only QR close, selected-device master-detail rows, sticky mobile config actions, and pulsing subscription boundary dates.</interface-9>
   </public-interfaces>
   <constraints>
     <constraint-1>Preserve compact operational UX: no marketing landing page, no nested cards, no decorative card-heavy dashboards.</constraint-1>
@@ -51,6 +52,11 @@
     <phase-68-local-2026-06-04>Added frameless user-shell logo CSS, compact dashboard subscription panel styles, responsive tariff grid, and compact cross-month calendar rules; Phase-68/57/62/61/60 smokes and builds passed.</phase-68-local-2026-06-04>
     <phase-70-local-2026-06-04>Phase-70 preserved the compact config page style system and used route-local QR spacing/size adjustments in Config.tsx rather than adding global CSS bloat; frontend build and Phase-70 smoke passed.</phase-70-local-2026-06-04>
   </evidence>
+  <phase-71-executed-scope>
+    <primary-files>frontend/src/index.css frontend/src/pages/Config.tsx frontend/src/components/Layout.tsx frontend/src/components/SubscriptionPanel.tsx scripts/phase71-device-config-master-detail-smoke.mjs</primary-files>
+    <primary-behaviors>Support the compact master-detail config page, icon-only modal close, frameless transparent PNG logo presentation, and start/end calendar pulse borders without text overlap or motion overload.</primary-behaviors>
+    <verification>Style smoke must preserve reduced-motion fallbacks, no horizontal scroll, no nested-card bloat, and no protected deploy/runtime diffs.</verification>
+  </phase-71-executed-scope>
   <phase-67-verification-design>
     <scope>Frontend auth-only style polish for frameless public/auth screens without changing user cabinet or admin layout contracts.</scope>
     <selectors>Planned auth primitives include frameless matrix-auth-screen variants, large unframed logo sizing, icon-safe input padding, red focus/active border states, hover/active input reactions, elegant primary buttons, side-by-side secondary auth actions, and reduced-motion fallbacks.</selectors>
@@ -68,5 +74,7 @@
     <rainfix>Adds CSS rain fallback and mobile overscan constraints for Matrix background reliability.</rainfix>
     <phase-68>Adds compact dashboard subscription merge styling and frameless user-shell logo treatment.</phase-68>
     <phase-70>Keeps QR page compaction and payload parity markers within the existing compact Matrix config workflow.</phase-70>
+    <phase-71>Implements master-detail config UX styling, icon close polish, subscription boundary emphasis, and final frameless cabinet logo correction.</phase-71>
   </crosslinks>
+  <phase-71-evidence status="pass-local" date="2026-06-04">Frontend build and Phase-71 smoke passed for master-detail CSS, selected-row state, icon-only QR close, frameless user logo, calendar boundary pulse, and reduced-motion fallback.</phase-71-evidence>
 </M-071>

@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<V-M-075 MODULE="M-075" PRIORITY="high" STATUS="pass-local-phase59-phase62-pass-local-phase68-pass-local-phase69-pass-local-phase70" PHASE-57="pass-local" PHASE-59="pass-local" PHASE-62="pass-local" PHASE-68="pass-local" PHASE-69="pass-local" PHASE-70="pass-local">
+<V-M-075 MODULE="M-075" PRIORITY="high" STATUS="pass-local-phase59-phase62-pass-local-phase68-pass-local-phase69-pass-local-phase70-pass-local-phase71" PHASE-57="pass-local" PHASE-59="pass-local" PHASE-62="pass-local" PHASE-68="pass-local" PHASE-69="pass-local" PHASE-70="pass-local" PHASE-71="pass-local">
   <scope>Phase-57/Phase-59 premium user cabinet evidence remains valid. Phase-62 verification now defines the compactness and deletion-audit contract for user cabinet, public/auth adjacency, compact UI invariants, responsive regressions, preserved primary workflows, redaction, and protected backend/deploy/runtime isolation.</scope>
   <test-files>
     <file>scripts/phase57-premium-user-cabinet-smoke.mjs</file>
@@ -29,6 +29,8 @@
     <file phase="69-pass-local">scripts/phase69-referral-bonus-smoke.mjs</file>
     <file phase="70-pass-local">docs/plans/Phase-70.xml</file>
     <file phase="70-pass-local">scripts/phase70-config-qr-parity-smoke.mjs</file>
+    <file phase="71-pass-local">docs/plans/Phase-71.xml</file>
+    <file phase="71-pass-local">scripts/phase71-device-config-master-detail-smoke.mjs</file>
   </test-files>
   <module-checks>
     <check-1 status="pass-local">cd frontend &amp;&amp; npm run build</check-1>
@@ -156,4 +158,13 @@
     <gate-3>Visual QR simplification is allowed only after payload parity with backend and CLI is proven by M-003/M-022 gates.</gate-3>
     <commands>cd frontend &amp;&amp; npm run build; node scripts/phase70-config-qr-parity-smoke.mjs; node scripts/phase62-compactness-deletion-smoke.mjs</commands>
   </phase-70-verification-design>
+  <phase-71-verification-design status="pass-local">
+    <scope>User cabinet config master-detail and requested polish verification.</scope>
+    <gate-1>/dashboard/config must show compact device slots, selected-device detail, QR/.conf/Copy primary actions, and no raw config/diagnostic panel return.</gate-1>
+    <gate-2>Rotate and delete must be secondary confirmation-safe actions, not adjacent to the primary export controls.</gate-2>
+    <gate-3>QR modal must use an icon-only X close button and must not show the removed AmneziaVPN scan instruction.</gate-3>
+    <gate-4>Desktop Выйти ordering, Device-bound label replacement, subscription helper-copy removal, and Settings English i18n cleanup must pass static smoke.</gate-4>
+    <commands>cd frontend &amp;&amp; npm run build; node scripts/phase71-device-config-master-detail-smoke.mjs; node scripts/phase57-premium-user-cabinet-smoke.mjs; node scripts/phase62-compactness-deletion-smoke.mjs</commands>
+  </phase-71-verification-design>
+  <phase-71-evidence status="pass-local" date="2026-06-04">Frontend build and Phase-71 smoke passed for config master-detail, secondary destructive actions, QR close icon, device label replacement, backend-time copy removal, settings i18n, and Phase-62 collapse marker preservation.</phase-71-evidence>
 </V-M-075>

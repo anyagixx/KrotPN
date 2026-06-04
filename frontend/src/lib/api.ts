@@ -19,13 +19,14 @@
 //   vpnApi - Config, download, QR, stats, nodes, routes
 //   CONFIG_DOWNLOAD_MIME_TYPE - Browser-safe MIME type for .conf attachment downloads
 //   session helpers - Enforce user session inactivity TTL and persist refreshed tokens
-//   deviceApi - List, create, rotate, revoke
+//   deviceApi - List, create, read selected config, download selected config, QR, rotate, revoke
 //   billingApi - Get plans, subscription, create payment
 //   referralApi - Get code, stats, list
 //   mtprotoApi - Get current user's owner-only Telegram proxy state
 // END_MODULE_MAP
 //
 // START_CHANGE_SUMMARY
+//   LAST_CHANGE: 2026-06-04 - Added Phase-71 per-device config, download, and QR API methods.
 //   LAST_CHANGE: 2026-06-04 - Added Phase-69 referral masked identity and subscription access_label API fields.
 //   LAST_CHANGE: 2026-06-04 - Added 60-day user session inactivity TTL enforcement and last-seen refresh through API requests.
 //   LAST_CHANGE: 2026-06-02 - Added Phase-50 paid tariff catalog fields to billing plan API contract
@@ -389,6 +390,23 @@ export const deviceApi = {
 
   create: (data: { name: string; platform?: string }) =>
     api.post<DeviceConfigBundle>('/devices', data),
+
+  getConfig: (deviceId: number) =>
+    api.get<DeviceConfigBundle>(`/devices/${deviceId}/config`),
+
+  downloadConfig: (deviceId: number) =>
+    api.get(`/devices/${deviceId}/config/download`, {
+      responseType: 'blob',
+      headers: {
+        Accept: CONFIG_DOWNLOAD_MIME_TYPE,
+      },
+    }),
+
+  getQRCode: (deviceId: number) =>
+    api.get(`/devices/${deviceId}/config/qr`, { responseType: 'blob' }),
+
+  getAmneziaQRCode: (deviceId: number) =>
+    api.get(`/devices/${deviceId}/config/qr/amnezia`, { responseType: 'blob' }),
 
   rotate: (deviceId: number) =>
     api.post<DeviceConfigBundle>(`/devices/${deviceId}/rotate`),

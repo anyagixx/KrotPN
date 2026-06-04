@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<V-M-074 MODULE="M-074" PRIORITY="critical" STATUS="pass-local-phase61-phase62-pass-local-phase67-pass-local-rainfix-pass-local-phase68" PHASE-61="pass-local" PHASE-62="pass-local" PHASE-67="pass-local" RAINFIX="pass-local" PHASE-68="pass-local">
+<V-M-074 MODULE="M-074" PRIORITY="critical" STATUS="pass-local-phase61-phase62-pass-local-phase67-pass-local-rainfix-pass-local-phase68-pass-local-phase71" PHASE-61="pass-local" PHASE-62="pass-local" PHASE-67="pass-local" RAINFIX="pass-local" PHASE-68="pass-local" PHASE-71="pass-local">
   <scope>Responsive adaptation verification for phone, tablet, and desktop layouts across public, auth, user-cabinet, and admin Matrix surfaces.</scope>
   <verification-intent>Phase-61 must prove that the premium Matrix UI is intentionally designed for mobile and tablet use, not merely tolerated by desktop CSS.</verification-intent>
   <test-files>
@@ -7,6 +7,7 @@
     <file>scripts/phase60-premium-qa-smoke.mjs</file>
     <file phase="62-pass-local">scripts/phase62-compactness-deletion-smoke.mjs</file>
     <file phase="67-pass-local">scripts/phase67-auth-splash-smoke.mjs</file>
+    <file phase="71-pass-local">scripts/phase71-device-config-master-detail-smoke.mjs</file>
     <file>frontend/src/App.tsx</file>
     <file>frontend/src/components/Layout.tsx</file>
     <file>frontend/src/components/MatrixBackground.tsx</file>
@@ -176,4 +177,12 @@
     <gate-3>Removed sections must not create blank black gaps over the Matrix rain background.</gate-3>
     <commands>node scripts/phase61-responsive-adaptation-smoke.mjs; node scripts/phase68-dashboard-subscription-smoke.mjs; browser screenshot review for /dashboard and /dashboard/config</commands>
   </phase-68-verification-design>
+  <phase-71-verification-design status="pass-local">
+    <scope>Responsive verification for selected-device master-detail and mobile sticky actions.</scope>
+    <gate-1>Phone, tablet, desktop, and reduced-motion viewports must keep device list, selected detail, QR/.conf/Copy, and secondary destructive menu visible without horizontal scroll.</gate-1>
+    <gate-2>Sticky mobile actions must not cover bottom navigation, QR modal, device rows, or confirmation controls.</gate-2>
+    <gate-3>Logo, calendar pulse, and X close button must not overlap text or controls at 360x740, 390x844, 430x932, 768x1024, and 1440x900.</gate-3>
+    <commands>node scripts/phase61-responsive-adaptation-smoke.mjs; node scripts/phase71-device-config-master-detail-smoke.mjs</commands>
+  </phase-71-verification-design>
+  <phase-71-evidence status="pass-local" date="2026-06-04">Frontend build and Phase-71 smoke passed for compact selected-device UX and sticky-action markers; post-commit Phase-61 and Phase-62 protected regression guards passed cleanly.</phase-71-evidence>
 </V-M-074>

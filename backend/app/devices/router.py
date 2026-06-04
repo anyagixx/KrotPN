@@ -3,7 +3,7 @@
 # ROLE: ENTRY_POINT
 # MAP_MODE: SUMMARY
 # START_MODULE_CONTRACT
-#   PURPOSE: User device management API — list, create, revoke, rotate device-bound configs
+#   PURPOSE: User device management API — list, create, revoke, rotate, and read existing device-bound configs
 #   SCOPE: Current-user device registry operations only; admin enforcement is separate
 #   DEPENDS: M-001 (auth dependencies), M-003 (vpn service), M-021 (device-access-policy), M-022 (device-provisioning-api)
 #   LINKS: M-022 (device-provisioning-api), V-M-022
@@ -15,10 +15,16 @@
 #   list_devices - GET /api/v1/devices - return user's devices and slot counters
 #   create_device - POST /api/v1/devices - create device, provision VPN peer, return config
 #   revoke_device - DELETE /api/v1/devices/{id} - revoke device and free slot
+#   _get_active_device_config_or_404 - Load caller-owned active device config without provisioning side effects
+#   get_device_config - GET /api/v1/devices/{id}/config - return existing device-bound config
+#   download_device_config - GET /api/v1/devices/{id}/config/download - return selected device .conf attachment
+#   get_device_config_qr - GET /api/v1/devices/{id}/config/qr - return selected device QR PNG
+#   get_device_config_qr_amnezia - GET /api/v1/devices/{id}/config/qr/amnezia - return selected device Amnezia container QR PNG
 #   rotate_device_config - POST /api/v1/devices/{id}/rotate - rotate config and return fresh bundle
 # END_MODULE_MAP
 #
 # START_CHANGE_SUMMARY
+#   LAST_CHANGE: v2.9.0 - Added Phase-71 read-only per-device config, download, and QR endpoints.
 #   LAST_CHANGE: v2.8.0 - Added full GRACE MODULE_CONTRACT and MODULE_MAP per GRACE governance protocol
 # END_CHANGE_SUMMARY
 #
@@ -45,10 +51,14 @@ CHANGE_SUMMARY
 """
 # <!-- GRACE: module="M-022" api-group="User Device API" role="ENTRY_POINT" MAP_MODE="SUMMARY" -->
 
+import json
+
 from fastapi import APIRouter, HTTPException, status
+from fastapi.responses import Response
+from loguru import logger
 
 from app.core import CurrentUser, DBSession
-from app.devices.models import UserDevice
+from app.devices.models import DeviceStatus, UserDevice
 from app.devices.schemas import (
     DeviceConfigBundleResponse,
     DeviceCreateRequest,
@@ -56,6 +66,7 @@ from app.devices.schemas import (
     DeviceResponse,
 )
 from app.devices.service import DeviceAccessPolicyService, DeviceLimitExceededError
+from app.vpn.router import build_config_download_response, build_config_qr_png
 from app.vpn.service import VPNService
 
 router = APIRouter(prefix="/api/v1/devices", tags=["devices"])
@@ -99,6 +110,57 @@ async def _get_user_device_or_404(
         )
     return device
 # <!-- END_BLOCK: _get_user_device_or_404 -->
+
+
+# <!-- START_BLOCK: _build_device_config_bundle -->
+def _build_device_config_bundle(device: UserDevice, config) -> DeviceConfigBundleResponse:
+    """Return the public device config bundle without exposing extra client state."""
+    return DeviceConfigBundleResponse(
+        device=_serialize_device(device),
+        config=config.config,
+        server_name=config.server_name,
+        server_location=config.server_location,
+        route_name=config.route_name,
+        entry_server_name=config.entry_server_name,
+        entry_server_location=config.entry_server_location,
+        exit_server_name=config.exit_server_name,
+        exit_server_location=config.exit_server_location,
+        address=config.address,
+        created_at=config.created_at,
+    )
+# <!-- END_BLOCK: _build_device_config_bundle -->
+
+
+# <!-- START_BLOCK: _get_active_device_config_or_404 -->
+async def _get_active_device_config_or_404(
+    *,
+    policy: DeviceAccessPolicyService,
+    vpn: VPNService,
+    user_id: int,
+    device_id: int,
+):
+    """Read an existing active device config without creating or rotating peer material."""
+    device = await _get_user_device_or_404(policy, user_id=user_id, device_id=device_id)
+    if device.status is not DeviceStatus.ACTIVE:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="Only active devices can be used for config retrieval",
+        )
+
+    client = await vpn.get_device_client(int(device.id))
+    if client is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="VPN client not found for device",
+        )
+
+    config = await vpn.get_client_config(client)
+    logger.info(
+        "[M-022][get_device_config][DEVICE_CONFIG_READ] "
+        f"user_id={user_id} device_id={device.id} client_id={client.id}"
+    )
+    return device, config
+# <!-- END_BLOCK: _get_active_device_config_or_404 -->
 
 
 # <!-- START_BLOCK: list_devices -->
@@ -158,6 +220,114 @@ async def create_device(
         created_at=config.created_at,
     )
 # <!-- END_BLOCK: create_device -->
+
+
+# <!-- START_BLOCK: get_device_config -->
+@router.get("/{device_id}/config", response_model=DeviceConfigBundleResponse)
+async def get_device_config(
+    device_id: int,
+    current_user: CurrentUser,
+    session: DBSession,
+):
+    """Return an existing active device-bound config without provisioning side effects."""
+    policy = DeviceAccessPolicyService(session)
+    vpn = VPNService(session)
+    device, config = await _get_active_device_config_or_404(
+        policy=policy,
+        vpn=vpn,
+        user_id=int(current_user.id),
+        device_id=device_id,
+    )
+    return _build_device_config_bundle(device, config)
+# <!-- END_BLOCK: get_device_config -->
+
+
+# <!-- START_BLOCK: download_device_config -->
+@router.get("/{device_id}/config/download")
+async def download_device_config(
+    device_id: int,
+    current_user: CurrentUser,
+    session: DBSession,
+):
+    """Download an existing active device-bound config as a mobile-safe .conf file."""
+    policy = DeviceAccessPolicyService(session)
+    vpn = VPNService(session)
+    device, config = await _get_active_device_config_or_404(
+        policy=policy,
+        vpn=vpn,
+        user_id=int(current_user.id),
+        device_id=device_id,
+    )
+    filename = f"krotpn-{device.device_key}.conf"
+    logger.info(
+        "[M-022][download_device_config][DEVICE_CONFIG_DOWNLOAD] "
+        f"user_id={current_user.id} device_id={device.id} filename_candidate={filename}"
+    )
+    return build_config_download_response(config.config, filename)
+# <!-- END_BLOCK: download_device_config -->
+
+
+# <!-- START_BLOCK: get_device_config_qr -->
+@router.get("/{device_id}/config/qr")
+async def get_device_config_qr(
+    device_id: int,
+    current_user: CurrentUser,
+    session: DBSession,
+):
+    """Return QR PNG for an existing active device-bound config."""
+    policy = DeviceAccessPolicyService(session)
+    vpn = VPNService(session)
+    device, config = await _get_active_device_config_or_404(
+        policy=policy,
+        vpn=vpn,
+        user_id=int(current_user.id),
+        device_id=device_id,
+    )
+    logger.info(
+        "[M-022][get_device_config_qr][DEVICE_CONFIG_QR] "
+        f"user_id={current_user.id} device_id={device.id} qr_type=amneziawg"
+    )
+    return Response(
+        content=build_config_qr_png(config.config, route_label="device_config"),
+        media_type="image/png",
+    )
+# <!-- END_BLOCK: get_device_config_qr -->
+
+
+# <!-- START_BLOCK: get_device_config_qr_amnezia -->
+@router.get("/{device_id}/config/qr/amnezia")
+async def get_device_config_qr_amnezia(
+    device_id: int,
+    current_user: CurrentUser,
+    session: DBSession,
+):
+    """Return AmneziaVPN container QR PNG for an existing active device-bound config."""
+    policy = DeviceAccessPolicyService(session)
+    vpn = VPNService(session)
+    device, config = await _get_active_device_config_or_404(
+        policy=policy,
+        vpn=vpn,
+        user_id=int(current_user.id),
+        device_id=device_id,
+    )
+    amnezia_config = {
+        "containers": [
+            {
+                "container": "amneziawg",
+                "config_data": config.config,
+            }
+        ],
+        "default": "amneziawg",
+    }
+    logger.info(
+        "[M-022][get_device_config_qr][DEVICE_CONFIG_QR] "
+        f"user_id={current_user.id} device_id={device.id} qr_type=amneziavpn"
+    )
+    return Response(
+        content=build_config_qr_png(json.dumps(amnezia_config), route_label="device_config_amnezia"),
+        media_type="image/png",
+    )
+# <!-- END_BLOCK: get_device_config_qr_amnezia -->
 
 
 # <!-- START_BLOCK: revoke_device -->

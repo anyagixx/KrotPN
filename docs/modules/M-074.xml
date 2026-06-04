@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<M-074 NAME="responsive-device-adaptation" TYPE="UI_COMPONENT" STATUS="pass-local-phase61-pass-local-phase62-pass-local-phase67-pass-local-rainfix-pass-local-phase68">
-  <path>frontend frontend-admin docs/plans/Phase-61.xml docs/plans/Phase-62.xml docs/plans/Phase-67.xml docs/plans/Phase-68.xml scripts/phase61-responsive-adaptation-smoke.mjs scripts/phase62-compactness-deletion-smoke.mjs scripts/phase67-auth-splash-smoke.mjs scripts/phase68-dashboard-subscription-smoke.mjs</path>
+<M-074 NAME="responsive-device-adaptation" TYPE="UI_COMPONENT" STATUS="pass-local-phase61-pass-local-phase62-pass-local-phase67-pass-local-rainfix-pass-local-phase68-pass-local-phase71">
+  <path>frontend frontend-admin docs/plans/Phase-61.xml docs/plans/Phase-62.xml docs/plans/Phase-67.xml docs/plans/Phase-68.xml docs/plans/Phase-71.xml scripts/phase61-responsive-adaptation-smoke.mjs scripts/phase62-compactness-deletion-smoke.mjs scripts/phase67-auth-splash-smoke.mjs scripts/phase68-dashboard-subscription-smoke.mjs scripts/phase71-device-config-master-detail-smoke.mjs</path>
   <owns>Phone, tablet, and desktop responsive closure for public, user, and admin Matrix surfaces.</owns>
   <purpose>Make the premium frontend usable and compact across mobile phones, tablets, and desktop screens.</purpose>
   <exports>
@@ -23,7 +23,9 @@
     <file>frontend-admin/src/pages/Analytics.tsx</file>
     <file>frontend-admin/src/pages/Servers.tsx</file>
     <file>scripts/phase61-responsive-adaptation-smoke.mjs</file>
+    <file>scripts/phase71-device-config-master-detail-smoke.mjs</file>
     <file>docs/plans/Phase-61.xml</file>
+    <file>docs/plans/Phase-71.xml</file>
   </files>
   <constraints>
     <constraint-1>No document-level horizontal scroll at any planned viewport.</constraint-1>
@@ -37,6 +39,7 @@
     <metric-4 status="pass-local-phase62">Phase-62 folded surfaces keep 44px summaries, no horizontal-scroll guards, bounded lists, and responsive compactness markers.</metric-4>
     <metric-5 status="pass-local-rainfix">390x844 user/admin browser screenshots show Matrix rain/fallback through the bottom viewport edge.</metric-5>
     <metric-6 status="pass-local-phase68">Phase-68 compact dashboard subscription/tariff/calendar layout stays within Phase-61 responsive budgets and Phase-60 QA bundle limits.</metric-6>
+    <metric-7 status="pass-local-phase71">Phase-71 proves master-detail device config UX and sticky mobile actions stay readable across phone, tablet, desktop, and reduced-motion viewports.</metric-7>
   </acceptance-metrics>
   <phase-67-verification-design>
     <scope>Apply responsive closure to the new splash-only / route and frameless auth screens without changing protected user/admin layouts.</scope>
@@ -55,5 +58,11 @@
     <item>2026-06-04: Matrix rain reliability hotfix added Phase-61 assertions for .matrix-rain-fallback and 100dvh+128px overscan. User/admin builds, Phase-61 smoke, Phase-60 QA regression, Chrome mobile screenshots, bottom-pixel sanity, and protected backend/deploy/runtime guard passed.</item>
     <item>2026-06-04: Phase-68 dashboard subscription merge passed Phase-61 responsive smoke, Phase-60 QA, frontend/admin builds, and compact calendar/tariff no-overlap guards.</item>
   </evidence>
+  <phase-71-executed-scope>
+    <primary-files>frontend/src/pages/Config.tsx frontend/src/components/Layout.tsx frontend/src/components/SubscriptionPanel.tsx frontend/src/index.css scripts/phase61-responsive-adaptation-smoke.mjs scripts/phase71-device-config-master-detail-smoke.mjs</primary-files>
+    <primary-behaviors>Verify the master-detail device config UX, sticky mobile QR/.conf/Copy actions, sidebar logout order, logo frame removal, and calendar boundary emphasis across phone, tablet, desktop, and reduced-motion viewports.</primary-behaviors>
+    <acceptance>360x740, 390x844, 430x932, 768x1024, 1024x768, 1280x720, and 1440x900 must remain free of horizontal scroll and action overlap.</acceptance>
+  </phase-71-executed-scope>
   <hotspot>H-061: Tablet and mobile adaptation must be verified on real breakpoint classes, not inferred from desktop layouts.</hotspot>
+  <phase-71-evidence status="pass-local" date="2026-06-04">Frontend build and Phase-71 smoke passed for mobile sticky config actions and 9-device master-detail markers; post-commit Phase-61 and Phase-62 protected regression smokes passed cleanly.</phase-71-evidence>
 </M-074>

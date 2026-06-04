@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<M-080 NAME="visible-brand-logo-integration" TYPE="ENTRY_POINT" STATUS="done-local-phase63-pass-local-phase67-pass-local-phase68">
+<M-080 NAME="visible-brand-logo-integration" TYPE="ENTRY_POINT" STATUS="done-local-phase63-pass-local-phase67-pass-local-phase68-pass-local-phase71">
   <path>frontend/public/brand/krotpn-mark-96.png frontend-admin/public/brand/krotpn-mark-96.png frontend/src/components/BrandMark.tsx frontend-admin/src/components/BrandMark.tsx frontend/src/pages/Landing.tsx frontend/src/pages/Login.tsx frontend/src/pages/Register.tsx frontend/src/pages/ForgotPassword.tsx frontend/src/pages/ResetPassword.tsx frontend/src/pages/VerifyEmail.tsx frontend/src/components/Layout.tsx frontend-admin/src/components/Layout.tsx frontend-admin/src/pages/Login.tsx frontend/src/index.css frontend-admin/src/index.css backend/app/email/templates.py docs/plans/Phase-63.xml docs/plans/Phase-67.xml docs/plans/Phase-68.xml scripts/phase63-visible-logo-integration-smoke.mjs scripts/phase67-auth-splash-smoke.mjs scripts/phase68-dashboard-subscription-smoke.mjs</path>
   <owns>Visible KrotPN logo usage across public site, auth, user cabinet, admin panel, PWA/favicons, and email templates.</owns>
   <purpose>Use prepared logo assets consistently where the premium redesign needs visible brand identity.</purpose>
@@ -9,6 +9,7 @@
     <rule-logo-sizing>Responsive logo sizing and asset selection for header, auth, PWA, email, and admin contexts.</rule-logo-sizing>
     <asset-visible-mark>User/admin /brand/krotpn-mark-96.png copied from the prepared 96x96 PNG source for visible UI logo usage.</asset-visible-mark>
     <smoke-phase63-visible-logo>Validate asset dimensions, UI placement markers, regression compatibility, email/BIMI boundary, asset budgets, and protected surfaces.</smoke-phase63-visible-logo>
+    <rule-frameless-user-cabinet-logo phase="71-pass-local">Protected user-cabinet logo must render the PNG transparency naturally with no visible square green frame.</rule-frameless-user-cabinet-logo>
   </exports>
   <depends>M-009,M-010,M-040,M-062,M-069,M-072,M-073,M-075,M-076,M-079</depends>
   <verification-ref>V-M-080</verification-ref>
@@ -40,5 +41,11 @@
     <phase-67-local-2026-06-04>Phase-67 reused the bounded 96px logo asset through BrandMark but rendered it as a larger unframed splash/auth mark with no visible lockup border, no mobile crowding markers, and preserved favicon/PWA/email/BIMI/provider-avatar boundaries; Phase-63 and Phase-67 smokes passed.</phase-67-local-2026-06-04>
     <phase-68-local-2026-06-04>Phase-68 applies the unframed treatment to the protected user-shell logo only; Phase-63 and Phase-68 smokes passed while existing asset and email/BIMI boundaries remain unchanged.</phase-68-local-2026-06-04>
   </execution-evidence>
+  <phase-71-executed-scope>
+    <primary-files>frontend/src/components/BrandMark.tsx frontend/src/components/Layout.tsx frontend/src/index.css scripts/phase63-visible-logo-integration-smoke.mjs scripts/phase71-device-config-master-detail-smoke.mjs</primary-files>
+    <primary-behaviors>Remove any remaining square green frame around the protected user-cabinet logo so transparent PNG edges are visible naturally, while preserving public/auth/admin/email/BIMI asset boundaries.</primary-behaviors>
+    <verification>Logo smoke must fail if the user shell mark has a visible background, border, box-shadow frame, or mobile overlap.</verification>
+  </phase-71-executed-scope>
   <hotspot>H-067: Visible logo integration must use prepared brand assets without bloating pages or conflicting with BIMI/email-avatar boundaries.</hotspot>
+  <phase-71-evidence status="pass-local" date="2026-06-04">Phase-71 smoke passed for frameless transparent PNG user-cabinet logo and protected asset/email/BIMI boundary preservation.</phase-71-evidence>
 </M-080>

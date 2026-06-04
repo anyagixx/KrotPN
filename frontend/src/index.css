@@ -22,6 +22,7 @@
  * END_MODULE_MAP
  *
  * START_CHANGE_SUMMARY
+ *   LAST_CHANGE: v4.1.0 - Added Phase-71 master-detail device config, icon-close, final frameless logo, and calendar boundary pulse styles.
  *   LAST_CHANGE: v4.0.0 - Added Matrix rain CSS fallback, normal canvas blending, and mobile overscan to prevent blank/cut-off rain in live browsers.
  *   LAST_CHANGE: v3.11.0 - Added Phase-68 dashboard subscription merge styles, frameless shell logo, compact plan grid, and miniature cross-month calendar.
  *   LAST_CHANGE: v3.9.0 - Added Phase-67 splash-only public route, frameless auth panel, red-focus fields, large unframed logo, and responsive/reduced-motion auth polish.
@@ -403,6 +404,14 @@
     border-color: transparent;
     box-shadow: none;
     border-radius: 0;
+    overflow: visible;
+  }
+
+  .phase68-shell-logo.phase63-brand-lockup {
+    background: transparent;
+    box-shadow: none;
+    padding: 0;
+    overflow: visible;
   }
 
   .phase68-shell-logo .phase63-brand-image {
@@ -411,6 +420,7 @@
   /* [VisibleBrandLogo][phase63][PUBLIC_AUTH_LOGO_VISIBLE] */
   /* [VisibleBrandLogo][phase63][USER_SHELL_LOGO_SAFE] */
   /* [VisibleBrandLogo][phase63][RESPONSIVE_LAYOUT_SAFE] */
+  /* [VisibleLogo][phase71][FRAMELESS_USER_LOGO] */
   /* END_BLOCK_PHASE63_VISIBLE_BRAND_LOGO */
 
   .matrix-brand-logo {
@@ -883,12 +893,96 @@
   .phase68-calendar-day-start,
   .phase68-calendar-day-end {
     border-color: rgba(255, 92, 92, 0.72);
-    box-shadow: inset 0 0 0 1px rgba(255, 92, 92, 0.36);
+    box-shadow:
+      inset 0 0 0 1px rgba(255, 92, 92, 0.36),
+      0 0 0 1px rgba(255, 92, 92, 0.24),
+      0 0 16px rgba(255, 92, 92, 0.2);
+    animation: matrixCalendarBoundaryPulse 1.8s var(--motion-ease-status) infinite;
   }
   /* [Phase68][DashboardSubscription][COMPACT_MERGE_READY] */
   /* [Phase68][DashboardSubscription][CROSS_MONTH_CALENDAR_READY] */
   /* [VisibleBrandLogo][phase68][FRAMELESS_USER_SHELL_LOGO] */
+  /* [MatrixMotion][phase71][CALENDAR_BOUNDARY_PULSE_SAFE] */
   /* END_BLOCK_PHASE68_DASHBOARD_SUBSCRIPTION_COMPACTION */
+
+  /* START_BLOCK_PHASE71_DEVICE_CONFIG_MASTER_DETAIL */
+  .phase71-config-master-detail {
+    @apply grid gap-3;
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  @media (min-width: 1024px) {
+    .phase71-config-master-detail {
+      grid-template-columns: minmax(280px, 0.78fr) minmax(0, 1.22fr);
+      align-items: start;
+    }
+  }
+
+  .phase71-device-list {
+    max-height: min(460px, 58vh);
+  }
+
+  .phase71-device-row {
+    width: 100%;
+    color: inherit;
+  }
+
+  .phase71-device-row:hover {
+    border-color: rgba(104, 232, 255, 0.22);
+    background: rgba(104, 232, 255, 0.055);
+  }
+
+  .phase71-device-row-selected {
+    border-color: rgba(96, 255, 155, 0.42);
+    background: rgba(96, 255, 155, 0.11);
+    box-shadow: inset 0 0 0 1px rgba(96, 255, 155, 0.12), 0 0 20px rgba(96, 255, 155, 0.08);
+  }
+
+  .phase71-device-detail {
+    position: relative;
+  }
+
+  .phase71-sticky-actions {
+    position: sticky;
+    bottom: calc(5.75rem + env(safe-area-inset-bottom));
+    z-index: 8;
+    border-radius: var(--premium-radius);
+    background: linear-gradient(180deg, rgba(5, 24, 17, 0.66), rgba(3, 12, 9, 0.94));
+    padding: 0.35rem;
+    backdrop-filter: blur(10px);
+  }
+
+  .phase71-device-menu {
+    @apply rounded-lg border p-2;
+    border-color: rgba(104, 232, 255, 0.12);
+    background: rgba(0, 10, 7, 0.38);
+  }
+
+  .phase71-device-menu-summary {
+    @apply flex min-h-10 cursor-pointer list-none items-center gap-2 rounded-lg px-3 py-2 text-sm font-semibold;
+    color: #dff8ee;
+  }
+
+  .phase71-device-menu-summary::-webkit-details-marker {
+    display: none;
+  }
+
+  .phase71-icon-close {
+    @apply inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border text-slate-100;
+    border-color: rgba(255, 107, 120, 0.28);
+    background: rgba(255, 107, 120, 0.1);
+  }
+
+  .phase71-icon-close:hover {
+    border-color: rgba(255, 107, 120, 0.46);
+    background: rgba(255, 107, 120, 0.16);
+  }
+  /* [PremiumUserCabinet][phase71][DEVICE_MASTER_DETAIL_READY] */
+  /* [PremiumUserCabinet][phase71][SELECTED_DEVICE_EXPORTS_SAFE] */
+  /* [PremiumUserCabinet][phase71][DESTRUCTIVE_ACTIONS_SECONDARY] */
+  /* [ResponsiveAdaptation][phase71][MOBILE_STICKY_ACTIONS_SAFE] */
+  /* [MatrixMotion][phase71][QR_CLOSE_ICON_SAFE] */
+  /* END_BLOCK_PHASE71_DEVICE_CONFIG_MASTER_DETAIL */
 
   /* START_BLOCK_PHASE62_COMPACTNESS_DELETION_AUDIT */
   .phase62-secondary-fold,
@@ -1403,6 +1497,21 @@
     }
   }
 
+  @keyframes matrixCalendarBoundaryPulse {
+    0%, 100% {
+      box-shadow:
+        inset 0 0 0 1px rgba(255, 92, 92, 0.36),
+        0 0 0 1px rgba(255, 92, 92, 0.24),
+        0 0 10px rgba(255, 92, 92, 0.12);
+    }
+    50% {
+      box-shadow:
+        inset 0 0 0 1px rgba(255, 92, 92, 0.58),
+        0 0 0 2px rgba(255, 92, 92, 0.3),
+        0 0 22px rgba(255, 92, 92, 0.28);
+    }
+  }
+
   @keyframes matrixFlicker {
     0%, 100% {
       opacity: 0.18;
@@ -1493,6 +1602,8 @@
     .motion-feedback-success,
     .motion-feedback-error,
     .motion-status,
+    .phase68-calendar-day-start,
+    .phase68-calendar-day-end,
     .phase67-splash-logo.phase63-brand-lockup,
     .matrix-splash-pulse {
       animation: none !important;

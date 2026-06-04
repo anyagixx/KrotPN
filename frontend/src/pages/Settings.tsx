@@ -15,6 +15,7 @@
 // END_MODULE_MAP
 //
 // START_CHANGE_SUMMARY
+//   LAST_CHANGE: v3.2.0 - Added Phase-71 controlled English translations for settings helper copy and labels.
 //   LAST_CHANGE: v3.1.0 - Added Phase-57 compact secondary settings surface markers while preserving strong-password policy.
 //   LAST_CHANGE: v3.0.0 - Applied Phase-53 compact Matrix settings surfaces.
 //   LAST_CHANGE: 2026-06-01 - Reused Phase-44 strong-password policy for password changes
@@ -71,7 +72,7 @@ export default function Settings() {
     e.preventDefault()
     const issues = passwordStrengthIssues(newPassword)
     if (issues.length > 0) {
-      toast.error(`Пароль слишком простой: ${issues.join(', ')}`)
+      toast.error(t('passwordTooWeak', { issues: issues.join(', ') }))
       return
     }
     changePassword.mutate()
@@ -82,7 +83,7 @@ export default function Settings() {
       <div className="section-header matrix-page-header">
         <div className="min-w-0">
           <h1 className="section-title">{t('settings')}</h1>
-          <p className="section-subtitle">Управляйте профилем, языком интерфейса и безопасностью учётной записи.</p>
+          <p className="section-subtitle">{t('settingsSubtitle')}</p>
         </div>
       </div>
 
@@ -94,7 +95,7 @@ export default function Settings() {
             </div>
             <div className="min-w-0">
               <h2 className="text-lg font-bold">{t('profile')}</h2>
-              <p className="text-sm muted">Основные данные аккаунта.</p>
+              <p className="text-sm muted">{t('accountBasics')}</p>
             </div>
           </div>
 
@@ -105,8 +106,8 @@ export default function Settings() {
             </label>
 
             <label className="block">
-              <span className="mb-2 block text-sm muted">Имя</span>
-              <input type="text" value={name} onChange={(e) => setName(e.target.value)} className="input" placeholder="Ваше имя" />
+              <span className="mb-2 block text-sm muted">{t('name')}</span>
+              <input type="text" value={name} onChange={(e) => setName(e.target.value)} className="input" placeholder={t('namePlaceholder')} />
             </label>
 
             <button onClick={handleSaveProfile} disabled={updateProfile.isLoading} className="btn-primary">
@@ -123,7 +124,7 @@ export default function Settings() {
             </div>
             <div className="min-w-0">
               <h2 className="text-lg font-bold">{t('language')}</h2>
-              <p className="text-sm muted">Переключение языка интерфейса в один клик.</p>
+              <p className="text-sm muted">{t('languageSubtitle')}</p>
             </div>
           </div>
 
@@ -135,7 +136,7 @@ export default function Settings() {
               }}
               className={language === 'ru' ? 'btn-primary' : 'btn-secondary'}
             >
-              🇷🇺 Русский
+              {t('russian')}
             </button>
             <button
               onClick={() => {
@@ -144,7 +145,7 @@ export default function Settings() {
               }}
               className={language === 'en' ? 'btn-primary' : 'btn-secondary'}
             >
-              🇬🇧 English
+              {t('english')}
             </button>
           </div>
         </section>
@@ -157,7 +158,7 @@ export default function Settings() {
           </div>
           <div className="min-w-0">
             <h2 className="text-lg font-bold">{t('changePassword')}</h2>
-            <p className="text-sm muted">Используйте длинный уникальный пароль для защиты аккаунта.</p>
+            <p className="text-sm muted">{t('passwordSecurityHint')}</p>
           </div>
         </div>
 
