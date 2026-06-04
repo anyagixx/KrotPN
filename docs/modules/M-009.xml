@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<M-009 NAME="frontend-user" TYPE="UI_COMPONENT" STATUS="pass-local-phase46-phase51-phase52-phase53-phase56-phase59-pass-local-phase67-pass-local-session60-pass-local-phase68">
-  <path>frontend frontend/public frontend/index.html frontend/vite.config.ts frontend/src/lib/session.ts scripts/session-security-smoke.mjs scripts/phase59-motion-interactions-smoke.mjs docs/plans/Phase-67.xml docs/plans/Phase-68.xml scripts/phase67-auth-splash-smoke.mjs scripts/phase68-dashboard-subscription-smoke.mjs</path>
+<M-009 NAME="frontend-user" TYPE="UI_COMPONENT" STATUS="pass-local-phase46-phase51-phase52-phase53-phase56-phase59-pass-local-phase67-pass-local-session60-pass-local-phase68-pass-local-phase69">
+  <path>frontend frontend/public frontend/index.html frontend/vite.config.ts frontend/src/lib/session.ts scripts/session-security-smoke.mjs scripts/phase59-motion-interactions-smoke.mjs docs/plans/Phase-67.xml docs/plans/Phase-68.xml docs/plans/Phase-69.xml scripts/phase67-auth-splash-smoke.mjs scripts/phase68-dashboard-subscription-smoke.mjs scripts/phase69-referral-bonus-smoke.mjs</path>
   <owns>login, verified registration, password recovery, verify-email activation, dashboard, config delivery, subscription management, pending trial countdown/calendar UX, referrals and settings UI with per-device config awareness</owns>
   <depends>M-002, M-003, M-004, M-005, M-022, M-039, M-070, M-071, M-077</depends>
   <verification-ref>V-M-009</verification-ref>
@@ -40,6 +40,7 @@
     <file>scripts/session-security-smoke.mjs</file>
     <file>scripts/phase59-motion-interactions-smoke.mjs</file>
     <file>scripts/phase68-dashboard-subscription-smoke.mjs</file>
+    <file>scripts/phase69-referral-bonus-smoke.mjs</file>
   </files>
   <phase-23-scope>
     <primary-files>Layout.tsx, Dashboard.tsx, Config.tsx, Subscription.tsx, index.css</primary-files>
@@ -109,4 +110,7 @@
   <phase-68-execution-evidence>
     <local-2026-06-04>Phase-68 introduces shared SubscriptionPanel, makes /dashboard the compact MTProto-first user cabinet with subscription/tariffs/calendar directly below, keeps /dashboard/subscription route-compatible, removes visible config raw/diagnostics panels, and passes frontend build plus Phase-68/45/50/53/57/62/60 verification gates.</local-2026-06-04>
   </phase-68-execution-evidence>
+  <phase-69-execution-evidence>
+    <local-2026-06-04>Phase-69 adds access_label and pending_duration_days to the typed subscription API, renders referral-bonus pending copy distinctly from the four-day trial, and shows masked referred identity in the Referrals page instead of generic "Реферал #N". Frontend build and Phase-69 smoke passed.</local-2026-06-04>
+  </phase-69-execution-evidence>
 </M-009>

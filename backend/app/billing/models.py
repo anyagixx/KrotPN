@@ -18,6 +18,7 @@
 # END_MODULE_MAP
 #
 # START_CHANGE_SUMMARY
+#   LAST_CHANGE: v3.3.0 - Added Phase-69 access_label response field for referral-bonus pending access copy.
 #   LAST_CHANGE: v3.2.0 - Added Phase-50 paid tariff slug/canonical fields and expanded plan API response contract.
 #   LAST_CHANGE: v3.1.0 - Added Phase-45 pending trial activation fields and countdown response anchors.
 #   LAST_CHANGE: v2.8.0 - Added full GRACE MODULE_CONTRACT, MODULE_MAP, and BLOCKS per GRACE governance protocol
@@ -223,6 +224,7 @@ class SubscriptionResponse(SQLModel):
     days_left: int
     is_trial: bool
     pending_activation: bool = False
+    pending_duration_days: int | None = None
     activated_at: datetime | None = None
     remaining_seconds: int = 0
     remaining_days: int = 0
@@ -231,6 +233,7 @@ class SubscriptionResponse(SQLModel):
     active_from: datetime | None = None
     active_until: datetime | None = None
     is_complimentary: bool = False
+    access_label: str | None = None
     is_recurring: bool
 
     model_config = {"from_attributes": True}

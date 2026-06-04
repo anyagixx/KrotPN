@@ -70,6 +70,6 @@
   <Phase-66 NAME="Minimal Resend Email Template Polish" STATUS="done-local" STEPS="7" MODULES="M-079,M-040,M-062,M-069,M-080" />
   <Phase-67 NAME="Public Splash, Auth Form Polish and Matrix Canvas Compatibility" STATUS="done-local" STEPS="12" MODULES="M-073,M-071,M-070,M-074,M-080,M-009" />
   <Phase-68 NAME="User Dashboard Subscription Merge and Cabinet Compaction" STATUS="done-local" STEPS="12" MODULES="M-075,M-036,M-045,M-063,M-068,M-071,M-074,M-077,M-080,M-009" />
-  <Phase-69 NAME="Referral Bonus Activation Correctness and Masked Invite Identity" STATUS="planned" STEPS="9" MODULES="M-005,M-004,M-063,M-008,M-009,M-036,M-028,M-041" />
+  <Phase-69 NAME="Referral Bonus Activation Correctness and Masked Invite Identity" STATUS="done-local" STEPS="9" MODULES="M-005,M-004,M-063,M-008,M-009,M-036,M-075,M-028,M-041" />
   <Phase-70 NAME="VPN QR Parity and Config Page Compaction" STATUS="planned" STEPS="8" MODULES="M-003,M-022,M-066,M-075,M-036,M-009,M-071" />
 </PlanIndex>

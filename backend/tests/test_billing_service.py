@@ -11,10 +11,12 @@ MODULE_MAP
 - test_get_active_subscription_returns_active_when_valid: Verifies active subscription lookup.
 - test_expire_subscription_marks_inactive: Verifies deactivation.
 - test_payment_webhook_succeeded_creates_subscription: Verifies happy-path webhook.
+- test_paid_subscription_consumes_pending_referral_bonus_days: Verifies Phase-69 pending reward preservation.
 - test_create_payment_uses_server_derived_canonical_amount_and_metadata: Verifies Phase-50 checkout payload.
 - test_validate_checkout_plan_blocks_device_limit_downgrade: Verifies incompatible lower-limit checkout guard.
 
 CHANGE_SUMMARY
+- 2026-06-04: Added Phase-69 pending referral bonus preservation coverage.
 - 2026-06-02: Added Phase-50 canonical checkout and YooKassa metadata coverage.
 - 2026-06-01: Updated trial creation expectations for Phase-45 pending activation.
 - 2026-04-05: Added billing service tests for Phase 5.
@@ -36,9 +38,15 @@ from app.billing.models import (
     Subscription,
     SubscriptionStatus,
 )
-from app.billing.service import BillingService, CheckoutPlanRejected
+from app.billing.service import BillingService, CheckoutPlanRejected, REFERRAL_BONUS_ACCESS_LABEL
 from app.core.database import import_all_models
 from app.devices.models import UserDevice
+
+
+def aware_utc(value: datetime) -> datetime:
+    if value.tzinfo is None:
+        return value.replace(tzinfo=timezone.utc)
+    return value.astimezone(timezone.utc)
 
 
 @pytest.fixture
@@ -197,6 +205,38 @@ async def test_payment_webhook_succeeded_creates_subscription(billing_session: A
     subs = list(sub_result.scalars().all())
     assert len(subs) >= 1
     assert any(s.is_active for s in subs)
+
+
+@pytest.mark.asyncio
+async def test_paid_subscription_consumes_pending_referral_bonus_days(
+    billing_session: AsyncSession,
+):
+    service = BillingService(billing_session)
+    await service.grant_referral_bonus_days(user_id=69, days=7)
+    plan = Plan(
+        name="Monthly",
+        price=299.0,
+        currency="RUB",
+        duration_days=30,
+        device_limit=1,
+    )
+    billing_session.add(plan)
+    await billing_session.flush()
+
+    paid = await service.create_subscription(user_id=69, plan=plan)
+
+    assert paid.is_active is True
+    assert paid.pending_activation is False
+    assert aware_utc(paid.expires_at) >= datetime.now(timezone.utc) + timedelta(days=36)
+    pending_result = await billing_session.execute(
+        __import__("sqlalchemy").select(Subscription).where(
+            Subscription.user_id == 69,
+            Subscription.access_label == REFERRAL_BONUS_ACCESS_LABEL,
+        )
+    )
+    pending_rewards = list(pending_result.scalars().all())
+    assert pending_rewards
+    assert all(not reward.is_active for reward in pending_rewards)
 
 
 @pytest.mark.asyncio

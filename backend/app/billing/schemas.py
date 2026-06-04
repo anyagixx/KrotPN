@@ -21,6 +21,7 @@
 # END_MODULE_MAP
 #
 # START_CHANGE_SUMMARY
+#   LAST_CHANGE: v3.2.0 - Added Phase-69 access_label to distinguish pending referral bonus from free trial copy.
 #   LAST_CHANGE: v3.1.0 - Added Phase-45 pending trial and server-side remaining-time fields.
 #   LAST_CHANGE: v2.8.0 - Added full GRACE MODULE_CONTRACT, MODULE_MAP, and BLOCKS per GRACE governance protocol
 #   v2.8.0 - Added full GRACE MODULE_CONTRACT and MODULE_MAP per GRACE governance protocol
@@ -103,6 +104,7 @@ class SubscriptionStatusResponse(SQLModel):
     is_active: bool
     is_trial: bool
     pending_activation: bool = False
+    pending_duration_days: int | None = None
     plan_name: str | None
     days_left: int
     expires_at: datetime | None
@@ -114,6 +116,7 @@ class SubscriptionStatusResponse(SQLModel):
     remaining_minutes: int = 0
     active_from: datetime | None = None
     active_until: datetime | None = None
+    access_label: str | None = None
     is_recurring: bool
 # END_BLOCK
 

@@ -26,6 +26,7 @@
 // END_MODULE_MAP
 //
 // START_CHANGE_SUMMARY
+//   LAST_CHANGE: 2026-06-04 - Added Phase-69 referral masked identity and subscription access_label API fields.
 //   LAST_CHANGE: 2026-06-04 - Added 60-day user session inactivity TTL enforcement and last-seen refresh through API requests.
 //   LAST_CHANGE: 2026-06-02 - Added Phase-50 paid tariff catalog fields to billing plan API contract
 //   LAST_CHANGE: 2026-06-01 - Added Phase-48 octet-stream MIME contract for VPN config downloads
@@ -258,6 +259,7 @@ export interface SubscriptionStatus {
   is_active: boolean
   is_trial: boolean
   pending_activation: boolean
+  pending_duration_days: number | null
   plan_name: string | null
   days_left: number
   expires_at: string | null
@@ -269,6 +271,7 @@ export interface SubscriptionStatus {
   remaining_minutes: number
   active_from: string | null
   active_until: string | null
+  access_label: string | null
   is_recurring: boolean
 }
 
@@ -280,6 +283,8 @@ export interface ReferralStats {
 
 export interface ReferralListItem {
   id: number
+  referred_identity: string
+  referred_email_masked?: string
   bonus_given: boolean
   bonus_days: number
   created_at: string

@@ -13,10 +13,12 @@ MODULE_MAP
 - test_handshake_anomaly_detection_runs_without_errors: Verifies anomaly detection task runs.
 - test_scheduler_registers_configured_handshake_interval: Verifies anti-abuse scan interval is seconds-based and configurable.
 - test_activate_pending_trials_starts_trial_from_handshake: Verifies Phase-45 pending trial scan.
+- test_activate_pending_trials_starts_referral_bonus_from_handshake: Verifies Phase-69 pending referral reward scan.
 - test_mtproto_policy_sync_runs_without_errors: Verifies KPprotoN policy replay task delegates safely.
 - test_mtproto_analytics_maintenance_runs_without_errors: Verifies Phase-43 analytics maintenance task delegates safely.
 
 CHANGE_SUMMARY
+- 2026-06-04: Added Phase-69 pending referral bonus scheduler activation coverage.
 - 2026-06-01: Added Phase-45 pending trial activation scheduler coverage.
 - 2026-04-20: Added scheduler interval coverage for anti-ping-pong scans.
 - 2026-05-14: Added Phase-30 MTProto policy sync scheduler coverage.
@@ -34,6 +36,7 @@ from sqlalchemy.pool import StaticPool
 from sqlmodel import SQLModel
 
 from app.billing.models import Subscription, SubscriptionStatus
+from app.billing.service import REFERRAL_BONUS_ACCESS_LABEL
 from app.core.database import import_all_models
 from app.vpn.models import VPNClient, VPNServer
 from app.tasks import scheduler as scheduler_mod
@@ -233,6 +236,47 @@ async def test_activate_pending_trials_starts_trial_from_handshake(session: Asyn
     await session.refresh(pending)
     assert pending.pending_activation is False
     assert aware_utc(pending.expires_at) == client.last_handshake_at + timedelta(days=4)
+
+
+@pytest.mark.asyncio
+async def test_activate_pending_trials_starts_referral_bonus_from_handshake(
+    session: AsyncSession,
+    monkeypatch,
+):
+    now = datetime.now(timezone.utc)
+    pending = Subscription(
+        user_id=69,
+        plan_id=None,
+        status=SubscriptionStatus.ACTIVE,
+        is_active=True,
+        is_trial=False,
+        pending_activation=True,
+        trial_duration_days=7,
+        access_label=REFERRAL_BONUS_ACCESS_LABEL,
+        started_at=now,
+        expires_at=now,
+    )
+    client = VPNClient(
+        user_id=69,
+        public_key="phase69-scheduler-client",
+        private_key_enc="enc-key",
+        address="10.69.0.69",
+        is_active=True,
+        last_handshake_at=now + timedelta(minutes=1),
+    )
+    session.add(pending)
+    session.add(client)
+    await session.commit()
+    monkeypatch.setattr(scheduler_mod, "async_session_maker", FakeSessionMaker(session))
+
+    result = await scheduler_mod.activate_pending_trials()
+
+    assert result == {"scanned": 1, "activated": 1}
+    await session.refresh(pending)
+    assert pending.pending_activation is False
+    assert pending.is_trial is False
+    assert pending.status == SubscriptionStatus.ACTIVE
+    assert aware_utc(pending.expires_at) == client.last_handshake_at + timedelta(days=7)
 
 
 @pytest.mark.asyncio

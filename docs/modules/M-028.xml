@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<M-028 NAME="alembic-migrations" TYPE="UTILITY" STATUS="pass-local-phase45">
-  <path>backend/alembic/ backend/app/core/migrations.py docs/plans/Phase-43.xml docs/plans/Phase-44.xml docs/plans/Phase-45.xml</path>
+<M-028 NAME="alembic-migrations" TYPE="UTILITY" STATUS="pass-local-phase45-pass-local-phase69-no-schema-change">
+  <path>backend/alembic/ backend/app/core/migrations.py docs/plans/Phase-43.xml docs/plans/Phase-44.xml docs/plans/Phase-45.xml docs/plans/Phase-69.xml</path>
   <owns>database schema migration infrastructure, nullable VPN client preshared-key migration, MTProto assignment migration, password reset token migration, pending trial activation migration, and migration helper functions extracted from database.py</owns>
   <exports>
     <fn-alembic-env>Async Alembic environment configured with SQLModel metadata</fn-alembic-env>
@@ -22,7 +22,8 @@
     <file>backend/app/core/migrations.py</file>
     <file>backend/tests/test_db_migrations.py</file>
   </files>
-  <evidence>pass-local 2026-06-01: Phase-44 migration metadata guard passed and verifies password_reset_tokens schema ownership after Phase-43. Phase-45 migration metadata guard passed and verifies pending trial activation schema after Phase-44 plus runtime compatibility helper.</evidence>
+  <phase-69-schema-decision>No new migration is required: referral bonus grants reuse subscriptions.pending_activation, trial_duration_days, and access_label, which are already migration/runtime-compatibility owned.</phase-69-schema-decision>
+  <evidence>pass-local 2026-06-01: Phase-44 migration metadata guard passed and verifies password_reset_tokens schema ownership after Phase-43. Phase-45 migration metadata guard passed and verifies pending trial activation schema after Phase-44 plus runtime compatibility helper. pass-local 2026-06-04: Phase-69 confirmed no schema change is needed for referral-bonus pending grants.</evidence>
   <disaster-recovery-role>
     <role-1>Phase-22 restore validation must compare source and restored migration state before cutover.</role-1>
     <role-2>Schema or migration-state mismatch blocks emergency relocation until the operator resolves or explicitly waives the risk.</role-2>

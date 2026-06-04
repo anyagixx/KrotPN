@@ -22,6 +22,7 @@
 # END_MODULE_MAP
 #
 # START_CHANGE_SUMMARY
+#   LAST_CHANGE: v3.3.0 - Added Phase-69 access_label in subscription responses for referral-bonus pending copy.
 #   LAST_CHANGE: v3.2.0 - Added Phase-50 canonical plan API fields, storefront filtering, and checkout rejection mapping.
 #   LAST_CHANGE: v3.1.0 - Added Phase-45 pending trial countdown response fields.
 #   LAST_CHANGE: v2.8.0 - Added full GRACE MODULE_CONTRACT, MODULE_MAP, and BLOCKS per GRACE governance protocol
@@ -117,6 +118,10 @@ async def _plan_name_for_subscription(
     if subscription.plan_id:
         plan = await service.get_plan(subscription.plan_id)
         return plan.name if plan else None
+    if subscription.access_label == "referral-bonus":
+        return "Реферальный бонус"
+    if subscription.access_label == "trial-referral-bonus":
+        return "Trial + бонус"
     return "Trial" if subscription.is_trial else None
 # END_BLOCK
 
@@ -190,6 +195,7 @@ async def get_subscription_status(
             is_active=False,
             is_trial=False,
             pending_activation=False,
+            pending_duration_days=None,
             plan_name=None,
             days_left=0,
             expires_at=None,
@@ -201,6 +207,7 @@ async def get_subscription_status(
             remaining_minutes=0,
             active_from=None,
             active_until=None,
+            access_label=None,
             is_recurring=False,
         )
 
@@ -233,6 +240,7 @@ async def get_subscription_status(
         is_active=active,
         is_trial=subscription.is_trial,
         pending_activation=pending_activation,
+        pending_duration_days=subscription.trial_duration_days if pending_activation else None,
         plan_name=plan_name or ("Trial" if subscription.is_trial else None),
         days_left=remaining["remaining_days"],
         expires_at=active_until,
@@ -240,6 +248,7 @@ async def get_subscription_status(
         started_at=started_at,
         active_from=active_from,
         active_until=active_until,
+        access_label=subscription.access_label,
         is_recurring=subscription.is_recurring,
         **remaining,
     )
@@ -282,9 +291,11 @@ async def get_subscription_detail(
         days_left=remaining["remaining_days"],
         is_trial=subscription.is_trial,
         pending_activation=pending_activation,
+        pending_duration_days=subscription.trial_duration_days if pending_activation else None,
         activated_at=activated_at,
         active_from=None if pending_activation else (activated_at or started_at),
         active_until=active_until,
+        access_label=subscription.access_label,
         is_recurring=subscription.is_recurring,
         **remaining,
     )

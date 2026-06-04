@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<V-M-008 MODULE="M-008" PRIORITY="medium" STATUS="pass-local-phase45" PHASE-43="pass-local" PHASE-45="pass-local" PHASE-69="verification-designed">
+<V-M-008 MODULE="M-008" PRIORITY="medium" STATUS="pass-local-phase45-pass-local-phase69" PHASE-43="pass-local" PHASE-45="pass-local" PHASE-69="pass-local">
   <module>tasks</module>
   <checks>Background jobs do not auto-assign complimentary internal access or mutate manually managed clients unexpectedly. Subscription expiry task correctly deactivates expired subscriptions and decrements server.current_clients counter. Daily cleanup, configurable anti-abuse handshake detection, KPprotoN MTProto policy replay tasks, and Phase-45 pending trial activation scan run without errors.</checks>
   <test-files>backend/tests/test_scheduler.py</test-files>
@@ -32,11 +32,12 @@
     <evidence-3>2026-05-20: Phase-43 scheduler regression passed for MTProto analytics maintenance job registration and safe retention/abuse-scan delegation.</evidence-3>
     <evidence-4>2026-06-01: Phase-45 backend suite passed and covers activate_pending_trials scan, job registration, and subscription expiry ignoring pending trial rows.</evidence-4>
   </evidence>
-  <phase-69-verification-design status="planned">
+  <phase-69-verification-design status="pass-local">
     <scope>Scheduler verification for referral pending-entitlement lifecycle.</scope>
     <gate-1>Scheduler jobs must not prematurely activate pending referral days before first VPN connection.</gate-1>
     <gate-2>Expired, inactive, or already-consumed referral entitlements must not be reactivated.</gate-2>
     <gate-3>Existing pending-trial activation scheduler from Phase-45 must remain registered and non-regressed.</gate-3>
     <commands>cd backend &amp;&amp; pytest tests/test_scheduler.py tests/test_trial_activation.py tests/test_referrals.py</commands>
   </phase-69-verification-design>
+  <phase-69-evidence status="pass-local">2026-06-04: tests/test_scheduler.py passed for pending referral-bonus scan and existing pending-trial scheduler registration remained green.</phase-69-evidence>
 </V-M-008>

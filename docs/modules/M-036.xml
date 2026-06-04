@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<M-036 NAME="mobile-user-cabinet" TYPE="UI_COMPONENT" STATUS="pass-local-phase46-phase53-pass-local-phase68">
+<M-036 NAME="mobile-user-cabinet" TYPE="UI_COMPONENT" STATUS="pass-local-phase46-phase53-pass-local-phase68-pass-local-phase69">
   <path>frontend scripts/phase45-trial-subscription-ux-smoke.mjs scripts/phase46-user-cabinet-ux-smoke.mjs scripts/phase53-user-matrix-ui-smoke.mjs docs/plans/Phase-23.xml docs/plans/Phase-45.xml docs/plans/Phase-46.xml docs/plans/Phase-53.xml</path>
   <owns>Compact mobile-first personal cabinet for VPN status, subscription state, trial countdown/calendar, device management, and config access</owns>
   <exports>
@@ -25,6 +25,7 @@
     <file>scripts/phase46-user-cabinet-ux-smoke.mjs</file>
     <file>scripts/phase53-user-matrix-ui-smoke.mjs</file>
     <file>scripts/phase68-dashboard-subscription-smoke.mjs</file>
+    <file>scripts/phase69-referral-bonus-smoke.mjs</file>
     <file>docs/plans/Phase-23.xml</file>
     <file>docs/plans/Phase-45.xml</file>
     <file>docs/plans/Phase-46.xml</file>
@@ -60,6 +61,10 @@
     <metric-7>Phase-46 UX smoke passes for password example, MTProto dual links, Russian labels, and bounded status refresh.</metric-7>
     <metric-8>Phase-53 smoke and screenshot review pass for compact Matrix dashboard/config/subscription/referrals/settings routes without protected deploy/install changes.</metric-8>
   </acceptance-metrics>
-  <evidence>2026-06-01: frontend npm run build passed, node scripts/phase45-trial-subscription-ux-smoke.mjs passed, and node scripts/phase46-user-cabinet-ux-smoke.mjs passed for password guidance and compact MTProto link/status UX. 2026-06-03: frontend npm run build and node scripts/phase53-user-matrix-ui-smoke.mjs passed; production-preview auth screenshots confirmed readable Matrix mobile surfaces while protected route coverage is static due local auth redirect. 2026-06-04: Phase-68 frontend build and smokes passed for MTProto-first dashboard, shared SubscriptionPanel, compact tariff/calendar view, and removed visible config raw/diagnostics panels.</evidence>
+  <phase-69-scope>
+    <primary-files>Referrals.tsx, SubscriptionPanel.tsx, lib/api.ts</primary-files>
+    <primary-behaviors>Mobile-safe masked referral history rows and truthful pending referral-bonus subscription copy.</primary-behaviors>
+  </phase-69-scope>
+  <evidence>2026-06-01: frontend npm run build passed, node scripts/phase45-trial-subscription-ux-smoke.mjs passed, and node scripts/phase46-user-cabinet-ux-smoke.mjs passed for password guidance and compact MTProto link/status UX. 2026-06-03: frontend npm run build and node scripts/phase53-user-matrix-ui-smoke.mjs passed; production-preview auth screenshots confirmed readable Matrix mobile surfaces while protected route coverage is static due local auth redirect. 2026-06-04: Phase-68 frontend build and smokes passed for MTProto-first dashboard, shared SubscriptionPanel, compact tariff/calendar view, and removed visible config raw/diagnostics panels. 2026-06-04: Phase-69 frontend build and smoke passed for masked referral rows and access_label-aware pending bonus copy.</evidence>
   <hotspot>H-023: Mobile user cabinet must keep config download, QR, subscription and device actions reachable without clutter</hotspot>
 </M-036>

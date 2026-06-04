@@ -15,12 +15,13 @@
 #   get_plans, get_plan, ensure_canonical_tariffs, validate_checkout_plan, create_plan - Plan CRUD and canonical checkout operations
 #   get_user_subscription, get_effective_device_limit, get_user_subscription_history - Subscription reads
 #   get_active_complimentary_access, ensure_complimentary_access - Complimentary access helpers
-#   create_pending_trial, create_trial_subscription, activate_trial_on_first_vpn_handshake, create_subscription, extend_subscription, deactivate_subscription - Subscription lifecycle
+#   create_pending_trial, create_trial_subscription, grant_referral_bonus_days, activate_trial_on_first_vpn_handshake, create_subscription, extend_subscription, deactivate_subscription - Subscription lifecycle
 #   create_payment, process_payment_webhook, _process_yookassa_webhook, get_user_payments - Payment operations
 #   get_subscription_stats - Aggregate billing statistics
 # END_MODULE_MAP
 #
 # START_CHANGE_SUMMARY
+#   LAST_CHANGE: v3.3.0 - Added Phase-69 referral-bonus pending access grants and handshake activation.
 #   LAST_CHANGE: v3.2.0 - Added Phase-50 canonical tariff convergence, checkout validation, and payment metadata.
 #   LAST_CHANGE: v3.1.0 - Added Phase-45 pending trial lifecycle and first VPN handshake activation.
 #   LAST_CHANGE: v2.8.0 - Added full GRACE MODULE_CONTRACT, MODULE_MAP, and BLOCKS per GRACE governance protocol
@@ -68,6 +69,10 @@ from app.billing.catalog import (
 )
 from app.billing.yookassa import yookassa_client
 from loguru import logger
+
+
+REFERRAL_BONUS_ACCESS_LABEL = "referral-bonus"
+TRIAL_REFERRAL_BONUS_ACCESS_LABEL = "trial-referral-bonus"
 
 
 # START_BLOCK: trial_time_helpers
@@ -416,6 +421,74 @@ class BillingService:
         return await self.create_pending_trial(user_id)
     # END_BLOCK
 
+    # START_BLOCK: grant_referral_bonus_days
+    async def grant_referral_bonus_days(
+        self,
+        user_id: int,
+        days: int,
+    ) -> Subscription:
+        """Grant referral reward days as an active extension or pending first-VPN access."""
+        now = datetime.now(timezone.utc)
+        bonus_days = max(1, int(days))
+        active_subscription = await self.get_user_subscription(user_id, include_pending=False)
+        if active_subscription is not None:
+            subscription = await self.extend_subscription(active_subscription, bonus_days)
+            logger.info(
+                "[BillingService][grant_referral_bonus_days][REFERRAL_BONUS_GRANTED] "
+                f"user_id={user_id} subscription_id={subscription.id} days={bonus_days} mode=active_extension"
+            )
+            return subscription
+
+        pending_result = await self.session.execute(
+            select(Subscription)
+            .where(
+                Subscription.user_id == user_id,
+                Subscription.is_active == True,
+                Subscription.pending_activation == True,
+            )
+            .order_by(Subscription.created_at.asc(), Subscription.id.asc())
+        )
+        pending = pending_result.scalar_one_or_none()
+        if pending is not None:
+            pending.trial_duration_days = int(pending.trial_duration_days or 0) + bonus_days
+            if pending.is_trial:
+                pending.access_label = TRIAL_REFERRAL_BONUS_ACCESS_LABEL
+            else:
+                pending.access_label = REFERRAL_BONUS_ACCESS_LABEL
+            pending.updated_at = now
+            await self.session.flush()
+            await self.session.refresh(pending)
+            logger.info(
+                "[BillingService][grant_referral_bonus_days][REFERRAL_BONUS_GRANTED] "
+                f"user_id={user_id} subscription_id={pending.id} days={bonus_days} mode=pending_extension"
+            )
+            return pending
+
+        subscription = Subscription(
+            user_id=user_id,
+            plan_id=None,
+            status=SubscriptionStatus.ACTIVE,
+            is_active=True,
+            is_trial=False,
+            pending_activation=True,
+            activated_at=None,
+            trial_duration_days=bonus_days,
+            is_complimentary=False,
+            access_label=REFERRAL_BONUS_ACCESS_LABEL,
+            started_at=now,
+            expires_at=now,
+        )
+
+        self.session.add(subscription)
+        await self.session.flush()
+        await self.session.refresh(subscription)
+        logger.info(
+            "[BillingService][grant_referral_bonus_days][REFERRAL_BONUS_GRANTED] "
+            f"user_id={user_id} subscription_id={subscription.id} days={bonus_days} mode=pending_create"
+        )
+        return subscription
+    # END_BLOCK
+
     # START_BLOCK: ensure_complimentary_access
     async def ensure_complimentary_access(
         self,
@@ -495,7 +568,7 @@ class BillingService:
         *,
         client_id: int | None = None,
     ) -> Subscription | None:
-        """Start a pending trial once from the first observed VPN handshake."""
+        """Start pending trial or referral-bonus access once from the first observed VPN handshake."""
         observed_at = _as_aware_utc(handshake_at)
         now = datetime.now(timezone.utc)
 
@@ -513,7 +586,6 @@ class BillingService:
             .where(
                 Subscription.user_id == user_id,
                 Subscription.is_active == True,
-                Subscription.is_trial == True,
                 Subscription.pending_activation == True,
             )
             .order_by(Subscription.created_at.asc(), Subscription.id.asc())
@@ -522,7 +594,7 @@ class BillingService:
         if subscription is None:
             logger.info(
                 "[BillingService][activate_trial_on_first_vpn_handshake][ACTIVATE_PENDING_TRIAL] "
-                f"user_id={user_id} client_id={client_id} skipped=no_pending_trial"
+                f"user_id={user_id} client_id={client_id} skipped=no_pending_access"
             )
             return None
 
@@ -531,9 +603,12 @@ class BillingService:
         subscription.activated_at = observed_at
         subscription.started_at = observed_at
         subscription.expires_at = observed_at + timedelta(days=duration_days)
-        subscription.status = SubscriptionStatus.TRIAL
+        subscription.status = (
+            SubscriptionStatus.TRIAL
+            if subscription.is_trial and subscription.access_label != REFERRAL_BONUS_ACCESS_LABEL
+            else SubscriptionStatus.ACTIVE
+        )
         subscription.is_active = True
-        subscription.is_trial = True
         subscription.updated_at = now
 
         await self.session.flush()
@@ -541,7 +616,8 @@ class BillingService:
         logger.info(
             "[BillingService][activate_trial_on_first_vpn_handshake][ACTIVATE_PENDING_TRIAL] "
             f"user_id={user_id} client_id={client_id} subscription_id={subscription.id} "
-            f"activated_at={observed_at.isoformat()} expires_at={subscription.expires_at.isoformat()}"
+            f"access_label={subscription.access_label} activated_at={observed_at.isoformat()} "
+            f"expires_at={subscription.expires_at.isoformat()}"
         )
         return subscription
     # END_BLOCK
@@ -572,6 +648,42 @@ class BillingService:
         return len(pending_trials)
     # END_BLOCK
 
+    # START_BLOCK: consume_pending_referral_bonus_days
+    async def consume_pending_referral_bonus_days(self, user_id: int) -> int:
+        """Move pending referral reward days into a paid subscription flow."""
+        result = await self.session.execute(
+            select(Subscription).where(
+                Subscription.user_id == user_id,
+                Subscription.is_active == True,
+                Subscription.pending_activation == True,
+                Subscription.access_label.in_(
+                    [REFERRAL_BONUS_ACCESS_LABEL, TRIAL_REFERRAL_BONUS_ACCESS_LABEL]
+                ),
+            )
+        )
+        pending_rewards = list(result.scalars().all())
+        if not pending_rewards:
+            return 0
+
+        now = datetime.now(timezone.utc)
+        total_days = 0
+        for pending in pending_rewards:
+            duration_days = int(pending.trial_duration_days or 0)
+            if pending.access_label == TRIAL_REFERRAL_BONUS_ACCESS_LABEL:
+                duration_days = max(0, duration_days - _trial_duration_days())
+            total_days += max(0, duration_days)
+            pending.is_active = False
+            pending.status = SubscriptionStatus.CANCELED
+            pending.updated_at = now
+
+        await self.session.flush()
+        logger.info(
+            "[BillingService][consume_pending_referral_bonus_days][REFERRAL_BONUS_CONSUMED] "
+            f"user_id={user_id} pending_count={len(pending_rewards)} days={total_days}"
+        )
+        return total_days
+    # END_BLOCK
+
     # START_BLOCK: create_subscription
     async def create_subscription(
         self,
@@ -584,6 +696,7 @@ class BillingService:
 
         # Check for existing active subscription. Pending trial rows are not
         # billable time and must not be used as the extension base.
+        pending_referral_bonus_days = await self.consume_pending_referral_bonus_days(user_id)
         existing = await self.get_user_subscription(user_id, include_pending=False)
         await self.cancel_pending_trials(user_id, reason="paid_subscription")
 
@@ -608,6 +721,8 @@ class BillingService:
             await self.session.refresh(existing)
 
             logger.info(f"[BILLING] Subscription extended for user {user_id}")
+            if pending_referral_bonus_days:
+                existing = await self.extend_subscription(existing, pending_referral_bonus_days)
             return existing
 
         # Create new subscription
@@ -631,6 +746,8 @@ class BillingService:
         await self.session.refresh(subscription)
 
         logger.info(f"[BILLING] Subscription created for user {user_id}")
+        if pending_referral_bonus_days:
+            subscription = await self.extend_subscription(subscription, pending_referral_bonus_days)
         return subscription
     # END_BLOCK
 

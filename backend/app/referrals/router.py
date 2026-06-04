@@ -12,11 +12,12 @@
 # START_MODULE_MAP
 #   get_referral_code - GET /api/v1/referrals/code - return user's referral code and link
 #   get_referral_stats - GET /api/v1/referrals/stats - return user's referral statistics
-#   get_referrals_list - GET /api/v1/referrals/list - return paginated list of user's referrals
+#   get_referrals_list - GET /api/v1/referrals/list - return paginated list of user's referrals with masked referred identity
 #   admin_get_referral_stats - GET /api/v1/admin/referrals/stats - return global referral statistics (admin only)
 # END_MODULE_MAP
 #
 # START_CHANGE_SUMMARY
+#   LAST_CHANGE: v2.9.0 - Added Phase-69 masked referred-email identity to user referral list responses.
 #   LAST_CHANGE: v2.8.0 - Added full GRACE MODULE_CONTRACT and MODULE_MAP per GRACE governance protocol
 # END_CHANGE_SUMMARY
 #
@@ -41,13 +42,25 @@ CHANGE_SUMMARY
 # <!-- GRACE: module="M-005" api-group="Referral API" role="ENTRY_POINT" MAP_MODE="SUMMARY" -->
 
 from fastapi import APIRouter
+from sqlalchemy import select
 
-from app.core import CurrentUser, CurrentAdmin, DBSession, settings, settings, settings
+from app.core import CurrentUser, CurrentAdmin, DBSession, settings
+from app.email.service import mask_email_for_logs
 from app.referrals.models import ReferralStats
 from app.referrals.service import ReferralService
+from app.users.models import User
 
 router = APIRouter(prefix="/api/v1/referrals", tags=["referrals"])
 admin_router = APIRouter(prefix="/api/v1/admin/referrals", tags=["admin"])
+
+
+# <!-- START_BLOCK: mask_referred_identity -->
+def mask_referred_identity(email: str | None, fallback_id: int | None = None) -> str:
+    """Build a user-visible masked referred identity without exposing full email."""
+    if email:
+        return mask_email_for_logs(email)
+    return f"ref-{fallback_id}" if fallback_id is not None else "ref-hidden"
+# <!-- END_BLOCK: mask_referred_identity -->
 
 
 # <!-- START_BLOCK: get_referral_code -->
@@ -89,11 +102,26 @@ async def get_referrals_list(
     """Get list of user's referrals."""
     service = ReferralService(session)
     referrals = await service.get_referrals_list(current_user.id, limit)
+    referred_ids = [r.referred_id for r in referrals]
+    email_by_user_id: dict[int, str | None] = {}
+    if referred_ids:
+        users_result = await session.execute(
+            select(User.id, User.email).where(User.id.in_(referred_ids))
+        )
+        email_by_user_id = {int(row.id): row.email for row in users_result.all()}
 
     return {
         "items": [
             {
                 "id": r.id,
+                "referred_identity": mask_referred_identity(
+                    email_by_user_id.get(r.referred_id),
+                    r.referred_id,
+                ),
+                "referred_email_masked": mask_referred_identity(
+                    email_by_user_id.get(r.referred_id),
+                    r.referred_id,
+                ),
                 "bonus_given": r.bonus_given,
                 "bonus_days": r.bonus_days,
                 "created_at": r.created_at,

@@ -21,6 +21,7 @@
 # END_MODULE_MAP
 #
 # START_CHANGE_SUMMARY
+#   LAST_CHANGE: v2.9.0 - Added Phase-69 pending referral-bonus grants and masked invite identity support.
 #   LAST_CHANGE: v2.8.0 - Added full GRACE MODULE_CONTRACT and MODULE_MAP per GRACE governance protocol
 # END_CHANGE_SUMMARY
 #
@@ -49,7 +50,7 @@ CHANGE_SUMMARY
 
 import random
 import string
-from datetime import datetime, timezone, timezone
+from datetime import datetime, timezone
 
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -179,9 +180,11 @@ class ReferralService:
         if amount < settings.referral_min_payment:
             return False
 
+        bonus_days = settings.referral_bonus_days
+
         # Give bonus to referrer
         referral.bonus_given = True
-        referral.bonus_days = settings.referral_bonus_days
+        referral.bonus_days = bonus_days
         referral.first_payment_at = datetime.now(timezone.utc)
         referral.first_payment_amount = amount
 
@@ -191,38 +194,20 @@ class ReferralService:
         )
         code = code_result.scalar_one_or_none()
         if code:
-            code.bonus_earned_days += settings.referral_bonus_days
+            code.bonus_earned_days += bonus_days
 
-        # Extend referrer's subscription
         from app.billing.service import BillingService
         billing_service = BillingService(self.session)
-
-        subscription_result = await self.session.execute(
-            select(Referral).where(Referral.referred_id == user_id)
+        await billing_service.grant_referral_bonus_days(
+            referral.referrer_id,
+            bonus_days,
         )
-
-        # Get referrer's active subscription
-        from app.billing.models import Subscription
-        sub_result = await self.session.execute(
-            select(Subscription)
-            .where(
-                Subscription.user_id == referral.referrer_id,
-                Subscription.is_active == True,
-            )
-            .order_by(Subscription.expires_at.desc())
-        )
-        subscription = sub_result.scalar_one_or_none()
-
-        if subscription:
-            await billing_service.extend_subscription(
-                subscription, settings.referral_bonus_days
-            )
 
         await self.session.flush()
 
         logger.info(
-            f"[REFERRAL] Bonus given: {settings.referral_bonus_days} days "
-            f"to user {referral.referrer_id} for referral {user_id}"
+            "[ReferralService][process_first_payment][REFERRAL_BONUS_APPLIED] "
+            f"days={bonus_days} referrer_id={referral.referrer_id} referred_id={user_id}"
         )
 
         return True

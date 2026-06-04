@@ -16,6 +16,7 @@
 // END_MODULE_MAP
 //
 // START_CHANGE_SUMMARY
+//   LAST_CHANGE: v3.3.0 - Added Phase-69 masked referred identity in recent invite rows.
 //   LAST_CHANGE: v3.2.0 - Added Phase-59 referral copy feedback and status transition classes.
 //   LAST_CHANGE: v3.1.0 - Added Phase-57 compact secondary referral surface and scroll-safe history markers.
 //   LAST_CHANGE: v3.0.0 - Applied Phase-53 compact Matrix referral surfaces.
@@ -141,7 +142,9 @@ export default function Referrals() {
             {referrals.slice(0, 5).map((item) => (
               <div key={item.id} className="matrix-row flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                 <div>
-                  <p className="font-semibold">Реферал #{item.id}</p>
+                  <p className="break-all font-semibold" data-phase69-masked-referral-identity="true">
+                    Реферал {item.referred_identity || item.referred_email_masked || '***'}
+                  </p>
                   <p className="mt-1 text-sm muted">Создан {new Date(item.created_at).toLocaleDateString('ru-RU')}</p>
                 </div>
                 <div className="flex flex-wrap items-center gap-2">

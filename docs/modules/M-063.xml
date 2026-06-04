@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<M-063 NAME="trial-activation-subscription-countdown" TYPE="CORE_LOGIC" STATUS="done-local-phase45-phase53-pass-local-phase68">
+<M-063 NAME="trial-activation-subscription-countdown" TYPE="CORE_LOGIC" STATUS="done-local-phase45-phase53-pass-local-phase68-pass-local-phase69">
   <path>backend/app/billing backend/app/vpn backend/app/tasks frontend scripts/phase45-trial-subscription-ux-smoke.mjs scripts/phase53-user-matrix-ui-smoke.mjs docs/plans/Phase-45.xml docs/plans/Phase-53.xml</path>
-  <owns>Four-day trial policy, pending-trial lifecycle, first VPN handshake activation, subscription countdown API, and calendar UX.</owns>
+  <owns>Four-day trial policy, pending-trial/referral-bonus lifecycle, first VPN handshake activation, subscription countdown API, and calendar UX.</owns>
   <purpose>Start the free KrotPN VPN trial only when the verified user first connects through VPN while keeping config access and billing state consistent.</purpose>
   <exports>
     <fn-create-pending-trial>Create an eligible trial record after email verification without starting the countdown.</fn-create-pending-trial>
-    <fn-activate-trial-on-first-vpn-handshake>Atomically set started_at and expires_at from the first successful VPN handshake observation.</fn-activate-trial-on-first-vpn-handshake>
+    <fn-activate-trial-on-first-vpn-handshake>Atomically set started_at and expires_at for pending trial or referral-bonus access from the first successful VPN handshake observation.</fn-activate-trial-on-first-vpn-handshake>
     <fn-get-subscription-countdown>Return pending, active, expired, remaining seconds, days, hours, minutes, start, and expiry fields.</fn-get-subscription-countdown>
     <task-trial-handshake-activation>Scheduler job that observes VPN client last_handshake_at and activates pending trials idempotently.</task-trial-handshake-activation>
     <view-subscription-countdown>Render compact remaining time in the user cabinet.</view-subscription-countdown>
@@ -30,6 +30,7 @@
     <file>scripts/phase45-trial-subscription-ux-smoke.mjs</file>
     <file>scripts/phase53-user-matrix-ui-smoke.mjs</file>
     <file>scripts/phase68-dashboard-subscription-smoke.mjs</file>
+    <file>scripts/phase69-referral-bonus-smoke.mjs</file>
     <file>backend/tests/test_trial_activation.py</file>
   </files>
   <phase-45-scope>
@@ -56,6 +57,10 @@
     <item-4>Subscription API returns pending_activation, activated_at, active date range, and server-derived remaining seconds/days/hours/minutes.</item-4>
     <item-5>User dashboard and subscription page render pending-first-connection state, compact countdown, and highlighted active-date calendar.</item-5>
   </implementation-summary>
-  <evidence>2026-06-01: backend Phase-45 suite passed 35/35 outside sandbox due known aiosqlite sandbox hang; frontend npm run build and node scripts/phase45-trial-subscription-ux-smoke.mjs passed; py_compile passed for changed backend files; deploy/install diff guard showed no changes. 2026-06-03: Phase-53 smoke passed for Matrix countdown/calendar readability, pending-first-VPN copy, and stale 3-day copy guard. 2026-06-04: Phase-68 shared SubscriptionPanel smoke passed for exact first-connection copy, compact calendar, and server-derived countdown fields.</evidence>
+  <phase-69-scope>
+    <in>Pending referral bonus activation through the existing first-VPN handshake path, access_label-aware subscription API copy, and scheduler compatibility.</in>
+    <out>Changing VPN router topology, deploy/install scripts, trial default duration, or paid plan pricing.</out>
+  </phase-69-scope>
+  <evidence>2026-06-01: backend Phase-45 suite passed 35/35 outside sandbox due known aiosqlite sandbox hang; frontend npm run build and node scripts/phase45-trial-subscription-ux-smoke.mjs passed; py_compile passed for changed backend files; deploy/install diff guard showed no changes. 2026-06-03: Phase-53 smoke passed for Matrix countdown/calendar readability, pending-first-VPN copy, and stale 3-day copy guard. 2026-06-04: Phase-68 shared SubscriptionPanel smoke passed for exact first-connection copy, compact calendar, and server-derived countdown fields. 2026-06-04: Phase-69 backend tests passed for pending referral-bonus activation and scheduler handoff, and Phase-69 smoke passed for access_label-aware UI copy.</evidence>
   <hotspot>H-050: VPN trial activation must start from the first successful VPN handshake without locking verified users out of their first config</hotspot>
 </M-063>

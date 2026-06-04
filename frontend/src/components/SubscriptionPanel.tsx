@@ -16,6 +16,7 @@
 // END_MODULE_MAP
 //
 // START_CHANGE_SUMMARY
+//   LAST_CHANGE: v1.1.0 - Added Phase-69 referral-bonus pending access copy via access_label.
 //   LAST_CHANGE: v1.0.0 - Added Phase-68 shared dashboard-owned subscription/tariff/calendar panel.
 // END_CHANGE_SUMMARY
 //
@@ -88,6 +89,8 @@ function getPlanPresentation(plan: Plan) {
 
 function formatRemaining(subscription?: SubscriptionStatus) {
   if (!subscription?.has_subscription) return 'Нет активного доступа'
+  if (subscription.pending_activation && subscription.access_label === 'referral-bonus') return 'Бонус ожидает подключения'
+  if (subscription.pending_activation && subscription.access_label === 'trial-referral-bonus') return 'Trial + бонус ожидают'
   if (subscription.pending_activation) return 'Ожидает подключения'
   if (!subscription.is_active) return 'Доступ закончился'
   return `${subscription.remaining_days}д ${subscription.remaining_hours}ч ${subscription.remaining_minutes}м`
@@ -95,6 +98,14 @@ function formatRemaining(subscription?: SubscriptionStatus) {
 
 function subscriptionDescription(subscription?: SubscriptionStatus) {
   if (!subscription?.has_subscription) return 'Выберите тариф, оплатите и сразу откройте конфиг.'
+  if (subscription.pending_activation && subscription.access_label === 'referral-bonus') {
+    const days = subscription.pending_duration_days || 7
+    return `Бонусные ${days} дней уже доступны. Таймер стартует после первого подключения.`
+  }
+  if (subscription.pending_activation && subscription.access_label === 'trial-referral-bonus') {
+    const days = subscription.pending_duration_days || 11
+    return `Конфиг уже доступен. ${days} дней trial и бонуса стартуют после первого подключения.`
+  }
   if (subscription.pending_activation) return 'Конфиг уже доступен. Таймер на 4 дня стартует после первого подключения.'
   if (subscription.is_active) return 'Оставшееся время рассчитано backend по серверному времени.'
   return 'Продлите подписку, чтобы снова открыть VPN доступ.'
@@ -211,7 +222,7 @@ export default function SubscriptionPanel({ compact = false }: SubscriptionPanel
           <div className="min-w-0">
             <p className="text-xs font-bold uppercase text-cyan-100/70">Подписка</p>
             <h2 className="mt-1 truncate text-xl font-extrabold">
-              {subscription?.has_subscription ? subscription.plan_name || 'Trial' : 'Нет активного доступа'}
+              {subscription?.has_subscription ? subscription.plan_name || 'Доступ KrotPN' : 'Нет активного доступа'}
             </h2>
             <p className="mt-2 text-sm muted">
               {subscriptionDescription(subscription)}

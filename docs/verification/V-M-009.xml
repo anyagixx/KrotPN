@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<V-M-009 MODULE="M-009" PRIORITY="high" STATUS="pass-local-phase46-phase51-phase52-phase53-phase56-phase59-pass-local-phase67-pass-local-session60-pass-local-phase68" VERSION="1.15.0" PHASE-59="pass-local" PHASE-67="pass-local" PHASE-68="pass-local" PHASE-69="verification-designed" PHASE-70="verification-designed">
+<V-M-009 MODULE="M-009" PRIORITY="high" STATUS="pass-local-phase46-phase51-phase52-phase53-phase56-phase59-pass-local-phase67-pass-local-session60-pass-local-phase68-pass-local-phase69" VERSION="1.15.0" PHASE-59="pass-local" PHASE-67="pass-local" PHASE-68="pass-local" PHASE-69="pass-local" PHASE-70="verification-designed">
   <module>frontend-user</module>
   <checks>User frontend still builds, matches the Phase-28 auth API response shape, makes registration mobile-safe without implying active KrotPN trial before email verification, and resumes valid stored sessions across tabs within the 60-day idle TTL.</checks>
   <test-files>
@@ -166,12 +166,13 @@
     <gate-3>Frontend API types must keep existing backend field names for plans, subscription countdown, MTProto proxy, and referral data.</gate-3>
     <commands>cd frontend &amp;&amp; npm run build; node scripts/phase68-dashboard-subscription-smoke.mjs; node scripts/phase60-premium-qa-smoke.mjs</commands>
   </phase-68-verification-design>
-  <phase-69-verification-design status="planned">
+  <phase-69-verification-design status="pass-local">
     <scope>Frontend API and UX verification for referral bonus and masked invite identity.</scope>
     <gate-1>Referral pages must consume masked referred identity from backend or mask locally from an allowed partial field without exposing full email.</gate-1>
     <gate-2>Referral bonus status must not claim active days until backend subscription state confirms activation/extension.</gate-2>
     <commands>cd frontend &amp;&amp; npm run build; node scripts/phase69-referral-bonus-smoke.mjs</commands>
   </phase-69-verification-design>
+  <phase-69-evidence status="pass-local">2026-06-04: frontend build passed; scripts/phase69-referral-bonus-smoke.mjs passed for masked referral identity, no "Реферал #N" primary label, access_label typed API, and referral-bonus pending copy.</phase-69-evidence>
   <phase-70-verification-design status="planned">
     <scope>Frontend API and config route verification for QR parity.</scope>
     <gate-1>Config download, text fetch, QR modal, copy actions, and MIME-safe .conf flow must remain API-compatible.</gate-1>

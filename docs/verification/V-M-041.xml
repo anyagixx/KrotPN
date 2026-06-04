@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<V-M-041 MODULE="M-041" PRIORITY="critical" STATUS="pass-local-phase45" VERSION="2.0.0" PHASE-69="verification-designed">
+<V-M-041 MODULE="M-041" PRIORITY="critical" STATUS="pass-local-phase45-pass-local-phase69" VERSION="2.0.0" PHASE-69="pass-local">
   <phase-scope>
     <phase-27 status="pass-local">Foundation evidence exists for pending-registration primitives, token hashing, TTL/replay protection, email risk checks, fake-provider email delivery, and unchanged active /register behavior.</phase-27>
     <phase-28 status="pass-local">Primary cutover and cross-module verification prove that /register is a pending-email flow and that active KrotPN access exists only after verified email activation; V-M-004 billing and V-M-022 device/VPN route gates pass locally.</phase-28>
@@ -100,11 +100,12 @@
     <evidence-9>2026-05-19: Full Phase-28 cross-module gate passed locally with 39 tests after aligning billing and VPN compatibility tests to /api/v1 route prefixes; V-M-004, V-M-022, and V-M-041 are pass-local.</evidence-9>
     <evidence-10>2026-06-01: Phase-45 backend suite passed and updates verified-email onboarding so trial access is pending until first VPN handshake while replay remains idempotent.</evidence-10>
   </evidence>
-  <phase-69-verification-design status="planned">
+  <phase-69-verification-design status="pass-local">
     <scope>Verified-registration boundary verification for referral flow.</scope>
     <gate-1>Referral linkage must still require the registered account to pass verified-email onboarding before protected cabinet access.</gate-1>
     <gate-2>Referral bonus payment processing must not bypass verified-registration guards or create login/session shortcuts.</gate-2>
     <gate-3>Masked referred identity in UI/API must not leak unverified email ownership details beyond approved redacted display.</gate-3>
     <commands>cd backend &amp;&amp; pytest tests/test_verified_registration.py tests/test_email_verification_guard.py tests/test_referrals.py</commands>
   </phase-69-verification-design>
+  <phase-69-evidence status="pass-local">2026-06-04: Phase-69 backend referral tests and verified-registration regression command preserve post-email-verification referral linkage while bonus days are applied only after confirmed first payment.</phase-69-evidence>
 </V-M-041>

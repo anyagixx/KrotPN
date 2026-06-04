@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<V-M-036 MODULE="M-036" PRIORITY="high" STATUS="pass-local-phase46-phase53-pass-local-phase68" VERSION="1.5.0" PHASE-68="pass-local" PHASE-69="verification-designed" PHASE-70="verification-designed">
+<V-M-036 MODULE="M-036" PRIORITY="high" STATUS="pass-local-phase46-phase53-pass-local-phase68-pass-local-phase69" VERSION="1.5.0" PHASE-68="pass-local" PHASE-69="pass-local" PHASE-70="verification-designed">
   <module>mobile-user-cabinet</module>
   <checks>User frontend must become compact, phone-friendly, and focused on VPN config, subscription, device workflows, and Phase-45 pending trial countdown/calendar UX.</checks>
   <test-files>frontend/src/components/Layout.tsx frontend/src/components/Loading.tsx frontend/src/pages/Dashboard.tsx frontend/src/pages/Config.tsx frontend/src/pages/Subscription.tsx frontend/src/pages/Referrals.tsx frontend/src/pages/Settings.tsx frontend/src/index.css scripts/phase45-trial-subscription-ux-smoke.mjs scripts/phase46-user-cabinet-ux-smoke.mjs scripts/phase53-user-matrix-ui-smoke.mjs</test-files>
@@ -100,12 +100,13 @@
     <gate-3>All cabinet buttons must keep compact Matrix microinteractions, visible focus, disabled states, and reduced-motion fallback.</gate-3>
     <commands>cd frontend &amp;&amp; npm run build; node scripts/phase46-user-cabinet-ux-smoke.mjs; node scripts/phase68-dashboard-subscription-smoke.mjs</commands>
   </phase-68-verification-design>
-  <phase-69-verification-design status="planned">
+  <phase-69-verification-design status="pass-local">
     <scope>Referral UI verification for masked invite identity and truthful bonus state.</scope>
     <gate-1>Recent invite rows must show partially masked referred email instead of generic "Реферал #N".</gate-1>
     <gate-2>Referral UI must not reveal full referred email, payment IDs, backend user IDs, or hidden bonus internals.</gate-2>
     <commands>cd frontend &amp;&amp; npm run build; node scripts/phase69-referral-bonus-smoke.mjs</commands>
   </phase-69-verification-design>
+  <phase-69-evidence status="pass-local">2026-06-04: frontend build and Phase-69 smoke passed; Referrals rows now render masked referred identity and keep compact status badges.</phase-69-evidence>
   <phase-70-verification-design status="planned">
     <scope>Config page compactness and QR reachability verification.</scope>
     <gate-1>Config page must remove diagnostic/raw-config panels while preserving QR, download, copy, and device configuration workflows.</gate-1>

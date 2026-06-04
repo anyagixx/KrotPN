@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<M-004 NAME="billing" TYPE="CORE_LOGIC" STATUS="pass-local-phase45">
+<M-004 NAME="billing" TYPE="CORE_LOGIC" STATUS="pass-local-phase45-pass-local-phase69">
   <path>backend/app/billing</path>
   <owns>plans, subscriptions, per-plan device limits, payments and YooKassa integration</owns>
   <exports>
@@ -8,7 +8,8 @@
     <fn-get_active_subscription>Return current subscription state for user</fn-get_active_subscription>
     <fn-get_plan_limits>Return device limits and features for a plan</fn-get_plan_limits>
     <fn-create-pending-trial>Create pending four-day trial access after verified email without starting countdown</fn-create-pending-trial>
-    <fn-activate-trial-on-first-vpn-handshake>Start pending trial exactly once from first observed VPN handshake</fn-activate-trial-on-first-vpn-handshake>
+    <fn-grant-referral-bonus-days>Apply paid-referral reward as active extension or pending first-VPN access.</fn-grant-referral-bonus-days>
+    <fn-activate-trial-on-first-vpn-handshake>Start pending trial or referral-bonus access exactly once from first observed VPN handshake</fn-activate-trial-on-first-vpn-handshake>
     <fn-get-subscription-countdown>Return pending/active state and server-time remaining days/hours/minutes</fn-get-subscription-countdown>
   </exports>
   <depends>M-001, M-021</depends>
@@ -20,10 +21,18 @@
     <file>backend/app/billing/schemas.py</file>
     <file>backend/app/billing/yookassa.py</file>
     <file>backend/app/billing/__init__.py</file>
+    <file>backend/tests/test_billing_service.py</file>
+    <file>scripts/phase69-referral-bonus-smoke.mjs</file>
   </files>
   <phase-45-scope>
     <primary-files>service.py, router.py, models.py, schemas.py</primary-files>
     <primary-behaviors>pending trial lifecycle, idempotent first-handshake activation, paid subscription non-regression, device limit access for pending trial, and countdown API fields.</primary-behaviors>
     <evidence>2026-06-01: Phase-45 backend suite passed 35/35, including tests/test_trial_activation.py and updated billing tests.</evidence>
   </phase-45-scope>
+  <phase-69-scope>
+    <primary-files>service.py, router.py, models.py, schemas.py</primary-files>
+    <primary-behaviors>Referral bonus active extension, pending first-VPN bonus access with access_label, pending bonus transfer into paid subscription, and subscription API fields for truthful user copy.</primary-behaviors>
+    <schema-decision>No new migration: Phase-69 reuses subscriptions.pending_activation, trial_duration_days, and access_label.</schema-decision>
+    <evidence>2026-06-04: targeted backend Phase-69 suite passed 34/34 and Phase-69 smoke passed.</evidence>
+  </phase-69-scope>
 </M-004>

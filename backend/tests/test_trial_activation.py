@@ -15,12 +15,14 @@
 #   FakeSessionMaker - Async context wrapper for scheduler tests
 #   test_pending_trial_is_access_bearing_without_running_countdown - Verifies pending trial state
 #   test_first_handshake_activates_trial_once - Verifies idempotent four-day activation
+#   test_first_handshake_activates_pending_referral_bonus_once - Verifies Phase-69 referral reward activation
 #   test_paid_subscription_blocks_pending_trial_activation - Verifies paid access is not overwritten
 #   test_subscription_status_exposes_pending_and_countdown_fields - Verifies API response shape
 #   test_scheduler_activates_pending_trial_from_client_handshake - Verifies scheduler scan
 # END_MODULE_MAP
 #
 # START_CHANGE_SUMMARY
+#   LAST_CHANGE: v1.1.0 - Added Phase-69 pending referral-bonus activation regression coverage
 #   LAST_CHANGE: v1.0.0 - Added Phase-45 pending trial activation regression coverage
 # END_CHANGE_SUMMARY
 """
@@ -35,7 +37,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.billing.models import Plan, Subscription, SubscriptionStatus
 from app.billing.router import get_subscription_status
-from app.billing.service import BillingService
+from app.billing.service import BillingService, REFERRAL_BONUS_ACCESS_LABEL
 from app.tasks import scheduler as scheduler_mod
 from app.vpn.models import VPNClient
 
@@ -113,6 +115,34 @@ async def test_first_handshake_activates_trial_once(db_session: AsyncSession, mo
 
     assert second is None
     assert aware_utc(subscription.expires_at) == aware_utc(first_expires_at)
+
+
+@pytest.mark.asyncio
+async def test_first_handshake_activates_pending_referral_bonus_once(db_session: AsyncSession):
+    service = BillingService(db_session)
+    subscription = await service.grant_referral_bonus_days(user_id=29, days=7)
+    handshake_at = datetime.now(timezone.utc) + timedelta(minutes=5)
+
+    activated = await service.activate_trial_on_first_vpn_handshake(
+        user_id=29,
+        handshake_at=handshake_at,
+        client_id=290,
+    )
+    second = await service.activate_trial_on_first_vpn_handshake(
+        user_id=29,
+        handshake_at=handshake_at + timedelta(hours=3),
+        client_id=290,
+    )
+    await db_session.refresh(subscription)
+
+    assert activated is not None
+    assert second is None
+    assert subscription.is_trial is False
+    assert subscription.status == SubscriptionStatus.ACTIVE
+    assert subscription.access_label == REFERRAL_BONUS_ACCESS_LABEL
+    assert subscription.pending_activation is False
+    assert aware_utc(subscription.activated_at) == handshake_at
+    assert aware_utc(subscription.expires_at) == handshake_at + timedelta(days=7)
 
 
 @pytest.mark.asyncio

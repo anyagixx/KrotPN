@@ -1,18 +1,27 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<M-005 NAME="referrals" TYPE="CORE_LOGIC" STATUS="stable">
+<M-005 NAME="referrals" TYPE="CORE_LOGIC" STATUS="pass-local-phase69">
   <path>backend/app/referrals</path>
   <owns>referral codes, referral links and bonus accounting with anti-fraud checks</owns>
   <exports>
     <fn-generate_referral_code>Create unique referral code for user</fn-generate_referral_code>
-    <fn-apply_referral_code>Link new user to referrer and process bonus</fn-apply_referral_code>
+    <fn-apply_referral_code>Link verified new user to referrer and process bonus</fn-apply_referral_code>
+    <fn-process_first_payment>Grant exactly one paid-referral bonus to the referrer after the referred user's qualifying first payment.</fn-process_first_payment>
     <fn-get_referral_stats>Return referral count and bonus for user</fn-get_referral_stats>
+    <fn-get_referrals_list>Return referral rows for user-facing masked identity rendering.</fn-get_referrals_list>
   </exports>
-  <depends>M-001</depends>
+  <depends>M-001,M-004</depends>
   <verification-ref>V-M-005</verification-ref>
   <files>
     <file>backend/app/referrals/service.py</file>
     <file>backend/app/referrals/router.py</file>
     <file>backend/app/referrals/models.py</file>
     <file>backend/app/referrals/__init__.py</file>
+    <file>backend/tests/test_referrals.py</file>
+    <file>scripts/phase69-referral-bonus-smoke.mjs</file>
   </files>
+  <phase-69-scope>
+    <in>One-time paid-referral bonus, active subscription extension, pending first-VPN referral reward, duplicate processing guard, and masked referred identity.</in>
+    <out>Referral fraud scoring, admin referral redesign, raw referred email exposure, deploy/install changes, and live YooKassa credential setup.</out>
+  </phase-69-scope>
+  <evidence>2026-06-04: Phase-69 referral tests passed for active extension, no-active pending referral bonus, duplicate webhook idempotency, and masked referred identity; Phase-69 smoke passed.</evidence>
 </M-005>

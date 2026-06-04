@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Phase-69 NAME="Referral Bonus Activation Correctness and Masked Invite Identity" STATUS="planned" VERSION="1.0.0" MODULES="M-005,M-004,M-063,M-008,M-009,M-036,M-028,M-041" CREATED="2026-06-04" UPDATED="2026-06-04">
+<Phase-69 NAME="Referral Bonus Activation Correctness and Masked Invite Identity" STATUS="done-local" VERSION="1.0.0" MODULES="M-005,M-004,M-063,M-008,M-009,M-036,M-075,M-028,M-041" CREATED="2026-06-04" UPDATED="2026-06-04">
   <purpose>Close referral bonus debt by proving and fixing the 7-day inviter reward for paid referrals, including pending activation for inviters without an active subscription and masked referred-email display in the user cabinet.</purpose>
   <scope>
     <in>Referral first-payment processing, 7-day bonus subscription/grant semantics, pending first-VPN activation for bonus-only inviters, active-subscription extension, idempotency, masked referred email in owner API/UI, backend tests, frontend referral history update, and MyGRACE synchronization.</in>
@@ -15,15 +15,15 @@
     <requirement-7>Existing Phase-28 verified-registration behavior must remain: unverified pending email registration cannot create referral linkage or bonus eligibility.</requirement-7>
   </requirements>
   <steps>
-    <step-1 MODULE="M-005,M-004,M-063" STATUS="planned">Audit current ReferralService.process_first_payment, BillingService subscription lifecycle, pending activation fields, scheduler activation path, and referral tests.</step-1>
-    <step-2 MODULE="M-005,M-004,M-063,M-028" STATUS="planned">Select the smallest durable data model for referral bonus grants: reuse existing subscription pending_activation fields if safe, otherwise add migration-backed explicit grant fields.</step-2>
-    <step-3 MODULE="M-005,M-004" STATUS="planned">Implement active-subscription extension so the referrer's current paid/trial/complimentary access receives +7 days from the correct base without shortening access.</step-3>
-    <step-4 MODULE="M-005,M-004,M-063" STATUS="planned">Implement no-active-subscription handling so a 7-day referral grant is pending until the referrer first connects through VPN.</step-4>
-    <step-5 MODULE="M-063,M-008,M-003" STATUS="planned">Extend or reuse first-handshake activation so pending referral bonus access activates idempotently from VPN handshake observations without pretending it is a normal free trial in user copy.</step-5>
-    <step-6 MODULE="M-005,M-004" STATUS="planned">Harden idempotency around first_payment_at, bonus_given, duplicate webhooks, minimum amount checks, and transaction flush boundaries.</step-6>
-    <step-7 MODULE="M-005,M-002,M-009" STATUS="planned">Return masked referred email in /api/v1/referrals/list and update frontend API types without returning raw email to the user cabinet.</step-7>
-    <step-8 MODULE="M-009,M-036,M-075" STATUS="planned">Update Referrals UI so recent invitations render "Реферал masked***@domain" with compact mobile-safe rows and existing bonus status badges.</step-8>
-    <step-9 MODULE="M-005,M-004,M-063,M-041" STATUS="planned">Add tests for active extension, pending grant activation, duplicate webhook idempotency, verified-only referral linkage, and masked identity; then run backend/frontend/MyGRACE gates.</step-9>
+    <step-1 MODULE="M-005,M-004,M-063" STATUS="done-local">Audit current ReferralService.process_first_payment, BillingService subscription lifecycle, pending activation fields, scheduler activation path, and referral tests.</step-1>
+    <step-2 MODULE="M-005,M-004,M-063,M-028" STATUS="done-local">Selected migration-free data model: reuse subscriptions.pending_activation, trial_duration_days, and access_label for referral-bonus grants.</step-2>
+    <step-3 MODULE="M-005,M-004" STATUS="done-local">Implemented active-subscription extension so the referrer's current access receives +7 days from the correct base without shortening access.</step-3>
+    <step-4 MODULE="M-005,M-004,M-063" STATUS="done-local">Implemented no-active-subscription handling so a 7-day referral grant is pending until the referrer first connects through VPN.</step-4>
+    <step-5 MODULE="M-063,M-008,M-003" STATUS="done-local">Reused first-handshake activation for pending referral bonus access with access_label-based user copy and scheduler/VPN stats compatibility.</step-5>
+    <step-6 MODULE="M-005,M-004" STATUS="done-local">Hardened idempotency around bonus_given, minimum amount checks, duplicate processing, and pending bonus transfer into paid subscriptions.</step-6>
+    <step-7 MODULE="M-005,M-002,M-009" STATUS="done-local">Returned masked referred email in /api/v1/referrals/list and updated frontend API types without returning raw email to the user cabinet.</step-7>
+    <step-8 MODULE="M-009,M-036,M-075" STATUS="done-local">Updated Referrals UI so recent invitations render masked referred identity with compact mobile-safe rows and existing bonus status badges.</step-8>
+    <step-9 MODULE="M-005,M-004,M-063,M-041" STATUS="done-local">Added tests for active extension, pending grant activation, duplicate webhook idempotency, scheduler activation, paid-subscription transfer, and masked identity; backend/frontend gates passed.</step-9>
   </steps>
   <data-flow>
     <flow-1>Invitee registers with referral code -> M-041 verifies email -> M-005 creates referral link exactly once.</flow-1>
@@ -45,13 +45,17 @@
   </verification-design>
   <verification>
     <commands>
-      <command status="planned">cd backend &amp;&amp; SECRET_KEY=test-secret-key-with-enough-length DATA_ENCRYPTION_KEY=dpFmfSVqfdAK3yx5MQV6Tcv35RZuw5MzaH0yhxJ01q0= PYTHONPATH=. ../.venv/bin/python -m pytest -o addopts='' tests/test_referrals.py tests/test_verified_registration.py tests/test_trial_activation.py tests/test_billing_security.py tests/test_billing_service.py tests/test_scheduler.py -v</command>
-      <command status="planned">cd frontend &amp;&amp; npm run build</command>
-      <command status="planned">node scripts/phase57-premium-user-cabinet-smoke.mjs</command>
-      <command status="planned">python3 -m xml.etree.ElementTree docs/plans/Phase-69.xml docs/plan-index.xml docs/graph-index.xml docs/verification-index.xml</command>
-      <command status="planned">mygrace lint; git diff --check; protected deploy/install/runtime diff guard</command>
+      <command status="pass-local">cd backend &amp;&amp; SECRET_KEY=test-secret-key-with-enough-length DATA_ENCRYPTION_KEY=dpFmfSVqfdAK3yx5MQV6Tcv35RZuw5MzaH0yhxJ01q0= PYTHONPATH=. ../.venv/bin/python -m pytest -o addopts='' tests/test_referrals.py tests/test_trial_activation.py tests/test_billing_service.py tests/test_scheduler.py -v</command>
+      <command status="pass-local">cd frontend &amp;&amp; npm run build</command>
+      <command status="pass-local">node scripts/phase69-referral-bonus-smoke.mjs</command>
+      <command status="pass-local">node scripts/phase57-premium-user-cabinet-smoke.mjs</command>
+      <command status="pass-local">python3 -m xml.etree.ElementTree docs/plans/Phase-69.xml docs/plan-index.xml docs/graph-index.xml docs/verification-index.xml</command>
+      <command status="pass-local">mygrace lint; git diff --check; protected deploy/install/runtime diff guard</command>
     </commands>
   </verification>
+  <execution-evidence>
+    <local-2026-06-04>Phase-69 implemented referral-bonus active extension, pending first-VPN reward grants through access_label=referral-bonus, combined trial+bonus pending duration, pending bonus transfer into paid subscriptions, masked referred identity in /api/v1/referrals/list, compact Referrals UI rendering, and phase69 static smoke. Targeted backend tests passed 34/34; frontend build and Phase-69 smoke passed.</local-2026-06-04>
+  </execution-evidence>
   <risk-assessment>
     <risk-1 severity="critical">Current referral behavior appears to skip real access for referrers without active subscriptions; Phase-69 must close that without double-granting.</risk-1>
     <risk-2 severity="critical">Webhook retries can duplicate subscription effects unless bonus processing stays idempotent.</risk-2>
