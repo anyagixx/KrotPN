@@ -12,12 +12,17 @@ MODULE_MAP
 - test_config_download_uses_mobile_safe_attachment_headers: Verifies .conf download headers prevent mobile .txt suffixing.
 - test_config_download_filename_sanitizer_forces_single_conf_suffix: Verifies unsafe filename candidates are normalized.
 - test_config_download_requires_authenticated_user: Verifies the config download route stays authenticated.
+- test_config_json_download_and_qr_payloads_stay_in_parity: Verifies API config, download body, and QR payload use exact same config text.
+- test_amnezia_qr_wraps_exact_config_payload_without_changing_config_text: Verifies Amnezia QR container preserves config_data exactly.
+- test_config_qr_builder_uses_lighter_settings_without_payload_change: Verifies Phase-70 QR rendering settings without exposing key material.
 
 CHANGE_SUMMARY
+- 2026-06-04: Added Phase-70 QR payload parity and lighter QR rendering coverage.
 - 2026-06-01: Added Phase-48 mobile-safe .conf download MIME/header coverage.
 - 2026-05-19: Aligned compatibility route coverage with /api/v1 VPN router prefix for Phase-28 debt closure.
 """
 
+import json
 from datetime import datetime, timezone
 from types import SimpleNamespace
 
@@ -76,6 +81,78 @@ class StubVPNService:
                 "load_percent": 8.0,
             },
         ]
+
+
+class StubBillingService:
+    def __init__(self, session):
+        self.session = session
+
+    async def get_user_subscription(self, user_id):
+        assert user_id == 1
+        return SimpleNamespace(id=501, pending_activation=False)
+
+
+class StubConfigVPNService:
+    config_text = (
+        "[Interface]\n"
+        "PrivateKey = redacted-test-private-key\n"
+        "Address = 172.29.0.2/32\n"
+        "DNS = 1.1.1.1\n"
+        "\n"
+        "[Peer]\n"
+        "PublicKey = redacted-test-public-key\n"
+        "PresharedKey = redacted-test-preshared-key\n"
+        "Endpoint = krotpn.example:51820\n"
+        "AllowedIPs = 0.0.0.0/0, ::/0\n"
+    )
+
+    def __init__(self, session):
+        self.session = session
+
+    async def get_client_config(self, client):
+        assert client.id == 77
+        return SimpleNamespace(
+            config=self.config_text,
+            server_name="RU",
+            server_location="Russia",
+            route_name="RU -> DE",
+            entry_server_name="RU",
+            entry_server_location="Russia",
+            exit_server_name="DE",
+            exit_server_location="Germany",
+            address="172.29.0.2",
+            created_at=datetime.now(timezone.utc),
+        )
+
+
+class DummyQRImage:
+    def save(self, target, format):
+        assert format == "PNG"
+        target.write(b"phase70-png")
+
+
+class SpyQRCode:
+    instances = []
+
+    def __init__(self, *, version, error_correction, box_size, border):
+        self.version = version
+        self.error_correction = error_correction
+        self.box_size = box_size
+        self.border = border
+        self.payload = None
+        self.fit = None
+        SpyQRCode.instances.append(self)
+
+    def add_data(self, payload):
+        self.payload = payload
+
+    def make(self, *, fit):
+        self.fit = fit
+
+    def make_image(self, *, fill_color, back_color):
+        assert fill_color == "black"
+        assert back_color == "white"
+        return DummyQRImage()
 
 
 def _build_app(*, with_current_user: bool = True) -> TestClient:
@@ -242,3 +319,67 @@ def test_config_download_requires_authenticated_user():
     response = client.get("/api/v1/vpn/config/download")
 
     assert response.status_code in {401, 403}
+
+
+def test_config_json_download_and_qr_payloads_stay_in_parity(monkeypatch):
+    async def fake_get_or_provision_user_client(user_id, session):
+        assert user_id == 1
+        return SimpleNamespace(id=77, is_active=True)
+
+    monkeypatch.setattr(vpn_router_module, "VPNService", StubConfigVPNService)
+    monkeypatch.setattr(vpn_router_module, "BillingService", StubBillingService)
+    monkeypatch.setattr(vpn_router_module, "get_or_provision_user_client", fake_get_or_provision_user_client)
+    monkeypatch.setattr(vpn_router_module.qrcode, "QRCode", SpyQRCode)
+    SpyQRCode.instances = []
+    client = _build_app()
+
+    config_response = client.get("/api/v1/vpn/config")
+    download_response = client.get("/api/v1/vpn/config/download")
+    qr_response = client.get("/api/v1/vpn/config/qr")
+
+    assert config_response.status_code == 200
+    assert download_response.status_code == 200
+    assert qr_response.status_code == 200
+    expected_payload = StubConfigVPNService.config_text
+    assert config_response.json()["config"] == expected_payload
+    assert download_response.content == expected_payload.encode("utf-8")
+    assert SpyQRCode.instances[-1].payload == expected_payload
+    assert qr_response.content == b"phase70-png"
+
+
+def test_amnezia_qr_wraps_exact_config_payload_without_changing_config_text(monkeypatch):
+    async def fake_get_or_provision_user_client(user_id, session):
+        assert user_id == 1
+        return SimpleNamespace(id=77, is_active=True)
+
+    monkeypatch.setattr(vpn_router_module, "VPNService", StubConfigVPNService)
+    monkeypatch.setattr(vpn_router_module, "get_or_provision_user_client", fake_get_or_provision_user_client)
+    monkeypatch.setattr(vpn_router_module.qrcode, "QRCode", SpyQRCode)
+    SpyQRCode.instances = []
+    client = _build_app()
+
+    response = client.get("/api/v1/vpn/config/qr/amnezia")
+
+    assert response.status_code == 200
+    payload = json.loads(SpyQRCode.instances[-1].payload)
+    assert payload["default"] == "amneziawg"
+    assert payload["containers"][0]["container"] == "amneziawg"
+    assert payload["containers"][0]["config_data"] == StubConfigVPNService.config_text
+
+
+def test_config_qr_builder_uses_lighter_settings_without_payload_change(monkeypatch):
+    monkeypatch.setattr(vpn_router_module.qrcode, "QRCode", SpyQRCode)
+    SpyQRCode.instances = []
+
+    payload = "redacted-payload"
+    png = vpn_router_module.build_config_qr_png(payload, route_label="unit")
+    qr = SpyQRCode.instances[-1]
+
+    assert png == b"phase70-png"
+    assert qr.payload == payload
+    assert qr.error_correction == vpn_router_module.qrcode.constants.ERROR_CORRECT_M
+    assert qr.error_correction != vpn_router_module.qrcode.constants.ERROR_CORRECT_H
+    assert qr.box_size == vpn_router_module.CONFIG_QR_BOX_SIZE
+    assert qr.box_size <= 10
+    assert qr.border == vpn_router_module.CONFIG_QR_BORDER
+    assert qr.fit is True

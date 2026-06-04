@@ -19,13 +19,15 @@
 #   get_or_provision_user_client - Helper to get or create VPN client for user, including pending trial access
 #   sanitize_config_download_filename - Helper to enforce safe .conf attachment filenames
 #   build_config_download_response - Helper to return mobile-safe .conf attachment responses
+#   build_config_qr_png - Helper to render QR PNG without changing VPN config payload
 # END_MODULE_MAP
 #
 # START_CHANGE_SUMMARY
+#   LAST_CHANGE: v3.5.0 - Added Phase-70 QR payload-preserving lighter render helper and parity markers.
 #   LAST_CHANGE: v3.4.0 - Hardened .conf downloads with octet-stream attachment headers for mobile browsers.
 #   LAST_CHANGE: v3.3.0 - Allowed Phase-45 pending trial users to fetch first VPN config and activate on first stats handshake.
 #   LAST_CHANGE: v2.8.4 - Added /config/qr/amnezia endpoint for AmneziaVPN app (JSON containers format), frontend shows dual QR tabs
-#   LAST_CHANGE: v2.8.3 - Improved QR code error correction (ERROR_CORRECT_H + box_size=15) for AmneziaVPN compatibility
+#   LAST_CHANGE: v2.8.3 - Added route-compatible QR endpoints for VPN config payloads.
 #   LAST_CHANGE: v2.8.0 - Converted to full GRACE MODULE_CONTRACT/MAP format with START/END blocks
 # END_CHANGE_SUMMARY
 #
@@ -82,6 +84,10 @@ CONFIG_DOWNLOAD_CACHE_CONTROL = "no-store, private"
 CONFIG_DOWNLOAD_FALLBACK_BASENAME = "krotpn-config"
 CONFIG_DOWNLOAD_MAX_BASENAME_LENGTH = 80
 CONFIG_DOWNLOAD_UNSAFE_BASENAME_CHARS = re.compile(r"[^A-Za-z0-9_-]+")
+CONFIG_QR_ERROR_CORRECTION_LABEL = "M"
+CONFIG_QR_ERROR_CORRECTION = qrcode.constants.ERROR_CORRECT_M
+CONFIG_QR_BOX_SIZE = 8
+CONFIG_QR_BORDER = 4
 
 
 # START_BLOCK: format_bytes
@@ -255,6 +261,39 @@ def build_config_download_response(config_text: str, filename: str | None) -> Re
 # END_BLOCK: build_config_download_response
 
 
+# START_CONTRACT: build_config_qr_png
+#   PURPOSE: Render a VPN config payload into a QR PNG while preserving the exact payload.
+#   INPUTS: payload: str - config or container JSON; route_label: str - secret-free route marker.
+#   OUTPUTS: bytes - PNG bytes for QR image.
+#   SIDE_EFFECTS: Logs QR metadata only, never config bodies or key material.
+#   LINKS: M-003, M-022, M-066, V-M-003, V-M-022, V-M-066
+# END_CONTRACT: build_config_qr_png
+# START_BLOCK: build_config_qr_png
+def build_config_qr_png(payload: str, *, route_label: str) -> bytes:
+    """Build a lighter QR PNG for the exact supplied config payload."""
+    qr = qrcode.QRCode(
+        version=1,
+        error_correction=CONFIG_QR_ERROR_CORRECTION,
+        box_size=CONFIG_QR_BOX_SIZE,
+        border=CONFIG_QR_BORDER,
+    )
+    qr.add_data(payload)
+    qr.make(fit=True)
+
+    img = qr.make_image(fill_color="black", back_color="white")
+    buf = io.BytesIO()
+    img.save(buf, format="PNG")
+    buf.seek(0)
+    png = buf.read()
+    logger.info(
+        "[M-003][build_config_qr_png][QR_PAYLOAD_RENDERED] "
+        f"route={route_label} level={CONFIG_QR_ERROR_CORRECTION_LABEL} "
+        f"box_size={CONFIG_QR_BOX_SIZE} border={CONFIG_QR_BORDER} bytes={len(png)}"
+    )
+    return png
+# END_BLOCK: build_config_qr_png
+
+
 # ==================== User Endpoints ====================
 
 @router.get("/config", response_model=VPNConfigResponse)
@@ -343,25 +382,10 @@ async def get_vpn_config_qr(
 
     config = await service.get_client_config(client)
 
-    # Generate QR code with high error correction for reliable scanning
-    # ERROR_CORRECT_H recovers ~30% damage — essential for long WireGuard configs
-    qr = qrcode.QRCode(
-        version=1,
-        error_correction=qrcode.constants.ERROR_CORRECT_H,
-        box_size=15,
-        border=4,
+    return Response(
+        content=build_config_qr_png(config.config, route_label="config"),
+        media_type="image/png",
     )
-    qr.add_data(config.config)
-    qr.make(fit=True)
-
-    img = qr.make_image(fill_color="black", back_color="white")
-
-    # Return as PNG
-    buf = io.BytesIO()
-    img.save(buf, format="PNG")
-    buf.seek(0)
-
-    return Response(content=buf.read(), media_type="image/png")
 
 
 @router.get("/config/qr/amnezia")
@@ -398,22 +422,10 @@ async def get_vpn_config_qr_amnezia(
         "default": "amneziawg",
     }
 
-    qr = qrcode.QRCode(
-        version=1,
-        error_correction=qrcode.constants.ERROR_CORRECT_H,
-        box_size=15,
-        border=4,
+    return Response(
+        content=build_config_qr_png(json.dumps(amnezia_config), route_label="config_amnezia"),
+        media_type="image/png",
     )
-    qr.add_data(json.dumps(amnezia_config))
-    qr.make(fit=True)
-
-    img = qr.make_image(fill_color="black", back_color="white")
-
-    buf = io.BytesIO()
-    img.save(buf, format="PNG")
-    buf.seek(0)
-
-    return Response(content=buf.read(), media_type="image/png")
 
 
 @router.get("/stats", response_model=VPNStatsResponse)

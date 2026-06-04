@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<V-M-071 MODULE="M-071" PRIORITY="high" STATUS="pass-local-phase52-phase53-phase54-phase55-phase56-phase59-pass-local-phase67-pass-local-rainfix-pass-local-phase68" PHASE-54="pass-local" PHASE-55="pass-local" PHASE-56="pass-local" PHASE-59="pass-local" PHASE-67="pass-local" RAINFIX="pass-local" PHASE-68="pass-local" PHASE-70="verification-designed">
+<V-M-071 MODULE="M-071" PRIORITY="high" STATUS="pass-local-phase52-phase53-phase54-phase55-phase56-phase59-pass-local-phase67-pass-local-rainfix-pass-local-phase68-pass-local-phase70" PHASE-54="pass-local" PHASE-55="pass-local" PHASE-56="pass-local" PHASE-59="pass-local" PHASE-67="pass-local" RAINFIX="pass-local" PHASE-68="pass-local" PHASE-70="pass-local">
   <scope>
     <phase>Phase-52</phase>
     <purpose>Verify the Matrix style system foundation for compact, readable, mobile-safe user and admin shells.</purpose>
@@ -18,6 +18,7 @@
     <file phase="59-pass-local">scripts/phase59-motion-interactions-smoke.mjs</file>
     <file phase="rainfix-pass-local">scripts/phase61-responsive-adaptation-smoke.mjs</file>
     <file phase="67-pass-local">scripts/phase67-auth-splash-smoke.mjs</file>
+    <file phase="70-pass-local">scripts/phase70-config-qr-parity-smoke.mjs</file>
   </test-files>
   <module-checks>
     <check-1>cd frontend &amp;&amp; npm run build</check-1>
@@ -222,10 +223,11 @@
     <gate-3>Calendar and tariff controls must not use hero-scale typography, viewport-scaled fonts, negative letter spacing, or oversized radius.</gate-3>
     <commands>node scripts/phase52-matrix-visual-smoke.mjs; node scripts/phase59-motion-interactions-smoke.mjs; node scripts/phase68-dashboard-subscription-smoke.mjs</commands>
   </phase-68-verification-design>
-  <phase-70-verification-design status="planned">
+  <phase-70-verification-design status="pass-local">
     <scope>QR/config visual compactness verification.</scope>
     <gate-1>QR presentation may be visually simplified only by changing rendering options, never by changing config payload content.</gate-1>
     <gate-2>Removed config diagnostic/raw blocks must not leave empty visual gaps, broken spacers, or hidden actionable content.</gate-2>
     <commands>node scripts/phase70-config-qr-parity-smoke.mjs; node scripts/phase61-responsive-adaptation-smoke.mjs</commands>
   </phase-70-verification-design>
+  <phase-70-evidence status="pass-local">2026-06-04: Phase-70 smoke passed; QR page compaction stayed inside Config.tsx route-local sizing/spacing, with no new global CSS bloat or deploy/runtime drift.</phase-70-evidence>
 </V-M-071>

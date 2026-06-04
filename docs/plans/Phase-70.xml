@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Phase-70 NAME="VPN QR Parity and Config Page Compaction" STATUS="planned" VERSION="1.0.0" MODULES="M-003,M-022,M-066,M-075,M-036,M-009,M-071" CREATED="2026-06-04" UPDATED="2026-06-04">
+<Phase-70 NAME="VPN QR Parity and Config Page Compaction" STATUS="done-local" VERSION="1.0.0" MODULES="M-003,M-022,M-066,M-075,M-036,M-009,M-071" CREATED="2026-06-04" UPDATED="2026-06-04">
   <purpose>Make the user-cabinet VPN QR code visually lighter and provably equivalent to the working VPN config path, while keeping the config page compact after removing diagnostics/raw-config panels.</purpose>
   <scope>
     <in>QR payload audit, frontend QR rendering parameters, backend QR endpoint comparison, CLI create-client QR comparison, decode/roundtrip tests, config page compaction verification, and mobile scanning UX.</in>
@@ -15,14 +15,14 @@
     <requirement-7>QR, .conf download, copy, and device management actions must remain reachable and finger-safe on mobile.</requirement-7>
   </requirements>
   <steps>
-    <step-1 MODULE="M-003,M-022,M-066" STATUS="planned">Audit backend VPN config generation, /vpn/config, /vpn/config/qr, /vpn/config/download, device-bound config bundles, and deploy/create-client.sh QR generation.</step-1>
-    <step-2 MODULE="M-003,M-022" STATUS="planned">Add deterministic test helpers to compare API config text, device config text, backend QR payload, and CLI-compatible config payload without logging private keys.</step-2>
-    <step-3 MODULE="M-003,M-022,M-066" STATUS="planned">If config payload mismatch exists, align the user-cabinet config source with the canonical VPN config contract and preserve Phase-48 download headers.</step-3>
-    <step-4 MODULE="M-009,M-075,M-071" STATUS="planned">If payload is correct, tune frontend QRCodeCanvas settings toward a lighter visual QR while preserving decode reliability and reduced mobile crowding.</step-4>
-    <step-5 MODULE="M-003,M-022" STATUS="planned">Tune backend QR endpoint settings only if it remains part of the active contract; otherwise document frontend-owned QR rendering and keep backend route compatibility.</step-5>
-    <step-6 MODULE="M-009,M-075,M-036" STATUS="planned">Keep the compact config page free of diagnostics/raw-config panels while preserving QR modal, .conf download, copy, device create/rotate/revoke, and unavailable states.</step-6>
-    <step-7 MODULE="M-003,M-022,M-066,M-009" STATUS="planned">Add QR decode/roundtrip tests or smoke checks that confirm generated PNG/canvas payloads decode to the expected config and never expose payload material in logs.</step-7>
-    <step-8 MODULE="M-075,M-036,M-071" STATUS="planned">Run frontend build, VPN router compatibility tests, Phase-48/57/62 smokes, XML parse, MyGRACE lint, git diff --check, and protected deploy/runtime guard.</step-8>
+    <step-1 MODULE="M-003,M-022,M-066" STATUS="done-local">Audited backend VPN config generation, /vpn/config, /vpn/config/qr, /vpn/config/download, device-bound config bundles, and deploy/create-client.sh QR generation.</step-1>
+    <step-2 MODULE="M-003,M-022" STATUS="done-local">Added deterministic test helpers to compare API config text, download bytes, backend QR payload, and CLI-compatible config source without logging private keys.</step-2>
+    <step-3 MODULE="M-003,M-022,M-066" STATUS="done-local">No config payload mismatch was found; Phase-48 download headers were preserved unchanged.</step-3>
+    <step-4 MODULE="M-009,M-075,M-071" STATUS="done-local">Tuned frontend QRCodeCanvas to a lighter level-M QR with margin while preserving exact configText payload and compact mobile spacing.</step-4>
+    <step-5 MODULE="M-003,M-022" STATUS="done-local">Tuned backend QR endpoint through a shared payload-preserving builder using level M, smaller box size, and existing route compatibility.</step-5>
+    <step-6 MODULE="M-009,M-075,M-036" STATUS="done-local">Kept the compact config page free of diagnostics/raw-config panels while preserving QR modal, .conf download, copy, device create/rotate/revoke, and unavailable states.</step-6>
+    <step-7 MODULE="M-003,M-022,M-066,M-009" STATUS="done-local">Added QR roundtrip-style tests/smoke checks proving encoders receive the expected config payload and never print payload material in logs.</step-7>
+    <step-8 MODULE="M-075,M-036,M-071" STATUS="done-local">Ran frontend build, VPN router compatibility tests, Phase-48/57/62/70 smokes, XML parse, MyGRACE lint, git diff --check, and protected deploy/runtime guard locally.</step-8>
   </steps>
   <data-flow>
     <flow-1>User opens /dashboard/config -> frontend fetches config/device bundle -> QR modal renders exact config payload -> user scans with AmneziaWG.</flow-1>
@@ -43,15 +43,22 @@
   </verification-design>
   <verification>
     <commands>
-      <command status="planned">cd backend &amp;&amp; SECRET_KEY=test-secret-key-with-enough-length DATA_ENCRYPTION_KEY=dpFmfSVqfdAK3yx5MQV6Tcv35RZuw5MzaH0yhxJ01q0= PYTHONPATH=. ../.venv/bin/python -m pytest -o addopts='' tests/test_vpn_router_compat.py tests/test_vpn_service.py tests/test_manual_client_cli.py -v</command>
-      <command status="planned">cd frontend &amp;&amp; npm run build</command>
-      <command status="planned">node scripts/phase48-config-download-mime-smoke.mjs</command>
-      <command status="planned">node scripts/phase57-premium-user-cabinet-smoke.mjs</command>
-      <command status="planned">node scripts/phase62-compactness-deletion-smoke.mjs</command>
-      <command status="planned">python3 -m xml.etree.ElementTree docs/plans/Phase-70.xml docs/plan-index.xml docs/graph-index.xml docs/verification-index.xml</command>
-      <command status="planned">mygrace lint; git diff --check; protected deploy/install/runtime diff guard</command>
+      <command status="pass-local">cd backend &amp;&amp; SECRET_KEY=test-secret-key-with-enough-length DATA_ENCRYPTION_KEY=dpFmfSVqfdAK3yx5MQV6Tcv35RZuw5MzaH0yhxJ01q0= PYTHONPATH=. ../.venv/bin/python -m pytest -o addopts='' tests/test_vpn_router_compat.py tests/test_vpn_service.py tests/test_manual_client_cli.py -v</command>
+      <command status="pass-local">cd frontend &amp;&amp; npm run build</command>
+      <command status="pass-local">node scripts/phase48-config-download-mime-smoke.mjs</command>
+      <command status="pass-local">node scripts/phase57-premium-user-cabinet-smoke.mjs</command>
+      <command status="pass-local">node scripts/phase62-compactness-deletion-smoke.mjs</command>
+      <command status="pass-local">node scripts/phase70-config-qr-parity-smoke.mjs</command>
+      <command status="pass-local">python3 -m xml.etree.ElementTree docs/plans/Phase-70.xml docs/plan-index.xml docs/graph-index.xml docs/verification-index.xml</command>
+      <command status="pass-local">mygrace lint; git diff --check; protected deploy/install/runtime diff guard</command>
     </commands>
   </verification>
+  <execution-evidence status="done-local" date="2026-06-04">
+    <evidence-1>backend/app/vpn/router.py now renders /config/qr and /config/qr/amnezia through build_config_qr_png, which logs only route/level/size metadata and never config payloads or key material.</evidence-1>
+    <evidence-2>backend/tests/test_vpn_router_compat.py proves /vpn/config JSON, /vpn/config/download bytes, and backend QR payload source stay identical for the same generated config; Amnezia QR preserves config_data exactly.</evidence-2>
+    <evidence-3>frontend/src/pages/Config.tsx now renders the user-visible QR with level M, smaller canvas size, included margin, and Phase-70 parity markers while keeping QR/download/copy/device workflows.</evidence-3>
+    <evidence-4>scripts/phase70-config-qr-parity-smoke.mjs verifies lighter QR settings, config page compaction, CLI qrencode reads from OUTPUT_PATH, and deploy/install/runtime/admin surfaces remain untouched.</evidence-4>
+  </execution-evidence>
   <risk-assessment>
     <risk-1 severity="critical">Reducing QR density by changing config content can silently break existing VPN connectivity; payload parity must be proven first.</risk-1>
     <risk-2 severity="high">Lower error correction can make QR easier-looking but less scannable on low-quality screens; decode and device-oriented checks are required.</risk-2>

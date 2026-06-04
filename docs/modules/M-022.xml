@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<M-022 NAME="device-provisioning-api" TYPE="ENTRY_POINT" STATUS="pass-local-phase45">
+<M-022 NAME="device-provisioning-api" TYPE="ENTRY_POINT" STATUS="pass-local-phase45-pass-local-phase70">
   <path>backend/app/devices/router.py backend/app/vpn/router.py</path>
   <owns>user-facing device management, stealth-aware config retrieval and device-bound provisioning APIs</owns>
   <exports>
@@ -15,11 +15,18 @@
     <file>backend/app/devices/router.py</file>
     <file>backend/app/vpn/router.py</file>
     <file>backend/app/devices/schemas.py</file>
+    <file>backend/tests/test_vpn_router_compat.py</file>
+    <file>scripts/phase70-config-qr-parity-smoke.mjs</file>
   </files>
   <phase-45-scope>
     <primary-files>backend/app/vpn/router.py</primary-files>
     <primary-behaviors>pending trial access counts as config-eligible for first VPN config retrieval without changing paid plan/device semantics.</primary-behaviors>
     <evidence>2026-06-01: Phase-45 backend suite passed and includes vpn_router_compat plus pending trial access coverage.</evidence>
   </phase-45-scope>
+  <phase-70-scope>
+    <primary-files>backend/app/vpn/router.py backend/tests/test_vpn_router_compat.py</primary-files>
+    <primary-behaviors>Device-facing config routes keep current shape; QR/download/config parity tests cover active config payload without changing device registration, limits, or provisioning semantics.</primary-behaviors>
+    <evidence>2026-06-04: Phase-70 router tests passed 13/13 and protected deploy/create-client.sh surface remained unchanged.</evidence>
+  </phase-70-scope>
   <hotspot>H-017: QR/raw config endpoints must not diverge in profile or preshared-key content</hotspot>
 </M-022>

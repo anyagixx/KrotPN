@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<M-071 NAME="matrix-style-system" TYPE="UI_COMPONENT" STATUS="done-local-phase52-phase53-phase54-phase55-phase56-phase59-pass-local-phase67-pass-local-rainfix-pass-local-phase68">
-  <path>frontend/src/index.css frontend-admin/src/index.css frontend/src/components/Layout.tsx frontend-admin/src/components/Layout.tsx scripts/phase52-matrix-visual-smoke.mjs scripts/phase53-user-matrix-ui-smoke.mjs scripts/phase54-admin-matrix-ui-smoke.mjs scripts/phase55-premium-art-direction-smoke.mjs scripts/phase56-premium-public-auth-smoke.mjs scripts/phase59-motion-interactions-smoke.mjs scripts/phase61-responsive-adaptation-smoke.mjs docs/plans/Phase-52.xml docs/plans/Phase-53.xml docs/plans/Phase-54.xml docs/plans/Phase-55.xml docs/plans/Phase-56.xml docs/plans/Phase-59.xml docs/plans/Phase-67.xml docs/plans/Phase-68.xml scripts/phase67-auth-splash-smoke.mjs scripts/phase68-dashboard-subscription-smoke.mjs</path>
+<M-071 NAME="matrix-style-system" TYPE="UI_COMPONENT" STATUS="done-local-phase52-phase53-phase54-phase55-phase56-phase59-pass-local-phase67-pass-local-rainfix-pass-local-phase68-pass-local-phase70">
+  <path>frontend/src/index.css frontend-admin/src/index.css frontend/src/components/Layout.tsx frontend-admin/src/components/Layout.tsx scripts/phase52-matrix-visual-smoke.mjs scripts/phase53-user-matrix-ui-smoke.mjs scripts/phase54-admin-matrix-ui-smoke.mjs scripts/phase55-premium-art-direction-smoke.mjs scripts/phase56-premium-public-auth-smoke.mjs scripts/phase59-motion-interactions-smoke.mjs scripts/phase61-responsive-adaptation-smoke.mjs docs/plans/Phase-52.xml docs/plans/Phase-53.xml docs/plans/Phase-54.xml docs/plans/Phase-55.xml docs/plans/Phase-56.xml docs/plans/Phase-59.xml docs/plans/Phase-67.xml docs/plans/Phase-68.xml docs/plans/Phase-70.xml scripts/phase67-auth-splash-smoke.mjs scripts/phase68-dashboard-subscription-smoke.mjs scripts/phase70-config-qr-parity-smoke.mjs</path>
   <owns>Shared KrotPN Matrix visual language: color tokens, compact panels, CRT scanlines, neon flicker, glitch accents, focus states, and mobile-safe responsive rules.</owns>
   <depends>M-009, M-010, M-036, M-037, M-038, M-070, M-077</depends>
   <verification-ref>V-M-071</verification-ref>
@@ -49,6 +49,7 @@
     <phase-67-local-2026-06-04>Phase-67 added splash/auth CSS primitives for frameless panels, large unframed logo, red auth focus, icon-safe fields, compact animated primary/secondary actions, phone/tablet rules, and reduced-motion fallback; Phase-55/56/59/60/61/67 smokes passed.</phase-67-local-2026-06-04>
     <rainfix-local-2026-06-04>Added .matrix-rain-fallback, CSS rain animation, 100dvh+128px canvas/fallback overscan, normal canvas blend mode, and reduced-motion fallback positions to user/admin CSS. Phase-52/59/61/67/60 smokes, user/admin builds, Chrome screenshots, and protected backend/deploy/runtime guard passed.</rainfix-local-2026-06-04>
     <phase-68-local-2026-06-04>Added frameless user-shell logo CSS, compact dashboard subscription panel styles, responsive tariff grid, and compact cross-month calendar rules; Phase-68/57/62/61/60 smokes and builds passed.</phase-68-local-2026-06-04>
+    <phase-70-local-2026-06-04>Phase-70 preserved the compact config page style system and used route-local QR spacing/size adjustments in Config.tsx rather than adding global CSS bloat; frontend build and Phase-70 smoke passed.</phase-70-local-2026-06-04>
   </evidence>
   <phase-67-verification-design>
     <scope>Frontend auth-only style polish for frameless public/auth screens without changing user cabinet or admin layout contracts.</scope>
@@ -66,5 +67,6 @@
     <phase-67>Adds frameless auth, red-focus form, and splash styling constraints for the next public/auth polish wave.</phase-67>
     <rainfix>Adds CSS rain fallback and mobile overscan constraints for Matrix background reliability.</rainfix>
     <phase-68>Adds compact dashboard subscription merge styling and frameless user-shell logo treatment.</phase-68>
+    <phase-70>Keeps QR page compaction and payload parity markers within the existing compact Matrix config workflow.</phase-70>
   </crosslinks>
 </M-071>

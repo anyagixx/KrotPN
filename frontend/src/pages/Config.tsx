@@ -18,6 +18,7 @@
 // END_MODULE_MAP
 //
 // START_CHANGE_SUMMARY
+//   LAST_CHANGE: v3.6.0 - Added Phase-70 QR parity markers and lighter QR rendering settings.
 //   LAST_CHANGE: v3.5.0 - Removed Phase-68 visible raw config fallback and config diagnostics while preserving QR/download/copy/device workflows.
 //   LAST_CHANGE: v3.4.0 - Added Phase-62 config deletion audit markers and folded install diagnostics behind compact details surfaces.
 //   LAST_CHANGE: v3.3.0 - Added Phase-59 copy/download microinteraction markers and status transition classes.
@@ -41,6 +42,9 @@ import { CONFIG_DOWNLOAD_MIME_TYPE, deviceApi, type DeviceConfigBundle, vpnApi }
 import Loading from '../components/Loading'
 
 const CONFIG_DOWNLOAD_FALLBACK_FILENAME = 'krotpn.conf'
+const QR_ERROR_CORRECTION_LEVEL = 'M' as const
+const QR_CANVAS_SIZE = 224
+const QR_INCLUDE_MARGIN = true
 
 // START_CONTRACT: buildConfigDownloadBlob
 //   PURPOSE: Create a browser download Blob that mobile browsers do not reinterpret as .txt.
@@ -529,13 +533,17 @@ function QRModal({
           </button>
         </div>
 
-        <div className="mt-6 flex justify-center rounded-lg bg-white p-5">
+        <div
+          className="mt-6 flex justify-center rounded-lg bg-white p-4 sm:p-5"
+          data-phase70-qr-parity="frontend-config-payload"
+          data-phase70-qr-lightweight="level-m-margin"
+        >
           {showQR ? (
             <QRCodeCanvas
               value={configText}
-              size={240}
-              level="H"
-              includeMargin={false}
+              size={QR_CANVAS_SIZE}
+              level={QR_ERROR_CORRECTION_LEVEL}
+              includeMargin={QR_INCLUDE_MARGIN}
             />
           ) : (
             <div className="text-center py-8 px-4">
