@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<V-M-010 MODULE="M-010" PRIORITY="high" STATUS="pass-local-phase51-phase52-phase54-phase59-pass-local-minimal-login-pass-local-phase74-pass-local-phase75" PHASE-54="pass-local" PHASE-59="pass-local" PHASE-74="pass-local" PHASE-75="pass-local" VERSION="1.11.0">
+<V-M-010 MODULE="M-010" PRIORITY="high" STATUS="pass-local-phase51-phase52-phase54-phase59-pass-local-minimal-login-pass-local-phase74-pass-local-phase75-phase76-planned" PHASE-54="pass-local" PHASE-59="pass-local" PHASE-74="pass-local" PHASE-75="pass-local" PHASE-76="planned" VERSION="1.11.0">
   <module>frontend-admin</module>
   <checks>Admin frontend builds and reflects current admin, Full Tunnel, system, analytics, and device-control surfaces without auth regression.</checks>
   <test-files>frontend-admin/index.html frontend-admin/public/favicon.ico frontend-admin/public/favicon-16x16.png frontend-admin/public/favicon-32x32.png frontend-admin/public/apple-touch-icon.png frontend-admin/src/main.tsx frontend-admin/src/components/MatrixBackground.tsx frontend-admin/src/components/VisualShell.tsx frontend-admin/src/components/Layout.tsx frontend-admin/src/pages/Login.tsx frontend-admin/src/pages/Dashboard.tsx frontend-admin/src/pages/Users.tsx frontend-admin/src/pages/Devices.tsx frontend-admin/src/pages/MTProto.tsx frontend-admin/src/pages/MTProtoAnalytics.tsx frontend-admin/src/pages/Analytics.tsx frontend-admin/src/pages/Servers.tsx frontend-admin/src/pages/Plans.tsx frontend-admin/src/lib/api.ts frontend-admin/src/stores/auth.ts frontend-admin/src/types/index.ts frontend-admin/src/index.css scripts/phase51-brand-assets-smoke.mjs scripts/phase52-matrix-visual-smoke.mjs scripts/phase54-admin-matrix-ui-smoke.mjs scripts/phase59-motion-interactions-smoke.mjs scripts/phase74-admin-shell-navigation-smoke.mjs scripts/phase75-admin-users-devices-smoke.mjs</test-files>
@@ -105,4 +105,12 @@
     <evidence-12>2026-06-05: Phase-74 frontend-admin build and admin shell smoke passed; Login has Phase-74 icon-safe fields, Layout has no visible Tariffs nav, main redirects /plans to /, Logout is under Nodes, and admin content/rail scroll markers are present.</evidence-12>
     <evidence-13>2026-06-05: Phase-75 frontend-admin build and scripts/phase75-admin-users-devices-smoke.mjs passed; Users groups AdminDevice rows by user_id, Layout removes visible Devices nav, main redirects /devices to /users, and confirmation-safe device actions stay inside expanded user rows.</evidence-13>
   </evidence>
+  <phase-76-verification-design status="planned">
+    <scope>Consolidated admin frontend verification for Phase-74 and Phase-75 before release decision.</scope>
+    <gate-1>cd frontend-admin &amp;&amp; npm run build must pass with login padding, shell navigation, bounded scroll, route redirects, and unified inventory together.</gate-1>
+    <gate-2>Phase-74 and Phase-75 admin smokes must pass in one execution bundle.</gate-2>
+    <gate-3>Phase-54, Phase-58, Phase-59, Phase-61, and Phase-62 admin regressions must remain green or record an explicit blocker.</gate-3>
+    <gate-4>User frontend, backend, deploy, install, nginx, docker, VPN, MTProto, and telegram-bot protected guards must remain clean.</gate-4>
+    <commands>cd frontend-admin &amp;&amp; npm run build; node scripts/phase74-admin-shell-navigation-smoke.mjs; node scripts/phase75-admin-users-devices-smoke.mjs; admin regression smoke bundle; protected-surface guard.</commands>
+  </phase-76-verification-design>
 </V-M-010>

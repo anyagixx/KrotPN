@@ -34,6 +34,20 @@
     <gate-4>MyGRACE indexes and per-phase files must remain synchronized after execution.</gate-4>
     <gate-5>Protected-surface guard must be clean.</gate-5>
   </verification-design>
+  <verification-matrix status="designed">
+    <module-local>V-M-009, V-M-010, V-M-036, V-M-037, V-M-063, V-M-066, V-M-068, V-M-071, V-M-074, V-M-075, V-M-076, and V-M-077 carry Phase-76 planned gates for their scoped user/admin/frontend regression surfaces.</module-local>
+    <wave-level>User wave requires frontend build, Phase-72/73 smokes, session smoke, and Phase-57/61/68/70/71 regressions; admin wave requires frontend-admin build, Phase-74/75 smokes, and Phase-54/58/59/62 regressions.</wave-level>
+    <phase-level>XML parse, MyGRACE lint, git diff --check, and protected deploy/runtime guard must pass before Phase-76 can move beyond planned verification.</phase-level>
+  </verification-matrix>
+  <telemetry-requirements>
+    <allowed>Command name, exit code, route label, viewport label, selector/check marker, protected-surface diff summary, build size, and redacted failure code.</allowed>
+    <forbidden>Passwords, access/refresh tokens, admin tokens, reset/verify tokens, API keys, VPN private keys, VPN config bodies, MTProto secrets, full proxy links, raw user IPs, payment IDs, server credentials, and raw .env values.</forbidden>
+  </telemetry-requirements>
+  <autonomous-execution-safety>
+    <allowed>Run local frontend/admin builds, approved smoke scripts, XML/MyGRACE/diff checks, and documentation synchronization for Phase-76.</allowed>
+    <blocked>Release tagging, GitHub push, clean VPS deployment, install/deploy script edits, nginx/docker/runtime topology edits, payment provider edits, and backend API changes unless a Phase-76 failure proves a touched API surface must be fixed under a separate approved fix.</blocked>
+    <handoff-trigger>Stop and report if Phase-76 execution requires production credentials, live server mutation, a new backend contract, or any protected deploy/runtime change.</handoff-trigger>
+  </autonomous-execution-safety>
   <risks>
     <risk-1 severity="medium">Passing individual phases can still leave cross-phase UI regressions, especially around shared Layout/CSS.</risk-1>
     <risk-2 severity="medium">Admin route deletion and user mobile dock can interact with responsive gates in ways not visible in single-page checks.</risk-2>

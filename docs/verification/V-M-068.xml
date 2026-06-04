@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<V-M-068 MODULE="M-068" PRIORITY="critical" STATUS="pass-local-phase53-phase54-pass-local-phase68-pass-local-phase72-regression-pass-local-phase73-pass-local-phase74" PHASE-54="pass-local" PHASE-68="pass-local" PHASE-72-REGRESSION="pass-local" PHASE-73="pass-local" PHASE-74="pass-local">
+<V-M-068 MODULE="M-068" PRIORITY="critical" STATUS="pass-local-phase53-phase54-pass-local-phase68-pass-local-phase72-regression-pass-local-phase73-pass-local-phase74-phase76-planned" PHASE-54="pass-local" PHASE-68="pass-local" PHASE-72-REGRESSION="pass-local" PHASE-73="pass-local" PHASE-74="pass-local" PHASE-76="planned">
   <purpose>Verify Phase-50 canonical paid tariffs across billing catalog convergence, YooKassa payment creation, subscription activation, device-limit policy, and compact user/admin UI.</purpose>
   <checks>Exactly three canonical active tariffs, server-authoritative prices, idempotent clean-deploy upsert, downgrade guard, correct payment metadata, paid subscription activation, device-limit enforcement, user/admin UI rendering, and unchanged deploy/install surfaces.</checks>
   <evidence-priority>
@@ -164,4 +164,11 @@
     <command-1>node scripts/phase74-admin-shell-navigation-smoke.mjs</command-1>
     <summary>Visible admin Tariffs route/nav is removed and direct /plans redirects safely; canonical slugs, prices, device limits, checkout shape, and user-facing tariff cards remained unchanged.</summary>
   </phase-74-evidence>
+  <phase-76-verification-design status="planned">
+    <scope>Tariff and device-limit regression guard for the consolidated user/admin polish gate.</scope>
+    <gate-1>User-facing KrotPN Self, Family, and Team aliases must remain display-only and mapped to canonical backend plans.</gate-1>
+    <gate-2>Admin Tariffs/Plans must remain absent from visible admin navigation while backend canonical tariffs and user checkout UI stay unchanged.</gate-2>
+    <gate-3>Run backend tariff/billing/device-limit tests only if Phase-76 execution detects backend, API, catalog, migration, or checkout drift.</gate-3>
+    <commands>node scripts/phase50-tariff-catalog-smoke.mjs; node scripts/phase68-dashboard-subscription-smoke.mjs; node scripts/phase73-config-amnezia-qr-smoke.mjs; node scripts/phase74-admin-shell-navigation-smoke.mjs; backend targeted tests only if API/backend diff exists.</commands>
+  </phase-76-verification-design>
 </V-M-068>

@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<V-M-076 MODULE="M-076" PRIORITY="high" STATUS="pass-local-phase59-phase62-pass-local-rainfix-pass-local-phase74-pass-local-phase75" PHASE-58="pass-local" PHASE-59="pass-local" PHASE-62="pass-local" RAINFIX="pass-local" PHASE-74="pass-local" PHASE-75="pass-local">
+<V-M-076 MODULE="M-076" PRIORITY="high" STATUS="pass-local-phase59-phase62-pass-local-rainfix-pass-local-phase74-pass-local-phase75-phase76-planned" PHASE-58="pass-local" PHASE-59="pass-local" PHASE-62="pass-local" RAINFIX="pass-local" PHASE-74="pass-local" PHASE-75="pass-local" PHASE-76="planned">
   <scope>Phase-58/Phase-59 premium admin cockpit evidence remains valid. Phase-62 verification now defines the compactness and deletion-audit contract for admin cockpit, MTProto analytics, operational inventories, emergency controls, redaction, responsive regressions, and protected backend/deploy/runtime isolation.</scope>
   <test-files>
     <file>scripts/phase58-premium-admin-cockpit-smoke.mjs</file>
@@ -181,4 +181,11 @@
   </phase-74-verification-design>
   <phase-74-evidence status="pass-local" date="2026-06-05">Phase-74 smoke passed PremiumAdminCockpit markers LOGOUT_UNDER_NODES, TARIFFS_ROUTE_REMOVED, and CONTENT_SCROLL_REPAIRED while protecting backend/deploy/runtime/user tariff surfaces.</phase-74-evidence>
   <phase-75-evidence status="pass-local" date="2026-06-05">Phase-75 smoke passed PremiumAdminCockpit markers USERS_INVENTORY_UNIFIED, DEVICES_NAV_REMOVED, EMERGENCY_DEVICE_ACTIONS_PRESERVED, and BOUNDED_EXPANDED_DEVICES while protecting backend/deploy/runtime/user frontend surfaces.</phase-75-evidence>
+  <phase-76-verification-design status="planned">
+    <scope>Premium admin cockpit regression guard for the consolidated admin polish gate.</scope>
+    <gate-1>Admin cockpit must keep health, users/devices, MTProto, nodes, analytics, logout, and emergency device actions scan-friendly after Phase-74/75 changes.</gate-1>
+    <gate-2>Visible Tariffs and separate Devices navigation must remain removed without losing direct device inspection and action paths in Users.</gate-2>
+    <gate-3>Phase-54, Phase-58, Phase-59, Phase-62, Phase-74, and Phase-75 smokes must remain green or record an explicit blocker.</gate-3>
+    <commands>node scripts/phase58-premium-admin-cockpit-smoke.mjs; node scripts/phase54-admin-matrix-ui-smoke.mjs; node scripts/phase59-motion-interactions-smoke.mjs; node scripts/phase62-compactness-deletion-smoke.mjs; Phase-74/75 smokes.</commands>
+  </phase-76-verification-design>
 </V-M-076>

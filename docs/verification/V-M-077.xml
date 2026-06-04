@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<V-M-077 MODULE="M-077" PRIORITY="high" STATUS="pass-local-rainfix-pass-local-phase68-pass-local-phase71-pass-local-phase72-pass-local-phase74-pass-local-phase75" PHASE-59="pass-local" RAINFIX="pass-local" PHASE-68="pass-local" PHASE-71="pass-local" PHASE-72="pass-local" PHASE-74="pass-local" PHASE-75="pass-local">
+<V-M-077 MODULE="M-077" PRIORITY="high" STATUS="pass-local-rainfix-pass-local-phase68-pass-local-phase71-pass-local-phase72-pass-local-phase74-pass-local-phase75-phase76-planned" PHASE-59="pass-local" RAINFIX="pass-local" PHASE-68="pass-local" PHASE-71="pass-local" PHASE-72="pass-local" PHASE-74="pass-local" PHASE-75="pass-local" PHASE-76="planned">
   <scope>Phase-59 verification for premium Matrix motion and microinteractions across user and admin frontends: copy/download/proxy feedback, VPN/MTProto/subscription/alert/health state transitions, route entrance motion, reduced-motion fallback, inactive-tab lifecycle, keyboard/pointer/scroll safety, and protected-surface isolation.</scope>
   <test-files>
     <file>scripts/phase59-motion-interactions-smoke.mjs</file>
@@ -164,4 +164,11 @@
     <commands>node scripts/phase75-admin-users-devices-smoke.mjs; node scripts/phase59-motion-interactions-smoke.mjs; node scripts/phase74-admin-shell-navigation-smoke.mjs</commands>
   </phase-75-verification-design>
   <phase-75-evidence status="pass-local" date="2026-06-05">Phase-75 smoke passed expand/collapse, confirmation pointer-safety, and reduced-motion expansion markers without protected backend/deploy/runtime/user frontend drift.</phase-75-evidence>
+  <phase-76-verification-design status="planned">
+    <scope>Motion and microinteraction regression guard across the consolidated user/admin polish gate.</scope>
+    <gate-1>User bottom dock, config actions, subscription calendar, admin nav, content scroll, expanded user rows, and confirmation surfaces must keep bounded motion.</gate-1>
+    <gate-2>Reduced-motion, pointer/scroll safety, keyboard focus safety, and Matrix overlay non-interception must remain verified by Phase-59 plus Phase-72/74/75 smokes.</gate-2>
+    <gate-3>Motion execution must not change backend, auth/session, billing, VPN, MTProto, deploy/install, nginx, docker, provider, or telegram-bot surfaces.</gate-3>
+    <commands>node scripts/phase59-motion-interactions-smoke.mjs; node scripts/phase72-user-auth-navigation-smoke.mjs; node scripts/phase74-admin-shell-navigation-smoke.mjs; node scripts/phase75-admin-users-devices-smoke.mjs; protected-surface guard.</commands>
+  </phase-76-verification-design>
 </V-M-077>

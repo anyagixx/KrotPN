@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<V-M-036 MODULE="M-036" PRIORITY="high" STATUS="pass-local-phase46-phase53-pass-local-phase68-pass-local-phase69-pass-local-phase70-pass-local-phase71-pass-local-phase72-pass-local-phase73" VERSION="1.11.0" PHASE-68="pass-local" PHASE-69="pass-local" PHASE-70="pass-local" PHASE-71="pass-local" PHASE-72="pass-local" PHASE-73="pass-local">
+<V-M-036 MODULE="M-036" PRIORITY="high" STATUS="pass-local-phase46-phase53-pass-local-phase68-pass-local-phase69-pass-local-phase70-pass-local-phase71-pass-local-phase72-pass-local-phase73-phase76-planned" VERSION="1.11.0" PHASE-68="pass-local" PHASE-69="pass-local" PHASE-70="pass-local" PHASE-71="pass-local" PHASE-72="pass-local" PHASE-73="pass-local" PHASE-76="planned">
   <module>mobile-user-cabinet</module>
   <checks>User frontend must become compact, phone-friendly, and focused on VPN config, subscription, device workflows, and Phase-45 pending trial countdown/calendar UX.</checks>
   <test-files>frontend/src/components/Layout.tsx frontend/src/components/Loading.tsx frontend/src/components/SubscriptionPanel.tsx frontend/src/pages/Dashboard.tsx frontend/src/pages/Config.tsx frontend/src/pages/Subscription.tsx frontend/src/pages/Referrals.tsx frontend/src/pages/Settings.tsx frontend/src/index.css scripts/phase45-trial-subscription-ux-smoke.mjs scripts/phase46-user-cabinet-ux-smoke.mjs scripts/phase53-user-matrix-ui-smoke.mjs scripts/phase68-dashboard-subscription-smoke.mjs scripts/phase69-referral-bonus-smoke.mjs scripts/phase70-config-qr-parity-smoke.mjs scripts/phase71-device-config-master-detail-smoke.mjs scripts/phase72-user-auth-navigation-smoke.mjs scripts/phase73-config-amnezia-qr-smoke.mjs</test-files>
@@ -152,4 +152,11 @@
     <command-2>node scripts/phase71-device-config-master-detail-smoke.mjs</command-2>
     <summary>Mobile config workflow keeps selected-device QR/.conf/Copy reachable, no unsupported AmneziaVPN QR tab remains, and the exhausted-device message includes the display tariff name.</summary>
   </phase-73-evidence>
+  <phase-76-verification-design status="planned">
+    <scope>Mobile user cabinet regression verification across Phase-72 and Phase-73.</scope>
+    <gate-1>Phone and tablet routes must keep dashboard, config, subscription, referrals, settings, bottom dock, QR, .conf, copy, and tariff-limit messaging reachable without overlap.</gate-1>
+    <gate-2>Phase-61 responsive smoke must remain part of the final Phase-76 bundle.</gate-2>
+    <gate-3>Phase-45, Phase-68, Phase-70, and Phase-71 smokes must prove trial, calendar, config, and master-detail behavior did not regress.</gate-3>
+    <commands>node scripts/phase61-responsive-adaptation-smoke.mjs; node scripts/phase68-dashboard-subscription-smoke.mjs; node scripts/phase70-config-qr-parity-smoke.mjs; node scripts/phase71-device-config-master-detail-smoke.mjs; Phase-72/73 smokes.</commands>
+  </phase-76-verification-design>
 </V-M-036>
