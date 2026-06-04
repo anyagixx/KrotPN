@@ -1,12 +1,12 @@
 // FILE: frontend/src/lib/api.ts
-// VERSION: 1.0.0
+// VERSION: 1.1.0
 // ROLE: RUNTIME
 // MAP_MODE: EXPORTS
 // START_MODULE_CONTRACT
 //   PURPOSE: Axios API client with auth interceptors, token refresh logic, and typed API service modules
-//   SCOPE: HTTP client setup, request/response interceptors, auto token refresh, API namespaces (auth, user, vpn, device, billing, referral, mtproto)
-//   DEPENDS: M-002 (users auth), M-003 (vpn), M-004 (billing), M-005 (referrals), M-045 (mtproto-user-cabinet)
-//   LINKS: M-009 (frontend-user), M-045
+//   SCOPE: HTTP client setup, request/response interceptors, 60-day inactivity TTL enforcement, auto token refresh, API namespaces (auth, user, vpn, device, billing, referral, mtproto)
+//   DEPENDS: M-002 (users auth), M-003 (vpn), M-004 (billing), M-005 (referrals), M-039 (session-security-hardening), M-045 (mtproto-user-cabinet)
+//   LINKS: M-009 (frontend-user), M-039, M-045
 // END_MODULE_CONTRACT
 //
 // START_MODULE_MAP
@@ -18,6 +18,7 @@
 //   userApi - Get me, stats, update profile, change password
 //   vpnApi - Config, download, QR, stats, nodes, routes
 //   CONFIG_DOWNLOAD_MIME_TYPE - Browser-safe MIME type for .conf attachment downloads
+//   session helpers - Enforce user session inactivity TTL and persist refreshed tokens
 //   deviceApi - List, create, rotate, revoke
 //   billingApi - Get plans, subscription, create payment
 //   referralApi - Get code, stats, list
@@ -25,6 +26,7 @@
 // END_MODULE_MAP
 //
 // START_CHANGE_SUMMARY
+//   LAST_CHANGE: 2026-06-04 - Added 60-day user session inactivity TTL enforcement and last-seen refresh through API requests.
 //   LAST_CHANGE: 2026-06-02 - Added Phase-50 paid tariff catalog fields to billing plan API contract
 //   LAST_CHANGE: 2026-06-01 - Added Phase-48 octet-stream MIME contract for VPN config downloads
 //   LAST_CHANGE: 2026-06-01 - Added Phase-45 subscription countdown and pending trial API fields
@@ -36,6 +38,7 @@
 //
 // START_BLOCK_API_CLIENT
 import axios from 'axios'
+import { clearUserSessionStorage, enforceUserSessionTtl, persistUserSessionTokens, touchUserSession } from './session'
 
 const API_BASE = '/api/v1'
 export const CONFIG_DOWNLOAD_MIME_TYPE = 'application/octet-stream'
@@ -51,9 +54,14 @@ export const api = axios.create({
 // START_BLOCK_REQUEST_INTERCEPTOR
 // Request interceptor - add auth token
 api.interceptors.request.use((config) => {
+  if (!enforceUserSessionTtl()) {
+    return config
+  }
+
   const token = localStorage.getItem('access_token')
   if (token) {
     config.headers.Authorization = `Bearer ${token}`
+    touchUserSession()
   }
   return config
 })
@@ -78,18 +86,17 @@ api.interceptors.response.use(
             refresh_token: refreshToken,
           })
 
-          localStorage.setItem('access_token', data.access_token)
-          localStorage.setItem('refresh_token', data.refresh_token)
+          persistUserSessionTokens(data.access_token, data.refresh_token)
 
           originalRequest.headers.Authorization = `Bearer ${data.access_token}`
           return api(originalRequest)
         } catch {
           // Refresh failed, clear tokens
-          localStorage.removeItem('access_token')
-          localStorage.removeItem('refresh_token')
+          clearUserSessionStorage()
           window.location.href = '/login'
         }
       } else {
+        clearUserSessionStorage()
         window.location.href = '/login'
       }
     }

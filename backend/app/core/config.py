@@ -25,6 +25,7 @@
 # END_MODULE_MAP
 #
 # START_CHANGE_SUMMARY
+#   LAST_CHANGE: v3.12.0 - Changed default refresh-token lifetime to 60 days to match browser session idle policy.
 #   LAST_CHANGE: v3.11.0 - Changed default free VPN trial duration to four days for Phase-45 first-handshake activation.
 #   LAST_CHANGE: v3.10.0 - Added Phase-44 password reset token TTL and frontend URL settings.
 #   LAST_CHANGE: v3.9.0 - Added RU SNI-router telemetry trust settings for real MTProto client IP capture.
@@ -134,7 +135,7 @@ class Settings(BaseSettings):
         description="Secret key for JWT signing",
     )
     access_token_expire_minutes: int = 15
-    refresh_token_expire_days: int = 7
+    refresh_token_expire_days: int = 60
 
     # CORS
     cors_origins: list[str] = Field(

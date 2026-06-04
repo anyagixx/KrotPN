@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<M-009 NAME="frontend-user" TYPE="UI_COMPONENT" STATUS="pass-local-phase46-phase51-phase52-phase53-phase56-phase59-pass-local-phase67">
-  <path>frontend frontend/public frontend/index.html frontend/vite.config.ts scripts/phase59-motion-interactions-smoke.mjs docs/plans/Phase-67.xml scripts/phase67-auth-splash-smoke.mjs</path>
+<M-009 NAME="frontend-user" TYPE="UI_COMPONENT" STATUS="pass-local-phase46-phase51-phase52-phase53-phase56-phase59-pass-local-phase67-pass-local-session60">
+  <path>frontend frontend/public frontend/index.html frontend/vite.config.ts frontend/src/lib/session.ts scripts/session-security-smoke.mjs scripts/phase59-motion-interactions-smoke.mjs docs/plans/Phase-67.xml scripts/phase67-auth-splash-smoke.mjs</path>
   <owns>login, verified registration, password recovery, verify-email activation, dashboard, config delivery, subscription management, pending trial countdown/calendar UX, referrals and settings UI with per-device config awareness</owns>
-  <depends>M-002, M-003, M-004, M-005, M-022, M-070, M-071, M-077</depends>
+  <depends>M-002, M-003, M-004, M-005, M-022, M-039, M-070, M-071, M-077</depends>
   <verification-ref>V-M-009</verification-ref>
   <files>
     <file>frontend/src/main.tsx</file>
@@ -31,10 +31,12 @@
     <file>frontend/src/pages/Referrals.tsx</file>
     <file>frontend/src/pages/Settings.tsx</file>
     <file>frontend/src/lib/api.ts</file>
+    <file>frontend/src/lib/session.ts</file>
     <file>frontend/src/lib/passwordPolicy.ts</file>
     <file>frontend/src/index.css</file>
     <file>scripts/phase53-user-matrix-ui-smoke.mjs</file>
     <file>scripts/phase56-premium-public-auth-smoke.mjs</file>
+    <file>scripts/session-security-smoke.mjs</file>
     <file>scripts/phase59-motion-interactions-smoke.mjs</file>
   </files>
   <phase-23-scope>
@@ -99,4 +101,7 @@
   <phase-67-execution-evidence>
     <local-2026-06-04>Phase-67 replaced / with a splash-only redirect to /login, retuned login/register/forgot/reset into frameless auth panels, preserved auth API calls/token boundaries/check-email/reset semantics, added scripts/phase67-auth-splash-smoke.mjs, passed frontend build, frontend-admin build, Phase-67 smoke, Phase-44/46/52/55/56/59/60/61/62/63 smokes, XML/MyGRACE/diff checks, and protected backend/deploy/admin/runtime guard.</local-2026-06-04>
   </phase-67-execution-evidence>
+  <session60-execution-evidence>
+    <local-2026-06-04>Follow-up session fix adds frontend/src/lib/session.ts, makes /login resume valid stored sessions across browser tabs, persists login/verify-email tokens through the session helper, and lets API/auth store enforce a 60-day idle TTL.</local-2026-06-04>
+  </session60-execution-evidence>
 </M-009>

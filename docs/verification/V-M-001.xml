@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<V-M-001 MODULE="M-001" PRIORITY="critical" STATUS="pass-local-phase45" VERSION="1.3.0">
+<V-M-001 MODULE="M-001" PRIORITY="critical" STATUS="pass-local-phase45-pass-local-session60" VERSION="1.4.0">
   <module>backend-core</module>
-  <checks>Backend config and DB initialization remain runnable; auth and crypto helpers still load. Default secret_key is rejected with ValueError. DATA_ENCRYPTION_KEY is required. Token blacklist functions work with Redis and degrade gracefully without it. All datetime values are timezone-aware. Email settings include Resend provider configuration without secret leakage. MTProto provisioning settings validate domain, port, secret, salt, SNI prefix, and rotation marker; blank optional MTProto secret env values normalize to missing config instead of crashing app import.</checks>
+  <checks>Backend config and DB initialization remain runnable; auth and crypto helpers still load. Default secret_key is rejected with ValueError. DATA_ENCRYPTION_KEY is required. Token blacklist functions work with Redis and degrade gracefully without it. All datetime values are timezone-aware. Email settings include Resend provider configuration without secret leakage. MTProto provisioning settings validate domain, port, secret, salt, SNI prefix, and rotation marker; blank optional MTProto secret env values normalize to missing config instead of crashing app import. Refresh-token default lifetime is 60 days to match the browser session idle policy.</checks>
   <test-files>backend/tests/test_security.py backend/tests/test_mtproto_provisioning.py backend/tests/test_trial_activation.py</test-files>
   <commands>cd backend &amp;&amp; SECRET_KEY=test-secret-key-with-enough-length DATA_ENCRYPTION_KEY=dpFmfSVqfdAK3yx5MQV6Tcv35RZuw5MzaH0yhxJ01q0= PYTHONPATH=. ../.venv/bin/python -m pytest -o addopts='' tests/test_security.py tests/test_mtproto_provisioning.py -v</commands>
   <anchors>SECURITY_DEFAULT_KEY_REJECTED SECURITY_ENCRYPTION_KEY_REQUIRED DATETIME_TIMEZONE_AWARE TOKEN_BLACKLISTED</anchors>
@@ -25,5 +25,6 @@
     <evidence-4>2026-05-17: Phase-36 planning added Resend deploy configuration expectations for EMAIL_PROVIDER, RESEND_API_KEY, RESEND_API_URL, EMAIL_FROM, and verification URL base.</evidence-4>
     <evidence-5>2026-05-17: Phase-36 local verification passed Resend Settings validation through backend/tests/test_email_delivery.py and scripts/phase36-resend-deploy-smoke.mjs.</evidence-5>
     <evidence-6>2026-06-01: Phase-45 py_compile and backend suite passed for TRIAL_DAYS default four-day trial policy and compatibility migration helpers.</evidence-6>
+    <evidence-7>2026-06-04: backend/tests/test_security.py now guards Settings.refresh_token_expire_days default at 60 days for cross-tab session reuse.</evidence-7>
   </evidence>
 </V-M-001>

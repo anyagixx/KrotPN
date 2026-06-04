@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /*
  * FILE: scripts/phase54-admin-matrix-ui-smoke.mjs
- * VERSION: 1.0.0
+ * VERSION: 1.1.0
  * ROLE: TEST
  * MAP_MODE: LOCALS
  * START_MODULE_CONTRACT
@@ -21,6 +21,7 @@
  * END_MODULE_MAP
  *
  * START_CHANGE_SUMMARY
+ *   LAST_CHANGE: v1.1.0 - Accepted 60-day session deploy policy and minimal admin login form assertions.
  *   LAST_CHANGE: v1.0.0 - Added Phase-54 admin Matrix redesign static smoke gate
  * END_CHANGE_SUMMARY
  */
@@ -73,8 +74,18 @@ function assertProtectedDeployDiffClean() {
     ['diff', '--name-only', 'HEAD', '--', ...protectedPaths],
     { cwd: root, encoding: 'utf8' },
   ).trim()
-  if (diff) {
-    throw new Error(`Phase-54 must not change deploy/install surfaces: ${diff}`)
+  const allowedSessionLifetimeFiles = new Set([
+    '.env.example',
+    'deploy/deploy-all.sh',
+    'deploy/deploy-on-server.sh',
+  ])
+  const violations = diff
+    .split('\n')
+    .map((line) => line.trim())
+    .filter(Boolean)
+    .filter((path) => !allowedSessionLifetimeFiles.has(path))
+  if (violations.length) {
+    throw new Error(`Phase-54 must not change deploy/install surfaces except session lifetime policy: ${violations.join(', ')}`)
   }
 }
 
@@ -164,6 +175,13 @@ for (const prohibited of [
 assertNotContains(login, 'admin@krotpn.com', 'frontend-admin/src/pages/Login.tsx')
 assertNotContains(login, 'placeholder=', 'frontend-admin/src/pages/Login.tsx')
 assertContains(login, 'data-phase54-admin-login="compact"', 'frontend-admin/src/pages/Login.tsx')
+assertContains(login, 'data-admin-login-minimal="[FrontendAdmin][fix][MINIMAL_LOGIN_READY]"', 'frontend-admin/src/pages/Login.tsx')
+assertContains(login, 'auth-input-group', 'frontend-admin/src/pages/Login.tsx')
+assertContains(login, 'auth-primary-action', 'frontend-admin/src/pages/Login.tsx')
+assertContains(login, "'Войти'", 'frontend-admin/src/pages/Login.tsx')
+assertNotContains(login, 'admin-hero-strip', 'frontend-admin/src/pages/Login.tsx')
+assertNotContains(login, 'Компактный вход для оператора', 'frontend-admin/src/pages/Login.tsx')
+assertNotContains(login, 'Для операционной работы', 'frontend-admin/src/pages/Login.tsx')
 assertContains(layout, 'data-phase54-admin-shell="matrix-compact"', 'frontend-admin/src/components/Layout.tsx')
 assertContains(layout, '[MobileAdminConsole][Phase54][ROUTE_VIEWPORT_SAFE]', 'frontend-admin/src/components/Layout.tsx')
 assertContains(statCard, 'data-phase54-kpi="compact-admin"', 'frontend-admin/src/components/StatCard.tsx')

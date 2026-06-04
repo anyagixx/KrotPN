@@ -1,11 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<V-M-012 MODULE="M-012" PRIORITY="critical" STATUS="pass-live-phase41" VERSION="1.4.3">
+<V-M-012 MODULE="M-012" PRIORITY="critical" STATUS="pass-live-phase41-pass-local-session60" VERSION="1.4.4">
   <module>deploy-surface</module>
-  <checks>Deploy and nginx changes do not introduce weak defaults or unsafe routing assumptions. Deploy creates /var/lib/krotpn/ directory for RU IP snapshots. Snapshot directory permissions are correct (root:root, 755). Phase-36 deploy changes enable Resend email provider without logging RESEND_API_KEY. Phase-38 deploy changes wire DE-backed MTProto edge roles without exposing policy tokens or wildcard private keys. Phase-41 restores KPprotoN fake-TLS runtime as the active data-plane while keeping official MTProxy disabled from production routing and has clean-deploy live proof. Reboot hotfix keeps DE awg0 boot-persistent and installs krotpn-vpn-runtime.service on RU/DE so full-tunnel routing/NAT survives host restart; operator clean-deploy and reboot validation promotes this gate to stable release evidence.</checks>
+  <checks>Deploy and nginx changes do not introduce weak defaults or unsafe routing assumptions. Deploy creates /var/lib/krotpn/ directory for RU IP snapshots. Snapshot directory permissions are correct (root:root, 755). Phase-36 deploy changes enable Resend email provider without logging RESEND_API_KEY. Phase-38 deploy changes wire DE-backed MTProto edge roles without exposing policy tokens or wildcard private keys. Phase-41 restores KPprotoN fake-TLS runtime as the active data-plane while keeping official MTProxy disabled from production routing and has clean-deploy live proof. Reboot hotfix keeps DE awg0 boot-persistent and installs krotpn-vpn-runtime.service on RU/DE so full-tunnel routing/NAT survives host restart; operator clean-deploy and reboot validation promotes this gate to stable release evidence. Clean deploy writes REFRESH_TOKEN_EXPIRE_DAYS=60 for the current user session idle policy.</checks>
   <test-files>
     <file>install.sh</file>
     <file>deploy/deploy-on-server.sh</file>
     <file>deploy/deploy-all.sh</file>
+    <file>.env.example</file>
     <file>deploy/lib/vpn-network.sh</file>
     <file phase="36-designed">scripts/phase36-resend-deploy-smoke.mjs</file>
     <file phase="38-designed">scripts/phase38-de-mtproto-edge-smoke.mjs</file>
@@ -64,5 +65,6 @@
     <evidence-11>2026-05-23: Live reboot hotfix enabled DE awg-quick@awg0 and local deploy/static gates now assert the boot persistence marker.</evidence-11>
     <evidence-12>2026-05-23: Live reboot diagnosis found transient RU policy table/NAT and DE NAT loss; deploy/lib/vpn-network.sh now renders krotpn-vpn-runtime.service and Phase-41 static smoke asserts the restore contract. The current RU/DE hosts were hotfixed with enabled/active restore units.</evidence-12>
     <evidence-13>2026-05-24: Operator clean-deployed the release candidate from GitHub, rebooted both RU/DE hosts, waited through the normal startup delay, and confirmed website, admin panel, VPN, and issued KPprotoN MTProto proxies recovered and worked. This closes the reboot resilience gate for stable release.</evidence-13>
+    <evidence-14>2026-06-04: Session lifetime fix changes deploy-generated REFRESH_TOKEN_EXPIRE_DAYS from 7 to 60 in both clean-deploy scripts and .env.example, with shell syntax verification required before commit.</evidence-14>
   </evidence>
 </V-M-012>

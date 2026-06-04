@@ -1,20 +1,21 @@
 // FILE: frontend-admin/src/pages/Login.tsx
-// VERSION: 3.0.0
+// VERSION: 3.1.0
 // ROLE: UI_COMPONENT
 // MAP_MODE: SUMMARY
 // START_MODULE_CONTRACT
-//   PURPOSE: Compact Matrix-style admin authentication page with visible Phase-63 KrotPN logo, login form, role verification, and auth store integration
-//   SCOPE: Visible brand mark, email/password login, role gate (admin/superadmin only), route-safe compact console shell, redirect to dashboard on success
+//   PURPOSE: Minimal Matrix-style admin authentication page with visible KrotPN logo, credential form, role verification, and auth store integration
+//   SCOPE: Large unframed brand mark, email/password login, role gate (admin/superadmin only), compact admin auth shell, redirect to dashboard on success
 //   DEPENDS: M-010 (frontend-admin), M-006 (admin API), M-037 (mobile-admin-console), M-070 (matrix-visual-runtime), M-071 (matrix-style-system), M-080 (visible-brand-logo-integration), auth store
-//   LINKS: M-010, M-037, M-070, M-071, M-080, Phase-54, Phase-63
+//   LINKS: M-010, M-037, M-070, M-071, M-080, Phase-54, Phase-63, Phase-67
 // END_MODULE_CONTRACT
 //
 // START_MODULE_MAP
-//   LoginPage - Admin login page component with auth flow and Phase-63 BrandMark
+//   LoginPage - Minimal admin login page component with auth flow, role gate, and large Phase-67-style BrandMark
 //   default - React component (default export)
 // END_MODULE_MAP
 //
 // START_CHANGE_SUMMARY
+//   LAST_CHANGE: v3.1.0 - Reduced admin login to logo, credential inputs, and submit action with Phase-67-style unframed Matrix form controls.
 //   LAST_CHANGE: v3.0.0 - Switched admin login mark to Phase-63 BrandMark without restoring preset credentials.
 //   LAST_CHANGE: v2.9.0 - Phase-54 compact Matrix admin login without oversized split hero or preset credentials.
 //   LAST_CHANGE: v2.8.2 - Removed login field placeholders and standardized icon input padding.
@@ -24,7 +25,7 @@
 
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Activity, Loader2, Lock, Mail, Server, Users } from 'lucide-react'
+import { Loader2, Lock, Mail } from 'lucide-react'
 import { adminApi } from '../lib/api'
 import BrandMark from '../components/BrandMark'
 import { useAuthStore } from '../stores/auth'
@@ -82,98 +83,60 @@ export default function Login() {
 
   return (
     <div
-      className="admin-login-shell"
+      className="admin-login-shell admin-auth-screen"
       data-phase54-admin-login="compact"
       data-log-marker="[FrontendAdmin][Phase54][ROUTE_MATRIX_READY]"
+      data-admin-login-minimal="[FrontendAdmin][fix][MINIMAL_LOGIN_READY]"
     >
-      <div className="admin-login-card">
-        <section className="flex min-w-0 flex-col justify-between gap-4">
-          <div className="flex items-start gap-3">
-            <BrandMark
-              size="lg"
-              className="admin-login-mark"
-              marker="[VisibleBrandLogo][phase63][ADMIN_SHELL_LOGO_SAFE]"
-              data-phase63-admin-shell-logo="login"
+      <section className="admin-auth-panel animate-in">
+        <div className="admin-auth-heading">
+          <BrandMark
+            size="lg"
+            className="admin-login-mark phase67-auth-logo"
+            marker="[VisibleBrandLogo][phase63][ADMIN_SHELL_LOGO_SAFE]"
+            data-phase63-admin-shell-logo="login"
+            data-phase67-large-logo="[VisibleBrandLogo][phase67][LOGO_NO_OVERLAP]"
+          />
+          <h1 className="sr-only">Вход в админку</h1>
+        </div>
+
+        <form onSubmit={handleSubmit} className="admin-auth-form">
+          <label className="auth-input-group relative block">
+            <span className="sr-only">Email</span>
+            <Mail className="icon input-icon-left h-5 w-5" />
+            <input
+              type="email"
+              className="input auth-input w-full"
+              aria-label="Email"
+              autoComplete="username"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
             />
-            <div className="min-w-0">
-              <p className="text-xs font-semibold uppercase text-emerald-200">KrotPN Control Plane</p>
-              <h1 className="mt-1 text-2xl font-extrabold text-white">Админ-консоль</h1>
-              <p className="mt-2 max-w-xl text-sm leading-6 muted">
-                Компактный вход для оператора: пользователи, серверы, MTProto, тарифы и аварийная сводка.
-              </p>
-            </div>
-          </div>
+          </label>
 
-          <div className="admin-hero-strip">
-            {[
-              [Users, 'Users', 'поиск и роли'],
-              [Server, 'Nodes', 'маршруты и health'],
-              [Activity, 'MTProto', 'proxy ops'],
-            ].map(([Icon, title, description]) => {
-              const ItemIcon = Icon as typeof Users
-              return (
-                <div key={String(title)} className="admin-route-card">
-                  <ItemIcon className="mb-2 h-4 w-4 text-cyan-200" />
-                  <p className="text-sm font-semibold text-white">{String(title)}</p>
-                  <p className="mt-1 text-xs muted">{String(description)}</p>
-                </div>
-              )
-            })}
-          </div>
-        </section>
+          <label className="auth-input-group relative block">
+            <span className="sr-only">Пароль</span>
+            <Lock className="icon input-icon-left h-5 w-5" />
+            <input
+              type="password"
+              className="input auth-input w-full"
+              aria-label="Пароль"
+              autoComplete="current-password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+            />
+          </label>
 
-        <section className="flex items-center justify-center">
-          <div className="w-full">
-            <div className="mb-4">
-              <h2 className="text-xl font-extrabold text-white">Вход в админку</h2>
-              <p className="mt-1 text-sm muted">Поля пустые, без подсказок и заранее подставленных credentials.</p>
-            </div>
+          {error ? <p className="admin-auth-error">{error}</p> : null}
 
-            <form onSubmit={handleSubmit} className="glass space-y-4 p-4 sm:p-5">
-              <label className="block">
-                <span className="mb-2 block text-sm muted">Email</span>
-                <div className="relative">
-                  <Mail className="input-icon-left h-5 w-5" />
-                  <input
-                    type="email"
-                    className="input input-with-icon-left"
-                    aria-label="Email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    required
-                  />
-                </div>
-              </label>
-
-              <label className="block">
-                <span className="mb-2 block text-sm muted">Пароль</span>
-                <div className="relative">
-                  <Lock className="input-icon-left h-5 w-5" />
-                  <input
-                    type="password"
-                    className="input input-with-icon-left"
-                    aria-label="Пароль"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    required
-                  />
-                </div>
-              </label>
-
-              {error ? <p className="rounded-lg bg-red-400/10 px-4 py-3 text-sm text-red-100">{error}</p> : null}
-
-              <button type="submit" className="btn-primary w-full py-3.5" disabled={loading}>
-                {loading ? <Loader2 className="h-5 w-5 animate-spin" /> : null}
-                {loading ? 'Проверяем доступ' : 'Войти в консоль'}
-              </button>
-            </form>
-
-            <p className="mt-4 text-sm muted">
-              Для операционной работы используй только административную учётную запись.
-            </p>
-          </div>
-        </section>
-      </div>
+          <button type="submit" className="auth-primary-action w-full" disabled={loading}>
+            {loading ? <Loader2 className="h-5 w-5 animate-spin" /> : null}
+            {loading ? 'Проверяем' : 'Войти'}
+          </button>
+        </form>
+      </section>
     </div>
   )
 }

@@ -2,7 +2,7 @@
 <!-- MyGRACE Graph Index — lazy-loading entry point for module navigation -->
 <!-- MyGRACE index generated from per-module contracts; archived monoliths are reference-only -->
 <GraphIndex VERSION="1.0.0" PROJECT="KrotPN" MODULE-COUNT="75">
-  <M-001 NAME="backend-core" TYPE="UTILITY" STATUS="pass-local-phase45" PATH="backend/app/core" DEPENDS="M-028" VERIFICATION-REF="V-M-001" />
+  <M-001 NAME="backend-core" TYPE="UTILITY" STATUS="pass-local-phase45-pass-local-session60" PATH="backend/app/core" DEPENDS="M-028" VERIFICATION-REF="V-M-001" />
   <M-002 NAME="users" TYPE="CORE_LOGIC" STATUS="pass-local-phase45" PATH="backend/app/users" DEPENDS="M-001,M-027,M-040" VERIFICATION-REF="V-M-002" />
   <M-003 NAME="vpn" TYPE="CORE_LOGIC" STATUS="pass-local-phase45" PATH="backend/app/vpn" DEPENDS="M-001,M-002,M-007,M-020,M-030" VERIFICATION-REF="V-M-003" />
   <M-004 NAME="billing" TYPE="CORE_LOGIC" STATUS="pass-local-phase45" PATH="backend/app/billing" DEPENDS="M-001,M-021" VERIFICATION-REF="V-M-004" />
@@ -10,10 +10,10 @@
   <M-006 NAME="admin-api" TYPE="ENTRY_POINT" STATUS="stable" PATH="backend/app/admin" DEPENDS="M-001,M-002,M-003,M-004,M-005,M-007,M-024,M-026" VERIFICATION-REF="V-M-006" />
   <M-007 NAME="routing" TYPE="UTILITY" STATUS="stable" PATH="backend/app/routing/manager.py" DEPENDS="M-001" VERIFICATION-REF="V-M-007" />
   <M-008 NAME="tasks" TYPE="UTILITY" STATUS="pass-local-phase45" PATH="backend/app/tasks docs/plans/Phase-43.xml docs/plans/Phase-45.xml" DEPENDS="M-001,M-044,M-054,M-056,M-060,M-061" VERIFICATION-REF="V-M-008" />
-  <M-009 NAME="frontend-user" TYPE="UI_COMPONENT" STATUS="pass-local-phase46-phase51-phase52-phase53-phase56-phase59-pass-local-phase67" PATH="frontend frontend/public frontend/index.html frontend/vite.config.ts scripts/phase59-motion-interactions-smoke.mjs docs/plans/Phase-67.xml scripts/phase67-auth-splash-smoke.mjs" DEPENDS="M-002,M-003,M-004,M-005,M-022,M-070,M-071,M-077" VERIFICATION-REF="V-M-009" />
-  <M-010 NAME="frontend-admin" TYPE="UI_COMPONENT" STATUS="stable-pass-local-phase51-phase52-phase54-phase59" PATH="frontend-admin frontend-admin/public frontend-admin/index.html scripts/phase54-admin-matrix-ui-smoke.mjs scripts/phase59-motion-interactions-smoke.mjs docs/plans/Phase-54.xml docs/plans/Phase-59.xml" DEPENDS="M-006,M-024,M-070,M-071,M-077" VERIFICATION-REF="V-M-010" />
+  <M-009 NAME="frontend-user" TYPE="UI_COMPONENT" STATUS="pass-local-phase46-phase51-phase52-phase53-phase56-phase59-pass-local-phase67-pass-local-session60" PATH="frontend frontend/public frontend/index.html frontend/vite.config.ts frontend/src/lib/session.ts scripts/session-security-smoke.mjs scripts/phase59-motion-interactions-smoke.mjs docs/plans/Phase-67.xml scripts/phase67-auth-splash-smoke.mjs" DEPENDS="M-002,M-003,M-004,M-005,M-022,M-039,M-070,M-071,M-077" VERIFICATION-REF="V-M-009" />
+  <M-010 NAME="frontend-admin" TYPE="UI_COMPONENT" STATUS="stable-pass-local-phase51-phase52-phase54-phase59-pass-local-minimal-login" PATH="frontend-admin frontend-admin/public frontend-admin/index.html scripts/phase54-admin-matrix-ui-smoke.mjs scripts/phase59-motion-interactions-smoke.mjs docs/plans/Phase-54.xml docs/plans/Phase-59.xml" DEPENDS="M-006,M-024,M-070,M-071,M-077" VERIFICATION-REF="V-M-010" />
   <M-011 NAME="telegram-bot" TYPE="ENTRY_POINT" STATUS="stable" PATH="telegram-bot" DEPENDS="M-002,M-003,M-004" VERIFICATION-REF="V-M-011" />
-  <M-012 NAME="deploy-surface" TYPE="ENTRY_POINT" STATUS="pass-live-phase41" PATH="deploy install.sh nginx docker-compose.yml scripts/phase36-resend-deploy-smoke.mjs scripts/phase38-de-mtproto-edge-smoke.mjs scripts/phase39-mtproto-availability-smoke.mjs scripts/phase39-mtproto-live-smoke.sh scripts/phase40-official-mtproxy-live-smoke.sh scripts/phase41-kpproton-faketls-smoke.mjs docs/plans/Phase-36.xml docs/plans/Phase-38.xml docs/plans/Phase-39.xml docs/plans/Phase-40.xml docs/plans/Phase-41.xml" DEPENDS="M-003,M-007,M-019,M-030,M-049,M-050,M-051,M-052,M-053" VERIFICATION-REF="V-M-012" />
+  <M-012 NAME="deploy-surface" TYPE="ENTRY_POINT" STATUS="pass-live-phase41-pass-local-session60" PATH="deploy install.sh nginx docker-compose.yml .env.example scripts/phase36-resend-deploy-smoke.mjs scripts/phase38-de-mtproto-edge-smoke.mjs scripts/phase39-mtproto-availability-smoke.mjs scripts/phase39-mtproto-live-smoke.sh scripts/phase40-official-mtproxy-live-smoke.sh scripts/phase41-kpproton-faketls-smoke.mjs docs/plans/Phase-36.xml docs/plans/Phase-38.xml docs/plans/Phase-39.xml docs/plans/Phase-40.xml docs/plans/Phase-41.xml" DEPENDS="M-003,M-007,M-019,M-030,M-039,M-049,M-050,M-051,M-052,M-053" VERIFICATION-REF="V-M-012" />
   <M-017 NAME="route-sync-runtime" TYPE="INTEGRATION" STATUS="stable" PATH="backend/app/routing/manager.py backend/app/routing/router.py deploy/deploy-on-server.sh" DEPENDS="M-007,M-012" VERIFICATION-REF="V-M-017" />
   <M-018 NAME="manual-access-policy" TYPE="CORE_LOGIC" STATUS="stable" PATH="backend/app/users/service.py backend/app/billing/service.py backend/app/billing/models.py" DEPENDS="M-001,M-002,M-003,M-004" VERIFICATION-REF="V-M-018" />
   <M-019 NAME="manual-client-cli" TYPE="ENTRY_POINT" STATUS="stable" PATH="backend/app/cli.py deploy/create-client.sh" DEPENDS="M-001,M-002,M-003,M-004,M-012,M-018" VERIFICATION-REF="V-M-019" />
@@ -35,7 +35,7 @@
   <M-036 NAME="mobile-user-cabinet" TYPE="UI_COMPONENT" STATUS="pass-local-phase46-phase53" PATH="frontend scripts/phase45-trial-subscription-ux-smoke.mjs scripts/phase46-user-cabinet-ux-smoke.mjs scripts/phase53-user-matrix-ui-smoke.mjs docs/plans/Phase-23.xml docs/plans/Phase-45.xml docs/plans/Phase-46.xml docs/plans/Phase-53.xml" DEPENDS="M-002,M-003,M-004,M-005,M-022,M-038,M-071" VERIFICATION-REF="V-M-036" />
   <M-037 NAME="mobile-admin-console" TYPE="UI_COMPONENT" STATUS="pass-local-phase54" PATH="frontend-admin docs/plans/Phase-24.xml docs/plans/Phase-54.xml scripts/phase54-admin-matrix-ui-smoke.mjs" DEPENDS="M-006,M-010,M-024,M-038,M-071" VERIFICATION-REF="V-M-037" />
   <M-038 NAME="compact-ui-system" TYPE="UI_COMPONENT" STATUS="pass-local-phase52-pass-local-phase62" PATH="frontend frontend-admin docs/plans/Phase-23.xml docs/plans/Phase-24.xml docs/plans/Phase-52.xml" DEPENDS="M-009,M-010,M-070,M-071" VERIFICATION-REF="V-M-038" />
-  <M-039 NAME="session-security-hardening" TYPE="CORE_LOGIC" STATUS="done-local" PATH="backend/app/users frontend frontend-admin docs/plans/Phase-25.xml docs/security/SESSION-PHASE-25.xml scripts/session-security-smoke.mjs" DEPENDS="M-002,M-006,M-009,M-010,M-027" VERIFICATION-REF="V-M-039" />
+  <M-039 NAME="session-security-hardening" TYPE="CORE_LOGIC" STATUS="done-local-pass-local-session60" PATH="backend/app/users backend/app/core/config.py deploy/deploy-on-server.sh deploy/deploy-all.sh .env.example frontend frontend-admin docs/plans/Phase-25.xml docs/security/SESSION-PHASE-25.xml scripts/session-security-smoke.mjs" DEPENDS="M-002,M-006,M-009,M-010,M-012,M-027" VERIFICATION-REF="V-M-039" />
   <M-040 NAME="email-delivery" TYPE="INTEGRATION" STATUS="pass-live-phase36-pass-local-phase44-phase51" PATH="backend/app/email backend/tests/test_email_delivery.py scripts/phase36-resend-deploy-smoke.mjs scripts/phase44-auth-email-ux-smoke.mjs scripts/phase51-brand-assets-smoke.mjs docs/plans/Phase-27.xml docs/plans/Phase-36.xml docs/plans/Phase-44.xml docs/plans/Phase-51.xml" DEPENDS="M-001,M-069" VERIFICATION-REF="V-M-040" />
   <M-041 NAME="verified-email-registration" TYPE="CORE_LOGIC" STATUS="pass-local-phase45" PATH="backend/app/users backend/app/email backend/tests/test_trial_activation.py scripts/phase36-resend-deploy-smoke.mjs docs/plans/Phase-27.xml docs/plans/Phase-28.xml docs/plans/Phase-36.xml docs/plans/Phase-45.xml" DEPENDS="M-001,M-002,M-004,M-005,M-022,M-027,M-040" VERIFICATION-REF="V-M-041" />
   <M-042 NAME="mtproto-assignment-registry" TYPE="DATA_LAYER" STATUS="done-local" PATH="backend/app/mtproto backend/alembic docs/plans/Phase-29.xml" DEPENDS="M-001,M-002,M-028" VERIFICATION-REF="V-M-042" />
@@ -69,7 +69,7 @@
   <M-070 NAME="matrix-visual-runtime" TYPE="UI_COMPONENT" STATUS="done-local-phase52-phase53-phase54-phase59-pass-local-phase67-pass-local-rainfix" PATH="frontend/src/components/MatrixBackground.tsx frontend/src/components/VisualShell.tsx frontend-admin/src/components/MatrixBackground.tsx frontend-admin/src/components/VisualShell.tsx scripts/phase52-matrix-visual-smoke.mjs scripts/phase53-user-matrix-ui-smoke.mjs scripts/phase54-admin-matrix-ui-smoke.mjs scripts/phase59-motion-interactions-smoke.mjs scripts/phase61-responsive-adaptation-smoke.mjs docs/plans/Phase-52.xml docs/plans/Phase-53.xml docs/plans/Phase-54.xml docs/plans/Phase-59.xml docs/plans/Phase-67.xml scripts/phase67-auth-splash-smoke.mjs" DEPENDS="M-009,M-010,M-038,M-071,M-077" VERIFICATION-REF="V-M-070" />
   <M-071 NAME="matrix-style-system" TYPE="UI_COMPONENT" STATUS="done-local-phase52-phase53-phase54-phase55-phase56-phase59-pass-local-phase67-pass-local-rainfix" PATH="frontend/src/index.css frontend-admin/src/index.css frontend/src/components/Layout.tsx frontend-admin/src/components/Layout.tsx scripts/phase52-matrix-visual-smoke.mjs scripts/phase53-user-matrix-ui-smoke.mjs scripts/phase54-admin-matrix-ui-smoke.mjs scripts/phase55-premium-art-direction-smoke.mjs scripts/phase56-premium-public-auth-smoke.mjs scripts/phase59-motion-interactions-smoke.mjs scripts/phase61-responsive-adaptation-smoke.mjs docs/plans/Phase-52.xml docs/plans/Phase-53.xml docs/plans/Phase-54.xml docs/plans/Phase-55.xml docs/plans/Phase-56.xml docs/plans/Phase-59.xml docs/plans/Phase-67.xml scripts/phase67-auth-splash-smoke.mjs" DEPENDS="M-009,M-010,M-036,M-037,M-038,M-070,M-077" VERIFICATION-REF="V-M-071" />
   <M-072 NAME="premium-art-direction-system" TYPE="UI_COMPONENT" STATUS="done-local-phase55" PATH="frontend/src/index.css frontend-admin/src/index.css docs/plans/Phase-55.xml scripts/phase55-premium-art-direction-smoke.mjs" DEPENDS="M-038,M-069,M-070,M-071" VERIFICATION-REF="V-M-072" />
-  <M-073 NAME="premium-public-site" TYPE="UI_COMPONENT" STATUS="done-local-phase56-pass-local-phase62-pass-local-phase67" PATH="frontend/src/App.tsx frontend/src/components/Layout.tsx frontend/src/index.css frontend/src/pages/Login.tsx frontend/src/pages/Register.tsx frontend/src/pages/ForgotPassword.tsx frontend/src/pages/ResetPassword.tsx frontend/src/pages/VerifyEmail.tsx frontend/src/pages/Landing.tsx docs/plans/Phase-56.xml docs/plans/Phase-62.xml docs/plans/Phase-67.xml scripts/phase56-premium-public-auth-smoke.mjs scripts/phase62-compactness-deletion-smoke.mjs scripts/phase67-auth-splash-smoke.mjs" DEPENDS="M-009,M-038,M-068,M-069,M-070,M-071,M-072,M-074" VERIFICATION-REF="V-M-073" />
+  <M-073 NAME="premium-public-site" TYPE="UI_COMPONENT" STATUS="done-local-phase56-pass-local-phase62-pass-local-phase67-pass-local-verify-session-fix" PATH="frontend/src/App.tsx frontend/src/components/Layout.tsx frontend/src/index.css frontend/src/lib/session.ts frontend/src/pages/Login.tsx frontend/src/pages/Register.tsx frontend/src/pages/ForgotPassword.tsx frontend/src/pages/ResetPassword.tsx frontend/src/pages/VerifyEmail.tsx frontend/src/pages/Landing.tsx docs/plans/Phase-56.xml docs/plans/Phase-62.xml docs/plans/Phase-67.xml scripts/phase56-premium-public-auth-smoke.mjs scripts/phase62-compactness-deletion-smoke.mjs scripts/phase67-auth-splash-smoke.mjs" DEPENDS="M-009,M-038,M-039,M-068,M-069,M-070,M-071,M-072,M-074" VERIFICATION-REF="V-M-073" />
   <M-074 NAME="responsive-device-adaptation" TYPE="UI_COMPONENT" STATUS="pass-local-phase61-pass-local-phase62-pass-local-phase67-pass-local-rainfix" PATH="frontend frontend-admin docs/plans/Phase-61.xml docs/plans/Phase-62.xml docs/plans/Phase-67.xml scripts/phase61-responsive-adaptation-smoke.mjs scripts/phase62-compactness-deletion-smoke.mjs scripts/phase67-auth-splash-smoke.mjs" DEPENDS="M-009,M-010,M-036,M-037,M-038,M-071,M-072" VERIFICATION-REF="V-M-074" />
   <M-075 NAME="premium-user-cabinet" TYPE="UI_COMPONENT" STATUS="done-local-phase57-pass-local-phase59-pass-local-phase62" PATH="frontend/src/components/Layout.tsx frontend/src/pages/Dashboard.tsx frontend/src/pages/Config.tsx frontend/src/pages/Subscription.tsx frontend/src/pages/Referrals.tsx frontend/src/pages/Settings.tsx docs/plans/Phase-57.xml docs/plans/Phase-59.xml docs/plans/Phase-62.xml scripts/phase57-premium-user-cabinet-smoke.mjs scripts/phase59-motion-interactions-smoke.mjs scripts/phase62-compactness-deletion-smoke.mjs" DEPENDS="M-009,M-036,M-045,M-063,M-064,M-068,M-070,M-071,M-072,M-074,M-077" VERIFICATION-REF="V-M-075" />
   <M-076 NAME="premium-admin-cockpit" TYPE="UI_COMPONENT" STATUS="done-local-phase58-pass-local-phase59-pass-local-phase62-pass-local-rainfix" PATH="frontend-admin/src/components/Layout.tsx frontend-admin/src/components/StatCard.tsx frontend-admin/src/pages/Dashboard.tsx frontend-admin/src/pages/Users.tsx frontend-admin/src/pages/Devices.tsx frontend-admin/src/pages/MTProto.tsx frontend-admin/src/pages/MTProtoAnalytics.tsx frontend-admin/src/pages/Analytics.tsx frontend-admin/src/pages/Servers.tsx frontend-admin/src/pages/Plans.tsx docs/plans/Phase-58.xml docs/plans/Phase-59.xml docs/plans/Phase-62.xml scripts/phase58-premium-admin-cockpit-smoke.mjs scripts/phase59-motion-interactions-smoke.mjs scripts/phase62-compactness-deletion-smoke.mjs" DEPENDS="M-010,M-037,M-047,M-058,M-068,M-070,M-071,M-072,M-074,M-077" VERIFICATION-REF="V-M-076" />
@@ -108,6 +108,7 @@
     <link from="M-009" to="M-004" />
     <link from="M-009" to="M-005" />
     <link from="M-009" to="M-022" />
+    <link from="M-009" to="M-039" />
     <link from="M-010" to="M-006" />
     <link from="M-010" to="M-024" />
     <link from="M-010" to="M-070" />
@@ -119,6 +120,7 @@
     <link from="M-012" to="M-007" />
     <link from="M-012" to="M-019" />
     <link from="M-012" to="M-030" />
+    <link from="M-012" to="M-039" />
     <link from="M-012" to="M-049" />
     <link from="M-012" to="M-050" />
     <link from="M-012" to="M-051" />
@@ -213,6 +215,7 @@
     <link from="M-035" to="M-030" />
     <link from="M-035" to="M-042" />
     <link from="M-035" to="M-043" />
+    <link from="M-039" to="M-012" />
     <link from="M-036" to="M-002" />
     <link from="M-036" to="M-003" />
     <link from="M-036" to="M-004" />
@@ -419,6 +422,7 @@
     <link from="M-072" to="M-070" />
     <link from="M-072" to="M-071" />
     <link from="M-073" to="M-009" />
+    <link from="M-073" to="M-039" />
     <link from="M-073" to="M-068" />
     <link from="M-073" to="M-069" />
     <link from="M-073" to="M-070" />

@@ -1,21 +1,22 @@
 // FILE: frontend/src/pages/Login.tsx
-// VERSION: 1.4.0
+// VERSION: 1.5.0
 // ROLE: UI_COMPONENT
 // MAP_MODE: SUMMARY
 // START_MODULE_CONTRACT
 //   PURPOSE: Phase-67 frameless Matrix login page with email/password authentication and a large unframed KrotPN logo
-//   SCOPE: Large visible brand mark, polished auth-only email/password form, token storage, side-by-side register/recovery links, navigation to dashboard after successful auth
-//   DEPENDS: M-009 (frontend-user), M-002 (auth API), M-071 (matrix-style-system), M-080 (visible-brand-logo-integration)
-//   LINKS: M-009 (frontend-user), M-071, M-080, Phase-63, Phase-67
+//   SCOPE: Large visible brand mark, polished auth-only email/password form, token storage, stored-session redirect, side-by-side register/recovery links, navigation to dashboard after successful auth
+//   DEPENDS: M-009 (frontend-user), M-002 (auth API), M-039 (session-security-hardening), M-071 (matrix-style-system), M-080 (visible-brand-logo-integration)
+//   LINKS: M-009 (frontend-user), M-039, M-071, M-080, Phase-63, Phase-67
 // END_MODULE_CONTRACT
 //
 // START_MODULE_MAP
-//   LoginPage - Login component with Phase-67 frameless Matrix auth form and large BrandMark
+//   LoginPage - Login component with Phase-67 frameless Matrix auth form, large BrandMark, and stored-session redirect
 //   BLOCK_LOGIN_PAGE - LoginPage default export
 //   default - React component (default export)
 // END_MODULE_MAP
 //
 // START_CHANGE_SUMMARY
+//   LAST_CHANGE: v1.5.0 - Added existing-session redirect and 60-day inactivity-aware token persistence.
 //   LAST_CHANGE: v1.4.0 - Applied Phase-67 frameless login copy, red-focus auth fields, and side-by-side secondary actions.
 //   LAST_CHANGE: v1.3.0 - Switched auth logo to Phase-63 BrandMark while preserving Phase-56 regression markers.
 //   LAST_CHANGE: v1.2.0 - Added Phase-56 visible brand logo and dashboard navigation target for public landing split
@@ -25,7 +26,7 @@
 // END_CHANGE_SUMMARY
 //
 // START_BLOCK_LOGIN_PAGE
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { Loader2, Lock, Mail } from 'lucide-react'
@@ -33,15 +34,36 @@ import toast from 'react-hot-toast'
 import { authApi } from '../lib/api'
 import { useAuthStore } from '../stores/auth'
 import BrandMark from '../components/BrandMark'
+import { enforceUserSessionTtl, persistUserSessionTokens } from '../lib/session'
 
 export default function Login() {
   const { t } = useTranslation()
   const navigate = useNavigate()
-  const { fetchUser } = useAuthStore()
+  const { fetchUser, isAuthenticated } = useAuthStore()
 
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [loading, setLoading] = useState(false)
+
+  useEffect(() => {
+    let cancelled = false
+
+    const resumeExistingSession = async () => {
+      if (!isAuthenticated && !enforceUserSessionTtl()) {
+        return
+      }
+
+      await fetchUser()
+      if (!cancelled && useAuthStore.getState().isAuthenticated) {
+        navigate('/dashboard', { replace: true })
+      }
+    }
+
+    void resumeExistingSession()
+    return () => {
+      cancelled = true
+    }
+  }, [fetchUser, isAuthenticated, navigate])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -50,8 +72,7 @@ export default function Login() {
     try {
       const { data } = await authApi.login(email, password)
 
-      localStorage.setItem('access_token', data.access_token)
-      localStorage.setItem('refresh_token', data.refresh_token)
+      persistUserSessionTokens(data.access_token, data.refresh_token)
 
       await fetchUser()
       toast.success(t('success'))

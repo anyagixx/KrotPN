@@ -15,6 +15,7 @@ MODULE_MAP
 - test_verify_token_returns_none_for_refresh_when_expecting_access: Verifies type mismatch.
 - test_verify_token_with_blacklist_rejects_revoked_token: Verifies revoked access tokens are rejected.
 - test_token_blacklist_gracefully_degrades_without_redis: Verifies Redis outage does not break token verification.
+- test_refresh_token_default_matches_session_idle_policy: Verifies default refresh lifetime is aligned with 60-day frontend idle policy.
 - test_hash_password_and_verify_password: Verifies password roundtrip.
 - test_encrypt_data_and_decrypt_data_roundtrip: Verifies encryption roundtrip.
 - test_get_fernet_raises_without_data_encryption_key: Verifies missing key error.
@@ -22,6 +23,7 @@ MODULE_MAP
 CHANGE_SUMMARY
 - 2026-04-05: Added security unit tests for Phase 5.
 - 2026-05-10: Added Phase-25 token blacklist tests for revocation and Redis-unavailable behavior.
+- 2026-06-04: Added 60-day refresh-token default guard for browser session reuse across tabs.
 """
 
 from datetime import datetime, timedelta, timezone
@@ -45,6 +47,7 @@ from app.core.security import (
     get_fernet,
 )
 from app.core import security as sec_module
+from app.core.config import Settings
 
 
 def test_create_access_token_has_correct_subject_and_type(monkeypatch):
@@ -142,6 +145,14 @@ async def test_token_blacklist_gracefully_degrades_without_redis(monkeypatch):
     assert await is_token_blacklisted(token) is False
     assert await verify_token_with_blacklist(token, expected_type="access") == "redis-down-user"
 # END_BLOCK_TOKEN_BLACKLIST_TESTS
+
+
+def test_refresh_token_default_matches_session_idle_policy(monkeypatch):
+    monkeypatch.delenv("REFRESH_TOKEN_EXPIRE_DAYS", raising=False)
+
+    settings = Settings(_env_file=None)
+
+    assert settings.refresh_token_expire_days == 60
 
 
 def test_hash_password_and_verify_password():

@@ -1,5 +1,5 @@
 /* FILE: frontend-admin/src/index.css
- * VERSION: 1.8.0
+ * VERSION: 1.9.0
  * ROLE: UI_COMPONENT
  * MAP_MODE: SUMMARY
  * START_MODULE_CONTRACT
@@ -23,6 +23,7 @@
  * END_MODULE_MAP
  *
  * START_CHANGE_SUMMARY
+ *   LAST_CHANGE: v3.9.0 - Added minimal Phase-67-style admin auth login controls with large unframed logo and red focus states.
  *   LAST_CHANGE: v3.8.0 - Added Matrix rain CSS fallback, normal canvas blending, and mobile overscan to prevent blank/cut-off rain in live browsers.
  *   LAST_CHANGE: v3.7.0 - Added Phase-63 visible brand logo classes for admin login, rail, and mobile topbar placement.
  *   LAST_CHANGE: v3.6.0 - Added Phase-62 admin deletion audit fold primitives for secondary analytics, archive, storage, and topology notes.
@@ -496,6 +497,106 @@ textarea:focus-visible,
   border-radius: var(--premium-radius);
   background: rgba(96, 255, 155, 0.1);
 }
+
+.admin-auth-screen {
+  min-height: 100dvh;
+}
+
+.admin-auth-panel {
+  @apply w-full max-w-md;
+}
+
+.admin-auth-heading {
+  @apply mb-6 flex flex-col items-center text-center;
+}
+
+.admin-auth-form {
+  @apply grid gap-4;
+}
+
+.admin-login-mark.phase67-auth-logo.phase63-brand-lockup {
+  width: 124px;
+  height: 124px;
+  padding: 0;
+  background: transparent;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+  color: #ddfff5;
+  filter: drop-shadow(0 0 28px rgba(96, 255, 155, 0.3)) drop-shadow(0 0 18px rgba(255, 107, 120, 0.16));
+}
+
+.admin-login-mark.phase67-auth-logo .phase63-brand-mark {
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  background: transparent;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+}
+
+.admin-login-mark.phase67-auth-logo .phase63-brand-image {
+  object-fit: contain;
+}
+
+.auth-input-group {
+  border-radius: var(--premium-radius);
+}
+
+.auth-input-group .icon {
+  left: 1rem;
+  color: rgba(214, 247, 231, 0.62);
+  transition: color var(--motion-duration-fast) var(--motion-ease-out), transform var(--motion-duration-fast) var(--motion-ease-out);
+}
+
+.auth-input {
+  padding-left: 3rem;
+  padding-right: 1rem;
+  min-height: 48px;
+  background: rgba(0, 10, 8, 0.78);
+  border-color: rgba(214, 247, 231, 0.16);
+  box-shadow: inset 0 1px 0 rgba(216, 246, 230, 0.05), 0 10px 22px rgba(0, 5, 3, 0.18);
+}
+
+.auth-input:hover {
+  border-color: rgba(255, 107, 120, 0.46);
+  background: rgba(5, 18, 14, 0.92);
+}
+
+.auth-input:focus {
+  border-color: rgba(255, 107, 120, 0.86);
+  box-shadow: 0 0 0 4px rgba(255, 107, 120, 0.12), 0 14px 32px rgba(0, 5, 3, 0.28);
+}
+
+.auth-input-group:focus-within .icon,
+.auth-input-group:hover .icon {
+  color: #ff9ca4;
+  transform: translateY(-50%) scale(1.05);
+}
+
+.auth-primary-action {
+  @apply inline-flex items-center justify-center gap-2 px-3 text-sm font-semibold transition disabled:cursor-not-allowed disabled:opacity-45;
+  min-height: 48px;
+  padding-block: 0.875rem;
+  border-radius: var(--premium-radius);
+  color: #fff7f7;
+  background: linear-gradient(135deg, rgba(255, 107, 120, 0.98) 0%, rgba(96, 255, 155, 0.78) 100%);
+  box-shadow: 0 12px 28px rgba(255, 107, 120, 0.16), inset 0 1px 0 rgba(255, 255, 255, 0.22);
+}
+
+.auth-primary-action:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 16px 34px rgba(255, 107, 120, 0.24), inset 0 1px 0 rgba(255, 255, 255, 0.28);
+}
+
+.admin-auth-error {
+  @apply rounded-lg px-4 py-3 text-sm text-red-100;
+  background: rgba(255, 107, 120, 0.1);
+  border: 1px solid rgba(255, 107, 120, 0.18);
+}
+/* [FrontendAdmin][fix][MINIMAL_LOGIN_READY] */
+/* [VisibleBrandLogo][phase67][LOGO_NO_OVERLAP] */
 
 .admin-hero-strip {
   @apply grid min-w-0 gap-2 border p-3 sm:grid-cols-3;

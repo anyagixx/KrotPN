@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<M-012 NAME="deploy-surface" TYPE="ENTRY_POINT" STATUS="pass-live-phase41">
+<M-012 NAME="deploy-surface" TYPE="ENTRY_POINT" STATUS="pass-live-phase41-pass-local-session60">
   <path>deploy install.sh nginx docker-compose.yml scripts/phase36-resend-deploy-smoke.mjs scripts/phase38-de-mtproto-edge-smoke.mjs scripts/phase39-mtproto-availability-smoke.mjs scripts/phase39-mtproto-live-smoke.sh scripts/phase40-official-mtproxy-live-smoke.sh scripts/phase41-kpproton-faketls-smoke.mjs docs/plans/Phase-36.xml docs/plans/Phase-38.xml docs/plans/Phase-39.xml docs/plans/Phase-40.xml docs/plans/Phase-41.xml</path>
   <owns>installation, deploy scripts, runtime composition, proxying, operator wildcard TLS install, Resend email provider env wiring, dev-only cert generation, host-tool preflight, AWG stealth profile generation, awg0 peer sync watchers, reboot-safe VPN runtime routing/NAT restore, deploy-time secret handling, backup/restore, nginx hardening, DE-backed MTProto edge rollout, Phase-39 stale fallback guard, Phase-40 official MTProxy reference wiring, and Phase-41 KPprotoN fake-TLS runtime production wiring</owns>
   <depends>M-003, M-007, M-019, M-030, M-049, M-050, M-051, M-052, M-053</depends>
@@ -50,6 +50,10 @@
     <step-2 STATUS="pass-live">Restore RU public 443 SNI routing so krotpn.xyz web traffic reaches nginx and issued u-*.krotpn.xyz traffic reaches DE KPprotoN runtime.</step-2>
     <step-3 STATUS="pass-live">Keep deploy/install flow operator-approved and limit changes to MTProto runtime selection, env rendering, and redacted smoke gates.</step-3>
   </phase-41-plan>
+  <session-lifetime-policy>
+    <scope>Clean deploy must write REFRESH_TOKEN_EXPIRE_DAYS=60 so user browser-session idle reuse and backend refresh-token lifetime stay aligned.</scope>
+    <status>pass-local</status>
+  </session-lifetime-policy>
   <evidence>
     <evidence-1>2026-05-17: Phase-35 changed the deploy surface so production installs consume validated operator wildcard TLS files instead of silently generating self-signed certificates.</evidence-1>
     <evidence-2>2026-05-17: Clean VPS hotfix generates MTProto base secret and salt during deploy .env creation so backend Settings validation does not restart-loop after first compose startup.</evidence-2>
@@ -67,5 +71,6 @@
     <evidence-14>2026-05-23: Reboot hotfix enables DE awg-quick@awg0 during deploy so the private MTProto policy bind address survives host restart.</evidence-14>
     <evidence-15>2026-05-23: Live reboot diagnosis found RU policy table/NAT and DE NAT were transient; deploy now installs krotpn-vpn-runtime.service on RU and DE to restore full-tunnel routing, Telegram routes, FORWARD rules, and MASQUERADE after every boot. The current RU/DE hosts were hotfixed live and both units are enabled/active.</evidence-15>
     <evidence-16>2026-05-24: Operator clean-deployed the reboot resilience release candidate from GitHub, rebooted both RU/DE hosts, and confirmed website, admin panel, VPN, and issued KPprotoN MTProto proxies all recovered after the normal startup delay. Deploy-surface reboot resilience is promoted to stable release evidence.</evidence-16>
+    <evidence-17>2026-06-04: Session-lifetime fix updates .env.example, deploy/deploy-on-server.sh, and deploy/deploy-all.sh to REFRESH_TOKEN_EXPIRE_DAYS=60; shell syntax gates are required before release.</evidence-17>
   </evidence>
 </M-012>

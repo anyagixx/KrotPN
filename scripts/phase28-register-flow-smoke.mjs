@@ -1,12 +1,12 @@
 #!/usr/bin/env node
 // FILE: scripts/phase28-register-flow-smoke.mjs
-// VERSION: 1.0.0
+// VERSION: 1.1.0
 // ROLE: SCRIPT
 // MAP_MODE: LOCALS
 // START_MODULE_CONTRACT
 //   PURPOSE: Static smoke gate for Phase-28 frontend verified-registration flow
-//   SCOPE: Assert register does not store tokens, verify-email route exists, and pending/success/expired/resend anchors are present
-//   DEPENDS: M-009 frontend files, Node.js fs/path
+//   SCOPE: Assert register does not store tokens, verify-email route exists, session-helper token persistence is used after ownership proof, and pending/success/expired/resend anchors are present
+//   DEPENDS: M-009, M-039 frontend files, Node.js fs/path
 //   LINKS: V-M-009
 // END_MODULE_CONTRACT
 //
@@ -17,6 +17,7 @@
 // END_MODULE_MAP
 //
 // START_CHANGE_SUMMARY
+//   LAST_CHANGE: 2026-06-04 - Updated verified-email token expectation to the 60-day session helper contract.
 //   LAST_CHANGE: 2026-05-13 - Added Phase-28 register flow static smoke gate
 // END_CHANGE_SUMMARY
 
@@ -59,7 +60,7 @@ assertContains(register, 'REGISTER_RESEND_AVAILABLE', 'frontend/src/pages/Regist
 
 assertContains(verifyEmail, 'REGISTER_VERIFIED_SUCCESS', 'frontend/src/pages/VerifyEmail.tsx')
 assertContains(verifyEmail, 'REGISTER_EXPIRED_LINK', 'frontend/src/pages/VerifyEmail.tsx')
-assertContains(verifyEmail, "localStorage.setItem('access_token'", 'frontend/src/pages/VerifyEmail.tsx')
+assertContains(verifyEmail, 'persistUserSessionTokens(data.access_token, data.refresh_token)', 'frontend/src/pages/VerifyEmail.tsx')
 
 assertContains(app, 'path="/verify-email"', 'frontend/src/App.tsx')
 // END_BLOCK_PHASE28_REGISTER_FLOW_SMOKE

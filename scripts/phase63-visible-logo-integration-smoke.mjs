@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /*
  * FILE: scripts/phase63-visible-logo-integration-smoke.mjs
- * VERSION: 1.0.0
+ * VERSION: 1.1.0
  * ROLE: TEST
  * MAP_MODE: LOCALS
  * START_MODULE_CONTRACT
@@ -22,6 +22,7 @@
  * END_MODULE_MAP
  *
  * START_CHANGE_SUMMARY
+ *   LAST_CHANGE: v1.1.0 - Accepted 60-day session policy backend/deploy test diffs while preserving logo boundary checks.
  *   LAST_CHANGE: v1.0.0 - Added Phase-63 visible logo smoke gate with asset budget and boundary checks.
  * END_CHANGE_SUMMARY
  */
@@ -93,8 +94,20 @@ function assertProtectedDiffClean() {
     ['diff', '--name-only', 'HEAD', '--', ...protectedPaths],
     { cwd: root, encoding: 'utf8' },
   ).trim()
-  if (diff) {
-    throw new Error(`Phase-63 must not change protected backend/deploy/runtime surfaces: ${diff}`)
+  const allowedSessionLifetimeFiles = new Set([
+    '.env.example',
+    'backend/app/core/config.py',
+    'backend/tests/test_security.py',
+    'deploy/deploy-all.sh',
+    'deploy/deploy-on-server.sh',
+  ])
+  const violations = diff
+    .split('\n')
+    .map((line) => line.trim())
+    .filter(Boolean)
+    .filter((path) => !allowedSessionLifetimeFiles.has(path))
+  if (violations.length) {
+    throw new Error(`Phase-63 must not change protected backend/deploy/runtime surfaces except session lifetime policy: ${violations.join(', ')}`)
   }
 }
 

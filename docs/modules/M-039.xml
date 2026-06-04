@@ -1,17 +1,22 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<M-039 NAME="session-security-hardening" TYPE="CORE_LOGIC" STATUS="done-local">
-  <path>backend/app/users frontend frontend-admin docs/plans/Phase-25.xml docs/security/SESSION-PHASE-25.xml scripts/session-security-smoke.mjs</path>
-  <owns>Safe auth/session hardening gates for user and admin frontends after UI cleanup, with verified-registration token storage boundaries and compatibility-first migration plan away from fragile client token storage</owns>
+<M-039 NAME="session-security-hardening" TYPE="CORE_LOGIC" STATUS="done-local-pass-local-session60">
+  <path>backend/app/users backend/app/core/config.py deploy/deploy-on-server.sh deploy/deploy-all.sh .env.example frontend frontend-admin docs/plans/Phase-25.xml docs/security/SESSION-PHASE-25.xml scripts/session-security-smoke.mjs</path>
+  <owns>Safe auth/session hardening gates for user and admin frontends after UI cleanup, verified-registration token storage boundaries, 60-day user idle-session reuse, and compatibility-first migration plan away from fragile client token storage</owns>
   <exports>
     <flow-user-session-smoke>User login, verify-email activation, refresh, logout, and 401 recovery smoke path</flow-user-session-smoke>
     <flow-admin-session-smoke>Admin login, refresh, logout, and role-gate smoke path</flow-admin-session-smoke>
     <compat-auth-transition>Rollback-aware transition contract for frontend auth storage behavior</compat-auth-transition>
     <static-session-security-gate>Local static smoke gate for cookies, storage, refresh retry, logout cleanup, and blacklist expectations</static-session-security-gate>
+    <flow-user-session-idle-ttl>Rollback-compatible browser session helper stores access/refresh tokens plus last-seen timestamp and expires the stored user session after 60 inactive days.</flow-user-session-idle-ttl>
   </exports>
   <depends>M-002, M-006, M-009, M-010, M-027</depends>
   <verification-ref>V-M-039</verification-ref>
   <files>
     <file>backend/app/users</file>
+    <file>backend/app/core/config.py</file>
+    <file>.env.example</file>
+    <file>deploy/deploy-on-server.sh</file>
+    <file>deploy/deploy-all.sh</file>
     <file>frontend</file>
     <file>frontend-admin</file>
     <file>docs/plans/Phase-25.xml</file>
@@ -24,6 +29,10 @@
     <constraint-3>This phase must run after compact UI flows are stable enough to test real auth behavior.</constraint-3>
     <constraint-4>Cookie-only behavior changes require explicit operator approval and HTTPS or production-like smoke evidence.</constraint-4>
     <constraint-5>Phase-28 register must not store tokens before email ownership proof; token storage starts only after verify-email success.</constraint-5>
+    <constraint-6>User frontend may reuse an existing stored browser session across tabs only while the last-seen timestamp is within the 60-day idle window and the backend refresh token remains valid.</constraint-6>
   </constraints>
+  <evidence>
+    <evidence-1>2026-06-04: User frontend added frontend/src/lib/session.ts, login resume redirect, verify-email session-helper persistence, auth store TTL merge, API last-seen refresh, and clean-deploy REFRESH_TOKEN_EXPIRE_DAYS=60 guard.</evidence-1>
+  </evidence>
   <hotspot>H-025: Session hardening must not break login/register/refresh/logout compatibility during frontend simplification</hotspot>
 </M-039>

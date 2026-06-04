@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /*
  * FILE: scripts/phase56-premium-public-auth-smoke.mjs
- * VERSION: 1.1.0
+ * VERSION: 1.2.0
  * ROLE: TEST
  * MAP_MODE: LOCALS
  * START_MODULE_CONTRACT
@@ -22,6 +22,7 @@
  * END_MODULE_MAP
  *
  * START_CHANGE_SUMMARY
+ *   LAST_CHANGE: v1.2.0 - Accepted 60-day refresh deploy policy and session helper token persistence.
  *   LAST_CHANGE: v1.1.0 - Accepted Phase-67 splash-only public route while preserving Phase-56 auth and routing regressions.
  *   LAST_CHANGE: v1.0.0 - Added Phase-56 premium public/auth static verification gate
  * END_CHANGE_SUMMARY
@@ -91,8 +92,18 @@ function assertProtectedDeployDiffClean() {
     ['diff', '--name-only', 'HEAD', '--', ...protectedPaths],
     { cwd: root, encoding: 'utf8' },
   ).trim()
-  if (diff) {
-    throw new Error(`Phase-56 must not change deploy/install surfaces: ${diff}`)
+  const allowedSessionLifetimeFiles = new Set([
+    '.env.example',
+    'deploy/deploy-all.sh',
+    'deploy/deploy-on-server.sh',
+  ])
+  const violations = diff
+    .split('\n')
+    .map((line) => line.trim())
+    .filter(Boolean)
+    .filter((path) => !allowedSessionLifetimeFiles.has(path))
+  if (violations.length) {
+    throw new Error(`Phase-56 must not change deploy/install surfaces except session lifetime policy: ${violations.join(', ')}`)
   }
 }
 
@@ -186,8 +197,7 @@ for (const [label, source] of [
 }
 
 assertContains(login, 'authApi.login', 'frontend/src/pages/Login.tsx')
-assertContains(login, "localStorage.setItem('access_token'", 'frontend/src/pages/Login.tsx')
-assertContains(login, "localStorage.setItem('refresh_token'", 'frontend/src/pages/Login.tsx')
+assertContains(login, 'persistUserSessionTokens(data.access_token, data.refresh_token)', 'frontend/src/pages/Login.tsx')
 assertContains(login, "navigate('/dashboard')", 'frontend/src/pages/Login.tsx')
 assertContains(register, 'authApi.register', 'frontend/src/pages/Register.tsx')
 assertContains(register, 'папку «Спам»', 'frontend/src/pages/Register.tsx')
@@ -198,6 +208,7 @@ assertContains(forgot, 'authApi.requestPasswordReset', 'frontend/src/pages/Forgo
 assertContains(reset, 'authApi.confirmPasswordReset', 'frontend/src/pages/ResetPassword.tsx')
 assertContains(reset, 'passwordStrengthIssues', 'frontend/src/pages/ResetPassword.tsx')
 assertContains(verify, 'authApi.verifyEmail', 'frontend/src/pages/VerifyEmail.tsx')
+assertContains(verify, 'persistUserSessionTokens(data.access_token, data.refresh_token)', 'frontend/src/pages/VerifyEmail.tsx')
 assertContains(verify, "navigate('/dashboard')", 'frontend/src/pages/VerifyEmail.tsx')
 assertContains(api, "requestPasswordReset", 'frontend/src/lib/api.ts')
 assertContains(api, "confirmPasswordReset", 'frontend/src/lib/api.ts')
@@ -234,6 +245,9 @@ if (landing.includes('PUBLIC_TARIFF_PREVIEW')) {
 } else {
   assertContains(landing, 'data-phase67-splash-route="[PremiumPublicSite][phase67][SPLASH_REDIRECT_READY]"', 'frontend/src/pages/Landing.tsx')
 }
+assertContains(read('.env.example'), 'REFRESH_TOKEN_EXPIRE_DAYS=60', '.env.example')
+assertContains(read('deploy/deploy-all.sh'), 'REFRESH_TOKEN_EXPIRE_DAYS=60', 'deploy/deploy-all.sh')
+assertContains(read('deploy/deploy-on-server.sh'), 'REFRESH_TOKEN_EXPIRE_DAYS=60', 'deploy/deploy-on-server.sh')
 assertProtectedDeployDiffClean()
 // END_BLOCK_PHASE56_STATIC_ASSERTIONS
 

@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<V-M-039 MODULE="M-039" PRIORITY="critical" STATUS="pass-local">
+<V-M-039 MODULE="M-039" PRIORITY="critical" STATUS="pass-local-session60">
   <module>session-security-hardening</module>
-  <checks>Session hardening gates must preserve login, verify-email activation, refresh, logout, role gates, and rollback while documenting the safe path to reduce fragile client-side token exposure.</checks>
-  <test-files>scripts/session-security-smoke.mjs docs/security/SESSION-PHASE-25.xml frontend/src/pages/Login.tsx frontend/src/pages/Register.tsx frontend/src/pages/VerifyEmail.tsx frontend/src/stores/auth.ts frontend/src/lib/api.ts frontend-admin/src/pages/Login.tsx frontend-admin/src/stores/auth.ts frontend-admin/src/lib/api.ts backend/app/users/router.py backend/app/core/security.py</test-files>
-  <commands>node scripts/session-security-smoke.mjs; cd frontend &amp;&amp; npm run build; cd ../frontend-admin &amp;&amp; npm run build; cd ../backend &amp;&amp; SECRET_KEY=test-secret-key-with-enough-length DATA_ENCRYPTION_KEY=dpFmfSVqfdAK3yx5MQV6Tcv35RZuw5MzaH0yhxJ01q0= PYTHONPATH=. ../.venv/bin/python -m pytest -o addopts='' tests/test_security.py -v -k blacklist</commands>
+  <checks>Session hardening gates must preserve login, verify-email activation, refresh, logout, role gates, rollback, and 60-day user idle-session reuse while documenting the safe path to reduce fragile client-side token exposure.</checks>
+  <test-files>scripts/session-security-smoke.mjs docs/security/SESSION-PHASE-25.xml frontend/src/lib/session.ts frontend/src/pages/Login.tsx frontend/src/pages/Register.tsx frontend/src/pages/VerifyEmail.tsx frontend/src/stores/auth.ts frontend/src/lib/api.ts frontend-admin/src/pages/Login.tsx frontend-admin/src/stores/auth.ts frontend-admin/src/lib/api.ts backend/app/users/router.py backend/app/core/security.py backend/app/core/config.py backend/tests/test_security.py .env.example deploy/deploy-on-server.sh deploy/deploy-all.sh</test-files>
+  <commands>node scripts/session-security-smoke.mjs; cd frontend &amp;&amp; npm run build; cd ../frontend-admin &amp;&amp; npm run build; cd ../backend &amp;&amp; SECRET_KEY=test-secret-key-with-enough-length DATA_ENCRYPTION_KEY=dpFmfSVqfdAK3yx5MQV6Tcv35RZuw5MzaH0yhxJ01q0= PYTHONPATH=. ../.venv/bin/python -m pytest -o addopts='' tests/test_security.py -v -k 'blacklist or refresh_token_default'</commands>
   <module-checks>
     <check-1>User login, pending register, verify-email token storage, refresh, logout, and 401 retry paths are tested.</check-1>
     <check-2>Admin login, refresh, logout, and role-gate paths are tested.</check-2>
@@ -11,6 +11,8 @@
     <check-4>Rollback path is documented before execution.</check-4>
     <check-5>Admin refresh token is persisted at login and removed on logout/setToken(null) so existing 401 retry behavior is not dead code.</check-5>
     <check-6>Pending register does not store access or refresh tokens before verified email activation.</check-6>
+    <check-7>User login route resumes an existing stored session in a new tab and redirects to /dashboard when the session is still valid.</check-7>
+    <check-8>Clean deploy and backend defaults keep refresh-token lifetime at 60 days so browser idle-session reuse is not contradicted by server expiry.</check-8>
   </module-checks>
   <scenarios>
     <scenario-1 kind="success">User and admin sessions survive normal refresh behavior and fail safely after logout.</scenario-1>
@@ -21,6 +23,7 @@
   <required-log-markers>
     <marker-1>[SessionSecurity][auth][USER_SMOKE_PASS]</marker-1>
     <marker-2>[SessionSecurity][auth][ADMIN_SMOKE_PASS]</marker-2>
+    <marker-3>[SessionSecurity][auth][SESSION_TTL_60_DAYS]</marker-3>
   </required-log-markers>
   <evidence>
     <evidence-1>2026-05-10: scripts/session-security-smoke.mjs added for static Phase-25 auth guardrails and required log markers.</evidence-1>
@@ -30,5 +33,6 @@
     <evidence-5>2026-05-10: cd frontend &amp;&amp; npm run build passed; cd frontend-admin &amp;&amp; npm run build passed.</evidence-5>
     <evidence-6>2026-05-10: cd backend &amp;&amp; ... tests/test_security.py -v -k blacklist passed, 2 selected tests.</evidence-6>
     <evidence-7>2026-05-13: node scripts/session-security-smoke.mjs passed after Phase-28 update requiring Register to avoid token storage and VerifyEmail to store tokens only after ownership proof.</evidence-7>
+    <evidence-8>2026-06-04: Session smoke now asserts frontend session helper, login resume redirect, verify-email helper persistence, auth store TTL merge, API last-seen refresh, backend refresh default, and clean-deploy REFRESH_TOKEN_EXPIRE_DAYS=60.</evidence-8>
   </evidence>
 </V-M-039>

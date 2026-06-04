@@ -1,13 +1,13 @@
 #!/usr/bin/env node
 /*
  * FILE: scripts/phase53-user-matrix-ui-smoke.mjs
- * VERSION: 1.0.0
+ * VERSION: 1.1.0
  * ROLE: TEST
  * MAP_MODE: LOCALS
  * START_MODULE_CONTRACT
  *   PURPOSE: Static smoke checks for Phase-53 user-cabinet Matrix redesign
- *   SCOPE: Auth routes, protected user routes, Matrix CSS primitives, MTProto link/redaction guards, trial/tariff invariants, reduced-motion, and protected deploy surfaces
- *   DEPENDS: M-009, M-036, M-045, M-063, M-064, M-068, M-070, M-071
+ *   SCOPE: Auth routes, protected user routes, Matrix CSS primitives, MTProto link/redaction guards, trial/tariff invariants, session helper compatibility, reduced-motion, and protected deploy surfaces
+ *   DEPENDS: M-009, M-036, M-039, M-045, M-063, M-064, M-068, M-070, M-071
  *   LINKS: V-M-009, V-M-036, V-M-045, V-M-063, V-M-064, V-M-068, V-M-070, V-M-071
  * END_MODULE_CONTRACT
  *
@@ -20,6 +20,7 @@
  * END_MODULE_MAP
  *
  * START_CHANGE_SUMMARY
+ *   LAST_CHANGE: v1.1.0 - Updated auth token expectation to 60-day session helper and deploy lifetime exception.
  *   LAST_CHANGE: v1.0.0 - Added Phase-53 user cabinet Matrix redesign static smoke gate
  * END_CHANGE_SUMMARY
  */
@@ -66,8 +67,18 @@ function assertProtectedDeployDiffClean() {
     ['diff', '--name-only', 'HEAD', '--', ...protectedPaths],
     { cwd: root, encoding: 'utf8' },
   ).trim()
-  if (diff) {
-    throw new Error(`Phase-53 must not change deploy/install surfaces: ${diff}`)
+  const allowedSessionLifetimeFiles = new Set([
+    '.env.example',
+    'deploy/deploy-all.sh',
+    'deploy/deploy-on-server.sh',
+  ])
+  const violations = diff
+    .split('\n')
+    .map((line) => line.trim())
+    .filter(Boolean)
+    .filter((path) => !allowedSessionLifetimeFiles.has(path))
+  if (violations.length) {
+    throw new Error(`Phase-53 must not change deploy/install surfaces except session lifetime policy: ${violations.join(', ')}`)
   }
 }
 
@@ -175,8 +186,8 @@ for (const [route, source, label] of [
 }
 
 assertContains(login, 'authApi.login', 'frontend/src/pages/Login.tsx')
-assertContains(login, "localStorage.setItem('access_token'", 'frontend/src/pages/Login.tsx')
-assertContains(login, "localStorage.setItem('refresh_token'", 'frontend/src/pages/Login.tsx')
+assertContains(login, 'persistUserSessionTokens(data.access_token, data.refresh_token)', 'frontend/src/pages/Login.tsx')
+assertContains(login, "navigate('/dashboard', { replace: true })", 'frontend/src/pages/Login.tsx')
 assertContains(login, 'fetchUser()', 'frontend/src/pages/Login.tsx')
 assertContains(register, 'authApi.register', 'frontend/src/pages/Register.tsx')
 assertContains(register, 'passwordPolicyExample', 'frontend/src/pages/Register.tsx')

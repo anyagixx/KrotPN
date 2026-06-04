@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /*
  * FILE: scripts/phase67-auth-splash-smoke.mjs
- * VERSION: 1.1.0
+ * VERSION: 1.2.0
  * ROLE: TEST
  * MAP_MODE: LOCALS
  * START_MODULE_CONTRACT
@@ -20,6 +20,7 @@
  * END_MODULE_MAP
  *
  * START_CHANGE_SUMMARY
+ *   LAST_CHANGE: v1.2.0 - Added verify-email/admin-login polish and 60-day session/deploy lifetime assertions.
  *   LAST_CHANGE: v1.1.0 - Allowed shared admin Matrix visual compatibility files and asserted rain fallback markers.
  *   LAST_CHANGE: v1.0.0 - Added Phase-67 auth/splash verification gate.
  * END_CHANGE_SUMMARY
@@ -75,8 +76,14 @@ function assertProtectedSurfaceDiffClean() {
     { cwd: root, encoding: 'utf8' },
   ).trim()
   const allowedSharedMatrixFiles = new Set([
+    '.env.example',
+    'backend/app/core/config.py',
+    'backend/tests/test_security.py',
+    'deploy/deploy-all.sh',
+    'deploy/deploy-on-server.sh',
     'frontend-admin/src/components/MatrixBackground.tsx',
     'frontend-admin/src/components/VisualShell.tsx',
+    'frontend-admin/src/pages/Login.tsx',
     'frontend-admin/src/index.css',
   ])
   const violations = diff
@@ -96,10 +103,17 @@ const login = read('frontend/src/pages/Login.tsx')
 const register = read('frontend/src/pages/Register.tsx')
 const forgot = read('frontend/src/pages/ForgotPassword.tsx')
 const reset = read('frontend/src/pages/ResetPassword.tsx')
+const verify = read('frontend/src/pages/VerifyEmail.tsx')
 const brandMark = read('frontend/src/components/BrandMark.tsx')
 const matrixBackground = read('frontend/src/components/MatrixBackground.tsx')
 const visualShell = read('frontend/src/components/VisualShell.tsx')
 const css = read('frontend/src/index.css')
+const adminLogin = read('frontend-admin/src/pages/Login.tsx')
+const adminCss = read('frontend-admin/src/index.css')
+const backendConfig = read('backend/app/core/config.py')
+const envExample = read('.env.example')
+const deployAll = read('deploy/deploy-all.sh')
+const deployServer = read('deploy/deploy-on-server.sh')
 
 for (const [label, source] of [
   ['frontend/src/App.tsx', app],
@@ -108,10 +122,13 @@ for (const [label, source] of [
   ['frontend/src/pages/Register.tsx', register],
   ['frontend/src/pages/ForgotPassword.tsx', forgot],
   ['frontend/src/pages/ResetPassword.tsx', reset],
+  ['frontend/src/pages/VerifyEmail.tsx', verify],
   ['frontend/src/components/BrandMark.tsx', brandMark],
   ['frontend/src/components/MatrixBackground.tsx', matrixBackground],
   ['frontend/src/components/VisualShell.tsx', visualShell],
   ['frontend/src/index.css', css],
+  ['frontend-admin/src/pages/Login.tsx', adminLogin],
+  ['frontend-admin/src/index.css', adminCss],
 ]) {
   assertContains(source, 'START_MODULE_CONTRACT', label)
   assertContains(source, 'START_MODULE_MAP', label)
@@ -175,11 +192,23 @@ for (const prohibited of [
   'Уже есть аккаунт?',
   'Сохранить пароль',
 ]) {
-  assertNotContains(login + register + forgot + reset, prohibited, 'Phase-67 auth routes')
+  assertNotContains(login + register + forgot + reset + verify, prohibited, 'Phase-67 auth routes')
 }
 
+assertContains(verify, 'data-phase67-auth-route="verify-email"', 'frontend/src/pages/VerifyEmail.tsx')
+assertContains(verify, 'Кибернетический Протокол Навигации', 'frontend/src/pages/VerifyEmail.tsx')
+assertContains(verify, 'Email подтверждён', 'frontend/src/pages/VerifyEmail.tsx')
+assertContains(verify, 'phase67-auth-logo', 'frontend/src/pages/VerifyEmail.tsx')
+assertContains(verify, 'phase67-large-logo', 'frontend/src/pages/VerifyEmail.tsx')
+assertContains(verify, 'matrix-auth-state', 'frontend/src/pages/VerifyEmail.tsx')
+assertContains(verify, 'auth-primary-action', 'frontend/src/pages/VerifyEmail.tsx')
+assertContains(verify, 'auth-secondary-action', 'frontend/src/pages/VerifyEmail.tsx')
+assertNotContains(verify, 'className="matrix-auth-card', 'frontend/src/pages/VerifyEmail.tsx')
+
 assertContains(login, 'authApi.login', 'frontend/src/pages/Login.tsx')
-assertContains(login, "localStorage.setItem('access_token'", 'frontend/src/pages/Login.tsx')
+assertContains(login, 'persistUserSessionTokens(data.access_token, data.refresh_token)', 'frontend/src/pages/Login.tsx')
+assertContains(login, "navigate('/dashboard', { replace: true })", 'frontend/src/pages/Login.tsx')
+assertContains(login, 'enforceUserSessionTtl()', 'frontend/src/pages/Login.tsx')
 assertContains(login, "navigate('/dashboard')", 'frontend/src/pages/Login.tsx')
 assertContains(login, 'phase67-auth-secondary-grid', 'frontend/src/pages/Login.tsx')
 assertContains(register, 'authApi.register', 'frontend/src/pages/Register.tsx')
@@ -189,6 +218,24 @@ assertContains(register, 'Восстановить доступ', 'frontend/src/
 assertContains(forgot, 'authApi.requestPasswordReset', 'frontend/src/pages/ForgotPassword.tsx')
 assertContains(reset, 'authApi.confirmPasswordReset', 'frontend/src/pages/ResetPassword.tsx')
 assertContains(reset, 'passwordStrengthIssues', 'frontend/src/pages/ResetPassword.tsx')
+assertContains(verify, 'persistUserSessionTokens(data.access_token, data.refresh_token)', 'frontend/src/pages/VerifyEmail.tsx')
+
+assertContains(adminLogin, 'data-admin-login-minimal="[FrontendAdmin][fix][MINIMAL_LOGIN_READY]"', 'frontend-admin/src/pages/Login.tsx')
+assertContains(adminLogin, 'admin-login-mark phase67-auth-logo', 'frontend-admin/src/pages/Login.tsx')
+assertContains(adminLogin, 'auth-input-group', 'frontend-admin/src/pages/Login.tsx')
+assertContains(adminLogin, 'auth-primary-action', 'frontend-admin/src/pages/Login.tsx')
+assertContains(adminLogin, "'Войти'", 'frontend-admin/src/pages/Login.tsx')
+assertNotContains(adminLogin, 'admin-hero-strip', 'frontend-admin/src/pages/Login.tsx')
+assertNotContains(adminLogin, 'Компактный вход для оператора', 'frontend-admin/src/pages/Login.tsx')
+assertNotContains(adminLogin, 'Для операционной работы', 'frontend-admin/src/pages/Login.tsx')
+assertContains(adminCss, '[FrontendAdmin][fix][MINIMAL_LOGIN_READY]', 'frontend-admin/src/index.css')
+assertContains(adminCss, '.admin-auth-panel', 'frontend-admin/src/index.css')
+assertContains(adminCss, '.auth-input:focus', 'frontend-admin/src/index.css')
+assertContains(adminCss, 'rgba(255, 107, 120, 0.86)', 'frontend-admin/src/index.css')
+assertContains(backendConfig, 'refresh_token_expire_days: int = 60', 'backend/app/core/config.py')
+assertContains(envExample, 'REFRESH_TOKEN_EXPIRE_DAYS=60', '.env.example')
+assertContains(deployAll, 'REFRESH_TOKEN_EXPIRE_DAYS=60', 'deploy/deploy-all.sh')
+assertContains(deployServer, 'REFRESH_TOKEN_EXPIRE_DAYS=60', 'deploy/deploy-on-server.sh')
 
 for (const needle of [
   'START_BLOCK_PHASE67_AUTH_SPLASH_POLISH',
@@ -238,7 +285,7 @@ for (const prohibited of [
   'rounded-2xl',
   'rounded-3xl',
 ]) {
-  assertNotContains(css + landing + login + register + forgot + reset, prohibited, 'Phase-67 frontend surfaces')
+  assertNotContains(css + landing + login + register + forgot + reset + verify, prohibited, 'Phase-67 frontend surfaces')
 }
 
 assertProtectedSurfaceDiffClean()
