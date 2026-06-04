@@ -1,20 +1,21 @@
 // FILE: frontend/src/pages/ResetPassword.tsx
-// VERSION: 1.2.0
+// VERSION: 1.4.0
 // ROLE: UI_COMPONENT
 // MAP_MODE: SUMMARY
 // START_MODULE_CONTRACT
-//   PURPOSE: Password reset confirmation page for one-time recovery tokens with visible Phase-63 KrotPN logo
-//   SCOPE: Visible brand mark, token query parsing, strong-password validation, reset API call, and navigation back to login
+//   PURPOSE: Phase-67 frameless password reset confirmation page for one-time recovery tokens with a large unframed KrotPN logo
+//   SCOPE: Large visible brand mark, polished auth-only password fields, token query parsing, strong-password validation, reset API call, and navigation back to login
 //   DEPENDS: M-009 (frontend-user), M-002 (auth API), M-062 (auth email UX and password security), M-071 (matrix-style-system), M-080 (visible-brand-logo-integration)
-//   LINKS: M-009, M-062, M-071, M-080, V-M-062, Phase-63
+//   LINKS: M-009, M-062, M-071, M-080, V-M-062, Phase-63, Phase-67
 // END_MODULE_CONTRACT
 //
 // START_MODULE_MAP
-//   ResetPasswordPage - Confirms a password reset token with a new strong password and renders Phase-63 BrandMark
+//   ResetPasswordPage - Confirms a password reset token with a new strong password and renders Phase-67 frameless BrandMark
 //   BLOCK_RESET_PASSWORD_PAGE - ResetPassword default export
 // END_MODULE_MAP
 //
 // START_CHANGE_SUMMARY
+//   LAST_CHANGE: v1.4.0 - Applied Phase-67 frameless reset copy, red-focus auth fields, and renamed primary action.
 //   LAST_CHANGE: v1.3.0 - Switched reset logo to Phase-63 BrandMark while preserving Phase-56 regression markers.
 //   LAST_CHANGE: v1.2.0 - Added Phase-56 visible brand logo for premium reset flow consistency
 //   LAST_CHANGE: v1.1.0 - Applied Phase-53 compact Matrix reset surface
@@ -78,35 +79,35 @@ export default function ResetPassword() {
   }
 
   return (
-    <div className="matrix-auth-screen" data-phase53-auth-route="reset-password">
-      <section className="w-full max-w-md animate-in">
+    <div className="matrix-auth-screen phase67-auth-screen" data-phase53-auth-route="reset-password" data-phase67-auth-route="reset-password">
+      <section className="matrix-auth-panel animate-in">
         <div className="matrix-auth-heading">
           <BrandMark
             size="lg"
-            className="matrix-auth-brand-lockup"
-            marker="[VisibleBrandLogo][phase63][PUBLIC_AUTH_LOGO_VISIBLE]"
+            className="matrix-auth-brand-lockup phase67-auth-logo"
+            marker="[VisibleBrandLogo][phase67][LARGE_UNFRAMED_AUTH_LOGO]"
             data-phase56-logo="true"
             data-phase56-legacy-src="/brand/email-logo.png"
             data-phase63-public-auth-logo="reset-password"
+            data-phase67-large-logo="[VisibleBrandLogo][phase67][LOGO_NO_OVERLAP]"
           />
-          <p className="matrix-kicker mt-4">New password</p>
+          <p className="matrix-kicker mt-4">Кибернетический Протокол Навигации</p>
           <h1 className="mt-2 text-2xl font-extrabold text-white">Новый пароль</h1>
-          <p className="mt-2 text-sm muted">Задайте устойчивый пароль для личного кабинета.</p>
         </div>
 
           {done ? (
-            <div className="matrix-auth-card space-y-4 text-center">
+            <div className="matrix-auth-state space-y-4 text-center">
               <CheckCircle2 className="mx-auto h-10 w-10 text-emerald-200" />
               <div>
                 <h2 className="text-xl font-extrabold text-white">Пароль обновлён</h2>
                 <p className="mt-2 text-sm muted">Теперь можно войти в аккаунт с новым паролем.</p>
               </div>
-              <button type="button" className="btn-primary w-full" onClick={() => navigate('/login')}>
+              <button type="button" className="btn-primary auth-primary-action w-full" onClick={() => navigate('/login')}>
                 Перейти ко входу
               </button>
             </div>
           ) : (
-            <form onSubmit={handleSubmit} className="matrix-auth-card space-y-4">
+            <form onSubmit={handleSubmit} className="phase67-auth-form">
               {!token ? (
                 <div className="panel-soft px-4 py-3 text-sm text-slate-200">
                   В ссылке отсутствует одноразовый токен. Запросите новое письмо для сброса пароля.
@@ -114,15 +115,17 @@ export default function ResetPassword() {
               ) : null}
 
               <label className="block">
-                <span className="mb-2 block text-sm muted">Новый пароль</span>
-                <div className="input-group">
+                <span className="sr-only">Новый пароль</span>
+                <div className="input-group auth-input-group">
                   <Lock className="icon h-5 w-5" />
                   <input
                     type="password"
-                    className="input"
+                    className="input auth-input"
                     placeholder="Минимум 10 символов"
                     value={password}
                     onChange={(event) => setPassword(event.target.value)}
+                    aria-label="Новый пароль"
+                    autoComplete="new-password"
                     required
                     minLength={10}
                   />
@@ -131,26 +134,28 @@ export default function ResetPassword() {
               </label>
 
               <label className="block">
-                <span className="mb-2 block text-sm muted">Повторите пароль</span>
-                <div className="input-group">
+                <span className="sr-only">Повторите пароль</span>
+                <div className="input-group auth-input-group">
                   <Lock className="icon h-5 w-5" />
                   <input
                     type="password"
-                    className="input"
-                    placeholder="Повторите пароль"
+                    className="input auth-input"
+                    placeholder="Повтор пароля"
                     value={confirmPassword}
                     onChange={(event) => setConfirmPassword(event.target.value)}
+                    aria-label="Повторите пароль"
+                    autoComplete="new-password"
                     required
                   />
                 </div>
               </label>
 
-              <button type="submit" className="btn-primary w-full py-3" disabled={loading || !token}>
+              <button type="submit" className="btn-primary auth-primary-action w-full" disabled={loading || !token}>
                 {loading ? <Loader2 className="h-5 w-5 animate-spin" /> : null}
-                {loading ? 'Обновляем' : 'Сохранить пароль'}
+                {loading ? 'Обновляем' : 'Назначить пароль'}
               </button>
 
-              <Link to="/forgot-password" className="btn-secondary w-full">
+              <Link to="/forgot-password" className="auth-secondary-action w-full">
                 <ArrowLeft className="h-4 w-4" />
                 Запросить новую ссылку
               </Link>

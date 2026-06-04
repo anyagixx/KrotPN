@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<V-M-073 MODULE="M-073" PRIORITY="high" STATUS="pass-local-phase56-phase62-verification-designed-phase67" PHASE-56="pass-local" PHASE-62="pass-local" PHASE-67="verification-designed">
-  <scope>Phase-56 premium public site and auth verification for landing, login, registration, verification, password recovery, tariff preview, logo visibility, Matrix runtime safety, and email-proof semantics.</scope>
+<V-M-073 MODULE="M-073" PRIORITY="high" STATUS="pass-local-phase56-phase62-pass-local-phase67" PHASE-56="pass-local" PHASE-62="pass-local" PHASE-67="pass-local">
+  <scope>Phase-56/62/67 public-auth verification for the current splash-only public entry, login, registration, verification, password recovery, logo visibility, Matrix runtime safety, and email-proof semantics; the old public tariff preview is retained only as historical Phase-56 regression context.</scope>
   <test-files>
     <file>scripts/phase56-premium-public-auth-smoke.mjs</file>
     <file>scripts/phase44-auth-email-ux-smoke.mjs</file>
@@ -8,7 +8,7 @@
     <file>scripts/phase50-tariff-catalog-smoke.mjs</file>
     <file>scripts/phase55-premium-art-direction-smoke.mjs</file>
     <file phase="62-pass-local">scripts/phase62-compactness-deletion-smoke.mjs</file>
-    <file phase="67-verification-designed">scripts/phase67-auth-splash-smoke.mjs</file>
+    <file phase="67-pass-local">scripts/phase67-auth-splash-smoke.mjs</file>
     <file>frontend/src/App.tsx</file>
     <file>frontend/src/components/Layout.tsx</file>
     <file>frontend/src/pages/Landing.tsx</file>
@@ -39,19 +39,19 @@
     <check-10>git diff --check</check-10>
     <check-11>git diff --name-only HEAD -- install.sh docker-compose.yml nginx deploy deploy/mtproto-de-compose.yml .env.example must be empty</check-11>
     <check-12 status="pass-local-phase62">node scripts/phase62-compactness-deletion-smoke.mjs preserves public/auth clarity after folded landing tariff/features copy.</check-12>
-    <check-13 status="verification-designed-phase67">node scripts/phase67-auth-splash-smoke.mjs verifies splash redirect, requested copy changes/removals, frameless auth forms, preserved auth semantics, and protected backend/deploy/runtime guard.</check-13>
+    <check-13 status="pass-local-phase67">node scripts/phase67-auth-splash-smoke.mjs verifies splash redirect, requested copy changes/removals, frameless auth forms, preserved auth semantics, and protected backend/deploy/runtime guard.</check-13>
   </module-checks>
   <verification-matrix>
-    <target-1 evidence="static">Public entry route exists in App routing, uses premium Matrix tokens, exposes visible KrotPN identity/logo, and gives direct registration CTA without replacing the usable first screen with a bulky marketing hero.</target-1>
-    <target-2 evidence="static-and-runtime">Public copy truthfully presents VPN, free individual MTProto proxy, verified-email registration, and paid tariff preview without implying VPN/trial/JWT/MTProto/referral access before email proof.</target-2>
+    <target-1 evidence="static">Public entry route exists in App routing, uses premium Matrix tokens, exposes visible KrotPN identity/logo, renders only the Phase-67 splash flow, and redirects to /login without marketing/tariff/product sections.</target-1>
+    <target-2 evidence="static-and-runtime">Public/auth copy truthfully preserves verified-email registration and recovery semantics without implying VPN/trial/JWT/MTProto/referral access before email proof; the splash route carries no product promises.</target-2>
     <target-3 evidence="static">Login/register/forgot/reset/verify routes preserve existing auth API calls, token storage boundaries, duplicate-email recovery CTA, spam-folder guidance, password example, and reset/verify token query handling.</target-3>
-    <target-4 evidence="static">Tariff preview reads or mirrors only existing canonical M-068 shape and never owns prices, device limits, checkout amount, or frontend-controlled payment metadata.</target-4>
+    <target-4 evidence="static">Tariff preview is removed from / by Phase-67; canonical tariff ownership remains in M-068 and must not be reintroduced as frontend-authoritative payment metadata.</target-4>
     <target-5 evidence="runtime-screenshot">Phone, tablet, desktop, and reduced-motion screenshots prove no text/icon overlap, no horizontal scroll, no hidden primary CTA, and readable forms over Matrix effects.</target-5>
     <target-6 evidence="static">MatrixBackground/VisualShell remain pointer-safe, reduced-motion-aware, and do not intercept auth form input, route navigation, or mobile scroll.</target-6>
     <target-7 evidence="static">Brand assets from M-069 remain public static assets only; no tokenized URL, secret-bearing logo path, or mailbox-provider BIMI assumption is introduced.</target-7>
-    <target-8 evidence="verification-designed-phase67">Public / route becomes splash-only and redirects to /login; auth pages remove visible card frames and operator-listed copy/labels while keeping accessible names and existing auth APIs.</target-8>
+    <target-8 evidence="pass-local-phase67">Public / route becomes splash-only and redirects to /login; auth pages remove visible card frames and operator-listed copy/labels while keeping accessible names and existing auth APIs.</target-8>
   </verification-matrix>
-  <phase-67-route-gates status="verification-designed">
+  <phase-67-route-gates status="pass-local">
     <gate-1>/ must not show tariff cards, product-value copy, dashboard links, or other landing-page content before redirect.</gate-1>
     <gate-2>/login must show the requested Russian wording, no above-field Email/Пароль labels, no Нет аккаунта? text, and side-by-side registration/recovery controls.</gate-2>
     <gate-3>/register must show the requested Russian wording, no above-field labels, no Уже есть аккаунт? text, and preserve password example plus verified-registration pending/check-email behavior.</gate-3>
@@ -59,11 +59,11 @@
     <gate-5>Phase-67 must not touch deploy/install/nginx/docker-compose/backend/VPN/MTProto/billing/runtime surfaces.</gate-5>
   </phase-67-route-gates>
   <success-scenarios>
-    <scenario-1 kind="success">Public route communicates KrotPN offer, VPN value, free MTProto proxy value, canonical tariffs, and registration CTA in a premium compact Matrix layout.</scenario-1>
+    <scenario-1 kind="success">Public route renders a KrotPN logo splash, starts a bounded redirect to /login, and does not expose old landing, tariff, or product-value sections.</scenario-1>
     <scenario-2 kind="success">Auth routes stay compact, readable, logo-aware, and usable on phone/tablet/desktop and in reduced-motion mode.</scenario-2>
     <scenario-3 kind="success">Registration still creates pending email verification state only; access side effects remain delayed until verified email proof.</scenario-3>
     <scenario-4 kind="success">Duplicate-email recovery, spam-folder guidance, password strength/example, reset, and verify-email states remain visible and token-safe.</scenario-4>
-    <scenario-5 kind="success">Tariff preview preserves KrotPN 1/6/9, 369/693/936 RUB, 30 days, and plan_id-only checkout ownership by backend catalog.</scenario-5>
+    <scenario-5 kind="success">Tariff catalog ownership remains in M-068, and Phase-67 keeps / free of tariff cards or frontend-controlled checkout data.</scenario-5>
   </success-scenarios>
   <failure-scenarios>
     <failure-1 kind="failure">Public/auth effects obscure forms, delay registration, intercept clicks, or hide verification/reset states.</failure-1>
@@ -71,7 +71,7 @@
     <failure-3 kind="failure">Canonical tariff data, prices, duration, device limits, or YooKassa metadata become frontend-authoritative.</failure-3>
     <failure-4 kind="failure">Public landing creates a bulky generic marketing page, oversized cards, nested cards, decorative orbs, or a one-note palette that violates M-072.</failure-4>
     <failure-5 kind="failure">Real emails, tokens, reset/verify secrets, API keys, MTProto secrets, or payment IDs are logged by smoke tests or console markers.</failure-5>
-    <failure-6 kind="failure">Phase-56 diff touches deploy/install/nginx/docker-compose/backend/VPN/MTProto/billing runtime surfaces.</failure-6>
+    <failure-6 kind="failure">Phase-56/62/67 diff touches deploy/install/nginx/docker-compose/backend/VPN/MTProto/billing runtime surfaces.</failure-6>
   </failure-scenarios>
   <required-log-markers>
     <marker-1>[PremiumPublicSite][phase56][ROUTES_READY]</marker-1>
@@ -97,7 +97,7 @@
     <gate-2 level="wave">M-009, M-068, M-069, M-070, M-071, and M-072 regression smokes remain satisfied after public/auth edits.</gate-2>
     <gate-3 level="phase">Frontend build, screenshot matrix, Phase-44/46/50/55 regression smokes, XML parse, MyGRACE lint, git diff check, and protected deploy/install guard pass before Phase-56 can be marked done-local.</gate-3>
     <gate-4 level="phase-62" status="passed-local">Phase-62 public/auth compactness gate passed locally: folded public feature/tariff detail copy preserves registration/login/recovery/verify clarity, email-proof semantics, password example, and canonical tariff guard.</gate-4>
-    <gate-5 level="phase-67" status="verification-designed">Phase-67 cannot pass until frontend build, auth/splash smoke, Phase-56/60/61/63/52/59 regressions, XML/MyGRACE checks, git diff --check, and protected backend/deploy/runtime guard pass.</gate-5>
+    <gate-5 level="phase-67" status="pass-local">Phase-67 cannot pass until frontend build, auth/splash smoke, Phase-56/60/61/63/52/59 regressions, XML/MyGRACE checks, git diff --check, and protected backend/deploy/runtime guard pass.</gate-5>
   </phase-gates>
   <execution-evidence status="pass-local" date="2026-06-03">
     <command-1>cd frontend &amp;&amp; npm run build</command-1>
@@ -118,6 +118,14 @@
     <command-2>cd frontend &amp;&amp; npm run build</command-2>
     <command-3>node scripts/phase56-premium-public-auth-smoke.mjs</command-3>
     <result>PASS: public/auth compactness markers preserved verified-email proof, duplicate-email recovery, password example, reset/verify states, canonical tariffs, and protected backend/deploy/runtime isolation.</result>
+  </execution-evidence>
+  <execution-evidence status="pass-local-phase67" date="2026-06-04">
+    <command-1>cd frontend &amp;&amp; npm run build</command-1>
+    <command-2>node scripts/phase67-auth-splash-smoke.mjs</command-2>
+    <command-3>node scripts/phase56-premium-public-auth-smoke.mjs</command-3>
+    <command-4>node scripts/phase44-auth-email-ux-smoke.mjs; node scripts/phase46-user-cabinet-ux-smoke.mjs; node scripts/phase52-matrix-visual-smoke.mjs; node scripts/phase55-premium-art-direction-smoke.mjs; node scripts/phase59-motion-interactions-smoke.mjs; node scripts/phase60-premium-qa-smoke.mjs; node scripts/phase61-responsive-adaptation-smoke.mjs; node scripts/phase62-compactness-deletion-smoke.mjs; node scripts/phase63-visible-logo-integration-smoke.mjs</command-4>
+    <screenshot-paths>/tmp/krotpn-phase67-shots/splash-390x844.png /tmp/krotpn-phase67-shots/login-390x844-final.png /tmp/krotpn-phase67-shots/register-390x844-final.png /tmp/krotpn-phase67-shots/forgot-390x844-final.png /tmp/krotpn-phase67-shots/reset-390x844-final.png /tmp/krotpn-phase67-shots/login-1440x900-final.png /tmp/krotpn-phase67-shots/login-reduced-390x844-final.png</screenshot-paths>
+    <result>PASS: / is now splash-only with redirect to /login, auth copy/labels match operator request, existing auth API semantics are preserved, browser screenshots show readable frameless auth surfaces, and protected backend/deploy/runtime surfaces remained unchanged.</result>
   </execution-evidence>
   <autonomous-execution-safety>Safe for local autonomous execution if changes stay inside frontend public/auth routes, frontend CSS/components needed for M-073, and smoke verification. Stop execution if backend registration semantics, billing catalog ownership, deploy/install scripts, nginx, docker-compose, VPN, MTProto, or secret handling must change.</autonomous-execution-safety>
 </V-M-073>

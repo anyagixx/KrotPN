@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Phase-67 NAME="Public Splash, Auth Form Polish and Matrix Canvas Compatibility" STATUS="verification-designed">
+<Phase-67 NAME="Public Splash, Auth Form Polish and Matrix Canvas Compatibility" STATUS="done-local">
   <objective>Replace the public / route with a short animated KrotPN logo splash that redirects to /login, polish all user auth routes into frameless premium Matrix forms, and harden the Matrix rain canvas so it works or degrades safely across browsers.</objective>
   <modules>M-073,M-071,M-070,M-074,M-080,M-009</modules>
   <non-goals>Backend auth semantics, registration/password APIs, email templates, tariffs, billing, VPN, MTProto runtime, admin panel, deploy/install scripts, nginx, docker-compose, TLS, DNS, or release tagging.</non-goals>
@@ -15,18 +15,18 @@
     <requirement-9>The Matrix rain canvas must be made more browser-compatible: feature-detect canvas and matchMedia listener APIs, guard 2D context failures, support legacy media-query listeners where needed, and provide a readable static fallback.</requirement-9>
   </requirements>
   <steps>
-    <step-1 STATUS="planned">Audit current Landing, Login, Register, ForgotPassword, ResetPassword, BrandMark, MatrixBackground, VisualShell, and frontend CSS contracts before code edits.</step-1>
-    <step-2 STATUS="planned">Replace the public Landing route plan with a splash-only KrotPN logo animation and redirect flow that does not expose marketing/tariff content.</step-2>
-    <step-3 STATUS="planned">Refactor login markup away from the visible matrix-auth-card frame, update requested Russian copy, remove above-field labels, and keep auth store/API behavior unchanged.</step-3>
-    <step-4 STATUS="planned">Refactor register markup away from the visible matrix-auth-card frame, update requested Russian copy, remove above-field labels, preserve password example, duplicate-email recovery CTA, and check-email/spam state semantics.</step-4>
-    <step-5 STATUS="planned">Refactor forgot-password markup away from the visible matrix-auth-card frame, update requested Russian copy, remove the above-field label, and preserve recovery request behavior.</step-5>
-    <step-6 STATUS="planned">Refactor reset-password markup away from the visible matrix-auth-card frame, update requested Russian copy, remove above-field labels, rename the save action, and preserve token/reset behavior.</step-6>
-    <step-7 STATUS="planned">Add auth-specific CSS for frameless layout, large unframed logo, icon-safe inputs, red focus border, polished hover/active states, button animations, side-by-side secondary actions, and reduced-motion fallbacks.</step-7>
-    <step-8 STATUS="planned">Harden MatrixBackground canvas compatibility for browsers with partial matchMedia/canvas support and record controlled fallback markers.</step-8>
-    <step-9 STATUS="planned">Extend responsive rules for the new splash/auth surfaces across 320x568, 360x740, 390x844, 430x932, tablet, desktop, and reduced-motion viewports.</step-9>
-    <step-10 STATUS="planned">Create scripts/phase67-auth-splash-smoke.mjs to verify splash redirect, removed card/classes/text, copy replacements, red focus markers, no icon overlap, browser fallback guards, and protected-surface isolation.</step-10>
-    <step-11 STATUS="planned">Run frontend build, Phase-67 smoke, Phase-56/60/61/63/52/59 regressions, XML parse, MyGRACE lint, git diff --check, and protected deploy/backend/runtime guard during execution.</step-11>
-    <step-12 STATUS="planned">Record execution evidence in M-073/M-071/M-070/M-074/M-080/M-009 and their verification files after implementation.</step-12>
+    <step-1 STATUS="done-local">Audit current Landing, Login, Register, ForgotPassword, ResetPassword, BrandMark, MatrixBackground, VisualShell, and frontend CSS contracts before code edits.</step-1>
+    <step-2 STATUS="done-local">Replace the public Landing route plan with a splash-only KrotPN logo animation and redirect flow that does not expose marketing/tariff content.</step-2>
+    <step-3 STATUS="done-local">Refactor login markup away from the visible matrix-auth-card frame, update requested Russian copy, remove above-field labels, and keep auth store/API behavior unchanged.</step-3>
+    <step-4 STATUS="done-local">Refactor register markup away from the visible matrix-auth-card frame, update requested Russian copy, remove above-field labels, preserve password example, duplicate-email recovery CTA, and check-email/spam state semantics.</step-4>
+    <step-5 STATUS="done-local">Refactor forgot-password markup away from the visible matrix-auth-card frame, update requested Russian copy, remove the above-field label, and preserve recovery request behavior.</step-5>
+    <step-6 STATUS="done-local">Refactor reset-password markup away from the visible matrix-auth-card frame, update requested Russian copy, remove above-field labels, rename the save action, and preserve token/reset behavior.</step-6>
+    <step-7 STATUS="done-local">Add auth-specific CSS for frameless layout, large unframed logo, icon-safe inputs, red focus border, polished hover/active states, button animations, side-by-side secondary actions, and reduced-motion fallbacks.</step-7>
+    <step-8 STATUS="done-local">Harden MatrixBackground canvas compatibility for browsers with partial matchMedia/canvas support and record controlled fallback markers.</step-8>
+    <step-9 STATUS="done-local">Extend responsive rules for the new splash/auth surfaces across 320x568, 360x740, 390x844, 430x932, tablet, desktop, and reduced-motion viewports.</step-9>
+    <step-10 STATUS="done-local">Create scripts/phase67-auth-splash-smoke.mjs to verify splash redirect, removed card/classes/text, copy replacements, red focus markers, no icon overlap, browser fallback guards, and protected-surface isolation.</step-10>
+    <step-11 STATUS="done-local">Run frontend build, Phase-67 smoke, Phase-56/60/61/63/52/59 regressions, XML parse, MyGRACE lint, git diff --check, and protected deploy/backend/runtime guard during execution.</step-11>
+    <step-12 STATUS="done-local">Record execution evidence in M-073/M-071/M-070/M-074/M-080/M-009 and their verification files after implementation.</step-12>
   </steps>
   <verification>V-M-073,V-M-071,V-M-070,V-M-074,V-M-080,V-M-009</verification>
   <verification-design>
@@ -61,6 +61,16 @@
     <handoff-trigger>Stop and report if the required result appears to need backend/API/deploy changes, a new image asset, a changed auth contract, or a browser issue that cannot be verified locally.</handoff-trigger>
   </autonomous-execution-safety>
   <acceptance>Public / becomes a clean animated logo splash redirect, auth screens become compact frameless premium Matrix forms with requested Russian copy and red focus treatment, Matrix rain remains reliable or safely static across browsers, and all existing auth behavior remains unchanged.</acceptance>
+  <execution-evidence date="2026-06-04" status="pass-local">
+    <command-1>cd frontend &amp;&amp; npm run build</command-1>
+    <command-2>cd frontend-admin &amp;&amp; npm run build</command-2>
+    <command-3>node scripts/phase67-auth-splash-smoke.mjs</command-3>
+    <command-4>node scripts/phase56-premium-public-auth-smoke.mjs; node scripts/phase52-matrix-visual-smoke.mjs; node scripts/phase59-motion-interactions-smoke.mjs; node scripts/phase63-visible-logo-integration-smoke.mjs</command-4>
+    <command-5>node scripts/phase60-premium-qa-smoke.mjs; node scripts/phase61-responsive-adaptation-smoke.mjs; node scripts/phase62-compactness-deletion-smoke.mjs</command-5>
+    <command-6>node scripts/phase44-auth-email-ux-smoke.mjs; node scripts/phase46-user-cabinet-ux-smoke.mjs; node scripts/phase55-premium-art-direction-smoke.mjs</command-6>
+    <browser-screenshots>/tmp/krotpn-phase67-shots/splash-390x844.png /tmp/krotpn-phase67-shots/login-390x844-final.png /tmp/krotpn-phase67-shots/register-390x844-final.png /tmp/krotpn-phase67-shots/forgot-390x844-final.png /tmp/krotpn-phase67-shots/reset-390x844-final.png /tmp/krotpn-phase67-shots/login-1440x900-final.png /tmp/krotpn-phase67-shots/login-reduced-390x844-final.png</browser-screenshots>
+    <result>PASS: / is now splash-only with redirect to /login; auth routes are frameless with requested Russian copy, red-focus inputs, large unframed logo, preserved auth APIs, browser-compatible Matrix fallback markers, responsive gates, browser screenshots, and protected backend/deploy/admin/runtime surfaces.</result>
+  </execution-evidence>
   <risk-assessment>
     <risk-1 severity="high">A too-fast or inaccessible splash can confuse users; redirect timing, reduced-motion behavior, and direct /login availability must be explicit.</risk-1>
     <risk-2 severity="critical">Removing visible labels must not remove accessible names or break browser autofill, password managers, keyboard navigation, or screen-reader usability.</risk-2>

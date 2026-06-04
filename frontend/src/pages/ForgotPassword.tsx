@@ -1,20 +1,21 @@
 // FILE: frontend/src/pages/ForgotPassword.tsx
-// VERSION: 1.2.0
+// VERSION: 1.4.0
 // ROLE: UI_COMPONENT
 // MAP_MODE: SUMMARY
 // START_MODULE_CONTRACT
-//   PURPOSE: Password reset request page for email/password users with visible Phase-63 KrotPN logo
-//   SCOPE: Visible brand mark, email input, generic request response, spam-folder hint, and navigation back to login
+//   PURPOSE: Phase-67 frameless password reset request page for email/password users with a large unframed KrotPN logo
+//   SCOPE: Large visible brand mark, polished auth-only email input, generic request response, spam-folder hint, and navigation back to login
 //   DEPENDS: M-009 (frontend-user), M-002 (auth API), M-062 (auth email UX and password security), M-071 (matrix-style-system), M-080 (visible-brand-logo-integration)
-//   LINKS: M-009, M-062, M-071, M-080, V-M-062, Phase-63
+//   LINKS: M-009, M-062, M-071, M-080, V-M-062, Phase-63, Phase-67
 // END_MODULE_CONTRACT
 //
 // START_MODULE_MAP
-//   ForgotPasswordPage - Requests a password reset email without account enumeration and renders Phase-63 BrandMark
+//   ForgotPasswordPage - Requests a password reset email without account enumeration and renders Phase-67 frameless BrandMark
 //   BLOCK_FORGOT_PASSWORD_PAGE - ForgotPassword default export
 // END_MODULE_MAP
 //
 // START_CHANGE_SUMMARY
+//   LAST_CHANGE: v1.4.0 - Applied Phase-67 frameless recovery copy, red-focus auth field, and polished actions.
 //   LAST_CHANGE: v1.3.0 - Switched recovery logo to Phase-63 BrandMark while preserving Phase-56 regression markers.
 //   LAST_CHANGE: v1.2.0 - Added Phase-56 visible brand logo for premium public/auth consistency
 //   LAST_CHANGE: v1.1.0 - Applied Phase-53 compact Matrix recovery surface
@@ -59,33 +60,35 @@ export default function ForgotPassword() {
   }
 
   return (
-    <div className="matrix-auth-screen" data-phase53-auth-route="forgot-password">
-      <section className="w-full max-w-md animate-in">
+    <div className="matrix-auth-screen phase67-auth-screen" data-phase53-auth-route="forgot-password" data-phase67-auth-route="forgot-password">
+      <section className="matrix-auth-panel animate-in">
         <div className="matrix-auth-heading">
           <BrandMark
             size="lg"
-            className="matrix-auth-brand-lockup"
-            marker="[VisibleBrandLogo][phase63][PUBLIC_AUTH_LOGO_VISIBLE]"
+            className="matrix-auth-brand-lockup phase67-auth-logo"
+            marker="[VisibleBrandLogo][phase67][LARGE_UNFRAMED_AUTH_LOGO]"
             data-phase56-logo="true"
             data-phase56-legacy-src="/brand/email-logo.png"
             data-phase63-public-auth-logo="forgot-password"
+            data-phase67-large-logo="[VisibleBrandLogo][phase67][LOGO_NO_OVERLAP]"
           />
-          <p className="matrix-kicker mt-4">Recovery</p>
+          <p className="matrix-kicker mt-4">Кибернетический Протокол Навигации</p>
           <h1 className="mt-2 text-2xl font-extrabold text-white">Восстановление пароля</h1>
-          <p className="mt-2 text-sm muted">Укажите email аккаунта, и мы отправим ссылку для сброса.</p>
         </div>
 
-        <form onSubmit={handleSubmit} className="matrix-auth-card space-y-4">
+        <form onSubmit={handleSubmit} className="phase67-auth-form">
             <label className="block">
-              <span className="mb-2 block text-sm muted">Email</span>
-              <div className="input-group">
+              <span className="sr-only">Email</span>
+              <div className="input-group auth-input-group">
                 <Mail className="icon h-5 w-5" />
                 <input
                   type="email"
-                  className="input"
-                  placeholder="you@example.com"
+                  className="input auth-input"
+                  placeholder="Почта"
                   value={email}
                   onChange={(event) => setEmail(event.target.value)}
+                  aria-label="Email"
+                  autoComplete="email"
                   required
                 />
               </div>
@@ -97,12 +100,12 @@ export default function ForgotPassword() {
               </div>
             ) : null}
 
-            <button type="submit" className="btn-primary w-full py-3" disabled={loading}>
+            <button type="submit" className="btn-primary auth-primary-action w-full" disabled={loading}>
               {loading ? <Loader2 className="h-5 w-5 animate-spin" /> : null}
               {loading ? 'Отправляем' : 'Отправить ссылку'}
             </button>
 
-            <Link to="/login" className="btn-secondary w-full">
+            <Link to="/login" className="auth-secondary-action w-full">
               <ArrowLeft className="h-4 w-4" />
               Вернуться ко входу
             </Link>

@@ -1,21 +1,22 @@
 // FILE: frontend/src/pages/Register.tsx
-// VERSION: 1.5.0
+// VERSION: 1.6.0
 // ROLE: UI_COMPONENT
 // MAP_MODE: SUMMARY
 // START_MODULE_CONTRACT
-//   PURPOSE: User registration page with visible Phase-63 KrotPN logo, verified-email pending state, referral code support, and compact onboarding context
-//   SCOPE: Visible brand mark, form validation, pending registration API call, check-email/resend state, no token storage before email verification
+//   PURPOSE: Phase-67 frameless registration page with a large unframed KrotPN logo, verified-email pending state, referral code support, and compact onboarding context
+//   SCOPE: Large visible brand mark, polished auth-only form validation, pending registration API call, check-email/resend state, no token storage before email verification
 //   DEPENDS: M-009 (frontend-user), M-002 (auth API), M-005 (referrals), M-071 (matrix-style-system), M-080 (visible-brand-logo-integration)
-//   LINKS: M-009 (frontend-user), V-M-009, M-071, M-080, Phase-63
+//   LINKS: M-009 (frontend-user), V-M-009, M-071, M-080, Phase-63, Phase-67
 // END_MODULE_CONTRACT
 //
 // START_MODULE_MAP
-//   RegisterPage - Registration component with Phase-63 BrandMark, form, safe password example, pending check-email state, resend handling, and referral display
+//   RegisterPage - Registration component with Phase-67 frameless BrandMark, form, safe password example, pending check-email state, resend handling, and referral display
 //   BLOCK_REGISTER_PAGE - RegisterPage default export
 //   default - React component (default export)
 // END_MODULE_MAP
 //
 // START_CHANGE_SUMMARY
+//   LAST_CHANGE: v1.6.0 - Applied Phase-67 frameless registration copy, red-focus auth fields, and compact login action.
 //   LAST_CHANGE: v1.5.0 - Switched registration logo to Phase-63 BrandMark while preserving Phase-56 regression markers.
 //   LAST_CHANGE: v1.4.0 - Added Phase-56 visible brand logo while preserving verified-email pending state
 //   LAST_CHANGE: v3.0.0 - Applied Phase-53 compact Matrix auth surface while preserving verified-email cutover
@@ -107,24 +108,24 @@ export default function Register() {
     : null
 
   return (
-    <div className="matrix-auth-screen" data-phase53-auth-route="register">
-      <section className="w-full max-w-md animate-in">
+    <div className="matrix-auth-screen phase67-auth-screen" data-phase53-auth-route="register" data-phase67-auth-route="register">
+      <section className="matrix-auth-panel animate-in">
         <div className="matrix-auth-heading">
           <BrandMark
             size="lg"
-            className="matrix-auth-brand-lockup"
-            marker="[VisibleBrandLogo][phase63][PUBLIC_AUTH_LOGO_VISIBLE]"
+            className="matrix-auth-brand-lockup phase67-auth-logo"
+            marker="[VisibleBrandLogo][phase67][LARGE_UNFRAMED_AUTH_LOGO]"
             data-phase56-logo="true"
             data-phase56-legacy-src="/brand/email-logo.png"
             data-phase63-public-auth-logo="register"
+            data-phase67-large-logo="[VisibleBrandLogo][phase67][LOGO_NO_OVERLAP]"
           />
-          <p className="matrix-kicker mt-4">Email gate</p>
-          <h1 className="mt-2 text-2xl font-extrabold text-white">{t('registerTitle')}</h1>
-          <p className="mt-2 text-sm muted">Подтвердите email, чтобы активировать личный кабинет.</p>
+          <p className="matrix-kicker mt-4">Кибернетический Протокол Навигации</p>
+          <h1 className="mt-2 text-2xl font-extrabold text-white">Присоединиться к KrotPN</h1>
         </div>
 
             {phase === 'pending' ? (
-              <div className="matrix-auth-card space-y-4">
+              <div className="matrix-auth-state space-y-4">
                 {/* REGISTER_PENDING_STATE */}
                 <div className="flex items-start gap-3">
                   <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg bg-emerald-300/12 text-emerald-100">
@@ -149,7 +150,7 @@ export default function Register() {
                   {/* REGISTER_RESEND_AVAILABLE */}
                   <button
                     type="button"
-                    className="btn-secondary w-full"
+                    className="btn-secondary auth-secondary-action w-full"
                     disabled={loading}
                     onClick={() => void submitRegistration(true)}
                   >
@@ -158,7 +159,7 @@ export default function Register() {
                   </button>
                   <button
                     type="button"
-                    className="btn-secondary w-full"
+                    className="btn-secondary auth-secondary-action w-full"
                     onClick={() => setPhase('form')}
                   >
                     <ArrowLeft className="h-4 w-4" />
@@ -167,32 +168,36 @@ export default function Register() {
                 </div>
               </div>
             ) : (
-              <form onSubmit={handleSubmit} className="matrix-auth-card space-y-4">
+              <form onSubmit={handleSubmit} className="phase67-auth-form">
                 <label className="block">
-                  <span className="mb-2 block text-sm muted">{t('email')}</span>
-                  <div className="input-group">
+                  <span className="sr-only">{t('email')}</span>
+                  <div className="input-group auth-input-group">
                     <Mail className="icon h-5 w-5" />
                     <input
                       type="email"
-                      className="input"
-                      placeholder="you@example.com"
+                      className="input auth-input"
+                      placeholder="Почта"
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
+                      aria-label={t('email')}
+                      autoComplete="email"
                       required
                     />
                   </div>
                 </label>
 
                 <label className="block">
-                  <span className="mb-2 block text-sm muted">{t('password')}</span>
-                  <div className="input-group">
+                  <span className="sr-only">{t('password')}</span>
+                  <div className="input-group auth-input-group">
                     <Lock className="icon h-5 w-5" />
                     <input
                       type="password"
-                      className="input"
+                      className="input auth-input"
                       placeholder="Минимум 10 символов"
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
+                      aria-label={t('password')}
+                      autoComplete="new-password"
                       required
                       minLength={10}
                     />
@@ -205,15 +210,17 @@ export default function Register() {
                 </label>
 
                 <label className="block">
-                  <span className="mb-2 block text-sm muted">{t('confirmPassword')}</span>
-                  <div className="input-group">
+                  <span className="sr-only">{t('confirmPassword')}</span>
+                  <div className="input-group auth-input-group">
                     <Lock className="icon h-5 w-5" />
                     <input
                       type="password"
-                      className="input"
-                      placeholder={t('confirmPassword')}
+                      className="input auth-input"
+                      placeholder="Повтор пароля"
                       value={confirmPassword}
                       onChange={(e) => setConfirmPassword(e.target.value)}
+                      aria-label={t('confirmPassword')}
+                      autoComplete="new-password"
                       required
                     />
                   </div>
@@ -238,19 +245,16 @@ export default function Register() {
                   </div>
                 ) : null}
 
-                <button type="submit" className="btn-primary w-full py-3" disabled={loading}>
+                <button type="submit" className="btn-primary auth-primary-action w-full" disabled={loading}>
                   {loading ? <Loader2 className="h-5 w-5 animate-spin" /> : null}
                   {loading ? 'Отправляем письмо' : t('registerButton')}
                 </button>
+
+                <Link to="/login" className="auth-secondary-action w-full">
+                  {t('login')}
+                </Link>
               </form>
             )}
-
-        <div className="mt-5 text-center text-sm muted">
-          {t('hasAccount')}{' '}
-          <Link to="/login" className="font-semibold text-cyan-100 hover:text-emerald-100">
-            {t('login')}
-          </Link>
-        </div>
       </section>
     </div>
   )

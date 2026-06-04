@@ -1,12 +1,12 @@
 #!/usr/bin/env node
 /*
  * FILE: scripts/phase62-compactness-deletion-smoke.mjs
- * VERSION: 1.0.0
+ * VERSION: 1.1.0
  * ROLE: TEST
  * MAP_MODE: LOCALS
  * START_MODULE_CONTRACT
- *   PURPOSE: Static smoke verification for Phase-62 compactness and deletion audit
- *   SCOPE: User/public/admin folded secondary surfaces, preserved primary workflows, bounded admin inventories, redaction/confirmation invariants, responsive compaction markers, and protected backend/deploy/runtime guard
+ *   PURPOSE: Static smoke verification for Phase-62 compactness and deletion audit with Phase-67 splash supersession awareness
+ *   SCOPE: User/public/admin folded secondary surfaces, Phase-67 splash public replacement, preserved primary workflows, bounded admin inventories, redaction/confirmation invariants, responsive compaction markers, and protected backend/deploy/runtime guard
  *   DEPENDS: M-075, M-076, M-038, M-073, M-074
  *   LINKS: V-M-075, V-M-076, docs/plans/Phase-62.xml, docs/modules/M-075.xml, docs/modules/M-076.xml
  * END_MODULE_CONTRACT
@@ -21,6 +21,7 @@
  * END_MODULE_MAP
  *
  * START_CHANGE_SUMMARY
+ *   LAST_CHANGE: v1.1.0 - Accepted Phase-67 splash-only public route while preserving public/auth clarity markers.
  *   LAST_CHANGE: v1.0.0 - Added Phase-62 compactness/deletion audit smoke gate.
  * END_CHANGE_SUMMARY
  */
@@ -158,7 +159,8 @@ for (const needle of [
 }
 
 assertContains(landing, 'data-phase62-public-auth="[CompactDeletionAudit][phase62][PUBLIC_AUTH_CLARITY_PRESERVED]"', 'frontend/src/pages/Landing.tsx')
-assertContains(landing, 'data-phase56-email-proof-copy="true"', 'frontend/src/pages/Landing.tsx')
+assertContains(landing, 'data-phase56-email-proof-copy=', 'frontend/src/pages/Landing.tsx')
+assertContains(landing, 'data-phase67-splash-route="[PremiumPublicSite][phase67][SPLASH_REDIRECT_READY]"', 'frontend/src/pages/Landing.tsx')
 assertContains(register, 'папку «Спам»', 'frontend/src/pages/Register.tsx')
 assertContains(register, 'passwordPolicyExample', 'frontend/src/pages/Register.tsx')
 assertContains(register, 'Восстановить доступ', 'frontend/src/pages/Register.tsx')

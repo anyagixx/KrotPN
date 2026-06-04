@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<V-M-071 MODULE="M-071" PRIORITY="high" STATUS="pass-local-phase52-phase53-phase54-phase55-phase56-phase59-verification-designed-phase67" PHASE-54="pass-local" PHASE-55="pass-local" PHASE-56="pass-local" PHASE-59="pass-local" PHASE-67="verification-designed">
+<V-M-071 MODULE="M-071" PRIORITY="high" STATUS="pass-local-phase52-phase53-phase54-phase55-phase56-phase59-pass-local-phase67" PHASE-54="pass-local" PHASE-55="pass-local" PHASE-56="pass-local" PHASE-59="pass-local" PHASE-67="pass-local">
   <scope>
     <phase>Phase-52</phase>
     <purpose>Verify the Matrix style system foundation for compact, readable, mobile-safe user and admin shells.</purpose>
@@ -16,7 +16,7 @@
     <file phase="55-pass-local">scripts/phase55-premium-art-direction-smoke.mjs</file>
     <file phase="56-pass-local">scripts/phase56-premium-public-auth-smoke.mjs</file>
     <file phase="59-pass-local">scripts/phase59-motion-interactions-smoke.mjs</file>
-    <file phase="67-verification-designed">scripts/phase67-auth-splash-smoke.mjs</file>
+    <file phase="67-pass-local">scripts/phase67-auth-splash-smoke.mjs</file>
   </test-files>
   <module-checks>
     <check-1>cd frontend &amp;&amp; npm run build</check-1>
@@ -30,7 +30,7 @@
     <check-9>Phase-55 premium art-direction smoke: shared premium tokens, no radial/orb backgrounds, logo rules, reduced-motion markers, screenshot artifacts, and protected deploy/install guard.</check-9>
     <check-10>Phase-56 public/auth smoke and screenshots: compact public landing, logo auth lockups, canonical tariff preview, reduced-motion proof, and protected deploy/install guard.</check-10>
     <check-11>Phase-59 motion smoke: motion budget tokens, route transitions, feedback/status classes, reduced-motion fallback, and protected backend/deploy/runtime guard.</check-11>
-    <check-12 status="verification-designed-phase67">Phase-67 auth/splash smoke: no visible auth card frame, large unframed logo, red focus border, icon-safe inputs, elegant buttons, side-by-side secondary actions, responsive safety, and reduced-motion fallback.</check-12>
+    <check-12 status="pass-local-phase67">Phase-67 auth/splash smoke: no visible auth card frame, large unframed logo, red focus border, icon-safe inputs, elegant buttons, side-by-side secondary actions, responsive safety, and reduced-motion fallback.</check-12>
   </module-checks>
   <phase-53-style-gates status="pass-local">
     <gate-1>User cabinet routes use Matrix palette/tokens while preserving compact operational layout and avoiding nested cards.</gate-1>
@@ -63,7 +63,7 @@
     <gate-2>Reduced-motion fallback disables Phase-59 transforms/animations while preserving the static Matrix identity.</gate-2>
     <gate-3>CSS smoke rejects scroll hijack, pointer interception, long motion budget, negative letter spacing, viewport font sizing, and protected backend/deploy/runtime diffs.</gate-3>
   </phase-59-style-gates>
-  <phase-67-style-gates status="verification-designed">
+  <phase-67-style-gates status="pass-local">
     <gate-1>Auth routes must not render the visible matrix-auth-card frame or framed logo lockup.</gate-1>
     <gate-2>Auth input focus/active state must use the planned red treatment and must not regress to blue/cyan focus on /login, /register, /forgot-password, or /reset-password.</gate-2>
     <gate-3>Input icons, placeholders, typed values, password controls, and button text must not overlap at Phase-67 phone, tablet, desktop, or reduced-motion viewports.</gate-3>
@@ -187,5 +187,13 @@
       <command-3>node scripts/phase56-premium-public-auth-smoke.mjs</command-3>
       <summary>Phase-59 CSS smoke passed for motion budget, microinteraction/status/route classes, reduced-motion fallback, pointer/focus markers, no scroll hijack, and protected backend/deploy/runtime isolation.</summary>
     </phase-59-local-2026-06-04>
+    <phase-67-local-2026-06-04>
+      <result>PASS</result>
+      <command-1>node scripts/phase67-auth-splash-smoke.mjs</command-1>
+      <command-2>cd frontend &amp;&amp; npm run build</command-2>
+      <command-3>node scripts/phase55-premium-art-direction-smoke.mjs; node scripts/phase56-premium-public-auth-smoke.mjs; node scripts/phase60-premium-qa-smoke.mjs; node scripts/phase61-responsive-adaptation-smoke.mjs; node scripts/phase62-compactness-deletion-smoke.mjs</command-3>
+      <screenshot-paths>/tmp/krotpn-phase67-shots/splash-390x844.png /tmp/krotpn-phase67-shots/login-390x844-final.png /tmp/krotpn-phase67-shots/register-390x844-final.png /tmp/krotpn-phase67-shots/forgot-390x844-final.png /tmp/krotpn-phase67-shots/reset-390x844-final.png /tmp/krotpn-phase67-shots/login-1440x900-final.png /tmp/krotpn-phase67-shots/login-reduced-390x844-final.png</screenshot-paths>
+      <summary>Phase-67 CSS/auth polish passed for frameless auth surfaces, large unframed logo, red focus treatment, compact secondary actions, mobile wrapping, reduced-motion simplification, and protected backend/deploy/runtime isolation.</summary>
+    </phase-67-local-2026-06-04>
   </evidence>
 </V-M-071>

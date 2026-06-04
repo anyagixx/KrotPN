@@ -1,12 +1,12 @@
 #!/usr/bin/env node
 /*
  * FILE: scripts/phase56-premium-public-auth-smoke.mjs
- * VERSION: 1.0.0
+ * VERSION: 1.1.0
  * ROLE: TEST
  * MAP_MODE: LOCALS
  * START_MODULE_CONTRACT
- *   PURPOSE: Static smoke verification for Phase-56 premium public site and auth routes
- *   SCOPE: Public route, dashboard route split, auth state preservation, visible logo, canonical tariff preview, redaction, reduced-motion, and protected deploy surfaces
+ *   PURPOSE: Static smoke verification for Phase-56 premium public/auth routes with Phase-67 splash supersession awareness
+ *   SCOPE: Public route, Phase-67 splash replacement, dashboard route split, auth state preservation, visible logo, redaction, reduced-motion, and protected deploy surfaces
  *   DEPENDS: M-073, M-009, M-068, M-069, M-070, M-071, M-072
  *   LINKS: V-M-073, docs/plans/Phase-56.xml
  * END_MODULE_CONTRACT
@@ -22,6 +22,7 @@
  * END_MODULE_MAP
  *
  * START_CHANGE_SUMMARY
+ *   LAST_CHANGE: v1.1.0 - Accepted Phase-67 splash-only public route while preserving Phase-56 auth and routing regressions.
  *   LAST_CHANGE: v1.0.0 - Added Phase-56 premium public/auth static verification gate
  * END_CHANGE_SUMMARY
  */
@@ -138,17 +139,11 @@ for (const needle of [
 
 for (const needle of [
   'data-phase56-public-route="landing"',
-  'data-phase56-primary-cta="register"',
-  'data-phase56-public-cta="register"',
-  'data-phase56-email-proof-copy="true"',
-  'data-phase56-tariff-preview="canonical-three-plans"',
-  'PUBLIC_TARIFF_PREVIEW',
-  'billingApi.getPlans()',
+  'data-phase67-splash-route="[PremiumPublicSite][phase67][SPLASH_REDIRECT_READY]"',
+  "navigate('/login', { replace: true })",
+  'data-phase56-email-proof-copy="phase67-splash-supersedes-visible-copy"',
   '/brand/email-logo.png',
   'data-phase56-logo="true"',
-  'MTProto proxy после подтверждения email',
-  'только после подтверждения email',
-  'Оплата создается backend по plan_id',
 ]) {
   assertContains(landing, needle, 'frontend/src/pages/Landing.tsx')
 }
@@ -158,6 +153,10 @@ for (const prohibited of [
   'payment_url',
   "localStorage.setItem('access_token'",
   "localStorage.setItem('refresh_token'",
+  'data-phase56-tariff-preview',
+  'PUBLIC_TARIFF_PREVIEW',
+  'billingApi.getPlans()',
+  'matrix-public-tariff',
   'trial на 3',
   'Trial на 3',
   'rounded-2xl',
@@ -230,7 +229,11 @@ assertNotContains(css, 'radial-gradient(', 'frontend/src/index.css')
 assertNotContains(css, 'rounded-[32px]', 'frontend/src/index.css')
 assertNotContains(css, 'rounded-[24px]', 'frontend/src/index.css')
 
-assertCanonicalTariffPreview(landing, catalog)
+if (landing.includes('PUBLIC_TARIFF_PREVIEW')) {
+  assertCanonicalTariffPreview(landing, catalog)
+} else {
+  assertContains(landing, 'data-phase67-splash-route="[PremiumPublicSite][phase67][SPLASH_REDIRECT_READY]"', 'frontend/src/pages/Landing.tsx')
+}
 assertProtectedDeployDiffClean()
 // END_BLOCK_PHASE56_STATIC_ASSERTIONS
 
@@ -238,7 +241,7 @@ console.log('[PremiumPublicSite][phase56][ROUTES_READY] ok')
 console.log('[PremiumPublicSite][phase56][PUBLIC_CTA_VISIBLE] ok')
 console.log('[PremiumPublicSite][phase56][AUTH_STATES_READABLE] ok')
 console.log('[PremiumPublicSite][phase56][EMAIL_PROOF_GUARD] ok')
-console.log('[PremiumPublicSite][phase56][TARIFFS_CANONICAL] ok')
+console.log('[PremiumPublicSite][phase56][TARIFFS_CANONICAL] superseded-by-phase67-splash')
 console.log('[PremiumPublicSite][phase56][LOGO_VISIBLE] ok')
 console.log('[PremiumPublicSite][phase56][REDUCED_MOTION_SAFE] ok')
 console.log('[PremiumPublicSite][phase56][SCREENSHOT_MATRIX_REVIEWED] static-route-and-style-ready')

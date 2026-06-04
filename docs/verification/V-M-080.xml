@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<V-M-080 MODULE="M-080" PRIORITY="high" STATUS="pass-local-phase63-verification-designed-phase67" PHASE-63="pass-local" PHASE-67="verification-designed">
+<V-M-080 MODULE="M-080" PRIORITY="high" STATUS="pass-local-phase63-pass-local-phase67" PHASE-63="pass-local" PHASE-67="pass-local">
   <scope>Phase-63 visible KrotPN logo verification for public landing, auth, protected user shell, admin shell, favicon/PWA adjacency, and Phase-64 email-template boundary.</scope>
   <test-files>
     <file phase="63-pass-local">scripts/phase63-visible-logo-integration-smoke.mjs</file>
-    <file phase="67-verification-designed">scripts/phase67-auth-splash-smoke.mjs</file>
+    <file phase="67-pass-local">scripts/phase67-auth-splash-smoke.mjs</file>
     <file>frontend/public/brand/krotpn-mark-96.png</file>
     <file>frontend-admin/public/brand/krotpn-mark-96.png</file>
     <file>frontend/src/components/BrandMark.tsx</file>
@@ -40,7 +40,7 @@
     <check-11 status="pass-local-phase63">node scripts/phase60-premium-qa-smoke.mjs</check-11>
     <check-12 status="pass-local-phase63">python3 -m xml.etree.ElementTree docs/plans/Phase-63.xml docs/modules/M-080.xml docs/verification/V-M-080.xml docs/verification-index.xml docs/graph-index.xml docs/plan-index.xml</check-12>
     <check-13 status="pass-local-phase63">mygrace lint; git diff --check; protected diff guard for backend API, deploy/install, nginx, docker-compose, VPN runtime, MTProto runtime, and secret surfaces</check-13>
-    <check-14 status="verification-designed-phase67">Phase-67 smoke verifies large unframed splash/auth logo, no logo frame, no mobile crowding, asset budget, and preserved email/BIMI/provider-avatar boundaries.</check-14>
+    <check-14 status="pass-local-phase67">Phase-67 smoke verifies large unframed splash/auth logo, no logo frame, no mobile crowding, asset budget, and preserved email/BIMI/provider-avatar boundaries.</check-14>
   </module-checks>
   <verification-matrix>
     <target-1 evidence="static">Logo assets are selected from the operator-provided logo folder, copied into public asset paths with deterministic names, valid signatures, bounded dimensions, and no unnecessary large first-paint files.</target-1>
@@ -50,7 +50,7 @@
     <target-5 evidence="static">Email template handling remains boundary-safe: existing body logo paths may be referenced, but Phase-63 must not redesign premium emails, change Resend payload semantics, or claim mailbox sender-avatar/BIMI control.</target-5>
     <target-6 evidence="runtime-screenshot-or-static-proof">Phone, tablet, desktop, and reduced-motion proof shows no logo/text/icon overlap, no horizontal scroll, no hidden primary CTA, and no Matrix layer pointer interference.</target-6>
     <target-7 evidence="protected-guard">No backend API, auth/session, billing, VPN, MTProto, deploy/install, nginx, docker-compose, certificate, DNS, or secret behavior changes are introduced.</target-7>
-    <target-8 evidence="verification-designed-phase67">Splash/auth logo placement becomes larger and unframed while preserving the bounded logo asset strategy and mobile no-overlap guarantees.</target-8>
+    <target-8 evidence="pass-local-phase67">Splash/auth logo placement becomes larger and unframed while preserving the bounded logo asset strategy and mobile no-overlap guarantees.</target-8>
   </verification-matrix>
   <success-scenarios>
     <scenario-1 kind="success">KrotPN logo is visible on public/auth entry points and compactly present in authenticated user/admin shells where it improves orientation.</scenario-1>
@@ -88,7 +88,7 @@
     <gate-2 level="wave" status="passed-local">M-009, M-010, M-069, M-072, M-073, M-075, and M-076 regressions stayed green after visible logo integration.</gate-2>
     <gate-3 level="phase" status="passed-local">User/admin builds, Phase-63 smoke, Phase-55/56/57/58/60/61/62 regressions, XML parse, MyGRACE lint, git diff check, and protected backend/deploy/runtime guard passed before Phase-63 was marked done-local.</gate-3>
     <gate-4 level="live-follow-up">Clean-deploy visual review should confirm real browser logo rendering on public/auth/user/admin surfaces, but local execution must not claim live mailbox avatar or BIMI provider proof.</gate-4>
-    <gate-5 level="phase-67" status="verification-designed">Phase-67 logo work cannot pass if the previous framed lockup remains visible on auth routes, if the large mark crowds forms on mobile, or if email/BIMI/provider-avatar boundaries change.</gate-5>
+    <gate-5 level="phase-67" status="pass-local">Phase-67 logo work cannot pass if the previous framed lockup remains visible on auth routes, if the large mark crowds forms on mobile, or if email/BIMI/provider-avatar boundaries change.</gate-5>
   </phase-gates>
   <execution-evidence date="2026-06-04" commit="c385d62">
     <command-1>cd frontend &amp;&amp; npm run build</command-1>
@@ -97,6 +97,13 @@
     <command-4>node scripts/phase55-premium-art-direction-smoke.mjs; node scripts/phase56-premium-public-auth-smoke.mjs; node scripts/phase57-premium-user-cabinet-smoke.mjs; node scripts/phase58-premium-admin-cockpit-smoke.mjs; node scripts/phase60-premium-qa-smoke.mjs; node scripts/phase61-responsive-adaptation-smoke.mjs; node scripts/phase62-compactness-deletion-smoke.mjs</command-4>
     <command-5>python3 XML parse, mygrace lint, git diff --check, protected backend/deploy/runtime guard</command-5>
     <result>PASS: visible 96px logo mark is present in public/auth/user/admin surfaces, asset budget is bounded, email-logo/BIMI/provider-avatar boundaries remain truthful, and backend/deploy/runtime/install surfaces were untouched.</result>
+  </execution-evidence>
+  <execution-evidence date="2026-06-04" status="pass-local-phase67">
+    <command-1>node scripts/phase67-auth-splash-smoke.mjs</command-1>
+    <command-2>cd frontend &amp;&amp; npm run build</command-2>
+    <command-3>node scripts/phase63-visible-logo-integration-smoke.mjs</command-3>
+    <screenshot-paths>/tmp/krotpn-phase67-shots/splash-390x844.png /tmp/krotpn-phase67-shots/login-390x844-final.png /tmp/krotpn-phase67-shots/register-390x844-final.png /tmp/krotpn-phase67-shots/forgot-390x844-final.png /tmp/krotpn-phase67-shots/reset-390x844-final.png /tmp/krotpn-phase67-shots/login-1440x900-final.png /tmp/krotpn-phase67-shots/login-reduced-390x844-final.png</screenshot-paths>
+    <result>PASS: splash/auth routes use the existing bounded public logo asset in a larger unframed presentation, mobile logo/form overlap checks passed by static smoke and browser screenshots, and email/BIMI/provider-avatar boundaries were not changed.</result>
   </execution-evidence>
   <autonomous-execution-safety>Safe for local autonomous execution if changes stay inside frontend/frontend-admin visible logo components/assets/CSS, existing email body-logo references, Phase-63 smoke, and MyGRACE docs. Stop execution if backend API changes, Resend payload changes, deploy/install/nginx/docker-compose changes, BIMI DNS changes, VPN/MTProto runtime changes, or secret-handling changes appear necessary.</autonomous-execution-safety>
 </V-M-080>

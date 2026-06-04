@@ -1,12 +1,12 @@
 // FILE: frontend/src/components/MatrixBackground.tsx
-// VERSION: 1.1.0
+// VERSION: 1.2.0
 // ROLE: UI_COMPONENT
 // MAP_MODE: EXPORTS
 // START_MODULE_CONTRACT
-//   PURPOSE: React Matrix rain canvas runtime for the KrotPN user frontend visual shell with Phase-59 lifecycle proof
-//   SCOPE: Canvas context guards, resize recomputation, pointer influence, reduced-motion fallback, animation lifecycle, inactive-tab stop proof, and cleanup
+//   PURPOSE: React Matrix rain canvas runtime for the KrotPN user frontend visual shell with Phase-59 lifecycle proof and Phase-67 browser compatibility guards
+//   SCOPE: Canvas context guards, resize recomputation, pointer influence, reduced-motion fallback, requestAnimationFrame fallback, legacy matchMedia listener compatibility, animation lifecycle, inactive-tab stop proof, and cleanup
 //   DEPENDS: M-070 (matrix-visual-runtime), M-071 (matrix-style-system), M-077 (matrix-motion-interactions), React
-//   LINKS: docs/modules/M-070.xml, docs/modules/M-077.xml, docs/verification/V-M-070.xml, docs/verification/V-M-077.xml
+//   LINKS: docs/modules/M-070.xml, docs/modules/M-077.xml, docs/plans/Phase-67.xml, docs/verification/V-M-070.xml, docs/verification/V-M-077.xml
 // END_MODULE_CONTRACT
 //
 // START_MODULE_MAP
@@ -18,6 +18,7 @@
 // END_MODULE_MAP
 //
 // START_CHANGE_SUMMARY
+//   LAST_CHANGE: v1.2.0 - Added Phase-67 browser compatibility guards for legacy matchMedia listeners and missing RAF fallback.
 //   LAST_CHANGE: v1.1.0 - Added Phase-59 reduced-motion, pointer-scroll, and inactive-tab lifecycle markers without changing canvas behavior.
 //   LAST_CHANGE: v1.0.1 - Strengthened visible Matrix trails for Phase-52 screenshot and mobile viewport checks.
 //   LAST_CHANGE: v1.0.0 - Added Phase-52 Matrix canvas runtime with reduced-motion and cleanup guards.
@@ -33,6 +34,8 @@ type Drop = {
   delay: number
   started: boolean
 }
+
+type MotionChangeEvent = MediaQueryListEvent | MediaQueryList
 
 const CHARS = '01#$%@&*+-=/'
 const FONT_SIZE = 10
@@ -81,7 +84,33 @@ function renderStaticMatrixFrame(ctx: CanvasRenderingContext2D, width: number, h
 }
 
 function hasReducedMotion() {
-  return Boolean(window.matchMedia?.('(prefers-reduced-motion: reduce)').matches)
+  return Boolean(getMotionQuery()?.matches)
+}
+
+function getMotionQuery() {
+  return typeof window.matchMedia === 'function' ? window.matchMedia('(prefers-reduced-motion: reduce)') : null
+}
+
+function addMotionListener(query: MediaQueryList | null, listener: (event: MotionChangeEvent) => void) {
+  if (!query) {
+    return
+  }
+  if (typeof query.addEventListener === 'function') {
+    query.addEventListener('change', listener)
+    return
+  }
+  query.addListener?.(listener)
+}
+
+function removeMotionListener(query: MediaQueryList | null, listener: (event: MotionChangeEvent) => void) {
+  if (!query) {
+    return
+  }
+  if (typeof query.removeEventListener === 'function') {
+    query.removeEventListener('change', listener)
+    return
+  }
+  query.removeListener?.(listener)
 }
 
 export default function MatrixBackground() {
@@ -100,6 +129,8 @@ export default function MatrixBackground() {
       return undefined
     }
 
+    const requestFrame = window.requestAnimationFrame?.bind(window)
+    const cancelFrame = window.cancelAnimationFrame?.bind(window)
     let disposed = false
     let reducedMotion = hasReducedMotion()
     let width = window.innerWidth
@@ -116,7 +147,7 @@ export default function MatrixBackground() {
 
     const stopAnimation = () => {
       if (animationFrame !== null) {
-        window.cancelAnimationFrame(animationFrame)
+        cancelFrame?.(animationFrame)
         animationFrame = null
       }
       console.info('[MatrixVisualRuntime][cleanup][ANIMATION_STOPPED] matrix animation stopped')
@@ -220,12 +251,24 @@ export default function MatrixBackground() {
         }
       }
 
-      animationFrame = window.requestAnimationFrame(draw)
+      if (requestFrame) {
+        animationFrame = requestFrame(draw)
+      } else {
+        renderStaticMatrixFrame(ctx, width, height, drops)
+        canvas.dataset.matrixState = 'static-fallback'
+        console.info('[MatrixVisualRuntime][phase67][STATIC_FALLBACK_SAFE] requestAnimationFrame unavailable')
+      }
     }
 
     const startAnimation = () => {
       if (!reducedMotion && animationFrame === null && !document.hidden) {
-        animationFrame = window.requestAnimationFrame(draw)
+        if (requestFrame) {
+          animationFrame = requestFrame(draw)
+        } else {
+          renderStaticMatrixFrame(ctx, width, height, drops)
+          canvas.dataset.matrixState = 'static-fallback'
+          console.info('[MatrixVisualRuntime][phase67][STATIC_FALLBACK_SAFE] requestAnimationFrame unavailable')
+        }
       }
     }
 
@@ -243,8 +286,8 @@ export default function MatrixBackground() {
       }
     }
 
-    const motionQuery = window.matchMedia?.('(prefers-reduced-motion: reduce)')
-    const handleMotionChange = (event: MediaQueryListEvent) => {
+    const motionQuery = getMotionQuery()
+    const handleMotionChange = (event: MotionChangeEvent) => {
       reducedMotion = event.matches
       console.info(`[MatrixVisualRuntime][motionPolicy][REDUCED_MOTION] active=${reducedMotion}`)
       console.info('[MatrixMotion][phase59][REDUCED_MOTION_PASS]')
@@ -262,10 +305,7 @@ export default function MatrixBackground() {
     window.addEventListener('resize', resize)
     window.addEventListener('pointermove', handlePointerMove, { passive: true })
     document.addEventListener('visibilitychange', handleVisibility)
-
-    if (motionQuery?.addEventListener) {
-      motionQuery.addEventListener('change', handleMotionChange)
-    }
+    addMotionListener(motionQuery, handleMotionChange)
 
     if (reducedMotion) {
       console.info('[MatrixVisualRuntime][motionPolicy][REDUCED_MOTION] active=true')
@@ -277,6 +317,7 @@ export default function MatrixBackground() {
 
     console.info('[MatrixVisualRuntime][init][CANVAS_READY] matrix canvas initialized')
     console.info('[MatrixMotion][phase59][POINTER_SCROLL_SAFE]')
+    console.info('[MatrixVisualRuntime][phase67][BROWSER_COMPAT_SAFE]')
 
     return () => {
       disposed = true
@@ -284,9 +325,7 @@ export default function MatrixBackground() {
       window.removeEventListener('resize', resize)
       window.removeEventListener('pointermove', handlePointerMove)
       document.removeEventListener('visibilitychange', handleVisibility)
-      if (motionQuery?.removeEventListener) {
-        motionQuery.removeEventListener('change', handleMotionChange)
-      }
+      removeMotionListener(motionQuery, handleMotionChange)
     }
   }, [])
 
@@ -298,6 +337,8 @@ export default function MatrixBackground() {
       data-matrix-canvas="true"
       data-phase59-pointer-scroll="[MatrixMotion][phase59][POINTER_SCROLL_SAFE]"
       data-phase59-inactive-tab="[MatrixMotion][phase59][INACTIVE_TAB_SAFE]"
+      data-phase67-browser-compat="[MatrixVisualRuntime][phase67][BROWSER_COMPAT_SAFE]"
+      data-phase67-static-fallback="[MatrixVisualRuntime][phase67][STATIC_FALLBACK_SAFE]"
     />
   )
 }

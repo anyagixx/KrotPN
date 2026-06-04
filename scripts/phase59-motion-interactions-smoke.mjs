@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /*
  * FILE: scripts/phase59-motion-interactions-smoke.mjs
- * VERSION: 1.0.0
+ * VERSION: 1.1.0
  * ROLE: TEST
  * MAP_MODE: LOCALS
  * START_MODULE_CONTRACT
@@ -21,6 +21,7 @@
  * END_MODULE_MAP
  *
  * START_CHANGE_SUMMARY
+ *   LAST_CHANGE: v1.1.0 - Accepted Phase-67 guarded request/cancel animation frame compatibility in MatrixBackground.
  *   LAST_CHANGE: v1.0.0 - Added Phase-59 motion and microinteraction verification gate
  * END_CHANGE_SUMMARY
  */
@@ -195,7 +196,7 @@ for (const [label, source] of [
     'prefers-reduced-motion: reduce',
     "window.addEventListener('pointermove', handlePointerMove, { passive: true })",
     "document.addEventListener('visibilitychange', handleVisibility)",
-    'window.cancelAnimationFrame(animationFrame)',
+    'cancelAnimationFrame',
     '[MatrixMotion][phase59][REDUCED_MOTION_PASS]',
     '[MatrixMotion][phase59][POINTER_SCROLL_SAFE]',
     '[MatrixMotion][phase59][INACTIVE_TAB_SAFE]',

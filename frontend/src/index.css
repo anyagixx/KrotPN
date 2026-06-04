@@ -1,12 +1,12 @@
 /* FILE: frontend/src/index.css
- * VERSION: 1.7.0
+ * VERSION: 1.8.0
  * ROLE: UI_COMPONENT
  * MAP_MODE: SUMMARY
  * START_MODULE_CONTRACT
- *   PURPOSE: Shared user-frontend styling tokens, compact Matrix route surfaces, Matrix visual foundation, Phase-55 premium art direction, Phase-57 user command surfaces, Phase-59 motion language, Phase-61 phone/tablet adaptation gates, Phase-62 deletion-audit compaction, and Phase-63 visible brand logo placement
- *   SCOPE: Base typography, premium palette/type/density/logo tokens, Matrix background/canvas/CRT layers, auth/page/layout surfaces, visible Phase-63 brand mark classes, panel/button/input/status/metric/empty-state classes, Phase-57 dense command cards, Phase-59 motion/microinteraction primitives, Phase-61 responsive phone/tablet/safe-area rules, Phase-62 folded secondary surfaces, focus and reduced-motion policy
+ *   PURPOSE: Shared user-frontend styling tokens, compact Matrix route surfaces, Matrix visual foundation, Phase-55 premium art direction, Phase-57 user command surfaces, Phase-59 motion language, Phase-61 phone/tablet adaptation gates, Phase-62 deletion-audit compaction, Phase-63 visible brand logo placement, and Phase-67 frameless auth/splash polish
+ *   SCOPE: Base typography, premium palette/type/density/logo tokens, Matrix background/canvas/CRT layers, auth/page/layout surfaces, visible Phase-63/67 brand mark classes, panel/button/input/status/metric/empty-state classes, Phase-57 dense command cards, Phase-59 motion/microinteraction primitives, Phase-61 responsive phone/tablet/safe-area rules, Phase-62 folded secondary surfaces, Phase-67 splash/auth controls, focus and reduced-motion policy
  *   DEPENDS: M-009 (frontend-user), M-036 (mobile-user-cabinet), M-038 (compact-ui-system), M-070 (matrix-visual-runtime), M-071 (matrix-style-system), M-072 (premium-art-direction-system), M-074 (responsive-device-adaptation), M-075 (premium-user-cabinet), M-077 (matrix-motion-interactions), M-080 (visible-brand-logo-integration)
- *   LINKS: M-009 (frontend-user), M-036 (mobile-user-cabinet), M-038 (compact-ui-system), M-070, M-071, M-072, M-074, M-075, M-077, M-080, Phase-61, Phase-63
+ *   LINKS: M-009 (frontend-user), M-036 (mobile-user-cabinet), M-038 (compact-ui-system), M-070, M-071, M-072, M-074, M-075, M-077, M-080, Phase-61, Phase-63, Phase-67
  * END_MODULE_CONTRACT
  *
  * START_MODULE_MAP
@@ -14,7 +14,7 @@
  *   premium-art-direction - Phase-55 balanced palette, compact type scale, density, and logo rules
  *   matrix-visual-system - Canvas, scanline, vignette, and content stacking layers
  *   visible-brand-logo - Phase-63 compact KrotPN logo mark and text lockup classes
- *   route-surfaces - Matrix public, auth, layout, page, command, terminal, row, action-grid, Phase-57 command center classes, and Phase-62 folded secondary surfaces
+ *   route-surfaces - Matrix public, auth, splash, layout, page, command, terminal, row, action-grid, Phase-57 command center classes, and Phase-62 folded secondary surfaces
  *   components - App shell, panel, button, input, status, metric, empty-state classes
  *   matrix-motion-interactions - Phase-59 motion budget, route transitions, copy feedback, status transitions, and safe interaction classes
  *   responsive-device-adaptation - Phase-61 phone, tablet, safe-area, no-overflow, bounded-scroll, and touch-target rules
@@ -22,6 +22,7 @@
  * END_MODULE_MAP
  *
  * START_CHANGE_SUMMARY
+ *   LAST_CHANGE: v3.9.0 - Added Phase-67 splash-only public route, frameless auth panel, red-focus fields, large unframed logo, and responsive/reduced-motion auth polish.
  *   LAST_CHANGE: v3.8.0 - Added Phase-63 visible brand logo classes for public/auth and protected user shell placement.
  *   LAST_CHANGE: v3.7.0 - Added Phase-62 deletion audit fold primitives for public/auth, dashboard, config, and subscription secondary content.
  *   LAST_CHANGE: v3.6.0 - Added Phase-61 phone/tablet responsive adaptation, safe-area, no-overflow, bounded-scroll, and touch-target markers.
@@ -449,6 +450,149 @@
   .matrix-auth-heading {
     @apply mb-5 text-center;
   }
+
+  /* START_BLOCK_PHASE67_AUTH_SPLASH_POLISH */
+  .matrix-splash-page {
+    @apply max-w-none items-center justify-center overflow-hidden px-4 py-4;
+    min-height: 100dvh;
+  }
+
+  .matrix-splash-stage {
+    @apply relative flex min-h-[320px] w-full max-w-sm flex-col items-center justify-center;
+  }
+
+  .phase67-splash-logo.phase63-brand-lockup {
+    width: 156px;
+    height: 156px;
+    animation: phase67SplashMark 900ms var(--motion-ease-status) both;
+  }
+
+  .phase67-auth-logo.phase63-brand-lockup {
+    width: 112px;
+    height: 112px;
+    padding: 0;
+    background: transparent;
+    border: 0;
+    border-radius: 0;
+    box-shadow: none;
+    filter: drop-shadow(0 0 26px rgba(96, 255, 155, 0.28)) drop-shadow(0 0 18px rgba(255, 107, 120, 0.16));
+  }
+
+  .phase67-auth-logo .phase63-brand-mark {
+    width: 100%;
+    height: 100%;
+    overflow: visible;
+    background: transparent;
+    border: 0;
+    border-radius: 0;
+    box-shadow: none;
+  }
+
+  .phase67-auth-logo .phase63-brand-image {
+    object-fit: contain;
+  }
+
+  .matrix-splash-pulse {
+    @apply absolute left-1/2 top-1/2 h-48 w-48 -translate-x-1/2 -translate-y-1/2 rounded-full;
+    pointer-events: none;
+    border: 1px solid rgba(255, 107, 120, 0.22);
+    box-shadow: 0 0 42px rgba(96, 255, 155, 0.14), inset 0 0 32px rgba(104, 232, 255, 0.08);
+    animation: phase67SplashPulse 1150ms var(--motion-ease-out) both;
+  }
+
+  .phase67-auth-screen {
+    min-height: 100dvh;
+    align-items: center;
+  }
+
+  .matrix-auth-panel {
+    @apply w-full max-w-md;
+  }
+
+  .matrix-auth-state {
+    @apply w-full rounded-lg p-4;
+    background: rgba(5, 22, 16, 0.46);
+    box-shadow: inset 0 1px 0 rgba(216, 246, 230, 0.05);
+  }
+
+  .phase67-auth-form {
+    @apply grid gap-4;
+  }
+
+  .auth-input-group {
+    border-radius: var(--premium-radius);
+  }
+
+  .auth-input-group .icon {
+    left: 1rem;
+    color: rgba(214, 247, 231, 0.62);
+    transition: color var(--motion-duration-fast) var(--motion-ease-out), transform var(--motion-duration-fast) var(--motion-ease-out);
+  }
+
+  .auth-input {
+    padding-left: 3rem;
+    padding-right: 1rem;
+    min-height: 48px;
+    background: rgba(0, 10, 8, 0.78);
+    border-color: rgba(214, 247, 231, 0.16);
+    box-shadow: inset 0 1px 0 rgba(216, 246, 230, 0.05), 0 10px 22px rgba(0, 5, 3, 0.18);
+  }
+
+  .auth-input:hover {
+    border-color: rgba(255, 107, 120, 0.46);
+    background: rgba(5, 18, 14, 0.92);
+  }
+
+  .auth-input:focus {
+    border-color: rgba(255, 107, 120, 0.86);
+    box-shadow: 0 0 0 4px rgba(255, 107, 120, 0.12), 0 14px 32px rgba(0, 5, 3, 0.28);
+  }
+
+  .auth-input-group:focus-within .icon,
+  .auth-input-group:hover .icon {
+    color: #ff9ca4;
+    transform: translateY(-50%) scale(1.05);
+  }
+
+  .auth-primary-action {
+    min-height: 48px;
+    padding-block: 0.875rem;
+    color: #fff7f7;
+    background: linear-gradient(135deg, rgba(255, 107, 120, 0.98) 0%, rgba(96, 255, 155, 0.78) 100%);
+    box-shadow: 0 12px 28px rgba(255, 107, 120, 0.16), inset 0 1px 0 rgba(255, 255, 255, 0.22);
+  }
+
+  .auth-primary-action:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 16px 34px rgba(255, 107, 120, 0.24), inset 0 1px 0 rgba(255, 255, 255, 0.28);
+  }
+
+  .phase67-auth-secondary-grid {
+    @apply grid grid-cols-2 gap-2;
+  }
+
+  .auth-secondary-action {
+    @apply btn text-slate-100;
+    min-height: 44px;
+    border: 1px solid rgba(255, 107, 120, 0.22);
+    background: rgba(8, 20, 17, 0.66);
+    color: #f4fff7;
+    box-shadow: inset 0 1px 0 rgba(216, 246, 230, 0.05);
+  }
+
+  .auth-secondary-action:hover {
+    border-color: rgba(255, 107, 120, 0.5);
+    background: rgba(22, 32, 27, 0.78);
+    color: #ffffff;
+  }
+
+  /* [MatrixStyleSystem][phase67][FRAMELESS_AUTH_READY] */
+  /* [MatrixStyleSystem][phase67][RED_FOCUS_READY] */
+  /* [MatrixStyleSystem][phase67][AUTH_NO_OVERLAP] */
+  /* [PremiumPublicSite][phase67][SPLASH_REDIRECT_READY] */
+  /* [VisibleBrandLogo][phase67][LARGE_UNFRAMED_AUTH_LOGO] */
+  /* [VisibleBrandLogo][phase67][LOGO_NO_OVERLAP] */
+  /* END_BLOCK_PHASE67_AUTH_SPLASH_POLISH */
 
   .matrix-kicker {
     @apply text-xs font-bold uppercase;
@@ -1078,11 +1222,26 @@
     }
 
     .matrix-auth-card,
+    .matrix-auth-state,
     .phase57-command-center,
     .phase57-card-compact,
     .metric-card,
     .matrix-row {
       padding: 0.75rem;
+    }
+
+    .matrix-auth-panel {
+      max-width: 21rem;
+    }
+
+    .phase67-auth-logo.phase63-brand-lockup {
+      width: 88px;
+      height: 88px;
+    }
+
+    .phase67-splash-logo.phase63-brand-lockup {
+      width: 128px;
+      height: 128px;
     }
 
     .phase57-signal-strip,
@@ -1115,7 +1274,8 @@
 
   @media (max-width: 360px) {
     .phase57-primary-actions,
-    .matrix-action-grid {
+    .matrix-action-grid,
+    .phase67-auth-secondary-grid {
       grid-template-columns: minmax(0, 1fr);
     }
 
@@ -1178,6 +1338,36 @@
     }
   }
 
+  @keyframes phase67SplashMark {
+    from {
+      opacity: 0;
+      transform: scale(0.72) translateY(8px);
+      filter: drop-shadow(0 0 0 rgba(96, 255, 155, 0));
+    }
+    58% {
+      opacity: 1;
+      transform: scale(1.06) translateY(0);
+    }
+    to {
+      opacity: 1;
+      transform: scale(1) translateY(0);
+    }
+  }
+
+  @keyframes phase67SplashPulse {
+    from {
+      opacity: 0;
+      transform: translate(-50%, -50%) scale(0.64);
+    }
+    55% {
+      opacity: 0.58;
+    }
+    to {
+      opacity: 0;
+      transform: translate(-50%, -50%) scale(1.34);
+    }
+  }
+
   @media (prefers-reduced-motion: reduce) {
     *,
     *::before,
@@ -1207,9 +1397,16 @@
     .motion-copy-success,
     .motion-feedback-success,
     .motion-feedback-error,
-    .motion-status {
+    .motion-status,
+    .phase67-splash-logo.phase63-brand-lockup,
+    .matrix-splash-pulse {
       animation: none !important;
       transform: none !important;
+    }
+
+    .matrix-splash-pulse {
+      opacity: 0.16;
+      transform: translate(-50%, -50%) !important;
     }
 
     [data-phase59-reduced-motion] {
