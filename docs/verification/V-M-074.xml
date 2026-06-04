@@ -1,11 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<V-M-074 MODULE="M-074" PRIORITY="critical" STATUS="pass-local-phase61-phase62" PHASE-61="pass-local" PHASE-62="pass-local">
+<V-M-074 MODULE="M-074" PRIORITY="critical" STATUS="pass-local-phase61-phase62-planned-phase67" PHASE-61="pass-local" PHASE-62="pass-local" PHASE-67="planned">
   <scope>Responsive adaptation verification for phone, tablet, and desktop layouts across public, auth, user-cabinet, and admin Matrix surfaces.</scope>
   <verification-intent>Phase-61 must prove that the premium Matrix UI is intentionally designed for mobile and tablet use, not merely tolerated by desktop CSS.</verification-intent>
   <test-files>
     <file>scripts/phase61-responsive-adaptation-smoke.mjs</file>
     <file>scripts/phase60-premium-qa-smoke.mjs</file>
     <file phase="62-pass-local">scripts/phase62-compactness-deletion-smoke.mjs</file>
+    <file phase="67-planned">scripts/phase67-auth-splash-smoke.mjs</file>
     <file>frontend/src/App.tsx</file>
     <file>frontend/src/components/Layout.tsx</file>
     <file>frontend/src/components/MatrixBackground.tsx</file>
@@ -39,6 +40,7 @@
     <file>frontend-admin/src/index.css</file>
     <file>docs/modules/M-074.xml</file>
     <file>docs/plans/Phase-61.xml</file>
+    <file>docs/plans/Phase-67.xml</file>
     <file>docs/verification/V-M-074.xml</file>
   </test-files>
   <commands>
@@ -51,6 +53,7 @@
     <command status="passed-local">mygrace lint</command>
     <command status="passed-local">git diff --check</command>
     <command status="passed-local">git diff --name-only -- backend deploy docker-compose.yml install.sh mtproto-runtime official-mtproxy nginx telegram-bot is empty</command>
+    <command status="planned-phase67">cd frontend &amp;&amp; npm run build; node scripts/phase67-auth-splash-smoke.mjs; node scripts/phase61-responsive-adaptation-smoke.mjs; node scripts/phase60-premium-qa-smoke.mjs</command>
   </commands>
   <evidence>
     <item>2026-06-04: frontend npm run build passed; primary JS 448870 bytes gzip 135741, primary CSS 44212 bytes gzip 8832.</item>
@@ -76,12 +79,18 @@
     <reduced-motion-1>390x844 with reduced motion proves Matrix and route transitions remain readable.</reduced-motion-1>
     <reduced-motion-2>768x1024 with reduced motion proves tablet UI remains usable without animated cues.</reduced-motion-2>
   </viewport-matrix>
-  <route-matrix>
+    <route-matrix>
     <public-routes>/, /login, /register, /forgot-password, /reset-password, /verify-email</public-routes>
     <user-routes>/dashboard, /dashboard/config, /dashboard/subscription, /dashboard/referrals, /dashboard/settings</user-routes>
     <admin-routes>/login, /, /users, /devices, /mtproto, /servers, /plans, /analytics</admin-routes>
     <auth-limitation-policy>If local auth fixtures cannot enter protected routes, the smoke must produce static-route proof and record the remaining live screenshot gap instead of claiming false coverage.</auth-limitation-policy>
   </route-matrix>
+  <phase-67-responsive-gates status="planned">
+    <gate-1>Splash / and auth routes must be verified at phone, tablet, desktop, and reduced-motion viewports.</gate-1>
+    <gate-2>Large unframed logo, inputs, password controls, secondary buttons, redirect status, and form errors must not overlap or cause horizontal scroll.</gate-2>
+    <gate-3>Secondary auth actions placed side by side must wrap intentionally on narrow phones without clipped text or sub-44px controls.</gate-3>
+    <gate-4>Reduced-motion must disable or simplify splash/auth animations without leaving users stuck before /login.</gate-4>
+  </phase-67-responsive-gates>
   <success-scenarios>
     <scenario-1>All planned phone, tablet, desktop, and reduced-motion viewports render without document-level or route-level horizontal scroll.</scenario-1>
     <scenario-2>Public/auth surfaces keep the first-screen brand signal, CTA, email/password forms, password hint, and recovery paths visible and non-overlapping.</scenario-2>
@@ -139,6 +148,7 @@
     <gate-3 status="passed-local">Phase-61 execution must not modify deploy/install scripts or backend/runtime services; any required operational change must become a separate confirmed phase.</gate-3>
     <gate-4 status="passed-local">Known live-only evidence must be documented in M-074 and V-M-074 rather than hidden behind generic PASS wording.</gate-4>
     <gate-5 status="passed-local-phase62">Phase-62 compactness changes must preserve Phase-61 responsive no-horizontal-scroll, no-overlap, touch-target, safe-area, bounded-scroll, and reduced-motion guarantees; local evidence passed on 2026-06-04.</gate-5>
+    <gate-6 status="planned-phase67">Phase-67 auth/splash responsive gate must preserve Phase-61 responsive guarantees and may not change protected user/admin responsive contracts.</gate-6>
   </phase-gates>
   <autonomous-execution-safety>
     <safety-1>Edits are limited to frontend, frontend-admin, Phase-61 smoke, and MyGRACE documentation unless the operator approves a new phase.</safety-1>

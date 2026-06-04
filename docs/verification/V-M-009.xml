@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<V-M-009 MODULE="M-009" PRIORITY="high" STATUS="pass-local-phase46-phase51-phase52-phase53-phase56-phase59" VERSION="1.11.0" PHASE-59="pass-local">
+<V-M-009 MODULE="M-009" PRIORITY="high" STATUS="pass-local-phase46-phase51-phase52-phase53-phase56-phase59-planned-phase67" VERSION="1.12.0" PHASE-59="pass-local" PHASE-67="planned">
   <module>frontend-user</module>
   <checks>User frontend still builds, matches the Phase-28 auth API response shape, and makes registration mobile-safe without implying active KrotPN trial before email verification.</checks>
   <test-files>
@@ -34,6 +34,7 @@
     <file>scripts/phase53-user-matrix-ui-smoke.mjs</file>
     <file>scripts/phase56-premium-public-auth-smoke.mjs</file>
     <file>scripts/phase59-motion-interactions-smoke.mjs</file>
+    <file phase="67-planned">scripts/phase67-auth-splash-smoke.mjs</file>
   </test-files>
   <commands>pass-local 2026-06-04: Phase-59 frontend build and motion smoke passed; Phase-52/55/56/57 regressions, post-commit Phase-58 smoke, MyGRACE lint, and protected backend/deploy/runtime guard passed.</commands>
   <anchors>TYPESCRIPT_NO_ERRORS REGISTER_PENDING_STATE REGISTER_VERIFIED_SUCCESS REGISTER_EXPIRED_LINK REGISTER_RESEND_AVAILABLE PHASE45_SUBSCRIPTION_COUNTDOWN PHASE46_PASSWORD_EXAMPLE PHASE46_MTPROTO_LINKS PHASE51_BRAND_ASSETS PHASE52_MATRIX_VISUAL_SHELL PHASE53_USER_MATRIX_ROUTES PHASE56_PUBLIC_AUTH_ROUTES PHASE59_MATRIX_MOTION</anchors>
@@ -112,6 +113,13 @@
     <gate-2>Dashboard, Config, and Referrals expose compact copy/download/proxy feedback and status transition classes without API changes.</gate-2>
     <gate-3>Phase-59 smoke confirms no scroll hijack, pointer interception, long motion budget, secret logging, or protected backend/deploy/runtime diff.</gate-3>
   </phase-59-frontend-gates>
+  <phase-67-frontend-gates status="planned">
+    <gate-1>Frontend build must pass after splash/auth route changes.</gate-1>
+    <gate-2>/ must render only a splash-logo flow and redirect to /login without marketing/tariff/product sections.</gate-2>
+    <gate-3>/login, /register, /forgot-password, and /reset-password must preserve existing auth API calls, token storage boundaries, pending verification state, duplicate-email recovery CTA, password example, and reset-token handling.</gate-3>
+    <gate-4>Phase-67 smoke must fail if visible matrix-auth-card framing, removed helper copy, visible above-field labels, or blue/cyan auth focus treatment returns.</gate-4>
+    <gate-5>Protected backend, deploy/install, nginx, docker-compose, VPN, MTProto, billing, and admin surfaces must remain untouched.</gate-5>
+  </phase-67-frontend-gates>
   <mobile-viewports>
     <viewport-1>360x740</viewport-1>
     <viewport-2>390x844</viewport-2>
@@ -125,6 +133,8 @@
     <scenario-5 kind="success">Password recovery screens build and static smoke passes.</scenario-5>
     <scenario-6 kind="success">Phase-53 user route matrix renders Matrix style on auth, dashboard, config, subscription, referrals, and settings without changing API contracts.</scenario-6>
     <scenario-7 kind="failure">Matrix visual redesign hides primary VPN, MTProto, subscription, password recovery, or config actions on phone viewports.</scenario-7>
+    <scenario-8 kind="success">Phase-67 splash/auth polish preserves frontend auth behavior while removing the landing content and visible auth card frames.</scenario-8>
+    <scenario-9 kind="failure">Phase-67 route polish changes backend/auth API contracts, deploy surfaces, or protected user cabinet routes.</scenario-9>
   </scenarios>
   <evidence>2026-06-01: cd frontend &amp;&amp; npm run build and node scripts/phase44-auth-email-ux-smoke.mjs passed for Phase-44 password recovery UX. 2026-06-01: Phase-45 frontend build and subscription UX smoke passed for pending-trial copy, countdown fields, calendar marker, and stale 3-day copy guard. 2026-06-01: Phase-46 frontend build and user-cabinet UX smoke passed for password example, dual MTProto links, Russian labels, and bounded status refresh. 2026-06-02: Phase-51 frontend build passed and brand asset smoke --expect-dist confirmed favicon/PWA/email-logo assets in dist. 2026-06-03: Phase-52 frontend build, Matrix visual smoke, and Chrome screenshots for /login at 360x740, 390x844, 430x932, 1440x900, plus reduced-motion 390x844 passed. 2026-06-03: Phase-53 frontend build and node scripts/phase53-user-matrix-ui-smoke.mjs passed; production-preview screenshots passed for login/register/reset mobile, login desktop, and reduced-motion login with virtual-time-budget. 2026-06-03: Phase-56 frontend build, public/auth smoke, Phase-44/46/50/52/53/55 regressions, public/auth Chrome screenshot matrix, XML/MyGRACE/diff checks, and protected deploy/install guard passed. 2026-06-04: Phase-59 frontend build, motion smoke, Phase-52/55/56/57 regressions, post-commit Phase-58 smoke, XML parse, MyGRACE lint, git diff --check, and protected backend/deploy/runtime guard passed.</evidence>
 </V-M-009>

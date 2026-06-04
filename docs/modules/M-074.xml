@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<M-074 NAME="responsive-device-adaptation" TYPE="UI_COMPONENT" STATUS="pass-local-phase61-pass-local-phase62">
-  <path>frontend frontend-admin docs/plans/Phase-61.xml docs/plans/Phase-62.xml scripts/phase61-responsive-adaptation-smoke.mjs scripts/phase62-compactness-deletion-smoke.mjs</path>
+<M-074 NAME="responsive-device-adaptation" TYPE="UI_COMPONENT" STATUS="pass-local-phase61-pass-local-phase62-planned-phase67">
+  <path>frontend frontend-admin docs/plans/Phase-61.xml docs/plans/Phase-62.xml docs/plans/Phase-67.xml scripts/phase61-responsive-adaptation-smoke.mjs scripts/phase62-compactness-deletion-smoke.mjs scripts/phase67-auth-splash-smoke.mjs</path>
   <owns>Phone, tablet, and desktop responsive closure for public, user, and admin Matrix surfaces.</owns>
   <purpose>Make the premium frontend usable and compact across mobile phones, tablets, and desktop screens.</purpose>
   <exports>
@@ -35,6 +35,11 @@
     <metric-3 status="pass-local-phase61">Reduced-motion proof remains readable across phone and tablet viewport classes.</metric-3>
     <metric-4 status="pass-local-phase62">Phase-62 folded surfaces keep 44px summaries, no horizontal-scroll guards, bounded lists, and responsive compactness markers.</metric-4>
   </acceptance-metrics>
+  <phase-67-plan>
+    <scope>Apply responsive closure to the new splash-only / route and frameless auth screens without changing protected user/admin layouts.</scope>
+    <viewports>Phase-67 must cover 320x568, 360x740, 390x844, 430x932, 768x1024, 1024x768, 1280x720, 1440x900, and reduced-motion auth/splash states.</viewports>
+    <guards>No document-level horizontal scroll, no logo/control overlap, no icon/placeholder overlap, no clipped secondary auth actions, no hidden redirect status under reduced-motion, and 44px-safe primary/secondary actions on phone/tablet.</guards>
+  </phase-67-plan>
   <evidence>
     <item>2026-06-04: Added Phase-61 responsive CSS blocks to user and admin Matrix style systems with phone/tablet breakpoints, safe-area padding, bounded scroll, text wrapping, and 44px touch-target policy.</item>
     <item>2026-06-04: Added Phase-61 layout markers to user and admin shells for viewport matrix, mobile header/nav safe-area, protected user static proof, and admin static proof.</item>

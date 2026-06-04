@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!-- MyGRACE Plan Index — lazy-loading entry point for phase navigation -->
 <!-- MyGRACE plan index generated from per-phase files; archived monoliths are reference-only -->
-<PlanIndex VERSION="1.0.0" PROJECT="KrotPN" PHASE-COUNT="66">
+<PlanIndex VERSION="1.0.0" PROJECT="KrotPN" PHASE-COUNT="67">
   <Phase-1 NAME="Policy model and safe compatibility layer" STATUS="done" STEPS="3" MODULES="M-007,M-017" />
   <Phase-2 NAME="Runtime synchronization and DNS binding" STATUS="done" STEPS="3" MODULES="M-017" />
   <Phase-3 NAME="Admin control plane and operator visibility" STATUS="done" STEPS="3" MODULES="M-006,M-010,M-017" />
@@ -68,4 +68,5 @@
   <Phase-64 NAME="Premium Resend Email Templates" STATUS="done-local" STEPS="8" MODULES="M-079,M-040,M-062,M-069,M-072,M-080" />
   <Phase-65 NAME="Premium Release Candidate Gate" STATUS="done-local" STEPS="8" MODULES="M-078,M-073,M-074,M-075,M-076,M-077,M-079,M-080" />
   <Phase-66 NAME="Minimal Resend Email Template Polish" STATUS="done-local" STEPS="7" MODULES="M-079,M-040,M-062,M-069,M-080" />
+  <Phase-67 NAME="Public Splash, Auth Form Polish and Matrix Canvas Compatibility" STATUS="planned" STEPS="12" MODULES="M-073,M-071,M-070,M-074,M-080,M-009" />
 </PlanIndex>

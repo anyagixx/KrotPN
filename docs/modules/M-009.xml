@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<M-009 NAME="frontend-user" TYPE="UI_COMPONENT" STATUS="pass-local-phase46-phase51-phase52-phase53-phase56-phase59">
-  <path>frontend frontend/public frontend/index.html frontend/vite.config.ts scripts/phase59-motion-interactions-smoke.mjs</path>
+<M-009 NAME="frontend-user" TYPE="UI_COMPONENT" STATUS="pass-local-phase46-phase51-phase52-phase53-phase56-phase59-planned-phase67">
+  <path>frontend frontend/public frontend/index.html frontend/vite.config.ts scripts/phase59-motion-interactions-smoke.mjs docs/plans/Phase-67.xml scripts/phase67-auth-splash-smoke.mjs</path>
   <owns>login, verified registration, password recovery, verify-email activation, dashboard, config delivery, subscription management, pending trial countdown/calendar UX, referrals and settings UI with per-device config awareness</owns>
   <depends>M-002, M-003, M-004, M-005, M-022, M-070, M-071, M-077</depends>
   <verification-ref>V-M-009</verification-ref>
@@ -90,4 +90,9 @@
     <primary-behaviors>Short route motion, copy/download/proxy feedback, status transitions, reduced-motion fallback, pointer-scroll safety, keyboard-focus safety, and inactive-tab lifecycle markers.</primary-behaviors>
     <evidence>2026-06-04: frontend npm run build, Phase-59 smoke, Phase-52/55/56/57 regressions, post-commit Phase-58 regression smoke, XML parse, MyGRACE lint, git diff --check, and protected backend/deploy/runtime guard passed.</evidence>
   </phase-59-scope>
+  <phase-67-plan>
+    <primary-files>App.tsx, Landing.tsx, Login.tsx, Register.tsx, ForgotPassword.tsx, ResetPassword.tsx, components/BrandMark.tsx, components/MatrixBackground.tsx, components/VisualShell.tsx, index.css, scripts/phase67-auth-splash-smoke.mjs</primary-files>
+    <primary-behaviors>Frontend-only route and auth presentation polish: splash-only / redirect to /login, frameless auth screens, requested Russian copy, red focus styling, browser-safe Matrix canvas fallback, and responsive auth viewport proof.</primary-behaviors>
+    <unchanged-contracts>Auth API calls, token storage boundaries, registration verification semantics, password recovery/reset semantics, dashboard/protected route behavior, backend, deploy/install, nginx, docker-compose, VPN, MTProto, and billing behavior remain unchanged.</unchanged-contracts>
+  </phase-67-plan>
 </M-009>

@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<V-M-071 MODULE="M-071" PRIORITY="high" STATUS="pass-local-phase52-phase53-phase54-phase55-phase56-phase59" PHASE-54="pass-local" PHASE-55="pass-local" PHASE-56="pass-local" PHASE-59="pass-local">
+<V-M-071 MODULE="M-071" PRIORITY="high" STATUS="pass-local-phase52-phase53-phase54-phase55-phase56-phase59-planned-phase67" PHASE-54="pass-local" PHASE-55="pass-local" PHASE-56="pass-local" PHASE-59="pass-local" PHASE-67="planned">
   <scope>
     <phase>Phase-52</phase>
     <purpose>Verify the Matrix style system foundation for compact, readable, mobile-safe user and admin shells.</purpose>
@@ -16,6 +16,7 @@
     <file phase="55-pass-local">scripts/phase55-premium-art-direction-smoke.mjs</file>
     <file phase="56-pass-local">scripts/phase56-premium-public-auth-smoke.mjs</file>
     <file phase="59-pass-local">scripts/phase59-motion-interactions-smoke.mjs</file>
+    <file phase="67-planned">scripts/phase67-auth-splash-smoke.mjs</file>
   </test-files>
   <module-checks>
     <check-1>cd frontend &amp;&amp; npm run build</check-1>
@@ -29,6 +30,7 @@
     <check-9>Phase-55 premium art-direction smoke: shared premium tokens, no radial/orb backgrounds, logo rules, reduced-motion markers, screenshot artifacts, and protected deploy/install guard.</check-9>
     <check-10>Phase-56 public/auth smoke and screenshots: compact public landing, logo auth lockups, canonical tariff preview, reduced-motion proof, and protected deploy/install guard.</check-10>
     <check-11>Phase-59 motion smoke: motion budget tokens, route transitions, feedback/status classes, reduced-motion fallback, and protected backend/deploy/runtime guard.</check-11>
+    <check-12 status="planned-phase67">Phase-67 auth/splash smoke: no visible auth card frame, large unframed logo, red focus border, icon-safe inputs, elegant buttons, side-by-side secondary actions, responsive safety, and reduced-motion fallback.</check-12>
   </module-checks>
   <phase-53-style-gates status="pass-local">
     <gate-1>User cabinet routes use Matrix palette/tokens while preserving compact operational layout and avoiding nested cards.</gate-1>
@@ -61,6 +63,12 @@
     <gate-2>Reduced-motion fallback disables Phase-59 transforms/animations while preserving the static Matrix identity.</gate-2>
     <gate-3>CSS smoke rejects scroll hijack, pointer interception, long motion budget, negative letter spacing, viewport font sizing, and protected backend/deploy/runtime diffs.</gate-3>
   </phase-59-style-gates>
+  <phase-67-style-gates status="planned">
+    <gate-1>Auth routes must not render the visible matrix-auth-card frame or framed logo lockup.</gate-1>
+    <gate-2>Auth input focus/active state must use the planned red treatment and must not regress to blue/cyan focus on /login, /register, /forgot-password, or /reset-password.</gate-2>
+    <gate-3>Input icons, placeholders, typed values, password controls, and button text must not overlap at Phase-67 phone, tablet, desktop, or reduced-motion viewports.</gate-3>
+    <gate-4>Primary/secondary auth buttons must remain compact, touch-safe, animated within the motion budget, and disabled/simplified under reduced-motion.</gate-4>
+  </phase-67-style-gates>
   <scenarios>
     <scenario-1 kind="success">Shared Matrix tokens apply to both frontends without breaking compact operational layout rules from M-038.</scenario-1>
     <scenario-2 kind="success">CRT scanlines, neon flicker, and glitch accents are visible but do not obscure forms, tables, proxy cards, tariffs, alerts, or primary actions.</scenario-2>
@@ -102,6 +110,9 @@
     <marker-18>[PremiumPublicSite][phase56][SCREENSHOT_MATRIX_REVIEWED]</marker-18>
     <marker-19>[MatrixMotion][phase59][MOTION_BUDGET_READY]</marker-19>
     <marker-20>[MatrixMotion][phase59][REDUCED_MOTION_PASS]</marker-20>
+    <marker-21>[MatrixStyleSystem][phase67][FRAMELESS_AUTH_READY]</marker-21>
+    <marker-22>[MatrixStyleSystem][phase67][RED_FOCUS_READY]</marker-22>
+    <marker-23>[MatrixStyleSystem][phase67][AUTH_NO_OVERLAP]</marker-23>
   </required-log-markers>
   <evidence-levels>
     <module-local>Static smoke validates CSS tokens, class primitives, reduced-motion selectors, focus selectors, and protected-surface guard.</module-local>

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<M-073 NAME="premium-public-site" TYPE="UI_COMPONENT" STATUS="done-local-phase56-pass-local-phase62">
-  <path>frontend/src/App.tsx frontend/src/components/Layout.tsx frontend/src/index.css frontend/src/pages/Login.tsx frontend/src/pages/Register.tsx frontend/src/pages/ForgotPassword.tsx frontend/src/pages/ResetPassword.tsx frontend/src/pages/VerifyEmail.tsx frontend/src/pages/Landing.tsx docs/plans/Phase-56.xml docs/plans/Phase-62.xml scripts/phase56-premium-public-auth-smoke.mjs scripts/phase62-compactness-deletion-smoke.mjs</path>
+<M-073 NAME="premium-public-site" TYPE="UI_COMPONENT" STATUS="done-local-phase56-pass-local-phase62-planned-phase67">
+  <path>frontend/src/App.tsx frontend/src/components/Layout.tsx frontend/src/index.css frontend/src/pages/Login.tsx frontend/src/pages/Register.tsx frontend/src/pages/ForgotPassword.tsx frontend/src/pages/ResetPassword.tsx frontend/src/pages/VerifyEmail.tsx frontend/src/pages/Landing.tsx docs/plans/Phase-56.xml docs/plans/Phase-62.xml docs/plans/Phase-67.xml scripts/phase56-premium-public-auth-smoke.mjs scripts/phase62-compactness-deletion-smoke.mjs scripts/phase67-auth-splash-smoke.mjs</path>
   <owns>Premium public entry, auth, registration, verification, and password recovery surfaces.</owns>
   <purpose>Present KrotPN as a premium Matrix/cyberpunk product while keeping registration and email verification clear.</purpose>
   <exports>
@@ -33,6 +33,12 @@
     <metric-3>Protected deploy/install guard remains clean.</metric-3>
     <metric-4 status="pass-local-phase62">Public value and tariff feature detail copy is folded while registration CTA, email-proof copy, reset, verify, and tariff clarity remain visible.</metric-4>
   </acceptance-metrics>
+  <phase-67-plan>
+    <scope>Replace the current public landing presentation with a splash-only logo redirect and retune login/register/forgot/reset into frameless premium Matrix auth surfaces.</scope>
+    <copy-contract>Use Кибернетический Протокол Навигации as the auth eyebrow/title replacement, Вход в KrotPN, Присоединиться к KrotPN, and Назначить пароль where requested; remove the operator-listed helper paragraphs and above-field labels while preserving accessible names.</copy-contract>
+    <route-contract>/ must redirect to /login after the logo animation; /login, /register, /forgot-password, and /reset-password must preserve current API calls, pending/check-email state, duplicate-email recovery, password example, reset-token handling, and auth state boundaries.</route-contract>
+    <negative-contract>No visible matrix-auth-card frame, no framed logo lockup, no public marketing/tariff detail on /, no stale hidden copy, no changed backend/auth/billing/VPN/MTProto/deploy behavior.</negative-contract>
+  </phase-67-plan>
   <execution-evidence>
     <local-2026-06-03>Phase-56 added the public / landing route, moved authenticated user cabinet routes under /dashboard with legacy redirects, added visible logo lockups to auth flows, added compact public tariff preview verified against M-068, added scripts/phase56-premium-public-auth-smoke.mjs, passed frontend build, Phase-44/46/50/52/53/55 regression smokes, captured Chrome screenshot matrix in /tmp/krotpn-phase56-screenshots, passed XML/MyGRACE/diff checks, and kept deploy/install/backend/VPN/MTProto/billing runtime surfaces untouched.</local-2026-06-03>
     <local-2026-06-04-phase62>Phase-62 folded secondary public feature/tariff details, preserved email-proof and auth clarity, and passed frontend build, Phase-56 smoke, Phase-62 smoke, Phase-60/61 regressions, XML parse, MyGRACE lint, git diff check, and protected backend/deploy/runtime guard.</local-2026-06-04-phase62>

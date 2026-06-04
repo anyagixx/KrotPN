@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<M-071 NAME="matrix-style-system" TYPE="UI_COMPONENT" STATUS="done-local-phase52-phase53-phase54-phase55-phase56-phase59">
-  <path>frontend/src/index.css frontend-admin/src/index.css frontend/src/components/Layout.tsx frontend-admin/src/components/Layout.tsx scripts/phase52-matrix-visual-smoke.mjs scripts/phase53-user-matrix-ui-smoke.mjs scripts/phase54-admin-matrix-ui-smoke.mjs scripts/phase55-premium-art-direction-smoke.mjs scripts/phase56-premium-public-auth-smoke.mjs scripts/phase59-motion-interactions-smoke.mjs docs/plans/Phase-52.xml docs/plans/Phase-53.xml docs/plans/Phase-54.xml docs/plans/Phase-55.xml docs/plans/Phase-56.xml docs/plans/Phase-59.xml</path>
+<M-071 NAME="matrix-style-system" TYPE="UI_COMPONENT" STATUS="done-local-phase52-phase53-phase54-phase55-phase56-phase59-planned-phase67">
+  <path>frontend/src/index.css frontend-admin/src/index.css frontend/src/components/Layout.tsx frontend-admin/src/components/Layout.tsx scripts/phase52-matrix-visual-smoke.mjs scripts/phase53-user-matrix-ui-smoke.mjs scripts/phase54-admin-matrix-ui-smoke.mjs scripts/phase55-premium-art-direction-smoke.mjs scripts/phase56-premium-public-auth-smoke.mjs scripts/phase59-motion-interactions-smoke.mjs docs/plans/Phase-52.xml docs/plans/Phase-53.xml docs/plans/Phase-54.xml docs/plans/Phase-55.xml docs/plans/Phase-56.xml docs/plans/Phase-59.xml docs/plans/Phase-67.xml scripts/phase67-auth-splash-smoke.mjs</path>
   <owns>Shared KrotPN Matrix visual language: color tokens, compact panels, CRT scanlines, neon flicker, glitch accents, focus states, and mobile-safe responsive rules.</owns>
   <depends>M-009, M-010, M-036, M-037, M-038, M-070, M-077</depends>
   <verification-ref>V-M-071</verification-ref>
@@ -45,6 +45,11 @@
     <phase-56-local-2026-06-03>Phase-56 added compact premium public/auth CSS primitives, logo lockup rules, public tariff preview styling, passed Phase-52/53/55 style regressions plus Phase-56 screenshots, and kept protected deploy/install/runtime surfaces unchanged.</phase-56-local-2026-06-03>
     <phase-59-local-2026-06-04>Phase-59 added short-duration motion budget tokens, route entrance transitions, feedback/status classes, reduced-motion fallbacks, and Phase-59 smoke markers to user/admin CSS; frontend/admin builds and style regressions passed.</phase-59-local-2026-06-04>
   </evidence>
+  <phase-67-plan>
+    <scope>Frontend auth-only style polish for frameless public/auth screens without changing user cabinet or admin layout contracts.</scope>
+    <selectors>Planned auth primitives include frameless matrix-auth-screen variants, large unframed logo sizing, icon-safe input padding, red focus/active border states, hover/active input reactions, elegant primary buttons, side-by-side secondary auth actions, and reduced-motion fallbacks.</selectors>
+    <guards>No visible matrix-auth-card frame on /login, /register, /forgot-password, or /reset-password; no blue/cyan auth focus border where Phase-67 requires red; no icon/placeholder/text overlap at phone/tablet/desktop viewports.</guards>
+  </phase-67-plan>
   <crosslinks>
     <phase-52>Defines the foundation token system and shared effects.</phase-52>
     <phase-53>Applies the system to user cabinet routes.</phase-53>
@@ -52,5 +57,6 @@
     <phase-55>Extends the system with premium art-direction tokens before Phase-56/57/58 route work.</phase-55>
     <phase-56>Applies the premium style system to the public entry route and auth surfaces.</phase-56>
     <phase-59>Adds bounded motion and microinteraction primitives to the premium Matrix style system.</phase-59>
+    <phase-67>Adds frameless auth, red-focus form, and splash styling constraints for the next public/auth polish wave.</phase-67>
   </crosslinks>
 </M-071>

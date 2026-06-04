@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Phase-67 NAME="Public Splash, Auth Form Polish and Matrix Canvas Compatibility" STATUS="planned">
+  <objective>Replace the public / route with a short animated KrotPN logo splash that redirects to /login, polish all user auth routes into frameless premium Matrix forms, and harden the Matrix rain canvas so it works or degrades safely across browsers.</objective>
+  <modules>M-073,M-071,M-070,M-074,M-080,M-009</modules>
+  <non-goals>Backend auth semantics, registration/password APIs, email templates, tariffs, billing, VPN, MTProto runtime, admin panel, deploy/install scripts, nginx, docker-compose, TLS, DNS, or release tagging.</non-goals>
+  <requirements>
+    <requirement-1>The / route must contain no marketing/tariff/product information; it should show an effective KrotPN logo appearance animation and then automatically redirect to /login.</requirement-1>
+    <requirement-2>/login, /register, /forgot-password, and /reset-password must not render the visible matrix-auth-card frame or logo frame while preserving existing auth behavior and route handlers.</requirement-2>
+    <requirement-3>The auth logo must be much larger, unframed, and visually dominant without causing mobile overflow or hiding form controls.</requirement-3>
+    <requirement-4>Auth route copy must match the operator-requested text: replace KrotPN Secure Access, Email gate, Recovery, and New Password with Кибернетический Протокол Навигации; replace Вход в аккаунт with Вход в KrotPN; replace Создать аккаунт with Присоединиться к KrotPN; replace Сохранить пароль with Назначить пароль.</requirement-4>
+    <requirement-5>Remove the specified helper copy, visible Email/Пароль/Подтвердите пароль/Новый пароль/Повторите пароль labels, Нет аккаунта?, Уже есть аккаунт?, and similar above-field labels from auth screens while retaining accessible labels/aria text.</requirement-5>
+    <requirement-6>Email and password inputs must receive a more polished auth-only visual treatment with hover/active reactions, icon-safe padding, stable dimensions, and red active/focus borders instead of the previous cyan focus treatment.</requirement-6>
+    <requirement-7>Primary and secondary auth actions must become more elegant animated controls; login register/recovery links must be placed side by side, and register/login/forgot/reset buttons must remain finger-safe on mobile.</requirement-7>
+    <requirement-8>All public/auth changes must be adapted for phones and tablets without document-level horizontal scroll, icon/text overlap, oversized hero/card bulk, or inaccessible controls.</requirement-8>
+    <requirement-9>The Matrix rain canvas must be made more browser-compatible: feature-detect canvas and matchMedia listener APIs, guard 2D context failures, support legacy media-query listeners where needed, and provide a readable static fallback.</requirement-9>
+  </requirements>
+  <steps>
+    <step-1 STATUS="planned">Audit current Landing, Login, Register, ForgotPassword, ResetPassword, BrandMark, MatrixBackground, VisualShell, and frontend CSS contracts before code edits.</step-1>
+    <step-2 STATUS="planned">Replace the public Landing route plan with a splash-only KrotPN logo animation and redirect flow that does not expose marketing/tariff content.</step-2>
+    <step-3 STATUS="planned">Refactor login markup away from the visible matrix-auth-card frame, update requested Russian copy, remove above-field labels, and keep auth store/API behavior unchanged.</step-3>
+    <step-4 STATUS="planned">Refactor register markup away from the visible matrix-auth-card frame, update requested Russian copy, remove above-field labels, preserve password example, duplicate-email recovery CTA, and check-email/spam state semantics.</step-4>
+    <step-5 STATUS="planned">Refactor forgot-password markup away from the visible matrix-auth-card frame, update requested Russian copy, remove the above-field label, and preserve recovery request behavior.</step-5>
+    <step-6 STATUS="planned">Refactor reset-password markup away from the visible matrix-auth-card frame, update requested Russian copy, remove above-field labels, rename the save action, and preserve token/reset behavior.</step-6>
+    <step-7 STATUS="planned">Add auth-specific CSS for frameless layout, large unframed logo, icon-safe inputs, red focus border, polished hover/active states, button animations, side-by-side secondary actions, and reduced-motion fallbacks.</step-7>
+    <step-8 STATUS="planned">Harden MatrixBackground canvas compatibility for browsers with partial matchMedia/canvas support and record controlled fallback markers.</step-8>
+    <step-9 STATUS="planned">Extend responsive rules for the new splash/auth surfaces across 320x568, 360x740, 390x844, 430x932, tablet, desktop, and reduced-motion viewports.</step-9>
+    <step-10 STATUS="planned">Create scripts/phase67-auth-splash-smoke.mjs to verify splash redirect, removed card/classes/text, copy replacements, red focus markers, no icon overlap, browser fallback guards, and protected-surface isolation.</step-10>
+    <step-11 STATUS="planned">Run frontend build, Phase-67 smoke, Phase-56/60/61/63/52/59 regressions, XML parse, MyGRACE lint, git diff --check, and protected deploy/backend/runtime guard during execution.</step-11>
+    <step-12 STATUS="planned">Record execution evidence in M-073/M-071/M-070/M-074/M-080/M-009 and their verification files after implementation.</step-12>
+  </steps>
+  <verification>V-M-073,V-M-071,V-M-070,V-M-074,V-M-080,V-M-009</verification>
+  <verification-design>
+    <gate-1>V-M-073 owns public/auth route copy, splash redirect, removed frames, and preserved auth semantics.</gate-1>
+    <gate-2>V-M-071 owns auth input/button style, red focus state, icon-safe spacing, animation budget, and reduced-motion CSS.</gate-2>
+    <gate-3>V-M-070 owns canvas browser compatibility and fallback safety.</gate-3>
+    <gate-4>V-M-074 owns phone/tablet/desktop viewport and no-overlap gates for splash/auth routes.</gate-4>
+    <gate-5>V-M-080 owns large unframed logo sizing and logo-overlap safety.</gate-5>
+    <gate-6>V-M-009 owns frontend build, routing, auth state/API regression, and protected deploy/backend/runtime isolation.</gate-6>
+  </verification-design>
+  <acceptance>Public / becomes a clean animated logo splash redirect, auth screens become compact frameless premium Matrix forms with requested Russian copy and red focus treatment, Matrix rain remains reliable or safely static across browsers, and all existing auth behavior remains unchanged.</acceptance>
+  <risk-assessment>
+    <risk-1 severity="high">A too-fast or inaccessible splash can confuse users; redirect timing, reduced-motion behavior, and direct /login availability must be explicit.</risk-1>
+    <risk-2 severity="critical">Removing visible labels must not remove accessible names or break browser autofill, password managers, keyboard navigation, or screen-reader usability.</risk-2>
+    <risk-3 severity="high">Canvas compatibility fixes must avoid new animation loops, scroll interception, or console errors in browsers with partial API support.</risk-3>
+    <risk-4 severity="high">Auth visual polish must not weaken Phase-44/46 password, duplicate-email, reset, verify, or pending-registration flows.</risk-4>
+  </risk-assessment>
+</Phase-67>
