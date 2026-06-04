@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<M-071 NAME="matrix-style-system" TYPE="UI_COMPONENT" STATUS="done-local-phase52-phase53-phase54-phase55-phase56-phase59-pass-local-phase67-pass-local-rainfix-pass-local-phase68-pass-local-phase70-pass-local-phase71-pass-local-phase72">
-  <path>frontend/src/index.css frontend-admin/src/index.css frontend/src/components/Layout.tsx frontend-admin/src/components/Layout.tsx scripts/phase52-matrix-visual-smoke.mjs scripts/phase53-user-matrix-ui-smoke.mjs scripts/phase54-admin-matrix-ui-smoke.mjs scripts/phase55-premium-art-direction-smoke.mjs scripts/phase56-premium-public-auth-smoke.mjs scripts/phase59-motion-interactions-smoke.mjs scripts/phase61-responsive-adaptation-smoke.mjs docs/plans/Phase-52.xml docs/plans/Phase-53.xml docs/plans/Phase-54.xml docs/plans/Phase-55.xml docs/plans/Phase-56.xml docs/plans/Phase-59.xml docs/plans/Phase-67.xml docs/plans/Phase-68.xml docs/plans/Phase-70.xml scripts/phase67-auth-splash-smoke.mjs scripts/phase68-dashboard-subscription-smoke.mjs scripts/phase70-config-qr-parity-smoke.mjs</path>
+<M-071 NAME="matrix-style-system" TYPE="UI_COMPONENT" STATUS="done-local-phase52-phase53-phase54-phase55-phase56-phase59-pass-local-phase67-pass-local-rainfix-pass-local-phase68-pass-local-phase70-pass-local-phase71-pass-local-phase72-pass-local-phase73">
+  <path>frontend/src/index.css frontend-admin/src/index.css frontend/src/components/Layout.tsx frontend-admin/src/components/Layout.tsx scripts/phase52-matrix-visual-smoke.mjs scripts/phase53-user-matrix-ui-smoke.mjs scripts/phase54-admin-matrix-ui-smoke.mjs scripts/phase55-premium-art-direction-smoke.mjs scripts/phase56-premium-public-auth-smoke.mjs scripts/phase59-motion-interactions-smoke.mjs scripts/phase61-responsive-adaptation-smoke.mjs scripts/phase73-config-amnezia-qr-smoke.mjs docs/plans/Phase-52.xml docs/plans/Phase-53.xml docs/plans/Phase-54.xml docs/plans/Phase-55.xml docs/plans/Phase-56.xml docs/plans/Phase-59.xml docs/plans/Phase-67.xml docs/plans/Phase-68.xml docs/plans/Phase-70.xml docs/plans/Phase-73.xml scripts/phase67-auth-splash-smoke.mjs scripts/phase68-dashboard-subscription-smoke.mjs scripts/phase70-config-qr-parity-smoke.mjs</path>
   <owns>Shared KrotPN Matrix visual language: color tokens, compact panels, CRT scanlines, neon flicker, glitch accents, focus states, and mobile-safe responsive rules.</owns>
   <depends>M-009, M-010, M-036, M-037, M-038, M-070, M-077</depends>
   <verification-ref>V-M-071</verification-ref>
@@ -24,6 +24,7 @@
     <interface-8>Phase-59 motion classes for motion-route-enter, motion-interactive, motion-copy-success, motion-feedback-success/error, motion-status, and reduced-motion fallbacks.</interface-8>
     <interface-9 phase="71-pass-local">Phase-71 implemented classes for frameless protected logo, icon-only QR close, selected-device master-detail rows, sticky mobile config actions, and pulsing subscription boundary dates.</interface-9>
     <interface-10 phase="72-pass-local">Phase-72 implemented classes for compact touch dock, desktop calendar density, user nav density markers, and mobile dock overlap guards.</interface-10>
+    <interface-11 phase="73-pass-local">Phase-73 verifies compact config copy, AmneziaVPN .conf guidance, and tariff-limit messaging within existing Matrix route primitives.</interface-11>
   </public-interfaces>
   <constraints>
     <constraint-1>Preserve compact operational UX: no marketing landing page, no nested cards, no decorative card-heavy dashboards.</constraint-1>
@@ -52,6 +53,7 @@
     <rainfix-local-2026-06-04>Added .matrix-rain-fallback, CSS rain animation, 100dvh+128px canvas/fallback overscan, normal canvas blend mode, and reduced-motion fallback positions to user/admin CSS. Phase-52/59/61/67/60 smokes, user/admin builds, Chrome screenshots, and protected backend/deploy/runtime guard passed.</rainfix-local-2026-06-04>
     <phase-68-local-2026-06-04>Added frameless user-shell logo CSS, compact dashboard subscription panel styles, responsive tariff grid, and compact cross-month calendar rules; Phase-68/57/62/61/60 smokes and builds passed.</phase-68-local-2026-06-04>
     <phase-70-local-2026-06-04>Phase-70 preserved the compact config page style system and used route-local QR spacing/size adjustments in Config.tsx rather than adding global CSS bloat; frontend build and Phase-70 smoke passed.</phase-70-local-2026-06-04>
+    <phase-73-local-2026-06-05>Phase-73 kept style changes route-local in Config.tsx, removed unsupported AmneziaVPN QR tab, added compact .conf guidance, and passed Phase-73/70/71 smokes without new global CSS bloat.</phase-73-local-2026-06-05>
   </evidence>
   <phase-71-executed-scope>
     <primary-files>frontend/src/index.css frontend/src/pages/Config.tsx frontend/src/components/Layout.tsx frontend/src/components/SubscriptionPanel.tsx scripts/phase71-device-config-master-detail-smoke.mjs</primary-files>
@@ -77,6 +79,7 @@
     <phase-70>Keeps QR page compaction and payload parity markers within the existing compact Matrix config workflow.</phase-70>
     <phase-71>Implements master-detail config UX styling, icon close polish, subscription boundary emphasis, and final frameless cabinet logo correction.</phase-71>
     <phase-72>Implements user auth/navigation polish styling, compact desktop calendar density, bottom-dock motion markers, and Russian-only Settings cleanup markers.</phase-72>
+    <phase-73>Verifies compact KPN config copy, AmneziaVPN .conf guidance, and tariff-limit messaging inside existing Matrix config page primitives.</phase-73>
   </crosslinks>
   <phase-71-evidence status="pass-local" date="2026-06-04">Frontend build and Phase-71 smoke passed for master-detail CSS, selected-row state, icon-only QR close, frameless user logo, calendar boundary pulse, and reduced-motion fallback.</phase-71-evidence>
   <phase-72-executed-scope>
@@ -85,4 +88,10 @@
     <verification>Frontend/admin builds, Phase-72 smoke, Phase-59 motion smoke, and Phase-61 responsive smoke passed.</verification>
   </phase-72-executed-scope>
   <phase-72-evidence status="pass-local" date="2026-06-05">Matrix style system passed local Phase-72 verification for touch dock styling, desktop calendar compaction, and reduced-motion-safe motion markers.</phase-72-evidence>
+  <phase-73-executed-scope>
+    <primary-files>frontend/src/pages/Config.tsx scripts/phase73-config-amnezia-qr-smoke.mjs scripts/phase71-device-config-master-detail-smoke.mjs</primary-files>
+    <primary-behaviors>Keep KPN config copy, QR modal guidance, and device-limit tariff copy compact/readable without adding new global CSS or changing reduced-motion/bottom-dock behavior.</primary-behaviors>
+    <verification>Phase-73 smoke passed CONFIG_COPY_COMPACT and QR_GUIDANCE_READABLE markers; Phase-71 and Phase-70 regressions remained green.</verification>
+  </phase-73-executed-scope>
+  <phase-73-evidence status="pass-local" date="2026-06-05">Phase-73 stayed inside existing compact Matrix components and did not introduce new CSS selectors requiring separate viewport risk.</phase-73-evidence>
 </M-071>

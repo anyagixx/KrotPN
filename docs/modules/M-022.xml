@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<M-022 NAME="device-provisioning-api" TYPE="ENTRY_POINT" STATUS="pass-local-phase45-pass-local-phase70-pass-local-phase71">
-  <path>backend/app/devices/router.py backend/app/vpn/router.py</path>
+<M-022 NAME="device-provisioning-api" TYPE="ENTRY_POINT" STATUS="pass-local-phase45-pass-local-phase70-pass-local-phase71-pass-local-phase73">
+  <path>backend/app/devices/router.py backend/app/vpn/router.py scripts/phase73-config-amnezia-qr-smoke.mjs docs/plans/Phase-73.xml</path>
   <owns>user-facing device management, stealth-aware config retrieval and device-bound provisioning APIs</owns>
   <exports>
     <fn-create-device>Creates a device and provisions a distinct peer or rejects on plan limit</fn-create-device>
@@ -22,7 +22,9 @@
     <file>backend/tests/test_device_api.py</file>
     <file>scripts/phase70-config-qr-parity-smoke.mjs</file>
     <file>scripts/phase71-device-config-master-detail-smoke.mjs</file>
+    <file>scripts/phase73-config-amnezia-qr-smoke.mjs</file>
     <file>docs/plans/Phase-71.xml</file>
+    <file>docs/plans/Phase-73.xml</file>
   </files>
   <phase-45-scope>
     <primary-files>backend/app/vpn/router.py</primary-files>
@@ -40,5 +42,11 @@
     <verification>Backend tests assert ownership rejection, revoked/blocked rejection, active config parity, stable config_version on GET, .conf MIME headers, and redacted QR/download evidence.</verification>
   </phase-71-executed-scope>
   <phase-71-evidence status="pass-local" date="2026-06-04">Backend device/vpn/trial suite passed 31/31; selected-device config, download, QR, and Amnezia QR endpoints are read-only, active-device-only, ownership-gated, and no-rotation.</phase-71-evidence>
+  <phase-73-executed-scope>
+    <primary-files>frontend/src/pages/Config.tsx scripts/phase71-device-config-master-detail-smoke.mjs scripts/phase73-config-amnezia-qr-smoke.mjs</primary-files>
+    <primary-behaviors>Selected-device AmneziaWG QR and .conf download remain read-only and active-device-bound; AmneziaVPN is routed to .conf import in the UI without backend endpoint or config_version changes.</primary-behaviors>
+    <verification>Phase-73 smoke passed for selected-device AmneziaWG QR safety, no config rotation, AmneziaVPN .conf guidance, and protected backend/deploy/runtime guard.</verification>
+  </phase-73-executed-scope>
+  <phase-73-evidence status="pass-local" date="2026-06-05">No backend device API shape changed; Phase-71 regression smoke and Phase-73 smoke passed locally.</phase-73-evidence>
   <hotspot>H-017: QR/raw config endpoints must not diverge in profile or preshared-key content</hotspot>
 </M-022>

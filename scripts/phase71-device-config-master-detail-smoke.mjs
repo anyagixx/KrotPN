@@ -6,7 +6,7 @@
  * MAP_MODE: LOCALS
  * START_MODULE_CONTRACT
  *   PURPOSE: Static smoke verification for Phase-71 per-device config retrieval API and compact master-detail user config UX
- *   SCOPE: Backend read-only selected-device endpoints, frontend API methods, /dashboard/config master-detail markers, QR close/icon polish, calendar boundary pulse, Phase-72 language-settings removal compatibility, i18n cleanup, and protected deploy/runtime surfaces
+ *   SCOPE: Backend read-only selected-device endpoints, frontend API methods, /dashboard/config master-detail markers, QR close/icon polish, calendar boundary pulse, Phase-72 language-settings removal compatibility, Phase-73 AmneziaVPN .conf guidance compatibility, i18n cleanup, and protected deploy/runtime surfaces
  *   DEPENDS: M-022, M-066, M-075, M-036, M-063, M-071, M-077, M-080, M-009, M-074
  *   LINKS: docs/plans/Phase-71.xml, docs/verification/V-M-022.xml, docs/verification/V-M-075.xml
  * END_MODULE_CONTRACT
@@ -20,6 +20,7 @@
  * END_MODULE_MAP
  *
  * START_CHANGE_SUMMARY
+ *   LAST_CHANGE: v1.0.3 - Accepted Phase-73 removal of non-working AmneziaVPN QR advertising from Config UI while preserving API compatibility.
  *   LAST_CHANGE: v1.0.2 - Accepted Phase-72 removal of visible language settings from Settings.
  *   LAST_CHANGE: v1.0.1 - Decoupled Phase-71 smoke from planning-only status text.
  * END_CHANGE_SUMMARY
@@ -153,7 +154,8 @@ for (const needle of [
   'deviceApi.getConfig(selectedDevice!.id)',
   'deviceApi.downloadConfig(selectedDevice.id)',
   'deviceApi.getQRCode(deviceId)',
-  'deviceApi.getAmneziaQRCode(deviceId)',
+  'data-phase73-amneziavpn-qr="[ConfigPage][phase73][AMNEZIA_VPN_QR_NOT_ADVERTISED]"',
+  'data-phase73-amnezia-guidance="[MobileUserCabinet][phase73][AMNEZIA_CONF_GUIDANCE]"',
   'className="phase71-icon-close motion-interactive"',
   'QRCodeCanvas',
   "const QR_ERROR_CORRECTION_LEVEL = 'M' as const",

@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<V-M-066 MODULE="M-066" PRIORITY="high" STATUS="pass-local-phase70-pass-local-phase71-phase73-planned" PHASE-70="pass-local" PHASE-71="pass-local" PHASE-73="planned">
+<V-M-066 MODULE="M-066" PRIORITY="high" STATUS="pass-local-phase70-pass-local-phase71-pass-local-phase73" PHASE-70="pass-local" PHASE-71="pass-local" PHASE-73="pass-local">
   <purpose>Verify Phase-48 .conf download MIME hardening across backend headers, frontend Blob creation, and protected operational surfaces.</purpose>
   <checks>application/octet-stream attachment response, filename and filename-star .conf metadata, nosniff, no-store/private cache control, byte-preserved config body, frontend Blob MIME alignment, auth preservation, and no deploy/install changes.</checks>
   <test-files>
@@ -9,7 +9,7 @@
     <file>frontend/src/lib/api.ts</file>
     <file>scripts/phase48-config-download-mime-smoke.mjs</file>
     <file phase="71-pass-local">scripts/phase71-device-config-master-detail-smoke.mjs</file>
-    <file phase="73-planned">scripts/phase73-config-amnezia-qr-smoke.mjs</file>
+    <file phase="73-pass-local">scripts/phase73-config-amnezia-qr-smoke.mjs</file>
   </test-files>
   <commands>
     <command status="pass-local">python3 -m py_compile backend/app/vpn/router.py backend/tests/test_vpn_router_compat.py</command>
@@ -81,7 +81,7 @@
     <commands>cd backend &amp;&amp; pytest tests/test_device_api.py tests/test_vpn_router_compat.py; node scripts/phase48-config-download-mime-smoke.mjs; node scripts/phase71-device-config-master-detail-smoke.mjs</commands>
   </phase-71-verification-design>
   <phase-71-evidence status="pass-local" date="2026-06-04">Backend tests passed for selected-device .conf download using octet-stream attachment headers and sanitized .conf filename; Phase-71 smoke confirmed per-device download API wiring and selected-device payload safety.</phase-71-evidence>
-  <phase-73-verification-design status="planned">
+  <phase-73-verification-design status="pass-local">
     <scope>AmneziaVPN .conf import path and download-header regression verification.</scope>
     <gate-1>AmneziaVPN guidance must point to downloading/importing the selected-device .conf file, not scanning a known non-working QR.</gate-1>
     <gate-2>Global and selected-device downloads must keep application/octet-stream, attachment, .conf filename, filename-star, nosniff, and private no-store semantics.</gate-2>
@@ -89,8 +89,13 @@
     <gate-4>Smoke output must not print full config bodies, private keys, preshared keys, or QR payloads.</gate-4>
     <commands>node scripts/phase48-config-download-mime-smoke.mjs; node scripts/phase71-device-config-master-detail-smoke.mjs; node scripts/phase73-config-amnezia-qr-smoke.mjs; backend device/vpn tests if download API changes.</commands>
   </phase-73-verification-design>
-  <phase-73-required-markers status="planned">
+  <phase-73-required-markers status="observed-local">
     <marker-1>[ConfigDownload][phase73][AMNEZIA_CONF_DOWNLOAD_GUIDANCE]</marker-1>
     <marker-2>[ConfigDownload][phase73][CONF_MIME_HEADERS_PRESERVED]</marker-2>
   </phase-73-required-markers>
+  <phase-73-evidence status="pass-local" date="2026-06-05">
+    <command-1>node scripts/phase48-config-download-mime-smoke.mjs</command-1>
+    <command-2>node scripts/phase73-config-amnezia-qr-smoke.mjs</command-2>
+    <summary>AmneziaVPN guidance uses selected-device .conf import, while application/octet-stream Blob/download markers and MIME hardening smoke remain green.</summary>
+  </phase-73-evidence>
 </V-M-066>

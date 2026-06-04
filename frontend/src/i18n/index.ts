@@ -1,10 +1,10 @@
 // FILE: frontend/src/i18n/index.ts
-// VERSION: 1.1.0
+// VERSION: 1.2.0
 // ROLE: UTILITY
 // MAP_MODE: EXPORTS
 // START_MODULE_CONTRACT
 //   PURPOSE: i18next configuration with Russian default translation resources and legacy English fallback resources
-//   SCOPE: Translation dictionary (ru/en), Russian-only i18next initialization for the user frontend, and no visible language switch persistence
+//   SCOPE: Translation dictionary (ru/en), Russian-only i18next initialization for the user frontend, no visible language switch persistence, and Phase-73 truthful config/QR copy
 //   DEPENDS: M-009 (frontend-user)
 //   LINKS: M-009 (frontend-user)
 // END_MODULE_CONTRACT
@@ -17,6 +17,7 @@
 // END_MODULE_MAP
 //
 // START_CHANGE_SUMMARY
+//   LAST_CHANGE: v1.2.0 - Added Phase-73 KPN config copy, AmneziaVPN .conf guidance, and tariff-aware device-limit text.
 //   LAST_CHANGE: v1.1.0 - Locked user frontend initialization to Russian after removing visible language settings in Phase-72.
 //   LAST_CHANGE: v2.8.0 - Added full GRACE MODULE_CONTRACT and MODULE_MAP per GRACE governance protocol
 // END_CHANGE_SUMMARY
@@ -80,18 +81,18 @@ const resources = {
       subscriptionExpired: 'Подписка истекла',
 
       // Config
-      vpnConfig: 'VPN Конфигурация',
+      vpnConfig: 'KPN Конфигурация',
       downloadConfig: 'Скачать .conf',
       scanQR: 'Сканировать QR',
       qrInstructionsWG: 'Отсканируйте QR-код приложением AmneziaWG',
-      qrInstructionsVPN: 'Используйте импорт .conf в AmneziaVPN',
+      qrInstructionsVPN: 'Для AmneziaVPN скачайте .conf и импортируйте его в приложение.',
       configInstructions: 'Импортируйте файл конфигурации в VPN клиент',
       copyConfig: 'Копировать конфиг',
       copied: 'Скопировано!',
       devicesTitle: 'Список ваших устройств',
       devicesListTitle: 'Список ваших устройств',
       devicesListHint: 'Выберите устройство, чтобы скачать именно его конфигурацию.',
-      configMasterDetailHint: 'QR, .conf и копирование теперь привязаны к выбранному устройству.',
+      configMasterDetailHint: 'Выберите устройство и нужное действие.',
       devicesActive: 'Активные',
       devicesUsed: 'Занято',
       devicesLimit: 'Лимит',
@@ -114,11 +115,12 @@ const resources = {
       deviceSecondaryActions: 'Действия устройства',
       rotateConfig: 'Обновить ключи',
       deleteDevice: 'Удалить',
-      newDeviceConfig: 'Новый конфиг',
+      newDeviceConfig: 'Новый конфиг для вашего устройства',
       newDeviceHint: 'Создайте отдельный peer под телефон, ноутбук или планшет.',
       deviceNamePlaceholder: 'Например: iPhone 16 Pro',
       deviceNameRequired: 'Введите название устройства',
       deviceLimitReached: 'Лимит устройств исчерпан',
+      deviceLimitReachedWithTariff: 'Лимит устройств исчерпан согласно вашему Тарифу - {{tariff}}',
       createDevice: 'Создать устройство',
       deviceCreated: 'Устройство создано и конфиг готов',
       deviceCreateFailed: 'Не удалось создать устройство',
@@ -252,18 +254,18 @@ const resources = {
       subscriptionExpired: 'Subscription expired',
 
       // Config
-      vpnConfig: 'VPN Configuration',
+      vpnConfig: 'KPN Configuration',
       downloadConfig: 'Download .conf',
       scanQR: 'Scan QR',
       qrInstructionsWG: 'Scan QR code with AmneziaWG app',
-      qrInstructionsVPN: 'Use .conf import in AmneziaVPN',
+      qrInstructionsVPN: 'Use .conf import in AmneziaVPN.',
       configInstructions: 'Import configuration file to VPN client',
       copyConfig: 'Copy config',
       copied: 'Copied!',
       devicesTitle: 'Your devices',
       devicesListTitle: 'Your devices',
       devicesListHint: 'Select a device to download exactly its configuration.',
-      configMasterDetailHint: 'QR, .conf, and copy actions are now bound to the selected device.',
+      configMasterDetailHint: 'Select a device and action.',
       devicesActive: 'Active',
       devicesUsed: 'Used',
       devicesLimit: 'Limit',
@@ -286,11 +288,12 @@ const resources = {
       deviceSecondaryActions: 'Device actions',
       rotateConfig: 'Refresh keys',
       deleteDevice: 'Delete',
-      newDeviceConfig: 'New config',
+      newDeviceConfig: 'New config for your device',
       newDeviceHint: 'Create a separate peer for a phone, laptop, or tablet.',
       deviceNamePlaceholder: 'Example: iPhone 16 Pro',
       deviceNameRequired: 'Enter a device name',
       deviceLimitReached: 'Device limit reached',
+      deviceLimitReachedWithTariff: 'Device limit reached under your tariff - {{tariff}}',
       createDevice: 'Create device',
       deviceCreated: 'Device created and config is ready',
       deviceCreateFailed: 'Could not create device',

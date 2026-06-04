@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<V-M-036 MODULE="M-036" PRIORITY="high" STATUS="pass-local-phase46-phase53-pass-local-phase68-pass-local-phase69-pass-local-phase70-pass-local-phase71-pass-local-phase72-phase73-planned" VERSION="1.10.0" PHASE-68="pass-local" PHASE-69="pass-local" PHASE-70="pass-local" PHASE-71="pass-local" PHASE-72="pass-local" PHASE-73="planned">
+<V-M-036 MODULE="M-036" PRIORITY="high" STATUS="pass-local-phase46-phase53-pass-local-phase68-pass-local-phase69-pass-local-phase70-pass-local-phase71-pass-local-phase72-pass-local-phase73" VERSION="1.11.0" PHASE-68="pass-local" PHASE-69="pass-local" PHASE-70="pass-local" PHASE-71="pass-local" PHASE-72="pass-local" PHASE-73="pass-local">
   <module>mobile-user-cabinet</module>
   <checks>User frontend must become compact, phone-friendly, and focused on VPN config, subscription, device workflows, and Phase-45 pending trial countdown/calendar UX.</checks>
   <test-files>frontend/src/components/Layout.tsx frontend/src/components/Loading.tsx frontend/src/components/SubscriptionPanel.tsx frontend/src/pages/Dashboard.tsx frontend/src/pages/Config.tsx frontend/src/pages/Subscription.tsx frontend/src/pages/Referrals.tsx frontend/src/pages/Settings.tsx frontend/src/index.css scripts/phase45-trial-subscription-ux-smoke.mjs scripts/phase46-user-cabinet-ux-smoke.mjs scripts/phase53-user-matrix-ui-smoke.mjs scripts/phase68-dashboard-subscription-smoke.mjs scripts/phase69-referral-bonus-smoke.mjs scripts/phase70-config-qr-parity-smoke.mjs scripts/phase71-device-config-master-detail-smoke.mjs scripts/phase72-user-auth-navigation-smoke.mjs scripts/phase73-config-amnezia-qr-smoke.mjs</test-files>
-  <commands>pass-local 2026-06-05: frontend/admin builds, Phase-72 smoke, Phase-61 responsive smoke, and Phase-71 regression smoke passed for mobile bottom navigation safe-area, desktop logout under Settings, Settings language removal, and compact desktop calendar.</commands>
+  <commands>pass-local 2026-06-05: Phase-73 smoke passed for mobile config KPN copy, AmneziaVPN .conf guidance, tariff-aware limit copy, AmneziaWG QR preservation, and protected backend/deploy/runtime guard.</commands>
   <levels>
     <module-local>TypeScript/Vite build must pass for the user frontend after each execution step that changes Phase-23 files.</module-local>
     <wave-level>Authenticated mobile route smoke must cover dashboard, config/device, and subscription workflows after UI shell and page changes are merged.</wave-level>
@@ -135,7 +135,7 @@
     <marker-2>[PremiumUserCabinet][phase72][DESKTOP_LOGOUT_VISIBLE]</marker-2>
   </phase-72-required-markers>
   <phase-72-evidence status="pass-local" date="2026-06-05">Frontend build passed; Phase-72 smoke passed for the bottom user dock, safe-area spacing, touch reveal marker, and visible desktop logout under Settings; Phase-61 responsive smoke remained green.</phase-72-evidence>
-  <phase-73-verification-design status="planned">
+  <phase-73-verification-design status="pass-local">
     <scope>Mobile config route verification for truthful QR/import guidance and tariff-aware device-limit messaging.</scope>
     <gate-1>/dashboard/config must show "KPN Конфигурация", "Новый конфиг для вашего устройства", and must not render the removed selected-device helper sentence.</gate-1>
     <gate-2>AmneziaVPN users must see concise .conf download/import guidance; a non-working AmneziaVPN QR must not be a visible primary scan action.</gate-2>
@@ -143,8 +143,13 @@
     <gate-4>When device limit is exhausted, the message must say "Лимит устройств исчерпан согласно вашему Тарифу - [тариф]" and must fit compactly on mobile.</gate-4>
     <commands>cd frontend &amp;&amp; npm run build; node scripts/phase73-config-amnezia-qr-smoke.mjs; node scripts/phase61-responsive-adaptation-smoke.mjs; node scripts/phase71-device-config-master-detail-smoke.mjs</commands>
   </phase-73-verification-design>
-  <phase-73-required-markers status="planned">
+  <phase-73-required-markers status="observed-local">
     <marker-1>[MobileUserCabinet][phase73][AMNEZIA_CONF_GUIDANCE]</marker-1>
     <marker-2>[MobileUserCabinet][phase73][LIMIT_MESSAGE_TARIFF_VISIBLE]</marker-2>
   </phase-73-required-markers>
+  <phase-73-evidence status="pass-local" date="2026-06-05">
+    <command-1>node scripts/phase73-config-amnezia-qr-smoke.mjs</command-1>
+    <command-2>node scripts/phase71-device-config-master-detail-smoke.mjs</command-2>
+    <summary>Mobile config workflow keeps selected-device QR/.conf/Copy reachable, no unsupported AmneziaVPN QR tab remains, and the exhausted-device message includes the display tariff name.</summary>
+  </phase-73-evidence>
 </V-M-036>

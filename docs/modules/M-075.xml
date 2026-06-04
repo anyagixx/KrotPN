@@ -1,12 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<M-075 NAME="premium-user-cabinet" TYPE="UI_COMPONENT" STATUS="done-local-phase57-pass-local-phase59-pass-local-phase62-pass-local-phase68-pass-local-phase69-pass-local-phase70-pass-local-phase71-pass-local-phase72">
-  <path>frontend/src/components/Layout.tsx frontend/src/components/SubscriptionPanel.tsx frontend/src/pages/Dashboard.tsx frontend/src/pages/Config.tsx frontend/src/pages/Subscription.tsx frontend/src/pages/Referrals.tsx frontend/src/pages/Settings.tsx docs/plans/Phase-57.xml docs/plans/Phase-59.xml docs/plans/Phase-62.xml docs/plans/Phase-68.xml docs/plans/Phase-69.xml docs/plans/Phase-70.xml docs/plans/Phase-71.xml docs/plans/Phase-72.xml scripts/phase57-premium-user-cabinet-smoke.mjs scripts/phase59-motion-interactions-smoke.mjs scripts/phase62-compactness-deletion-smoke.mjs scripts/phase68-dashboard-subscription-smoke.mjs scripts/phase69-referral-bonus-smoke.mjs scripts/phase70-config-qr-parity-smoke.mjs scripts/phase71-device-config-master-detail-smoke.mjs scripts/phase72-user-auth-navigation-smoke.mjs</path>
+<M-075 NAME="premium-user-cabinet" TYPE="UI_COMPONENT" STATUS="done-local-phase57-pass-local-phase59-pass-local-phase62-pass-local-phase68-pass-local-phase69-pass-local-phase70-pass-local-phase71-pass-local-phase72-pass-local-phase73">
+  <path>frontend/src/components/Layout.tsx frontend/src/components/SubscriptionPanel.tsx frontend/src/pages/Dashboard.tsx frontend/src/pages/Config.tsx frontend/src/pages/Subscription.tsx frontend/src/pages/Referrals.tsx frontend/src/pages/Settings.tsx frontend/src/i18n/index.ts docs/plans/Phase-57.xml docs/plans/Phase-59.xml docs/plans/Phase-62.xml docs/plans/Phase-68.xml docs/plans/Phase-69.xml docs/plans/Phase-70.xml docs/plans/Phase-71.xml docs/plans/Phase-72.xml docs/plans/Phase-73.xml scripts/phase57-premium-user-cabinet-smoke.mjs scripts/phase59-motion-interactions-smoke.mjs scripts/phase62-compactness-deletion-smoke.mjs scripts/phase68-dashboard-subscription-smoke.mjs scripts/phase69-referral-bonus-smoke.mjs scripts/phase70-config-qr-parity-smoke.mjs scripts/phase71-device-config-master-detail-smoke.mjs scripts/phase72-user-auth-navigation-smoke.mjs scripts/phase73-config-amnezia-qr-smoke.mjs</path>
   <owns>Premium compact personal cabinet for VPN, MTProto, subscription, devices, referrals, and settings.</owns>
   <purpose>Turn the user cabinet into a compact premium command center without hiding core actions.</purpose>
   <exports>
     <view-premium-user-home>First-screen VPN state, config action, subscription countdown, and MTProto access.</view-premium-user-home>
     <view-premium-config>QR, download, copy, and device workflow with compact premium controls and no visible raw-config diagnostics panels.</view-premium-config>
     <view-device-master-detail-config phase="71-pass-local">Master-detail config page where any existing device can be selected and exported through QR, .conf, or Copy without rotation.</view-device-master-detail-config>
+    <view-device-config-amnezia-truthfulness phase="73-pass-local">Config page shows AmneziaWG QR only as the proven QR path and guides AmneziaVPN users to selected-device .conf import.</view-device-config-amnezia-truthfulness>
     <view-premium-subscription>Tariff, countdown, calendar, and renewal flow with server-derived data.</view-premium-subscription>
     <view-phase72-auth-navigation phase="72-pass-local">Russian invalid-login UX, Settings without language selector, desktop logout under Settings, bottom dock navigation, and compact desktop subscription calendar.</view-phase72-auth-navigation>
     <rule-user-deletion-audit>Remove duplicated, bulky, decorative, or non-actionable user-cabinet content.</rule-user-deletion-audit>
@@ -28,6 +29,7 @@
     <metric-7 status="pass-local-phase70">Phase-70 keeps /dashboard/config compact while rendering a lighter payload-identical QR and preserving QR/download/copy/device actions.</metric-7>
     <metric-8 status="pass-local-phase71">Phase-71 makes existing-device QR/.conf/Copy retrieval available through compact master-detail UX without forced rotation.</metric-8>
     <metric-9 status="pass-local-phase72">Phase-72 keeps logout visible under Settings, removes language controls, and keeps mobile dock/calendar compact without backend/deploy/admin drift.</metric-9>
+    <metric-10 status="pass-local-phase73">Phase-73 keeps /dashboard/config KPN copy truthful, removes unsupported AmneziaVPN QR advertising, preserves selected-device AmneziaWG QR/.conf/Copy, and shows tariff-aware limit copy.</metric-10>
   </acceptance-metrics>
   <phase-71-executed-scope>
     <primary-files>frontend/src/pages/Config.tsx frontend/src/components/Layout.tsx frontend/src/components/SubscriptionPanel.tsx frontend/src/pages/Settings.tsx frontend/src/lib/api.ts frontend/src/i18n/index.ts frontend/src/index.css scripts/phase71-device-config-master-detail-smoke.mjs</primary-files>
@@ -42,5 +44,11 @@
     <acceptance>Frontend build, Phase-72 smoke, Phase-57 regression, Phase-61 responsive, Phase-68 dashboard, Phase-71 master-detail, session, and motion smokes passed locally.</acceptance>
   </phase-72-executed-scope>
   <phase-72-evidence status="pass-local" date="2026-06-05">Premium user cabinet passed local Phase-72 verification with no backend/admin/deploy/runtime source drift.</phase-72-evidence>
+  <phase-73-executed-scope>
+    <primary-files>frontend/src/pages/Config.tsx frontend/src/i18n/index.ts scripts/phase73-config-amnezia-qr-smoke.mjs scripts/phase71-device-config-master-detail-smoke.mjs</primary-files>
+    <primary-behaviors>Replace visible config title with KPN copy, remove the selected-device helper sentence, keep selected-device AmneziaWG QR/.conf/Copy, hide unsupported AmneziaVPN QR scan path, add AmneziaVPN .conf import guidance, and show current tariff name in the device-limit exhausted message.</primary-behaviors>
+    <acceptance>Phase-73 smoke rejects AmneziaVPN QR advertising and verifies KPN copy, AmneziaWG QR, .conf guidance, display-only tariff copy, and protected backend/deploy/runtime/admin guard.</acceptance>
+  </phase-73-executed-scope>
+  <phase-73-evidence status="pass-local" date="2026-06-05">Frontend source and static smoke passed locally for Phase-73; final build/regression suite recorded in V-M-075 after execution.</phase-73-evidence>
   <hotspot>H-062: Premium user cabinet must keep VPN config, subscription, MTProto, and device actions reachable in one or two taps.</hotspot>
 </M-075>

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<M-068 NAME="paid-tariff-catalog" TYPE="CORE_LOGIC" STATUS="done-local-phase50-phase53-phase54-pass-local-phase68">
-  <path>backend/app/billing backend/app/core/migrations.py backend/alembic/versions/phase50_paid_tariff_catalog.py frontend/src/pages/Subscription.tsx frontend-admin/src/pages/Plans.tsx scripts/phase50-tariff-catalog-smoke.mjs scripts/phase53-user-matrix-ui-smoke.mjs scripts/phase54-admin-matrix-ui-smoke.mjs README.md docs/plans/Phase-50.xml docs/plans/Phase-53.xml docs/plans/Phase-54.xml</path>
+<M-068 NAME="paid-tariff-catalog" TYPE="CORE_LOGIC" STATUS="done-local-phase50-phase53-phase54-pass-local-phase68-pass-local-phase73">
+  <path>backend/app/billing backend/app/core/migrations.py backend/alembic/versions/phase50_paid_tariff_catalog.py frontend/src/pages/Subscription.tsx frontend/src/pages/Config.tsx frontend-admin/src/pages/Plans.tsx scripts/phase50-tariff-catalog-smoke.mjs scripts/phase53-user-matrix-ui-smoke.mjs scripts/phase54-admin-matrix-ui-smoke.mjs scripts/phase73-config-amnezia-qr-smoke.mjs README.md docs/plans/Phase-50.xml docs/plans/Phase-53.xml docs/plans/Phase-54.xml docs/plans/Phase-73.xml</path>
   <owns>Canonical three-plan paid tariff catalog, server-authoritative payment amounts, device-limit checkout guards, and compact tariff presentation in user/admin frontends.</owns>
   <purpose>Guarantee that clean deployments and existing deployments converge to the approved KrotPN paid tariff matrix without trusting frontend-provided prices.</purpose>
   <exports>
@@ -29,6 +29,7 @@
     <file>backend/tests/test_db_migrations.py</file>
     <file>frontend/src/lib/api.ts</file>
     <file>frontend/src/components/SubscriptionPanel.tsx</file>
+    <file>frontend/src/pages/Config.tsx</file>
     <file>frontend/src/pages/Subscription.tsx</file>
     <file>frontend-admin/src/pages/Plans.tsx</file>
     <file>frontend-admin/src/types/index.ts</file>
@@ -36,6 +37,7 @@
     <file>scripts/phase53-user-matrix-ui-smoke.mjs</file>
     <file>scripts/phase54-admin-matrix-ui-smoke.mjs</file>
     <file>scripts/phase68-dashboard-subscription-smoke.mjs</file>
+    <file>scripts/phase73-config-amnezia-qr-smoke.mjs</file>
     <file>README.md</file>
   </files>
   <tariffs>
@@ -71,5 +73,11 @@
     <surface-2>Phase-54 did not change billing catalog, payment creation, YooKassa payloads, device-limit guards, migrations, or deploy/install surfaces.</surface-2>
     <surface-3>2026-06-03: Phase-54 smoke confirmed KrotPN 1/6/9 canonical tariff values and absence of admin create/update/delete plan controls.</surface-3>
   </phase-54-execution>
+  <phase-73-executed-scope>
+    <primary-files>frontend/src/pages/Config.tsx frontend/src/i18n/index.ts scripts/phase73-config-amnezia-qr-smoke.mjs</primary-files>
+    <primary-behaviors>Expose only the display tariff name in the config page device-limit exhausted copy; canonical tariff slugs, prices, duration, device limits, checkout payload, and admin tariff surfaces remain unchanged.</primary-behaviors>
+    <verification>Phase-73 smoke passed display-name-only and device-limit-message-safe markers; no billing API, YooKassa, device-limit enforcement, or admin plan code changed.</verification>
+  </phase-73-executed-scope>
+  <phase-73-evidence status="pass-local" date="2026-06-05">Config page reads existing subscription display data for copy only and maps legacy KrotPN 1/6/9 names to Self/Family/Team presentation aliases.</phase-73-evidence>
   <hotspot>H-055: Paid tariff catalog must keep server-authoritative prices, canonical device limits, no duplicate clean-deploy plans, and no deploy/install drift</hotspot>
 </M-068>

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<M-063 NAME="trial-activation-subscription-countdown" TYPE="CORE_LOGIC" STATUS="done-local-phase45-phase53-pass-local-phase68-pass-local-phase69-pass-local-phase71-pass-local-phase72">
-  <path>backend/app/billing backend/app/vpn backend/app/tasks frontend scripts/phase45-trial-subscription-ux-smoke.mjs scripts/phase53-user-matrix-ui-smoke.mjs docs/plans/Phase-45.xml docs/plans/Phase-53.xml</path>
+<M-063 NAME="trial-activation-subscription-countdown" TYPE="CORE_LOGIC" STATUS="done-local-phase45-phase53-pass-local-phase68-pass-local-phase69-pass-local-phase71-pass-local-phase72-pass-local-phase73">
+  <path>backend/app/billing backend/app/vpn backend/app/tasks frontend scripts/phase45-trial-subscription-ux-smoke.mjs scripts/phase53-user-matrix-ui-smoke.mjs scripts/phase73-config-amnezia-qr-smoke.mjs docs/plans/Phase-45.xml docs/plans/Phase-53.xml docs/plans/Phase-73.xml</path>
   <owns>Four-day trial policy, pending-trial/referral-bonus lifecycle, first VPN handshake activation, subscription countdown API, and calendar UX.</owns>
   <purpose>Start the free KrotPN VPN trial only when the verified user first connects through VPN while keeping config access and billing state consistent.</purpose>
   <exports>
@@ -35,6 +35,7 @@
     <file>scripts/phase69-referral-bonus-smoke.mjs</file>
     <file>scripts/phase71-device-config-master-detail-smoke.mjs</file>
     <file>scripts/phase72-user-auth-navigation-smoke.mjs</file>
+    <file>scripts/phase73-config-amnezia-qr-smoke.mjs</file>
     <file>backend/tests/test_trial_activation.py</file>
   </files>
   <phase-45-scope>
@@ -79,4 +80,10 @@
     <verification>Phase-72 smoke and Phase-68 regression passed; no backend billing, VPN, scheduler, or deployment code changed.</verification>
   </phase-72-executed-scope>
   <phase-72-evidence status="pass-local" date="2026-06-05">Desktop calendar density marker passed locally and server countdown semantics remained frontend-only unchanged.</phase-72-evidence>
+  <phase-73-executed-scope>
+    <primary-files>frontend/src/pages/Config.tsx scripts/phase73-config-amnezia-qr-smoke.mjs</primary-files>
+    <primary-behaviors>Config page reads subscription display data only for the exhausted device-limit message; trial activation, countdown, scheduler, paid expiry, and referral-bonus semantics remain unchanged.</primary-behaviors>
+    <verification>Phase-73 smoke emitted trial-semantics unchanged and display-only tariff-copy markers; no backend subscription API shape changed.</verification>
+  </phase-73-executed-scope>
+  <phase-73-evidence status="pass-local" date="2026-06-05">Phase-73 was frontend/display-only for M-063 and did not change billing, VPN, scheduler, or trial activation code.</phase-73-evidence>
 </M-063>

@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<M-003 NAME="vpn" TYPE="CORE_LOGIC" STATUS="pass-local-phase45-pass-local-phase70">
+<M-003 NAME="vpn" TYPE="CORE_LOGIC" STATUS="pass-local-phase45-pass-local-phase70-pass-local-phase73">
   <path>backend/app/vpn</path>
   <owns>vpn clients, profile-consistent config generation, QR, topology-aware provisioning, legacy VPNServer compatibility, device-bound peer management, handshake monitoring</owns>
   <exports>
@@ -26,6 +26,7 @@
     <file>backend/app/vpn/__init__.py</file>
     <file>backend/tests/test_vpn_router_compat.py</file>
     <file>scripts/phase70-config-qr-parity-smoke.mjs</file>
+    <file>scripts/phase73-config-amnezia-qr-smoke.mjs</file>
   </files>
   <disaster-recovery-role>
     <role-1>Phase-22 recovery validation must prove restored VPN configs, device-bound clients, and AWG profile rendering remain compatible with existing users.</role-1>
@@ -44,4 +45,9 @@
     <primary-behaviors>Payload-preserving QR PNG builder uses level M, smaller box size, and route-compatible /config/qr responses; API config, download bytes, and QR payload source remain identical.</primary-behaviors>
     <evidence>2026-06-04: tests/test_vpn_router_compat.py, tests/test_vpn_service.py, tests/test_manual_client_cli.py, frontend build, Phase-48/57/62/70 smokes, XML parse, MyGRACE lint, and protected deploy/runtime guards passed locally.</evidence>
   </phase-70-scope>
+  <phase-73-scope>
+    <primary-files>frontend/src/pages/Config.tsx scripts/phase70-config-qr-parity-smoke.mjs scripts/phase73-config-amnezia-qr-smoke.mjs</primary-files>
+    <primary-behaviors>Preserve VPN/AWG config payload, QR payload source, keys, endpoint, DNS, AllowedIPs, and preshared-key semantics while the UI stops advertising unsupported AmneziaVPN QR import.</primary-behaviors>
+    <evidence>2026-06-05: Phase-73 smoke and Phase-70 QR parity smoke passed locally; backend VPN/router API shape and config generation were not changed.</evidence>
+  </phase-73-scope>
 </M-003>

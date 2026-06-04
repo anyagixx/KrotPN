@@ -1,24 +1,26 @@
 // FILE: frontend/src/pages/Config.tsx
-// VERSION: 1.6.0
+// VERSION: 1.7.0
 // ROLE: UI_COMPONENT
 // MAP_MODE: SUMMARY
 // START_MODULE_CONTRACT
-//   PURPOSE: Premium compact Matrix VPN configuration page for selected-device config download/copy/QR and device lifecycle controls
-//   SCOPE: Device CRUD (create/rotate/revoke), selected-device read-only config actions, server-backed QR modal, compact master-detail UX, copy/download microinteractions, and mobile-safe sticky actions
+//   PURPOSE: Premium compact Matrix KPN configuration page for selected-device config download/copy/QR and device lifecycle controls
+//   SCOPE: Device CRUD (create/rotate/revoke), selected-device read-only config actions, truthful AmneziaWG QR modal, AmneziaVPN .conf guidance, compact master-detail UX, copy/download microinteractions, and mobile-safe sticky actions
 //   DEPENDS: M-009 (frontend-user), M-003 (vpn config API), M-002 (auth API), M-022 (device provisioning API), M-036 (mobile-user-cabinet), M-038 (compact-ui-system), M-071 (matrix-style-system), M-074 (responsive-device-adaptation), M-075 (premium-user-cabinet), M-077 (matrix-motion-interactions)
-//   LINKS: M-009 (frontend-user), M-036 (mobile-user-cabinet), M-038, M-071, M-074, M-075, M-077, Phase-59, Phase-62, Phase-70, Phase-71
+//   LINKS: M-009 (frontend-user), M-036 (mobile-user-cabinet), M-038, M-071, M-074, M-075, M-077, Phase-59, Phase-62, Phase-70, Phase-71, Phase-73
 // END_MODULE_CONTRACT
 //
 // START_MODULE_MAP
-//   ConfigPage - Premium master-detail config page component with selected-device config, QR modal, and secondary lifecycle controls
-//   QRModal - Server-backed selected-device QR modal with icon-only close and client-side payload fallback
+//   ConfigPage - Premium master-detail config page component with selected-device config, AmneziaWG QR modal, tariff-aware limit copy, and secondary lifecycle controls
+//   QRModal - Server-backed selected-device AmneziaWG QR modal with icon-only close, client-side payload fallback, and AmneziaVPN .conf guidance
 //   buildConfigDownloadBlob - Creates octet-stream config download blobs
 //   buildConfigDownloadFilename - Creates safe .conf download filenames
 //   deviceStatusLabel - Localizes compact device status labels
+//   getDisplayTariffLabel - Maps backend subscription plan names to user-facing tariff labels for display-only limit copy
 //   BLOCK_CONFIG_PAGE - ConfigPage default export with Phase-71 selected-device workflow markers
 // END_MODULE_MAP
 //
 // START_CHANGE_SUMMARY
+//   LAST_CHANGE: v3.8.0 - Executed Phase-73 KPN copy, tariff-aware device-limit messaging, and removed non-working AmneziaVPN QR advertising in favor of .conf import guidance.
 //   LAST_CHANGE: v3.7.1 - Restored Phase-62 collapse compatibility marker on the Phase-71 master-detail surface.
 //   LAST_CHANGE: v3.7.0 - Executed Phase-71 selected-device master-detail UX, per-device download/QR API usage, icon-only QR close, and secondary destructive actions.
 //   LAST_CHANGE: v3.6.0 - Added Phase-70 QR parity markers and lighter QR rendering settings.
@@ -54,7 +56,7 @@ import {
 import { Link } from 'react-router-dom'
 import toast from 'react-hot-toast'
 import QRCodeCanvas from 'qrcode.react'
-import { CONFIG_DOWNLOAD_MIME_TYPE, deviceApi, type UserDevice } from '../lib/api'
+import { CONFIG_DOWNLOAD_MIME_TYPE, billingApi, deviceApi, type SubscriptionStatus, type UserDevice } from '../lib/api'
 import Loading from '../components/Loading'
 
 const CONFIG_DOWNLOAD_FALLBACK_FILENAME = 'krotpn.conf'
@@ -62,7 +64,11 @@ const QR_ERROR_CORRECTION_LEVEL = 'M' as const
 const QR_CANVAS_SIZE = 224
 const QR_INCLUDE_MARGIN = true
 
-type QRType = 'amneziawg' | 'amneziavpn'
+const TARIFF_DISPLAY_ALIASES: Record<string, string> = {
+  'KrotPN 1': 'KrotPN Self',
+  'KrotPN 6': 'KrotPN Family',
+  'KrotPN 9': 'KrotPN Team',
+}
 
 // START_CONTRACT: buildConfigDownloadBlob
 //   PURPOSE: Create a browser download Blob that mobile browsers do not reinterpret as .txt.
@@ -104,6 +110,23 @@ function firstSelectableDevice(devices: UserDevice[]) {
   return devices.find((device) => device.status === 'active') || devices[0] || null
 }
 
+// START_CONTRACT: getDisplayTariffLabel
+//   PURPOSE: Return the visible current tariff name used only in device-limit copy.
+//   INPUTS: subscription: SubscriptionStatus | null | undefined - backend subscription state; t: translation function.
+//   OUTPUTS: string - user-facing tariff label with Phase-68 aliases where possible.
+//   SIDE_EFFECTS: none.
+// END_CONTRACT: getDisplayTariffLabel
+function getDisplayTariffLabel(
+  subscription: SubscriptionStatus | null | undefined,
+  t: (key: string) => string,
+): string {
+  const rawPlanName = subscription?.plan_name?.trim()
+  if (rawPlanName?.toLowerCase() === 'trial') return t('trial')
+  if (rawPlanName) return TARIFF_DISPLAY_ALIASES[rawPlanName] || rawPlanName
+  if (subscription?.is_trial) return t('trial')
+  return t('currentPlan')
+}
+
 export default function Config() {
   const { t } = useTranslation()
   const queryClient = useQueryClient()
@@ -116,11 +139,17 @@ export default function Config() {
   const { data: devicesData, isLoading: devicesLoading, error: devicesError } = useQuery('device-list', () => deviceApi.list(), {
     retry: false,
   })
+  const { data: subscriptionData } = useQuery('config-subscription', () => billingApi.getSubscription(), {
+    retry: false,
+    refetchInterval: 30000,
+  })
 
   const deviceList = devicesData?.data?.devices || []
   const consumedSlots = devicesData?.data?.consumed_slots || 0
   const deviceLimit = devicesData?.data?.device_limit || 0
   const activeDeviceCount = deviceList.filter((device) => device.status === 'active').length
+  const tariffLabel = getDisplayTariffLabel(subscriptionData?.data, t)
+  const deviceLimitMessage = t('deviceLimitReachedWithTariff', { tariff: tariffLabel })
   const selectedDevice = useMemo(
     () => deviceList.find((device) => device.id === selectedDeviceId) || firstSelectableDevice(deviceList),
     [deviceList, selectedDeviceId],
@@ -245,7 +274,7 @@ export default function Config() {
       return
     }
     if (!canCreateDevice) {
-      toast.error(t('deviceLimitReached'))
+      toast.error(deviceLimitMessage)
       return
     }
     await createDeviceMutation.mutateAsync({
@@ -312,7 +341,6 @@ export default function Config() {
           <div className="min-w-0">
             <p className="text-xs font-bold uppercase text-cyan-100/70">{t('vpnConfig')}</p>
             <h1 className="mt-1 text-2xl font-extrabold">{t('devicesTitle')}</h1>
-            <p className="mt-2 text-sm muted">{t('configMasterDetailHint')}</p>
           </div>
           <Link to="/dashboard/subscription" className="btn-secondary motion-interactive min-h-11 shrink-0 rounded-lg px-3 py-2.5">
             <ShieldCheck className="h-5 w-5" />
@@ -502,7 +530,13 @@ export default function Config() {
           <Plus className="mt-1 h-5 w-5 shrink-0 text-emerald-200" />
           <div className="min-w-0">
             <h2 className="text-lg font-bold">{t('newDeviceConfig')}</h2>
-            <p className="mt-1 text-sm muted">{canCreateDevice ? t('newDeviceHint') : t('deviceLimitReached')}</p>
+            <p
+              className="mt-1 text-sm muted"
+              data-phase73-limit-message={!canCreateDevice ? '[MobileUserCabinet][phase73][LIMIT_MESSAGE_TARIFF_VISIBLE]' : undefined}
+              data-phase73-tariff-copy={!canCreateDevice ? '[PremiumUserCabinet][phase73][DEVICE_LIMIT_TARIFF_COPY]' : undefined}
+            >
+              {canCreateDevice ? t('newDeviceHint') : deviceLimitMessage}
+            </p>
           </div>
         </div>
         <div className="mt-4 grid gap-3 sm:grid-cols-2">
@@ -542,6 +576,7 @@ export default function Config() {
           configText={selectedConfig.config}
           deviceId={selectedDevice.id}
           deviceName={selectedDevice.name}
+          onDownload={handleDownload}
           onClose={() => setShowQR(false)}
         />
       ) : null}
@@ -554,19 +589,20 @@ function QRModal({
   configText,
   deviceId,
   deviceName,
+  onDownload,
   onClose,
 }: {
   configText: string
   deviceId: number
   deviceName: string
+  onDownload: () => void
   onClose: () => void
 }) {
   const { t } = useTranslation()
-  const [qrType, setQrType] = useState<QRType>('amneziawg')
   const [qrUrl, setQrUrl] = useState<string | null>(null)
   const qrQuery = useQuery(
-    ['device-qr', deviceId, qrType],
-    () => qrType === 'amneziawg' ? deviceApi.getQRCode(deviceId) : deviceApi.getAmneziaQRCode(deviceId),
+    ['device-qr', deviceId, 'amneziawg'],
+    () => deviceApi.getQRCode(deviceId),
     {
       retry: false,
     },
@@ -591,6 +627,7 @@ function QRModal({
           <div className="min-w-0">
             <h3 className="truncate text-xl font-bold">{t('scanQR')}</h3>
             <p className="mt-1 truncate text-sm muted">{deviceName}</p>
+            <p className="mt-1 text-sm muted">{t('qrInstructionsWG')}</p>
           </div>
           <button
             type="button"
@@ -604,49 +641,43 @@ function QRModal({
           </button>
         </div>
 
-        <div className="mt-4 flex rounded-lg border border-slate-700/50 p-1">
-          <button
-            onClick={() => setQrType('amneziawg')}
-            className={`flex-1 rounded-lg py-2 text-sm font-semibold transition-colors ${
-              qrType === 'amneziawg'
-                ? 'bg-cyan-500/20 text-cyan-100'
-                : 'text-slate-400 hover:text-slate-200'
-            }`}
-          >
-            AmneziaWG
-          </button>
-          <button
-            onClick={() => setQrType('amneziavpn')}
-            className={`flex-1 rounded-lg py-2 text-sm font-semibold transition-colors ${
-              qrType === 'amneziavpn'
-                ? 'bg-cyan-500/20 text-cyan-100'
-                : 'text-slate-400 hover:text-slate-200'
-            }`}
-          >
-            AmneziaVPN
-          </button>
-        </div>
-
         <div
           className="mt-6 flex min-h-[256px] items-center justify-center rounded-lg bg-white p-4 sm:p-5"
           data-phase70-qr-parity="frontend-config-payload"
           data-phase70-qr-lightweight="level-m-margin"
           data-phase71-device-qr="server-backed-selected-device"
+          data-phase73-payload-unchanged="[VPNConfig][phase73][PAYLOAD_UNCHANGED]"
+          data-phase73-amneziawg-qr="[DeviceConfig][phase73][SELECTED_DEVICE_AMNEZIAWG_QR_SAFE]"
         >
           {qrQuery.isLoading ? (
             <span className="text-sm font-semibold text-slate-700">{t('loading')}</span>
           ) : qrUrl ? (
             <img src={qrUrl} alt="" className="h-56 w-56 object-contain" draggable={false} />
-          ) : qrType === 'amneziawg' ? (
+          ) : (
             <QRCodeCanvas
               value={configText}
               size={QR_CANVAS_SIZE}
               level={QR_ERROR_CORRECTION_LEVEL}
               includeMargin={QR_INCLUDE_MARGIN}
             />
-          ) : (
-            <span className="px-4 text-center text-sm font-semibold text-slate-700">{t('qrServerUnavailable')}</span>
           )}
+        </div>
+
+        <div
+          className="mt-4 rounded-lg border border-cyan-100/15 bg-cyan-100/5 p-3 text-sm muted"
+          data-phase73-amneziavpn-qr="[ConfigPage][phase73][AMNEZIA_VPN_QR_NOT_ADVERTISED]"
+          data-phase73-amnezia-guidance="[MobileUserCabinet][phase73][AMNEZIA_CONF_GUIDANCE]"
+          data-phase73-truthful-qr="[PremiumUserCabinet][phase73][AMNEZIA_QR_TRUTHFUL]"
+        >
+          <p>{t('qrInstructionsVPN')}</p>
+          <button
+            type="button"
+            onClick={onDownload}
+            className="btn-secondary motion-interactive mt-3 min-h-10 w-full rounded-lg px-3 py-2 text-sm"
+          >
+            <Download className="h-4 w-4" />
+            {t('downloadConfig')}
+          </button>
         </div>
       </div>
     </div>

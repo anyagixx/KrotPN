@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<M-066 NAME="vpn-config-download-mime-hardening" TYPE="ENTRY_POINT" STATUS="done-local-phase48-pass-local-phase70-pass-local-phase71">
-  <path>backend/app/vpn/router.py frontend/src/pages/Config.tsx frontend/src/lib/api.ts backend/tests/test_vpn_router_compat.py scripts/phase48-config-download-mime-smoke.mjs scripts/phase70-config-qr-parity-smoke.mjs docs/plans/Phase-48.xml docs/plans/Phase-70.xml</path>
+<M-066 NAME="vpn-config-download-mime-hardening" TYPE="ENTRY_POINT" STATUS="done-local-phase48-pass-local-phase70-pass-local-phase71-pass-local-phase73">
+  <path>backend/app/vpn/router.py frontend/src/pages/Config.tsx frontend/src/lib/api.ts backend/tests/test_vpn_router_compat.py scripts/phase48-config-download-mime-smoke.mjs scripts/phase70-config-qr-parity-smoke.mjs scripts/phase73-config-amnezia-qr-smoke.mjs docs/plans/Phase-48.xml docs/plans/Phase-70.xml docs/plans/Phase-73.xml</path>
   <owns>HTTP response semantics and frontend download Blob semantics for WireGuard and AmneziaVPN .conf files.</owns>
   <purpose>Prevent Android, iOS, and desktop browsers from renaming VPN configuration downloads from .conf to .conf.txt by forcing safe attachment and MIME headers.</purpose>
   <exports>
@@ -21,9 +21,11 @@
     <file>frontend/src/lib/api.ts</file>
     <file>scripts/phase48-config-download-mime-smoke.mjs</file>
     <file>scripts/phase70-config-qr-parity-smoke.mjs</file>
+    <file>scripts/phase73-config-amnezia-qr-smoke.mjs</file>
     <file>docs/plans/Phase-48.xml</file>
     <file>docs/plans/Phase-70.xml</file>
     <file>docs/plans/Phase-71.xml</file>
+    <file>docs/plans/Phase-73.xml</file>
   </files>
   <constraints>
     <constraint-1>Do not change install.sh, deploy scripts, nginx, docker-compose, TLS, VPN profile generation, AWG/WG key material, or existing config text content in Phase-48.</constraint-1>
@@ -61,4 +63,10 @@
   </phase-71-executed-scope>
   <hotspot>H-053: Mobile browsers may rename .conf downloads to .txt unless the backend and frontend force attachment, octet-stream, filename, and nosniff semantics</hotspot>
   <phase-71-evidence status="pass-local" date="2026-06-04">Backend tests and Phase-71 smoke passed for selected-device .conf download using octet-stream attachment headers and selected-device payload parity without printing config material.</phase-71-evidence>
+  <phase-73-executed-scope>
+    <primary-files>frontend/src/pages/Config.tsx frontend/src/lib/api.ts scripts/phase48-config-download-mime-smoke.mjs scripts/phase73-config-amnezia-qr-smoke.mjs</primary-files>
+    <primary-behaviors>AmneziaVPN user flow explicitly points to the selected-device .conf download/import path while preserving application/octet-stream Blob and backend attachment semantics.</primary-behaviors>
+    <verification>Phase-48 MIME smoke remains the regression gate for headers; Phase-73 smoke verifies AmneziaVPN .conf guidance and protected backend/download-surface guard.</verification>
+  </phase-73-executed-scope>
+  <phase-73-evidence status="pass-local" date="2026-06-05">Phase-73 smoke passed for AmneziaVPN .conf guidance and confirmed download MIME code path markers remain present; download endpoints were not changed.</phase-73-evidence>
 </M-066>
