@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<V-M-010 MODULE="M-010" PRIORITY="high" STATUS="pass-local-phase51-phase52-phase54-phase59-pass-local-minimal-login" PHASE-54="pass-local" PHASE-59="pass-local" VERSION="1.7.0">
+<V-M-010 MODULE="M-010" PRIORITY="high" STATUS="pass-local-phase51-phase52-phase54-phase59-pass-local-minimal-login-phase74-planned" PHASE-54="pass-local" PHASE-59="pass-local" PHASE-74="planned" VERSION="1.8.0">
   <module>frontend-admin</module>
   <checks>Admin frontend builds and reflects current admin, Full Tunnel, system, analytics, and device-control surfaces without auth regression.</checks>
-  <test-files>frontend-admin/index.html frontend-admin/public/favicon.ico frontend-admin/public/favicon-16x16.png frontend-admin/public/favicon-32x32.png frontend-admin/public/apple-touch-icon.png frontend-admin/src/main.tsx frontend-admin/src/components/MatrixBackground.tsx frontend-admin/src/components/VisualShell.tsx frontend-admin/src/components/Layout.tsx frontend-admin/src/pages/Login.tsx frontend-admin/src/pages/Dashboard.tsx frontend-admin/src/pages/Users.tsx frontend-admin/src/pages/Devices.tsx frontend-admin/src/pages/MTProto.tsx frontend-admin/src/pages/MTProtoAnalytics.tsx frontend-admin/src/pages/Analytics.tsx frontend-admin/src/pages/Servers.tsx frontend-admin/src/pages/Plans.tsx frontend-admin/src/lib/api.ts frontend-admin/src/stores/auth.ts frontend-admin/src/types/index.ts frontend-admin/src/index.css scripts/phase51-brand-assets-smoke.mjs scripts/phase52-matrix-visual-smoke.mjs scripts/phase54-admin-matrix-ui-smoke.mjs scripts/phase59-motion-interactions-smoke.mjs</test-files>
+  <test-files>frontend-admin/index.html frontend-admin/public/favicon.ico frontend-admin/public/favicon-16x16.png frontend-admin/public/favicon-32x32.png frontend-admin/public/apple-touch-icon.png frontend-admin/src/main.tsx frontend-admin/src/components/MatrixBackground.tsx frontend-admin/src/components/VisualShell.tsx frontend-admin/src/components/Layout.tsx frontend-admin/src/pages/Login.tsx frontend-admin/src/pages/Dashboard.tsx frontend-admin/src/pages/Users.tsx frontend-admin/src/pages/Devices.tsx frontend-admin/src/pages/MTProto.tsx frontend-admin/src/pages/MTProtoAnalytics.tsx frontend-admin/src/pages/Analytics.tsx frontend-admin/src/pages/Servers.tsx frontend-admin/src/pages/Plans.tsx frontend-admin/src/lib/api.ts frontend-admin/src/stores/auth.ts frontend-admin/src/types/index.ts frontend-admin/src/index.css scripts/phase51-brand-assets-smoke.mjs scripts/phase52-matrix-visual-smoke.mjs scripts/phase54-admin-matrix-ui-smoke.mjs scripts/phase59-motion-interactions-smoke.mjs scripts/phase74-admin-shell-navigation-smoke.mjs</test-files>
   <commands>pass-local 2026-06-04: Minimal admin login follow-up requires frontend-admin build plus Phase-54 smoke with logo-only auth form assertions.</commands>
   <levels>
     <module-local>Run npm build after frontend-admin route, component, API binding, or type changes.</module-local>
@@ -28,6 +28,12 @@
     <check-16>Phase-54 protected-surface guard confirms install.sh, deploy, nginx, docker-compose, docker-compose.yml, and runtime topology stay unchanged.</check-16>
     <check-17>Phase-59 motion smoke confirms admin feedback/status transitions, reduced-motion fallback, pointer-scroll/focus safety, and protected backend/deploy/runtime isolation.</check-17>
     <check-18>Admin /login is minimal: large unframed logo, email/password inputs, error state, submit action, no route-card strip, no helper paragraphs, and no default credential hints.</check-18>
+    <check-19>Phase-74 intentionally supersedes the old visible admin /plans navigation requirement: "Тарифы" must be removed from admin UI only.</check-19>
+    <check-20>Phase-74 admin login inputs must keep icon-safe padding for placeholder and typed values in email/password fields.</check-20>
+    <check-21>Phase-74 admin logout must render directly under "Ноды" while preserving existing token cleanup and auth role gates.</check-21>
+    <check-22>Phase-74 admin main content must scroll normally under mouse wheel when the cursor is over content, not only over the rail.</check-22>
+    <check-23>Phase-74 admin rail must be bounded/clipped to the same visible height budget as the main admin content surface.</check-23>
+    <check-24>Phase-74 direct /plans handling must be safe without leaving a visible stale Tariffs card or broken route.</check-24>
   </module-checks>
   <phase-54-admin-route-gates status="pass-local">
     <gate-1>Login uses Matrix shell, empty email/password fields, icon padding safety, visible focus states, and no stale default credential hints.</gate-1>
@@ -36,6 +42,12 @@
     <gate-4>Admin destructive actions remain confirmation-safe and keyboard reachable after visual redesign.</gate-4>
     <gate-5>Evidence must include static route smoke for protected admin routes when no authenticated local backend session is available.</gate-5>
   </phase-54-admin-route-gates>
+  <phase-74-admin-shell-gates status="planned">
+    <gate-1>Run cd frontend-admin &amp;&amp; npm run build after route/nav/layout/login changes.</gate-1>
+    <gate-2>Run node scripts/phase74-admin-shell-navigation-smoke.mjs to assert icon-safe admin login fields, no visible "Тарифы" nav, safe /plans handling, logout directly under "Ноды", content scroll markers, and rail bounds.</gate-2>
+    <gate-3>Run Phase-54/58/59/61/62 regressions so admin route compaction, motion, responsiveness, and deletion-audit contracts stay valid after the controlled Tariffs removal.</gate-3>
+    <gate-4>Protected guard must prove backend billing, user-facing tariff cards, deploy/install, nginx, docker-compose, VPN runtime, and MTProto runtime are unchanged.</gate-4>
+  </phase-74-admin-shell-gates>
   <scenarios>
     <scenario-1 kind="success">Admin login route and protected layout still build after compact UI changes.</scenario-1>
     <scenario-2 kind="success">Dashboard, users, devices, servers, plans, and analytics routes compile against existing admin API bindings.</scenario-2>
@@ -51,6 +63,10 @@
     <marker-5>[FrontendAdmin][Phase54][PROTECTED_SURFACE_GUARD]</marker-5>
     <marker-6>[MatrixMotion][phase59][MICROINTERACTIONS_READY]</marker-6>
     <marker-7>[FrontendAdmin][fix][MINIMAL_LOGIN_READY]</marker-7>
+    <marker-8>[FrontendAdmin][phase74][LOGIN_ICON_PADDING_SAFE]</marker-8>
+    <marker-9>[FrontendAdmin][phase74][NO_TARIFFS_NAV]</marker-9>
+    <marker-10>[FrontendAdmin][phase74][PLANS_ROUTE_SAFE]</marker-10>
+    <marker-11>[FrontendAdmin][phase74][PROTECTED_ADMIN_API_UNCHANGED]</marker-11>
   </required-log-markers>
   <observability>
     <telemetry-1>Build evidence records command, exit code, and failing TypeScript/Vite output if any.</telemetry-1>

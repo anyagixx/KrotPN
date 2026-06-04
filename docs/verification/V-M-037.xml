@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<V-M-037 MODULE="M-037" PRIORITY="high" STATUS="pass-local-phase54" PHASE-54="pass-local">
+<V-M-037 MODULE="M-037" PRIORITY="high" STATUS="pass-local-phase54-phase74-planned" PHASE-54="pass-local" PHASE-74="planned">
   <module>mobile-admin-console</module>
   <checks>Admin frontend must become compact and usable from a phone for operational status, user search, devices, payments/analytics, and system health.</checks>
-  <test-files>frontend-admin/src/components/Layout.tsx frontend-admin/src/pages/Dashboard.tsx frontend-admin/src/pages/Users.tsx frontend-admin/src/pages/Devices.tsx frontend-admin/src/pages/MTProto.tsx frontend-admin/src/pages/Analytics.tsx frontend-admin/src/pages/Servers.tsx frontend-admin/src/pages/Plans.tsx frontend-admin/src/components/StatCard.tsx frontend-admin/src/index.css frontend-admin/src/lib/api.ts frontend-admin/src/types/index.ts scripts/phase54-admin-matrix-ui-smoke.mjs</test-files>
+  <test-files>frontend-admin/src/components/Layout.tsx frontend-admin/src/pages/Dashboard.tsx frontend-admin/src/pages/Users.tsx frontend-admin/src/pages/Devices.tsx frontend-admin/src/pages/MTProto.tsx frontend-admin/src/pages/Analytics.tsx frontend-admin/src/pages/Servers.tsx frontend-admin/src/pages/Plans.tsx frontend-admin/src/components/StatCard.tsx frontend-admin/src/index.css frontend-admin/src/lib/api.ts frontend-admin/src/types/index.ts scripts/phase54-admin-matrix-ui-smoke.mjs scripts/phase74-admin-shell-navigation-smoke.mjs</test-files>
   <commands>pass-local 2026-06-03: cd frontend-admin &amp;&amp; npm run build; node scripts/phase54-admin-matrix-ui-smoke.mjs; static mobile admin smoke passed for /, /users, /devices, /mtproto, /servers, /plans, and /analytics route sources, compact navigation, bounded lists, primary actions, confirmation markers, and protected deploy/install guard.</commands>
   <levels>
     <module-local>TypeScript/Vite build and static source review after every Phase-24 frontend-admin change.</module-local>
@@ -21,6 +21,9 @@
     <check-9>Phase-54 Matrix mobile admin shell keeps navigation, search, pagination, filters, and action controls compact at 360px without long unstructured lists.</check-9>
     <check-10>Phase-54 tables, graphs, and investigation panels use bounded internal scroll or pagination instead of document-level horizontal scroll.</check-10>
     <check-11>Phase-54 confirms confirmation dialogs/sheets remain readable, focused, and visually above Matrix overlays.</check-11>
+    <check-12>Phase-74 admin navigation removes Tariffs from visible mobile/tablet/desktop nav while keeping Dashboard, Users, MTProto, Servers/Nodes, Analytics, and Logout reachable.</check-12>
+    <check-13>Phase-74 logout position is directly below Nodes in the admin rail so it stays visible without requiring a long scroll.</check-13>
+    <check-14>Phase-74 scroll repair proves mouse-wheel and touch scrolling operate over admin content panes, with the rail bounded instead of owning the only useful scroll path.</check-14>
   </module-checks>
   <deterministic-assertions>
     <assert-1>cd frontend-admin &amp;&amp; npm run build exits 0.</assert-1>
@@ -30,7 +33,16 @@
     <assert-5>deploy, install.sh, nginx, docker-compose.yml, frontend-admin/Dockerfile, and frontend-admin/nginx.conf have no Phase-24 diff.</assert-5>
     <assert-6>Phase-54 checked routes /, /users, /devices, /mtproto, /servers, /plans, and /analytics report document.documentElement.scrollWidth &lt;= window.innerWidth on mobile viewports.</assert-6>
     <assert-7>Phase-54 checked routes expose their primary search, pagination, or action controls within compact mobile surfaces.</assert-7>
+    <assert-8>Phase-74 smoke confirms no visible "Тарифы" navigation item or stale Tariffs card remains in admin shell output.</assert-8>
+    <assert-9>Phase-74 smoke confirms admin content containers expose normal vertical overflow/scroll markers and do not depend on rail-only wheel scrolling.</assert-9>
+    <assert-10>Phase-74 smoke confirms admin-rail has explicit height/overflow bounds compatible with phone, tablet, and desktop layouts.</assert-10>
   </deterministic-assertions>
+  <phase-74-admin-shell-responsive-gates status="planned">
+    <gate-1>Desktop, tablet, and phone admin shell must keep Logout under Nodes, not below long secondary content.</gate-1>
+    <gate-2>Visible admin navigation must not include Tariffs/Plans after Phase-74, but operational routes remain reachable and compact.</gate-2>
+    <gate-3>Content-area wheel scrolling and rail clipping must be asserted statically and, when possible, with a browser viewport smoke.</gate-3>
+    <gate-4>Phase-74 changes are frontend-admin only; no backend API, billing provider, deploy, install, nginx, docker, or runtime behavior may change.</gate-4>
+  </phase-74-admin-shell-responsive-gates>
   <static-probes>
     <probe-1>Review frontend-admin/src/pages/Devices.tsx for confirmation state, dialog/sheet/modal, or equivalent explicit confirmation before mutation.</probe-1>
     <probe-2>Review frontend-admin/src/components/Layout.tsx for mobile navigation that does not preserve the 320px sidebar as the primary phone path.</probe-2>
@@ -75,6 +87,9 @@
     <marker-7>[MobileAdminConsole][Phase54][PRIMARY_ACTIONS_REACHABLE]</marker-7>
     <marker-8>[MobileAdminConsole][Phase54][TABLES_SCROLL_CONTAINED]</marker-8>
     <marker-9>[MobileAdminConsole][Phase54][CONFIRMATIONS_READABLE]</marker-9>
+    <marker-10>[MobileAdminConsole][phase74][ADMIN_LOGOUT_UNDER_NODES]</marker-10>
+    <marker-11>[MobileAdminConsole][phase74][CONTENT_SCROLL_WHEEL_SAFE]</marker-11>
+    <marker-12>[MobileAdminConsole][phase74][RAIL_BOUNDS_SAFE]</marker-12>
   </required-log-markers>
   <telemetry>
     <telemetry-1>Record route, viewport width/height, scrollWidth, innerWidth, and primary visible controls for each smoke step.</telemetry-1>

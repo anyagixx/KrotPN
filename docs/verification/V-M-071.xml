@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<V-M-071 MODULE="M-071" PRIORITY="high" STATUS="pass-local-phase52-phase53-phase54-phase55-phase56-phase59-pass-local-phase67-pass-local-rainfix-pass-local-phase68-pass-local-phase70-pass-local-phase71-pass-local-phase72-pass-local-phase73" PHASE-54="pass-local" PHASE-55="pass-local" PHASE-56="pass-local" PHASE-59="pass-local" PHASE-67="pass-local" RAINFIX="pass-local" PHASE-68="pass-local" PHASE-70="pass-local" PHASE-71="pass-local" PHASE-72="pass-local" PHASE-73="pass-local">
+<V-M-071 MODULE="M-071" PRIORITY="high" STATUS="pass-local-phase52-phase53-phase54-phase55-phase56-phase59-pass-local-phase67-pass-local-rainfix-pass-local-phase68-pass-local-phase70-pass-local-phase71-pass-local-phase72-pass-local-phase73-phase74-planned" PHASE-54="pass-local" PHASE-55="pass-local" PHASE-56="pass-local" PHASE-59="pass-local" PHASE-67="pass-local" RAINFIX="pass-local" PHASE-68="pass-local" PHASE-70="pass-local" PHASE-71="pass-local" PHASE-72="pass-local" PHASE-73="pass-local" PHASE-74="planned">
   <scope>
     <phase>Phase-52</phase>
     <purpose>Verify the Matrix style system foundation for compact, readable, mobile-safe user and admin shells.</purpose>
@@ -22,6 +22,7 @@
     <file phase="71-pass-local">scripts/phase71-device-config-master-detail-smoke.mjs</file>
     <file phase="72-pass-local">scripts/phase72-user-auth-navigation-smoke.mjs</file>
     <file phase="73-pass-local">scripts/phase73-config-amnezia-qr-smoke.mjs</file>
+    <file phase="74-planned">scripts/phase74-admin-shell-navigation-smoke.mjs</file>
   </test-files>
   <module-checks>
     <check-1>cd frontend &amp;&amp; npm run build</check-1>
@@ -37,6 +38,7 @@
     <check-11>Phase-59 motion smoke: motion budget tokens, route transitions, feedback/status classes, reduced-motion fallback, and protected backend/deploy/runtime guard.</check-11>
     <check-12 status="pass-local-phase67">Phase-67 auth/splash smoke: no visible auth card frame, large unframed logo, red focus border, icon-safe inputs, elegant buttons, side-by-side secondary actions, responsive safety, and reduced-motion fallback.</check-12>
     <check-13 status="pass-local-rainfix">Matrix rain CSS reliability smoke: fallback layer exists in user/admin VisualShell/CSS, canvas and fallback use mobile overscan, reduced-motion keeps a static visible fallback, and protected backend/deploy/runtime guard remains clean.</check-13>
+    <check-14 status="planned-phase74">Phase-74 style smoke must assert admin login icon padding, bounded admin rail, content-scroll CSS markers, and no scroll/pointer interception from Matrix layers.</check-14>
   </module-checks>
   <phase-53-style-gates status="pass-local">
     <gate-1>User cabinet routes use Matrix palette/tokens while preserving compact operational layout and avoiding nested cards.</gate-1>
@@ -69,6 +71,12 @@
     <gate-2>Reduced-motion fallback disables Phase-59 transforms/animations while preserving the static Matrix identity.</gate-2>
     <gate-3>CSS smoke rejects scroll hijack, pointer interception, long motion budget, negative letter spacing, viewport font sizing, and protected backend/deploy/runtime diffs.</gate-3>
   </phase-59-style-gates>
+  <phase-74-style-gates status="planned">
+    <gate-1>Admin login icon-bearing inputs must reserve enough padding for icon, placeholder, and typed value across hover/focus/error states.</gate-1>
+    <gate-2>Admin rail CSS must expose bounded height/overflow markers and must not extend past the usable content height.</gate-2>
+    <gate-3>Admin content CSS must expose a normal vertical scroll surface so wheel/touch scrolling works over content, with Matrix background layers remaining pointer-safe.</gate-3>
+    <gate-4>Removing visible Tariffs navigation must not leave empty visual gaps, orphaned active states, or oversized route placeholders.</gate-4>
+  </phase-74-style-gates>
   <phase-67-style-gates status="pass-local">
     <gate-1>Auth routes must not render the visible matrix-auth-card frame or framed logo lockup.</gate-1>
     <gate-2>Auth input focus/active state must use the planned red treatment and must not regress to blue/cyan focus on /login, /register, /forgot-password, or /reset-password.</gate-2>
@@ -127,6 +135,9 @@
     <marker-23>[MatrixStyleSystem][phase67][AUTH_NO_OVERLAP]</marker-23>
     <marker-24>[MatrixVisualRuntime][fix][CSS_RAIN_FALLBACK_READY]</marker-24>
     <marker-25>[MatrixVisualRuntime][fix][MOBILE_OVERSCAN_READY]</marker-25>
+    <marker-26>[MatrixStyle][phase74][ADMIN_LOGIN_ICON_NO_OVERLAP]</marker-26>
+    <marker-27>[MatrixStyle][phase74][ADMIN_RAIL_BOUNDED]</marker-27>
+    <marker-28>[MatrixStyle][phase74][ADMIN_SCROLL_SURFACE_SAFE]</marker-28>
   </required-log-markers>
   <evidence-levels>
     <module-local>Static smoke validates CSS tokens, class primitives, reduced-motion selectors, focus selectors, and protected-surface guard.</module-local>
@@ -270,4 +281,11 @@
     <command-2>node scripts/phase71-device-config-master-detail-smoke.mjs</command-2>
     <summary>KPN copy, AmneziaVPN .conf guidance, selected-device AmneziaWG QR, and tariff-limit copy stay inside existing compact Matrix page/modal primitives with no new global CSS bloat.</summary>
   </phase-73-evidence>
+  <phase-74-verification-design status="planned">
+    <scope>Matrix style verification for admin login icon safety, admin shell scroll repair, and bounded rail geometry.</scope>
+    <gate-1>Phase-74 must not introduce text/icon overlap, viewport-scaled fonts, negative letter spacing, nested cards, or one-note palette drift.</gate-1>
+    <gate-2>Rail/content scroll fixes must preserve reduced-motion policy and pointer-safe Matrix canvas/fallback layers.</gate-2>
+    <gate-3>Static CSS smoke is required before claiming browser-safe admin scroll behavior.</gate-3>
+    <commands>node scripts/phase74-admin-shell-navigation-smoke.mjs; node scripts/phase54-admin-matrix-ui-smoke.mjs; node scripts/phase59-motion-interactions-smoke.mjs; node scripts/phase61-responsive-adaptation-smoke.mjs</commands>
+  </phase-74-verification-design>
 </V-M-071>

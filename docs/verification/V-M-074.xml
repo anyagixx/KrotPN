@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<V-M-074 MODULE="M-074" PRIORITY="critical" STATUS="pass-local-phase61-phase62-pass-local-phase67-pass-local-rainfix-pass-local-phase68-pass-local-phase71-pass-local-phase72" PHASE-61="pass-local" PHASE-62="pass-local" PHASE-67="pass-local" RAINFIX="pass-local" PHASE-68="pass-local" PHASE-71="pass-local" PHASE-72="pass-local">
+<V-M-074 MODULE="M-074" PRIORITY="critical" STATUS="pass-local-phase61-phase62-pass-local-phase67-pass-local-rainfix-pass-local-phase68-pass-local-phase71-pass-local-phase72-phase74-planned" PHASE-61="pass-local" PHASE-62="pass-local" PHASE-67="pass-local" RAINFIX="pass-local" PHASE-68="pass-local" PHASE-71="pass-local" PHASE-72="pass-local" PHASE-74="planned">
   <scope>Responsive adaptation verification for phone, tablet, and desktop layouts across public, auth, user-cabinet, and admin Matrix surfaces.</scope>
   <verification-intent>Phase-61 must prove that the premium Matrix UI is intentionally designed for mobile and tablet use, not merely tolerated by desktop CSS.</verification-intent>
   <test-files>
@@ -9,6 +9,7 @@
     <file phase="67-pass-local">scripts/phase67-auth-splash-smoke.mjs</file>
     <file phase="71-pass-local">scripts/phase71-device-config-master-detail-smoke.mjs</file>
     <file phase="72-pass-local">scripts/phase72-user-auth-navigation-smoke.mjs</file>
+    <file phase="74-planned">scripts/phase74-admin-shell-navigation-smoke.mjs</file>
     <file>frontend/src/App.tsx</file>
     <file>frontend/src/components/Layout.tsx</file>
     <file>frontend/src/components/MatrixBackground.tsx</file>
@@ -57,6 +58,7 @@
     <command status="passed-local">git diff --name-only -- backend deploy docker-compose.yml install.sh mtproto-runtime official-mtproxy nginx telegram-bot is empty</command>
     <command status="pass-local-phase67">cd frontend &amp;&amp; npm run build; node scripts/phase67-auth-splash-smoke.mjs; node scripts/phase61-responsive-adaptation-smoke.mjs; node scripts/phase60-premium-qa-smoke.mjs</command>
     <command status="pass-local-rainfix">cd frontend &amp;&amp; npm run build; cd frontend-admin &amp;&amp; npm run build; node scripts/phase61-responsive-adaptation-smoke.mjs; Chrome 390x844 user/admin screenshot and bottom-pixel sanity</command>
+    <command status="planned-phase74">cd frontend-admin &amp;&amp; npm run build; node scripts/phase74-admin-shell-navigation-smoke.mjs; node scripts/phase61-responsive-adaptation-smoke.mjs</command>
   </commands>
   <evidence>
     <item>2026-06-04: frontend npm run build passed; primary JS 448870 bytes gzip 135741, primary CSS 44212 bytes gzip 8832.</item>
@@ -91,6 +93,13 @@
     <admin-routes>/login, /, /users, /devices, /mtproto, /servers, /plans, /analytics</admin-routes>
     <auth-limitation-policy>If local auth fixtures cannot enter protected routes, the smoke must produce static-route proof and record the remaining live screenshot gap instead of claiming false coverage.</auth-limitation-policy>
   </route-matrix>
+  <phase-74-responsive-gates status="planned">
+    <scope>Phase-74 updates the admin route/navigation matrix by removing visible /plans/Tariffs from admin UI while preserving responsive shell safety.</scope>
+    <gate-1>Admin shell at phone/tablet/desktop widths must keep Dashboard, Users, MTProto, Servers/Nodes, Analytics, and Logout reachable without horizontal scroll.</gate-1>
+    <gate-2>Logout under Nodes and bounded rail geometry must remain readable at 360x740, 390x844, 430x932, 768x1024, 1024x768, and 1440x900.</gate-2>
+    <gate-3>Admin content wheel/touch scroll must work over the content surface and must not be blocked by fixed Matrix backgrounds, overlays, or rail overflow.</gate-3>
+    <gate-4>Phase-61 responsive smoke remains a required regression gate after the Phase-74 admin shell change.</gate-4>
+  </phase-74-responsive-gates>
   <phase-67-responsive-gates status="pass-local">
     <gate-1>Splash / and auth routes must be verified at phone, tablet, desktop, and reduced-motion viewports.</gate-1>
     <gate-2>Large unframed logo, inputs, password controls, secondary buttons, redirect status, and form errors must not overlap or cause horizontal scroll.</gate-2>
@@ -143,6 +152,8 @@
     <marker>[ResponsiveAdaptation][phase67][AUTH_SPLASH_RESPONSIVE_SAFE]</marker>
     <marker>[MatrixVisualRuntime][fix][CSS_RAIN_FALLBACK_READY]</marker>
     <marker>[MatrixVisualRuntime][fix][MOBILE_OVERSCAN_READY]</marker>
+    <marker>[ResponsiveAdaptation][phase74][ADMIN_SCROLL_NO_OVERLAP]</marker>
+    <marker>[ResponsiveAdaptation][phase74][ADMIN_RAIL_VIEWPORT_SAFE]</marker>
   </required-log-markers>
   <telemetry-requirements>
     <allowed>route path, viewport size, app surface name, selector label, measured width/height, horizontal-scroll delta, screenshot artifact path, bundle size, and anonymized failure code.</allowed>
@@ -198,4 +209,11 @@
     <marker-2>[ResponsiveAdaptation][phase72][DESKTOP_CALENDAR_NO_OVERFLOW]</marker-2>
   </phase-72-required-markers>
   <phase-72-evidence status="pass-local" date="2026-06-05">Frontend/admin builds, Phase-61 responsive smoke, and Phase-72 smoke passed for bottom dock no-overlap, desktop calendar no-overflow, and protected admin/backend/deploy/runtime guard.</phase-72-evidence>
+  <phase-74-verification-design status="planned">
+    <scope>Responsive verification for admin shell navigation simplification, scroll repair, and rail bounds.</scope>
+    <gate-1>Admin Tariffs/Plans removal must not create a navigation gap, orphaned route state, or horizontal scroll on phone/tablet/desktop.</gate-1>
+    <gate-2>Rail clipping and content scrolling must be visible in static selectors and covered by Phase-74 smoke.</gate-2>
+    <gate-3>Protected user frontend, backend, deploy, install, nginx, docker-compose, VPN runtime, and MTProto runtime surfaces are no-diff guards.</gate-3>
+    <commands>node scripts/phase74-admin-shell-navigation-smoke.mjs; node scripts/phase61-responsive-adaptation-smoke.mjs</commands>
+  </phase-74-verification-design>
 </V-M-074>
