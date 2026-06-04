@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<V-M-009 MODULE="M-009" PRIORITY="high" STATUS="pass-local-phase46-phase51-phase52-phase53-phase56-phase59-pass-local-phase67-pass-local-session60-pass-local-phase68-pass-local-phase69-pass-local-phase70-pass-local-phase71-pass-local-phase72-phase76-planned" VERSION="1.19.0" PHASE-59="pass-local" PHASE-67="pass-local" PHASE-68="pass-local" PHASE-69="pass-local" PHASE-70="pass-local" PHASE-71="pass-local" PHASE-72="pass-local" PHASE-76="planned">
+<V-M-009 MODULE="M-009" PRIORITY="high" STATUS="pass-local-phase46-phase51-phase52-phase53-phase56-phase59-pass-local-phase67-pass-local-session60-pass-local-phase68-pass-local-phase69-pass-local-phase70-pass-local-phase71-pass-local-phase72-pass-local-phase76" VERSION="1.19.0" PHASE-59="pass-local" PHASE-67="pass-local" PHASE-68="pass-local" PHASE-69="pass-local" PHASE-70="pass-local" PHASE-71="pass-local" PHASE-72="pass-local" PHASE-76="pass-local">
   <module>frontend-user</module>
   <checks>User frontend still builds, matches the Phase-28 auth API response shape, makes registration mobile-safe without implying active KrotPN trial before email verification, and resumes valid stored sessions across tabs within the 60-day idle TTL.</checks>
   <test-files>
@@ -204,7 +204,7 @@
     <marker-2>[FrontendUser][phase72][LANGUAGE_SETTINGS_REMOVED]</marker-2>
   </phase-72-required-markers>
   <phase-72-evidence status="pass-local" date="2026-06-05">Frontend build passed; scripts/phase72-user-auth-navigation-smoke.mjs passed for localized invalid-login handling, Russian-only Settings cleanup, desktop/mobile navigation markers, compact calendar markers, and protected admin/backend/deploy/runtime guard; scripts/session-security-smoke.mjs remained green.</phase-72-evidence>
-  <phase-76-verification-design status="planned">
+  <phase-76-verification-design status="pass-local">
     <scope>Consolidated user frontend verification for Phase-72 and Phase-73 before release decision.</scope>
     <gate-1>cd frontend &amp;&amp; npm run build must pass with auth, session, dashboard, config, subscription, and shared CSS changes together.</gate-1>
     <gate-2>Phase-72 and Phase-73 smokes must pass in one execution bundle.</gate-2>
@@ -212,4 +212,5 @@
     <gate-4>Admin, backend, deploy, install, nginx, docker, VPN, MTProto, and telegram-bot protected guards must remain clean.</gate-4>
     <commands>cd frontend &amp;&amp; npm run build; node scripts/phase72-user-auth-navigation-smoke.mjs; node scripts/phase73-config-amnezia-qr-smoke.mjs; node scripts/session-security-smoke.mjs; user regression smoke bundle; protected-surface guard.</commands>
   </phase-76-verification-design>
+  <phase-76-evidence status="pass-local" date="2026-06-05">Consolidated Phase-76 gate passed: frontend build, Phase-72/73 user smokes, Phase-57/61/68/70/71 regressions, session smoke coverage, XML/MyGRACE/diff checks, backend-not-touched API guard, and protected deploy/runtime guard.</phase-76-evidence>
 </V-M-009>

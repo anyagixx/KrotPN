@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<M-037 NAME="mobile-admin-console" TYPE="UI_COMPONENT" STATUS="pass-local-phase54-pass-local-phase74-pass-local-phase75">
+<M-037 NAME="mobile-admin-console" TYPE="UI_COMPONENT" STATUS="pass-local-phase54-pass-local-phase74-pass-local-phase75-pass-local-phase76">
   <path>frontend-admin docs/plans/Phase-24.xml docs/plans/Phase-54.xml docs/plans/Phase-74.xml docs/plans/Phase-75.xml scripts/phase54-admin-matrix-ui-smoke.mjs scripts/phase74-admin-shell-navigation-smoke.mjs scripts/phase75-admin-users-devices-smoke.mjs</path>
   <owns>Compact mobile-first admin console for operational status, unified users/devices inventory, payments, analytics summary, system health, and emergency device actions</owns>
   <exports>

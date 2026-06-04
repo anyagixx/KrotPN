@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<V-M-037 MODULE="M-037" PRIORITY="high" STATUS="pass-local-phase54-pass-local-phase74-pass-local-phase75-phase76-planned" PHASE-54="pass-local" PHASE-74="pass-local" PHASE-75="pass-local" PHASE-76="planned">
+<V-M-037 MODULE="M-037" PRIORITY="high" STATUS="pass-local-phase54-pass-local-phase74-pass-local-phase75-pass-local-phase76" PHASE-54="pass-local" PHASE-74="pass-local" PHASE-75="pass-local" PHASE-76="pass-local">
   <module>mobile-admin-console</module>
   <checks>Admin frontend must become compact and usable from a phone for operational status, user search, devices, payments/analytics, and system health.</checks>
   <test-files>frontend-admin/src/components/Layout.tsx frontend-admin/src/pages/Dashboard.tsx frontend-admin/src/pages/Users.tsx frontend-admin/src/pages/Devices.tsx frontend-admin/src/pages/MTProto.tsx frontend-admin/src/pages/Analytics.tsx frontend-admin/src/pages/Servers.tsx frontend-admin/src/pages/Plans.tsx frontend-admin/src/components/StatCard.tsx frontend-admin/src/index.css frontend-admin/src/lib/api.ts frontend-admin/src/types/index.ts scripts/phase54-admin-matrix-ui-smoke.mjs scripts/phase74-admin-shell-navigation-smoke.mjs scripts/phase75-admin-users-devices-smoke.mjs</test-files>
@@ -134,11 +134,12 @@
     <evidence-8>2026-06-05: Phase-74 smoke passed [MobileAdminConsole][phase74][ADMIN_LOGOUT_UNDER_NODES], [CONTENT_SCROLL_WHEEL_SAFE], and [RAIL_BOUNDS_SAFE] with no visible Tariffs nav.</evidence-8>
     <evidence-9>2026-06-05: Phase-75 smoke passed [MobileAdminConsole][phase75][SINGLE_USERS_NAV], [EXPANDED_DEVICE_LIST_BOUNDED], [DEVICE_ACTIONS_REACHABLE], and [CONFIRMATIONS_READABLE] with /devices redirected to /users.</evidence-9>
   </planned-evidence>
-  <phase-76-verification-design status="planned">
+  <phase-76-verification-design status="pass-local">
     <scope>Mobile admin console regression verification across Phase-74 and Phase-75.</scope>
     <gate-1>Phone, tablet, and desktop admin shell must keep Dashboard, Users, MTProto, Nodes, Analytics, and Logout reachable without visible Tariffs or separate Devices navigation.</gate-1>
     <gate-2>Expanded user device rows must remain bounded, scrollable, action-reachable, and confirmation-safe on mobile.</gate-2>
     <gate-3>Phase-54, Phase-58, Phase-59, Phase-61, and Phase-62 admin regressions must remain green in the Phase-76 bundle.</gate-3>
     <commands>node scripts/phase74-admin-shell-navigation-smoke.mjs; node scripts/phase75-admin-users-devices-smoke.mjs; node scripts/phase54-admin-matrix-ui-smoke.mjs; node scripts/phase58-premium-admin-cockpit-smoke.mjs; node scripts/phase62-compactness-deletion-smoke.mjs.</commands>
   </phase-76-verification-design>
+  <phase-76-evidence status="pass-local" date="2026-06-05">Consolidated Phase-76 gate passed for mobile admin console: Phase-74/75 smokes plus Phase-54/58/59/62 regressions kept the unified Users inventory, bounded device rows, logout placement, content scroll, and confirmation surfaces intact.</phase-76-evidence>
 </V-M-037>

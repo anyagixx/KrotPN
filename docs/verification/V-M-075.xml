@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<V-M-075 MODULE="M-075" PRIORITY="high" STATUS="pass-local-phase59-phase62-pass-local-phase68-pass-local-phase69-pass-local-phase70-pass-local-phase71-pass-local-phase72-pass-local-phase73-phase76-planned" PHASE-57="pass-local" PHASE-59="pass-local" PHASE-62="pass-local" PHASE-68="pass-local" PHASE-69="pass-local" PHASE-70="pass-local" PHASE-71="pass-local" PHASE-72="pass-local" PHASE-73="pass-local" PHASE-76="planned">
+<V-M-075 MODULE="M-075" PRIORITY="high" STATUS="pass-local-phase59-phase62-pass-local-phase68-pass-local-phase69-pass-local-phase70-pass-local-phase71-pass-local-phase72-pass-local-phase73-pass-local-phase76" PHASE-57="pass-local" PHASE-59="pass-local" PHASE-62="pass-local" PHASE-68="pass-local" PHASE-69="pass-local" PHASE-70="pass-local" PHASE-71="pass-local" PHASE-72="pass-local" PHASE-73="pass-local" PHASE-76="pass-local">
   <scope>Phase-57/Phase-59 premium user cabinet evidence remains valid. Phase-62 verification now defines the compactness and deletion-audit contract for user cabinet, public/auth adjacency, compact UI invariants, responsive regressions, preserved primary workflows, redaction, and protected backend/deploy/runtime isolation.</scope>
   <test-files>
     <file>scripts/phase57-premium-user-cabinet-smoke.mjs</file>
@@ -204,11 +204,12 @@
     <command-3>node scripts/phase48-config-download-mime-smoke.mjs; node scripts/phase57-premium-user-cabinet-smoke.mjs; node scripts/phase61-responsive-adaptation-smoke.mjs; node scripts/phase70-config-qr-parity-smoke.mjs; node scripts/phase71-device-config-master-detail-smoke.mjs</command-3>
     <summary>/dashboard/config uses KPN copy, no longer advertises unsupported AmneziaVPN QR, preserves selected-device AmneziaWG QR/.conf/Copy, guides AmneziaVPN users to .conf import, and shows display-only tariff-aware device-limit copy.</summary>
   </phase-73-evidence>
-  <phase-76-verification-design status="planned">
+  <phase-76-verification-design status="pass-local">
     <scope>Premium user cabinet regression guard for the consolidated frontend polish gate.</scope>
     <gate-1>Dashboard, Config, Subscription, Referrals, and Settings must remain compact, Russian-only, and action-reachable after Phase-72/73 changes.</gate-1>
     <gate-2>Config page must preserve selected-device QR/.conf/Copy, AmneziaVPN .conf guidance, KPN copy, and tariff-aware limit messaging.</gate-2>
     <gate-3>Phase-57, Phase-62, Phase-68, Phase-70, Phase-71, Phase-72, and Phase-73 smokes must remain green or record an explicit blocker.</gate-3>
     <commands>node scripts/phase57-premium-user-cabinet-smoke.mjs; node scripts/phase62-compactness-deletion-smoke.mjs; node scripts/phase68-dashboard-subscription-smoke.mjs; node scripts/phase70-config-qr-parity-smoke.mjs; node scripts/phase71-device-config-master-detail-smoke.mjs; Phase-72/73 smokes.</commands>
   </phase-76-verification-design>
+  <phase-76-evidence status="pass-local" date="2026-06-05">Consolidated Phase-76 gate passed for premium user cabinet: Phase-57/62/68/70/71 regressions plus Phase-72/73 smokes preserved dashboard, config, subscription, referrals, Settings cleanup, selected-device exports, Amnezia guidance, and tariff-limit messaging.</phase-76-evidence>
 </V-M-075>

@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<M-066 NAME="vpn-config-download-mime-hardening" TYPE="ENTRY_POINT" STATUS="done-local-phase48-pass-local-phase70-pass-local-phase71-pass-local-phase73">
+<M-066 NAME="vpn-config-download-mime-hardening" TYPE="ENTRY_POINT" STATUS="done-local-phase48-pass-local-phase70-pass-local-phase71-pass-local-phase73-pass-local-phase76">
   <path>backend/app/vpn/router.py frontend/src/pages/Config.tsx frontend/src/lib/api.ts backend/tests/test_vpn_router_compat.py scripts/phase48-config-download-mime-smoke.mjs scripts/phase70-config-qr-parity-smoke.mjs scripts/phase73-config-amnezia-qr-smoke.mjs docs/plans/Phase-48.xml docs/plans/Phase-70.xml docs/plans/Phase-73.xml</path>
   <owns>HTTP response semantics and frontend download Blob semantics for WireGuard and AmneziaVPN .conf files.</owns>
   <purpose>Prevent Android, iOS, and desktop browsers from renaming VPN configuration downloads from .conf to .conf.txt by forcing safe attachment and MIME headers.</purpose>

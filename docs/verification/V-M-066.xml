@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<V-M-066 MODULE="M-066" PRIORITY="high" STATUS="pass-local-phase70-pass-local-phase71-pass-local-phase73-phase76-planned" PHASE-70="pass-local" PHASE-71="pass-local" PHASE-73="pass-local" PHASE-76="planned">
+<V-M-066 MODULE="M-066" PRIORITY="high" STATUS="pass-local-phase70-pass-local-phase71-pass-local-phase73-pass-local-phase76" PHASE-70="pass-local" PHASE-71="pass-local" PHASE-73="pass-local" PHASE-76="pass-local">
   <purpose>Verify Phase-48 .conf download MIME hardening across backend headers, frontend Blob creation, and protected operational surfaces.</purpose>
   <checks>application/octet-stream attachment response, filename and filename-star .conf metadata, nosniff, no-store/private cache control, byte-preserved config body, frontend Blob MIME alignment, auth preservation, and no deploy/install changes.</checks>
   <test-files>
@@ -98,11 +98,12 @@
     <command-2>node scripts/phase73-config-amnezia-qr-smoke.mjs</command-2>
     <summary>AmneziaVPN guidance uses selected-device .conf import, while application/octet-stream Blob/download markers and MIME hardening smoke remain green.</summary>
   </phase-73-evidence>
-  <phase-76-verification-design status="planned">
+  <phase-76-verification-design status="pass-local">
     <scope>Config download and Amnezia import regression guard inside the consolidated frontend polish gate.</scope>
     <gate-1>Selected-device .conf downloads must retain application/octet-stream attachment, .conf filename, nosniff, and no-store semantics.</gate-1>
     <gate-2>AmneziaVPN guidance must continue to direct users to .conf import instead of advertising an unsupported QR scan path.</gate-2>
     <gate-3>Run backend config/download tests only if Phase-76 execution detects backend, API, router, or download-helper drift.</gate-3>
     <commands>node scripts/phase48-config-download-mime-smoke.mjs; node scripts/phase70-config-qr-parity-smoke.mjs; node scripts/phase73-config-amnezia-qr-smoke.mjs; backend targeted tests only if API/backend diff exists.</commands>
   </phase-76-verification-design>
+  <phase-76-evidence status="pass-local" date="2026-06-05">Consolidated Phase-76 gate passed for config download UX: Phase-48/70/71/73 smokes preserved octet-stream .conf download semantics, selected-device export parity, and truthful AmneziaVPN .conf guidance. Backend targeted tests were skipped because API/backend diff was empty.</phase-76-evidence>
 </V-M-066>

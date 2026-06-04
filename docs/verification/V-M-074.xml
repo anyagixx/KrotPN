@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<V-M-074 MODULE="M-074" PRIORITY="critical" STATUS="pass-local-phase61-phase62-pass-local-phase67-pass-local-rainfix-pass-local-phase68-pass-local-phase71-pass-local-phase72-pass-local-phase74-pass-local-phase75-phase76-planned" PHASE-61="pass-local" PHASE-62="pass-local" PHASE-67="pass-local" RAINFIX="pass-local" PHASE-68="pass-local" PHASE-71="pass-local" PHASE-72="pass-local" PHASE-74="pass-local" PHASE-75="pass-local" PHASE-76="planned">
+<V-M-074 MODULE="M-074" PRIORITY="critical" STATUS="pass-local-phase61-phase62-pass-local-phase67-pass-local-rainfix-pass-local-phase68-pass-local-phase71-pass-local-phase72-pass-local-phase74-pass-local-phase75-pass-local-phase76" PHASE-61="pass-local" PHASE-62="pass-local" PHASE-67="pass-local" RAINFIX="pass-local" PHASE-68="pass-local" PHASE-71="pass-local" PHASE-72="pass-local" PHASE-74="pass-local" PHASE-75="pass-local" PHASE-76="pass-local">
   <scope>Responsive adaptation verification for phone, tablet, and desktop layouts across public, auth, user-cabinet, and admin Matrix surfaces.</scope>
   <verification-intent>Phase-61 must prove that the premium Matrix UI is intentionally designed for mobile and tablet use, not merely tolerated by desktop CSS.</verification-intent>
   <test-files>
@@ -234,11 +234,12 @@
   </phase-74-verification-design>
   <phase-74-evidence status="pass-local" date="2026-06-05">Phase-74 smoke passed ResponsiveAdaptation markers ADMIN_SCROLL_NO_OVERLAP and ADMIN_RAIL_VIEWPORT_SAFE, with direct /plans handled as redirect and no protected user/backend/deploy/runtime drift.</phase-74-evidence>
   <phase-75-evidence status="pass-local" date="2026-06-05">Phase-75 smoke passed ResponsiveAdaptation markers UNIFIED_INVENTORY_NO_OVERFLOW and EXPANDED_DEVICES_BOUNDED, with direct /devices handled as redirect and no protected user/backend/deploy/runtime drift.</phase-75-evidence>
-  <phase-76-verification-design status="planned">
+  <phase-76-verification-design status="pass-local">
     <scope>Cross-surface responsive regression gate for Phase-72 through Phase-75.</scope>
     <gate-1>Phone, tablet, desktop, and reduced-motion checks must cover public/auth, user cabinet, and admin cockpit surfaces touched by Phase-72 through Phase-75.</gate-1>
     <gate-2>Phase-61 responsive smoke must be run as the shared regression gate after both frontend builds.</gate-2>
     <gate-3>Failure conditions include horizontal scroll, content hidden by bottom dock, admin rail/content scroll conflicts, unbounded expanded device lists, or Matrix layer pointer interception.</gate-3>
     <commands>node scripts/phase61-responsive-adaptation-smoke.mjs; Phase-72/73 user smokes; Phase-74/75 admin smokes; git diff --check; protected-surface guard.</commands>
   </phase-76-verification-design>
+  <phase-76-evidence status="pass-local" date="2026-06-05">Consolidated Phase-76 gate passed for responsive adaptation: Phase-61 smoke plus Phase-72/73/74/75 smokes proved phone/tablet/desktop no-overflow, safe bottom dock, admin rail/content scroll safety, and bounded expanded device lists.</phase-76-evidence>
 </V-M-074>
