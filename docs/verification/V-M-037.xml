@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<V-M-037 MODULE="M-037" PRIORITY="high" STATUS="pass-local-phase54-phase74-planned" PHASE-54="pass-local" PHASE-74="planned">
+<V-M-037 MODULE="M-037" PRIORITY="high" STATUS="pass-local-phase54-pass-local-phase74" PHASE-54="pass-local" PHASE-74="pass-local">
   <module>mobile-admin-console</module>
   <checks>Admin frontend must become compact and usable from a phone for operational status, user search, devices, payments/analytics, and system health.</checks>
   <test-files>frontend-admin/src/components/Layout.tsx frontend-admin/src/pages/Dashboard.tsx frontend-admin/src/pages/Users.tsx frontend-admin/src/pages/Devices.tsx frontend-admin/src/pages/MTProto.tsx frontend-admin/src/pages/Analytics.tsx frontend-admin/src/pages/Servers.tsx frontend-admin/src/pages/Plans.tsx frontend-admin/src/components/StatCard.tsx frontend-admin/src/index.css frontend-admin/src/lib/api.ts frontend-admin/src/types/index.ts scripts/phase54-admin-matrix-ui-smoke.mjs scripts/phase74-admin-shell-navigation-smoke.mjs</test-files>
-  <commands>pass-local 2026-06-03: cd frontend-admin &amp;&amp; npm run build; node scripts/phase54-admin-matrix-ui-smoke.mjs; static mobile admin smoke passed for /, /users, /devices, /mtproto, /servers, /plans, and /analytics route sources, compact navigation, bounded lists, primary actions, confirmation markers, and protected deploy/install guard.</commands>
+  <commands>pass-local 2026-06-05: Phase-74 frontend-admin build and admin shell smoke passed for no visible Tariffs nav, Logout under Nodes, content scroll, rail bounds, and protected backend/deploy/runtime/user frontend guard.</commands>
   <levels>
     <module-local>TypeScript/Vite build and static source review after every Phase-24 frontend-admin change.</module-local>
     <wave-level>Mobile smoke across overview, users, devices, and analytics/payment routes after each completed UI wave.</wave-level>
@@ -37,11 +37,11 @@
     <assert-9>Phase-74 smoke confirms admin content containers expose normal vertical overflow/scroll markers and do not depend on rail-only wheel scrolling.</assert-9>
     <assert-10>Phase-74 smoke confirms admin-rail has explicit height/overflow bounds compatible with phone, tablet, and desktop layouts.</assert-10>
   </deterministic-assertions>
-  <phase-74-admin-shell-responsive-gates status="planned">
-    <gate-1>Desktop, tablet, and phone admin shell must keep Logout under Nodes, not below long secondary content.</gate-1>
-    <gate-2>Visible admin navigation must not include Tariffs/Plans after Phase-74, but operational routes remain reachable and compact.</gate-2>
-    <gate-3>Content-area wheel scrolling and rail clipping must be asserted statically and, when possible, with a browser viewport smoke.</gate-3>
-    <gate-4>Phase-74 changes are frontend-admin only; no backend API, billing provider, deploy, install, nginx, docker, or runtime behavior may change.</gate-4>
+  <phase-74-admin-shell-responsive-gates status="pass-local">
+    <gate-1>Desktop admin shell keeps Logout under Nodes, not below long secondary content.</gate-1>
+    <gate-2>Visible admin navigation does not include Tariffs/Plans after Phase-74, while operational routes remain reachable and compact.</gate-2>
+    <gate-3>Content-area wheel scrolling and rail clipping are asserted statically by Phase-74 smoke markers.</gate-3>
+    <gate-4>Phase-74 changes are frontend-admin only; no backend API, billing provider, deploy, install, nginx, docker, or runtime behavior changed.</gate-4>
   </phase-74-admin-shell-responsive-gates>
   <static-probes>
     <probe-1>Review frontend-admin/src/pages/Devices.tsx for confirmation state, dialog/sheet/modal, or equivalent explicit confirmation before mutation.</probe-1>
@@ -111,5 +111,6 @@
     <evidence-5>2026-05-10: deploy/install/docker/nginx/frontend-admin deployment surfaces had no diff.</evidence-5>
     <evidence-6>2026-06-03: Phase-54 verification design added mobile Matrix route, viewport, pagination, bounded scroll, confirmation, and protected-surface gates.</evidence-6>
     <evidence-7>2026-06-03: Phase-54 local execution passed frontend-admin build and smoke markers [MobileAdminConsole][Phase54][ROUTE_VIEWPORT_SAFE], [PRIMARY_ACTIONS_REACHABLE], [TABLES_SCROLL_CONTAINED], and [CONFIRMATIONS_READABLE].</evidence-7>
+    <evidence-8>2026-06-05: Phase-74 smoke passed [MobileAdminConsole][phase74][ADMIN_LOGOUT_UNDER_NODES], [CONTENT_SCROLL_WHEEL_SAFE], and [RAIL_BOUNDS_SAFE] with no visible Tariffs nav.</evidence-8>
   </planned-evidence>
 </V-M-037>

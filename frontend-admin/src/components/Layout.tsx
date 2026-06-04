@@ -1,22 +1,23 @@
 // FILE: frontend-admin/src/components/Layout.tsx
-// VERSION: 1.5.0
+// VERSION: 1.6.0
 // ROLE: UI_COMPONENT
 // MAP_MODE: SUMMARY
 // START_MODULE_CONTRACT
-//   PURPOSE: Compact Matrix admin layout shell with phone/tablet-safe operator navigation, visible KrotPN logo, header meta, route outlet, and Phase-58 cockpit density markers
-//   SCOPE: Desktop rail, mobile tab bar, visible Phase-63 brand mark, page metadata display, MTProto admin entry, compact admin identity, logout, Phase-54 route-safety markers, Phase-58 protected route shell, and Phase-61 responsive static proof markers
+//   PURPOSE: Compact Matrix admin layout shell with phone/tablet-safe operator navigation, visible KrotPN logo, bounded scroll surfaces, header meta, route outlet, and Phase-58 cockpit density markers
+//   SCOPE: Desktop rail without visible admin tariffs, mobile tab bar, visible Phase-63 brand mark, page metadata display, MTProto admin entry, compact admin identity, logout under Nodes, Phase-54 route-safety markers, Phase-58 protected route shell, Phase-61 responsive static proof markers, and Phase-74 bounded scroll markers
 //   DEPENDS: M-010 (frontend-admin), M-037 (mobile-admin-console), M-038 (compact-ui-system), M-047 (mtproto-admin-ops), M-070 (matrix-visual-runtime), M-071 (matrix-style-system), M-074 (responsive-device-adaptation), M-076 (premium-admin-cockpit), M-080 (visible-brand-logo-integration), auth store, react-router-dom
-//   LINKS: M-010, M-037, M-038, M-047, M-070, M-071, M-074, M-076, M-080, Phase-54, Phase-58, Phase-61, Phase-63
+//   LINKS: M-010, M-037, M-038, M-047, M-070, M-071, M-074, M-076, M-080, Phase-54, Phase-58, Phase-61, Phase-63, Phase-74
 // END_MODULE_CONTRACT
 //
 // START_MODULE_MAP
-//   navItems - Admin navigation menu configuration (route, icon, label, hint)
+//   navItems - Admin navigation menu configuration without the Phase-74-retired visible Tariffs section
 //   pageMeta - Route-to-title/description mapping for compact header display
-//   Layout - Default export: compact admin shell with desktop rail, mobile tab bar, visible Phase-63 logo, header, outlet, and Phase-61 responsive markers
+//   Layout - Default export: compact admin shell with desktop rail, mobile tab bar, visible Phase-63 logo, header, outlet, Phase-61 responsive markers, and Phase-74 scroll/nav markers
 //   default - React component (default export)
 // END_MODULE_MAP
 //
 // START_CHANGE_SUMMARY
+//   LAST_CHANGE: v3.8.0 - Phase-74 removed visible admin Tariffs navigation, placed logout directly under Nodes, and marked bounded scroll surfaces.
 //   LAST_CHANGE: v3.7.0 - Added Phase-63 visible KrotPN logo marks to desktop rail and mobile admin topbar without changing route controls.
 //   LAST_CHANGE: v3.6.0 - Added Phase-61 phone/tablet responsive admin shell, safe-area, and static route proof markers.
 //   LAST_CHANGE: v3.5.0 - Phase-58 marked the admin shell as premium cockpit routes with compact main density and protected route evidence.
@@ -29,7 +30,6 @@
 import { Outlet, NavLink, useLocation, useNavigate } from 'react-router-dom'
 import {
   BarChart3,
-  CreditCard,
   KeyRound,
   LayoutDashboard,
   LogOut,
@@ -51,7 +51,6 @@ const navItems = [
   { to: '/mtproto', icon: KeyRound, label: 'MTProto', hint: 'Proxy ops' },
   { to: '/analytics', icon: BarChart3, label: 'Аналитика', hint: 'Деньги' },
   { to: '/servers', icon: Server, label: 'Ноды', hint: 'Маршруты' },
-  { to: '/plans', icon: CreditCard, label: 'Тарифы', hint: 'Планы' },
 ]
 // END_BLOCK: navItems
 
@@ -64,7 +63,6 @@ const pageMeta: Record<string, { title: string; description: string }> = {
   '/devices': { title: 'Устройства', description: 'Device-bound peers, сигналы и точечные действия.' },
   '/mtproto': { title: 'MTProto', description: 'Выдачи proxy, runtime health и безопасные reissue/revoke действия.' },
   '/servers': { title: 'Ноды и маршруты', description: 'Entry, exit и route topology.' },
-  '/plans': { title: 'Тарифы', description: 'Подписки, лимиты и цены.' },
   '/analytics': { title: 'Аналитика', description: 'Выручка, подписки, рефералы и конверсия.' },
 }
 // END_BLOCK: pageMeta
@@ -95,9 +93,11 @@ export default function Layout() {
       data-phase58-reduced-motion="[PremiumAdminCockpit][phase58][REDUCED_MOTION_SAFE]"
       data-phase61-layout="phone-tablet-safe"
       data-phase61-viewport-frame="[ResponsiveAdaptation][phase61][VIEWPORT_MATRIX_READY]"
+      data-phase74-admin-shell="[FrontendAdmin][phase74][NO_TARIFFS_NAV]"
+      data-phase74-scroll-pointer="[MatrixMotion][phase74][SCROLL_POINTER_SAFE]"
       data-log-marker="[MobileAdminConsole][Phase54][ROUTE_VIEWPORT_SAFE]"
     >
-      <aside className="admin-rail" aria-label="Admin navigation">
+      <aside className="admin-rail" aria-label="Admin navigation" data-phase74-admin-rail="[ResponsiveAdaptation][phase74][ADMIN_RAIL_VIEWPORT_SAFE]">
         <BrandMark
           size="md"
           className="brand-mark"
@@ -105,7 +105,7 @@ export default function Layout() {
           data-phase63-admin-shell-logo="rail"
         />
 
-        <nav className="rail-nav">
+        <nav className="rail-nav" data-phase74-nav-order="[PremiumAdminCockpit][phase74][LOGOUT_UNDER_NODES]">
           {navItems.map((item) => (
             <NavLink
               key={item.to}
@@ -120,13 +120,19 @@ export default function Layout() {
           ))}
         </nav>
 
-        <button onClick={handleLogout} className="rail-link rail-logout" title="Выйти">
+        <button
+          onClick={handleLogout}
+          className="rail-link rail-logout"
+          title="Выйти"
+          data-phase74-desktop-logout="[MobileAdminConsole][phase74][ADMIN_LOGOUT_UNDER_NODES]"
+          data-phase74-nav-motion="[MatrixMotion][phase74][ADMIN_NAV_MOTION_SAFE]"
+        >
           <LogOut className="h-5 w-5" />
           <span>Выйти</span>
         </button>
       </aside>
 
-      <div className="admin-content">
+      <div className="admin-content" data-phase74-content-scroll="[PremiumAdminCockpit][phase74][CONTENT_SCROLL_REPAIRED]">
         <header className="topbar" data-phase61-mobile-header="safe-area-compact" data-log-marker="[FrontendAdmin][Phase54][ROUTE_MATRIX_READY]">
           <div className="min-w-0">
             <div className="flex min-w-0 items-center gap-2 text-xs font-semibold uppercase text-emerald-200">
@@ -153,12 +159,22 @@ export default function Layout() {
           </div>
         </header>
 
-        <main className="phase58-cockpit-main" data-phase58-protected-main="admin-routes" data-phase61-admin-static="[ResponsiveAdaptation][phase61][ADMIN_STATIC_PROOF]">
+        <main
+          className="phase58-cockpit-main"
+          data-phase58-protected-main="admin-routes"
+          data-phase61-admin-static="[ResponsiveAdaptation][phase61][ADMIN_STATIC_PROOF]"
+          data-phase74-scroll-surface="[ResponsiveAdaptation][phase74][ADMIN_SCROLL_NO_OVERLAP]"
+        >
           <Outlet />
         </main>
       </div>
 
-      <nav className="mobile-tabbar" aria-label="Mobile admin navigation" data-phase61-mobile-nav="[ResponsiveAdaptation][phase61][SAFE_AREA_PASS]">
+      <nav
+        className="mobile-tabbar"
+        aria-label="Mobile admin navigation"
+        data-phase61-mobile-nav="[ResponsiveAdaptation][phase61][SAFE_AREA_PASS]"
+        data-phase74-mobile-nav="[FrontendAdmin][phase74][NO_TARIFFS_NAV]"
+      >
         {navItems.map((item) => (
           <NavLink
             key={item.to}

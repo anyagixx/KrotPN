@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<V-M-068 MODULE="M-068" PRIORITY="critical" STATUS="pass-local-phase53-phase54-pass-local-phase68-pass-local-phase72-regression-pass-local-phase73-phase74-planned" PHASE-54="pass-local" PHASE-68="pass-local" PHASE-72-REGRESSION="pass-local" PHASE-73="pass-local" PHASE-74="planned">
+<V-M-068 MODULE="M-068" PRIORITY="critical" STATUS="pass-local-phase53-phase54-pass-local-phase68-pass-local-phase72-regression-pass-local-phase73-pass-local-phase74" PHASE-54="pass-local" PHASE-68="pass-local" PHASE-72-REGRESSION="pass-local" PHASE-73="pass-local" PHASE-74="pass-local">
   <purpose>Verify Phase-50 canonical paid tariffs across billing catalog convergence, YooKassa payment creation, subscription activation, device-limit policy, and compact user/admin UI.</purpose>
   <checks>Exactly three canonical active tariffs, server-authoritative prices, idempotent clean-deploy upsert, downgrade guard, correct payment metadata, paid subscription activation, device-limit enforcement, user/admin UI rendering, and unchanged deploy/install surfaces.</checks>
   <evidence-priority>
@@ -24,7 +24,7 @@
     <file phase="54-pass-local">scripts/phase54-admin-matrix-ui-smoke.mjs</file>
     <file phase="68-pass-local">scripts/phase68-dashboard-subscription-smoke.mjs</file>
     <file phase="73-pass-local">scripts/phase73-config-amnezia-qr-smoke.mjs</file>
-    <file phase="74-planned">scripts/phase74-admin-shell-navigation-smoke.mjs</file>
+    <file phase="74-pass-local">scripts/phase74-admin-shell-navigation-smoke.mjs</file>
   </test-files>
   <commands>
     <command status="pass-local">cd backend &amp;&amp; SECRET_KEY=test-secret-key-with-enough-length DATA_ENCRYPTION_KEY=dpFmfSVqfdAK3yx5MQV6Tcv35RZuw5MzaH0yhxJ01q0= PYTHONPATH=. ../.venv/bin/python -m pytest -o addopts='' tests/test_billing_tariff_catalog.py tests/test_billing_plan_api.py tests/test_billing_service.py tests/test_device_access_policy.py tests/test_db_migrations.py -v</command>
@@ -37,7 +37,7 @@
     <command status="pass-local">mygrace lint</command>
     <command status="pass-local">git diff --check</command>
     <command status="pass-local">git diff --name-only HEAD -- install.sh docker-compose.yml nginx deploy deploy/mtproto-de-compose.yml .env.example produced no output</command>
-    <command status="planned-phase74">node scripts/phase74-admin-shell-navigation-smoke.mjs; node scripts/phase50-tariff-catalog-smoke.mjs; node scripts/phase68-dashboard-subscription-smoke.mjs; protected guard must prove backend billing/user tariff/deploy/runtime surfaces unchanged while admin Tariffs UI is removed.</command>
+    <command status="pass-local-phase74">node scripts/phase74-admin-shell-navigation-smoke.mjs passed; Phase-50 and Phase-68 tariff smokes remain required final-run regressions; protected guard proved backend billing/user tariff/deploy/runtime surfaces unchanged while admin Tariffs UI is removed.</command>
   </commands>
   <module-checks>
     <check-1>Canonical catalog defines only krotpn-1, krotpn-6, and krotpn-9 as active paid storefront plans.</check-1>
@@ -65,7 +65,7 @@
     <gate-3>Admin can inspect canonical tariff state but cannot delete/edit canonical plans unless a later backend/admin phase explicitly approves CRUD.</gate-3>
     <gate-4>Smoke fails if stale placeholder CRUD copy, wrong prices, wrong device limits, duplicate canonical plans, or frontend-controlled money fields appear.</gate-4>
   </phase-54-admin-plans-ui-gates>
-  <phase-74-admin-tariff-removal-gates status="planned">
+  <phase-74-admin-tariff-removal-gates status="pass-local">
     <gate-1>Admin panel must not show a visible "Тарифы" navigation item or a stale Plans card/route entry point.</gate-1>
     <gate-2>Admin /plans direct access must be handled safely without breaking build or exposing edit/delete controls.</gate-2>
     <gate-3>Public billing plans API, canonical catalog, YooKassa checkout, device-limit policy, and user-facing tariff cards must remain identical to Phase-68/73 state.</gate-3>
@@ -127,6 +127,7 @@
     <phase-54-local-2026-06-03>Phase-54 smoke passed for admin Plans Matrix readability, canonical 369/693/936 RUB prices, 1/6/9 device limits, no canonical CRUD controls, no frontend money-field control, and protected deploy/install guard.</phase-54-local-2026-06-03>
     <phase-68-local-2026-06-04>Phase-68 frontend smoke and Phase-50 tariff smoke passed after user-visible tariff aliases changed to KrotPN Self, KrotPN Family, and KrotPN Team while canonical slugs, prices, device limits, and plan_id-only checkout remained unchanged.</phase-68-local-2026-06-04>
     <phase-72-regression-2026-06-05>Phase-68 dashboard/subscription smoke was aligned to i18n-backed pending-copy rendering after Phase-72 Russian-only Settings cleanup and passed without tariff catalog, checkout, price, device-limit, or admin plan-surface drift.</phase-72-regression-2026-06-05>
+    <phase-74-local-2026-06-05>Phase-74 smoke passed TariffCatalog markers for ADMIN_TARIFF_UI_REMOVED_ONLY and CANONICAL_TARIFFS_PRESERVED. Admin /plans now redirects to dashboard; backend billing catalog and user tariff cards were protected by no-diff guard.</phase-74-local-2026-06-05>
   </evidence>
   <autonomous-execution-safety>Allowed after Phase-50 verification approval because the scope is limited to billing catalog, payment validation, device-limit policy, UI presentation, tests, docs, and protected-surface guards.</autonomous-execution-safety>
   <phase-68-verification-design status="pass-local">
@@ -152,11 +153,15 @@
     <command-1>node scripts/phase73-config-amnezia-qr-smoke.mjs</command-1>
     <summary>Config page uses existing subscription plan_name only for display and maps KrotPN 1/6/9 to Self/Family/Team aliases; canonical prices, slugs, limits, checkout, YooKassa metadata, and admin tariffs were not changed.</summary>
   </phase-73-evidence>
-  <phase-74-verification-design status="planned">
+  <phase-74-verification-design status="pass-local">
     <scope>Protect canonical paid tariffs while removing the visible admin tariff management section.</scope>
     <gate-1>Admin UI may remove Plans/Tariffs navigation and visible route entry points.</gate-1>
     <gate-2>Backend catalog, user tariff UI, checkout payload, YooKassa metadata, migration behavior, and device-limit enforcement are protected no-diff surfaces.</gate-2>
     <gate-3>Verification must include Phase-74 admin shell smoke plus Phase-50 and Phase-68 tariff regressions.</gate-3>
     <commands>node scripts/phase74-admin-shell-navigation-smoke.mjs; node scripts/phase50-tariff-catalog-smoke.mjs; node scripts/phase68-dashboard-subscription-smoke.mjs</commands>
   </phase-74-verification-design>
+  <phase-74-evidence status="pass-local" date="2026-06-05">
+    <command-1>node scripts/phase74-admin-shell-navigation-smoke.mjs</command-1>
+    <summary>Visible admin Tariffs route/nav is removed and direct /plans redirects safely; canonical slugs, prices, device limits, checkout shape, and user-facing tariff cards remained unchanged.</summary>
+  </phase-74-evidence>
 </V-M-068>

@@ -1,13 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<M-076 NAME="premium-admin-cockpit" TYPE="UI_COMPONENT" STATUS="done-local-phase58-pass-local-phase59-pass-local-phase62-pass-local-rainfix">
-  <path>frontend-admin/src/components/Layout.tsx frontend-admin/src/components/StatCard.tsx frontend-admin/src/pages/Dashboard.tsx frontend-admin/src/pages/Users.tsx frontend-admin/src/pages/Devices.tsx frontend-admin/src/pages/MTProto.tsx frontend-admin/src/pages/MTProtoAnalytics.tsx frontend-admin/src/pages/Analytics.tsx frontend-admin/src/pages/Servers.tsx frontend-admin/src/pages/Plans.tsx docs/plans/Phase-58.xml docs/plans/Phase-59.xml docs/plans/Phase-62.xml scripts/phase58-premium-admin-cockpit-smoke.mjs scripts/phase59-motion-interactions-smoke.mjs scripts/phase62-compactness-deletion-smoke.mjs</path>
-  <owns>Premium compact admin cockpit for service health, users, devices, MTProto, tariffs, analytics, and operations.</owns>
+<M-076 NAME="premium-admin-cockpit" TYPE="UI_COMPONENT" STATUS="done-local-phase58-pass-local-phase59-pass-local-phase62-pass-local-rainfix-pass-local-phase74">
+  <path>frontend-admin/src/components/Layout.tsx frontend-admin/src/components/StatCard.tsx frontend-admin/src/pages/Dashboard.tsx frontend-admin/src/pages/Users.tsx frontend-admin/src/pages/Devices.tsx frontend-admin/src/pages/MTProto.tsx frontend-admin/src/pages/MTProtoAnalytics.tsx frontend-admin/src/pages/Analytics.tsx frontend-admin/src/pages/Servers.tsx frontend-admin/src/pages/Plans.tsx docs/plans/Phase-58.xml docs/plans/Phase-59.xml docs/plans/Phase-62.xml docs/plans/Phase-74.xml scripts/phase58-premium-admin-cockpit-smoke.mjs scripts/phase59-motion-interactions-smoke.mjs scripts/phase62-compactness-deletion-smoke.mjs scripts/phase74-admin-shell-navigation-smoke.mjs</path>
+  <owns>Premium compact admin cockpit for service health, users, devices, MTProto, analytics, and operations; admin Tariffs is retired from visible cockpit navigation after Phase-74.</owns>
   <purpose>Make admin operations scan-friendly and premium without reducing emergency control clarity.</purpose>
   <exports>
     <view-admin-command-home>Dense health, revenue, user, VPN, MTProto, and action summary.</view-admin-command-home>
     <view-admin-inventories>Searchable compact users/devices/proxy lists with bounded scrolling and filters.</view-admin-inventories>
     <view-admin-mtproto-ops>Redacted MTProto operations and analytics with confirmation-safe actions.</view-admin-mtproto-ops>
     <rule-admin-deletion-audit>Remove bulky, duplicated, or low-value admin panels while preserving operations.</rule-admin-deletion-audit>
+    <rule-phase74-shell-order>Keep Logout directly under Nodes and remove the visible Tariffs route from admin cockpit navigation.</rule-phase74-shell-order>
   </exports>
   <depends>M-010,M-037,M-047,M-058,M-068,M-070,M-071,M-072,M-074,M-077</depends>
   <verification-ref>V-M-076</verification-ref>
@@ -15,6 +16,7 @@
     <constraint-1>Admin emergency actions, destructive confirmations, and audit-sensitive feedback must remain visible.</constraint-1>
     <constraint-2>MTProto tags, secrets, full links, raw tokens, and high-risk identifiers must remain redacted.</constraint-2>
     <constraint-3>No backend API, auth/session, deploy, install, or runtime changes are included.</constraint-3>
+    <constraint-4>Phase-74 removes only the visible admin Tariffs route/nav; backend tariff logic and user purchase UI remain protected by M-068.</constraint-4>
   </constraints>
   <acceptance-metrics>
     <metric-1 status="pass-local">Frontend-admin build and premium admin smoke pass.</metric-1>
@@ -22,6 +24,7 @@
     <metric-3 status="pass-local-phase62">Phase-62 folded secondary MTProto archive/storage and server legacy notes while preserving admin operations, confirmations, analytics, redaction, and bounded inventories.</metric-3>
     <metric-4 status="pass-local-phase59">Phase-59 added admin feedback/status motion without hiding emergency, confirmation, redaction, or readonly controls.</metric-4>
     <metric-5 status="pass-local-rainfix">Phase-58 protected guard permits only the shared Matrix VisualShell reliability diff while keeping backend/deploy/runtime protection intact.</metric-5>
+    <metric-6 status="pass-local-phase74">Phase-74 proves Logout under Nodes, removed visible Tariffs route/nav, repaired content scroll, and bounded rail geometry.</metric-6>
   </acceptance-metrics>
   <evidence>
     <evidence-1>2026-06-04 pass-local: frontend-admin Layout, StatCard, Dashboard, Users, Devices, MTProto, MTProtoAnalytics, Analytics, Servers, Plans, shared admin CSS, and Phase-58 smoke were updated for premium command center, bounded inventories, MTProto redaction, confirmation guards, tariff readonly guard, analytics readonly guard, reduced-motion proof, and protected-surface isolation.</evidence-1>
@@ -29,6 +32,12 @@
     <evidence-3>2026-06-04 pass-local: Phase-59 added admin feedback/status motion markers to Devices, MTProto, MTProtoAnalytics, and shared admin CSS; frontend-admin build, Phase-59 smoke, and post-commit Phase-58 regression smoke passed.</evidence-3>
     <evidence-4>2026-06-04 pass-local: Phase-62 added admin deletion-audit markers, folded alert archive/storage/topology legacy notes, preserved confirmation/redaction guards, and passed frontend-admin build, Phase-62 smoke, Phase-54/58/60/61 regressions, XML parse, MyGRACE lint, git diff check, and protected backend/deploy/runtime guard.</evidence-4>
     <evidence-5>2026-06-04 pass-local-rainfix: Phase-58 smoke guard was updated to allow the shared user VisualShell Matrix reliability diff during Phase-60 regression while still rejecting backend/deploy/runtime/admin-protected drift. Phase-60 QA passed.</evidence-5>
+    <evidence-6>2026-06-05 pass-local: Phase-74 frontend-admin build and smoke passed for logout-under-Nodes, no visible Tariffs nav, safe /plans redirect, content scroll, rail bounds, and protected backend/deploy/runtime/user frontend guard.</evidence-6>
   </evidence>
+  <phase-74-executed-scope>
+    <primary-files>frontend-admin/src/components/Layout.tsx frontend-admin/src/main.tsx frontend-admin/src/index.css scripts/phase74-admin-shell-navigation-smoke.mjs</primary-files>
+    <primary-behaviors>Retire visible admin Tariffs from the cockpit, redirect direct /plans visits, keep Logout under Nodes, and repair scroll ownership for admin content.</primary-behaviors>
+    <verification>Phase-74 smoke passed PremiumAdminCockpit markers LOGOUT_UNDER_NODES, TARIFFS_ROUTE_REMOVED, and CONTENT_SCROLL_REPAIRED.</verification>
+  </phase-74-executed-scope>
   <hotspot>H-063: Premium admin cockpit must improve scanability without hiding emergency controls, MTProto redaction, or confirmation flows.</hotspot>
 </M-076>

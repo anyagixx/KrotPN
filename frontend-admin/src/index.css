@@ -1,12 +1,12 @@
 /* FILE: frontend-admin/src/index.css
- * VERSION: 1.9.0
+ * VERSION: 2.0.0
  * ROLE: UI_COMPONENT
  * MAP_MODE: SUMMARY
  * START_MODULE_CONTRACT
- *   PURPOSE: Shared admin-frontend styling tokens, compact admin surfaces, Phase-52 Matrix visual foundation, Phase-54 admin console primitives, Phase-55 premium art direction, Phase-58 operator cockpit density, Phase-59 motion language, Phase-61 phone/tablet adaptation gates, Phase-62 deletion-audit compaction, Phase-63 visible brand logo placement, and Matrix rain reliability fallback
- *   SCOPE: Admin shell, login console, visible Phase-63 brand mark classes, navigation, panels, forms, data tables, charts, premium palette/type/density/logo tokens, Matrix background/canvas/CRT layers, CSS rain fallback and mobile overscan, Phase-58 command cockpit primitives, Phase-59 motion/microinteraction primitives, Phase-61 responsive phone/tablet/safe-area rules, Phase-62 folded admin secondary surfaces, focus and reduced-motion policy
+ *   PURPOSE: Shared admin-frontend styling tokens, compact admin surfaces, Phase-52 Matrix visual foundation, Phase-54 admin console primitives, Phase-55 premium art direction, Phase-58 operator cockpit density, Phase-59 motion language, Phase-61 phone/tablet adaptation gates, Phase-62 deletion-audit compaction, Phase-63 visible brand logo placement, Phase-74 bounded admin shell fixes, and Matrix rain reliability fallback
+ *   SCOPE: Admin shell, login console, Phase-74 icon-safe login fields and bounded admin scroll shell, visible Phase-63 brand mark classes, navigation, panels, forms, data tables, charts, premium palette/type/density/logo tokens, Matrix background/canvas/CRT layers, CSS rain fallback and mobile overscan, Phase-58 command cockpit primitives, Phase-59 motion/microinteraction primitives, Phase-61 responsive phone/tablet/safe-area rules, Phase-62 folded admin secondary surfaces, focus and reduced-motion policy
  *   DEPENDS: M-010 (frontend-admin), M-037 (admin-mtproto-ui), M-038 (compact-ui-system), M-047 (mtproto-admin-ops), M-058 (mtproto-admin-analytics-ui), M-068 (tariff-catalog), M-070 (matrix-visual-runtime), M-071 (matrix-style-system), M-072 (premium-art-direction-system), M-074 (responsive-device-adaptation), M-076 (premium-admin-cockpit), M-077 (matrix-motion-interactions), M-080 (visible-brand-logo-integration)
- *   LINKS: M-010 (frontend-admin), M-037, M-038, M-047, M-058, M-068, M-070, M-071, M-072, M-074, M-076, M-077, M-080, Phase-61, Phase-63
+ *   LINKS: M-010 (frontend-admin), M-037, M-038, M-047, M-058, M-068, M-070, M-071, M-072, M-074, M-076, M-077, M-080, Phase-61, Phase-63, Phase-74
  * END_MODULE_CONTRACT
  *
  * START_MODULE_MAP
@@ -14,7 +14,7 @@
  *   premium-art-direction - Phase-55 balanced palette, compact type scale, density, and logo rules
  *   matrix-visual-system - Canvas, CSS rain fallback, scanline, vignette, and content stacking layers
  *   visible-brand-logo - Phase-63 compact KrotPN logo mark and admin lockup classes
- *   admin-shell - Rail, topbar, mobile tabbar, content sizing
+ *   admin-shell - Rail, topbar, mobile tabbar, content sizing, and Phase-74 bounded scroll/nav geometry
  *   admin-matrix-ui - Phase-54 compact login, toolbar, KPI, chart, route, and bounded-scroll primitives
  *   premium-admin-cockpit - Phase-58 command center, dense signal strips, bounded inventories, readonly analytics, confirmation surfaces, and Phase-62 folded secondary surfaces
  *   matrix-motion-interactions - Phase-59 motion budget, route transitions, feedback states, status transitions, and safe interaction classes
@@ -23,6 +23,7 @@
  * END_MODULE_MAP
  *
  * START_CHANGE_SUMMARY
+ *   LAST_CHANGE: v4.0.0 - Phase-74 bounded admin shell scroll, clipped desktop rail height, logout-under-Nodes spacing, and icon-safe admin login inputs.
  *   LAST_CHANGE: v3.9.0 - Added minimal Phase-67-style admin auth login controls with large unframed logo and red focus states.
  *   LAST_CHANGE: v3.8.0 - Added Matrix rain CSS fallback, normal canvas blending, and mobile overscan to prevent blank/cut-off rain in live browsers.
  *   LAST_CHANGE: v3.7.0 - Added Phase-63 visible brand logo classes for admin login, rail, and mobile topbar placement.
@@ -327,7 +328,11 @@ textarea:focus-visible,
 }
 
 .admin-rail {
-  @apply sticky top-0 hidden h-screen flex-col gap-4 border-r px-3 py-4 lg:flex;
+  @apply sticky top-0 hidden flex-col gap-3 border-r px-3 py-4 lg:flex;
+  height: 100dvh;
+  max-height: 100dvh;
+  overflow: hidden;
+  overscroll-behavior: contain;
   background: rgba(3, 12, 8, 0.94);
   border-color: var(--border);
   box-shadow: inset -1px 0 rgba(104, 232, 255, 0.07), var(--premium-shadow-tight);
@@ -401,7 +406,9 @@ textarea:focus-visible,
 /* END_BLOCK_PHASE63_VISIBLE_BRAND_LOGO */
 
 .rail-nav {
-  @apply flex flex-1 flex-col gap-1;
+  @apply flex flex-col gap-1;
+  flex: 0 0 auto;
+  min-height: 0;
 }
 
 .rail-link {
@@ -418,11 +425,75 @@ textarea:focus-visible,
 
 .rail-logout {
   @apply w-full text-left text-slate-400;
+  flex: 0 0 auto;
+  margin-top: 0.25rem;
 }
 
 .admin-content {
   @apply min-w-0;
+  min-height: 0;
 }
+
+/* START_BLOCK_PHASE74_ADMIN_SHELL_SCROLL */
+.phase74-icon-safe-input {
+  padding-left: 3.35rem !important;
+  padding-right: 1rem;
+}
+
+.auth-input-group.phase74-icon-safe .input-icon-left {
+  left: 1rem;
+  height: 1.25rem;
+  width: 1.25rem;
+  pointer-events: none;
+}
+
+.auth-input-group.phase74-icon-safe .phase74-icon-safe-input {
+  /* [MatrixStyle][phase74][ADMIN_LOGIN_ICON_NO_OVERLAP] */
+  text-indent: 0;
+}
+
+.admin-rail[data-phase74-admin-rail] {
+  /* [MatrixStyle][phase74][ADMIN_RAIL_BOUNDED] */
+  /* [ResponsiveAdaptation][phase74][ADMIN_RAIL_VIEWPORT_SAFE] */
+  max-height: 100dvh;
+}
+
+.admin-content[data-phase74-content-scroll] {
+  /* [MatrixStyle][phase74][ADMIN_SCROLL_SURFACE_SAFE] */
+  /* [PremiumAdminCockpit][phase74][CONTENT_SCROLL_REPAIRED] */
+  scrollbar-gutter: stable;
+}
+
+.rail-nav[data-phase74-nav-order] + .rail-logout {
+  /* [PremiumAdminCockpit][phase74][LOGOUT_UNDER_NODES] */
+  /* [MobileAdminConsole][phase74][ADMIN_LOGOUT_UNDER_NODES] */
+}
+
+@media (min-width: 1024px) {
+  .app-shell {
+    height: 100dvh;
+    max-height: 100dvh;
+    overflow: hidden;
+  }
+
+  .admin-content {
+    height: 100dvh;
+    max-height: 100dvh;
+    overflow-x: hidden;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    scrollbar-gutter: stable;
+    /* [ResponsiveAdaptation][phase74][ADMIN_SCROLL_NO_OVERLAP] */
+    /* [MatrixMotion][phase74][SCROLL_POINTER_SAFE] */
+  }
+
+  .phase58-cockpit-main {
+    min-height: calc(100dvh - 78px);
+    padding-bottom: 1rem;
+  }
+}
+/* [MatrixMotion][phase74][ADMIN_NAV_MOTION_SAFE] */
+/* END_BLOCK_PHASE74_ADMIN_SHELL_SCROLL */
 
 .topbar {
   @apply sticky top-0 z-20 flex min-h-[78px] items-center justify-between gap-3 border-b px-4 py-3 backdrop-blur md:px-6;

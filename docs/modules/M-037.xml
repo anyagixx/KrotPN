@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<M-037 NAME="mobile-admin-console" TYPE="UI_COMPONENT" STATUS="pass-local-phase54">
-  <path>frontend-admin docs/plans/Phase-24.xml docs/plans/Phase-54.xml scripts/phase54-admin-matrix-ui-smoke.mjs</path>
+<M-037 NAME="mobile-admin-console" TYPE="UI_COMPONENT" STATUS="pass-local-phase54-pass-local-phase74">
+  <path>frontend-admin docs/plans/Phase-24.xml docs/plans/Phase-54.xml docs/plans/Phase-74.xml scripts/phase54-admin-matrix-ui-smoke.mjs scripts/phase74-admin-shell-navigation-smoke.mjs</path>
   <owns>Compact mobile-first admin console for operational status, users, devices, payments, analytics summary, system health, and emergency device actions</owns>
   <exports>
     <view-admin-mobile-overview>Dense service overview with health, users, subscriptions, revenue, VPN/system status, and urgent navigation</view-admin-mobile-overview>
@@ -23,7 +23,9 @@
     <file>frontend-admin/src/types/index.ts</file>
     <file>docs/plans/Phase-24.xml</file>
     <file>docs/plans/Phase-54.xml</file>
+    <file>docs/plans/Phase-74.xml</file>
     <file>scripts/phase54-admin-matrix-ui-smoke.mjs</file>
+    <file>scripts/phase74-admin-shell-navigation-smoke.mjs</file>
   </files>
   <data-flows>
     <DF-UI-ADMIN-OVERVIEW>Stats and system health render as a compact first-screen operator status surface.</DF-UI-ADMIN-OVERVIEW>
@@ -53,5 +55,10 @@
     <surface-2>Device and MTProto disruptive actions retain confirmation surfaces above pointer-safe Matrix overlays.</surface-2>
     <surface-3>2026-06-03: frontend-admin build and scripts/phase54-admin-matrix-ui-smoke.mjs passed the mobile route, bounded-scroll, and confirmation markers.</surface-3>
   </phase-54-execution>
+  <phase-74-executed-scope>
+    <surface-1>Admin mobile/tab navigation no longer exposes the retired Tariffs entry.</surface-1>
+    <surface-2>Desktop Logout is placed directly under Nodes while the mobile tabbar remains compact and free of the removed Tariffs item.</surface-2>
+    <surface-3>2026-06-05: Phase-74 smoke passed mobile-admin markers for logout-under-Nodes, rail bounds, content wheel scroll, and no visible Tariffs nav.</surface-3>
+  </phase-74-executed-scope>
   <hotspot>H-024: Mobile admin console must keep emergency operator actions visible without desktop-only dashboards</hotspot>
 </M-037>

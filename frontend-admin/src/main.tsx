@@ -1,21 +1,22 @@
 // FILE: frontend-admin/src/main.tsx
-// VERSION: 1.0.0
+// VERSION: 1.1.0
 // ROLE: ENTRY_POINT
 // MAP_MODE: SUMMARY
 // START_MODULE_CONTRACT
-//   PURPOSE: Application entry point — mounts React router, query client, auth-guarded routes
-//   SCOPE: BrowserRouter, QueryClientProvider, PrivateRoute, page route definitions including MTProto admin ops, Matrix visual shell mount
-//   DEPENDS: M-010 (frontend-admin), M-047 (mtproto-admin-ops), M-070 (matrix-visual-runtime), M-071 (matrix-style-system), react-router-dom, @tanstack/react-query, stores/auth
-//   LINKS: M-010 (frontend-admin), M-047, M-070, M-071
+//   PURPOSE: Application entry point — mounts React router, query client, auth-guarded routes, and Phase-74-safe retired admin route redirects
+//   SCOPE: BrowserRouter, QueryClientProvider, PrivateRoute, page route definitions including MTProto admin ops, retired /plans redirect, Matrix visual shell mount
+//   DEPENDS: M-010 (frontend-admin), M-047 (mtproto-admin-ops), M-068 (tariff-catalog), M-070 (matrix-visual-runtime), M-071 (matrix-style-system), react-router-dom, @tanstack/react-query, stores/auth
+//   LINKS: M-010 (frontend-admin), M-047, M-068, M-070, M-071, Phase-74
 // END_MODULE_CONTRACT
 //
 // START_MODULE_MAP
 //   queryClient - TanStack Query client instance
 //   PrivateRoute - Auth guard component redirecting to /login
-//   App mount - ReactDOM.createRoot with React.StrictMode and Phase-52 visual shell
+//   App mount - ReactDOM.createRoot with React.StrictMode, Phase-52 visual shell, and Phase-74 /plans redirect
 // END_MODULE_MAP
 //
 // START_CHANGE_SUMMARY
+//   LAST_CHANGE: v3.4.0 - Phase-74 retired the visible admin /plans page by redirecting direct visits back to the dashboard.
 //   LAST_CHANGE: v3.3.0 - Mounted Phase-52 Matrix VisualShell around the admin route tree
 //   LAST_CHANGE: v3.2.0 - Added Phase-33 /mtproto admin route
 //   LAST_CHANGE: v2.8.0 - Converted to full GRACE MODULE_CONTRACT/MAP format with START/END blocks
@@ -38,7 +39,6 @@ import Users from './pages/Users'
 import Devices from './pages/Devices'
 import MTProto from './pages/MTProto'
 import Servers from './pages/Servers'
-import Plans from './pages/Plans'
 import Analytics from './pages/Analytics'
 import Layout from './components/Layout'
 import VisualShell from './components/VisualShell'
@@ -71,7 +71,7 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
               <Route path="devices" element={<Devices />} />
               <Route path="mtproto" element={<MTProto />} />
               <Route path="servers" element={<Servers />} />
-              <Route path="plans" element={<Plans />} />
+              <Route path="plans" element={<Navigate to="/" replace />} />
               <Route path="analytics" element={<Analytics />} />
             </Route>
           </Routes>

@@ -1,12 +1,12 @@
 #!/usr/bin/env node
 /*
  * FILE: scripts/phase50-tariff-catalog-smoke.mjs
- * VERSION: 1.1.0
+ * VERSION: 1.2.0
  * ROLE: TEST
  * MAP_MODE: LOCALS
  * START_MODULE_CONTRACT
  *   PURPOSE: Static smoke checks for Phase-50 paid tariff catalog and compact billing UI
- *   SCOPE: Canonical tariff constants, backend checkout markers, user/admin UI contract, README documentation, and protected deploy surfaces
+ *   SCOPE: Canonical tariff constants, backend checkout markers, user/admin UI contract, i18n tariff copy, README documentation, and protected deploy surfaces
  *   DEPENDS: M-068, M-004, M-009, M-010, M-021, M-038
  *   LINKS: V-M-068
  * END_MODULE_CONTRACT
@@ -20,6 +20,7 @@
  * END_MODULE_MAP
  *
  * START_CHANGE_SUMMARY
+ *   LAST_CHANGE: v1.2.0 - Aligned device-limit warning assertion with i18n-backed Phase-68/72 tariff copy.
  *   LAST_CHANGE: v1.1.0 - Updated user tariff assertions for Phase-68 shared SubscriptionPanel display aliases.
  *   LAST_CHANGE: v1.0.0 - Added Phase-50 paid tariff catalog static smoke gate
  * END_CHANGE_SUMMARY
@@ -78,6 +79,7 @@ const servicePath = 'backend/app/billing/service.py'
 const routerPath = 'backend/app/billing/router.py'
 const subscriptionPath = 'frontend/src/pages/Subscription.tsx'
 const subscriptionPanelPath = 'frontend/src/components/SubscriptionPanel.tsx'
+const frontendI18nPath = 'frontend/src/i18n/index.ts'
 const adminPlansPath = 'frontend-admin/src/pages/Plans.tsx'
 const adminTypesPath = 'frontend-admin/src/types/index.ts'
 const readmePath = 'README.md'
@@ -87,7 +89,8 @@ const service = read(servicePath)
 const router = read(routerPath)
 const subscription = read(subscriptionPath)
 const subscriptionPanel = read(subscriptionPanelPath)
-const userSubscriptionSurface = `${subscription}\n${subscriptionPanel}`
+const frontendI18n = read(frontendI18nPath)
+const userSubscriptionSurface = `${subscription}\n${subscriptionPanel}\n${frontendI18n}`
 const adminPlans = read(adminPlansPath)
 const adminTypes = read(adminTypesPath)
 const readme = read(readmePath)

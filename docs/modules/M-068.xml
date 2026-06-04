@@ -1,14 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<M-068 NAME="paid-tariff-catalog" TYPE="CORE_LOGIC" STATUS="done-local-phase50-phase53-phase54-pass-local-phase68-pass-local-phase73">
-  <path>backend/app/billing backend/app/core/migrations.py backend/alembic/versions/phase50_paid_tariff_catalog.py frontend/src/pages/Subscription.tsx frontend/src/pages/Config.tsx frontend-admin/src/pages/Plans.tsx scripts/phase50-tariff-catalog-smoke.mjs scripts/phase53-user-matrix-ui-smoke.mjs scripts/phase54-admin-matrix-ui-smoke.mjs scripts/phase73-config-amnezia-qr-smoke.mjs README.md docs/plans/Phase-50.xml docs/plans/Phase-53.xml docs/plans/Phase-54.xml docs/plans/Phase-73.xml</path>
-  <owns>Canonical three-plan paid tariff catalog, server-authoritative payment amounts, device-limit checkout guards, and compact tariff presentation in user/admin frontends.</owns>
+<M-068 NAME="paid-tariff-catalog" TYPE="CORE_LOGIC" STATUS="done-local-phase50-phase53-phase54-pass-local-phase68-pass-local-phase73-pass-local-phase74">
+  <path>backend/app/billing backend/app/core/migrations.py backend/alembic/versions/phase50_paid_tariff_catalog.py frontend/src/pages/Subscription.tsx frontend/src/pages/Config.tsx frontend/src/i18n/index.ts frontend-admin/src/pages/Plans.tsx scripts/phase50-tariff-catalog-smoke.mjs scripts/phase53-user-matrix-ui-smoke.mjs scripts/phase54-admin-matrix-ui-smoke.mjs scripts/phase68-dashboard-subscription-smoke.mjs scripts/phase73-config-amnezia-qr-smoke.mjs scripts/phase74-admin-shell-navigation-smoke.mjs README.md docs/plans/Phase-50.xml docs/plans/Phase-53.xml docs/plans/Phase-54.xml docs/plans/Phase-68.xml docs/plans/Phase-73.xml docs/plans/Phase-74.xml</path>
+  <owns>Canonical three-plan paid tariff catalog, server-authoritative payment amounts, device-limit checkout guards, compact tariff presentation in the user frontend, and historical hidden admin tariff inspection code retained for regression only after Phase-74.</owns>
   <purpose>Guarantee that clean deployments and existing deployments converge to the approved KrotPN paid tariff matrix without trusting frontend-provided prices.</purpose>
   <exports>
     <fn-canonical-tariff-catalog>Return the approved paid tariff definitions: 1 device for 369 RUB, 6 devices for 693 RUB, and 9 devices for 936 RUB.</fn-canonical-tariff-catalog>
     <fn-upsert-canonical-tariffs>Idempotently create or update canonical plan rows without duplicating plans on backend restart.</fn-upsert-canonical-tariffs>
     <fn-validate-checkout-plan>Validate that a selected plan is active, canonical, and compatible with the user's current consumed device slots before payment creation.</fn-validate-checkout-plan>
     <ui-user-tariff-cards>Render exactly three compact user-facing tariff cards with price, duration, device limit, and checkout action.</ui-user-tariff-cards>
-    <ui-admin-tariff-matrix>Render the canonical tariff matrix in admin panel without exposing accidental delete/edit paths for canonical plans.</ui-admin-tariff-matrix>
+    <ui-admin-tariff-matrix>Historical hidden admin tariff matrix retained for Phase-50/54 regression proof only; Phase-74 removes it from visible admin navigation and direct route display.</ui-admin-tariff-matrix>
     <smoke-phase50-tariff-catalog>Static smoke for user/admin tariff copy, canonical price/device-limit values, and protected deploy/install surfaces.</smoke-phase50-tariff-catalog>
   </exports>
   <depends>M-001,M-004,M-006,M-009,M-010,M-021,M-022,M-028,M-036,M-038,M-071</depends>
@@ -28,6 +28,7 @@
     <file>backend/tests/test_device_access_policy.py</file>
     <file>backend/tests/test_db_migrations.py</file>
     <file>frontend/src/lib/api.ts</file>
+    <file>frontend/src/i18n/index.ts</file>
     <file>frontend/src/components/SubscriptionPanel.tsx</file>
     <file>frontend/src/pages/Config.tsx</file>
     <file>frontend/src/pages/Subscription.tsx</file>
@@ -38,6 +39,7 @@
     <file>scripts/phase54-admin-matrix-ui-smoke.mjs</file>
     <file>scripts/phase68-dashboard-subscription-smoke.mjs</file>
     <file>scripts/phase73-config-amnezia-qr-smoke.mjs</file>
+    <file>scripts/phase74-admin-shell-navigation-smoke.mjs</file>
     <file>README.md</file>
   </files>
   <tariffs>
@@ -52,6 +54,7 @@
     <constraint-4>Pending four-day trial behavior from M-063 remains unchanged; successful paid checkout cancels pending trial and activates paid access immediately after payment webhook.</constraint-4>
     <constraint-5>Personal MTProto proxy entitlement remains verified-email based and is not moved behind paid tariffs in Phase-50.</constraint-5>
     <constraint-6>Do not modify install.sh, deploy scripts, docker-compose, nginx routing, TLS material, VPN runtime topology, or MTProto runtime topology.</constraint-6>
+    <constraint-7>Phase-74 may remove only the visible admin tariff section and direct /plans display; backend catalog, user purchase cards, checkout guards, canonical values, and Phase-50 regression proof remain intact.</constraint-7>
   </constraints>
   <acceptance-metrics>
     <metric-1>Public billing plans API returns exactly the three active canonical tariffs in sort order with 30-day duration, RUB currency, and device limits 1, 6, and 9.</metric-1>
@@ -79,5 +82,11 @@
     <verification>Phase-73 smoke passed display-name-only and device-limit-message-safe markers; no billing API, YooKassa, device-limit enforcement, or admin plan code changed.</verification>
   </phase-73-executed-scope>
   <phase-73-evidence status="pass-local" date="2026-06-05">Config page reads existing subscription display data for copy only and maps legacy KrotPN 1/6/9 names to Self/Family/Team presentation aliases.</phase-73-evidence>
+  <phase-74-executed-scope>
+    <primary-files>frontend-admin/src/components/Layout.tsx frontend-admin/src/main.tsx scripts/phase74-admin-shell-navigation-smoke.mjs</primary-files>
+    <primary-behaviors>Remove visible admin Tariffs navigation and redirect direct /plans to dashboard while keeping backend canonical tariffs and user-facing tariff purchase UI unchanged.</primary-behaviors>
+    <verification>Phase-74 smoke passed ADMIN_TARIFF_UI_REMOVED_ONLY and CANONICAL_TARIFFS_PRESERVED markers; Phase-50 tariff smoke remains part of the regression suite.</verification>
+  </phase-74-executed-scope>
+  <phase-74-evidence status="pass-local" date="2026-06-05">Admin tariff UI is retired from the shell only; canonical slugs krotpn-1/krotpn-6/krotpn-9, prices, device limits, checkout shape, and user tariff aliases remain protected.</phase-74-evidence>
   <hotspot>H-055: Paid tariff catalog must keep server-authoritative prices, canonical device limits, no duplicate clean-deploy plans, and no deploy/install drift</hotspot>
 </M-068>

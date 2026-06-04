@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<M-010 NAME="frontend-admin" TYPE="UI_COMPONENT" STATUS="stable-pass-local-phase51-phase52-phase54-phase59-pass-local-minimal-login">
-  <path>frontend-admin frontend-admin/public frontend-admin/index.html scripts/phase54-admin-matrix-ui-smoke.mjs scripts/phase59-motion-interactions-smoke.mjs docs/plans/Phase-54.xml docs/plans/Phase-59.xml</path>
-  <owns>admin login, mobile-capable dashboard, users, devices, MTProto operations, servers, plans, analytics, settings, Full Tunnel status, and device anomaly review controls</owns>
+<M-010 NAME="frontend-admin" TYPE="UI_COMPONENT" STATUS="stable-pass-local-phase51-phase52-phase54-phase59-pass-local-minimal-login-pass-local-phase74">
+  <path>frontend-admin frontend-admin/public frontend-admin/index.html scripts/phase54-admin-matrix-ui-smoke.mjs scripts/phase59-motion-interactions-smoke.mjs scripts/phase74-admin-shell-navigation-smoke.mjs docs/plans/Phase-54.xml docs/plans/Phase-59.xml docs/plans/Phase-74.xml</path>
+  <owns>admin login, mobile-capable dashboard, users, devices, MTProto operations, servers, analytics, settings, Full Tunnel status, and device anomaly review controls; admin Tariffs is retired from visible navigation after Phase-74</owns>
   <depends>M-006, M-024, M-070, M-071, M-077</depends>
   <verification-ref>V-M-010</verification-ref>
   <files>
@@ -28,6 +28,7 @@
     <file>frontend-admin/src/types/index.ts</file>
     <file>frontend-admin/src/index.css</file>
     <file>scripts/phase59-motion-interactions-smoke.mjs</file>
+    <file>scripts/phase74-admin-shell-navigation-smoke.mjs</file>
   </files>
   <phase-25-scope>
     <surface-1>Admin login persists admin_refresh_token so the existing 401 refresh interceptor can operate.</surface-1>
@@ -69,16 +70,23 @@
     <surface-2>Devices, MTProto, and MTProtoAnalytics add compact feedback/status motion classes without changing API clients, admin auth, deploy, install, or runtime behavior.</surface-2>
     <surface-3>2026-06-04: frontend-admin npm run build passed; Phase-59 smoke passed; post-commit Phase-58 regression smoke passed; protected backend/deploy/runtime guard passed.</surface-3>
   </phase-59-scope>
+  <phase-74-executed-scope>
+    <primary-files>frontend-admin/src/pages/Login.tsx frontend-admin/src/components/Layout.tsx frontend-admin/src/main.tsx frontend-admin/src/index.css scripts/phase74-admin-shell-navigation-smoke.mjs</primary-files>
+    <primary-behaviors>Admin login inputs reserve icon-safe padding; admin Tariffs is removed from visible navigation; direct /plans redirects to dashboard; Logout sits under Nodes; desktop admin content owns wheel-scroll; admin rail is bounded to 100dvh.</primary-behaviors>
+    <verification>frontend-admin build and Phase-74 smoke passed; protected backend/deploy/runtime/user frontend guard remained clean.</verification>
+  </phase-74-executed-scope>
   <constraints>
     <constraint-1>Frontend-admin must continue to call existing M-006 and M-024 API contracts unless an API change is separately approved.</constraint-1>
     <constraint-2>Admin auth/session hardening belongs to Phase-25 and must not be bundled into Phase-24 UI simplification.</constraint-2>
     <constraint-3>Deployment and install scripts are out of scope for this UI module phase.</constraint-3>
     <constraint-4>Admin login inputs must not prefill or hint stale default credentials; icon-bearing inputs must reserve enough padding so icons and placeholder text never overlap.</constraint-4>
     <constraint-5>Admin login must not show informational route cards, helper copy, default credentials, or non-essential operator text unless a later approved phase reintroduces it.</constraint-5>
+    <constraint-6>Admin tariff catalog visibility is retired from the admin shell in Phase-74; backend canonical tariffs and user tariff checkout remain M-068-owned and must not be changed by this UI route removal.</constraint-6>
   </constraints>
   <evidence>
     <evidence-1>2026-05-21: Local admin UI fix removed login email/password placeholders, removed stale admin@krotpn.com fallback copy, and standardized left-icon input padding.</evidence-1>
     <evidence-2>2026-06-03: Phase-54 local execution passed frontend-admin build and admin Matrix UI smoke without deploy/install/nginx/docker-compose/runtime changes.</evidence-2>
     <evidence-3>2026-06-04: Minimal admin login fix passed Phase-54 smoke updates and frontend-admin build with only logo, fields, error state, and Войти action visible.</evidence-3>
+    <evidence-4>2026-06-05: Phase-74 local execution passed frontend-admin build and Phase-74 smoke for icon-safe login, no visible Tariffs nav, safe /plans redirect, Logout under Nodes, bounded rail, and content scroll.</evidence-4>
   </evidence>
 </M-010>

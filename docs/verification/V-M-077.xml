@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<V-M-077 MODULE="M-077" PRIORITY="high" STATUS="pass-local-rainfix-pass-local-phase68-pass-local-phase71-pass-local-phase72-phase74-planned" PHASE-59="pass-local" RAINFIX="pass-local" PHASE-68="pass-local" PHASE-71="pass-local" PHASE-72="pass-local" PHASE-74="planned">
+<V-M-077 MODULE="M-077" PRIORITY="high" STATUS="pass-local-rainfix-pass-local-phase68-pass-local-phase71-pass-local-phase72-pass-local-phase74" PHASE-59="pass-local" RAINFIX="pass-local" PHASE-68="pass-local" PHASE-71="pass-local" PHASE-72="pass-local" PHASE-74="pass-local">
   <scope>Phase-59 verification for premium Matrix motion and microinteractions across user and admin frontends: copy/download/proxy feedback, VPN/MTProto/subscription/alert/health state transitions, route entrance motion, reduced-motion fallback, inactive-tab lifecycle, keyboard/pointer/scroll safety, and protected-surface isolation.</scope>
   <test-files>
     <file>scripts/phase59-motion-interactions-smoke.mjs</file>
@@ -10,7 +10,7 @@
     <file>scripts/phase58-premium-admin-cockpit-smoke.mjs</file>
     <file phase="71-pass-local">scripts/phase71-device-config-master-detail-smoke.mjs</file>
     <file phase="72-pass-local">scripts/phase72-user-auth-navigation-smoke.mjs</file>
-    <file phase="74-planned">scripts/phase74-admin-shell-navigation-smoke.mjs</file>
+    <file phase="74-pass-local">scripts/phase74-admin-shell-navigation-smoke.mjs</file>
     <file>frontend/src/components/MatrixBackground.tsx</file>
     <file>frontend/src/components/VisualShell.tsx</file>
     <file>frontend/src/components/Layout.tsx</file>
@@ -51,7 +51,7 @@
     <check-13 status="passed-local">git diff --check</check-13>
     <check-14 status="passed-local">git diff --name-only HEAD -- install.sh docker-compose.yml nginx deploy deploy/mtproto-de-compose.yml .env.example backend/app backend/tests mtproto-runtime official-mtproxy telegram-bot is empty</check-14>
     <check-15 status="pass-local-rainfix">node scripts/phase59-motion-interactions-smoke.mjs asserts root transform safety, CSS rain fallback, mobile overscan, and visualViewport listeners.</check-15>
-    <check-16 status="planned-phase74">Phase-74 smoke asserts admin nav/logout microinteractions, pointer-safe scroll containers, reduced-motion fallback, and no Matrix overlay scroll interception.</check-16>
+    <check-16 status="pass-local-phase74">Phase-74 smoke asserted admin nav/logout microinteractions, pointer-safe scroll containers, reduced-motion fallback, and no Matrix overlay scroll interception.</check-16>
   </module-checks>
   <evidence>
     <item>2026-06-04: frontend build passed.</item>
@@ -61,6 +61,7 @@
     <item>2026-06-04: XML parse, MyGRACE lint, git diff --check, and protected backend/deploy/runtime guard passed.</item>
     <item>2026-06-04: Rainfix Phase-59 smoke passed after moving motion-route-enter from the root shell to matrix-visual-content and adding CSS_RAIN_FALLBACK_READY/MOBILE_OVERSCAN_READY assertions.</item>
     <item>2026-06-04: Phase-68 kept dashboard/config/subscription buttons on existing motion-interactive primitives; Phase-59 and Phase-68 smokes passed with reduced-motion and protected-surface guards.</item>
+    <item>2026-06-05: Phase-74 smoke passed MatrixMotion markers ADMIN_NAV_MOTION_SAFE and SCROLL_POINTER_SAFE for admin shell navigation and content scrolling.</item>
   </evidence>
   <verification-matrix>
     <target-1 evidence="static-and-interaction">Copy, download, QR/config, Telegram proxy, and promo/status feedback use short visible success/error states without blocking forms, buttons, links, or route navigation.</target-1>
@@ -140,11 +141,12 @@
     <marker-2>[MatrixMotion][phase72][REDUCED_MOTION_NAV_PASS]</marker-2>
   </phase-72-required-markers>
   <phase-72-evidence status="pass-local" date="2026-06-05">Phase-72 and Phase-59 smokes passed for bounded bottom-dock transitions, reduced-motion nav safety, pointer/scroll safety, and protected backend/deploy/runtime guard.</phase-72-evidence>
-  <phase-74-verification-design status="planned">
+  <phase-74-verification-design status="pass-local">
     <scope>Motion and pointer/scroll verification for the admin shell navigation and scroll repair wave.</scope>
     <gate-1>Logout and admin nav controls may use motion-interactive states but must not shift layout, hide controls, or trap keyboard focus.</gate-1>
     <gate-2>Matrix visual layers, route transitions, and feedback layers must not intercept mouse-wheel, touch scroll, pointer events, or focus in the admin content surface.</gate-2>
     <gate-3>Reduced-motion mode must keep admin navigation and scroll behavior usable without transform-heavy transitions.</gate-3>
     <commands>node scripts/phase74-admin-shell-navigation-smoke.mjs; node scripts/phase59-motion-interactions-smoke.mjs</commands>
   </phase-74-verification-design>
+  <phase-74-evidence status="pass-local" date="2026-06-05">Phase-74 smoke proved admin nav motion and content scroll pointer safety without Matrix overlay scroll interception or protected backend/deploy/runtime drift.</phase-74-evidence>
 </V-M-077>

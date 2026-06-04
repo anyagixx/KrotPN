@@ -1,20 +1,21 @@
 // FILE: frontend-admin/src/pages/Login.tsx
-// VERSION: 3.1.0
+// VERSION: 3.2.0
 // ROLE: UI_COMPONENT
 // MAP_MODE: SUMMARY
 // START_MODULE_CONTRACT
-//   PURPOSE: Minimal Matrix-style admin authentication page with visible KrotPN logo, credential form, role verification, and auth store integration
-//   SCOPE: Large unframed brand mark, email/password login, role gate (admin/superadmin only), compact admin auth shell, redirect to dashboard on success
+//   PURPOSE: Minimal Matrix-style admin authentication page with visible KrotPN logo, icon-safe credential form, role verification, and auth store integration
+//   SCOPE: Large unframed brand mark, icon-safe email/password login, role gate (admin/superadmin only), compact admin auth shell, redirect to dashboard on success
 //   DEPENDS: M-010 (frontend-admin), M-006 (admin API), M-037 (mobile-admin-console), M-070 (matrix-visual-runtime), M-071 (matrix-style-system), M-080 (visible-brand-logo-integration), auth store
-//   LINKS: M-010, M-037, M-070, M-071, M-080, Phase-54, Phase-63, Phase-67
+//   LINKS: M-010, M-037, M-070, M-071, M-080, Phase-54, Phase-63, Phase-67, Phase-74
 // END_MODULE_CONTRACT
 //
 // START_MODULE_MAP
-//   LoginPage - Minimal admin login page component with auth flow, role gate, and large Phase-67-style BrandMark
+//   LoginPage - Minimal admin login page component with auth flow, role gate, large Phase-67-style BrandMark, and Phase-74 icon-safe inputs
 //   default - React component (default export)
 // END_MODULE_MAP
 //
 // START_CHANGE_SUMMARY
+//   LAST_CHANGE: v3.2.0 - Added Phase-74 icon-safe login input markers and spacing to prevent text/icon overlap.
 //   LAST_CHANGE: v3.1.0 - Reduced admin login to logo, credential inputs, and submit action with Phase-67-style unframed Matrix form controls.
 //   LAST_CHANGE: v3.0.0 - Switched admin login mark to Phase-63 BrandMark without restoring preset credentials.
 //   LAST_CHANGE: v2.9.0 - Phase-54 compact Matrix admin login without oversized split hero or preset credentials.
@@ -87,6 +88,7 @@ export default function Login() {
       data-phase54-admin-login="compact"
       data-log-marker="[FrontendAdmin][Phase54][ROUTE_MATRIX_READY]"
       data-admin-login-minimal="[FrontendAdmin][fix][MINIMAL_LOGIN_READY]"
+      data-phase74-login-icon-padding="[FrontendAdmin][phase74][LOGIN_ICON_PADDING_SAFE]"
     >
       <section className="admin-auth-panel animate-in">
         <div className="admin-auth-heading">
@@ -100,13 +102,13 @@ export default function Login() {
           <h1 className="sr-only">Вход в админку</h1>
         </div>
 
-        <form onSubmit={handleSubmit} className="admin-auth-form">
-          <label className="auth-input-group relative block">
+        <form onSubmit={handleSubmit} className="admin-auth-form" data-phase74-input-form="[MatrixStyle][phase74][ADMIN_LOGIN_ICON_NO_OVERLAP]">
+          <label className="auth-input-group phase74-icon-safe relative block">
             <span className="sr-only">Email</span>
             <Mail className="icon input-icon-left h-5 w-5" />
             <input
               type="email"
-              className="input auth-input w-full"
+              className="input auth-input phase74-icon-safe-input w-full"
               aria-label="Email"
               autoComplete="username"
               value={email}
@@ -115,12 +117,12 @@ export default function Login() {
             />
           </label>
 
-          <label className="auth-input-group relative block">
+          <label className="auth-input-group phase74-icon-safe relative block">
             <span className="sr-only">Пароль</span>
             <Lock className="icon input-icon-left h-5 w-5" />
             <input
               type="password"
-              className="input auth-input w-full"
+              className="input auth-input phase74-icon-safe-input w-full"
               aria-label="Пароль"
               autoComplete="current-password"
               value={password}
