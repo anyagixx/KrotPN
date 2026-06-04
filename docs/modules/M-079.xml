@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<M-079 NAME="premium-email-templates" TYPE="UI_COMPONENT" STATUS="planned-phase66">
+<M-079 NAME="premium-email-templates" TYPE="UI_COMPONENT" STATUS="verification-designed-phase66">
   <path>backend/app/email/templates.py backend/app/email/service.py backend/tests/test_email_delivery.py docs/plans/Phase-64.xml docs/plans/Phase-66.xml scripts/phase64-premium-email-template-smoke.mjs scripts/phase66-minimal-email-template-smoke.mjs</path>
   <owns>Premium Matrix/cyberpunk Resend verification and password-reset email templates.</owns>
   <purpose>Bring transactional email visual quality in line with the premium KrotPN frontend without weakening token safety.</purpose>
@@ -20,6 +20,7 @@
     <metric-2 status="pass-local-phase64">Phase-64 smoke proves logo URL, text fallback, token redaction, and dark-email compatibility markers.</metric-2>
     <metric-3 status="pass-local-phase64">Protected deploy/install guard remains clean.</metric-3>
     <metric-4 status="verification-designed-phase64">V-M-079 maps HTML/text/token/provider/logo/protected-surface gates before execution changes are made.</metric-4>
+    <metric-5 status="verification-designed-phase66">V-M-079 maps the minimal-copy, larger-logo, no-top-strip, transparent-outer-background, CTA/fallback, token-redaction, and protected-surface gates before Phase-66 execution changes are made.</metric-5>
   </acceptance-metrics>
   <verification-design>
     <target-1>Verification and password-reset templates must share a premium email shell without changing one-time token, pending registration, or password reset semantics.</target-1>
@@ -31,7 +32,7 @@
   <phase-66-plan>
     <scope>Minimal verification/reset email polish: larger body logo, shorter content, no KrotPN Matrix Access label, no eyebrow/intro/support/footer noise, no #5cf2c8 card-edge strip, and transparent outer wrapper background.</scope>
     <protected-surfaces>Resend provider configuration, EMAIL_FROM, deploy/install scripts, nginx, docker-compose, DNS/BIMI, frontend public/user/admin pages, auth token semantics, password policy, billing, VPN, and MTProto runtime remain out of scope.</protected-surfaces>
-    <planned-verification>backend/tests/test_email_delivery.py, scripts/phase64-premium-email-template-smoke.mjs, scripts/phase51-brand-assets-smoke.mjs, scripts/phase66-minimal-email-template-smoke.mjs, XML parse, MyGRACE lint, git diff --check, and protected surface guard.</planned-verification>
+    <verification-designed>backend/tests/test_email_delivery.py, scripts/phase64-premium-email-template-smoke.mjs, scripts/phase51-brand-assets-smoke.mjs, scripts/phase66-minimal-email-template-smoke.mjs, XML parse, MyGRACE lint, git diff --check, and protected surface guard are the acceptance gates for Phase-66 execution.</verification-designed>
   </phase-66-plan>
   <execution-evidence>
     <local-2026-06-04>Premium verification/reset templates now share an email-client-safe Matrix shell, public email-logo body image, CTA button, compact fallback panel, plain text fallback, and required Phase-64 redaction/brand/protected-surface markers without changing Resend provider configuration or deploy/runtime surfaces.</local-2026-06-04>

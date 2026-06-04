@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Phase-66 NAME="Minimal Resend Email Template Polish" STATUS="planned">
+<Phase-66 NAME="Minimal Resend Email Template Polish" STATUS="verification-designed">
   <objective>Simplify verification and password-reset Resend email templates while preserving one-time link safety, CTA clarity, text fallback, and provider/deploy boundaries.</objective>
   <modules>M-079,M-040,M-062,M-069,M-080</modules>
   <non-goals>Changing Resend provider wiring, EMAIL_FROM, deploy/install scripts, DNS/BIMI behavior, frontend public/user/admin pages, auth token semantics, password policy, billing, VPN, or MTProto runtime.</non-goals>
@@ -20,7 +20,12 @@
     <step-7 STATUS="planned">Record execution evidence in M-079/V-M-079 and update indexes after implementation.</step-7>
   </steps>
   <verification>V-M-079</verification>
-  <verification-design>Phase-66 is ready for execution only after V-M-079 gates include negative-copy assertions, logo-size assertion, removed top-strip/background assertions, CTA/fallback preservation, text fallback cleanliness, token redaction, and protected deploy/provider/runtime isolation.</verification-design>
+  <verification-design>V-M-079 defines Phase-66 gates for negative-copy assertions, logo-size assertion, removed top-strip/background assertions, CTA/fallback preservation, text fallback cleanliness, token redaction, and protected deploy/provider/runtime isolation.</verification-design>
+  <verification-levels>
+    <module-local>backend/tests/test_email_delivery.py plus scripts/phase66-minimal-email-template-smoke.mjs must prove verification/reset template copy, style, action-link, fallback, and redaction behavior.</module-local>
+    <wave-level>scripts/phase64-premium-email-template-smoke.mjs and scripts/phase51-brand-assets-smoke.mjs must preserve Phase-64 premium email and Phase-51 brand asset baselines.</wave-level>
+    <phase-level>XML parse, MyGRACE lint, git diff --check, and protected deploy/provider/runtime guard must pass before Phase-66 implementation can be accepted.</phase-level>
+  </verification-levels>
   <acceptance>Verification and password-reset emails become visually cleaner and shorter while remaining transactional, token-safe, image-blocking tolerant, and Resend-compatible.</acceptance>
   <risk-assessment>
     <risk-1 severity="high">Over-deleting text can make image-blocked emails unclear; fallback link and concise purpose text must remain.</risk-1>

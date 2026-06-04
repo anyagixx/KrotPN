@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<V-M-079 MODULE="M-079" PRIORITY="critical" STATUS="planned-phase66" PHASE-64="pass-local" PHASE-66="planned">
+<V-M-079 MODULE="M-079" PRIORITY="critical" STATUS="verification-designed-phase66" PHASE-64="pass-local" PHASE-66="verification-designed">
   <scope>Premium Resend email template verification for verification/reset flows, Matrix-compatible transactional layout, public body-logo rendering, text fallback, token redaction, provider boundary safety, and protected-surface isolation.</scope>
   <test-files>
     <file phase="64-pass-local">scripts/phase64-premium-email-template-smoke.mjs</file>
@@ -21,7 +21,10 @@
     <check-5 status="post-commit-regression">node scripts/phase63-visible-logo-integration-smoke.mjs remains a post-commit regression because its Phase-63 protected guard intentionally rejects uncommitted backend/email diffs.</check-5>
     <check-6 status="pass-local-phase64">python3 -m xml.etree.ElementTree docs/plans/Phase-64.xml docs/modules/M-079.xml docs/verification/V-M-079.xml docs/verification-index.xml docs/graph-index.xml docs/plan-index.xml</check-6>
     <check-7 status="pass-local-phase64">mygrace lint; git diff --check; protected diff guard for deploy/install, nginx, docker-compose, VPN runtime, MTProto runtime, Resend provider env, DNS/BIMI, and secret surfaces</check-7>
-    <check-8 status="planned-phase66">node scripts/phase66-minimal-email-template-smoke.mjs must prove removed-copy, larger-logo, no-green-top-strip, transparent outer-background, CTA/fallback preservation, token redaction, and protected-surface guards.</check-8>
+    <check-8 status="verification-designed-phase66">node scripts/phase66-minimal-email-template-smoke.mjs must prove removed-copy, larger-logo, no-green-top-strip, transparent outer-background, CTA/fallback preservation, token redaction, and protected-surface guards.</check-8>
+    <check-9 status="verification-designed-phase66">Phase-66 backend test update must assert both verification and reset template outputs keep CTA/fallback URLs while removing operator-specified verbose copy from HTML and text outputs.</check-9>
+    <check-10 status="verification-designed-phase66">Phase-66 protected guard must reject deploy/install, nginx, docker-compose, VPN, MTProto, billing, auth-token, EMAIL_FROM, Resend-provider, DNS/BIMI, certificate, and secret-surface changes.</check-10>
+    <check-11 status="verification-designed-phase66">Phase-66 docs evidence must redact verify/reset tokenized URLs and avoid real recipient addresses, provider keys, and full action links.</check-11>
   </module-checks>
   <verification-matrix>
     <target-1 evidence="unit-and-static">Verification and password-reset HTML share a premium KrotPN Matrix email shell while preserving one-time token links, pending-registration activation, and password-reset semantics.</target-1>
@@ -30,14 +33,42 @@
     <target-4 evidence="static">Body logo uses an approved public asset path such as FRONTEND_URL plus /brand/email-logo.png and does not claim control over Gmail/Apple/Resend sender avatars, BIMI provider display, or DNS state.</target-4>
     <target-5 evidence="unit-and-static">Tokens, full tokenized URLs, provider API keys, passwords, and secret-bearing env values are redacted from logs, provider error details, smoke output, and documentation evidence.</target-5>
     <target-6 evidence="protected-guard">No deploy/install, nginx, docker-compose, VPN, MTProto, billing, auth policy, EMAIL_FROM, Resend API key, DNS, BIMI, or certificate behavior changes are introduced.</target-6>
-    <target-7 evidence="unit-and-static-planned-phase66">Verification/reset templates remove KrotPN Matrix Access, Russian eyebrow/intro/support/footer noise, #5cf2c8 top-strip, and #04090d outer-wrapper background while preserving the dark card, larger body logo, CTA, and fallback link.</target-7>
+    <target-7 evidence="unit-and-static-verification-designed-phase66">Verification/reset templates remove KrotPN Matrix Access, Russian eyebrow/intro/support/footer noise, #5cf2c8 top-strip, and #04090d outer-wrapper background while preserving the dark card, larger body logo, CTA, and fallback link.</target-7>
+    <target-8 evidence="static-verification-designed-phase66">Phase-66 smoke distinguishes outer-wrapper background removal from dark-card preservation so transparent mailbox backgrounds do not hide the transactional card.</target-8>
   </verification-matrix>
+  <phase-66-negative-copy-assertions>
+    <verification-email-forbidden-1>KrotPN Matrix Access</verification-email-forbidden-1>
+    <verification-email-forbidden-2>Защищенная регистрация</verification-email-forbidden-2>
+    <verification-email-forbidden-3>Один шаг подтверждает, что эта почта принадлежит вам, и подготавливает аккаунт KrotPN.</verification-email-forbidden-3>
+    <verification-email-forbidden-4>Удаленные изображения необязательны: ссылки ниже достаточно для подтверждения.</verification-email-forbidden-4>
+    <verification-email-forbidden-5>Не пересылайте ее в чаты или сообщения поддержки.</verification-email-forbidden-5>
+    <verification-email-forbidden-6>KrotPN account security message. No password or payment data is requested in this email.</verification-email-forbidden-6>
+    <reset-email-forbidden-1>KrotPN Matrix Access</reset-email-forbidden-1>
+    <reset-email-forbidden-2>Восстановление доступа</reset-email-forbidden-2>
+    <reset-email-forbidden-3>Используйте одноразовый маршрут, чтобы задать новый пароль для аккаунта KrotPN.</reset-email-forbidden-3>
+    <reset-email-forbidden-4>Ссылка восстановления работает даже если почтовый клиент блокирует изображения.</reset-email-forbidden-4>
+    <reset-email-forbidden-5>Не пересылайте ее в чаты или сообщения поддержки.</reset-email-forbidden-5>
+    <reset-email-forbidden-6>KrotPN account security message. No password or payment data is requested in this email.</reset-email-forbidden-6>
+  </phase-66-negative-copy-assertions>
+  <phase-66-style-assertions>
+    <style-1>Larger body logo is required for verification and reset templates; execution may choose the exact pixel value but must prove it increased from the Phase-64 baseline and remains email-client safe.</style-1>
+    <style-2>The card edge must not contain #5cf2c8 or an equivalent green strip marker.</style-2>
+    <style-3>The outer body/wrapper must not set #04090d as its background; the dark card surface remains present.</style-3>
+    <style-4>No external CSS, JavaScript, canvas, web font, animated Matrix runtime, or remote dependency is allowed for critical email comprehension.</style-4>
+  </phase-66-style-assertions>
+  <phase-66-preservation-assertions>
+    <preserve-1>Verification email keeps a localized subject, CTA button, plain text fallback, and fallback action URL.</preserve-1>
+    <preserve-2>Password reset email keeps a localized subject, CTA button, plain text fallback, and fallback action URL.</preserve-2>
+    <preserve-3>Action links keep one-time token semantics but token values are redacted from logs, smoke output, docs evidence, and provider error details.</preserve-3>
+    <preserve-4>Public body-logo path remains inside the approved M-069/M-080 brand asset boundary and does not claim BIMI/sender-avatar behavior.</preserve-4>
+  </phase-66-preservation-assertions>
   <success-scenarios>
     <scenario-1 kind="success">Verification and reset emails render with compact premium KrotPN branding, visible body logo, clear CTA button, and short security copy while keeping the transactional purpose obvious.</scenario-1>
     <scenario-2 kind="success">Mailbox clients that block remote images still expose all important instructions in HTML and text fallback.</scenario-2>
     <scenario-3 kind="success">Backend tests prove template payload shape, recipient/subject semantics, one-time token delivery, reset flow safety, and provider-disabled behavior remain compatible.</scenario-3>
     <scenario-4 kind="success">Phase-64 smoke proves public logo URL use, email-client-safe CSS constraints, token redaction, text fallback cleanliness, and protected-surface isolation.</scenario-4>
     <scenario-5 kind="success">Phase-66 smoke proves the operator-specified copy is absent from verification/reset HTML/text outputs and that the minimal card still has a clear action path.</scenario-5>
+    <scenario-6 kind="success">Phase-66 smoke proves the larger-logo, no-top-strip, and transparent-outer-wrapper requirements without changing Resend payload shape or deploy/provider configuration.</scenario-6>
   </success-scenarios>
   <failure-scenarios>
     <failure-1 kind="failure">Email template depends on images, remote CSS, JavaScript, canvas, web fonts, or visual-only Matrix effects for critical meaning.</failure-1>
@@ -55,9 +86,13 @@
     <marker-5>[PremiumEmailTemplates][phase64][TOKEN_REDACTION_SAFE]</marker-5>
     <marker-6>[PremiumEmailTemplates][phase64][BRAND_ASSET_BOUNDARY_SAFE]</marker-6>
     <marker-7>[PremiumEmailTemplates][phase64][PROTECTED_SURFACE_GUARD]</marker-7>
+    <marker-8>[PremiumEmailTemplates][phase66][NEGATIVE_COPY_SAFE]</marker-8>
+    <marker-9>[PremiumEmailTemplates][phase66][MINIMAL_STYLE_SAFE]</marker-9>
+    <marker-10>[PremiumEmailTemplates][phase66][ACTION_FALLBACK_SAFE]</marker-10>
+    <marker-11>[PremiumEmailTemplates][phase66][PROTECTED_SURFACE_GUARD]</marker-11>
   </required-log-markers>
   <telemetry-requirements>
-    <allowed>Template name, subject class, rendered byte length, approved public asset path, redacted-token marker, text fallback marker, email-client-safe CSS marker, command pass/fail marker, and protected-surface diff summary.</allowed>
+    <allowed>Template name, subject class, rendered byte length, approved public asset path, logo-size marker, removed-copy marker, top-strip/background marker, redacted-token marker, text fallback marker, email-client-safe CSS marker, command pass/fail marker, and protected-surface diff summary.</allowed>
     <forbidden>Passwords, reset tokens, verification tokens, full tokenized URLs, access tokens, refresh tokens, API keys, Resend/YooKassa secrets, WireGuard private keys, MTProto secrets, full proxy links, real recipient email addresses, raw user IPs, certificate private keys, and server credentials.</forbidden>
     <redaction>Any evidence that references a tokenized verification/reset URL must use a redacted placeholder and must not include query strings or raw token material.</redaction>
   </telemetry-requirements>
@@ -66,7 +101,9 @@
     <gate-2 level="wave" status="passed-local">M-040 email delivery, M-062 onboarding/password recovery, M-069 email logo assets, M-072 premium visual tokens, and M-080 visible-logo boundary remain compatible.</gate-2>
     <gate-3 level="phase" status="passed-local">XML parse, MyGRACE lint, git diff --check, and protected deploy/install/runtime/provider/DNS guard passed before Phase-64 moved to done-local.</gate-3>
     <gate-4 level="live-follow-up">Clean-deploy validation may send a real Resend email to inspect delivered rendering, but local verification must not claim mailbox sender-avatar/BIMI provider display proof.</gate-4>
-    <gate-5 level="planned-phase66">Execution must add Phase-66 negative-copy and style assertions before accepting the simplified templates.</gate-5>
+    <gate-5 level="module-local" status="verification-designed-phase66">Execution must add Phase-66 negative-copy and style assertions before accepting the simplified templates.</gate-5>
+    <gate-6 level="wave" status="verification-designed-phase66">Execution must rerun Phase-64 and Phase-51 regression smokes to prove premium email and brand asset baselines are not regressed.</gate-6>
+    <gate-7 level="phase" status="verification-designed-phase66">Execution must pass XML parse, MyGRACE lint, git diff --check, and protected deploy/provider/runtime guard before Phase-66 can move to done-local.</gate-7>
   </phase-gates>
   <execution-evidence date="2026-06-04">
     <command-1>cd backend &amp;&amp; SECRET_KEY=test-secret-key-with-enough-length DATA_ENCRYPTION_KEY=dpFmfSVqfdAK3yx5MQV6Tcv35RZuw5MzaH0yhxJ01q0= PYTHONPATH=. ../.venv/bin/python -m pytest -o addopts='' tests/test_email_delivery.py -v</command-1>
@@ -75,13 +112,13 @@
     <command-4>python3 XML parse, mygrace lint, git diff --check, protected deploy/provider/runtime/frontend guard</command-4>
     <result>PASS: premium verification/reset email templates render a public body logo, compact Matrix-safe shell, image-blocking-safe fallback panel, clean text fallback, token-safe logs, and unchanged provider/deploy/runtime surfaces.</result>
   </execution-evidence>
-  <phase-66-planned-evidence date="2026-06-04">
+  <phase-66-verification-design date="2026-06-04">
     <command-1>cd backend &amp;&amp; SECRET_KEY=test-secret-key-with-enough-length DATA_ENCRYPTION_KEY=redacted-test-key PYTHONPATH=. ../.venv/bin/python -m pytest -o addopts='' tests/test_email_delivery.py -v</command-1>
     <command-2>node scripts/phase64-premium-email-template-smoke.mjs</command-2>
     <command-3>node scripts/phase51-brand-assets-smoke.mjs</command-3>
     <command-4>node scripts/phase66-minimal-email-template-smoke.mjs</command-4>
     <command-5>XML parse, MyGRACE lint, git diff --check, and protected deploy/provider/runtime guard</command-5>
-    <result>PLANNED: minimal Resend template polish must remove requested verbose copy and visual strip/background noise while preserving action links, text fallback, logo boundary, token redaction, and provider/deploy isolation.</result>
-  </phase-66-planned-evidence>
+    <result>VERIFICATION DESIGNED: minimal Resend template polish must remove requested verbose copy and visual strip/background noise while preserving action links, text fallback, logo boundary, token redaction, and provider/deploy isolation.</result>
+  </phase-66-verification-design>
   <autonomous-execution-safety>Safe for local autonomous execution if changes stay inside backend email template/service tests, Phase-64 smoke, approved public email-logo references, and MyGRACE docs. Stop execution if installer/deploy changes, Resend provider env changes, DNS/BIMI changes, auth-token semantics changes, billing changes, VPN/MTProto runtime changes, or secret-handling changes appear necessary.</autonomous-execution-safety>
 </V-M-079>
