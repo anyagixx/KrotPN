@@ -1,18 +1,19 @@
 """
 MODULE_CONTRACT
-- PURPOSE: Verify Phase-27/Phase-44/Phase-51 email delivery foundation.
-- SCOPE: Unit tests for premium verification/password reset templates, brand-logo rendering, fake-provider dispatch, Resend request shape, provider-disabled guard, and typed provider error mapping.
+- PURPOSE: Verify Phase-27/Phase-44/Phase-51/Phase-66 email delivery foundation.
+- SCOPE: Unit tests for minimal premium verification/password reset templates, brand-logo rendering, fake-provider dispatch, Resend request shape, provider-disabled guard, and typed provider error mapping.
 - DEPENDS: app.email.service, app.email.provider, app.core.config.
 - LINKS: V-M-040, V-M-069.
 
 MODULE_MAP
-- test_send_verification_email_uses_template_and_redacts_token_from_logs: Verifies fake-provider dispatch, premium brand-logo HTML, text fallback, and token redaction.
-- test_send_password_reset_email_uses_template_and_redacts_token_from_logs: Verifies Phase-64 reset dispatch, premium brand-logo HTML, text fallback, and token redaction.
+- test_send_verification_email_uses_template_and_redacts_token_from_logs: Verifies fake-provider dispatch, minimal premium brand-logo HTML, text fallback, copy removal, and token redaction.
+- test_send_password_reset_email_uses_template_and_redacts_token_from_logs: Verifies minimal reset dispatch, premium brand-logo HTML, text fallback, copy removal, and token redaction.
 - test_resend_provider_builds_production_request_shape: Verifies Resend URL, sender, payload, Bearer auth, and safe receipt metadata.
 - test_send_verification_email_blocks_when_provider_disabled: Verifies disabled provider fails before a network call.
 - test_map_email_provider_error_returns_stable_safe_codes: Verifies HTTP status mapping.
 
 CHANGE_SUMMARY
+- 2026-06-04: Added Phase-66 minimal email copy/style assertions for verification and reset templates.
 - 2026-06-04: Added Phase-64 premium email shell, text fallback, client-safe HTML, and redaction assertions.
 - 2026-06-02: Added Phase-51 email logo assertions for verification and reset templates.
 - 2026-06-01: Added Phase-44 password reset email delivery tests.
@@ -60,6 +61,54 @@ def _settings(**overrides) -> Settings:
     return Settings(**data)
 
 
+PHASE66_VERIFICATION_FORBIDDEN_COPY = (
+    "KrotPN Matrix Access",
+    "Защищенная регистрация",
+    "Один шаг подтверждает, что эта почта принадлежит вам, и подготавливает аккаунт KrotPN.",
+    "Удаленные изображения необязательны: ссылки ниже достаточно для подтверждения.",
+    "Не пересылайте ее в чаты или сообщения поддержки.",
+    "KrotPN account security message. No password or payment data is requested in this email.",
+)
+
+
+PHASE66_RESET_FORBIDDEN_COPY = (
+    "KrotPN Matrix Access",
+    "Восстановление доступа",
+    "Используйте одноразовый маршрут, чтобы задать новый пароль для аккаунта KrotPN.",
+    "Ссылка восстановления работает даже если почтовый клиент блокирует изображения.",
+    "Не пересылайте ее в чаты или сообщения поддержки.",
+    "KrotPN account security message. No password or payment data is requested in this email.",
+)
+
+
+def _assert_phase66_minimal_template(
+    *,
+    html: str,
+    text: str,
+    action_url: str,
+    forbidden_copy: tuple[str, ...],
+) -> None:
+    assert action_url in html
+    assert action_url in text
+    assert 'width="128" height="128"' in html
+    assert 'data-phase66-template="minimal-action"' in html
+    assert "#04090d" not in html
+    assert "height:4px;background:#5cf2c8" not in html
+    assert "background:#07141b" in html
+    assert 'role="presentation"' in html
+    assert "<script" not in html.lower()
+    assert "<style" not in html.lower()
+    assert "canvas" not in html.lower()
+    assert "@font-face" not in html.lower()
+    assert "fonts.googleapis" not in html.lower()
+    assert "brand/email-logo.png" not in text
+    assert "<table" not in text
+    assert "<a " not in text
+    for forbidden in forbidden_copy:
+        assert forbidden not in html
+        assert forbidden not in text
+
+
 # START_BLOCK_EMAIL_DELIVERY_TESTS
 @pytest.mark.asyncio
 async def test_send_verification_email_uses_template_and_redacts_token_from_logs():
@@ -86,19 +135,12 @@ async def test_send_verification_email_uses_template_and_redacts_token_from_logs
     assert 'src="https://krotpn.xyz/brand/email-logo.png"' in request.html
     assert 'alt="KrotPN"' in request.html
     assert 'data-phase64-template="premium-action"' in request.html
-    assert "KrotPN Matrix Access" in request.html
-    assert 'role="presentation"' in request.html
-    assert "#5cf2c8" in request.html
-    assert "<script" not in request.html.lower()
-    assert "<style" not in request.html.lower()
-    assert "canvas" not in request.html.lower()
-    assert "@font-face" not in request.html.lower()
-    assert "fonts.googleapis" not in request.html.lower()
-    assert "https://krotpn.xyz/verify-email?token=secret-token-that-must-not-be-logged" in request.text
-    assert "brand/email-logo.png" not in request.text
-    assert "<table" not in request.text
-    assert "<a " not in request.text
-    assert "Удаленные изображения необязательны" in request.text
+    _assert_phase66_minimal_template(
+        html=request.html,
+        text=request.text,
+        action_url="https://krotpn.xyz/verify-email?token=secret-token-that-must-not-be-logged",
+        forbidden_copy=PHASE66_VERIFICATION_FORBIDDEN_COPY,
+    )
 
     joined_logs = "\n".join(log_lines)
     assert "[M-040][send_verification_email][BUILD_REQUEST]" in joined_logs
@@ -109,6 +151,9 @@ async def test_send_verification_email_uses_template_and_redacts_token_from_logs
     assert "[PremiumEmailTemplates][phase64][TEXT_FALLBACK_SAFE]" in joined_logs
     assert "[PremiumEmailTemplates][phase64][TOKEN_REDACTION_SAFE]" in joined_logs
     assert "[PremiumEmailTemplates][phase64][BRAND_ASSET_BOUNDARY_SAFE]" in joined_logs
+    assert "[PremiumEmailTemplates][phase66][NEGATIVE_COPY_SAFE]" in joined_logs
+    assert "[PremiumEmailTemplates][phase66][MINIMAL_STYLE_SAFE]" in joined_logs
+    assert "[PremiumEmailTemplates][phase66][ACTION_FALLBACK_SAFE]" in joined_logs
     assert token not in joined_logs
 
 
@@ -137,19 +182,12 @@ async def test_send_password_reset_email_uses_template_and_redacts_token_from_lo
     assert 'src="https://krotpn.xyz/brand/email-logo.png"' in request.html
     assert 'alt="KrotPN"' in request.html
     assert 'data-phase64-template="premium-action"' in request.html
-    assert "KrotPN Matrix Access" in request.html
-    assert 'role="presentation"' in request.html
-    assert "#5cf2c8" in request.html
-    assert "<script" not in request.html.lower()
-    assert "<style" not in request.html.lower()
-    assert "canvas" not in request.html.lower()
-    assert "@font-face" not in request.html.lower()
-    assert "fonts.googleapis" not in request.html.lower()
-    assert "https://krotpn.xyz/reset-password?token=reset-token-that-must-not-be-logged" in request.text
-    assert "brand/email-logo.png" not in request.text
-    assert "<table" not in request.text
-    assert "<a " not in request.text
-    assert "Ссылка восстановления работает" in request.text
+    _assert_phase66_minimal_template(
+        html=request.html,
+        text=request.text,
+        action_url="https://krotpn.xyz/reset-password?token=reset-token-that-must-not-be-logged",
+        forbidden_copy=PHASE66_RESET_FORBIDDEN_COPY,
+    )
 
     joined_logs = "\n".join(log_lines)
     assert "[M-040][send_password_reset_email][BUILD_REQUEST]" in joined_logs
@@ -160,6 +198,9 @@ async def test_send_password_reset_email_uses_template_and_redacts_token_from_lo
     assert "[PremiumEmailTemplates][phase64][TEXT_FALLBACK_SAFE]" in joined_logs
     assert "[PremiumEmailTemplates][phase64][TOKEN_REDACTION_SAFE]" in joined_logs
     assert "[PremiumEmailTemplates][phase64][BRAND_ASSET_BOUNDARY_SAFE]" in joined_logs
+    assert "[PremiumEmailTemplates][phase66][NEGATIVE_COPY_SAFE]" in joined_logs
+    assert "[PremiumEmailTemplates][phase66][MINIMAL_STYLE_SAFE]" in joined_logs
+    assert "[PremiumEmailTemplates][phase66][ACTION_FALLBACK_SAFE]" in joined_logs
     assert token not in joined_logs
 
 

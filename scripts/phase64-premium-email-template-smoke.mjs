@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /*
  * FILE: scripts/phase64-premium-email-template-smoke.mjs
- * VERSION: 1.0.0
+ * VERSION: 1.1.0
  * ROLE: TEST
  * MAP_MODE: LOCALS
  * START_MODULE_CONTRACT
@@ -22,6 +22,7 @@
  * END_MODULE_MAP
  *
  * START_CHANGE_SUMMARY
+ *   LAST_CHANGE: v1.1.0 - Aligned regression smoke with Phase-66 minimal email shell and larger logo
  *   LAST_CHANGE: v1.0.1 - Added safe test Settings environment for Python render smoke
  *   LAST_CHANGE: v1.0.0 - Added Phase-64 premium email template smoke gate
  * END_CHANGE_SUMMARY
@@ -47,6 +48,12 @@ function assertContains(source, needle, label) {
 function assertNotContains(source, needle, label) {
   if (source.includes(needle)) {
     throw new Error(`${label} contains prohibited Phase-64 marker: ${needle}`)
+  }
+}
+
+function assertContainsOne(source, needles, label) {
+  if (!needles.some((needle) => source.includes(needle))) {
+    throw new Error(`${label} is missing one of required Phase-64 markers: ${needles.join(' | ')}`)
   }
 }
 
@@ -100,14 +107,18 @@ print(json.dumps({
 function assertRenderedEmail(template, label, tokenNeedle) {
   assertContains(template.subject, 'KrotPN', `${label} subject`)
   assertContains(template.html, 'data-phase64-template="premium-action"', `${label} html`)
-  assertContains(template.html, 'KrotPN Matrix Access', `${label} html`)
+  assertContains(template.html, 'data-phase66-template="minimal-action"', `${label} html`)
   assertContains(template.html, 'https://krotpn.xyz/brand/email-logo.png', `${label} html`)
-  assertContains(template.html, 'width="96" height="96"', `${label} html`)
+  assertContains(template.html, 'width="128" height="128"', `${label} html`)
   assertContains(template.html, 'role="presentation"', `${label} html`)
-  assertContains(template.html, '#5cf2c8', `${label} html`)
+  assertContains(template.html, 'background:#07141b', `${label} html`)
+  assertContains(template.html, 'background:#5cf2c8;color:#041014', `${label} html`)
   assertContains(template.html, tokenNeedle, `${label} html action URL`)
   assertContains(template.text, tokenNeedle, `${label} text action URL`)
   assertContains(template.text, 'KrotPN', `${label} text`)
+  assertNotContains(template.html, 'KrotPN Matrix Access', `${label} html`)
+  assertNotContains(template.html, 'height:4px;background:#5cf2c8', `${label} html`)
+  assertNotContains(template.html, '#04090d', `${label} html`)
   assertNotContains(template.text, 'brand/email-logo.png', `${label} text`)
   assertNotContains(template.text, '<table', `${label} text`)
   assertNotContains(template.text, '<a ', `${label} text`)
@@ -168,13 +179,22 @@ for (const marker of [
 
 for (const marker of [
   'data-phase64-template="premium-action"',
-  'KrotPN Matrix Access',
+  'data-phase66-template="minimal-action"',
   'role="presentation"',
-  'width="96" height="96"',
+  'width="128" height="128"',
   '/brand/email-logo.png',
   '_render_text_fallback',
 ]) {
   assertContains(templates, marker, 'backend/app/email/templates.py')
+}
+
+for (const prohibited of [
+  'KrotPN Matrix Access',
+  'height:4px;background:#5cf2c8',
+  '#04090d',
+  'account security message',
+]) {
+  assertNotContains(templates, prohibited, 'backend/app/email/templates.py')
 }
 
 for (const prohibited of ['<script', '<style', 'canvas', '@font-face', 'fonts.googleapis', 'sender avatar', 'gmail avatar', 'apple avatar']) {
@@ -183,9 +203,11 @@ for (const prohibited of ['<script', '<style', 'canvas', '@font-face', 'fonts.go
 
 assertContains(service, 'brand_base_url=app_settings.frontend_url', 'backend/app/email/service.py')
 assertContains(tests, 'data-phase64-template="premium-action"', 'backend/tests/test_email_delivery.py')
+assertContains(tests, 'data-phase66-template="minimal-action"', 'backend/tests/test_email_delivery.py')
 assertContains(tests, 'TOKEN_REDACTION_SAFE', 'backend/tests/test_email_delivery.py')
-assertContains(tests, 'brand/email-logo.png" not in request.text', 'backend/tests/test_email_delivery.py')
-assertContains(moduleDoc, 'STATUS="done-local-phase64"', 'docs/modules/M-079.xml')
+assertContains(tests, 'PHASE66_VERIFICATION_FORBIDDEN_COPY', 'backend/tests/test_email_delivery.py')
+assertContains(tests, '"brand/email-logo.png" not in text', 'backend/tests/test_email_delivery.py')
+assertContainsOne(moduleDoc, ['STATUS="done-local-phase64"', 'STATUS="done-local-phase66"'], 'docs/modules/M-079.xml')
 assertContains(phaseDoc, 'STATUS="done-local"', 'docs/plans/Phase-64.xml')
 
 const rendered = renderTemplates()

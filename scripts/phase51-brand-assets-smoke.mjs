@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /*
  * FILE: scripts/phase51-brand-assets-smoke.mjs
- * VERSION: 1.0.0
+ * VERSION: 1.0.1
  * ROLE: TEST
  * MAP_MODE: LOCALS
  * START_MODULE_CONTRACT
@@ -22,6 +22,7 @@
  * END_MODULE_MAP
  *
  * START_CHANGE_SUMMARY
+ *   LAST_CHANGE: v1.0.1 - Accepted Phase-66 larger 128px email logo rendering while preserving public asset boundary
  *   LAST_CHANGE: v1.0.0 - Added Phase-51 brand asset static smoke gate
  * END_CHANGE_SUMMARY
  */
@@ -139,10 +140,10 @@ assertContains(userVite, "src: 'pwa-512x512.png'", 'frontend/vite.config.ts')
 
 assertContains(emailTemplates, '/brand/email-logo.png', 'backend/app/email/templates.py')
 assertContains(emailTemplates, 'alt="{safe_app_name}"', 'backend/app/email/templates.py')
-assertContains(emailTemplates, 'width="96" height="96"', 'backend/app/email/templates.py')
+assertContains(emailTemplates, 'width="128" height="128"', 'backend/app/email/templates.py')
 assertContains(emailService, 'brand_base_url=app_settings.frontend_url', 'backend/app/email/service.py')
 assertContains(emailTests, 'https://krotpn.xyz/brand/email-logo.png', 'backend/tests/test_email_delivery.py')
-assertContains(emailTests, 'brand/email-logo.png" not in request.text', 'backend/tests/test_email_delivery.py')
+assertContains(emailTests, '"brand/email-logo.png" not in text', 'backend/tests/test_email_delivery.py')
 
 assertContains(readme, '### Favicon and Email Logo', 'README.md')
 assertContains(readme, 'https://krotpn.xyz/brand/email-logo.png', 'README.md')

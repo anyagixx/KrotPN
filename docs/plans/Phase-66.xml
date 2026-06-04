@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Phase-66 NAME="Minimal Resend Email Template Polish" STATUS="verification-designed">
+<Phase-66 NAME="Minimal Resend Email Template Polish" STATUS="done-local">
   <objective>Simplify verification and password-reset Resend email templates while preserving one-time link safety, CTA clarity, text fallback, and provider/deploy boundaries.</objective>
   <modules>M-079,M-040,M-062,M-069,M-080</modules>
   <non-goals>Changing Resend provider wiring, EMAIL_FROM, deploy/install scripts, DNS/BIMI behavior, frontend public/user/admin pages, auth token semantics, password policy, billing, VPN, or MTProto runtime.</non-goals>
@@ -11,13 +11,13 @@
     <requirement-5>CTA buttons, fallback action links, localized subjects, token redaction, plain text fallback, and image-blocking usability must remain intact.</requirement-5>
   </requirements>
   <steps>
-    <step-1 STATUS="planned">Audit current backend/app/email/templates.py verification/reset shell, removed-copy list, logo sizing, top-strip styling, outer background, text fallback, and footer copy.</step-1>
-    <step-2 STATUS="planned">Update the shared email template contract and renderer plan so the minimal shell keeps logo, CTA button, fallback link, and optional short safety copy only where required.</step-2>
-    <step-3 STATUS="planned">Design backend email tests that assert removed strings are absent from both verification and reset HTML/text outputs while CTA and fallback URLs remain present.</step-3>
-    <step-4 STATUS="planned">Design a Phase-66 smoke script that checks larger logo sizing, no #5cf2c8 top strip, no #04090d outer wrapper background, removed copy, token redaction, and protected-surface isolation.</step-4>
-    <step-5 STATUS="planned">Preserve M-040 provider payload shape, M-062 one-time verification/reset semantics, M-069 public email-logo asset boundary, and M-080 visible-logo/BIMI separation.</step-5>
-    <step-6 STATUS="planned">Run backend email tests, Phase-64 regression smoke, Phase-51 brand smoke, Phase-66 smoke, XML parse, MyGRACE lint, git diff --check, and protected deploy/provider/runtime guard during execution.</step-6>
-    <step-7 STATUS="planned">Record execution evidence in M-079/V-M-079 and update indexes after implementation.</step-7>
+    <step-1 STATUS="done-local">Audit current backend/app/email/templates.py verification/reset shell, removed-copy list, logo sizing, top-strip styling, outer background, text fallback, and footer copy.</step-1>
+    <step-2 STATUS="done-local">Update the shared email template contract and renderer plan so the minimal shell keeps logo, CTA button, fallback link, and optional short safety copy only where required.</step-2>
+    <step-3 STATUS="done-local">Design backend email tests that assert removed strings are absent from both verification and reset HTML/text outputs while CTA and fallback URLs remain present.</step-3>
+    <step-4 STATUS="done-local">Design a Phase-66 smoke script that checks larger logo sizing, no #5cf2c8 top strip, no #04090d outer wrapper background, removed copy, token redaction, and protected-surface isolation.</step-4>
+    <step-5 STATUS="done-local">Preserve M-040 provider payload shape, M-062 one-time verification/reset semantics, M-069 public email-logo asset boundary, and M-080 visible-logo/BIMI separation.</step-5>
+    <step-6 STATUS="done-local">Run backend email tests, Phase-64 regression smoke, Phase-51 brand smoke, Phase-66 smoke, XML parse, MyGRACE lint, git diff --check, and protected deploy/provider/runtime guard during execution.</step-6>
+    <step-7 STATUS="done-local">Record execution evidence in M-079/V-M-079 and update indexes after implementation.</step-7>
   </steps>
   <verification>V-M-079</verification>
   <verification-design>V-M-079 defines Phase-66 gates for negative-copy assertions, logo-size assertion, removed top-strip/background assertions, CTA/fallback preservation, text fallback cleanliness, token redaction, and protected deploy/provider/runtime isolation.</verification-design>
@@ -32,4 +32,5 @@
     <risk-2 severity="critical">Template changes must not leak one-time verify/reset URLs in logs, tests, smoke output, or docs evidence.</risk-2>
     <risk-3 severity="high">Email clients are inconsistent; transparent outer background must degrade without hiding the dark card or CTA.</risk-3>
   </risk-assessment>
+  <execution-evidence date="2026-06-04">Phase-66 implemented locally: verification/reset emails now use a larger 128px body logo, remove operator-specified verbose copy, remove the #5cf2c8 top strip, remove #04090d outer-wrapper background, preserve dark card/CTA/fallback links, keep text fallback clean, and leave deploy/provider/runtime surfaces untouched.</execution-evidence>
 </Phase-66>
