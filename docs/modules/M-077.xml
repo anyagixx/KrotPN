@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<M-077 NAME="matrix-motion-interactions" TYPE="UI_COMPONENT" STATUS="done-local-phase59">
+<M-077 NAME="matrix-motion-interactions" TYPE="UI_COMPONENT" STATUS="done-local-phase59-pass-local-rainfix">
   <path>frontend/src/components/MatrixBackground.tsx frontend/src/components/VisualShell.tsx frontend/src/pages/Dashboard.tsx frontend/src/pages/Config.tsx frontend/src/pages/Referrals.tsx frontend/src/index.css frontend-admin/src/components/MatrixBackground.tsx frontend-admin/src/components/VisualShell.tsx frontend-admin/src/pages/Devices.tsx frontend-admin/src/pages/MTProto.tsx frontend-admin/src/pages/MTProtoAnalytics.tsx frontend-admin/src/index.css docs/plans/Phase-59.xml scripts/phase59-motion-interactions-smoke.mjs</path>
   <owns>Premium Matrix motion language and microinteractions across user and admin frontends.</owns>
   <purpose>Add high-quality interaction feedback without scroll hijacking, motion overload, or workflow blocking.</purpose>
@@ -7,6 +7,7 @@
     <interaction-copy-success>Copy/download/proxy-link feedback animations.</interaction-copy-success>
     <interaction-status-transition>VPN, MTProto, subscription, alert, and health state transitions.</interaction-status-transition>
     <interaction-route-transition>Short route entrance transitions that preserve navigation speed.</interaction-route-transition>
+    <interaction-root-transform-safety>Route transition transform is applied to the content layer, not the root fixed-background shell.</interaction-root-transform-safety>
     <rule-reduced-motion>Static/fade-only fallback for all motion-heavy effects.</rule-reduced-motion>
   </exports>
   <depends>M-009,M-010,M-070,M-071,M-072,M-075,M-076</depends>
@@ -15,11 +16,13 @@
     <constraint-1>No scroll hijacking, pointer interception, keyboard trap, blocking loader, or long decorative animation.</constraint-1>
     <constraint-2>All motion must respect prefers-reduced-motion and inactive-tab lifecycle.</constraint-2>
     <constraint-3>Critical text, forms, tables, QR/config, and admin controls must remain readable during transitions.</constraint-3>
+    <constraint-4>Route transform animation must not create a transformed ancestor for fixed Matrix canvas/fallback layers.</constraint-4>
   </constraints>
   <acceptance-metrics>
     <metric-1 status="passed-local">User and admin builds pass with motion smoke.</metric-1>
     <metric-2 status="passed-static">Reduced-motion static-route proof confirms static/fade fallback markers; authenticated screenshots remain clean-deploy follow-up.</metric-2>
     <metric-3 status="passed-local">Smoke confirms pointer-events safety and no scroll hijacking markers.</metric-3>
+    <metric-4 status="pass-local-rainfix">Phase-59 smoke confirms root shell does not carry motion-route-enter and the content layer does.</metric-4>
   </acceptance-metrics>
   <evidence>
     <item>2026-06-04: frontend npm run build passed.</item>
@@ -27,6 +30,7 @@
     <item>2026-06-04: node scripts/phase59-motion-interactions-smoke.mjs passed.</item>
     <item>2026-06-04: node scripts/phase52-matrix-visual-smoke.mjs, phase55-premium-art-direction-smoke.mjs, phase56-premium-public-auth-smoke.mjs, and phase57-premium-user-cabinet-smoke.mjs passed.</item>
     <item>2026-06-04: protected backend/deploy/runtime diff guard passed; post-commit Phase-58 regression smoke passed after HEAD included Phase-59 frontend changes.</item>
+    <item>2026-06-04: rainfix updated Phase-59 smoke to assert CSS rain fallback, mobile overscan, visualViewport listeners, and root transform safety; node scripts/phase59-motion-interactions-smoke.mjs passed.</item>
   </evidence>
   <hotspot>H-064: Motion and microinteractions must respect reduced-motion, avoid scroll hijacking, and never block operational workflows.</hotspot>
 </M-077>

@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<V-M-077 MODULE="M-077" PRIORITY="high" STATUS="pass-local" PHASE-59="pass-local">
+<V-M-077 MODULE="M-077" PRIORITY="high" STATUS="pass-local-rainfix" PHASE-59="pass-local" RAINFIX="pass-local">
   <scope>Phase-59 verification for premium Matrix motion and microinteractions across user and admin frontends: copy/download/proxy feedback, VPN/MTProto/subscription/alert/health state transitions, route entrance motion, reduced-motion fallback, inactive-tab lifecycle, keyboard/pointer/scroll safety, and protected-surface isolation.</scope>
   <test-files>
     <file>scripts/phase59-motion-interactions-smoke.mjs</file>
@@ -47,6 +47,7 @@
     <check-12 status="passed-local">mygrace lint</check-12>
     <check-13 status="passed-local">git diff --check</check-13>
     <check-14 status="passed-local">git diff --name-only HEAD -- install.sh docker-compose.yml nginx deploy deploy/mtproto-de-compose.yml .env.example backend/app backend/tests mtproto-runtime official-mtproxy telegram-bot is empty</check-14>
+    <check-15 status="pass-local-rainfix">node scripts/phase59-motion-interactions-smoke.mjs asserts root transform safety, CSS rain fallback, mobile overscan, and visualViewport listeners.</check-15>
   </module-checks>
   <evidence>
     <item>2026-06-04: frontend build passed.</item>
@@ -54,6 +55,7 @@
     <item>2026-06-04: Phase-59 motion smoke printed all required MatrixMotion markers.</item>
     <item>2026-06-04: Phase-52, Phase-55, Phase-56, Phase-57, and post-commit Phase-58 regression smokes passed.</item>
     <item>2026-06-04: XML parse, MyGRACE lint, git diff --check, and protected backend/deploy/runtime guard passed.</item>
+    <item>2026-06-04: Rainfix Phase-59 smoke passed after moving motion-route-enter from the root shell to matrix-visual-content and adding CSS_RAIN_FALLBACK_READY/MOBILE_OVERSCAN_READY assertions.</item>
   </evidence>
   <verification-matrix>
     <target-1 evidence="static-and-interaction">Copy, download, QR/config, Telegram proxy, and promo/status feedback use short visible success/error states without blocking forms, buttons, links, or route navigation.</target-1>
@@ -89,6 +91,8 @@
     <marker-8>[MatrixMotion][phase59][INACTIVE_TAB_SAFE]</marker-8>
     <marker-9>[MatrixMotion][phase59][SCREENSHOT_MATRIX_REVIEWED]</marker-9>
     <marker-10>[MatrixMotion][phase59][PROTECTED_SURFACE_GUARD]</marker-10>
+    <marker-11>[MatrixVisualRuntime][fix][CSS_RAIN_FALLBACK_READY]</marker-11>
+    <marker-12>[MatrixVisualRuntime][fix][MOBILE_OVERSCAN_READY]</marker-12>
   </required-log-markers>
   <telemetry-requirements>
     <requirement-1>Allowed smoke output: route names, viewport names, selector names, timing budgets, reduced-motion mode, pointer/scroll/focus pass markers, synthetic fixture IDs, and screenshot paths.</requirement-1>
@@ -99,6 +103,7 @@
     <gate-1 level="module-local">M-077 smoke proves motion budget, microinteraction markers, status transitions, route transitions, reduced-motion fallback, pointer/scroll/focus safety, inactive-tab safety, and protected-surface guard.</gate-1>
     <gate-2 level="wave">M-009, M-010, M-070, M-071, M-072, M-075, and M-076 regression smokes remain satisfied after motion changes.</gate-2>
     <gate-3 level="phase">User/admin builds, Phase-59 smoke, Phase-52/55/56/57/58 regressions, screenshot or static-route proof, XML parse, MyGRACE lint, git diff check, and protected backend/deploy/runtime guard pass before Phase-59 can be marked done-local.</gate-3>
+    <gate-4 level="rainfix" status="passed-local">Route transition animation must remain on the content layer so fixed Matrix canvas/fallback layers are never clipped by a transformed root ancestor.</gate-4>
   </phase-gates>
   <autonomous-execution-safety>Safe for autonomous local execution if changes stay inside user/admin frontend Matrix components, CSS, route wrappers, microinteraction helpers, Phase-59 smoke verification, and MyGRACE docs. Stop if implementation appears to require backend API changes, auth/session changes, deploy/install/nginx/docker-compose changes, MTProto/VPN runtime changes, billing catalog changes, or secret-handling changes.</autonomous-execution-safety>
 </V-M-077>

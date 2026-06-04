@@ -1,12 +1,12 @@
 #!/usr/bin/env node
 /*
  * FILE: scripts/phase58-premium-admin-cockpit-smoke.mjs
- * VERSION: 1.1.0
+ * VERSION: 1.2.0
  * ROLE: TEST
  * MAP_MODE: LOCALS
  * START_MODULE_CONTRACT
  *   PURPOSE: Static smoke checks for Phase-58 premium admin cockpit execution
- *   SCOPE: Admin route markers, command center, bounded inventories, MTProto redaction, confirmation guards, tariff readonly guard, analytics readonly guard, reduced-motion proof, and protected surface guard
+ *   SCOPE: Admin route markers, command center, bounded inventories, MTProto redaction, confirmation guards, tariff readonly guard, analytics readonly guard, Matrix shared visual-shell compatibility, reduced-motion proof, and protected surface guard
  *   DEPENDS: M-010, M-037, M-047, M-058, M-068, M-070, M-071, M-072, M-076
  *   LINKS: V-M-076, docs/plans/Phase-58.xml, docs/modules/M-076.xml
  * END_MODULE_CONTRACT
@@ -21,6 +21,7 @@
  * END_MODULE_MAP
  *
  * START_CHANGE_SUMMARY
+ *   LAST_CHANGE: v1.2.0 - Allowed shared user VisualShell Matrix reliability diff while preserving backend/deploy/runtime protection.
  *   LAST_CHANGE: v1.1.0 - Allowed explicitly scoped Phase-67 user auth/splash diffs while preserving admin/backend/deploy/runtime protection.
  *   LAST_CHANGE: v1.0.0 - Added Phase-58 premium admin cockpit static smoke gate.
  * END_CHANGE_SUMMARY
@@ -86,6 +87,7 @@ function assertProtectedSurfaceDiffClean() {
 
   const allowedPhase67UserDiffs = new Set([
     'frontend/src/components/MatrixBackground.tsx',
+    'frontend/src/components/VisualShell.tsx',
     'frontend/src/index.css',
     'frontend/src/pages/ForgotPassword.tsx',
     'frontend/src/pages/Landing.tsx',

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<M-071 NAME="matrix-style-system" TYPE="UI_COMPONENT" STATUS="done-local-phase52-phase53-phase54-phase55-phase56-phase59-pass-local-phase67">
-  <path>frontend/src/index.css frontend-admin/src/index.css frontend/src/components/Layout.tsx frontend-admin/src/components/Layout.tsx scripts/phase52-matrix-visual-smoke.mjs scripts/phase53-user-matrix-ui-smoke.mjs scripts/phase54-admin-matrix-ui-smoke.mjs scripts/phase55-premium-art-direction-smoke.mjs scripts/phase56-premium-public-auth-smoke.mjs scripts/phase59-motion-interactions-smoke.mjs docs/plans/Phase-52.xml docs/plans/Phase-53.xml docs/plans/Phase-54.xml docs/plans/Phase-55.xml docs/plans/Phase-56.xml docs/plans/Phase-59.xml docs/plans/Phase-67.xml scripts/phase67-auth-splash-smoke.mjs</path>
+<M-071 NAME="matrix-style-system" TYPE="UI_COMPONENT" STATUS="done-local-phase52-phase53-phase54-phase55-phase56-phase59-pass-local-phase67-pass-local-rainfix">
+  <path>frontend/src/index.css frontend-admin/src/index.css frontend/src/components/Layout.tsx frontend-admin/src/components/Layout.tsx scripts/phase52-matrix-visual-smoke.mjs scripts/phase53-user-matrix-ui-smoke.mjs scripts/phase54-admin-matrix-ui-smoke.mjs scripts/phase55-premium-art-direction-smoke.mjs scripts/phase56-premium-public-auth-smoke.mjs scripts/phase59-motion-interactions-smoke.mjs scripts/phase61-responsive-adaptation-smoke.mjs docs/plans/Phase-52.xml docs/plans/Phase-53.xml docs/plans/Phase-54.xml docs/plans/Phase-55.xml docs/plans/Phase-56.xml docs/plans/Phase-59.xml docs/plans/Phase-67.xml scripts/phase67-auth-splash-smoke.mjs</path>
   <owns>Shared KrotPN Matrix visual language: color tokens, compact panels, CRT scanlines, neon flicker, glitch accents, focus states, and mobile-safe responsive rules.</owns>
   <depends>M-009, M-010, M-036, M-037, M-038, M-070, M-077</depends>
   <verification-ref>V-M-071</verification-ref>
@@ -15,7 +15,7 @@
   </source-contract>
   <public-interfaces>
     <interface-1>CSS custom properties for KrotPN Matrix palette, surfaces, borders, focus rings, and status colors.</interface-1>
-    <interface-2>Reusable class layer for matrix-visual-shell, matrix-canvas, matrix-scanline-overlay, matrix-vignette, and matrix-visual-content surfaces.</interface-2>
+    <interface-2>Reusable class layer for matrix-visual-shell, matrix-canvas, matrix-rain-fallback, matrix-scanline-overlay, matrix-vignette, and matrix-visual-content surfaces.</interface-2>
     <interface-3>Reduced-motion and mobile viewport rules shared by user and admin frontends.</interface-3>
     <interface-4>Phase-53 user route classes for matrix-auth-screen, matrix-auth-card, matrix-layout-frame, matrix-page, matrix-action-grid, matrix-terminal, matrix-copy-box, matrix-row, and matrix-icon-tile.</interface-4>
     <interface-5>Phase-54 admin route classes for admin-login-shell, admin-login-card, admin-hero-strip, compact-toolbar, mini-kpi-grid, bounded-scroll, chart-frame, admin-route-card, and matrix-mini-card.</interface-5>
@@ -29,12 +29,14 @@
     <constraint-3>Text must not overlap icons, controls, status badges, charts, rows, or adjacent content at 360x740, 390x844, 430x932, tablet, and desktop viewports.</constraint-3>
     <constraint-4>Glitch, scanline, and flicker effects must not reduce readability of form fields, tariff prices, proxy secrets, VPN config actions, admin tables, or incident controls.</constraint-4>
     <constraint-5>Do not change API contracts, data shapes, auth state, deploy/install scripts, nginx, docker-compose, or backend runtime behavior.</constraint-5>
+    <constraint-6>Matrix background visibility must not depend on canvas-only rendering; CSS fallback must cover the full viewport with mobile overscan and no pointer interception.</constraint-6>
   </constraints>
   <acceptance>
     <metric-1>User and admin builds pass with shared Matrix CSS tokens applied.</metric-1>
     <metric-2>Viewport smoke confirms no horizontal scroll, no visible text overlap, and stable control dimensions.</metric-2>
     <metric-3>Reduced-motion mode disables transform-heavy and flicker-heavy effects while preserving visual identity.</metric-3>
     <metric-4>Screenshot review confirms Matrix style is present without hiding primary VPN, MTProto, tariff, or admin actions.</metric-4>
+    <metric-5 status="pass-local-rainfix">Mobile screenshots confirm the Matrix rain/fallback layer reaches the bottom edge with no visible black cutoff.</metric-5>
   </acceptance>
   <evidence>
     <local-2026-06-03>Phase-52 added Matrix palette tokens, canvas/scanline/vignette/content layers, focus-visible rules, reduced-motion CSS policy, protected-surface smoke markers, user/admin builds, and Chrome screenshot checks for mobile, desktop, and reduced-motion login shells.</local-2026-06-03>
@@ -45,6 +47,7 @@
     <phase-56-local-2026-06-03>Phase-56 added compact premium public/auth CSS primitives, logo lockup rules, public tariff preview styling, passed Phase-52/53/55 style regressions plus Phase-56 screenshots, and kept protected deploy/install/runtime surfaces unchanged.</phase-56-local-2026-06-03>
     <phase-59-local-2026-06-04>Phase-59 added short-duration motion budget tokens, route entrance transitions, feedback/status classes, reduced-motion fallbacks, and Phase-59 smoke markers to user/admin CSS; frontend/admin builds and style regressions passed.</phase-59-local-2026-06-04>
     <phase-67-local-2026-06-04>Phase-67 added splash/auth CSS primitives for frameless panels, large unframed logo, red auth focus, icon-safe fields, compact animated primary/secondary actions, phone/tablet rules, and reduced-motion fallback; Phase-55/56/59/60/61/67 smokes passed.</phase-67-local-2026-06-04>
+    <rainfix-local-2026-06-04>Added .matrix-rain-fallback, CSS rain animation, 100dvh+128px canvas/fallback overscan, normal canvas blend mode, and reduced-motion fallback positions to user/admin CSS. Phase-52/59/61/67/60 smokes, user/admin builds, Chrome screenshots, and protected backend/deploy/runtime guard passed.</rainfix-local-2026-06-04>
   </evidence>
   <phase-67-verification-design>
     <scope>Frontend auth-only style polish for frameless public/auth screens without changing user cabinet or admin layout contracts.</scope>
@@ -60,5 +63,6 @@
     <phase-56>Applies the premium style system to the public entry route and auth surfaces.</phase-56>
     <phase-59>Adds bounded motion and microinteraction primitives to the premium Matrix style system.</phase-59>
     <phase-67>Adds frameless auth, red-focus form, and splash styling constraints for the next public/auth polish wave.</phase-67>
+    <rainfix>Adds CSS rain fallback and mobile overscan constraints for Matrix background reliability.</rainfix>
   </crosslinks>
 </M-071>

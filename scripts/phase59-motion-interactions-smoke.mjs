@@ -1,12 +1,12 @@
 #!/usr/bin/env node
 /*
  * FILE: scripts/phase59-motion-interactions-smoke.mjs
- * VERSION: 1.1.0
+ * VERSION: 1.2.0
  * ROLE: TEST
  * MAP_MODE: LOCALS
  * START_MODULE_CONTRACT
  *   PURPOSE: Static smoke verification for Phase-59 Matrix motion and microinteractions
- *   SCOPE: Motion budget tokens, route transitions, copy/status feedback markers, reduced-motion fallback, pointer/scroll/focus safety, inactive-tab lifecycle, and protected surface guard
+ *   SCOPE: Motion budget tokens, route transitions, Matrix rain fallback/overscan safety, copy/status feedback markers, reduced-motion fallback, pointer/scroll/focus safety, inactive-tab lifecycle, and protected surface guard
  *   DEPENDS: M-077, M-009, M-010, M-070, M-071, M-072, M-075, M-076
  *   LINKS: V-M-077, docs/plans/Phase-59.xml, docs/modules/M-077.xml
  * END_MODULE_CONTRACT
@@ -21,6 +21,7 @@
  * END_MODULE_MAP
  *
  * START_CHANGE_SUMMARY
+ *   LAST_CHANGE: v1.2.0 - Added root-transform safety, CSS rain fallback, and mobile viewport overscan assertions.
  *   LAST_CHANGE: v1.1.0 - Accepted Phase-67 guarded request/cancel animation frame compatibility in MatrixBackground.
  *   LAST_CHANGE: v1.0.0 - Added Phase-59 motion and microinteraction verification gate
  * END_CHANGE_SUMMARY
@@ -131,6 +132,8 @@ for (const [label, source] of [
     '--motion-duration-standard: 180ms',
     '--motion-duration-route: 220ms',
     '.motion-route-enter',
+    '.matrix-rain-fallback',
+    'matrixCssRainFallback',
     '.motion-interactive',
     '.motion-copy-success',
     '.motion-feedback-success',
@@ -146,6 +149,8 @@ for (const [label, source] of [
     '[MatrixMotion][phase59][REDUCED_MOTION_PASS]',
     '[MatrixMotion][phase59][POINTER_SCROLL_SAFE]',
     '[MatrixMotion][phase59][KEYBOARD_FOCUS_SAFE]',
+    '[MatrixVisualRuntime][fix][CSS_RAIN_FALLBACK_READY]',
+    '[MatrixVisualRuntime][fix][MOBILE_OVERSCAN_READY]',
     'pointer-events: none',
   ]) {
     assertContains(source, needle, label)
@@ -176,16 +181,18 @@ for (const [label, source] of [
   ['frontend-admin/src/components/VisualShell.tsx', adminVisualShell],
 ]) {
   for (const needle of [
-    'className="matrix-visual-shell motion-route-enter"',
+    'className="matrix-visual-shell"',
+    'data-matrix-rain-fallback="[MatrixVisualRuntime][fix][CSS_RAIN_FALLBACK_READY]"',
     'data-phase59-motion-budget="[MatrixMotion][phase59][MOTION_BUDGET_READY]"',
     'data-phase59-route-transition="[MatrixMotion][phase59][ROUTE_TRANSITIONS_FAST]"',
     'data-phase59-reduced-motion="[MatrixMotion][phase59][REDUCED_MOTION_PASS]"',
     'data-phase59-pointer-scroll="[MatrixMotion][phase59][POINTER_SCROLL_SAFE]"',
     'data-phase59-keyboard-focus="[MatrixMotion][phase59][KEYBOARD_FOCUS_SAFE]"',
-    'matrix-visual-content motion-safe-layer',
+    'matrix-visual-content motion-safe-layer motion-route-enter',
   ]) {
     assertContains(source, needle, label)
   }
+  assertNotContains(source, 'className="matrix-visual-shell motion-route-enter"', label)
 }
 
 for (const [label, source] of [
@@ -197,6 +204,10 @@ for (const [label, source] of [
     "window.addEventListener('pointermove', handlePointerMove, { passive: true })",
     "document.addEventListener('visibilitychange', handleVisibility)",
     'cancelAnimationFrame',
+    'CANVAS_OVERSCAN_PX',
+    'getCanvasDimensions',
+    "visualViewport?.addEventListener('resize', resize)",
+    "visualViewport?.addEventListener('scroll', resize)",
     '[MatrixMotion][phase59][REDUCED_MOTION_PASS]',
     '[MatrixMotion][phase59][POINTER_SCROLL_SAFE]',
     '[MatrixMotion][phase59][INACTIVE_TAB_SAFE]',

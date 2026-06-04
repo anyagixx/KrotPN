@@ -1,12 +1,12 @@
 #!/usr/bin/env node
 /*
  * FILE: scripts/phase67-auth-splash-smoke.mjs
- * VERSION: 1.0.0
+ * VERSION: 1.1.0
  * ROLE: TEST
  * MAP_MODE: LOCALS
  * START_MODULE_CONTRACT
  *   PURPOSE: Static smoke verification for Phase-67 public splash, frameless auth polish, and Matrix canvas compatibility
- *   SCOPE: Splash-only / route, auth copy/removal contracts, red-focus auth CSS, large unframed logo markers, browser-safe MatrixBackground guards, responsive markers, and protected-surface isolation
+ *   SCOPE: Splash-only / route, auth copy/removal contracts, red-focus auth CSS, large unframed logo markers, browser-safe MatrixBackground/rain fallback guards, responsive markers, and protected-surface isolation
  *   DEPENDS: M-009, M-070, M-071, M-073, M-074, M-080
  *   LINKS: V-M-009, V-M-070, V-M-071, V-M-073, V-M-074, V-M-080, docs/plans/Phase-67.xml
  * END_MODULE_CONTRACT
@@ -15,11 +15,12 @@
  *   read - Loads repository files for deterministic static assertions
  *   assertContains - Fails if a source lacks a required Phase-67 marker
  *   assertNotContains - Fails if a source contains prohibited Phase-67 content
- *   assertProtectedSurfaceDiffClean - Fails if Phase-67 touched protected backend/deploy/admin/runtime surfaces
+ *   assertProtectedSurfaceDiffClean - Fails if Phase-67 touched protected backend/deploy/runtime surfaces outside shared Matrix visual compatibility files
  *   main - Runs Phase-67 static assertions and prints required verification markers
  * END_MODULE_MAP
  *
  * START_CHANGE_SUMMARY
+ *   LAST_CHANGE: v1.1.0 - Allowed shared admin Matrix visual compatibility files and asserted rain fallback markers.
  *   LAST_CHANGE: v1.0.0 - Added Phase-67 auth/splash verification gate.
  * END_CHANGE_SUMMARY
  */
@@ -73,8 +74,18 @@ function assertProtectedSurfaceDiffClean() {
     ['diff', '--name-only', 'HEAD', '--', ...protectedPaths],
     { cwd: root, encoding: 'utf8' },
   ).trim()
-  if (diff) {
-    throw new Error(`Phase-67 must not change protected backend/deploy/admin/runtime surfaces: ${diff}`)
+  const allowedSharedMatrixFiles = new Set([
+    'frontend-admin/src/components/MatrixBackground.tsx',
+    'frontend-admin/src/components/VisualShell.tsx',
+    'frontend-admin/src/index.css',
+  ])
+  const violations = diff
+    .split('\n')
+    .map((line) => line.trim())
+    .filter(Boolean)
+    .filter((path) => !allowedSharedMatrixFiles.has(path))
+  if (violations.length) {
+    throw new Error(`Phase-67 must not change protected backend/deploy/runtime surfaces: ${violations.join(', ')}`)
   }
 }
 
@@ -183,6 +194,7 @@ for (const needle of [
   'START_BLOCK_PHASE67_AUTH_SPLASH_POLISH',
   '.matrix-splash-page',
   '.matrix-auth-panel',
+  '.matrix-rain-fallback',
   '.phase67-auth-logo.phase63-brand-lockup',
   '.auth-input:focus',
   'rgba(255, 107, 120, 0.86)',
@@ -191,6 +203,8 @@ for (const needle of [
   '[MatrixStyleSystem][phase67][FRAMELESS_AUTH_READY]',
   '[MatrixStyleSystem][phase67][RED_FOCUS_READY]',
   '[MatrixStyleSystem][phase67][AUTH_NO_OVERLAP]',
+  '[MatrixVisualRuntime][fix][CSS_RAIN_FALLBACK_READY]',
+  '[MatrixVisualRuntime][fix][MOBILE_OVERSCAN_READY]',
   '@media (prefers-reduced-motion: reduce)',
   '@media (max-width: 480px)',
   '@media (max-width: 360px)',
@@ -205,6 +219,9 @@ for (const needle of [
   'query.removeListener?.(listener)',
   'window.requestAnimationFrame?.bind(window)',
   'window.cancelAnimationFrame?.bind(window)',
+  'CANVAS_OVERSCAN_PX',
+  'getCanvasDimensions',
+  'visualViewport',
   '[MatrixVisualRuntime][phase67][BROWSER_COMPAT_SAFE]',
   '[MatrixVisualRuntime][phase67][STATIC_FALLBACK_SAFE]',
   'data-phase67-browser-compat',

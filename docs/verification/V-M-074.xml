@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<V-M-074 MODULE="M-074" PRIORITY="critical" STATUS="pass-local-phase61-phase62-pass-local-phase67" PHASE-61="pass-local" PHASE-62="pass-local" PHASE-67="pass-local">
+<V-M-074 MODULE="M-074" PRIORITY="critical" STATUS="pass-local-phase61-phase62-pass-local-phase67-pass-local-rainfix" PHASE-61="pass-local" PHASE-62="pass-local" PHASE-67="pass-local" RAINFIX="pass-local">
   <scope>Responsive adaptation verification for phone, tablet, and desktop layouts across public, auth, user-cabinet, and admin Matrix surfaces.</scope>
   <verification-intent>Phase-61 must prove that the premium Matrix UI is intentionally designed for mobile and tablet use, not merely tolerated by desktop CSS.</verification-intent>
   <test-files>
@@ -54,6 +54,7 @@
     <command status="passed-local">git diff --check</command>
     <command status="passed-local">git diff --name-only -- backend deploy docker-compose.yml install.sh mtproto-runtime official-mtproxy nginx telegram-bot is empty</command>
     <command status="pass-local-phase67">cd frontend &amp;&amp; npm run build; node scripts/phase67-auth-splash-smoke.mjs; node scripts/phase61-responsive-adaptation-smoke.mjs; node scripts/phase60-premium-qa-smoke.mjs</command>
+    <command status="pass-local-rainfix">cd frontend &amp;&amp; npm run build; cd frontend-admin &amp;&amp; npm run build; node scripts/phase61-responsive-adaptation-smoke.mjs; Chrome 390x844 user/admin screenshot and bottom-pixel sanity</command>
   </commands>
   <evidence>
     <item>2026-06-04: frontend npm run build passed; primary JS 448870 bytes gzip 135741, primary CSS 44212 bytes gzip 8832.</item>
@@ -64,6 +65,7 @@
     <item>2026-06-04: Authenticated protected-route browser screenshots are not claimed locally; Phase-61 records static-route proof and leaves real backend-session screenshot review for clean-deploy validation.</item>
     <item>2026-06-04: Phase-62 compactness/deletion audit preserved Phase-61 responsive compactness markers after folding secondary dashboard/config/subscription/public/admin surfaces; user/admin builds and Phase-61/60 regressions remained green.</item>
     <item>2026-06-04: Phase-67 auth/splash responsive smoke and browser screenshots under /tmp/krotpn-phase67-shots passed for splash redirect, large unframed logo, red-focus auth inputs, side-by-side secondary actions with narrow-phone wrapping, reduced-motion fallback, and protected backend/deploy/runtime guard.</item>
+    <item>2026-06-04: Rainfix responsive evidence passed: Phase-61 smoke now asserts .matrix-rain-fallback, min-height calc(100dvh + 128px), CSS_RAIN_FALLBACK_READY, and MOBILE_OVERSCAN_READY; 390x844 user/admin Chrome screenshots show no bottom black cutoff; bottom crop max values were user 0.246326 and admin 0.841062.</item>
   </evidence>
   <viewport-matrix>
     <phone-1>320x568 proves smallest supported phone does not clip auth/public CTAs or cabinet actions.</phone-1>
@@ -92,6 +94,11 @@
     <gate-3>Secondary auth actions placed side by side must wrap intentionally on narrow phones without clipped text or sub-44px controls.</gate-3>
     <gate-4>Reduced-motion must disable or simplify splash/auth animations without leaving users stuck before /login.</gate-4>
   </phase-67-responsive-gates>
+  <rainfix-responsive-gates status="pass-local">
+    <gate-1>Canvas and fallback layers must overrun the viewport by 128px and use 100dvh-aware CSS so mobile browser chrome cannot expose a black bottom strip.</gate-1>
+    <gate-2>Phase-61 smoke must fail if Matrix rain fallback or overscan markers are removed from user/admin CSS.</gate-2>
+    <gate-3>Mobile screenshot or pixel sanity must prove the bottom viewport crop is nonblank after a production preview build.</gate-3>
+  </rainfix-responsive-gates>
   <success-scenarios>
     <scenario-1>All planned phone, tablet, desktop, and reduced-motion viewports render without document-level or route-level horizontal scroll.</scenario-1>
     <scenario-2>Public/auth surfaces keep the first-screen brand signal, CTA, email/password forms, password hint, and recovery paths visible and non-overlapping.</scenario-2>
@@ -131,6 +138,8 @@
     <marker>[ResponsiveAdaptation][phase61][PROTECTED_SURFACE_GUARD]</marker>
     <marker>[ResponsiveAdaptation][phase61][MYGRACE_PASS]</marker>
     <marker>[ResponsiveAdaptation][phase67][AUTH_SPLASH_RESPONSIVE_SAFE]</marker>
+    <marker>[MatrixVisualRuntime][fix][CSS_RAIN_FALLBACK_READY]</marker>
+    <marker>[MatrixVisualRuntime][fix][MOBILE_OVERSCAN_READY]</marker>
   </required-log-markers>
   <telemetry-requirements>
     <allowed>route path, viewport size, app surface name, selector label, measured width/height, horizontal-scroll delta, screenshot artifact path, bundle size, and anonymized failure code.</allowed>
@@ -151,6 +160,7 @@
     <gate-4 status="passed-local">Known live-only evidence must be documented in M-074 and V-M-074 rather than hidden behind generic PASS wording.</gate-4>
     <gate-5 status="passed-local-phase62">Phase-62 compactness changes must preserve Phase-61 responsive no-horizontal-scroll, no-overlap, touch-target, safe-area, bounded-scroll, and reduced-motion guarantees; local evidence passed on 2026-06-04.</gate-5>
     <gate-6 status="pass-local-phase67">Phase-67 auth/splash responsive gate must preserve Phase-61 responsive guarantees and may not change protected user/admin responsive contracts.</gate-6>
+    <gate-7 status="pass-local-rainfix">Matrix rain reliability hotfix must preserve Phase-61 responsive guarantees while adding bottom-edge overscan proof for user/admin mobile shells.</gate-7>
   </phase-gates>
   <autonomous-execution-safety>
     <safety-1>Edits are limited to frontend, frontend-admin, Phase-61 smoke, and MyGRACE documentation unless the operator approves a new phase.</safety-1>

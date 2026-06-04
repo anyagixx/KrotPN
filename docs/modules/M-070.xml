@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<M-070 NAME="matrix-visual-runtime" TYPE="UI_COMPONENT" STATUS="done-local-phase52-phase53-phase54-phase59-pass-local-phase67">
-  <path>frontend/src/components/MatrixBackground.tsx frontend/src/components/VisualShell.tsx frontend-admin/src/components/MatrixBackground.tsx frontend-admin/src/components/VisualShell.tsx scripts/phase52-matrix-visual-smoke.mjs scripts/phase53-user-matrix-ui-smoke.mjs scripts/phase54-admin-matrix-ui-smoke.mjs scripts/phase59-motion-interactions-smoke.mjs docs/plans/Phase-52.xml docs/plans/Phase-53.xml docs/plans/Phase-54.xml docs/plans/Phase-59.xml docs/plans/Phase-67.xml scripts/phase67-auth-splash-smoke.mjs</path>
+<M-070 NAME="matrix-visual-runtime" TYPE="UI_COMPONENT" STATUS="done-local-phase52-phase53-phase54-phase59-pass-local-phase67-pass-local-rainfix">
+  <path>frontend/src/components/MatrixBackground.tsx frontend/src/components/VisualShell.tsx frontend-admin/src/components/MatrixBackground.tsx frontend-admin/src/components/VisualShell.tsx scripts/phase52-matrix-visual-smoke.mjs scripts/phase53-user-matrix-ui-smoke.mjs scripts/phase54-admin-matrix-ui-smoke.mjs scripts/phase59-motion-interactions-smoke.mjs scripts/phase61-responsive-adaptation-smoke.mjs docs/plans/Phase-52.xml docs/plans/Phase-53.xml docs/plans/Phase-54.xml docs/plans/Phase-59.xml docs/plans/Phase-67.xml scripts/phase67-auth-splash-smoke.mjs</path>
   <owns>Shared React/Vite Matrix canvas runtime and CRT overlay mount points for the user frontend and admin frontend.</owns>
   <depends>M-009, M-010, M-038, M-071, M-077</depends>
   <verification-ref>V-M-070</verification-ref>
@@ -15,8 +15,8 @@
   </source-contract>
   <public-interfaces>
     <interface-1>MatrixBackground React component renders a fixed, pointer-events-none canvas layer.</interface-1>
-    <interface-2>VisualShell React component mounts MatrixBackground, scanline overlay, and app content with safe z-index boundaries.</interface-2>
-    <interface-3>MatrixBackground internal motion policy applies prefers-reduced-motion, tab visibility, resize, and canvas context guards.</interface-3>
+    <interface-2>VisualShell React component mounts MatrixBackground, CSS rain fallback, scanline overlay, and app content with safe z-index boundaries.</interface-2>
+    <interface-3>MatrixBackground internal motion policy applies prefers-reduced-motion, tab visibility, visualViewport resize/scroll, overscanned canvas sizing, and canvas context guards.</interface-3>
   </public-interfaces>
   <constraints>
     <constraint-1>Do not change backend APIs, auth flows, billing logic, VPN provisioning, MTProto provisioning, deploy scripts, install scripts, nginx, docker-compose, or runtime topology.</constraint-1>
@@ -24,12 +24,14 @@
     <constraint-3>Animations must stop or simplify under prefers-reduced-motion and inactive-tab conditions.</constraint-3>
     <constraint-4>Do not import TRUFFLEX music, NFT content, spider physics, fluid cursor, or WebGL glow unless a later phase explicitly approves it.</constraint-4>
     <constraint-5>Canvas and overlay layers must never intercept clicks, focus, keyboard navigation, or mobile scroll gestures.</constraint-5>
+    <constraint-6>Route transition transforms must not live on the root fixed-background ancestor, because transformed ancestors can clip fixed canvas descendants in mobile browsers.</constraint-6>
   </constraints>
   <acceptance>
     <metric-1>Desktop and mobile screenshots prove the Matrix canvas is nonblank while content remains readable.</metric-1>
     <metric-2>Reduced-motion screenshot proves a static readable fallback instead of a running animation loop.</metric-2>
     <metric-3>Frontend and frontend-admin builds pass with no deploy/install diff.</metric-3>
     <metric-4>Runtime smoke verifies no console errors from canvas init, resize, teardown, or missing context branches.</metric-4>
+    <metric-5>Status pass-local-rainfix requires mobile screenshot proof that Matrix rain reaches the bottom viewport edge without a black cutoff.</metric-5>
   </acceptance>
   <evidence>
     <local-2026-06-03>Phase-52 implemented MatrixBackground and VisualShell for user/admin frontends, mounted both route trees, added static smoke, passed user/admin builds, and captured Chrome screenshots at 360x740, 390x844, 430x932, 1440x900, plus reduced-motion 390x844.</local-2026-06-03>
@@ -38,6 +40,7 @@
     <phase-54-local-2026-06-03>Phase-54 reused the existing admin VisualShell/MatrixBackground runtime, passed frontend-admin build and Phase-54 smoke, proved pointer-safe/reduced-motion admin markers statically, and made no deploy/install/nginx/docker-compose/runtime changes.</phase-54-local-2026-06-03>
     <phase-59-local-2026-06-04>Phase-59 added route-motion markers to VisualShell and MatrixMotion reduced-motion, pointer-scroll, and inactive-tab lifecycle markers to MatrixBackground without changing canvas behavior; Phase-52 and Phase-59 smokes passed.</phase-59-local-2026-06-04>
     <phase-67-local-2026-06-04>Phase-67 added user MatrixBackground guards for legacy matchMedia addListener/removeListener, missing requestAnimationFrame/cancelAnimationFrame, static fallback markers, browser compatibility telemetry, and preserved pointer-events-none/reduced-motion behavior; Phase-52, Phase-59, and Phase-67 smokes passed.</phase-67-local-2026-06-04>
+    <rainfix-local-2026-06-04>Live-deploy feedback found Matrix rain missing in some browsers and cut off near the bottom on mobile. The hotfix added visualViewport-aware overscanned canvas sizing, immediate nonblank frame seeding, CSS rain fallback, admin runtime Phase-67 parity, and moved route transforms off the root shell. User/admin builds, Phase-52/59/61/67/60 smokes, Chrome screenshots at 390x844 and 1440x900, bottom-pixel sanity, git diff --check, and protected backend/deploy/runtime guard passed.</rainfix-local-2026-06-04>
   </evidence>
   <phase-67-verification-design>
     <scope>Harden the user MatrixBackground browser-compatibility path used on splash/auth routes while preserving the existing visual shell contract.</scope>
@@ -51,5 +54,6 @@
     <phase-54>Admin console Matrix redesign uses this runtime.</phase-54>
     <phase-59>Motion and microinteraction layer uses runtime lifecycle proof markers.</phase-59>
     <phase-67>Browser compatibility hardening for public splash and auth Matrix canvas behavior.</phase-67>
+    <rainfix>Mobile/browser reliability hardening for live Matrix rain visibility and bottom-edge coverage.</rainfix>
   </crosslinks>
 </M-070>

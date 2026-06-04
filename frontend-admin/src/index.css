@@ -1,10 +1,10 @@
 /* FILE: frontend-admin/src/index.css
- * VERSION: 1.7.0
+ * VERSION: 1.8.0
  * ROLE: UI_COMPONENT
  * MAP_MODE: SUMMARY
  * START_MODULE_CONTRACT
- *   PURPOSE: Shared admin-frontend styling tokens, compact admin surfaces, Phase-52 Matrix visual foundation, Phase-54 admin console primitives, Phase-55 premium art direction, Phase-58 operator cockpit density, Phase-59 motion language, Phase-61 phone/tablet adaptation gates, Phase-62 deletion-audit compaction, and Phase-63 visible brand logo placement
- *   SCOPE: Admin shell, login console, visible Phase-63 brand mark classes, navigation, panels, forms, data tables, charts, premium palette/type/density/logo tokens, Matrix background/canvas/CRT layers, Phase-58 command cockpit primitives, Phase-59 motion/microinteraction primitives, Phase-61 responsive phone/tablet/safe-area rules, Phase-62 folded admin secondary surfaces, focus and reduced-motion policy
+ *   PURPOSE: Shared admin-frontend styling tokens, compact admin surfaces, Phase-52 Matrix visual foundation, Phase-54 admin console primitives, Phase-55 premium art direction, Phase-58 operator cockpit density, Phase-59 motion language, Phase-61 phone/tablet adaptation gates, Phase-62 deletion-audit compaction, Phase-63 visible brand logo placement, and Matrix rain reliability fallback
+ *   SCOPE: Admin shell, login console, visible Phase-63 brand mark classes, navigation, panels, forms, data tables, charts, premium palette/type/density/logo tokens, Matrix background/canvas/CRT layers, CSS rain fallback and mobile overscan, Phase-58 command cockpit primitives, Phase-59 motion/microinteraction primitives, Phase-61 responsive phone/tablet/safe-area rules, Phase-62 folded admin secondary surfaces, focus and reduced-motion policy
  *   DEPENDS: M-010 (frontend-admin), M-037 (admin-mtproto-ui), M-038 (compact-ui-system), M-047 (mtproto-admin-ops), M-058 (mtproto-admin-analytics-ui), M-068 (tariff-catalog), M-070 (matrix-visual-runtime), M-071 (matrix-style-system), M-072 (premium-art-direction-system), M-074 (responsive-device-adaptation), M-076 (premium-admin-cockpit), M-077 (matrix-motion-interactions), M-080 (visible-brand-logo-integration)
  *   LINKS: M-010 (frontend-admin), M-037, M-038, M-047, M-058, M-068, M-070, M-071, M-072, M-074, M-076, M-077, M-080, Phase-61, Phase-63
  * END_MODULE_CONTRACT
@@ -12,7 +12,7 @@
  * START_MODULE_MAP
  *   base - Root color, typography, density, logo, and document background tokens
  *   premium-art-direction - Phase-55 balanced palette, compact type scale, density, and logo rules
- *   matrix-visual-system - Canvas, scanline, vignette, and content stacking layers
+ *   matrix-visual-system - Canvas, CSS rain fallback, scanline, vignette, and content stacking layers
  *   visible-brand-logo - Phase-63 compact KrotPN logo mark and admin lockup classes
  *   admin-shell - Rail, topbar, mobile tabbar, content sizing
  *   admin-matrix-ui - Phase-54 compact login, toolbar, KPI, chart, route, and bounded-scroll primitives
@@ -23,6 +23,7 @@
  * END_MODULE_MAP
  *
  * START_CHANGE_SUMMARY
+ *   LAST_CHANGE: v3.8.0 - Added Matrix rain CSS fallback, normal canvas blending, and mobile overscan to prevent blank/cut-off rain in live browsers.
  *   LAST_CHANGE: v3.7.0 - Added Phase-63 visible brand logo classes for admin login, rail, and mobile topbar placement.
  *   LAST_CHANGE: v3.6.0 - Added Phase-62 admin deletion audit fold primitives for secondary analytics, archive, storage, and topology notes.
  *   LAST_CHANGE: v3.5.0 - Added Phase-61 admin phone/tablet responsive adaptation, safe-area, bounded list/chart/table, and touch-target markers.
@@ -184,13 +185,32 @@ textarea:focus-visible,
 
 .matrix-canvas {
   position: fixed;
-  inset: 0;
-  z-index: 0;
+  inset: -64px 0;
+  z-index: 1;
   width: 100vw;
-  height: 100vh;
+  height: calc(100vh + 128px);
+  min-height: calc(100dvh + 128px);
+  display: block;
   pointer-events: none;
-  opacity: 0.44;
-  mix-blend-mode: screen;
+  opacity: 0.5;
+  mix-blend-mode: normal;
+  /* [MatrixVisualRuntime][fix][MOBILE_OVERSCAN_READY] */
+}
+
+.matrix-rain-fallback {
+  position: fixed;
+  inset: -64px 0;
+  z-index: 0;
+  pointer-events: none;
+  opacity: 0.18;
+  background-image:
+    repeating-linear-gradient(90deg, transparent 0 13px, rgba(96, 255, 155, 0.1) 14px 15px, transparent 16px 29px),
+    repeating-linear-gradient(180deg, transparent 0 18px, rgba(96, 255, 155, 0.2) 19px 20px, transparent 21px 44px),
+    repeating-linear-gradient(180deg, transparent 0 52px, rgba(104, 232, 255, 0.14) 53px 54px, transparent 55px 92px);
+  background-size: 30px 180px, 30px 180px, 46px 240px;
+  animation: matrixCssRainFallback 7.5s linear infinite;
+  transform: translateZ(0);
+  /* [MatrixVisualRuntime][fix][CSS_RAIN_FALLBACK_READY] */
 }
 
 .matrix-scanline-overlay {
@@ -1162,6 +1182,15 @@ details[open] > .phase62-fold-summary::after {
   }
 }
 
+@keyframes matrixCssRainFallback {
+  from {
+    background-position: 0 -180px, 0 -240px, 0 -320px;
+  }
+  to {
+    background-position: 0 0, 0 180px, 0 240px;
+  }
+}
+
 @keyframes matrixRouteEnter {
   from {
     opacity: 0;
@@ -1194,6 +1223,12 @@ details[open] > .phase62-fold-summary::after {
 
   .matrix-canvas {
     opacity: 0.26;
+  }
+
+  .matrix-rain-fallback {
+    animation: none;
+    opacity: 0.16;
+    background-position: 0 0, 0 80px, 0 120px;
   }
 
   .matrix-scanline-overlay {

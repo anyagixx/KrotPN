@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<V-M-071 MODULE="M-071" PRIORITY="high" STATUS="pass-local-phase52-phase53-phase54-phase55-phase56-phase59-pass-local-phase67" PHASE-54="pass-local" PHASE-55="pass-local" PHASE-56="pass-local" PHASE-59="pass-local" PHASE-67="pass-local">
+<V-M-071 MODULE="M-071" PRIORITY="high" STATUS="pass-local-phase52-phase53-phase54-phase55-phase56-phase59-pass-local-phase67-pass-local-rainfix" PHASE-54="pass-local" PHASE-55="pass-local" PHASE-56="pass-local" PHASE-59="pass-local" PHASE-67="pass-local" RAINFIX="pass-local">
   <scope>
     <phase>Phase-52</phase>
     <purpose>Verify the Matrix style system foundation for compact, readable, mobile-safe user and admin shells.</purpose>
@@ -16,6 +16,7 @@
     <file phase="55-pass-local">scripts/phase55-premium-art-direction-smoke.mjs</file>
     <file phase="56-pass-local">scripts/phase56-premium-public-auth-smoke.mjs</file>
     <file phase="59-pass-local">scripts/phase59-motion-interactions-smoke.mjs</file>
+    <file phase="rainfix-pass-local">scripts/phase61-responsive-adaptation-smoke.mjs</file>
     <file phase="67-pass-local">scripts/phase67-auth-splash-smoke.mjs</file>
   </test-files>
   <module-checks>
@@ -31,6 +32,7 @@
     <check-10>Phase-56 public/auth smoke and screenshots: compact public landing, logo auth lockups, canonical tariff preview, reduced-motion proof, and protected deploy/install guard.</check-10>
     <check-11>Phase-59 motion smoke: motion budget tokens, route transitions, feedback/status classes, reduced-motion fallback, and protected backend/deploy/runtime guard.</check-11>
     <check-12 status="pass-local-phase67">Phase-67 auth/splash smoke: no visible auth card frame, large unframed logo, red focus border, icon-safe inputs, elegant buttons, side-by-side secondary actions, responsive safety, and reduced-motion fallback.</check-12>
+    <check-13 status="pass-local-rainfix">Matrix rain CSS reliability smoke: fallback layer exists in user/admin VisualShell/CSS, canvas and fallback use mobile overscan, reduced-motion keeps a static visible fallback, and protected backend/deploy/runtime guard remains clean.</check-13>
   </module-checks>
   <phase-53-style-gates status="pass-local">
     <gate-1>User cabinet routes use Matrix palette/tokens while preserving compact operational layout and avoiding nested cards.</gate-1>
@@ -69,6 +71,12 @@
     <gate-3>Input icons, placeholders, typed values, password controls, and button text must not overlap at Phase-67 phone, tablet, desktop, or reduced-motion viewports.</gate-3>
     <gate-4>Primary/secondary auth buttons must remain compact, touch-safe, animated within the motion budget, and disabled/simplified under reduced-motion.</gate-4>
   </phase-67-style-gates>
+  <rainfix-style-gates status="pass-local">
+    <gate-1>User and admin CSS must expose .matrix-rain-fallback and matrixCssRainFallback.</gate-1>
+    <gate-2>.matrix-canvas must use 100dvh+128px min-height and normal blend mode so browser-specific blend/viewport behavior cannot hide the rain.</gate-2>
+    <gate-3>Reduced-motion must leave a static fallback visible rather than removing the Matrix background entirely.</gate-3>
+    <gate-4>CSS smoke must reject accidental removal of CSS_RAIN_FALLBACK_READY and MOBILE_OVERSCAN_READY markers.</gate-4>
+  </rainfix-style-gates>
   <scenarios>
     <scenario-1 kind="success">Shared Matrix tokens apply to both frontends without breaking compact operational layout rules from M-038.</scenario-1>
     <scenario-2 kind="success">CRT scanlines, neon flicker, and glitch accents are visible but do not obscure forms, tables, proxy cards, tariffs, alerts, or primary actions.</scenario-2>
@@ -113,6 +121,8 @@
     <marker-21>[MatrixStyleSystem][phase67][FRAMELESS_AUTH_READY]</marker-21>
     <marker-22>[MatrixStyleSystem][phase67][RED_FOCUS_READY]</marker-22>
     <marker-23>[MatrixStyleSystem][phase67][AUTH_NO_OVERLAP]</marker-23>
+    <marker-24>[MatrixVisualRuntime][fix][CSS_RAIN_FALLBACK_READY]</marker-24>
+    <marker-25>[MatrixVisualRuntime][fix][MOBILE_OVERSCAN_READY]</marker-25>
   </required-log-markers>
   <evidence-levels>
     <module-local>Static smoke validates CSS tokens, class primitives, reduced-motion selectors, focus selectors, and protected-surface guard.</module-local>
@@ -195,5 +205,13 @@
       <screenshot-paths>/tmp/krotpn-phase67-shots/splash-390x844.png /tmp/krotpn-phase67-shots/login-390x844-final.png /tmp/krotpn-phase67-shots/register-390x844-final.png /tmp/krotpn-phase67-shots/forgot-390x844-final.png /tmp/krotpn-phase67-shots/reset-390x844-final.png /tmp/krotpn-phase67-shots/login-1440x900-final.png /tmp/krotpn-phase67-shots/login-reduced-390x844-final.png</screenshot-paths>
       <summary>Phase-67 CSS/auth polish passed for frameless auth surfaces, large unframed logo, red focus treatment, compact secondary actions, mobile wrapping, reduced-motion simplification, and protected backend/deploy/runtime isolation.</summary>
     </phase-67-local-2026-06-04>
+    <rainfix-local-2026-06-04>
+      <result>PASS</result>
+      <command-1>cd frontend &amp;&amp; npm run build</command-1>
+      <command-2>cd frontend-admin &amp;&amp; npm run build</command-2>
+      <command-3>node scripts/phase52-matrix-visual-smoke.mjs; node scripts/phase59-motion-interactions-smoke.mjs; node scripts/phase61-responsive-adaptation-smoke.mjs; node scripts/phase67-auth-splash-smoke.mjs; node scripts/phase60-premium-qa-smoke.mjs</command-3>
+      <screenshot-paths>/tmp/krotpn-rainfix-user-login-390.png /tmp/krotpn-rainfix-user-register-390.png /tmp/krotpn-rainfix-admin-login-390.png /tmp/krotpn-rainfix-user-login-1440.png</screenshot-paths>
+      <summary>CSS fallback and overscan passed static and browser checks; user/admin mobile screenshots show Matrix rain behind content through the bottom edge without visible black cutoff.</summary>
+    </rainfix-local-2026-06-04>
   </evidence>
 </V-M-071>

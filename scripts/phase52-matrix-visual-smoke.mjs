@@ -1,12 +1,12 @@
 #!/usr/bin/env node
 /*
  * FILE: scripts/phase52-matrix-visual-smoke.mjs
- * VERSION: 1.0.0
+ * VERSION: 1.1.0
  * ROLE: TEST
  * MAP_MODE: LOCALS
  * START_MODULE_CONTRACT
  *   PURPOSE: Static smoke checks for Phase-52 Matrix visual runtime and style-system foundation
- *   SCOPE: User/admin VisualShell mounting, Matrix canvas runtime markers, shared CSS tokens/layers, reduced-motion/focus rules, and protected deploy surfaces
+ *   SCOPE: User/admin VisualShell mounting, Matrix canvas runtime/fallback markers, shared CSS tokens/layers, mobile viewport overscan, reduced-motion/focus rules, and protected deploy surfaces
  *   DEPENDS: M-009, M-010, M-038, M-070, M-071
  *   LINKS: V-M-070, V-M-071
  * END_MODULE_CONTRACT
@@ -20,6 +20,7 @@
  * END_MODULE_MAP
  *
  * START_CHANGE_SUMMARY
+ *   LAST_CHANGE: v1.1.0 - Added CSS rain fallback and mobile overscan assertions for live browser reliability.
  *   LAST_CHANGE: v1.0.0 - Added Phase-52 Matrix visual foundation static smoke gate
  * END_CHANGE_SUMMARY
  */
@@ -97,6 +98,8 @@ for (const [label, source] of [
   assertContains(source, 'M-070', label)
   assertContains(source, 'M-071', label)
   assertContains(source, 'matrix-visual-shell', label)
+  assertContains(source, 'matrix-rain-fallback', label)
+  assertContains(source, '[MatrixVisualRuntime][fix][CSS_RAIN_FALLBACK_READY]', label)
   assertContains(source, 'matrix-scanline-overlay', label)
   assertContains(source, 'matrix-vignette', label)
   assertContains(source, 'matrix-visual-content', label)
@@ -109,6 +112,9 @@ for (const [label, source] of [
   assertContains(source, 'START_MODULE_CONTRACT', label)
   assertContains(source, 'requestAnimationFrame', label)
   assertContains(source, 'cancelAnimationFrame', label)
+  assertContains(source, 'CANVAS_OVERSCAN_PX', label)
+  assertContains(source, 'getCanvasDimensions', label)
+  assertContains(source, 'visualViewport', label)
   assertContains(source, 'prefers-reduced-motion: reduce', label)
   assertContains(source, 'visibilitychange', label)
   assertContains(source, 'data-matrix-canvas', label)
@@ -131,12 +137,16 @@ for (const [label, source] of [
   assertContains(source, '--matrix-red', label)
   assertContains(source, '.matrix-visual-shell', label)
   assertContains(source, '.matrix-canvas', label)
+  assertContains(source, '.matrix-rain-fallback', label)
+  assertContains(source, 'matrixCssRainFallback', label)
   assertContains(source, '.matrix-scanline-overlay', label)
   assertContains(source, '.matrix-vignette', label)
   assertContains(source, '.matrix-visual-content', label)
   assertContains(source, ':focus-visible', label)
   assertContains(source, '@media (prefers-reduced-motion: reduce)', label)
   assertContains(source, 'overflow-x: hidden', label)
+  assertContains(source, '[MatrixVisualRuntime][fix][CSS_RAIN_FALLBACK_READY]', label)
+  assertContains(source, '[MatrixVisualRuntime][fix][MOBILE_OVERSCAN_READY]', label)
 
   for (const prohibited of [
     'background-music',

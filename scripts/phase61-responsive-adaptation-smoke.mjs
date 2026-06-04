@@ -1,12 +1,12 @@
 #!/usr/bin/env node
 /*
  * FILE: scripts/phase61-responsive-adaptation-smoke.mjs
- * VERSION: 1.0.0
+ * VERSION: 1.1.0
  * ROLE: TEST
  * MAP_MODE: LOCALS
  * START_MODULE_CONTRACT
  *   PURPOSE: Static smoke verification for Phase-61 phone and tablet responsive adaptation closure
- *   SCOPE: User/admin responsive CSS contracts, layout safe-area markers, route static proof, no-overflow/no-overlap guards, touch targets, reduced-motion, build bundle budgets, and protected backend/deploy/runtime guard
+ *   SCOPE: User/admin responsive CSS contracts, Matrix rain mobile overscan, layout safe-area markers, route static proof, no-overflow/no-overlap guards, touch targets, reduced-motion, build bundle budgets, and protected backend/deploy/runtime guard
  *   DEPENDS: M-074, M-009, M-010, M-036, M-037, M-038, M-071, M-072
  *   LINKS: V-M-074, docs/plans/Phase-61.xml, docs/modules/M-074.xml
  * END_MODULE_CONTRACT
@@ -25,6 +25,7 @@
  * END_MODULE_MAP
  *
  * START_CHANGE_SUMMARY
+ *   LAST_CHANGE: v1.1.0 - Added Matrix rain fallback and mobile overscan responsive assertions.
  *   LAST_CHANGE: v1.0.0 - Added Phase-61 responsive adaptation verification gate.
  * END_CHANGE_SUMMARY
  */
@@ -151,6 +152,10 @@ function assertResponsiveCss() {
       'scrollbar-gutter: stable',
       'overflow-wrap: anywhere',
       'word-break: break-word',
+      '.matrix-rain-fallback',
+      'min-height: calc(100dvh + 128px)',
+      '[MatrixVisualRuntime][fix][CSS_RAIN_FALLBACK_READY]',
+      '[MatrixVisualRuntime][fix][MOBILE_OVERSCAN_READY]',
       '[ResponsiveAdaptation][phase61][PHONE_LAYOUT_PASS]',
       '[ResponsiveAdaptation][phase61][TABLET_LAYOUT_PASS]',
       '[ResponsiveAdaptation][phase61][NO_HORIZONTAL_SCROLL]',

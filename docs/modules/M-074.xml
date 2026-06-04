@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<M-074 NAME="responsive-device-adaptation" TYPE="UI_COMPONENT" STATUS="pass-local-phase61-pass-local-phase62-pass-local-phase67">
+<M-074 NAME="responsive-device-adaptation" TYPE="UI_COMPONENT" STATUS="pass-local-phase61-pass-local-phase62-pass-local-phase67-pass-local-rainfix">
   <path>frontend frontend-admin docs/plans/Phase-61.xml docs/plans/Phase-62.xml docs/plans/Phase-67.xml scripts/phase61-responsive-adaptation-smoke.mjs scripts/phase62-compactness-deletion-smoke.mjs scripts/phase67-auth-splash-smoke.mjs</path>
   <owns>Phone, tablet, and desktop responsive closure for public, user, and admin Matrix surfaces.</owns>
   <purpose>Make the premium frontend usable and compact across mobile phones, tablets, and desktop screens.</purpose>
@@ -9,6 +9,7 @@
     <viewport-desktop>1280x720 and 1440x900 desktop layout gates.</viewport-desktop>
     <rule-responsive-density>Responsive spacing, grid, navigation, and bounded-scroll rules.</rule-responsive-density>
     <gate-phase61-smoke>scripts/phase61-responsive-adaptation-smoke.mjs static responsive gate.</gate-phase61-smoke>
+    <rule-matrix-rain-overscan>Matrix canvas/fallback background uses mobile viewport overscan to avoid bottom-edge black cutoffs.</rule-matrix-rain-overscan>
   </exports>
   <depends>M-009,M-010,M-036,M-037,M-038,M-071,M-072</depends>
   <verification-ref>V-M-074</verification-ref>
@@ -34,6 +35,7 @@
     <metric-2 status="pass-local-phase61">No visible text overlap, icon overlap, clipped critical values, or document-level horizontal-scroll static drift is allowed by the Phase-61 smoke.</metric-2>
     <metric-3 status="pass-local-phase61">Reduced-motion proof remains readable across phone and tablet viewport classes.</metric-3>
     <metric-4 status="pass-local-phase62">Phase-62 folded surfaces keep 44px summaries, no horizontal-scroll guards, bounded lists, and responsive compactness markers.</metric-4>
+    <metric-5 status="pass-local-rainfix">390x844 user/admin browser screenshots show Matrix rain/fallback through the bottom viewport edge.</metric-5>
   </acceptance-metrics>
   <phase-67-verification-design>
     <scope>Apply responsive closure to the new splash-only / route and frameless auth screens without changing protected user/admin layouts.</scope>
@@ -49,6 +51,7 @@
     <item>2026-06-04: Protected backend/deploy/runtime guard remained empty; authenticated protected-route screenshots remain clean-deploy follow-up evidence.</item>
     <item>2026-06-04: Phase-62 compactness/deletion audit smoke and Phase-61 responsive regression passed after adding user/admin details folds and bounded secondary surfaces.</item>
     <item>2026-06-04: Phase-67 auth/splash responsive work passed frontend/admin builds, Phase-67 smoke, Phase-60 QA, Phase-61 responsive, Phase-62 compactness, and protected backend/deploy/admin/runtime guards for large unframed logo, red-focus inputs, secondary auth actions, and reduced-motion fallback.</item>
+    <item>2026-06-04: Matrix rain reliability hotfix added Phase-61 assertions for .matrix-rain-fallback and 100dvh+128px overscan. User/admin builds, Phase-61 smoke, Phase-60 QA regression, Chrome mobile screenshots, bottom-pixel sanity, and protected backend/deploy/runtime guard passed.</item>
   </evidence>
   <hotspot>H-061: Tablet and mobile adaptation must be verified on real breakpoint classes, not inferred from desktop layouts.</hotspot>
 </M-074>

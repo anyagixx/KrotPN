@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<V-M-076 MODULE="M-076" PRIORITY="high" STATUS="pass-local-phase59-phase62" PHASE-58="pass-local" PHASE-59="pass-local" PHASE-62="pass-local">
+<V-M-076 MODULE="M-076" PRIORITY="high" STATUS="pass-local-phase59-phase62-pass-local-rainfix" PHASE-58="pass-local" PHASE-59="pass-local" PHASE-62="pass-local" RAINFIX="pass-local">
   <scope>Phase-58/Phase-59 premium admin cockpit evidence remains valid. Phase-62 verification now defines the compactness and deletion-audit contract for admin cockpit, MTProto analytics, operational inventories, emergency controls, redaction, responsive regressions, and protected backend/deploy/runtime isolation.</scope>
   <test-files>
     <file>scripts/phase58-premium-admin-cockpit-smoke.mjs</file>
@@ -53,6 +53,7 @@
     <check-21 status="pass-local-phase62">node scripts/phase60-premium-qa-smoke.mjs</check-21>
     <check-22 status="pass-local-phase62">python3 -m xml.etree.ElementTree docs/plans/Phase-62.xml docs/modules/M-076.xml docs/verification/V-M-076.xml docs/verification-index.xml</check-22>
     <check-23 status="pass-local-phase62">mygrace lint; git diff --check; protected diff guard for backend/deploy/runtime/install/frontend-user surfaces</check-23>
+    <check-24 status="pass-local-rainfix">Phase-58 regression guard allows only frontend/src/components/VisualShell.tsx as shared Matrix reliability diff and remains green through node scripts/phase60-premium-qa-smoke.mjs.</check-24>
   </module-checks>
   <phase62-deletion-audit-contract>
     <classification>
@@ -122,6 +123,7 @@
     <gate-3 level="phase">Frontend-admin build, Phase-58 smoke, regression smokes, screenshot/static route proof, XML parse, MyGRACE lint, git diff check, and protected backend/deploy/runtime/frontend-user guard pass before Phase-58 can be marked done-local.</gate-3>
     <gate-4 level="phase-62" status="passed-local">Phase-62 passed locally on 2026-06-04: inventory, classification, prune/collapse decisions, preserved workflow proof, static-route proof, frontend-admin build, Phase-62 smoke, Phase-58/54/61/60 regressions, XML parse, MyGRACE lint, git diff check, and protected backend/deploy/runtime/frontend-user guard passed.</gate-4>
     <gate-5 level="phase-62">Authenticated screenshots may use static-route proof locally; live clean-deploy authenticated screenshot review remains required before production-signoff claims.</gate-5>
+    <gate-6 level="rainfix" status="passed-local">Phase-58 guard update is limited to shared Matrix VisualShell reliability diff and does not permit backend/deploy/runtime drift.</gate-6>
   </phase-gates>
   <evidence>
     <evidence-1>2026-06-04 pass-local: Phase-58 smoke printed all required PremiumAdminCockpit markers including routes, command center, actions, bounded inventories, MTProto redaction, confirmation guards, tariff guard, readonly analytics, reduced motion, static screenshot proof, and protected-surface guard.</evidence-1>
@@ -129,6 +131,7 @@
     <evidence-3>Protected-surface evidence passed: no diff in install.sh, docker-compose.yml, nginx, deploy, deploy/mtproto-de-compose.yml, .env.example, backend/app, backend/tests, mtproto-runtime, official-mtproxy, or frontend.</evidence-3>
     <evidence-4>2026-06-04 pass-local: Phase-59 admin motion smoke passed for Devices, MTProto, MTProtoAnalytics, VisualShell, MatrixBackground, shared admin CSS, and protected backend/deploy/runtime guard. Post-commit Phase-58 smoke passed after HEAD included Phase-59 user frontend changes.</evidence-4>
     <evidence-5>2026-06-04 pass-local: Phase-62 compactness/deletion audit folded MTProto alert archive, MTProto storage details, and legacy VPN server compatibility diagnostics into compact secondary panels while preserving emergency controls, alert actions, confirmation/redaction guards, bounded inventories, and read-only analytics. Frontend-admin build, Phase-62 smoke, Phase-58/54/61/60 regressions, XML parse, MyGRACE lint, git diff --check, and protected backend/deploy/runtime/frontend-user guard passed. Implementation commit: 3d09fa8.</evidence-5>
+    <evidence-6>2026-06-04 pass-local-rainfix: Phase-58 protected surface guard was narrowed to permit only the shared user VisualShell Matrix rain reliability diff during Phase-60 regression. Phase-60 QA passed and protected backend/deploy/runtime guard remained clean.</evidence-6>
   </evidence>
   <autonomous-execution-safety>Safe for local autonomous execution if changes stay inside frontend-admin cockpit routes/components/CSS, Phase-62 smoke verification, and MyGRACE docs. Stop execution if backend admin API changes, auth/session changes, billing catalog mutation, VPN/MTProto runtime changes, deploy/install/nginx/docker-compose changes, user frontend changes, or secret-handling changes appear necessary.</autonomous-execution-safety>
 </V-M-076>

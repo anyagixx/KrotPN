@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<V-M-070 MODULE="M-070" PRIORITY="high" STATUS="pass-local-phase52-phase53-phase54-phase59-pass-local-phase67" PHASE-54="pass-local" PHASE-59="pass-local" PHASE-67="pass-local">
+<V-M-070 MODULE="M-070" PRIORITY="high" STATUS="pass-local-phase52-phase53-phase54-phase59-pass-local-phase67-pass-local-rainfix" PHASE-54="pass-local" PHASE-59="pass-local" PHASE-67="pass-local" RAINFIX="pass-local">
   <scope>
     <phase>Phase-52</phase>
     <purpose>Verify the shared React/Vite Matrix visual runtime before it is used by the full user/admin redesign phases.</purpose>
@@ -14,6 +14,7 @@
     <file>scripts/phase53-user-matrix-ui-smoke.mjs</file>
     <file phase="54-pass-local">scripts/phase54-admin-matrix-ui-smoke.mjs</file>
     <file phase="59-pass-local">scripts/phase59-motion-interactions-smoke.mjs</file>
+    <file phase="rainfix-pass-local">scripts/phase61-responsive-adaptation-smoke.mjs</file>
     <file phase="67-pass-local">scripts/phase67-auth-splash-smoke.mjs</file>
   </test-files>
   <module-checks>
@@ -27,6 +28,7 @@
     <check-8>Phase-54 local static admin route smoke: /login, /, /users, /devices, /mtproto, /servers, /plans, /analytics, pointer-safe overlays, reduced-motion markers, and protected-surface guard; authenticated screenshots remain clean-deploy follow-up.</check-8>
     <check-9>Phase-59 motion smoke: route motion, reduced-motion, pointer-scroll, keyboard focus, inactive-tab lifecycle, and protected backend/deploy/runtime guard.</check-9>
     <check-10 status="pass-local-phase67">Phase-67 auth/splash smoke: MatrixBackground must tolerate canvas context failure, missing or legacy matchMedia listener APIs, reduced-motion, resize cleanup, and static fallback without console errors.</check-10>
+    <check-11 status="pass-local-rainfix">Matrix rain reliability hotfix: user/admin builds, Phase-52/59/61/67/60 smokes, Chrome mobile screenshots, bottom-pixel sanity, git diff --check, and protected backend/deploy/runtime guard.</check-11>
   </module-checks>
   <phase-53-runtime-gates status="pass-local">
     <gate-1>MatrixBackground remains mounted once through VisualShell while user route navigation changes content.</gate-1>
@@ -48,6 +50,12 @@
     <gate-3>Fallback rendering must remain readable and pointer-events-none on /, /login, /register, /forgot-password, and /reset-password.</gate-3>
     <gate-4>Phase-67 must not change admin runtime behavior except through shared guards that keep existing admin smokes green.</gate-4>
   </phase-67-runtime-gates>
+  <rainfix-runtime-gates status="pass-local">
+    <gate-1>Canvas dimensions must use visualViewport/window/document measurements plus 128px overscan so mobile browser chrome changes cannot leave a black bottom band.</gate-1>
+    <gate-2>VisualShell must keep route transform animation off the root shell that owns fixed visual layers.</gate-2>
+    <gate-3>CSS rain fallback must remain mounted and pointer-events-none so Matrix atmosphere is visible if canvas animation is unavailable or delayed.</gate-3>
+    <gate-4>User and admin MatrixBackground runtimes must share the same browser-compatibility and overscan behavior.</gate-4>
+  </rainfix-runtime-gates>
   <scenarios>
     <scenario-1 kind="success">Matrix canvas renders nonblank behind user and admin content without intercepting clicks, keyboard focus, text selection, or mobile scroll.</scenario-1>
     <scenario-2 kind="success">VisualShell keeps content in a higher readable layer while the canvas and CRT overlays remain pointer-events-none.</scenario-2>
@@ -70,6 +78,8 @@
     <marker-11>[MatrixMotion][phase59][INACTIVE_TAB_SAFE]</marker-11>
     <marker-12>[MatrixVisualRuntime][phase67][BROWSER_COMPAT_SAFE]</marker-12>
     <marker-13>[MatrixVisualRuntime][phase67][STATIC_FALLBACK_SAFE]</marker-13>
+    <marker-14>[MatrixVisualRuntime][fix][CSS_RAIN_FALLBACK_READY]</marker-14>
+    <marker-15>[MatrixVisualRuntime][fix][MOBILE_OVERSCAN_READY]</marker-15>
   </required-log-markers>
   <evidence-levels>
     <module-local>Static smoke inspects source contracts, exported components, cleanup paths, reduced-motion branches, and protected imports.</module-local>
@@ -134,5 +144,15 @@
       <command-3>node scripts/phase59-motion-interactions-smoke.mjs</command-3>
       <summary>MatrixBackground now supports legacy matchMedia listener APIs, missing requestAnimationFrame/cancelAnimationFrame branches, canvas-context fallback, reduced-motion, resize cleanup, and static fallback markers without changing admin runtime behavior.</summary>
     </phase-67-local-2026-06-04>
+    <rainfix-local-2026-06-04>
+      <result>PASS</result>
+      <command-1>cd frontend &amp;&amp; npm run build</command-1>
+      <command-2>cd frontend-admin &amp;&amp; npm run build</command-2>
+      <command-3>node scripts/phase52-matrix-visual-smoke.mjs; node scripts/phase59-motion-interactions-smoke.mjs; node scripts/phase61-responsive-adaptation-smoke.mjs; node scripts/phase67-auth-splash-smoke.mjs; node scripts/phase60-premium-qa-smoke.mjs</command-3>
+      <command-4>Chrome headless screenshots: user /login 390x844, user /register 390x844, admin /login 390x844, user /login 1440x900.</command-4>
+      <screenshot-paths>/tmp/krotpn-rainfix-user-login-390.png /tmp/krotpn-rainfix-user-register-390.png /tmp/krotpn-rainfix-admin-login-390.png /tmp/krotpn-rainfix-user-login-1440.png</screenshot-paths>
+      <pixel-sanity>Bottom crop sanity was nonblank: user bottom max 0.246326, admin bottom max 0.841062.</pixel-sanity>
+      <protected-surface>No install.sh, deploy, nginx, docker-compose, backend, MTProto runtime, official-mtproxy, telegram-bot, or .env.example diff.</protected-surface>
+    </rainfix-local-2026-06-04>
   </evidence>
 </V-M-070>

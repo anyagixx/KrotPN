@@ -1,10 +1,10 @@
 // FILE: frontend/src/components/MatrixBackground.tsx
-// VERSION: 1.2.0
+// VERSION: 1.3.0
 // ROLE: UI_COMPONENT
 // MAP_MODE: EXPORTS
 // START_MODULE_CONTRACT
 //   PURPOSE: React Matrix rain canvas runtime for the KrotPN user frontend visual shell with Phase-59 lifecycle proof and Phase-67 browser compatibility guards
-//   SCOPE: Canvas context guards, resize recomputation, pointer influence, reduced-motion fallback, requestAnimationFrame fallback, legacy matchMedia listener compatibility, animation lifecycle, inactive-tab stop proof, and cleanup
+//   SCOPE: Canvas context guards, mobile viewport overscan, visualViewport resize recomputation, pointer influence, reduced-motion fallback, requestAnimationFrame fallback, legacy matchMedia listener compatibility, animation lifecycle, inactive-tab stop proof, and cleanup
 //   DEPENDS: M-070 (matrix-visual-runtime), M-071 (matrix-style-system), M-077 (matrix-motion-interactions), React
 //   LINKS: docs/modules/M-070.xml, docs/modules/M-077.xml, docs/plans/Phase-67.xml, docs/verification/V-M-070.xml, docs/verification/V-M-077.xml
 // END_MODULE_CONTRACT
@@ -12,12 +12,13 @@
 // START_MODULE_MAP
 //   MatrixBackground - Fixed pointer-events-none Matrix rain canvas component
 //   createDrop - Drop state factory for one Matrix column
-//   createDrops - Viewport column factory
+//   createDrops - Overscanned viewport column factory
 //   renderStaticMatrixFrame - Reduced-motion and fallback renderer
 //   BLOCK_MATRIX_BACKGROUND - Runtime lifecycle, canvas drawing, motion policy, and cleanup
 // END_MODULE_MAP
 //
 // START_CHANGE_SUMMARY
+//   LAST_CHANGE: v1.3.0 - Added mobile viewport overscan, visualViewport listeners, and immediate nonblank rain seeding for live browser reliability.
 //   LAST_CHANGE: v1.2.0 - Added Phase-67 browser compatibility guards for legacy matchMedia listeners and missing RAF fallback.
 //   LAST_CHANGE: v1.1.0 - Added Phase-59 reduced-motion, pointer-scroll, and inactive-tab lifecycle markers without changing canvas behavior.
 //   LAST_CHANGE: v1.0.1 - Strengthened visible Matrix trails for Phase-52 screenshot and mobile viewport checks.
@@ -42,14 +43,15 @@ const FONT_SIZE = 10
 const LARGE_FONT_SIZE = 14
 const TRAIL_LENGTH = 7
 const MAX_DPR = 2
+const CANVAS_OVERSCAN_PX = 128
 
-function createDrop(): Drop {
+function createDrop(maxRows = 100): Drop {
   return {
-    y: Math.random() * 80,
+    y: Math.random() * maxRows,
     speedY: 0.85 + Math.random() * 0.45,
     speedX: 0,
-    delay: Math.random() * 700,
-    started: false,
+    delay: Math.random() * 260,
+    started: Math.random() > 0.18,
   }
 }
 
@@ -57,13 +59,14 @@ function resetDrop(drop: Drop) {
   drop.y = -Math.random() * 24
   drop.speedY = 0.85 + Math.random() * 0.45
   drop.speedX = 0
-  drop.delay = Math.random() * 700
+  drop.delay = Math.random() * 320
   drop.started = false
 }
 
-function createDrops(width: number): Drop[] {
+function createDrops(width: number, height: number): Drop[] {
   const columns = Math.ceil(width / FONT_SIZE)
-  return Array.from({ length: columns }, createDrop)
+  const rows = Math.max(40, Math.ceil(height / FONT_SIZE))
+  return Array.from({ length: columns }, () => createDrop(rows))
 }
 
 function renderStaticMatrixFrame(ctx: CanvasRenderingContext2D, width: number, height: number, drops: Drop[]) {
@@ -72,7 +75,7 @@ function renderStaticMatrixFrame(ctx: CanvasRenderingContext2D, width: number, h
   ctx.font = `${FONT_SIZE}px ui-monospace, SFMono-Regular, Menlo, monospace`
   ctx.fillStyle = '#60ff9b'
 
-  for (let i = 0; i < drops.length; i += 3) {
+  for (let i = 0; i < drops.length; i += 2) {
     const x = i * FONT_SIZE
     const rows = Math.ceil(height / (FONT_SIZE * 9))
 
@@ -113,6 +116,25 @@ function removeMotionListener(query: MediaQueryList | null, listener: (event: Mo
   query.removeListener?.(listener)
 }
 
+function getCanvasDimensions() {
+  const visualViewport = window.visualViewport
+  const viewportWidth = Math.max(
+    window.innerWidth || 0,
+    document.documentElement?.clientWidth || 0,
+    visualViewport?.width || 0,
+  )
+  const viewportHeight = Math.max(
+    window.innerHeight || 0,
+    document.documentElement?.clientHeight || 0,
+    visualViewport?.height || 0,
+  )
+
+  return {
+    width: Math.max(1, Math.ceil(viewportWidth)),
+    height: Math.max(1, Math.ceil(viewportHeight + CANVAS_OVERSCAN_PX)),
+  }
+}
+
 export default function MatrixBackground() {
   const canvasRef = useRef<HTMLCanvasElement | null>(null)
 
@@ -131,11 +153,13 @@ export default function MatrixBackground() {
 
     const requestFrame = window.requestAnimationFrame?.bind(window)
     const cancelFrame = window.cancelAnimationFrame?.bind(window)
+    const visualViewport = window.visualViewport
+    const initialDimensions = getCanvasDimensions()
     let disposed = false
     let reducedMotion = hasReducedMotion()
-    let width = window.innerWidth
-    let height = window.innerHeight
-    let drops = createDrops(width)
+    let width = initialDimensions.width
+    let height = initialDimensions.height
+    let drops = createDrops(width, height)
     let lastTime = 0
     let timeElapsed = 0
     let animationFrame: number | null = null
@@ -156,22 +180,24 @@ export default function MatrixBackground() {
 
     const resize = () => {
       const dpr = Math.min(window.devicePixelRatio || 1, MAX_DPR)
-      width = window.innerWidth
-      height = window.innerHeight
+      const dimensions = getCanvasDimensions()
+      width = dimensions.width
+      height = dimensions.height
       canvas.width = Math.max(1, Math.floor(width * dpr))
       canvas.height = Math.max(1, Math.floor(height * dpr))
       canvas.style.width = `${width}px`
       canvas.style.height = `${height}px`
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0)
-      drops = createDrops(width)
+      drops = createDrops(width, height)
       lastTime = 0
       timeElapsed = 0
+      renderStaticMatrixFrame(ctx, width, height, drops)
 
       if (reducedMotion) {
         renderStaticMatrixFrame(ctx, width, height, drops)
       }
 
-      console.info(`[MatrixVisualRuntime][resize][CANVAS_RESIZE] ${width}x${height}`)
+      console.info(`[MatrixVisualRuntime][resize][CANVAS_RESIZE] ${width}x${height} overscan=${CANVAS_OVERSCAN_PX}`)
     }
 
     const draw = (timestamp: number) => {
@@ -274,7 +300,7 @@ export default function MatrixBackground() {
 
     const handlePointerMove = (event: PointerEvent) => {
       mouse.x = event.clientX
-      mouse.y = event.clientY
+      mouse.y = event.clientY + CANVAS_OVERSCAN_PX / 2
     }
 
     const handleVisibility = () => {
@@ -305,6 +331,8 @@ export default function MatrixBackground() {
     window.addEventListener('resize', resize)
     window.addEventListener('pointermove', handlePointerMove, { passive: true })
     document.addEventListener('visibilitychange', handleVisibility)
+    visualViewport?.addEventListener('resize', resize)
+    visualViewport?.addEventListener('scroll', resize)
     addMotionListener(motionQuery, handleMotionChange)
 
     if (reducedMotion) {
@@ -325,6 +353,8 @@ export default function MatrixBackground() {
       window.removeEventListener('resize', resize)
       window.removeEventListener('pointermove', handlePointerMove)
       document.removeEventListener('visibilitychange', handleVisibility)
+      visualViewport?.removeEventListener('resize', resize)
+      visualViewport?.removeEventListener('scroll', resize)
       removeMotionListener(motionQuery, handleMotionChange)
     }
   }, [])
