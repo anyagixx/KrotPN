@@ -1,22 +1,23 @@
 // FILE: frontend/src/components/Layout.tsx
-// VERSION: 1.7.0
+// VERSION: 1.9.0
 // ROLE: UI_COMPONENT
 // MAP_MODE: SUMMARY
 // START_MODULE_CONTRACT
 //   PURPOSE: Compact premium Matrix application layout with phone/tablet-safe navigation, visible KrotPN logo, user identity, logout, and routed page outlet
-//   SCOPE: Desktop Matrix sidebar, mobile top bar, mobile bottom navigation, visible Phase-63 brand mark, logout action, safe-area responsive markers, Outlet for routed protected user pages
+//   SCOPE: Desktop Matrix sidebar, mobile top bar, touch-aware mobile bottom navigation, visible Phase-63 brand mark, logout action under Settings, safe-area responsive markers, Outlet for routed protected user pages
 //   DEPENDS: M-009 (frontend-user), M-002 (auth API), M-036 (mobile-user-cabinet), M-038 (compact-ui-system), M-071 (matrix-style-system), M-074 (responsive-device-adaptation), M-075 (premium-user-cabinet), M-080 (visible-brand-logo-integration)
 //   LINKS: M-009 (frontend-user), M-036 (mobile-user-cabinet), M-038 (compact-ui-system), M-071, M-074, M-075, M-080, Phase-63
 // END_MODULE_CONTRACT
 //
 // START_MODULE_MAP
-//   Layout - Compact premium Matrix responsive layout component with desktop sidebar, mobile bars, visible Phase-63 logo, and Phase-61 responsive markers
+//   Layout - Compact premium Matrix responsive layout component with desktop sidebar, mobile bars, visible Phase-63 logo, Phase-72 logout placement, and Phase-61 responsive markers
 //   navItems - Route metadata for the compact user cabinet
 //   BLOCK_LAYOUT - Layout default export with responsive shell and Phase-57 protected cabinet navigation
 //   default - React component (default export)
 // END_MODULE_MAP
 //
 // START_CHANGE_SUMMARY
+//   LAST_CHANGE: v1.9.0 - Moved desktop logout directly under Settings and added Phase-72 mobile dock markers.
 //   LAST_CHANGE: v1.8.0 - Added Phase-71 localized user-shell subtitle and final frameless logo marker.
 //   LAST_CHANGE: v1.7.0 - Applied Phase-68 frameless user-shell logo styling without changing brand assets or navigation.
 //   LAST_CHANGE: v1.6.0 - Added Phase-63 visible KrotPN logo marks to desktop and mobile protected user shell without changing navigation.
@@ -85,7 +86,7 @@ export default function Layout() {
             <p className="mt-0.5 truncate text-xs muted">{accountLabel}</p>
           </div>
 
-          <nav className="grid gap-1.5 px-3 py-3">
+          <nav className="grid gap-1.5 px-3 py-3" data-phase72-desktop-nav="[PremiumUserCabinet][phase72][LOGOUT_UNDER_SETTINGS]">
             {navItems.map((item) => (
               <NavLink
                 key={item.to}
@@ -102,14 +103,17 @@ export default function Layout() {
                 <span className="min-w-0 truncate font-semibold">{t(item.labelKey)}</span>
               </NavLink>
             ))}
+            <button
+              onClick={handleLogout}
+              className="matrix-nav-link matrix-nav-link-idle motion-interactive mt-1 w-full justify-start"
+              data-phase72-desktop-logout="[PremiumUserCabinet][phase72][DESKTOP_LOGOUT_VISIBLE]"
+            >
+              <LogOut className="h-4 w-4 shrink-0" />
+              <span className="min-w-0 truncate font-semibold">{t('logout')}</span>
+            </button>
           </nav>
 
-          <div className="matrix-sidebar-footer mt-auto border-t p-3">
-            <button onClick={handleLogout} className="btn-secondary min-h-11 w-full justify-start rounded-lg px-3 py-2.5 text-sm">
-              <LogOut className="h-4 w-4" />
-              {t('logout')}
-            </button>
-          </div>
+          <div className="matrix-sidebar-footer mt-auto border-t p-3" />
         </aside>
 
         <div className="flex min-w-0 flex-1 flex-col">
@@ -139,7 +143,12 @@ export default function Layout() {
           </main>
         </div>
 
-        <nav className="matrix-bottom-nav" data-phase61-mobile-nav="[ResponsiveAdaptation][phase61][SAFE_AREA_PASS]">
+        <nav
+          className="matrix-bottom-nav phase72-touch-dock"
+          data-phase61-mobile-nav="[ResponsiveAdaptation][phase61][SAFE_AREA_PASS]"
+          data-phase72-mobile-nav="[MobileUserCabinet][phase72][BOTTOM_NAV_SAFE]"
+          data-phase72-touch-nav="[MatrixMotion][phase72][TOUCH_NAV_REVEAL_SAFE]"
+        >
           {navItems.map((item) => (
             <NavLink
               key={item.to}

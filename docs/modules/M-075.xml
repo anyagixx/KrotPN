@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<M-075 NAME="premium-user-cabinet" TYPE="UI_COMPONENT" STATUS="done-local-phase57-pass-local-phase59-pass-local-phase62-pass-local-phase68-pass-local-phase69-pass-local-phase70-pass-local-phase71">
-  <path>frontend/src/components/Layout.tsx frontend/src/components/SubscriptionPanel.tsx frontend/src/pages/Dashboard.tsx frontend/src/pages/Config.tsx frontend/src/pages/Subscription.tsx frontend/src/pages/Referrals.tsx frontend/src/pages/Settings.tsx docs/plans/Phase-57.xml docs/plans/Phase-59.xml docs/plans/Phase-62.xml docs/plans/Phase-68.xml docs/plans/Phase-69.xml docs/plans/Phase-70.xml docs/plans/Phase-71.xml scripts/phase57-premium-user-cabinet-smoke.mjs scripts/phase59-motion-interactions-smoke.mjs scripts/phase62-compactness-deletion-smoke.mjs scripts/phase68-dashboard-subscription-smoke.mjs scripts/phase69-referral-bonus-smoke.mjs scripts/phase70-config-qr-parity-smoke.mjs scripts/phase71-device-config-master-detail-smoke.mjs</path>
+<M-075 NAME="premium-user-cabinet" TYPE="UI_COMPONENT" STATUS="done-local-phase57-pass-local-phase59-pass-local-phase62-pass-local-phase68-pass-local-phase69-pass-local-phase70-pass-local-phase71-pass-local-phase72">
+  <path>frontend/src/components/Layout.tsx frontend/src/components/SubscriptionPanel.tsx frontend/src/pages/Dashboard.tsx frontend/src/pages/Config.tsx frontend/src/pages/Subscription.tsx frontend/src/pages/Referrals.tsx frontend/src/pages/Settings.tsx docs/plans/Phase-57.xml docs/plans/Phase-59.xml docs/plans/Phase-62.xml docs/plans/Phase-68.xml docs/plans/Phase-69.xml docs/plans/Phase-70.xml docs/plans/Phase-71.xml docs/plans/Phase-72.xml scripts/phase57-premium-user-cabinet-smoke.mjs scripts/phase59-motion-interactions-smoke.mjs scripts/phase62-compactness-deletion-smoke.mjs scripts/phase68-dashboard-subscription-smoke.mjs scripts/phase69-referral-bonus-smoke.mjs scripts/phase70-config-qr-parity-smoke.mjs scripts/phase71-device-config-master-detail-smoke.mjs scripts/phase72-user-auth-navigation-smoke.mjs</path>
   <owns>Premium compact personal cabinet for VPN, MTProto, subscription, devices, referrals, and settings.</owns>
   <purpose>Turn the user cabinet into a compact premium command center without hiding core actions.</purpose>
   <exports>
@@ -8,6 +8,7 @@
     <view-premium-config>QR, download, copy, and device workflow with compact premium controls and no visible raw-config diagnostics panels.</view-premium-config>
     <view-device-master-detail-config phase="71-pass-local">Master-detail config page where any existing device can be selected and exported through QR, .conf, or Copy without rotation.</view-device-master-detail-config>
     <view-premium-subscription>Tariff, countdown, calendar, and renewal flow with server-derived data.</view-premium-subscription>
+    <view-phase72-auth-navigation phase="72-pass-local">Russian invalid-login UX, Settings without language selector, desktop logout under Settings, bottom dock navigation, and compact desktop subscription calendar.</view-phase72-auth-navigation>
     <rule-user-deletion-audit>Remove duplicated, bulky, decorative, or non-actionable user-cabinet content.</rule-user-deletion-audit>
   </exports>
   <depends>M-009,M-036,M-045,M-063,M-064,M-068,M-070,M-071,M-072,M-074,M-077</depends>
@@ -26,6 +27,7 @@
     <metric-6 status="pass-local-phase69">Phase-69 renders recent referral rows with masked referred identity instead of generic "Реферал #N".</metric-6>
     <metric-7 status="pass-local-phase70">Phase-70 keeps /dashboard/config compact while rendering a lighter payload-identical QR and preserving QR/download/copy/device actions.</metric-7>
     <metric-8 status="pass-local-phase71">Phase-71 makes existing-device QR/.conf/Copy retrieval available through compact master-detail UX without forced rotation.</metric-8>
+    <metric-9 status="pass-local-phase72">Phase-72 keeps logout visible under Settings, removes language controls, and keeps mobile dock/calendar compact without backend/deploy/admin drift.</metric-9>
   </acceptance-metrics>
   <phase-71-executed-scope>
     <primary-files>frontend/src/pages/Config.tsx frontend/src/components/Layout.tsx frontend/src/components/SubscriptionPanel.tsx frontend/src/pages/Settings.tsx frontend/src/lib/api.ts frontend/src/i18n/index.ts frontend/src/index.css scripts/phase71-device-config-master-detail-smoke.mjs</primary-files>
@@ -34,5 +36,11 @@
   </phase-71-executed-scope>
   <evidence>2026-06-03: Phase-57 added protected user command center, /dashboard/* primary actions, compact config/subscription/referral/settings surfaces, Phase-57 smoke, frontend build, Phase-45/46/48/50/52/53/55/56 regression smokes, XML parse, MyGRACE lint, git diff check, and protected backend/deploy/runtime guard. 2026-06-04: Phase-59 added bounded copy/download/proxy feedback and status motion; frontend build, Phase-59 smoke, Phase-57 regression smoke, and post-commit Phase-58 regression smoke passed. 2026-06-04: Phase-62 compactness/deletion smoke, frontend build, Phase-57/56/61/60 regressions, and protected backend/deploy/runtime guard passed after folded secondary user/public surfaces were added. 2026-06-04: Phase-68 removed dashboard command center/secondary fold, introduced shared SubscriptionPanel, removed visible config raw/diagnostics, updated smokes, and passed frontend/admin builds plus regression gates. 2026-06-04: Phase-69 updated Referrals history rows with masked referred identity and passed frontend build plus Phase-69/57 smokes. 2026-06-04: Phase-70 retuned Config.tsx QR canvas to level M with margin, added QR parity markers, preserved compact config workflow, and passed Phase-70/57/62 smokes.</evidence>
   <phase-71-evidence status="pass-local" date="2026-06-04">Frontend build and Phase-71 smoke passed for compact device master-detail, selected-device QR/.conf/Copy, secondary destructive actions, QR close icon, label/copy removals, settings i18n, and Phase-62 collapse marker preservation.</phase-71-evidence>
+  <phase-72-executed-scope>
+    <primary-files>frontend/src/pages/Login.tsx frontend/src/components/Layout.tsx frontend/src/pages/Settings.tsx frontend/src/components/SubscriptionPanel.tsx frontend/src/i18n/index.ts frontend/src/index.css scripts/phase72-user-auth-navigation-smoke.mjs</primary-files>
+    <primary-behaviors>Preserve premium user cabinet workflows while applying Russian login error text, Settings language deletion, logout under Settings, mobile bottom dock, and compact subscription calendar.</primary-behaviors>
+    <acceptance>Frontend build, Phase-72 smoke, Phase-57 regression, Phase-61 responsive, Phase-68 dashboard, Phase-71 master-detail, session, and motion smokes passed locally.</acceptance>
+  </phase-72-executed-scope>
+  <phase-72-evidence status="pass-local" date="2026-06-05">Premium user cabinet passed local Phase-72 verification with no backend/admin/deploy/runtime source drift.</phase-72-evidence>
   <hotspot>H-062: Premium user cabinet must keep VPN config, subscription, MTProto, and device actions reachable in one or two taps.</hotspot>
 </M-075>

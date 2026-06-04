@@ -1,22 +1,23 @@
 // FILE: frontend/src/i18n/index.ts
-// VERSION: 1.0.0
+// VERSION: 1.1.0
 // ROLE: UTILITY
 // MAP_MODE: EXPORTS
 // START_MODULE_CONTRACT
-//   PURPOSE: i18next configuration with Russian and English translation resources
-//   SCOPE: Translation dictionary (ru/en), i18next initialization, language persistence via localStorage
+//   PURPOSE: i18next configuration with Russian default translation resources and legacy English fallback resources
+//   SCOPE: Translation dictionary (ru/en), Russian-only i18next initialization for the user frontend, and no visible language switch persistence
 //   DEPENDS: M-009 (frontend-user)
 //   LINKS: M-009 (frontend-user)
 // END_MODULE_CONTRACT
 //
 // START_MODULE_MAP
 //   resources - Translation dictionary with ru and en namespaces
-//   i18n - Initialized i18next instance (default export)
+//   i18n - Initialized Russian-default i18next instance (default export)
 //   BLOCK_RESOURCES - Translation resources object (~200 lines)
 //   BLOCK_I18N_INIT - i18next initialization and export (~15 lines)
 // END_MODULE_MAP
 //
 // START_CHANGE_SUMMARY
+//   LAST_CHANGE: v1.1.0 - Locked user frontend initialization to Russian after removing visible language settings in Phase-72.
 //   LAST_CHANGE: v2.8.0 - Added full GRACE MODULE_CONTRACT and MODULE_MAP per GRACE governance protocol
 // END_CHANGE_SUMMARY
 //
@@ -55,7 +56,7 @@ const resources = {
       registerTitle: 'Создать аккаунт',
       loginButton: 'Войти',
       registerButton: 'Зарегистрироваться',
-      invalidCredentials: 'Неверный email или пароль',
+      invalidCredentials: 'Неверный логин или пароль',
       registrationSuccess: 'Регистрация успешна!',
 
       // Navigation
@@ -182,7 +183,7 @@ const resources = {
       newPassword: 'Новый пароль',
       passwordChanged: 'Пароль изменен',
       personalCabinet: 'Личный кабинет',
-      settingsSubtitle: 'Управляйте профилем, языком интерфейса и безопасностью учётной записи.',
+      settingsSubtitle: 'Управляйте профилем и безопасностью учётной записи.',
       accountBasics: 'Основные данные аккаунта.',
       namePlaceholder: 'Ваше имя',
       languageSubtitle: 'Переключение языка интерфейса в один клик.',
@@ -377,7 +378,7 @@ i18n
   .use(initReactI18next)
   .init({
     resources,
-    lng: localStorage.getItem('language') || 'ru',
+    lng: 'ru',
     fallbackLng: 'ru',
     interpolation: {
       escapeValue: true,

@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Phase-72 NAME="User Auth and Cabinet Navigation Polish" STATUS="planned" STEPS="10" MODULES="M-009,M-036,M-063,M-071,M-074,M-075,M-077" CREATED="2026-06-05" UPDATED="2026-06-05">
+<Phase-72 NAME="User Auth and Cabinet Navigation Polish" STATUS="done-local" STEPS="10" MODULES="M-009,M-036,M-063,M-071,M-074,M-075,M-077" CREATED="2026-06-05" UPDATED="2026-06-05">
   <summary>Approved plan for user login error localization, desktop logout placement, mobile bottom cabinet navigation, smaller desktop subscription calendar, and removal of language settings.</summary>
   <approved-by-operator date="2026-06-05">Operator confirmed Phase-72 through Phase-76 plan.</approved-by-operator>
   <scope>
@@ -38,6 +38,13 @@
     <gate-4>Reduced-motion behavior must avoid animation-heavy dock transitions.</gate-4>
     <gate-5>Protected guard must prove no admin, backend, deploy, VPN, MTProto, or payment runtime drift.</gate-5>
   </verification-design>
+  <execution-evidence status="pass-local" date="2026-06-05">
+    <frontend>PASS: cd frontend &amp;&amp; npm run build completed successfully after login, layout, settings, i18n, subscription calendar, and CSS changes.</frontend>
+    <admin-build>PASS: cd frontend-admin &amp;&amp; npm run build completed as a Phase-61 responsive prerequisite; admin source code was not changed.</admin-build>
+    <smokes>PASS: node scripts/phase72-user-auth-navigation-smoke.mjs, scripts/session-security-smoke.mjs, scripts/phase57-premium-user-cabinet-smoke.mjs, scripts/phase59-motion-interactions-smoke.mjs, scripts/phase61-responsive-adaptation-smoke.mjs, scripts/phase68-dashboard-subscription-smoke.mjs, and scripts/phase71-device-config-master-detail-smoke.mjs passed locally.</smokes>
+    <protected-surfaces>PASS: Phase-72 protected guard detected no admin source, backend, deploy/install, nginx, docker-compose, MTProto runtime, official MTProxy, or telegram-bot drift.</protected-surfaces>
+    <notes>Phase-68 smoke was aligned to the current i18n-backed SubscriptionPanel pending-copy contract while preserving the original user-visible text assertion.</notes>
+  </execution-evidence>
   <risks>
     <risk-1 severity="medium">A fixed mobile dock can cover primary QR/download/payment actions unless layout reserves bottom space.</risk-1>
     <risk-2 severity="medium">Shrinking desktop calendar too aggressively can make subscription range boundaries unreadable.</risk-2>

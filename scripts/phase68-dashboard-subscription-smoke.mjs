@@ -6,7 +6,7 @@
  * MAP_MODE: LOCALS
  * START_MODULE_CONTRACT
  *   PURPOSE: Static smoke verification for Phase-68 dashboard subscription merge and cabinet compaction
- *   SCOPE: Dashboard MTProto-first layout, shared subscription panel, tariff display aliases, compact calendar, frameless shell logo, config page pruning, and protected surface guard
+ *   SCOPE: Dashboard MTProto-first layout, shared subscription panel, tariff display aliases, compact calendar, frameless shell logo, config page pruning, i18n-backed pending copy, and protected surface guard
  *   DEPENDS: M-075, M-036, M-045, M-063, M-068, M-071, M-074, M-077, M-080, M-009
  *   LINKS: V-M-075, V-M-036, V-M-045, V-M-063, V-M-068, V-M-071, V-M-074, V-M-077, V-M-080, V-M-009, docs/plans/Phase-68.xml
  * END_MODULE_CONTRACT
@@ -20,6 +20,7 @@
  * END_MODULE_MAP
  *
  * START_CHANGE_SUMMARY
+ *   LAST_CHANGE: v1.0.1 - Aligned pending-first-connection copy assertion with i18n-backed SubscriptionPanel rendering.
  *   LAST_CHANGE: v1.0.0 - Added Phase-68 dashboard subscription merge smoke gate.
  * END_CHANGE_SUMMARY
  */
@@ -84,6 +85,7 @@ const dashboard = read('frontend/src/pages/Dashboard.tsx')
 const subscription = read('frontend/src/pages/Subscription.tsx')
 const subscriptionPanel = read('frontend/src/components/SubscriptionPanel.tsx')
 const config = read('frontend/src/pages/Config.tsx')
+const i18n = read('frontend/src/i18n/index.ts')
 
 for (const [label, source] of [
   ['frontend/src/index.css', css],
@@ -145,10 +147,11 @@ for (const needle of [
   'User,',
   'Users,',
   'Briefcase,',
-  'Конфиг уже доступен. Таймер на 4 дня стартует после первого подключения.',
+  "t('subscriptionDescriptionPending')",
 ]) {
   assertContains(subscriptionPanel, needle, 'frontend/src/components/SubscriptionPanel.tsx')
 }
+assertContains(i18n, 'Конфиг уже доступен. Таймер на 4 дня стартует после первого подключения.', 'frontend/src/i18n/index.ts')
 
 for (const slug of ['krotpn-1', 'krotpn-6', 'krotpn-9']) {
   assertContains(subscriptionPanel, slug, 'frontend/src/components/SubscriptionPanel.tsx')

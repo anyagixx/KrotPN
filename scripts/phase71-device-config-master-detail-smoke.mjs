@@ -6,7 +6,7 @@
  * MAP_MODE: LOCALS
  * START_MODULE_CONTRACT
  *   PURPOSE: Static smoke verification for Phase-71 per-device config retrieval API and compact master-detail user config UX
- *   SCOPE: Backend read-only selected-device endpoints, frontend API methods, /dashboard/config master-detail markers, QR close/icon polish, calendar boundary pulse, i18n cleanup, and protected deploy/runtime surfaces
+ *   SCOPE: Backend read-only selected-device endpoints, frontend API methods, /dashboard/config master-detail markers, QR close/icon polish, calendar boundary pulse, Phase-72 language-settings removal compatibility, i18n cleanup, and protected deploy/runtime surfaces
  *   DEPENDS: M-022, M-066, M-075, M-036, M-063, M-071, M-077, M-080, M-009, M-074
  *   LINKS: docs/plans/Phase-71.xml, docs/verification/V-M-022.xml, docs/verification/V-M-075.xml
  * END_MODULE_CONTRACT
@@ -20,6 +20,7 @@
  * END_MODULE_MAP
  *
  * START_CHANGE_SUMMARY
+ *   LAST_CHANGE: v1.0.2 - Accepted Phase-72 removal of visible language settings from Settings.
  *   LAST_CHANGE: v1.0.1 - Decoupled Phase-71 smoke from planning-only status text.
  * END_CHANGE_SUMMARY
  */
@@ -196,11 +197,21 @@ assertNotContains(subscriptionPanel, 'Оставшееся время рассч
 for (const needle of [
   "t('settingsSubtitle')",
   "t('accountBasics')",
-  "t('languageSubtitle')",
   "t('passwordSecurityHint')",
   "t('passwordTooWeak'",
 ]) {
   assertContains(settings, needle, 'frontend/src/pages/Settings.tsx')
+}
+assertContains(settings, 'data-phase72-settings-language="[FrontendUser][phase72][LANGUAGE_SETTINGS_REMOVED]"', 'frontend/src/pages/Settings.tsx')
+for (const prohibited of [
+  "t('languageSubtitle')",
+  "t('language')",
+  "t('russian')",
+  "t('english')",
+  'setLanguage',
+  'changeLanguage',
+]) {
+  assertNotContains(settings, prohibited, 'frontend/src/pages/Settings.tsx')
 }
 
 for (const needle of [

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<M-074 NAME="responsive-device-adaptation" TYPE="UI_COMPONENT" STATUS="pass-local-phase61-pass-local-phase62-pass-local-phase67-pass-local-rainfix-pass-local-phase68-pass-local-phase71">
-  <path>frontend frontend-admin docs/plans/Phase-61.xml docs/plans/Phase-62.xml docs/plans/Phase-67.xml docs/plans/Phase-68.xml docs/plans/Phase-71.xml scripts/phase61-responsive-adaptation-smoke.mjs scripts/phase62-compactness-deletion-smoke.mjs scripts/phase67-auth-splash-smoke.mjs scripts/phase68-dashboard-subscription-smoke.mjs scripts/phase71-device-config-master-detail-smoke.mjs</path>
+<M-074 NAME="responsive-device-adaptation" TYPE="UI_COMPONENT" STATUS="pass-local-phase61-pass-local-phase62-pass-local-phase67-pass-local-rainfix-pass-local-phase68-pass-local-phase71-pass-local-phase72">
+  <path>frontend frontend-admin docs/plans/Phase-61.xml docs/plans/Phase-62.xml docs/plans/Phase-67.xml docs/plans/Phase-68.xml docs/plans/Phase-71.xml docs/plans/Phase-72.xml scripts/phase61-responsive-adaptation-smoke.mjs scripts/phase62-compactness-deletion-smoke.mjs scripts/phase67-auth-splash-smoke.mjs scripts/phase68-dashboard-subscription-smoke.mjs scripts/phase71-device-config-master-detail-smoke.mjs scripts/phase72-user-auth-navigation-smoke.mjs</path>
   <owns>Phone, tablet, and desktop responsive closure for public, user, and admin Matrix surfaces.</owns>
   <purpose>Make the premium frontend usable and compact across mobile phones, tablets, and desktop screens.</purpose>
   <exports>
@@ -10,6 +10,7 @@
     <rule-responsive-density>Responsive spacing, grid, navigation, and bounded-scroll rules.</rule-responsive-density>
     <gate-phase61-smoke>scripts/phase61-responsive-adaptation-smoke.mjs static responsive gate.</gate-phase61-smoke>
     <rule-matrix-rain-overscan>Matrix canvas/fallback background uses mobile viewport overscan to avoid bottom-edge black cutoffs.</rule-matrix-rain-overscan>
+    <rule-phase72-bottom-dock>Mobile user bottom navigation uses safe-area padding and content spacing so primary cabinet actions remain reachable without overlap.</rule-phase72-bottom-dock>
   </exports>
   <depends>M-009,M-010,M-036,M-037,M-038,M-071,M-072</depends>
   <verification-ref>V-M-074</verification-ref>
@@ -24,8 +25,10 @@
     <file>frontend-admin/src/pages/Servers.tsx</file>
     <file>scripts/phase61-responsive-adaptation-smoke.mjs</file>
     <file>scripts/phase71-device-config-master-detail-smoke.mjs</file>
+    <file>scripts/phase72-user-auth-navigation-smoke.mjs</file>
     <file>docs/plans/Phase-61.xml</file>
     <file>docs/plans/Phase-71.xml</file>
+    <file>docs/plans/Phase-72.xml</file>
   </files>
   <constraints>
     <constraint-1>No document-level horizontal scroll at any planned viewport.</constraint-1>
@@ -40,6 +43,7 @@
     <metric-5 status="pass-local-rainfix">390x844 user/admin browser screenshots show Matrix rain/fallback through the bottom viewport edge.</metric-5>
     <metric-6 status="pass-local-phase68">Phase-68 compact dashboard subscription/tariff/calendar layout stays within Phase-61 responsive budgets and Phase-60 QA bundle limits.</metric-6>
     <metric-7 status="pass-local-phase71">Phase-71 proves master-detail device config UX and sticky mobile actions stay readable across phone, tablet, desktop, and reduced-motion viewports.</metric-7>
+    <metric-8 status="pass-local-phase72">Phase-72 proves the mobile dock and smaller desktop calendar keep no-overlap/no-horizontal-scroll guarantees with frontend/admin build budgets intact.</metric-8>
   </acceptance-metrics>
   <phase-67-verification-design>
     <scope>Apply responsive closure to the new splash-only / route and frameless auth screens without changing protected user/admin layouts.</scope>
@@ -65,4 +69,10 @@
   </phase-71-executed-scope>
   <hotspot>H-061: Tablet and mobile adaptation must be verified on real breakpoint classes, not inferred from desktop layouts.</hotspot>
   <phase-71-evidence status="pass-local" date="2026-06-04">Frontend build and Phase-71 smoke passed for mobile sticky config actions and 9-device master-detail markers; post-commit Phase-61 and Phase-62 protected regression smokes passed cleanly.</phase-71-evidence>
+  <phase-72-executed-scope>
+    <primary-files>frontend/src/components/Layout.tsx frontend/src/index.css scripts/phase72-user-auth-navigation-smoke.mjs scripts/phase61-responsive-adaptation-smoke.mjs</primary-files>
+    <primary-behaviors>Verify mobile bottom navigation no-overlap, safe-area spacing, stable touch target dimensions, desktop calendar no-overflow, and reduced-motion-safe dock transitions.</primary-behaviors>
+    <acceptance>Phase-61 responsive smoke passed after frontend and frontend-admin builds, with bundle budgets under limits and protected backend/deploy/runtime guard clean.</acceptance>
+  </phase-72-executed-scope>
+  <phase-72-evidence status="pass-local" date="2026-06-05">Phase-72 passed local responsive verification for mobile dock no-overlap and desktop compact calendar no-overflow.</phase-72-evidence>
 </M-074>

@@ -1,10 +1,10 @@
 /* FILE: frontend/src/index.css
- * VERSION: 1.9.0
+ * VERSION: 2.0.0
  * ROLE: UI_COMPONENT
  * MAP_MODE: SUMMARY
  * START_MODULE_CONTRACT
- *   PURPOSE: Shared user-frontend styling tokens, compact Matrix route surfaces, Matrix visual foundation, Phase-55 premium art direction, Phase-57 user command surfaces, Phase-59 motion language, Phase-61 phone/tablet adaptation gates, Phase-62 deletion-audit compaction, Phase-63 visible brand logo placement, Phase-67 frameless auth/splash polish, Phase-68 dashboard subscription compaction, and Matrix rain reliability fallback
- *   SCOPE: Base typography, premium palette/type/density/logo tokens, Matrix background/canvas/CRT layers, CSS rain fallback and mobile overscan, auth/page/layout surfaces, visible Phase-63/67/68 brand mark classes, panel/button/input/status/metric/empty-state classes, Phase-57 dense command cards, Phase-59 motion/microinteraction primitives, Phase-61 responsive phone/tablet/safe-area rules, Phase-62 folded secondary surfaces, Phase-67 splash/auth controls, Phase-68 compact tariff/calendar rules, focus and reduced-motion policy
+ *   PURPOSE: Shared user-frontend styling tokens, compact Matrix route surfaces, Matrix visual foundation, Phase-55 premium art direction, Phase-57 user command surfaces, Phase-59 motion language, Phase-61 phone/tablet adaptation gates, Phase-62 deletion-audit compaction, Phase-63 visible brand logo placement, Phase-67 frameless auth/splash polish, Phase-68 dashboard subscription compaction, Phase-72 nav/calendar polish, and Matrix rain reliability fallback
+ *   SCOPE: Base typography, premium palette/type/density/logo tokens, Matrix background/canvas/CRT layers, CSS rain fallback and mobile overscan, auth/page/layout surfaces, visible Phase-63/67/68 brand mark classes, panel/button/input/status/metric/empty-state classes, Phase-57 dense command cards, Phase-59 motion/microinteraction primitives, Phase-61 responsive phone/tablet/safe-area rules, Phase-62 folded secondary surfaces, Phase-67 splash/auth controls, Phase-68 compact tariff/calendar rules, Phase-72 touch dock and desktop calendar density rules, focus and reduced-motion policy
  *   DEPENDS: M-009 (frontend-user), M-036 (mobile-user-cabinet), M-038 (compact-ui-system), M-070 (matrix-visual-runtime), M-071 (matrix-style-system), M-072 (premium-art-direction-system), M-074 (responsive-device-adaptation), M-075 (premium-user-cabinet), M-077 (matrix-motion-interactions), M-080 (visible-brand-logo-integration)
  *   LINKS: M-009 (frontend-user), M-036 (mobile-user-cabinet), M-038 (compact-ui-system), M-070, M-071, M-072, M-074, M-075, M-077, M-080, Phase-61, Phase-63, Phase-67
  * END_MODULE_CONTRACT
@@ -14,7 +14,7 @@
  *   premium-art-direction - Phase-55 balanced palette, compact type scale, density, and logo rules
  *   matrix-visual-system - Canvas, CSS rain fallback, scanline, vignette, and content stacking layers
  *   visible-brand-logo - Phase-63 compact KrotPN logo mark and text lockup classes
- *   route-surfaces - Matrix public, auth, splash, layout, page, command, terminal, row, action-grid, Phase-57 command center classes, and Phase-62 folded secondary surfaces
+ *   route-surfaces - Matrix public, auth, splash, layout, page, command, terminal, row, action-grid, Phase-57 command center classes, Phase-72 touch dock, and Phase-62 folded secondary surfaces
  *   components - App shell, panel, button, input, status, metric, empty-state classes
  *   matrix-motion-interactions - Phase-59 motion budget, route transitions, copy feedback, status transitions, and safe interaction classes
  *   responsive-device-adaptation - Phase-61 phone, tablet, safe-area, no-overflow, bounded-scroll, and touch-target rules
@@ -22,6 +22,7 @@
  * END_MODULE_MAP
  *
  * START_CHANGE_SUMMARY
+ *   LAST_CHANGE: v4.2.0 - Added Phase-72 touch-aware bottom dock and smaller desktop subscription calendar density.
  *   LAST_CHANGE: v4.1.0 - Added Phase-71 master-detail device config, icon-close, final frameless logo, and calendar boundary pulse styles.
  *   LAST_CHANGE: v4.0.0 - Added Matrix rain CSS fallback, normal canvas blending, and mobile overscan to prevent blank/cut-off rain in live browsers.
  *   LAST_CHANGE: v3.11.0 - Added Phase-68 dashboard subscription merge styles, frameless shell logo, compact plan grid, and miniature cross-month calendar.
@@ -466,6 +467,16 @@
     @apply fixed inset-x-2 bottom-2 z-40 grid grid-cols-5 rounded-lg border p-1 shadow-[0_12px_28px_rgba(0,5,3,0.42)] backdrop-blur lg:hidden;
     background: rgba(2, 8, 6, 0.96);
     border-color: rgba(96, 255, 155, 0.16);
+    transition: opacity var(--motion-fast) var(--motion-ease-standard),
+      transform var(--motion-fast) var(--motion-ease-standard),
+      border-color var(--motion-fast) var(--motion-ease-standard);
+    will-change: transform, opacity;
+  }
+
+  .matrix-bottom-nav:hover,
+  .matrix-bottom-nav:focus-within {
+    border-color: rgba(255, 107, 120, 0.36);
+    transform: translateY(-2px);
   }
 
   .matrix-auth-screen {
@@ -903,7 +914,82 @@
   /* [Phase68][DashboardSubscription][CROSS_MONTH_CALENDAR_READY] */
   /* [VisibleBrandLogo][phase68][FRAMELESS_USER_SHELL_LOGO] */
   /* [MatrixMotion][phase71][CALENDAR_BOUNDARY_PULSE_SAFE] */
+  /* [TrialSubscription][phase72][DESKTOP_CALENDAR_COMPACT] */
   /* END_BLOCK_PHASE68_DASHBOARD_SUBSCRIPTION_COMPACTION */
+
+  /* START_BLOCK_PHASE72_USER_AUTH_NAVIGATION_POLISH */
+  @media (min-width: 1024px) {
+    .phase68-calendar-months {
+      gap: 0.5rem;
+      grid-template-columns: repeat(auto-fit, minmax(128px, 144px));
+      align-items: start;
+    }
+
+    .phase68-calendar-month {
+      padding: 0.375rem;
+    }
+
+    .phase68-calendar-month p {
+      margin-bottom: 0.25rem;
+      font-size: 0.625rem;
+      line-height: 0.875rem;
+    }
+
+    .phase68-calendar-month .grid {
+      gap: 0.125rem;
+    }
+
+    .phase68-calendar-day {
+      min-height: 1rem;
+      border-radius: 0.25rem;
+      font-size: 0.625rem;
+      line-height: 0.75rem;
+    }
+
+    .phase68-calendar-day-start,
+    .phase68-calendar-day-end {
+      box-shadow:
+        inset 0 0 0 1px rgba(255, 92, 92, 0.34),
+        0 0 0 1px rgba(255, 92, 92, 0.2),
+        0 0 10px rgba(255, 92, 92, 0.18);
+    }
+  }
+
+  .phase72-touch-dock {
+    touch-action: manipulation;
+  }
+
+  .phase72-touch-dock a {
+    position: relative;
+  }
+
+  .phase72-touch-dock a::after {
+    content: "";
+    position: absolute;
+    inset: auto 22% 0.25rem;
+    height: 1px;
+    border-radius: 999px;
+    background: rgba(255, 107, 120, 0.42);
+    opacity: 0;
+    transform: scaleX(0.4);
+    transition: opacity var(--motion-fast) var(--motion-ease-standard),
+      transform var(--motion-fast) var(--motion-ease-standard);
+  }
+
+  .phase72-touch-dock a:active::after,
+  .phase72-touch-dock a:focus-visible::after,
+  .phase72-touch-dock .matrix-nav-link-active::after {
+    opacity: 1;
+    transform: scaleX(1);
+  }
+
+  /* [FrontendUser][phase72][LOGIN_ERROR_LOCALIZED] */
+  /* [PremiumUserCabinet][phase72][LOGOUT_UNDER_SETTINGS] */
+  /* [MobileUserCabinet][phase72][BOTTOM_NAV_SAFE] */
+  /* [ResponsiveAdaptation][phase72][DESKTOP_CALENDAR_NO_OVERFLOW] */
+  /* [MatrixStyle][phase72][CALENDAR_DENSITY_READY] */
+  /* [MatrixMotion][phase72][TOUCH_NAV_REVEAL_SAFE] */
+  /* END_BLOCK_PHASE72_USER_AUTH_NAVIGATION_POLISH */
 
   /* START_BLOCK_PHASE71_DEVICE_CONFIG_MASTER_DETAIL */
   .phase71-config-master-detail {
@@ -1264,10 +1350,10 @@
     padding-bottom: calc(6rem + env(safe-area-inset-bottom));
   }
 
-  .matrix-bottom-nav {
-    bottom: max(0.5rem, env(safe-area-inset-bottom));
-    padding-bottom: calc(0.25rem + env(safe-area-inset-bottom));
-  }
+    .matrix-bottom-nav {
+      bottom: max(0.5rem, env(safe-area-inset-bottom));
+      padding-bottom: calc(0.25rem + env(safe-area-inset-bottom));
+    }
 
   .matrix-bottom-nav a,
   .phase57-primary-actions > *,
@@ -1426,6 +1512,7 @@
     .matrix-bottom-nav {
       inset-inline: 0.5rem;
       gap: 0.125rem;
+      transform: translateY(0);
     }
 
     .matrix-bottom-nav a {
@@ -1465,6 +1552,7 @@
   /* [ResponsiveAdaptation][phase61][NO_OVERLAP_PASS] */
   /* [ResponsiveAdaptation][phase61][TOUCH_TARGETS_PASS] */
   /* [ResponsiveAdaptation][phase61][SAFE_AREA_PASS] */
+  /* [ResponsiveAdaptation][phase72][MOBILE_DOCK_NO_OVERLAP] */
   /* END_BLOCK_PHASE61_RESPONSIVE_ADAPTATION */
 }
 

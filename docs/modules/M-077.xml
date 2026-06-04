@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<M-077 NAME="matrix-motion-interactions" TYPE="UI_COMPONENT" STATUS="done-local-phase59-pass-local-rainfix-pass-local-phase68-pass-local-phase71">
+<M-077 NAME="matrix-motion-interactions" TYPE="UI_COMPONENT" STATUS="done-local-phase59-pass-local-rainfix-pass-local-phase68-pass-local-phase71-pass-local-phase72">
   <path>frontend/src/components/MatrixBackground.tsx frontend/src/components/VisualShell.tsx frontend/src/pages/Dashboard.tsx frontend/src/pages/Config.tsx frontend/src/pages/Referrals.tsx frontend/src/components/SubscriptionPanel.tsx frontend/src/index.css frontend-admin/src/components/MatrixBackground.tsx frontend-admin/src/components/VisualShell.tsx frontend-admin/src/pages/Devices.tsx frontend-admin/src/pages/MTProto.tsx frontend-admin/src/pages/MTProtoAnalytics.tsx frontend-admin/src/index.css docs/plans/Phase-59.xml docs/plans/Phase-68.xml scripts/phase59-motion-interactions-smoke.mjs scripts/phase68-dashboard-subscription-smoke.mjs</path>
   <owns>Premium Matrix motion language and microinteractions across user and admin frontends.</owns>
   <purpose>Add high-quality interaction feedback without scroll hijacking, motion overload, or workflow blocking.</purpose>
@@ -10,6 +10,7 @@
     <interaction-root-transform-safety>Route transition transform is applied to the content layer, not the root fixed-background shell.</interaction-root-transform-safety>
     <rule-reduced-motion>Static/fade-only fallback for all motion-heavy effects.</rule-reduced-motion>
     <interaction-phase71-close-and-calendar phase="71-pass-local">Icon-only QR close button, device row selection feedback, sticky action feedback, and subscription boundary pulse with reduced-motion fallback.</interaction-phase71-close-and-calendar>
+    <interaction-phase72-touch-dock phase="72-pass-local">Touch dock focus/active underline and compact transform feedback without scroll hijacking or pointer interception.</interaction-phase72-touch-dock>
   </exports>
   <depends>M-009,M-010,M-070,M-071,M-072,M-075,M-076</depends>
   <verification-ref>V-M-077</verification-ref>
@@ -41,4 +42,10 @@
   </phase-71-executed-scope>
   <hotspot>H-064: Motion and microinteractions must respect reduced-motion, avoid scroll hijacking, and never block operational workflows.</hotspot>
   <phase-71-evidence status="pass-local" date="2026-06-04">Phase-71 smoke passed for QR close motion, selected-device row feedback, sticky action motion, calendar boundary pulse, and reduced-motion safeguards.</phase-71-evidence>
+  <phase-72-executed-scope>
+    <primary-files>frontend/src/components/Layout.tsx frontend/src/index.css scripts/phase72-user-auth-navigation-smoke.mjs scripts/phase59-motion-interactions-smoke.mjs</primary-files>
+    <primary-behaviors>Add bounded bottom-dock hover/focus/active feedback and preserve reduced-motion, keyboard focus, pointer-scroll, and no-scroll-hijack guarantees.</primary-behaviors>
+    <verification>Phase-72 smoke and Phase-59 motion regression passed locally with protected backend/deploy/runtime guards clean.</verification>
+  </phase-72-executed-scope>
+  <phase-72-evidence status="pass-local" date="2026-06-05">Matrix motion interactions passed local Phase-72 verification for touch dock reveal and reduced-motion nav safety.</phase-72-evidence>
 </M-077>

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<M-009 NAME="frontend-user" TYPE="UI_COMPONENT" STATUS="pass-local-phase46-phase51-phase52-phase53-phase56-phase59-pass-local-phase67-pass-local-session60-pass-local-phase68-pass-local-phase69-pass-local-phase70-pass-local-phase71">
-  <path>frontend frontend/public frontend/index.html frontend/vite.config.ts frontend/src/lib/session.ts scripts/session-security-smoke.mjs scripts/phase59-motion-interactions-smoke.mjs docs/plans/Phase-67.xml docs/plans/Phase-68.xml docs/plans/Phase-69.xml docs/plans/Phase-70.xml docs/plans/Phase-71.xml scripts/phase67-auth-splash-smoke.mjs scripts/phase68-dashboard-subscription-smoke.mjs scripts/phase69-referral-bonus-smoke.mjs scripts/phase70-config-qr-parity-smoke.mjs scripts/phase71-device-config-master-detail-smoke.mjs</path>
+<M-009 NAME="frontend-user" TYPE="UI_COMPONENT" STATUS="pass-local-phase46-phase51-phase52-phase53-phase56-phase59-pass-local-phase67-pass-local-session60-pass-local-phase68-pass-local-phase69-pass-local-phase70-pass-local-phase71-pass-local-phase72">
+  <path>frontend frontend/public frontend/index.html frontend/vite.config.ts frontend/src/lib/session.ts scripts/session-security-smoke.mjs scripts/phase59-motion-interactions-smoke.mjs docs/plans/Phase-67.xml docs/plans/Phase-68.xml docs/plans/Phase-69.xml docs/plans/Phase-70.xml docs/plans/Phase-71.xml docs/plans/Phase-72.xml scripts/phase67-auth-splash-smoke.mjs scripts/phase68-dashboard-subscription-smoke.mjs scripts/phase69-referral-bonus-smoke.mjs scripts/phase70-config-qr-parity-smoke.mjs scripts/phase71-device-config-master-detail-smoke.mjs scripts/phase72-user-auth-navigation-smoke.mjs</path>
   <owns>login, verified registration, password recovery, verify-email activation, dashboard, config delivery, subscription management, pending trial countdown/calendar UX, referrals and settings UI with per-device config awareness</owns>
   <depends>M-002, M-003, M-004, M-005, M-022, M-039, M-070, M-071, M-077</depends>
   <verification-ref>V-M-009</verification-ref>
@@ -43,6 +43,7 @@
     <file>scripts/phase69-referral-bonus-smoke.mjs</file>
     <file>scripts/phase70-config-qr-parity-smoke.mjs</file>
     <file>scripts/phase71-device-config-master-detail-smoke.mjs</file>
+    <file>scripts/phase72-user-auth-navigation-smoke.mjs</file>
   </files>
   <phase-23-scope>
     <primary-files>Layout.tsx, Dashboard.tsx, Config.tsx, Subscription.tsx, index.css</primary-files>
@@ -124,4 +125,10 @@
     <verification>Frontend build and Phase-71 smoke prove English settings/config/subscription strings are not leaking the known Russian literals while redacting config payloads.</verification>
   </phase-71-executed-scope>
   <phase-71-evidence status="pass-local" date="2026-06-04">Frontend build and Phase-71 smoke passed for selected-device API methods, Config master-detail, Layout/Settings/SubscriptionPanel i18n, compact labels, QR close icon, and no secret-bearing output.</phase-71-evidence>
+  <phase-72-executed-scope>
+    <primary-files>frontend/src/pages/Login.tsx frontend/src/components/Layout.tsx frontend/src/pages/Settings.tsx frontend/src/components/SubscriptionPanel.tsx frontend/src/i18n/index.ts frontend/src/index.css scripts/phase72-user-auth-navigation-smoke.mjs scripts/phase68-dashboard-subscription-smoke.mjs scripts/phase71-device-config-master-detail-smoke.mjs</primary-files>
+    <primary-behaviors>Map invalid login responses to "Неверный логин или пароль", keep user frontend Russian by default, remove visible Settings language controls, move desktop logout under Settings, expose a compact mobile dock, and shrink desktop subscription calendar cells.</primary-behaviors>
+    <verification>Frontend build, Phase-72 smoke, session-security smoke, Phase-57/59/61/68/71 regressions, XML/MyGRACE/diff gates, and protected admin/backend/deploy/runtime guard passed locally.</verification>
+  </phase-72-executed-scope>
+  <phase-72-evidence status="pass-local" date="2026-06-05">Phase-72 passed locally for Russian invalid-login text, Settings language removal, desktop logout placement, mobile dock markers, compact calendar density, and no admin/backend/deploy/runtime drift.</phase-72-evidence>
 </M-009>

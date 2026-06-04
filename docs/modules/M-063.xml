@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<M-063 NAME="trial-activation-subscription-countdown" TYPE="CORE_LOGIC" STATUS="done-local-phase45-phase53-pass-local-phase68-pass-local-phase69-pass-local-phase71">
+<M-063 NAME="trial-activation-subscription-countdown" TYPE="CORE_LOGIC" STATUS="done-local-phase45-phase53-pass-local-phase68-pass-local-phase69-pass-local-phase71-pass-local-phase72">
   <path>backend/app/billing backend/app/vpn backend/app/tasks frontend scripts/phase45-trial-subscription-ux-smoke.mjs scripts/phase53-user-matrix-ui-smoke.mjs docs/plans/Phase-45.xml docs/plans/Phase-53.xml</path>
   <owns>Four-day trial policy, pending-trial/referral-bonus lifecycle, first VPN handshake activation, subscription countdown API, and calendar UX.</owns>
   <purpose>Start the free KrotPN VPN trial only when the verified user first connects through VPN while keeping config access and billing state consistent.</purpose>
@@ -11,6 +11,7 @@
     <view-subscription-countdown>Render compact remaining time in the user cabinet.</view-subscription-countdown>
     <view-subscription-calendar>Render active subscription dates in a compact calendar view.</view-subscription-calendar>
     <view-subscription-calendar-boundaries phase="71-pass-local">Render first and last subscription days with cyberpunk boundary emphasis while preserving reduced-motion readability.</view-subscription-calendar-boundaries>
+    <view-subscription-calendar-density phase="72-pass-local">Render desktop subscription calendar with smaller cells while preserving server-derived countdown and Phase-71 boundary markers.</view-subscription-calendar-density>
   </exports>
   <depends>M-001,M-003,M-004,M-008,M-009,M-022,M-028,M-036,M-071</depends>
   <verification-ref>V-M-063</verification-ref>
@@ -33,6 +34,7 @@
     <file>scripts/phase68-dashboard-subscription-smoke.mjs</file>
     <file>scripts/phase69-referral-bonus-smoke.mjs</file>
     <file>scripts/phase71-device-config-master-detail-smoke.mjs</file>
+    <file>scripts/phase72-user-auth-navigation-smoke.mjs</file>
     <file>backend/tests/test_trial_activation.py</file>
   </files>
   <phase-45-scope>
@@ -71,4 +73,10 @@
   <evidence>2026-06-01: backend Phase-45 suite passed 35/35 outside sandbox due known aiosqlite sandbox hang; frontend npm run build and node scripts/phase45-trial-subscription-ux-smoke.mjs passed; py_compile passed for changed backend files; deploy/install diff guard showed no changes. 2026-06-03: Phase-53 smoke passed for Matrix countdown/calendar readability, pending-first-VPN copy, and stale 3-day copy guard. 2026-06-04: Phase-68 shared SubscriptionPanel smoke passed for exact first-connection copy, compact calendar, and server-derived countdown fields. 2026-06-04: Phase-69 backend tests passed for pending referral-bonus activation and scheduler handoff, and Phase-69 smoke passed for access_label-aware UI copy.</evidence>
   <hotspot>H-050: VPN trial activation must start from the first successful VPN handshake without locking verified users out of their first config</hotspot>
   <phase-71-evidence status="pass-local" date="2026-06-04">Backend trial activation tests passed; frontend build and Phase-71 smoke passed for backend-time copy removal and pulsing subscription rangeStart/rangeEnd markers.</phase-71-evidence>
+  <phase-72-executed-scope>
+    <primary-files>frontend/src/components/SubscriptionPanel.tsx frontend/src/index.css scripts/phase72-user-auth-navigation-smoke.mjs scripts/phase68-dashboard-subscription-smoke.mjs</primary-files>
+    <primary-behaviors>Shrink desktop "Календарь подписки" cells through frontend-only style rules while keeping server-derived trial/subscription countdown semantics unchanged.</primary-behaviors>
+    <verification>Phase-72 smoke and Phase-68 regression passed; no backend billing, VPN, scheduler, or deployment code changed.</verification>
+  </phase-72-executed-scope>
+  <phase-72-evidence status="pass-local" date="2026-06-05">Desktop calendar density marker passed locally and server countdown semantics remained frontend-only unchanged.</phase-72-evidence>
 </M-063>

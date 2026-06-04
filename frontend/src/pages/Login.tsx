@@ -1,21 +1,23 @@
 // FILE: frontend/src/pages/Login.tsx
-// VERSION: 1.5.0
+// VERSION: 1.6.0
 // ROLE: UI_COMPONENT
 // MAP_MODE: SUMMARY
 // START_MODULE_CONTRACT
 //   PURPOSE: Phase-67 frameless Matrix login page with email/password authentication and a large unframed KrotPN logo
-//   SCOPE: Large visible brand mark, polished auth-only email/password form, token storage, stored-session redirect, side-by-side register/recovery links, navigation to dashboard after successful auth
+//   SCOPE: Large visible brand mark, polished auth-only email/password form, localized invalid-login error mapping, token storage, stored-session redirect, side-by-side register/recovery links, navigation to dashboard after successful auth
 //   DEPENDS: M-009 (frontend-user), M-002 (auth API), M-039 (session-security-hardening), M-071 (matrix-style-system), M-080 (visible-brand-logo-integration)
-//   LINKS: M-009 (frontend-user), M-039, M-071, M-080, Phase-63, Phase-67
+//   LINKS: M-009 (frontend-user), M-039, M-071, M-080, Phase-63, Phase-67, Phase-72
 // END_MODULE_CONTRACT
 //
 // START_MODULE_MAP
-//   LoginPage - Login component with Phase-67 frameless Matrix auth form, large BrandMark, and stored-session redirect
+//   LoginPage - Login component with Phase-67 frameless Matrix auth form, large BrandMark, Russian invalid-credential error, and stored-session redirect
+//   normalizeLoginError - Maps backend invalid-credential responses to the approved Russian operator copy
 //   BLOCK_LOGIN_PAGE - LoginPage default export
 //   default - React component (default export)
 // END_MODULE_MAP
 //
 // START_CHANGE_SUMMARY
+//   LAST_CHANGE: v1.6.0 - Added Phase-72 Russian invalid-login error mapping and marker.
 //   LAST_CHANGE: v1.5.0 - Added existing-session redirect and 60-day inactivity-aware token persistence.
 //   LAST_CHANGE: v1.4.0 - Applied Phase-67 frameless login copy, red-focus auth fields, and side-by-side secondary actions.
 //   LAST_CHANGE: v1.3.0 - Switched auth logo to Phase-63 BrandMark while preserving Phase-56 regression markers.
@@ -35,6 +37,22 @@ import { authApi } from '../lib/api'
 import { useAuthStore } from '../stores/auth'
 import BrandMark from '../components/BrandMark'
 import { enforceUserSessionTtl, persistUserSessionTokens } from '../lib/session'
+
+function normalizeLoginError(error: any, fallback: string) {
+  const detail = String(error?.response?.data?.detail || '').trim()
+  const normalized = detail.toLowerCase()
+
+  if (
+    error?.response?.status === 401 ||
+    normalized.includes('invalid email or password') ||
+    normalized.includes('incorrect email or password') ||
+    normalized.includes('invalid credentials')
+  ) {
+    return 'Неверный логин или пароль'
+  }
+
+  return detail || fallback
+}
 
 export default function Login() {
   const { t } = useTranslation()
@@ -78,14 +96,19 @@ export default function Login() {
       toast.success(t('success'))
       navigate('/dashboard')
     } catch (error: any) {
-      toast.error(error.response?.data?.detail || t('invalidCredentials'))
+      toast.error(normalizeLoginError(error, t('invalidCredentials')))
     } finally {
       setLoading(false)
     }
   }
 
   return (
-    <div className="matrix-auth-screen phase67-auth-screen" data-phase53-auth-route="login" data-phase67-auth-route="login">
+    <div
+      className="matrix-auth-screen phase67-auth-screen"
+      data-phase53-auth-route="login"
+      data-phase67-auth-route="login"
+      data-phase72-login-error="[FrontendUser][phase72][LOGIN_ERROR_LOCALIZED]"
+    >
       <section className="matrix-auth-panel animate-in">
         <div className="matrix-auth-heading">
           <BrandMark

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<M-036 NAME="mobile-user-cabinet" TYPE="UI_COMPONENT" STATUS="pass-local-phase46-phase53-pass-local-phase68-pass-local-phase69-pass-local-phase70-pass-local-phase71">
-  <path>frontend scripts/phase45-trial-subscription-ux-smoke.mjs scripts/phase46-user-cabinet-ux-smoke.mjs scripts/phase53-user-matrix-ui-smoke.mjs scripts/phase68-dashboard-subscription-smoke.mjs scripts/phase69-referral-bonus-smoke.mjs scripts/phase70-config-qr-parity-smoke.mjs scripts/phase71-device-config-master-detail-smoke.mjs docs/plans/Phase-23.xml docs/plans/Phase-45.xml docs/plans/Phase-46.xml docs/plans/Phase-53.xml docs/plans/Phase-68.xml docs/plans/Phase-69.xml docs/plans/Phase-70.xml docs/plans/Phase-71.xml</path>
+<M-036 NAME="mobile-user-cabinet" TYPE="UI_COMPONENT" STATUS="pass-local-phase46-phase53-pass-local-phase68-pass-local-phase69-pass-local-phase70-pass-local-phase71-pass-local-phase72">
+  <path>frontend scripts/phase45-trial-subscription-ux-smoke.mjs scripts/phase46-user-cabinet-ux-smoke.mjs scripts/phase53-user-matrix-ui-smoke.mjs scripts/phase68-dashboard-subscription-smoke.mjs scripts/phase69-referral-bonus-smoke.mjs scripts/phase70-config-qr-parity-smoke.mjs scripts/phase71-device-config-master-detail-smoke.mjs scripts/phase72-user-auth-navigation-smoke.mjs docs/plans/Phase-23.xml docs/plans/Phase-45.xml docs/plans/Phase-46.xml docs/plans/Phase-53.xml docs/plans/Phase-68.xml docs/plans/Phase-69.xml docs/plans/Phase-70.xml docs/plans/Phase-71.xml docs/plans/Phase-72.xml</path>
   <owns>Compact mobile-first personal cabinet for VPN status, subscription state, trial countdown/calendar, device management, and config access</owns>
   <exports>
     <view-mobile-home>Single compact home surface with VPN status, subscription state, and primary config action</view-mobile-home>
@@ -28,6 +28,7 @@
     <file>scripts/phase69-referral-bonus-smoke.mjs</file>
     <file>scripts/phase70-config-qr-parity-smoke.mjs</file>
     <file>scripts/phase71-device-config-master-detail-smoke.mjs</file>
+    <file>scripts/phase72-user-auth-navigation-smoke.mjs</file>
     <file>docs/plans/Phase-23.xml</file>
     <file>docs/plans/Phase-45.xml</file>
     <file>docs/plans/Phase-46.xml</file>
@@ -36,6 +37,7 @@
     <file>docs/plans/Phase-69.xml</file>
     <file>docs/plans/Phase-70.xml</file>
     <file>docs/plans/Phase-71.xml</file>
+    <file>docs/plans/Phase-72.xml</file>
   </files>
   <workflows>
     <DF-UI-USER-HOME>Dashboard aggregates auth/user stats, VPN stats, subscription state, and device summary into the first mobile screen.</DF-UI-USER-HOME>
@@ -83,4 +85,10 @@
   <evidence>2026-06-01: frontend npm run build passed, node scripts/phase45-trial-subscription-ux-smoke.mjs passed, and node scripts/phase46-user-cabinet-ux-smoke.mjs passed for password guidance and compact MTProto link/status UX. 2026-06-03: frontend npm run build and node scripts/phase53-user-matrix-ui-smoke.mjs passed; production-preview auth screenshots confirmed readable Matrix mobile surfaces while protected route coverage is static due local auth redirect. 2026-06-04: Phase-68 frontend build and smokes passed for MTProto-first dashboard, shared SubscriptionPanel, compact tariff/calendar view, and removed visible config raw/diagnostics panels. 2026-06-04: Phase-69 frontend build and smoke passed for masked referral rows and access_label-aware pending bonus copy. 2026-06-04: Phase-70 frontend build and Phase-70/57/62 smokes passed for lighter QR and compact config workflow preservation.</evidence>
   <hotspot>H-023: Mobile user cabinet must keep config download, QR, subscription and device actions reachable without clutter</hotspot>
   <phase-71-evidence status="pass-local" date="2026-06-04">Frontend build and Phase-71 smoke passed for mobile-safe master-detail device UX, sticky export actions, no raw diagnostics return, and compact user-cabinet copy/i18n cleanup.</phase-71-evidence>
+  <phase-72-executed-scope>
+    <primary-files>frontend/src/components/Layout.tsx frontend/src/index.css scripts/phase72-user-auth-navigation-smoke.mjs scripts/phase61-responsive-adaptation-smoke.mjs</primary-files>
+    <primary-behaviors>Keep Главная, Конфигурация, Подписка, Рефералы, and Настройки reachable in a compact bottom dock with safe-area padding and no content overlap while desktop logout remains directly under Settings.</primary-behaviors>
+    <acceptance>Phase-72 and Phase-61 smokes passed for bottom navigation markers, safe-area padding, touch target policy, and protected-surface guard.</acceptance>
+  </phase-72-executed-scope>
+  <phase-72-evidence status="pass-local" date="2026-06-05">Frontend build, frontend-admin build prerequisite, Phase-72 smoke, and Phase-61 responsive smoke passed for mobile dock reachability and desktop logout ordering.</phase-72-evidence>
 </M-036>

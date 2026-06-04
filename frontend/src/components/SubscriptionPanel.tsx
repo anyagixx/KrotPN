@@ -1,10 +1,10 @@
 // FILE: frontend/src/components/SubscriptionPanel.tsx
-// VERSION: 1.0.0
+// VERSION: 1.3.0
 // ROLE: UI_COMPONENT
 // MAP_MODE: EXPORTS
 // START_MODULE_CONTRACT
 //   PURPOSE: Shared compact subscription, tariff, checkout, and calendar surface for the user dashboard and compatibility subscription route
-//   SCOPE: Server-derived subscription status, canonical tariff presentation aliases, plan_id-only checkout, compact cross-month calendar, and Phase-68 dashboard-owned subscription block
+//   SCOPE: Server-derived subscription status, canonical tariff presentation aliases, plan_id-only checkout, compact cross-month calendar, Phase-72 desktop calendar density, and Phase-68 dashboard-owned subscription block
 //   DEPENDS: M-009 (frontend-user), M-036 (mobile-user-cabinet), M-063 (trial countdown), M-068 (paid tariff catalog), M-071 (matrix-style-system), M-074 (responsive-device-adaptation), M-075 (premium-user-cabinet)
 //   LINKS: M-009, M-036, M-063, M-068, M-071, M-074, M-075, Phase-62, Phase-68
 // END_MODULE_CONTRACT
@@ -16,6 +16,7 @@
 // END_MODULE_MAP
 //
 // START_CHANGE_SUMMARY
+//   LAST_CHANGE: v1.3.0 - Added Phase-72 desktop compact calendar density marker.
 //   LAST_CHANGE: v1.2.0 - Added Phase-71 localized subscription copy and calendar boundary markers.
 //   LAST_CHANGE: v1.1.0 - Added Phase-69 referral-bonus pending access copy via access_label.
 //   LAST_CHANGE: v1.0.0 - Added Phase-68 shared dashboard-owned subscription/tariff/calendar panel.
@@ -340,6 +341,7 @@ export default function SubscriptionPanel({ compact = false }: SubscriptionPanel
         data-phase45-subscription-calendar="true"
         data-phase57-subscription-calendar="active-range"
         data-phase68-subscription-calendar="compact-cross-month"
+        data-phase72-subscription-calendar="[TrialSubscription][phase72][DESKTOP_CALENDAR_COMPACT]"
       >
         <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
           <div className="min-w-0">
