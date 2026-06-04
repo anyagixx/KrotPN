@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<V-M-077 MODULE="M-077" PRIORITY="high" STATUS="pass-local-rainfix-pass-local-phase68-pass-local-phase71-pass-local-phase72-pass-local-phase74" PHASE-59="pass-local" RAINFIX="pass-local" PHASE-68="pass-local" PHASE-71="pass-local" PHASE-72="pass-local" PHASE-74="pass-local">
+<V-M-077 MODULE="M-077" PRIORITY="high" STATUS="pass-local-rainfix-pass-local-phase68-pass-local-phase71-pass-local-phase72-pass-local-phase74-phase75-planned" PHASE-59="pass-local" RAINFIX="pass-local" PHASE-68="pass-local" PHASE-71="pass-local" PHASE-72="pass-local" PHASE-74="pass-local" PHASE-75="planned">
   <scope>Phase-59 verification for premium Matrix motion and microinteractions across user and admin frontends: copy/download/proxy feedback, VPN/MTProto/subscription/alert/health state transitions, route entrance motion, reduced-motion fallback, inactive-tab lifecycle, keyboard/pointer/scroll safety, and protected-surface isolation.</scope>
   <test-files>
     <file>scripts/phase59-motion-interactions-smoke.mjs</file>
@@ -11,6 +11,7 @@
     <file phase="71-pass-local">scripts/phase71-device-config-master-detail-smoke.mjs</file>
     <file phase="72-pass-local">scripts/phase72-user-auth-navigation-smoke.mjs</file>
     <file phase="74-pass-local">scripts/phase74-admin-shell-navigation-smoke.mjs</file>
+    <file phase="75-planned">scripts/phase75-admin-users-devices-smoke.mjs</file>
     <file>frontend/src/components/MatrixBackground.tsx</file>
     <file>frontend/src/components/VisualShell.tsx</file>
     <file>frontend/src/components/Layout.tsx</file>
@@ -52,6 +53,7 @@
     <check-14 status="passed-local">git diff --name-only HEAD -- install.sh docker-compose.yml nginx deploy deploy/mtproto-de-compose.yml .env.example backend/app backend/tests mtproto-runtime official-mtproxy telegram-bot is empty</check-14>
     <check-15 status="pass-local-rainfix">node scripts/phase59-motion-interactions-smoke.mjs asserts root transform safety, CSS rain fallback, mobile overscan, and visualViewport listeners.</check-15>
     <check-16 status="pass-local-phase74">Phase-74 smoke asserted admin nav/logout microinteractions, pointer-safe scroll containers, reduced-motion fallback, and no Matrix overlay scroll interception.</check-16>
+    <check-17 status="planned-phase75">Phase-75 smoke must assert expand/collapse feedback, confirmation pointer safety, reduced-motion fallback, and no Matrix overlay scroll interception in the unified Users inventory.</check-17>
   </module-checks>
   <evidence>
     <item>2026-06-04: frontend build passed.</item>
@@ -101,6 +103,9 @@
     <marker-12>[MatrixVisualRuntime][fix][MOBILE_OVERSCAN_READY]</marker-12>
     <marker-13>[MatrixMotion][phase74][ADMIN_NAV_MOTION_SAFE]</marker-13>
     <marker-14>[MatrixMotion][phase74][SCROLL_POINTER_SAFE]</marker-14>
+    <marker-15>[MatrixMotion][phase75][EXPAND_COLLAPSE_MOTION_SAFE]</marker-15>
+    <marker-16>[MatrixMotion][phase75][CONFIRMATION_POINTER_SAFE]</marker-16>
+    <marker-17>[MatrixMotion][phase75][REDUCED_MOTION_EXPANSION_PASS]</marker-17>
   </required-log-markers>
   <telemetry-requirements>
     <requirement-1>Allowed smoke output: route names, viewport names, selector names, timing budgets, reduced-motion mode, pointer/scroll/focus pass markers, synthetic fixture IDs, and screenshot paths.</requirement-1>
@@ -149,4 +154,12 @@
     <commands>node scripts/phase74-admin-shell-navigation-smoke.mjs; node scripts/phase59-motion-interactions-smoke.mjs</commands>
   </phase-74-verification-design>
   <phase-74-evidence status="pass-local" date="2026-06-05">Phase-74 smoke proved admin nav motion and content scroll pointer safety without Matrix overlay scroll interception or protected backend/deploy/runtime drift.</phase-74-evidence>
+  <phase-75-verification-design status="planned">
+    <scope>Motion and pointer/scroll verification for expandable user rows and device confirmations in the unified admin Users inventory.</scope>
+    <gate-1>Expand/collapse interactions must be short, bounded, keyboard reachable, and must not resize unrelated admin shell navigation or headers.</gate-1>
+    <gate-2>Device action confirmations must remain pointer-safe above Matrix visual layers and must not mutate before explicit confirmation.</gate-2>
+    <gate-3>Reduced-motion mode must keep expanded device state readable without transform-heavy transitions.</gate-3>
+    <gate-4>Scroll containers for expanded device lists must not hijack the admin content wheel/touch scroll behavior repaired in Phase-74.</gate-4>
+    <commands>node scripts/phase75-admin-users-devices-smoke.mjs; node scripts/phase59-motion-interactions-smoke.mjs; node scripts/phase74-admin-shell-navigation-smoke.mjs</commands>
+  </phase-75-verification-design>
 </V-M-077>

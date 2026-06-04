@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<V-M-074 MODULE="M-074" PRIORITY="critical" STATUS="pass-local-phase61-phase62-pass-local-phase67-pass-local-rainfix-pass-local-phase68-pass-local-phase71-pass-local-phase72-pass-local-phase74" PHASE-61="pass-local" PHASE-62="pass-local" PHASE-67="pass-local" RAINFIX="pass-local" PHASE-68="pass-local" PHASE-71="pass-local" PHASE-72="pass-local" PHASE-74="pass-local">
+<V-M-074 MODULE="M-074" PRIORITY="critical" STATUS="pass-local-phase61-phase62-pass-local-phase67-pass-local-rainfix-pass-local-phase68-pass-local-phase71-pass-local-phase72-pass-local-phase74-phase75-planned" PHASE-61="pass-local" PHASE-62="pass-local" PHASE-67="pass-local" RAINFIX="pass-local" PHASE-68="pass-local" PHASE-71="pass-local" PHASE-72="pass-local" PHASE-74="pass-local" PHASE-75="planned">
   <scope>Responsive adaptation verification for phone, tablet, and desktop layouts across public, auth, user-cabinet, and admin Matrix surfaces.</scope>
   <verification-intent>Phase-61 must prove that the premium Matrix UI is intentionally designed for mobile and tablet use, not merely tolerated by desktop CSS.</verification-intent>
   <test-files>
@@ -10,6 +10,7 @@
     <file phase="71-pass-local">scripts/phase71-device-config-master-detail-smoke.mjs</file>
     <file phase="72-pass-local">scripts/phase72-user-auth-navigation-smoke.mjs</file>
     <file phase="74-pass-local">scripts/phase74-admin-shell-navigation-smoke.mjs</file>
+    <file phase="75-planned">scripts/phase75-admin-users-devices-smoke.mjs</file>
     <file>frontend/src/App.tsx</file>
     <file>frontend/src/components/Layout.tsx</file>
     <file>frontend/src/components/MatrixBackground.tsx</file>
@@ -59,6 +60,7 @@
     <command status="pass-local-phase67">cd frontend &amp;&amp; npm run build; node scripts/phase67-auth-splash-smoke.mjs; node scripts/phase61-responsive-adaptation-smoke.mjs; node scripts/phase60-premium-qa-smoke.mjs</command>
     <command status="pass-local-rainfix">cd frontend &amp;&amp; npm run build; cd frontend-admin &amp;&amp; npm run build; node scripts/phase61-responsive-adaptation-smoke.mjs; Chrome 390x844 user/admin screenshot and bottom-pixel sanity</command>
     <command status="pass-local-phase74">cd frontend-admin &amp;&amp; npm run build; node scripts/phase74-admin-shell-navigation-smoke.mjs passed; node scripts/phase61-responsive-adaptation-smoke.mjs remains a final-run regression gate</command>
+    <command status="planned-phase75">cd frontend-admin &amp;&amp; npm run build; node scripts/phase75-admin-users-devices-smoke.mjs; node scripts/phase61-responsive-adaptation-smoke.mjs</command>
   </commands>
   <evidence>
     <item>2026-06-04: frontend npm run build passed; primary JS 448870 bytes gzip 135741, primary CSS 44212 bytes gzip 8832.</item>
@@ -91,7 +93,7 @@
     <route-matrix>
     <public-routes>/, /login, /register, /forgot-password, /reset-password, /verify-email</public-routes>
     <user-routes>/dashboard, /dashboard/config, /dashboard/subscription, /dashboard/referrals, /dashboard/settings</user-routes>
-    <admin-routes>/login, /, /users, /devices, /mtproto, /servers, /plans redirect, /analytics</admin-routes>
+    <admin-routes>/login, /, /users, /devices compatibility redirect, /mtproto, /servers, /plans redirect, /analytics</admin-routes>
     <auth-limitation-policy>If local auth fixtures cannot enter protected routes, the smoke must produce static-route proof and record the remaining live screenshot gap instead of claiming false coverage.</auth-limitation-policy>
   </route-matrix>
   <phase-74-responsive-gates status="pass-local">
@@ -101,6 +103,14 @@
     <gate-3>Admin content wheel/touch scroll must work over the content surface and must not be blocked by fixed Matrix backgrounds, overlays, or rail overflow.</gate-3>
     <gate-4>Phase-61 responsive smoke remains a required regression gate after the Phase-74 admin shell change.</gate-4>
   </phase-74-responsive-gates>
+  <phase-75-responsive-gates status="planned">
+    <scope>Responsive verification for merging admin Users and Devices into one expandable inventory.</scope>
+    <gate-1>Admin /users must show a compact expandable device inventory without horizontal scroll on phone, tablet, desktop, and reduced-motion viewport classes.</gate-1>
+    <gate-2>The removed visible /devices nav must not leave an unreachable device workflow; direct /devices must redirect or present compatibility handling without duplicate primary inventory.</gate-2>
+    <gate-3>Expanded user device sublists must be bounded, scrollable or paginated, and must not stretch the whole page for users with many devices.</gate-3>
+    <gate-4>Device action controls and confirmation surfaces must remain 44px-touch-safe on mobile and must not overlap the bottom tabbar, rail, Matrix canvas, or scroll containers.</gate-4>
+    <commands>node scripts/phase75-admin-users-devices-smoke.mjs; node scripts/phase61-responsive-adaptation-smoke.mjs</commands>
+  </phase-75-responsive-gates>
   <phase-67-responsive-gates status="pass-local">
     <gate-1>Splash / and auth routes must be verified at phone, tablet, desktop, and reduced-motion viewports.</gate-1>
     <gate-2>Large unframed logo, inputs, password controls, secondary buttons, redirect status, and form errors must not overlap or cause horizontal scroll.</gate-2>
@@ -155,6 +165,8 @@
     <marker>[MatrixVisualRuntime][fix][MOBILE_OVERSCAN_READY]</marker>
     <marker>[ResponsiveAdaptation][phase74][ADMIN_SCROLL_NO_OVERLAP]</marker>
     <marker>[ResponsiveAdaptation][phase74][ADMIN_RAIL_VIEWPORT_SAFE]</marker>
+    <marker>[ResponsiveAdaptation][phase75][UNIFIED_INVENTORY_NO_OVERFLOW]</marker>
+    <marker>[ResponsiveAdaptation][phase75][EXPANDED_DEVICES_BOUNDED]</marker>
   </required-log-markers>
   <telemetry-requirements>
     <allowed>route path, viewport size, app surface name, selector label, measured width/height, horizontal-scroll delta, screenshot artifact path, bundle size, and anonymized failure code.</allowed>
@@ -177,6 +189,7 @@
     <gate-6 status="pass-local-phase67">Phase-67 auth/splash responsive gate must preserve Phase-61 responsive guarantees and may not change protected user/admin responsive contracts.</gate-6>
     <gate-7 status="pass-local-rainfix">Matrix rain reliability hotfix must preserve Phase-61 responsive guarantees while adding bottom-edge overscan proof for user/admin mobile shells.</gate-7>
     <gate-8 status="pass-local-phase74">Phase-74 admin shell responsive gate passed for rail bounds and content-scroll markers; full Phase-61 regression remains required in the final verification run.</gate-8>
+    <gate-9 status="planned-phase75">Phase-75 cannot move to pass-local until unified /users inventory, bounded expanded device lists, safe /devices handling, and responsive no-overflow markers pass.</gate-9>
   </phase-gates>
   <autonomous-execution-safety>
     <safety-1>Edits are limited to frontend, frontend-admin, Phase-61 smoke, and MyGRACE documentation unless the operator approves a new phase.</safety-1>

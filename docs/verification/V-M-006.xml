@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<V-M-006 MODULE="M-006" PRIORITY="high" STATUS="pass">
+<V-M-006 MODULE="M-006" PRIORITY="high" STATUS="pass-phase75-planned" PHASE-75="planned">
   <module>admin-api</module>
   <checks>Admin endpoints enforce authentication and current device/operator controls without relying on removed route-policy surfaces.</checks>
   <test-files>backend/tests/test_auth_rejection.py backend/tests/test_admin_device_control.py</test-files>
@@ -28,4 +28,12 @@
     <evidence-1>2026-05-10: Phase-24 did not modify backend/app/admin or admin API endpoint bindings in frontend-admin/src/lib/api.ts.</evidence-1>
     <evidence-2>2026-05-10: Frontend-admin build and mobile smoke consumed existing M-006 endpoints through mocked /api/v1 responses without API shape changes.</evidence-2>
   </phase-24-evidence>
+  <phase-75-admin-api-gates status="planned">
+    <scope>Verification design for the approved admin Users and Devices unified inventory phase.</scope>
+    <gate-1>Prefer frontend-only grouping through existing /admin/users and /admin/devices contracts when it satisfies the expandable user inventory requirement.</gate-1>
+    <gate-2>If a new per-user device read endpoint is required, it must be admin-only, reuse CurrentAdmin, expose only existing AdminDevice fields, and never return VPN private keys, full configs, bearer tokens, or raw secrets.</gate-2>
+    <gate-3>Existing M-024 mutation endpoints /admin/devices/{id}/block, /unblock, /rotate, and DELETE /admin/devices/{id} must keep one-device targeting, auth requirements, and audit-compatible behavior.</gate-3>
+    <gate-4>If backend/app/admin/router.py or backend tests change, rerun backend/tests/test_auth_rejection.py and backend/tests/test_admin_device_control.py before Phase-75 can move from planned to pass-local.</gate-4>
+    <gate-5>If backend remains unchanged, Phase-75 smoke must print [AdminAPI][phase75][PROTECTED_ADMIN_API_UNCHANGED] and protected backend diff guard must be empty.</gate-5>
+  </phase-75-admin-api-gates>
 </V-M-006>

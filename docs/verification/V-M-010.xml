@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<V-M-010 MODULE="M-010" PRIORITY="high" STATUS="pass-local-phase51-phase52-phase54-phase59-pass-local-minimal-login-pass-local-phase74" PHASE-54="pass-local" PHASE-59="pass-local" PHASE-74="pass-local" VERSION="1.9.0">
+<V-M-010 MODULE="M-010" PRIORITY="high" STATUS="pass-local-phase51-phase52-phase54-phase59-pass-local-minimal-login-pass-local-phase74-phase75-planned" PHASE-54="pass-local" PHASE-59="pass-local" PHASE-74="pass-local" PHASE-75="planned" VERSION="1.10.0">
   <module>frontend-admin</module>
   <checks>Admin frontend builds and reflects current admin, Full Tunnel, system, analytics, and device-control surfaces without auth regression.</checks>
-  <test-files>frontend-admin/index.html frontend-admin/public/favicon.ico frontend-admin/public/favicon-16x16.png frontend-admin/public/favicon-32x32.png frontend-admin/public/apple-touch-icon.png frontend-admin/src/main.tsx frontend-admin/src/components/MatrixBackground.tsx frontend-admin/src/components/VisualShell.tsx frontend-admin/src/components/Layout.tsx frontend-admin/src/pages/Login.tsx frontend-admin/src/pages/Dashboard.tsx frontend-admin/src/pages/Users.tsx frontend-admin/src/pages/Devices.tsx frontend-admin/src/pages/MTProto.tsx frontend-admin/src/pages/MTProtoAnalytics.tsx frontend-admin/src/pages/Analytics.tsx frontend-admin/src/pages/Servers.tsx frontend-admin/src/pages/Plans.tsx frontend-admin/src/lib/api.ts frontend-admin/src/stores/auth.ts frontend-admin/src/types/index.ts frontend-admin/src/index.css scripts/phase51-brand-assets-smoke.mjs scripts/phase52-matrix-visual-smoke.mjs scripts/phase54-admin-matrix-ui-smoke.mjs scripts/phase59-motion-interactions-smoke.mjs scripts/phase74-admin-shell-navigation-smoke.mjs</test-files>
+  <test-files>frontend-admin/index.html frontend-admin/public/favicon.ico frontend-admin/public/favicon-16x16.png frontend-admin/public/favicon-32x32.png frontend-admin/public/apple-touch-icon.png frontend-admin/src/main.tsx frontend-admin/src/components/MatrixBackground.tsx frontend-admin/src/components/VisualShell.tsx frontend-admin/src/components/Layout.tsx frontend-admin/src/pages/Login.tsx frontend-admin/src/pages/Dashboard.tsx frontend-admin/src/pages/Users.tsx frontend-admin/src/pages/Devices.tsx frontend-admin/src/pages/MTProto.tsx frontend-admin/src/pages/MTProtoAnalytics.tsx frontend-admin/src/pages/Analytics.tsx frontend-admin/src/pages/Servers.tsx frontend-admin/src/pages/Plans.tsx frontend-admin/src/lib/api.ts frontend-admin/src/stores/auth.ts frontend-admin/src/types/index.ts frontend-admin/src/index.css scripts/phase51-brand-assets-smoke.mjs scripts/phase52-matrix-visual-smoke.mjs scripts/phase54-admin-matrix-ui-smoke.mjs scripts/phase59-motion-interactions-smoke.mjs scripts/phase74-admin-shell-navigation-smoke.mjs scripts/phase75-admin-users-devices-smoke.mjs</test-files>
   <commands>pass-local 2026-06-05: frontend-admin build and Phase-74 admin shell smoke passed for icon-safe login, no visible Tariffs nav, safe /plans redirect, logout under Nodes, bounded rail, content scroll, and protected API/deploy/runtime/user frontend guard.</commands>
   <levels>
     <module-local>Run npm build after frontend-admin route, component, API binding, or type changes.</module-local>
@@ -34,6 +34,12 @@
     <check-22>Phase-74 admin main content must scroll normally under mouse wheel when the cursor is over content, not only over the rail.</check-22>
     <check-23>Phase-74 admin rail must be bounded/clipped to the same visible height budget as the main admin content surface.</check-23>
     <check-24>Phase-74 direct /plans handling must be safe without leaving a visible stale Tariffs card or broken route.</check-24>
+    <check-25>Phase-75 must expose a single visible admin "Пользователи" inventory that includes expandable per-user devices.</check-25>
+    <check-26>Phase-75 must remove the separate visible "Устройства" admin navigation entry after those actions are reachable inside /users.</check-26>
+    <check-27>Phase-75 direct /devices handling must be safe redirect or compatibility route, never a stale duplicate primary inventory.</check-27>
+    <check-28>Phase-75 Users page must load or group device rows by user_id, show loading/empty/error states, and keep the list bounded for many devices.</check-28>
+    <check-29>Phase-75 device action controls must preserve adminApi blockDevice, unblockDevice, rotateDevice, and revokeDevice mutation boundaries.</check-29>
+    <check-30>Phase-75 smoke must prove frontend-admin build, unified route/navigation markers, expandable device rows, action confirmations, and protected backend/deploy/runtime/user frontend guard.</check-30>
   </module-checks>
   <phase-54-admin-route-gates status="pass-local">
     <gate-1>Login uses Matrix shell, empty email/password fields, icon padding safety, visible focus states, and no stale default credential hints.</gate-1>
@@ -48,6 +54,13 @@
     <gate-3>Phase-54/58/59/61/62 regressions remain required final-run gates so admin route compaction, motion, responsiveness, and deletion-audit contracts stay valid after the controlled Tariffs removal.</gate-3>
     <gate-4>Protected guard in Phase-74 smoke proved backend billing, user-facing tariff cards, deploy/install, nginx, docker-compose, VPN runtime, and MTProto runtime are unchanged.</gate-4>
   </phase-74-admin-shell-gates>
+  <phase-75-admin-unified-inventory-gates status="planned">
+    <gate-1>cd frontend-admin &amp;&amp; npm run build is mandatory after Users/Layout/main/api/type changes.</gate-1>
+    <gate-2>node scripts/phase75-admin-users-devices-smoke.mjs must assert one visible Users inventory, no visible Devices nav, safe /devices redirect/compat handling, expandable user rows, and bounded device lists.</gate-2>
+    <gate-3>The smoke must assert that block/unblock/rotate/revoke are still reachable through expanded user device rows and that no mutation runs before confirmation.</gate-3>
+    <gate-4>Phase-54, Phase-58, Phase-59, Phase-61, Phase-62, and Phase-74 regressions remain final-run gates after the merge.</gate-4>
+    <gate-5>Protected guard must prove deploy/install/nginx/docker-compose/VPN runtime/MTProto runtime/user frontend surfaces are unchanged; backend admin changes are allowed only for an approved minimal read-only device endpoint.</gate-5>
+  </phase-75-admin-unified-inventory-gates>
   <scenarios>
     <scenario-1 kind="success">Admin login route and protected layout still build after compact UI changes.</scenario-1>
     <scenario-2 kind="success">Dashboard, users, devices, servers, plans, and analytics routes compile against existing admin API bindings.</scenario-2>
@@ -67,6 +80,11 @@
     <marker-9>[FrontendAdmin][phase74][NO_TARIFFS_NAV]</marker-9>
     <marker-10>[FrontendAdmin][phase74][PLANS_ROUTE_SAFE]</marker-10>
     <marker-11>[FrontendAdmin][phase74][PROTECTED_ADMIN_API_UNCHANGED]</marker-11>
+    <marker-12>[FrontendAdmin][phase75][USERS_DEVICES_UNIFIED]</marker-12>
+    <marker-13>[FrontendAdmin][phase75][NO_DEVICES_NAV]</marker-13>
+    <marker-14>[FrontendAdmin][phase75][DEVICES_ROUTE_SAFE]</marker-14>
+    <marker-15>[FrontendAdmin][phase75][EXPANDABLE_USER_DEVICE_ROWS]</marker-15>
+    <marker-16>[FrontendAdmin][phase75][PROTECTED_ADMIN_API_GUARD]</marker-16>
   </required-log-markers>
   <observability>
     <telemetry-1>Build evidence records command, exit code, and failing TypeScript/Vite output if any.</telemetry-1>

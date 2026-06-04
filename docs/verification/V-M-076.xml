@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<V-M-076 MODULE="M-076" PRIORITY="high" STATUS="pass-local-phase59-phase62-pass-local-rainfix-pass-local-phase74" PHASE-58="pass-local" PHASE-59="pass-local" PHASE-62="pass-local" RAINFIX="pass-local" PHASE-74="pass-local">
+<V-M-076 MODULE="M-076" PRIORITY="high" STATUS="pass-local-phase59-phase62-pass-local-rainfix-pass-local-phase74-phase75-planned" PHASE-58="pass-local" PHASE-59="pass-local" PHASE-62="pass-local" RAINFIX="pass-local" PHASE-74="pass-local" PHASE-75="planned">
   <scope>Phase-58/Phase-59 premium admin cockpit evidence remains valid. Phase-62 verification now defines the compactness and deletion-audit contract for admin cockpit, MTProto analytics, operational inventories, emergency controls, redaction, responsive regressions, and protected backend/deploy/runtime isolation.</scope>
   <test-files>
     <file>scripts/phase58-premium-admin-cockpit-smoke.mjs</file>
@@ -12,6 +12,7 @@
     <file phase="59-pass-local">scripts/phase59-motion-interactions-smoke.mjs</file>
     <file phase="62-pass-local">scripts/phase62-compactness-deletion-smoke.mjs</file>
     <file phase="74-pass-local">scripts/phase74-admin-shell-navigation-smoke.mjs</file>
+    <file phase="75-planned">scripts/phase75-admin-users-devices-smoke.mjs</file>
     <file>frontend-admin/src/components/Layout.tsx</file>
     <file>frontend-admin/src/components/StatCard.tsx</file>
     <file>frontend-admin/src/pages/Dashboard.tsx</file>
@@ -60,6 +61,9 @@
     <check-27 status="pending-final-run-phase74">node scripts/phase58-premium-admin-cockpit-smoke.mjs</check-27>
     <check-28 status="pending-final-run-phase74">node scripts/phase62-compactness-deletion-smoke.mjs</check-28>
     <check-29 status="pass-local-phase74">protected backend/deploy/runtime/frontend-user/tariff guard proved Phase-74 is admin-shell-only.</check-29>
+    <check-30 status="planned-phase75">cd frontend-admin &amp;&amp; npm run build</check-30>
+    <check-31 status="planned-phase75">node scripts/phase75-admin-users-devices-smoke.mjs for unified Users inventory, removed Devices nav, direct /devices safety, expandable device rows, action confirmations, and protected guard.</check-31>
+    <check-32 status="planned-phase75">node scripts/phase58-premium-admin-cockpit-smoke.mjs and node scripts/phase62-compactness-deletion-smoke.mjs remain final-run regressions after the merge.</check-32>
   </module-checks>
   <phase62-deletion-audit-contract>
     <classification>
@@ -84,6 +88,7 @@
     <target-5 evidence="static">Plans page preserves canonical M-068 tariff matrix and does not introduce accidental CRUD controls, frontend-owned checkout amounts, or catalog mutation paths.</target-5>
     <target-6 evidence="static">Servers and analytics pages stay operationally dense while preserving runtime-data read-only semantics, health visibility, and no backend API shape changes.</target-6>
     <target-7 evidence="runtime-screenshot">Phone/tablet/desktop/reduced-motion screenshots show no text/icon/button/status overlap, no hidden emergency CTA, no long unbounded inventory, and no Matrix layer click/scroll interception.</target-7>
+    <target-8 evidence="static-and-smoke">Phase-75 Users route becomes the single account/device inventory, with expandable device rows and preserved emergency device actions after the separate Devices nav is retired.</target-8>
   </verification-matrix>
   <phase-74-admin-cockpit-gates status="pass-local">
     <gate-1>Admin Layout navigation order must place Logout directly under Nodes and remove visible Tariffs/Plans from the rail.</gate-1>
@@ -92,6 +97,13 @@
     <gate-4>Admin scroll repair must allow normal content-area wheel scrolling and bound admin-rail overflow.</gate-4>
     <gate-5>Canonical tariffs remain protected by M-068 and are no longer an admin cockpit visible route after Phase-74.</gate-5>
   </phase-74-admin-cockpit-gates>
+  <phase-75-admin-cockpit-gates status="planned">
+    <gate-1>Admin cockpit must expose one "Пользователи" inventory that combines account rows and expandable device sublists.</gate-1>
+    <gate-2>Visible "Устройства" navigation is removed only after block/unblock/rotate/revoke device controls are reachable from expanded user rows.</gate-2>
+    <gate-3>Direct /devices must redirect or remain a compatibility path without creating a duplicate long-scroll device dashboard.</gate-3>
+    <gate-4>Users inventory must support search, pagination, loading/empty/error states, and bounded expanded device lists for large accounts.</gate-4>
+    <gate-5>Emergency device actions, confirmation text, feedback, and audit-safe behavior must be preserved.</gate-5>
+  </phase-75-admin-cockpit-gates>
   <success-scenarios>
     <scenario-1 kind="success">Admin can reach dashboard health, users, devices, MTProto, plans, servers, analytics, and incident review in one or two taps on phone.</scenario-1>
     <scenario-2 kind="success">Users/devices/MTProto inventories are searchable, bounded, compact, and remain readable without losing row actions.</scenario-2>
@@ -105,6 +117,8 @@
     <failure-3 kind="failure">Users, devices, MTProto, analytics, or plans become unbounded long-scroll surfaces without search/filter/scroll containment.</failure-3>
     <failure-4 kind="failure">Plans page introduces canonical tariff mutation, frontend-controlled payment amounts, or accidental CRUD controls.</failure-4>
     <failure-5 kind="failure">Phase-58 changes backend API shape, auth/session behavior, billing catalog values, MTProto/VPN runtime behavior, deploy/install scripts, nginx, docker-compose, or production topology.</failure-5>
+    <failure-6 kind="failure">Phase-75 removes the separate Devices page before device actions are reachable and confirmation-safe inside the Users route.</failure-6>
+    <failure-7 kind="failure">Phase-75 leaves both Users and Devices as duplicate primary inventories, making admin navigation longer instead of simpler.</failure-7>
   </failure-scenarios>
   <required-log-markers>
     <marker-1>[PremiumAdminCockpit][phase58][ROUTES_READY]</marker-1>
@@ -127,6 +141,10 @@
     <marker-18 phase="74-pass-local">[PremiumAdminCockpit][phase74][LOGOUT_UNDER_NODES]</marker-18>
     <marker-19 phase="74-pass-local">[PremiumAdminCockpit][phase74][TARIFFS_ROUTE_REMOVED]</marker-19>
     <marker-20 phase="74-pass-local">[PremiumAdminCockpit][phase74][CONTENT_SCROLL_REPAIRED]</marker-20>
+    <marker-21 phase="75-planned">[PremiumAdminCockpit][phase75][USERS_INVENTORY_UNIFIED]</marker-21>
+    <marker-22 phase="75-planned">[PremiumAdminCockpit][phase75][DEVICES_NAV_REMOVED]</marker-22>
+    <marker-23 phase="75-planned">[PremiumAdminCockpit][phase75][EMERGENCY_DEVICE_ACTIONS_PRESERVED]</marker-23>
+    <marker-24 phase="75-planned">[PremiumAdminCockpit][phase75][BOUNDED_EXPANDED_DEVICES]</marker-24>
   </required-log-markers>
   <telemetry-requirements>
     <requirement-1>Allowed smoke output: route names, viewport names, selector markers, action names, redacted state names, screenshot paths, and pass/fail markers.</requirement-1>
@@ -141,6 +159,7 @@
     <gate-5 level="phase-62">Authenticated screenshots may use static-route proof locally; live clean-deploy authenticated screenshot review remains required before production-signoff claims.</gate-5>
     <gate-6 level="rainfix" status="passed-local">Phase-58 guard update is limited to shared Matrix VisualShell reliability diff and does not permit backend/deploy/runtime drift.</gate-6>
     <gate-7 level="phase-74" status="pass-local">Phase-74 admin build and shell smoke passed; Phase-54/58/59/61/62 regressions, XML parse, MyGRACE lint, and git diff --check remain required in the final verification run.</gate-7>
+    <gate-8 level="phase-75" status="planned">Phase-75 cannot pass until unified Users inventory, removed Devices nav, safe direct /devices handling, preserved device actions, and bounded expanded rows are verified by smoke and admin cockpit regressions.</gate-8>
   </phase-gates>
   <evidence>
     <evidence-1>2026-06-04 pass-local: Phase-58 smoke printed all required PremiumAdminCockpit markers including routes, command center, actions, bounded inventories, MTProto redaction, confirmation guards, tariff guard, readonly analytics, reduced motion, static screenshot proof, and protected-surface guard.</evidence-1>
