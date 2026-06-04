@@ -2,7 +2,7 @@
 
 **Коммерческий VPN-сервис с AmneziaWG Full Tunnel и персональным MTProto proxy для Telegram**
 
-![Version](https://img.shields.io/badge/version-2.25.0-blue)
+![Version](https://img.shields.io/badge/version-2.26.0-blue)
 ![Python](https://img.shields.io/badge/python-3.11-green)
 ![React](https://img.shields.io/badge/react-18-blue)
 ![License](https://img.shields.io/badge/license-MIT-green)
@@ -15,6 +15,7 @@
 - **KPprotoN fake-TLS edge** - RU SNI router на публичном 443 маршрутизирует web и MTProto трафик без раскрытия пользовательских секретов
 - **HTTPS production TLS** - операторский wildcard SSL сертификат используется для web, admin и MTProto edge
 - **Email verification** - регистрация активируется только после подтверждения почты через Resend
+- **Matrix auth splash** - public `/` показывает короткий KrotPN splash и ведёт пользователя на компактную страницу входа
 - **Двухуровневая архитектура** - RU Entry Node + DE Exit Node
 - **Коммерческая модель** - подписки, триалы, реферальная программа
 - **Telegram Bot** - управление через Telegram
