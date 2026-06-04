@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<V-M-010 MODULE="M-010" PRIORITY="high" STATUS="pass-local-phase51-phase52-phase54-phase59-pass-local-minimal-login-pass-local-phase74-phase75-planned" PHASE-54="pass-local" PHASE-59="pass-local" PHASE-74="pass-local" PHASE-75="planned" VERSION="1.10.0">
+<V-M-010 MODULE="M-010" PRIORITY="high" STATUS="pass-local-phase51-phase52-phase54-phase59-pass-local-minimal-login-pass-local-phase74-pass-local-phase75" PHASE-54="pass-local" PHASE-59="pass-local" PHASE-74="pass-local" PHASE-75="pass-local" VERSION="1.11.0">
   <module>frontend-admin</module>
   <checks>Admin frontend builds and reflects current admin, Full Tunnel, system, analytics, and device-control surfaces without auth regression.</checks>
   <test-files>frontend-admin/index.html frontend-admin/public/favicon.ico frontend-admin/public/favicon-16x16.png frontend-admin/public/favicon-32x32.png frontend-admin/public/apple-touch-icon.png frontend-admin/src/main.tsx frontend-admin/src/components/MatrixBackground.tsx frontend-admin/src/components/VisualShell.tsx frontend-admin/src/components/Layout.tsx frontend-admin/src/pages/Login.tsx frontend-admin/src/pages/Dashboard.tsx frontend-admin/src/pages/Users.tsx frontend-admin/src/pages/Devices.tsx frontend-admin/src/pages/MTProto.tsx frontend-admin/src/pages/MTProtoAnalytics.tsx frontend-admin/src/pages/Analytics.tsx frontend-admin/src/pages/Servers.tsx frontend-admin/src/pages/Plans.tsx frontend-admin/src/lib/api.ts frontend-admin/src/stores/auth.ts frontend-admin/src/types/index.ts frontend-admin/src/index.css scripts/phase51-brand-assets-smoke.mjs scripts/phase52-matrix-visual-smoke.mjs scripts/phase54-admin-matrix-ui-smoke.mjs scripts/phase59-motion-interactions-smoke.mjs scripts/phase74-admin-shell-navigation-smoke.mjs scripts/phase75-admin-users-devices-smoke.mjs</test-files>
-  <commands>pass-local 2026-06-05: frontend-admin build and Phase-74 admin shell smoke passed for icon-safe login, no visible Tariffs nav, safe /plans redirect, logout under Nodes, bounded rail, content scroll, and protected API/deploy/runtime/user frontend guard.</commands>
+  <commands>pass-local 2026-06-05: frontend-admin build and Phase-75 admin Users/Devices smoke passed for unified Users inventory, no visible Devices nav, safe /devices redirect, expanded device rows, confirmation guards, and protected backend/deploy/runtime/user frontend guard.</commands>
   <levels>
     <module-local>Run npm build after frontend-admin route, component, API binding, or type changes.</module-local>
     <wave-level>During Phase-24, pair the build with V-M-037 mobile smoke for /, /users, /devices, and /analytics.</wave-level>
@@ -54,7 +54,7 @@
     <gate-3>Phase-54/58/59/61/62 regressions remain required final-run gates so admin route compaction, motion, responsiveness, and deletion-audit contracts stay valid after the controlled Tariffs removal.</gate-3>
     <gate-4>Protected guard in Phase-74 smoke proved backend billing, user-facing tariff cards, deploy/install, nginx, docker-compose, VPN runtime, and MTProto runtime are unchanged.</gate-4>
   </phase-74-admin-shell-gates>
-  <phase-75-admin-unified-inventory-gates status="planned">
+  <phase-75-admin-unified-inventory-gates status="pass-local">
     <gate-1>cd frontend-admin &amp;&amp; npm run build is mandatory after Users/Layout/main/api/type changes.</gate-1>
     <gate-2>node scripts/phase75-admin-users-devices-smoke.mjs must assert one visible Users inventory, no visible Devices nav, safe /devices redirect/compat handling, expandable user rows, and bounded device lists.</gate-2>
     <gate-3>The smoke must assert that block/unblock/rotate/revoke are still reachable through expanded user device rows and that no mutation runs before confirmation.</gate-3>
@@ -103,5 +103,6 @@
     <evidence-10>2026-06-04: Phase-59 frontend-admin build, scripts/phase59-motion-interactions-smoke.mjs, and post-commit scripts/phase58-premium-admin-cockpit-smoke.mjs passed; admin feedback/status motion markers are present and protected backend/deploy/runtime guard passed.</evidence-10>
     <evidence-11>2026-06-04: Admin login follow-up removes the Phase-54 hero strip and helper copy, keeps only visible logo, inputs, error state, and Войти action, and updates Phase-54 smoke to lock that minimal surface.</evidence-11>
     <evidence-12>2026-06-05: Phase-74 frontend-admin build and admin shell smoke passed; Login has Phase-74 icon-safe fields, Layout has no visible Tariffs nav, main redirects /plans to /, Logout is under Nodes, and admin content/rail scroll markers are present.</evidence-12>
+    <evidence-13>2026-06-05: Phase-75 frontend-admin build and scripts/phase75-admin-users-devices-smoke.mjs passed; Users groups AdminDevice rows by user_id, Layout removes visible Devices nav, main redirects /devices to /users, and confirmation-safe device actions stay inside expanded user rows.</evidence-13>
   </evidence>
 </V-M-010>

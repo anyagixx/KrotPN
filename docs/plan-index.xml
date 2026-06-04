@@ -76,6 +76,6 @@
   <Phase-72 NAME="User Auth and Cabinet Navigation Polish" STATUS="done-local" STEPS="10" MODULES="M-009,M-036,M-063,M-071,M-074,M-075,M-077" />
   <Phase-73 NAME="User Config Page and Amnezia QR Correctness" STATUS="done-local" STEPS="10" MODULES="M-003,M-022,M-036,M-063,M-066,M-068,M-071,M-075" />
   <Phase-74 NAME="Admin Shell Navigation Login and Scroll Fixes" STATUS="done-local" STEPS="10" MODULES="M-010,M-037,M-068,M-071,M-074,M-076,M-077" />
-  <Phase-75 NAME="Admin Users and Devices Unified Inventory" STATUS="planned" STEPS="10" MODULES="M-006,M-010,M-024,M-037,M-074,M-076,M-077" />
+  <Phase-75 NAME="Admin Users and Devices Unified Inventory" STATUS="done-local" STEPS="10" MODULES="M-006,M-010,M-024,M-037,M-074,M-076,M-077" />
   <Phase-76 NAME="Consolidated Frontend Polish Gate" STATUS="planned" STEPS="8" MODULES="M-009,M-010,M-036,M-037,M-063,M-066,M-068,M-071,M-074,M-075,M-076,M-077" />
 </PlanIndex>

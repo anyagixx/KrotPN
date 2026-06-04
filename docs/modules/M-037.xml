@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<M-037 NAME="mobile-admin-console" TYPE="UI_COMPONENT" STATUS="pass-local-phase54-pass-local-phase74">
-  <path>frontend-admin docs/plans/Phase-24.xml docs/plans/Phase-54.xml docs/plans/Phase-74.xml scripts/phase54-admin-matrix-ui-smoke.mjs scripts/phase74-admin-shell-navigation-smoke.mjs</path>
-  <owns>Compact mobile-first admin console for operational status, users, devices, payments, analytics summary, system health, and emergency device actions</owns>
+<M-037 NAME="mobile-admin-console" TYPE="UI_COMPONENT" STATUS="pass-local-phase54-pass-local-phase74-pass-local-phase75">
+  <path>frontend-admin docs/plans/Phase-24.xml docs/plans/Phase-54.xml docs/plans/Phase-74.xml docs/plans/Phase-75.xml scripts/phase54-admin-matrix-ui-smoke.mjs scripts/phase74-admin-shell-navigation-smoke.mjs scripts/phase75-admin-users-devices-smoke.mjs</path>
+  <owns>Compact mobile-first admin console for operational status, unified users/devices inventory, payments, analytics summary, system health, and emergency device actions</owns>
   <exports>
     <view-admin-mobile-overview>Dense service overview with health, users, subscriptions, revenue, VPN/system status, and urgent navigation</view-admin-mobile-overview>
     <view-admin-mobile-users>Searchable mobile user list with role, status, identity, last-login, subscription/payment, and device summary paths</view-admin-mobile-users>
-    <view-admin-mobile-devices>Compact device registry with user/device/status/signals fields optimized for phone scanning</view-admin-mobile-devices>
+    <view-admin-mobile-devices>Compact device registry inside expandable user rows with user/device/status/signals fields optimized for phone scanning</view-admin-mobile-devices>
     <view-admin-mobile-device-actions>Block, unblock, rotate, and revoke device controls with explicit confirmation and feedback</view-admin-mobile-device-actions>
     <view-admin-mobile-payments>Compact payment/analytics status for revenue, subscriptions, referrals, and conversion signals</view-admin-mobile-payments>
   </exports>
@@ -26,6 +26,7 @@
     <file>docs/plans/Phase-74.xml</file>
     <file>scripts/phase54-admin-matrix-ui-smoke.mjs</file>
     <file>scripts/phase74-admin-shell-navigation-smoke.mjs</file>
+    <file>scripts/phase75-admin-users-devices-smoke.mjs</file>
   </files>
   <data-flows>
     <DF-UI-ADMIN-OVERVIEW>Stats and system health render as a compact first-screen operator status surface.</DF-UI-ADMIN-OVERVIEW>
@@ -60,5 +61,10 @@
     <surface-2>Desktop Logout is placed directly under Nodes while the mobile tabbar remains compact and free of the removed Tariffs item.</surface-2>
     <surface-3>2026-06-05: Phase-74 smoke passed mobile-admin markers for logout-under-Nodes, rail bounds, content wheel scroll, and no visible Tariffs nav.</surface-3>
   </phase-74-executed-scope>
+  <phase-75-executed-scope>
+    <surface-1>Mobile/admin navigation exposes a single "Пользователи" section for accounts and devices.</surface-1>
+    <surface-2>Expanded user rows keep device lists bounded and actions reachable on phone/tablet viewports.</surface-2>
+    <surface-3>2026-06-05: Phase-75 smoke passed MobileAdminConsole markers SINGLE_USERS_NAV, EXPANDED_DEVICE_LIST_BOUNDED, DEVICE_ACTIONS_REACHABLE, and CONFIRMATIONS_READABLE.</surface-3>
+  </phase-75-executed-scope>
   <hotspot>H-024: Mobile admin console must keep emergency operator actions visible without desktop-only dashboards</hotspot>
 </M-037>

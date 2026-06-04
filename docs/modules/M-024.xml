@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<M-024 NAME="device-admin-control" TYPE="ENTRY_POINT" STATUS="stable">
-  <path>backend/app/admin/router.py frontend-admin</path>
+<M-024 NAME="device-admin-control" TYPE="ENTRY_POINT" STATUS="stable-pass-local-phase75">
+  <path>backend/app/admin/router.py frontend-admin scripts/phase75-admin-users-devices-smoke.mjs docs/plans/Phase-75.xml</path>
   <owns>admin review and enforcement for device state, peer blocks, anomaly investigations and recent anti-abuse context</owns>
   <exports>
     <fn-list-user-devices>Returns device and anomaly state for operator review</fn-list-user-devices>
@@ -11,6 +11,14 @@
   <verification-ref>V-M-024</verification-ref>
   <files>
     <file>backend/app/admin/router.py</file>
+    <file>frontend-admin/src/pages/Users.tsx</file>
+    <file>scripts/phase75-admin-users-devices-smoke.mjs</file>
   </files>
+  <phase-75-executed-scope>
+    <primary-files>frontend-admin/src/pages/Users.tsx scripts/phase75-admin-users-devices-smoke.mjs</primary-files>
+    <primary-behaviors>Device block/unblock/rotate/revoke controls render inside expanded user device rows and keep explicit confirmation before adminApi mutation.</primary-behaviors>
+    <backend-boundary>backend/app/admin/router.py was not changed; existing M-024 endpoints and audit-compatible one-peer semantics are preserved.</backend-boundary>
+  </phase-75-executed-scope>
+  <phase-75-evidence status="pass-local" date="2026-06-05">Phase-75 smoke passed DeviceAdminControl markers DEVICE_ACTIONS_IN_USER_EXPANSION, CONFIRMATION_GUARDS_PRESERVED, and AUDIT_CONTRACT_UNCHANGED.</phase-75-evidence>
   <hotspot>H-010: Device block or revoke must target only one peer or operators will accidentally disable whole accounts</hotspot>
 </M-024>

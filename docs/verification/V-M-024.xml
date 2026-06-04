@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<V-M-024 MODULE="M-024" PRIORITY="high" STATUS="pass-phase75-planned" PHASE-75="planned">
+<V-M-024 MODULE="M-024" PRIORITY="high" STATUS="pass-local-phase75" PHASE-75="pass-local">
   <module>device-admin-control</module>
   <checks>Admin endpoints can list devices, view anomaly and recent anti-abuse context, and block or unblock or revoke a specific device peer while preserving user-level auth boundaries.</checks>
   <test-files>backend/tests/test_admin_device_control.py</test-files>
@@ -29,7 +29,7 @@
     <evidence-1>2026-05-10: Phase-24 did not modify backend/app/admin/router.py or M-024 backend enforcement logic.</evidence-1>
     <evidence-2>2026-05-10: Device UI action smoke confirmed a one-device confirmation surface before mutation and observed no mutation request before confirm.</evidence-2>
   </phase-24-evidence>
-  <phase-75-unified-device-action-gates status="planned">
+  <phase-75-unified-device-action-gates status="pass-local">
     <scope>Phase-75 moves the operator-facing device inventory into expandable user rows without weakening device-control semantics.</scope>
     <gate-1>Expanded user rows must render each user device with id/name/platform/status/config_version/last_endpoint/last_handshake_at/recent_event_types or an explicit empty/loading/error state.</gate-1>
     <gate-2>Block, unblock, rotate, and revoke actions must stay available in the expanded user device list and must call the existing M-024 API bindings unless an approved minimal read-only API is added.</gate-2>
@@ -37,4 +37,9 @@
     <gate-4>Device action success must refresh the unified inventory and must not leave stale status inside the expanded row.</gate-4>
     <gate-5>Phase-75 smoke must print [DeviceAdminControl][phase75][DEVICE_ACTIONS_IN_USER_EXPANSION], [DeviceAdminControl][phase75][CONFIRMATION_GUARDS_PRESERVED], and [DeviceAdminControl][phase75][AUDIT_CONTRACT_UNCHANGED].</gate-5>
   </phase-75-unified-device-action-gates>
+  <phase-75-evidence status="pass-local" date="2026-06-05">
+    <evidence-1>Device actions moved into frontend-admin/src/pages/Users.tsx expanded device rows while keeping adminApi blockDevice, unblockDevice, rotateDevice, and revokeDevice boundaries.</evidence-1>
+    <evidence-2>node scripts/phase75-admin-users-devices-smoke.mjs passed DeviceAdminControl markers DEVICE_ACTIONS_IN_USER_EXPANSION, CONFIRMATION_GUARDS_PRESERVED, and AUDIT_CONTRACT_UNCHANGED.</evidence-2>
+    <evidence-3>Smoke asserts row buttons call openAction/setPendingAction and do not call mutation methods directly before runConfirmedAction.</evidence-3>
+  </phase-75-evidence>
 </V-M-024>

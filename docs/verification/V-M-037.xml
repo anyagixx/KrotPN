@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<V-M-037 MODULE="M-037" PRIORITY="high" STATUS="pass-local-phase54-pass-local-phase74-phase75-planned" PHASE-54="pass-local" PHASE-74="pass-local" PHASE-75="planned">
+<V-M-037 MODULE="M-037" PRIORITY="high" STATUS="pass-local-phase54-pass-local-phase74-pass-local-phase75" PHASE-54="pass-local" PHASE-74="pass-local" PHASE-75="pass-local">
   <module>mobile-admin-console</module>
   <checks>Admin frontend must become compact and usable from a phone for operational status, user search, devices, payments/analytics, and system health.</checks>
   <test-files>frontend-admin/src/components/Layout.tsx frontend-admin/src/pages/Dashboard.tsx frontend-admin/src/pages/Users.tsx frontend-admin/src/pages/Devices.tsx frontend-admin/src/pages/MTProto.tsx frontend-admin/src/pages/Analytics.tsx frontend-admin/src/pages/Servers.tsx frontend-admin/src/pages/Plans.tsx frontend-admin/src/components/StatCard.tsx frontend-admin/src/index.css frontend-admin/src/lib/api.ts frontend-admin/src/types/index.ts scripts/phase54-admin-matrix-ui-smoke.mjs scripts/phase74-admin-shell-navigation-smoke.mjs scripts/phase75-admin-users-devices-smoke.mjs</test-files>
-  <commands>pass-local 2026-06-05: Phase-74 frontend-admin build and admin shell smoke passed for no visible Tariffs nav, Logout under Nodes, content scroll, rail bounds, and protected backend/deploy/runtime/user frontend guard.</commands>
+  <commands>pass-local 2026-06-05: Phase-75 frontend-admin build and admin Users/Devices smoke passed for single Users nav, bounded expanded device lists, reachable actions, readable confirmations, and protected backend/deploy/runtime/user frontend guard.</commands>
   <levels>
     <module-local>TypeScript/Vite build and static source review after every Phase-24 frontend-admin change.</module-local>
     <wave-level>Mobile smoke across overview, users, devices, and analytics/payment routes after each completed UI wave.</wave-level>
@@ -34,7 +34,7 @@
     <assert-1>cd frontend-admin &amp;&amp; npm run build exits 0.</assert-1>
     <assert-2>Every checked viewport records document.documentElement.scrollWidth &lt;= window.innerWidth.</assert-2>
     <assert-3>Device action controls do not call blockMutation.mutate, unblockMutation.mutate, rotateMutation.mutate, or revokeMutation.mutate directly from row buttons.</assert-3>
-    <assert-4>Routes /, /users, /devices, and /analytics remain registered in frontend-admin/src/main.tsx and reachable from the compact navigation.</assert-4>
+    <assert-4>Routes /, /users, /devices compatibility redirect, and /analytics remain registered in frontend-admin/src/main.tsx; visible compact navigation exposes /users without a separate /devices tab after Phase-75.</assert-4>
     <assert-5>deploy, install.sh, nginx, docker-compose.yml, frontend-admin/Dockerfile, and frontend-admin/nginx.conf have no Phase-24 diff.</assert-5>
     <assert-6>Phase-54 checked routes /, /users, /devices, /mtproto, /servers, /plans, and /analytics report document.documentElement.scrollWidth &lt;= window.innerWidth on mobile viewports.</assert-6>
     <assert-7>Phase-54 checked routes expose their primary search, pagination, or action controls within compact mobile surfaces.</assert-7>
@@ -53,7 +53,7 @@
     <gate-3>Content-area wheel scrolling and rail clipping are asserted statically by Phase-74 smoke markers.</gate-3>
     <gate-4>Phase-74 changes are frontend-admin only; no backend API, billing provider, deploy, install, nginx, docker, or runtime behavior changed.</gate-4>
   </phase-74-admin-shell-responsive-gates>
-  <phase-75-unified-inventory-responsive-gates status="planned">
+  <phase-75-unified-inventory-responsive-gates status="pass-local">
     <gate-1>Phone and tablet admin navigation must keep Users, MTProto, Nodes, Analytics, and Logout reachable while removing the separate Devices nav item.</gate-1>
     <gate-2>Expanded device lists inside Users must be compact, bounded, and usable at 360x740, 390x844, 430x932, 768x1024, and 1440x900.</gate-2>
     <gate-3>Device action buttons and confirmation sheet/dialog must remain visible and touch-safe without document-level horizontal scroll.</gate-3>
@@ -132,5 +132,6 @@
     <evidence-6>2026-06-03: Phase-54 verification design added mobile Matrix route, viewport, pagination, bounded scroll, confirmation, and protected-surface gates.</evidence-6>
     <evidence-7>2026-06-03: Phase-54 local execution passed frontend-admin build and smoke markers [MobileAdminConsole][Phase54][ROUTE_VIEWPORT_SAFE], [PRIMARY_ACTIONS_REACHABLE], [TABLES_SCROLL_CONTAINED], and [CONFIRMATIONS_READABLE].</evidence-7>
     <evidence-8>2026-06-05: Phase-74 smoke passed [MobileAdminConsole][phase74][ADMIN_LOGOUT_UNDER_NODES], [CONTENT_SCROLL_WHEEL_SAFE], and [RAIL_BOUNDS_SAFE] with no visible Tariffs nav.</evidence-8>
+    <evidence-9>2026-06-05: Phase-75 smoke passed [MobileAdminConsole][phase75][SINGLE_USERS_NAV], [EXPANDED_DEVICE_LIST_BOUNDED], [DEVICE_ACTIONS_REACHABLE], and [CONFIRMATIONS_READABLE] with /devices redirected to /users.</evidence-9>
   </planned-evidence>
 </V-M-037>

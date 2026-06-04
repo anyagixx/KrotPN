@@ -1,12 +1,12 @@
 /* FILE: frontend-admin/src/index.css
- * VERSION: 2.0.0
+ * VERSION: 2.1.0
  * ROLE: UI_COMPONENT
  * MAP_MODE: SUMMARY
  * START_MODULE_CONTRACT
- *   PURPOSE: Shared admin-frontend styling tokens, compact admin surfaces, Phase-52 Matrix visual foundation, Phase-54 admin console primitives, Phase-55 premium art direction, Phase-58 operator cockpit density, Phase-59 motion language, Phase-61 phone/tablet adaptation gates, Phase-62 deletion-audit compaction, Phase-63 visible brand logo placement, Phase-74 bounded admin shell fixes, and Matrix rain reliability fallback
- *   SCOPE: Admin shell, login console, Phase-74 icon-safe login fields and bounded admin scroll shell, visible Phase-63 brand mark classes, navigation, panels, forms, data tables, charts, premium palette/type/density/logo tokens, Matrix background/canvas/CRT layers, CSS rain fallback and mobile overscan, Phase-58 command cockpit primitives, Phase-59 motion/microinteraction primitives, Phase-61 responsive phone/tablet/safe-area rules, Phase-62 folded admin secondary surfaces, focus and reduced-motion policy
+ *   PURPOSE: Shared admin-frontend styling tokens, compact admin surfaces, Phase-52 Matrix visual foundation, Phase-54 admin console primitives, Phase-55 premium art direction, Phase-58 operator cockpit density, Phase-59 motion language, Phase-61 phone/tablet adaptation gates, Phase-62 deletion-audit compaction, Phase-63 visible brand logo placement, Phase-74 bounded admin shell fixes, Phase-75 unified users/devices inventory, and Matrix rain reliability fallback
+ *   SCOPE: Admin shell, login console, Phase-74 icon-safe login fields and bounded admin scroll shell, Phase-75 expandable user device rows, visible Phase-63 brand mark classes, navigation, panels, forms, data tables, charts, premium palette/type/density/logo tokens, Matrix background/canvas/CRT layers, CSS rain fallback and mobile overscan, Phase-58 command cockpit primitives, Phase-59 motion/microinteraction primitives, Phase-61 responsive phone/tablet/safe-area rules, Phase-62 folded admin secondary surfaces, focus and reduced-motion policy
  *   DEPENDS: M-010 (frontend-admin), M-037 (admin-mtproto-ui), M-038 (compact-ui-system), M-047 (mtproto-admin-ops), M-058 (mtproto-admin-analytics-ui), M-068 (tariff-catalog), M-070 (matrix-visual-runtime), M-071 (matrix-style-system), M-072 (premium-art-direction-system), M-074 (responsive-device-adaptation), M-076 (premium-admin-cockpit), M-077 (matrix-motion-interactions), M-080 (visible-brand-logo-integration)
- *   LINKS: M-010 (frontend-admin), M-037, M-038, M-047, M-058, M-068, M-070, M-071, M-072, M-074, M-076, M-077, M-080, Phase-61, Phase-63, Phase-74
+ *   LINKS: M-010 (frontend-admin), M-037, M-038, M-047, M-058, M-068, M-070, M-071, M-072, M-074, M-076, M-077, M-080, Phase-61, Phase-63, Phase-74, Phase-75
  * END_MODULE_CONTRACT
  *
  * START_MODULE_MAP
@@ -19,10 +19,12 @@
  *   premium-admin-cockpit - Phase-58 command center, dense signal strips, bounded inventories, readonly analytics, confirmation surfaces, and Phase-62 folded secondary surfaces
  *   matrix-motion-interactions - Phase-59 motion budget, route transitions, feedback states, status transitions, and safe interaction classes
  *   responsive-device-adaptation - Phase-61 phone, tablet, safe-area, no-overflow, bounded-scroll, chart/table, and touch-target rules
+ *   phase75-admin-users-devices - Expandable user device rows, local bounded scroll, and compact action controls
  *   components - Panel, button, input, metric, list, table, and modal classes
  * END_MODULE_MAP
  *
  * START_CHANGE_SUMMARY
+ *   LAST_CHANGE: v4.1.0 - Phase-75 added compact expandable device rows inside Users with local bounded scroll and mobile-safe actions.
  *   LAST_CHANGE: v4.0.0 - Phase-74 bounded admin shell scroll, clipped desktop rail height, logout-under-Nodes spacing, and icon-safe admin login inputs.
  *   LAST_CHANGE: v3.9.0 - Added minimal Phase-67-style admin auth login controls with large unframed logo and red focus states.
  *   LAST_CHANGE: v3.8.0 - Added Matrix rain CSS fallback, normal canvas blending, and mobile overscan to prevent blank/cut-off rain in live browsers.
@@ -1087,6 +1089,100 @@ details[open] > .phase62-fold-summary::after {
   box-shadow: var(--shadow);
 }
 
+/* START_BLOCK_PHASE75_ADMIN_USERS_DEVICES */
+.phase75-user-device-row {
+  animation: matrixRouteEnter 180ms ease both;
+}
+
+.phase75-expand-button {
+  @apply inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-md border transition;
+  background: rgba(8, 18, 24, 0.62);
+  border-color: rgba(154, 188, 198, 0.16);
+  color: #cfeef7;
+}
+
+.phase75-expand-button:hover,
+.phase75-expand-button:focus-visible {
+  border-color: rgba(255, 107, 120, 0.72);
+  box-shadow: 0 0 0 2px rgba(255, 107, 120, 0.15);
+  color: #fff;
+  transform: translateY(-1px);
+}
+
+.phase75-device-panel {
+  @apply mt-3 min-w-0 rounded-md border p-3;
+  background: rgba(5, 22, 16, 0.72);
+  border-color: rgba(118, 255, 183, 0.16);
+}
+
+.phase75-device-panel-header {
+  @apply flex min-w-0 items-start justify-between gap-3 pb-3;
+  border-bottom: 1px solid rgba(154, 188, 198, 0.08);
+}
+
+.phase75-device-list {
+  @apply grid gap-2 pt-3;
+  max-height: min(34vh, 360px);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+.phase75-device-row {
+  @apply min-w-0 rounded-md border p-3;
+  background: rgba(10, 28, 21, 0.66);
+  border-color: rgba(154, 188, 198, 0.1);
+}
+
+.phase75-device-row:hover {
+  border-color: rgba(104, 232, 255, 0.22);
+  background: rgba(14, 36, 28, 0.82);
+}
+
+.phase75-device-status-row {
+  @apply flex min-w-0 items-start justify-between gap-3;
+}
+
+.phase75-device-action-row {
+  @apply mt-3 flex flex-wrap gap-2;
+}
+
+.phase75-device-empty {
+  @apply mt-3 flex min-h-[72px] items-center justify-center gap-2 rounded-md border border-dashed p-3 text-center text-sm;
+  background: rgba(8, 18, 24, 0.42);
+  border-color: rgba(154, 188, 198, 0.12);
+  color: var(--muted);
+}
+
+.phase75-confirmation-surface {
+  animation: matrixRouteEnter 160ms ease both;
+}
+
+/* [ResponsiveAdaptation][phase75][UNIFIED_INVENTORY_NO_OVERFLOW] */
+/* [ResponsiveAdaptation][phase75][EXPANDED_DEVICES_BOUNDED] */
+/* [MatrixMotion][phase75][EXPAND_COLLAPSE_MOTION_SAFE] */
+/* [MatrixMotion][phase75][CONFIRMATION_POINTER_SAFE] */
+
+@media (max-width: 767px) {
+  .phase75-device-panel {
+    padding: 0.75rem;
+  }
+
+  .phase75-device-panel-header,
+  .phase75-device-status-row {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .phase75-device-list {
+    max-height: min(46vh, 430px);
+  }
+
+  .phase75-device-action-row > * {
+    flex: 1 1 min(100%, 10rem);
+  }
+}
+/* END_BLOCK_PHASE75_ADMIN_USERS_DEVICES */
+
 /* START_BLOCK_PHASE61_RESPONSIVE_ADAPTATION */
 .app-shell,
 .admin-content,
@@ -1424,6 +1520,13 @@ details[open] > .phase62-fold-summary::after {
   .motion-feedback-success,
   .motion-feedback-error,
   .motion-status {
+    animation: none !important;
+    transform: none !important;
+  }
+
+  .phase75-user-device-row,
+  .phase75-confirmation-surface {
+    /* [MatrixMotion][phase75][REDUCED_MOTION_EXPANSION_PASS] */
     animation: none !important;
     transform: none !important;
   }

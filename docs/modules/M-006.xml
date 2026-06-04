@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<M-006 NAME="admin-api" TYPE="ENTRY_POINT" STATUS="stable">
-  <path>backend/app/admin</path>
+<M-006 NAME="admin-api" TYPE="ENTRY_POINT" STATUS="stable-pass-local-phase75">
+  <path>backend/app/admin scripts/phase75-admin-users-devices-smoke.mjs docs/plans/Phase-75.xml</path>
   <owns>dashboard stats, analytics, migration-safe routing summary, privileged system endpoints, admin audit logging, device peer enforcement, and M-047 MTProto operator endpoints</owns>
   <exports>
     <fn-admin_auth>Dependency injection for admin authentication check</fn-admin_auth>
@@ -20,8 +20,10 @@
     <file>backend/app/admin/__init__.py</file>
   </files>
   <execution-notes>
+    <note-3>Phase-75 unified admin Users/Devices inventory uses existing /admin/users and /admin/devices contracts; backend/app/admin remained unchanged and protected diff guard passed.</note-3>
     <note-2>Phase-33 extends backend/app/admin/router.py with M-047 MTProto admin operations; V-M-047 owns the targeted verification for those endpoints.</note-2>
     <note-1>Phase-21 step-3 moved V-M-006 away from deleted route-policy tests and toward current admin auth plus device-control verification.</note-1>
   </execution-notes>
+  <phase-75-evidence status="pass-local" date="2026-06-05">Phase-75 smoke printed [AdminAPI][phase75][PROTECTED_ADMIN_API_UNCHANGED]; no backend admin endpoint changes were required.</phase-75-evidence>
   <hotspot>H-014: Admin audit middleware must not log sensitive request bodies or tokens</hotspot>
 </M-006>

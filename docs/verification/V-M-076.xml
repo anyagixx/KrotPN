@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<V-M-076 MODULE="M-076" PRIORITY="high" STATUS="pass-local-phase59-phase62-pass-local-rainfix-pass-local-phase74-phase75-planned" PHASE-58="pass-local" PHASE-59="pass-local" PHASE-62="pass-local" RAINFIX="pass-local" PHASE-74="pass-local" PHASE-75="planned">
+<V-M-076 MODULE="M-076" PRIORITY="high" STATUS="pass-local-phase59-phase62-pass-local-rainfix-pass-local-phase74-pass-local-phase75" PHASE-58="pass-local" PHASE-59="pass-local" PHASE-62="pass-local" RAINFIX="pass-local" PHASE-74="pass-local" PHASE-75="pass-local">
   <scope>Phase-58/Phase-59 premium admin cockpit evidence remains valid. Phase-62 verification now defines the compactness and deletion-audit contract for admin cockpit, MTProto analytics, operational inventories, emergency controls, redaction, responsive regressions, and protected backend/deploy/runtime isolation.</scope>
   <test-files>
     <file>scripts/phase58-premium-admin-cockpit-smoke.mjs</file>
@@ -12,7 +12,7 @@
     <file phase="59-pass-local">scripts/phase59-motion-interactions-smoke.mjs</file>
     <file phase="62-pass-local">scripts/phase62-compactness-deletion-smoke.mjs</file>
     <file phase="74-pass-local">scripts/phase74-admin-shell-navigation-smoke.mjs</file>
-    <file phase="75-planned">scripts/phase75-admin-users-devices-smoke.mjs</file>
+    <file phase="75-pass-local">scripts/phase75-admin-users-devices-smoke.mjs</file>
     <file>frontend-admin/src/components/Layout.tsx</file>
     <file>frontend-admin/src/components/StatCard.tsx</file>
     <file>frontend-admin/src/pages/Dashboard.tsx</file>
@@ -61,9 +61,9 @@
     <check-27 status="pending-final-run-phase74">node scripts/phase58-premium-admin-cockpit-smoke.mjs</check-27>
     <check-28 status="pending-final-run-phase74">node scripts/phase62-compactness-deletion-smoke.mjs</check-28>
     <check-29 status="pass-local-phase74">protected backend/deploy/runtime/frontend-user/tariff guard proved Phase-74 is admin-shell-only.</check-29>
-    <check-30 status="planned-phase75">cd frontend-admin &amp;&amp; npm run build</check-30>
-    <check-31 status="planned-phase75">node scripts/phase75-admin-users-devices-smoke.mjs for unified Users inventory, removed Devices nav, direct /devices safety, expandable device rows, action confirmations, and protected guard.</check-31>
-    <check-32 status="planned-phase75">node scripts/phase58-premium-admin-cockpit-smoke.mjs and node scripts/phase62-compactness-deletion-smoke.mjs remain final-run regressions after the merge.</check-32>
+    <check-30 status="pass-local-phase75">cd frontend-admin &amp;&amp; npm run build</check-30>
+    <check-31 status="pass-local-phase75">node scripts/phase75-admin-users-devices-smoke.mjs passed for unified Users inventory, removed Devices nav, direct /devices safety, expandable device rows, action confirmations, and protected guard.</check-31>
+    <check-32 status="pending-final-run-phase75">node scripts/phase58-premium-admin-cockpit-smoke.mjs and node scripts/phase62-compactness-deletion-smoke.mjs remain final-run regressions after the merge.</check-32>
   </module-checks>
   <phase62-deletion-audit-contract>
     <classification>
@@ -97,7 +97,7 @@
     <gate-4>Admin scroll repair must allow normal content-area wheel scrolling and bound admin-rail overflow.</gate-4>
     <gate-5>Canonical tariffs remain protected by M-068 and are no longer an admin cockpit visible route after Phase-74.</gate-5>
   </phase-74-admin-cockpit-gates>
-  <phase-75-admin-cockpit-gates status="planned">
+  <phase-75-admin-cockpit-gates status="pass-local">
     <gate-1>Admin cockpit must expose one "Пользователи" inventory that combines account rows and expandable device sublists.</gate-1>
     <gate-2>Visible "Устройства" navigation is removed only after block/unblock/rotate/revoke device controls are reachable from expanded user rows.</gate-2>
     <gate-3>Direct /devices must redirect or remain a compatibility path without creating a duplicate long-scroll device dashboard.</gate-3>
@@ -141,10 +141,10 @@
     <marker-18 phase="74-pass-local">[PremiumAdminCockpit][phase74][LOGOUT_UNDER_NODES]</marker-18>
     <marker-19 phase="74-pass-local">[PremiumAdminCockpit][phase74][TARIFFS_ROUTE_REMOVED]</marker-19>
     <marker-20 phase="74-pass-local">[PremiumAdminCockpit][phase74][CONTENT_SCROLL_REPAIRED]</marker-20>
-    <marker-21 phase="75-planned">[PremiumAdminCockpit][phase75][USERS_INVENTORY_UNIFIED]</marker-21>
-    <marker-22 phase="75-planned">[PremiumAdminCockpit][phase75][DEVICES_NAV_REMOVED]</marker-22>
-    <marker-23 phase="75-planned">[PremiumAdminCockpit][phase75][EMERGENCY_DEVICE_ACTIONS_PRESERVED]</marker-23>
-    <marker-24 phase="75-planned">[PremiumAdminCockpit][phase75][BOUNDED_EXPANDED_DEVICES]</marker-24>
+    <marker-21 phase="75-pass-local">[PremiumAdminCockpit][phase75][USERS_INVENTORY_UNIFIED]</marker-21>
+    <marker-22 phase="75-pass-local">[PremiumAdminCockpit][phase75][DEVICES_NAV_REMOVED]</marker-22>
+    <marker-23 phase="75-pass-local">[PremiumAdminCockpit][phase75][EMERGENCY_DEVICE_ACTIONS_PRESERVED]</marker-23>
+    <marker-24 phase="75-pass-local">[PremiumAdminCockpit][phase75][BOUNDED_EXPANDED_DEVICES]</marker-24>
   </required-log-markers>
   <telemetry-requirements>
     <requirement-1>Allowed smoke output: route names, viewport names, selector markers, action names, redacted state names, screenshot paths, and pass/fail markers.</requirement-1>
@@ -159,7 +159,7 @@
     <gate-5 level="phase-62">Authenticated screenshots may use static-route proof locally; live clean-deploy authenticated screenshot review remains required before production-signoff claims.</gate-5>
     <gate-6 level="rainfix" status="passed-local">Phase-58 guard update is limited to shared Matrix VisualShell reliability diff and does not permit backend/deploy/runtime drift.</gate-6>
     <gate-7 level="phase-74" status="pass-local">Phase-74 admin build and shell smoke passed; Phase-54/58/59/61/62 regressions, XML parse, MyGRACE lint, and git diff --check remain required in the final verification run.</gate-7>
-    <gate-8 level="phase-75" status="planned">Phase-75 cannot pass until unified Users inventory, removed Devices nav, safe direct /devices handling, preserved device actions, and bounded expanded rows are verified by smoke and admin cockpit regressions.</gate-8>
+    <gate-8 level="phase-75" status="pass-local">Phase-75 passed unified Users inventory, removed Devices nav, safe direct /devices handling, preserved device actions, and bounded expanded rows through frontend-admin build and Phase-75 smoke.</gate-8>
   </phase-gates>
   <evidence>
     <evidence-1>2026-06-04 pass-local: Phase-58 smoke printed all required PremiumAdminCockpit markers including routes, command center, actions, bounded inventories, MTProto redaction, confirmation guards, tariff guard, readonly analytics, reduced motion, static screenshot proof, and protected-surface guard.</evidence-1>
@@ -169,6 +169,7 @@
     <evidence-5>2026-06-04 pass-local: Phase-62 compactness/deletion audit folded MTProto alert archive, MTProto storage details, and legacy VPN server compatibility diagnostics into compact secondary panels while preserving emergency controls, alert actions, confirmation/redaction guards, bounded inventories, and read-only analytics. Frontend-admin build, Phase-62 smoke, Phase-58/54/61/60 regressions, XML parse, MyGRACE lint, git diff --check, and protected backend/deploy/runtime/frontend-user guard passed. Implementation commit: 3d09fa8.</evidence-5>
     <evidence-6>2026-06-04 pass-local-rainfix: Phase-58 protected surface guard was narrowed to permit only the shared user VisualShell Matrix rain reliability diff during Phase-60 regression. Phase-60 QA passed and protected backend/deploy/runtime guard remained clean.</evidence-6>
     <evidence-7>2026-06-05 pass-local: Phase-74 frontend-admin build and admin shell smoke passed for Logout under Nodes, removed visible Tariffs route/nav, safe /plans redirect, repaired content scroll, and bounded rail geometry.</evidence-7>
+    <evidence-8>2026-06-05 pass-local: Phase-75 frontend-admin build and admin Users/Devices smoke passed for single Users inventory, removed visible Devices nav, safe /devices redirect, preserved emergency device actions, bounded expanded devices, and protected backend/deploy/runtime/user frontend guard.</evidence-8>
   </evidence>
   <autonomous-execution-safety>Safe for local autonomous execution if changes stay inside frontend-admin cockpit routes/components/CSS, Phase-62 smoke verification, and MyGRACE docs. Stop execution if backend admin API changes, auth/session changes, billing catalog mutation, VPN/MTProto runtime changes, deploy/install/nginx/docker-compose changes, user frontend changes, or secret-handling changes appear necessary.</autonomous-execution-safety>
   <phase-74-verification-design status="pass-local">
@@ -179,4 +180,5 @@
     <commands>cd frontend-admin &amp;&amp; npm run build; node scripts/phase74-admin-shell-navigation-smoke.mjs; node scripts/phase58-premium-admin-cockpit-smoke.mjs; node scripts/phase62-compactness-deletion-smoke.mjs</commands>
   </phase-74-verification-design>
   <phase-74-evidence status="pass-local" date="2026-06-05">Phase-74 smoke passed PremiumAdminCockpit markers LOGOUT_UNDER_NODES, TARIFFS_ROUTE_REMOVED, and CONTENT_SCROLL_REPAIRED while protecting backend/deploy/runtime/user tariff surfaces.</phase-74-evidence>
+  <phase-75-evidence status="pass-local" date="2026-06-05">Phase-75 smoke passed PremiumAdminCockpit markers USERS_INVENTORY_UNIFIED, DEVICES_NAV_REMOVED, EMERGENCY_DEVICE_ACTIONS_PRESERVED, and BOUNDED_EXPANDED_DEVICES while protecting backend/deploy/runtime/user frontend surfaces.</phase-75-evidence>
 </V-M-076>

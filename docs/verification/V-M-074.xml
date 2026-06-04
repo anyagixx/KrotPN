@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<V-M-074 MODULE="M-074" PRIORITY="critical" STATUS="pass-local-phase61-phase62-pass-local-phase67-pass-local-rainfix-pass-local-phase68-pass-local-phase71-pass-local-phase72-pass-local-phase74-phase75-planned" PHASE-61="pass-local" PHASE-62="pass-local" PHASE-67="pass-local" RAINFIX="pass-local" PHASE-68="pass-local" PHASE-71="pass-local" PHASE-72="pass-local" PHASE-74="pass-local" PHASE-75="planned">
+<V-M-074 MODULE="M-074" PRIORITY="critical" STATUS="pass-local-phase61-phase62-pass-local-phase67-pass-local-rainfix-pass-local-phase68-pass-local-phase71-pass-local-phase72-pass-local-phase74-pass-local-phase75" PHASE-61="pass-local" PHASE-62="pass-local" PHASE-67="pass-local" RAINFIX="pass-local" PHASE-68="pass-local" PHASE-71="pass-local" PHASE-72="pass-local" PHASE-74="pass-local" PHASE-75="pass-local">
   <scope>Responsive adaptation verification for phone, tablet, and desktop layouts across public, auth, user-cabinet, and admin Matrix surfaces.</scope>
   <verification-intent>Phase-61 must prove that the premium Matrix UI is intentionally designed for mobile and tablet use, not merely tolerated by desktop CSS.</verification-intent>
   <test-files>
@@ -10,7 +10,7 @@
     <file phase="71-pass-local">scripts/phase71-device-config-master-detail-smoke.mjs</file>
     <file phase="72-pass-local">scripts/phase72-user-auth-navigation-smoke.mjs</file>
     <file phase="74-pass-local">scripts/phase74-admin-shell-navigation-smoke.mjs</file>
-    <file phase="75-planned">scripts/phase75-admin-users-devices-smoke.mjs</file>
+    <file phase="75-pass-local">scripts/phase75-admin-users-devices-smoke.mjs</file>
     <file>frontend/src/App.tsx</file>
     <file>frontend/src/components/Layout.tsx</file>
     <file>frontend/src/components/MatrixBackground.tsx</file>
@@ -60,7 +60,7 @@
     <command status="pass-local-phase67">cd frontend &amp;&amp; npm run build; node scripts/phase67-auth-splash-smoke.mjs; node scripts/phase61-responsive-adaptation-smoke.mjs; node scripts/phase60-premium-qa-smoke.mjs</command>
     <command status="pass-local-rainfix">cd frontend &amp;&amp; npm run build; cd frontend-admin &amp;&amp; npm run build; node scripts/phase61-responsive-adaptation-smoke.mjs; Chrome 390x844 user/admin screenshot and bottom-pixel sanity</command>
     <command status="pass-local-phase74">cd frontend-admin &amp;&amp; npm run build; node scripts/phase74-admin-shell-navigation-smoke.mjs passed; node scripts/phase61-responsive-adaptation-smoke.mjs remains a final-run regression gate</command>
-    <command status="planned-phase75">cd frontend-admin &amp;&amp; npm run build; node scripts/phase75-admin-users-devices-smoke.mjs; node scripts/phase61-responsive-adaptation-smoke.mjs</command>
+    <command status="pass-local-phase75">cd frontend-admin &amp;&amp; npm run build; node scripts/phase75-admin-users-devices-smoke.mjs; Phase-61 responsive smoke remains a final-run regression gate</command>
   </commands>
   <evidence>
     <item>2026-06-04: frontend npm run build passed; primary JS 448870 bytes gzip 135741, primary CSS 44212 bytes gzip 8832.</item>
@@ -74,6 +74,7 @@
     <item>2026-06-04: Rainfix responsive evidence passed: Phase-61 smoke now asserts .matrix-rain-fallback, min-height calc(100dvh + 128px), CSS_RAIN_FALLBACK_READY, and MOBILE_OVERSCAN_READY; 390x844 user/admin Chrome screenshots show no bottom black cutoff; bottom crop max values were user 0.246326 and admin 0.841062.</item>
     <item>2026-06-04: Phase-68 dashboard-owned subscription panel passed frontend/admin builds, Phase-61 responsive smoke, Phase-60 QA, and compact calendar/tariff static guards.</item>
     <item>2026-06-05: Phase-74 frontend-admin build and admin shell smoke passed for rail viewport bounds, content scroll surface, and no visible Tariffs nav; Phase-61 responsive smoke remains part of final regression suite.</item>
+    <item>2026-06-05: Phase-75 frontend-admin build and admin Users/Devices smoke passed for unified inventory no-overflow markers, bounded expanded device rows, mobile reachable device actions, and protected backend/deploy/runtime/user frontend guard.</item>
   </evidence>
   <viewport-matrix>
     <phone-1>320x568 proves smallest supported phone does not clip auth/public CTAs or cabinet actions.</phone-1>
@@ -103,13 +104,13 @@
     <gate-3>Admin content wheel/touch scroll must work over the content surface and must not be blocked by fixed Matrix backgrounds, overlays, or rail overflow.</gate-3>
     <gate-4>Phase-61 responsive smoke remains a required regression gate after the Phase-74 admin shell change.</gate-4>
   </phase-74-responsive-gates>
-  <phase-75-responsive-gates status="planned">
+  <phase-75-responsive-gates status="pass-local">
     <scope>Responsive verification for merging admin Users and Devices into one expandable inventory.</scope>
     <gate-1>Admin /users must show a compact expandable device inventory without horizontal scroll on phone, tablet, desktop, and reduced-motion viewport classes.</gate-1>
     <gate-2>The removed visible /devices nav must not leave an unreachable device workflow; direct /devices must redirect or present compatibility handling without duplicate primary inventory.</gate-2>
     <gate-3>Expanded user device sublists must be bounded, scrollable or paginated, and must not stretch the whole page for users with many devices.</gate-3>
     <gate-4>Device action controls and confirmation surfaces must remain 44px-touch-safe on mobile and must not overlap the bottom tabbar, rail, Matrix canvas, or scroll containers.</gate-4>
-    <commands>node scripts/phase75-admin-users-devices-smoke.mjs; node scripts/phase61-responsive-adaptation-smoke.mjs</commands>
+    <commands>cd frontend-admin &amp;&amp; npm run build; node scripts/phase75-admin-users-devices-smoke.mjs; node scripts/phase61-responsive-adaptation-smoke.mjs remains a final-run regression gate</commands>
   </phase-75-responsive-gates>
   <phase-67-responsive-gates status="pass-local">
     <gate-1>Splash / and auth routes must be verified at phone, tablet, desktop, and reduced-motion viewports.</gate-1>
@@ -189,7 +190,7 @@
     <gate-6 status="pass-local-phase67">Phase-67 auth/splash responsive gate must preserve Phase-61 responsive guarantees and may not change protected user/admin responsive contracts.</gate-6>
     <gate-7 status="pass-local-rainfix">Matrix rain reliability hotfix must preserve Phase-61 responsive guarantees while adding bottom-edge overscan proof for user/admin mobile shells.</gate-7>
     <gate-8 status="pass-local-phase74">Phase-74 admin shell responsive gate passed for rail bounds and content-scroll markers; full Phase-61 regression remains required in the final verification run.</gate-8>
-    <gate-9 status="planned-phase75">Phase-75 cannot move to pass-local until unified /users inventory, bounded expanded device lists, safe /devices handling, and responsive no-overflow markers pass.</gate-9>
+    <gate-9 status="pass-local-phase75">Phase-75 passed unified /users inventory, bounded expanded device lists, safe /devices handling, and responsive no-overflow markers through frontend-admin build and Phase-75 smoke.</gate-9>
   </phase-gates>
   <autonomous-execution-safety>
     <safety-1>Edits are limited to frontend, frontend-admin, Phase-61 smoke, and MyGRACE documentation unless the operator approves a new phase.</safety-1>
@@ -232,4 +233,5 @@
     <commands>node scripts/phase74-admin-shell-navigation-smoke.mjs; node scripts/phase61-responsive-adaptation-smoke.mjs</commands>
   </phase-74-verification-design>
   <phase-74-evidence status="pass-local" date="2026-06-05">Phase-74 smoke passed ResponsiveAdaptation markers ADMIN_SCROLL_NO_OVERLAP and ADMIN_RAIL_VIEWPORT_SAFE, with direct /plans handled as redirect and no protected user/backend/deploy/runtime drift.</phase-74-evidence>
+  <phase-75-evidence status="pass-local" date="2026-06-05">Phase-75 smoke passed ResponsiveAdaptation markers UNIFIED_INVENTORY_NO_OVERFLOW and EXPANDED_DEVICES_BOUNDED, with direct /devices handled as redirect and no protected user/backend/deploy/runtime drift.</phase-75-evidence>
 </V-M-074>

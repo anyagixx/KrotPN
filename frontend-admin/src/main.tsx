@@ -1,21 +1,22 @@
 // FILE: frontend-admin/src/main.tsx
-// VERSION: 1.1.0
+// VERSION: 1.2.0
 // ROLE: ENTRY_POINT
 // MAP_MODE: SUMMARY
 // START_MODULE_CONTRACT
-//   PURPOSE: Application entry point — mounts React router, query client, auth-guarded routes, and Phase-74-safe retired admin route redirects
-//   SCOPE: BrowserRouter, QueryClientProvider, PrivateRoute, page route definitions including MTProto admin ops, retired /plans redirect, Matrix visual shell mount
+//   PURPOSE: Application entry point — mounts React router, query client, auth-guarded routes, and Phase-75-safe retired admin route redirects
+//   SCOPE: BrowserRouter, QueryClientProvider, PrivateRoute, page route definitions including MTProto admin ops, retired /plans redirect, retired /devices redirect, Matrix visual shell mount
 //   DEPENDS: M-010 (frontend-admin), M-047 (mtproto-admin-ops), M-068 (tariff-catalog), M-070 (matrix-visual-runtime), M-071 (matrix-style-system), react-router-dom, @tanstack/react-query, stores/auth
-//   LINKS: M-010 (frontend-admin), M-047, M-068, M-070, M-071, Phase-74
+//   LINKS: M-010 (frontend-admin), M-047, M-068, M-070, M-071, Phase-74, Phase-75
 // END_MODULE_CONTRACT
 //
 // START_MODULE_MAP
 //   queryClient - TanStack Query client instance
 //   PrivateRoute - Auth guard component redirecting to /login
-//   App mount - ReactDOM.createRoot with React.StrictMode, Phase-52 visual shell, and Phase-74 /plans redirect
+//   App mount - ReactDOM.createRoot with React.StrictMode, Phase-52 visual shell, Phase-74 /plans redirect, and Phase-75 /devices redirect
 // END_MODULE_MAP
 //
 // START_CHANGE_SUMMARY
+//   LAST_CHANGE: v3.5.0 - Phase-75 retired the separate /devices page by redirecting direct visits to /users.
 //   LAST_CHANGE: v3.4.0 - Phase-74 retired the visible admin /plans page by redirecting direct visits back to the dashboard.
 //   LAST_CHANGE: v3.3.0 - Mounted Phase-52 Matrix VisualShell around the admin route tree
 //   LAST_CHANGE: v3.2.0 - Added Phase-33 /mtproto admin route
@@ -36,7 +37,6 @@ import { QueryClient, QueryClientProvider } from 'react-query'
 import Login from './pages/Login'
 import Dashboard from './pages/Dashboard'
 import Users from './pages/Users'
-import Devices from './pages/Devices'
 import MTProto from './pages/MTProto'
 import Servers from './pages/Servers'
 import Analytics from './pages/Analytics'
@@ -68,7 +68,7 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
             <Route path="/" element={<PrivateRoute><Layout /></PrivateRoute>}>
               <Route index element={<Dashboard />} />
               <Route path="users" element={<Users />} />
-              <Route path="devices" element={<Devices />} />
+              <Route path="devices" element={<Navigate to="/users" replace />} />
               <Route path="mtproto" element={<MTProto />} />
               <Route path="servers" element={<Servers />} />
               <Route path="plans" element={<Navigate to="/" replace />} />
