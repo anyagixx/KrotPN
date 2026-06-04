@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Phase-66 NAME="Minimal Resend Email Template Polish" STATUS="planned">
+  <objective>Simplify verification and password-reset Resend email templates while preserving one-time link safety, CTA clarity, text fallback, and provider/deploy boundaries.</objective>
+  <modules>M-079,M-040,M-062,M-069,M-080</modules>
+  <non-goals>Changing Resend provider wiring, EMAIL_FROM, deploy/install scripts, DNS/BIMI behavior, frontend public/user/admin pages, auth token semantics, password policy, billing, VPN, or MTProto runtime.</non-goals>
+  <requirements>
+    <requirement-1>Verification email must use a larger logo and remove visible KrotPN Matrix Access, protected-registration eyebrow, long ownership/preparation intro, remote-image hint, forwarding warning, and generic account-security footer copy.</requirement-1>
+    <requirement-2>Password reset email must use a larger logo and remove visible KrotPN Matrix Access, recovery eyebrow, long one-time-route intro, remote-image hint, forwarding warning if present, and generic account-security footer copy.</requirement-2>
+    <requirement-3>The green top strip color #5cf2c8 must be removed from the card edge and the card should keep one uniform dark surface color.</requirement-3>
+    <requirement-4>The outer email background currently using #04090d must become transparent or absent from the outer wrapper while the card color remains dark.</requirement-4>
+    <requirement-5>CTA buttons, fallback action links, localized subjects, token redaction, plain text fallback, and image-blocking usability must remain intact.</requirement-5>
+  </requirements>
+  <steps>
+    <step-1 STATUS="planned">Audit current backend/app/email/templates.py verification/reset shell, removed-copy list, logo sizing, top-strip styling, outer background, text fallback, and footer copy.</step-1>
+    <step-2 STATUS="planned">Update the shared email template contract and renderer plan so the minimal shell keeps logo, CTA button, fallback link, and optional short safety copy only where required.</step-2>
+    <step-3 STATUS="planned">Design backend email tests that assert removed strings are absent from both verification and reset HTML/text outputs while CTA and fallback URLs remain present.</step-3>
+    <step-4 STATUS="planned">Design a Phase-66 smoke script that checks larger logo sizing, no #5cf2c8 top strip, no #04090d outer wrapper background, removed copy, token redaction, and protected-surface isolation.</step-4>
+    <step-5 STATUS="planned">Preserve M-040 provider payload shape, M-062 one-time verification/reset semantics, M-069 public email-logo asset boundary, and M-080 visible-logo/BIMI separation.</step-5>
+    <step-6 STATUS="planned">Run backend email tests, Phase-64 regression smoke, Phase-51 brand smoke, Phase-66 smoke, XML parse, MyGRACE lint, git diff --check, and protected deploy/provider/runtime guard during execution.</step-6>
+    <step-7 STATUS="planned">Record execution evidence in M-079/V-M-079 and update indexes after implementation.</step-7>
+  </steps>
+  <verification>V-M-079</verification>
+  <verification-design>Phase-66 is ready for execution only after V-M-079 gates include negative-copy assertions, logo-size assertion, removed top-strip/background assertions, CTA/fallback preservation, text fallback cleanliness, token redaction, and protected deploy/provider/runtime isolation.</verification-design>
+  <acceptance>Verification and password-reset emails become visually cleaner and shorter while remaining transactional, token-safe, image-blocking tolerant, and Resend-compatible.</acceptance>
+  <risk-assessment>
+    <risk-1 severity="high">Over-deleting text can make image-blocked emails unclear; fallback link and concise purpose text must remain.</risk-1>
+    <risk-2 severity="critical">Template changes must not leak one-time verify/reset URLs in logs, tests, smoke output, or docs evidence.</risk-2>
+    <risk-3 severity="high">Email clients are inconsistent; transparent outer background must degrade without hiding the dark card or CTA.</risk-3>
+  </risk-assessment>
+</Phase-66>

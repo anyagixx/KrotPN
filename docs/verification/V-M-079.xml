@@ -1,8 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<V-M-079 MODULE="M-079" PRIORITY="critical" STATUS="pass-local-phase64" PHASE-64="pass-local">
+<V-M-079 MODULE="M-079" PRIORITY="critical" STATUS="planned-phase66" PHASE-64="pass-local" PHASE-66="planned">
   <scope>Premium Resend email template verification for verification/reset flows, Matrix-compatible transactional layout, public body-logo rendering, text fallback, token redaction, provider boundary safety, and protected-surface isolation.</scope>
   <test-files>
     <file phase="64-pass-local">scripts/phase64-premium-email-template-smoke.mjs</file>
+    <file phase="66-planned">scripts/phase66-minimal-email-template-smoke.mjs</file>
     <file>backend/app/email/templates.py</file>
     <file>backend/app/email/service.py</file>
     <file>backend/tests/test_email_delivery.py</file>
@@ -10,6 +11,7 @@
     <file>frontend/public/brand/krotpn-mark-96.png</file>
     <file>docs/modules/M-079.xml</file>
     <file>docs/plans/Phase-64.xml</file>
+    <file>docs/plans/Phase-66.xml</file>
   </test-files>
   <module-checks>
     <check-1 status="pass-local-phase64">Audit current verification and password-reset HTML/text templates and identify shared layout primitives without changing Resend payload semantics.</check-1>
@@ -19,6 +21,7 @@
     <check-5 status="post-commit-regression">node scripts/phase63-visible-logo-integration-smoke.mjs remains a post-commit regression because its Phase-63 protected guard intentionally rejects uncommitted backend/email diffs.</check-5>
     <check-6 status="pass-local-phase64">python3 -m xml.etree.ElementTree docs/plans/Phase-64.xml docs/modules/M-079.xml docs/verification/V-M-079.xml docs/verification-index.xml docs/graph-index.xml docs/plan-index.xml</check-6>
     <check-7 status="pass-local-phase64">mygrace lint; git diff --check; protected diff guard for deploy/install, nginx, docker-compose, VPN runtime, MTProto runtime, Resend provider env, DNS/BIMI, and secret surfaces</check-7>
+    <check-8 status="planned-phase66">node scripts/phase66-minimal-email-template-smoke.mjs must prove removed-copy, larger-logo, no-green-top-strip, transparent outer-background, CTA/fallback preservation, token redaction, and protected-surface guards.</check-8>
   </module-checks>
   <verification-matrix>
     <target-1 evidence="unit-and-static">Verification and password-reset HTML share a premium KrotPN Matrix email shell while preserving one-time token links, pending-registration activation, and password-reset semantics.</target-1>
@@ -27,12 +30,14 @@
     <target-4 evidence="static">Body logo uses an approved public asset path such as FRONTEND_URL plus /brand/email-logo.png and does not claim control over Gmail/Apple/Resend sender avatars, BIMI provider display, or DNS state.</target-4>
     <target-5 evidence="unit-and-static">Tokens, full tokenized URLs, provider API keys, passwords, and secret-bearing env values are redacted from logs, provider error details, smoke output, and documentation evidence.</target-5>
     <target-6 evidence="protected-guard">No deploy/install, nginx, docker-compose, VPN, MTProto, billing, auth policy, EMAIL_FROM, Resend API key, DNS, BIMI, or certificate behavior changes are introduced.</target-6>
+    <target-7 evidence="unit-and-static-planned-phase66">Verification/reset templates remove KrotPN Matrix Access, Russian eyebrow/intro/support/footer noise, #5cf2c8 top-strip, and #04090d outer-wrapper background while preserving the dark card, larger body logo, CTA, and fallback link.</target-7>
   </verification-matrix>
   <success-scenarios>
     <scenario-1 kind="success">Verification and reset emails render with compact premium KrotPN branding, visible body logo, clear CTA button, and short security copy while keeping the transactional purpose obvious.</scenario-1>
     <scenario-2 kind="success">Mailbox clients that block remote images still expose all important instructions in HTML and text fallback.</scenario-2>
     <scenario-3 kind="success">Backend tests prove template payload shape, recipient/subject semantics, one-time token delivery, reset flow safety, and provider-disabled behavior remain compatible.</scenario-3>
     <scenario-4 kind="success">Phase-64 smoke proves public logo URL use, email-client-safe CSS constraints, token redaction, text fallback cleanliness, and protected-surface isolation.</scenario-4>
+    <scenario-5 kind="success">Phase-66 smoke proves the operator-specified copy is absent from verification/reset HTML/text outputs and that the minimal card still has a clear action path.</scenario-5>
   </success-scenarios>
   <failure-scenarios>
     <failure-1 kind="failure">Email template depends on images, remote CSS, JavaScript, canvas, web fonts, or visual-only Matrix effects for critical meaning.</failure-1>
@@ -40,6 +45,7 @@
     <failure-3 kind="failure">Template changes alter Resend deployment/config semantics, EMAIL_FROM, provider API key handling, domain DNS/BIMI behavior, auth policy, or one-time token semantics.</failure-3>
     <failure-4 kind="failure">Smoke output, tests, logs, or docs print reset/verify token values, full tokenized URLs, secrets, credentials, or real recipient addresses.</failure-4>
     <failure-5 kind="failure">Phase-64 touches deploy/install, nginx, docker-compose, VPN, MTProto runtime, billing, tariffs, payment provider, certificate, or DNS surfaces without a new approved phase.</failure-5>
+    <failure-6 kind="failure">Phase-66 removes the CTA button, removes the fallback link, hides the card on transparent clients, logs tokenized URLs, or changes Resend/provider/deploy/runtime behavior.</failure-6>
   </failure-scenarios>
   <required-log-markers>
     <marker-1>[PremiumEmailTemplates][phase64][TEMPLATE_SHELL_READY]</marker-1>
@@ -60,6 +66,7 @@
     <gate-2 level="wave" status="passed-local">M-040 email delivery, M-062 onboarding/password recovery, M-069 email logo assets, M-072 premium visual tokens, and M-080 visible-logo boundary remain compatible.</gate-2>
     <gate-3 level="phase" status="passed-local">XML parse, MyGRACE lint, git diff --check, and protected deploy/install/runtime/provider/DNS guard passed before Phase-64 moved to done-local.</gate-3>
     <gate-4 level="live-follow-up">Clean-deploy validation may send a real Resend email to inspect delivered rendering, but local verification must not claim mailbox sender-avatar/BIMI provider display proof.</gate-4>
+    <gate-5 level="planned-phase66">Execution must add Phase-66 negative-copy and style assertions before accepting the simplified templates.</gate-5>
   </phase-gates>
   <execution-evidence date="2026-06-04">
     <command-1>cd backend &amp;&amp; SECRET_KEY=test-secret-key-with-enough-length DATA_ENCRYPTION_KEY=dpFmfSVqfdAK3yx5MQV6Tcv35RZuw5MzaH0yhxJ01q0= PYTHONPATH=. ../.venv/bin/python -m pytest -o addopts='' tests/test_email_delivery.py -v</command-1>
@@ -68,5 +75,13 @@
     <command-4>python3 XML parse, mygrace lint, git diff --check, protected deploy/provider/runtime/frontend guard</command-4>
     <result>PASS: premium verification/reset email templates render a public body logo, compact Matrix-safe shell, image-blocking-safe fallback panel, clean text fallback, token-safe logs, and unchanged provider/deploy/runtime surfaces.</result>
   </execution-evidence>
+  <phase-66-planned-evidence date="2026-06-04">
+    <command-1>cd backend &amp;&amp; SECRET_KEY=test-secret-key-with-enough-length DATA_ENCRYPTION_KEY=redacted-test-key PYTHONPATH=. ../.venv/bin/python -m pytest -o addopts='' tests/test_email_delivery.py -v</command-1>
+    <command-2>node scripts/phase64-premium-email-template-smoke.mjs</command-2>
+    <command-3>node scripts/phase51-brand-assets-smoke.mjs</command-3>
+    <command-4>node scripts/phase66-minimal-email-template-smoke.mjs</command-4>
+    <command-5>XML parse, MyGRACE lint, git diff --check, and protected deploy/provider/runtime guard</command-5>
+    <result>PLANNED: minimal Resend template polish must remove requested verbose copy and visual strip/background noise while preserving action links, text fallback, logo boundary, token redaction, and provider/deploy isolation.</result>
+  </phase-66-planned-evidence>
   <autonomous-execution-safety>Safe for local autonomous execution if changes stay inside backend email template/service tests, Phase-64 smoke, approved public email-logo references, and MyGRACE docs. Stop execution if installer/deploy changes, Resend provider env changes, DNS/BIMI changes, auth-token semantics changes, billing changes, VPN/MTProto runtime changes, or secret-handling changes appear necessary.</autonomous-execution-safety>
 </V-M-079>
