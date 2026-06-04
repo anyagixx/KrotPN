@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Phase-74 NAME="Admin Shell Navigation Login and Scroll Fixes" STATUS="planned" STEPS="10" MODULES="M-010,M-037,M-068,M-071,M-074,M-076,M-077" CREATED="2026-06-05" UPDATED="2026-06-05">
+  <summary>Approved plan for admin login input padding, removing the admin Tariffs route from navigation, moving admin Logout under Nodes, and fixing admin shell scroll/rail geometry.</summary>
+  <approved-by-operator date="2026-06-05">Operator confirmed Phase-72 through Phase-76 plan.</approved-by-operator>
+  <scope>
+    <in>frontend-admin login inputs, admin Layout navigation, admin route registration for Plans/Tariffs UI, admin rail height, main content scroll behavior, desktop/tablet/mobile admin CSS, and smoke coverage.</in>
+    <out>Backend tariff catalog, payment plans API, user-facing tariff UI, deploy/install scripts, nginx, docker-compose, admin auth API, MTProto runtime, VPN runtime, and billing prices.</out>
+  </scope>
+  <requirements>
+    <requirement-1>Admin login email/password text must not overlap envelope/lock icons.</requirement-1>
+    <requirement-2>The admin "Тарифы" section must be removed from the admin panel UI and navigation.</requirement-2>
+    <requirement-3>Removing admin "Тарифы" must not remove backend canonical tariffs or user-facing tariff purchase UI.</requirement-3>
+    <requirement-4>Admin "Выйти" must be placed under the "Ноды" navigation item so it is always visible.</requirement-4>
+    <requirement-5>Mouse-wheel scroll must work normally over the admin content area, not only near the left navigation.</requirement-5>
+    <requirement-6>The admin-rail navigation must be clipped/bounded to the same visible height budget as the main content area.</requirement-6>
+  </requirements>
+  <steps>
+    <step-1>Audit frontend-admin Login, Layout, route table, index.css, Plans page references, and Phase-54/58/62 smoke guards.</step-1>
+    <step-2>Fix admin login field padding and icon positioning so placeholders and typed values never overlap icons.</step-2>
+    <step-3>Remove the admin "Тарифы" navigation item and visible route entry points.</step-3>
+    <step-4>Handle direct /plans access safely through redirect, hidden route removal, or route guard without breaking frontend-admin build.</step-4>
+    <step-5>Preserve M-068 backend catalog and user-facing tariff cards unchanged.</step-5>
+    <step-6>Move admin "Выйти" under "Ноды" while preserving logout token cleanup.</step-6>
+    <step-7>Fix admin main content scroll container so mouse wheel works across the content area and nested panels do not trap scrolling incorrectly.</step-7>
+    <step-8>Bound admin-rail height and overflow so navigation ends with the content viewport and does not visually overrun lower boundaries.</step-8>
+    <step-9>Update admin smoke for login icon padding, no Tariffs nav, logout order, rail bounds, and content scroll markers.</step-9>
+    <step-10>Run frontend-admin build, Phase-54/58/59/61/62 regressions, XML parse, MyGRACE lint, diff check, and protected backend/deploy/runtime guard.</step-10>
+  </steps>
+  <data-flow>
+    <flow-1>Admin opens /login -> icon-bearing inputs reserve enough padding -> typed credentials remain readable.</flow-1>
+    <flow-2>Authenticated admin sees sidebar -> Nоды then Выйти remain visible; Тарифы is absent.</flow-2>
+    <flow-3>Admin scrolls Users, MTProto, Analytics, or Nodes page -> main content scrolls from normal content mouse-wheel positions.</flow-3>
+  </data-flow>
+  <verification-design>
+    <gate-1>frontend-admin build must pass.</gate-1>
+    <gate-2>Admin smoke must assert no visible Tariffs nav and no stale route card for plans.</gate-2>
+    <gate-3>Static CSS smoke must assert icon-safe login padding, bounded admin rail, and content-scroll markers.</gate-3>
+    <gate-4>Tariff catalog smoke must still pass where user/backend catalog is protected.</gate-4>
+    <gate-5>Protected guard must prove backend billing, deploy, runtime, and user tariff purchase logic are not changed unexpectedly.</gate-5>
+  </verification-design>
+  <risks>
+    <risk-1 severity="medium">Removing a route from navigation can leave a broken direct URL unless direct /plans is handled.</risk-1>
+    <risk-2 severity="medium">Scroll fixes can regress mobile admin usability if the shell uses conflicting fixed-height containers.</risk-2>
+    <risk-3 severity="high">Admin tariff UI removal must not change the canonical server tariff catalog.</risk-3>
+  </risks>
+  <acceptance>Phase-74 is done when admin login fields are icon-safe, Tariffs UI is gone only from admin, Logout is under Nodes, admin scroll works across content, rail height is bounded, and admin/frontend/MyGRACE verification passes.</acceptance>
+</Phase-74>

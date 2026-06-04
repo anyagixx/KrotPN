@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Phase-75 NAME="Admin Users and Devices Unified Inventory" STATUS="planned" STEPS="10" MODULES="M-006,M-010,M-024,M-037,M-074,M-076,M-077" CREATED="2026-06-05" UPDATED="2026-06-05">
+  <summary>Approved plan for merging admin Users and Devices into one compact Users inventory where each user can expand to show device data and existing device actions.</summary>
+  <approved-by-operator date="2026-06-05">Operator confirmed Phase-72 through Phase-76 plan.</approved-by-operator>
+  <scope>
+    <in>Admin Users page, admin Devices page deprecation/removal from navigation, user-row expandable device list, existing device action controls, optional minimal admin API read path if current API cannot provide per-user devices, bounded scroll, and admin smoke coverage.</in>
+    <out>User frontend, deploy/install scripts, nginx, docker-compose, VPN runtime topology, MTProto runtime, tariff catalog, YooKassa, destructive action semantics beyond existing confirmation-safe device controls.</out>
+  </scope>
+  <requirements>
+    <requirement-1>Admin /users must remain the single "Пользователи" section.</requirement-1>
+    <requirement-2>The old separate /devices section must be removed from admin navigation after devices are accessible through /users.</requirement-2>
+    <requirement-3>Admin must see the existing user list as before.</requirement-3>
+    <requirement-4>Clicking or expanding a user must show that user's devices with the useful information currently present in the Devices section.</requirement-4>
+    <requirement-5>Device action buttons from the old Devices section must remain available in the expanded user device list.</requirement-5>
+    <requirement-6>Dangerous actions must keep explicit confirmation and audit-compatible behavior.</requirement-6>
+    <requirement-7>Expanded devices must use bounded scrolling/pagination so a user with many devices does not make the admin page unwieldy.</requirement-7>
+  </requirements>
+  <steps>
+    <step-1>Audit frontend-admin Users, Devices, Layout navigation, admin API methods, M-024 endpoints, and existing device action flows.</step-1>
+    <step-2>Determine whether existing admin API can fetch device rows by user without backend changes.</step-2>
+    <step-3>If existing API is enough, implement frontend-only merge using current endpoints and typed admin client methods.</step-3>
+    <step-4>If existing API is insufficient, add the smallest admin endpoint needed for per-user devices while preserving M-024 confirmation/action contracts.</step-4>
+    <step-5>Build expandable user rows with compact device sublists and loading/error/empty states.</step-5>
+    <step-6>Move block/unblock/rotate/revoke or equivalent existing device actions into the expanded device sublist with confirmation-safe handling.</step-6>
+    <step-7>Remove old Devices navigation and handle direct /devices access through redirect or compatibility route.</step-7>
+    <step-8>Add bounded scroll/pagination for expanded device lists and verify mobile/tablet readability.</step-8>
+    <step-9>Update Phase-75 admin smoke and backend tests if an API endpoint is added.</step-9>
+    <step-10>Run frontend-admin build, relevant backend tests if touched, Phase-54/58/61/62 regressions, XML parse, MyGRACE lint, diff check, and protected deploy/runtime guard.</step-10>
+  </steps>
+  <data-flow>
+    <flow-1>Admin opens /users -> frontend loads user list through existing admin API.</flow-1>
+    <flow-2>Admin expands a user -> frontend loads or reveals that user's devices -> compact device rows render status, metadata, and action controls.</flow-2>
+    <flow-3>Admin triggers device action -> existing confirmation flow -> existing M-024 action endpoint or minimal compatible endpoint -> UI refreshes affected user row.</flow-3>
+  </data-flow>
+  <verification-design>
+    <gate-1>frontend-admin build must pass.</gate-1>
+    <gate-2>Admin smoke must assert one visible Users inventory and no separate Devices navigation item.</gate-2>
+    <gate-3>Admin smoke must assert expandable user rows expose device information and existing action markers.</gate-3>
+    <gate-4>Backend M-024 tests must pass if any admin API changes are made.</gate-4>
+    <gate-5>Redaction and confirmation guards must remain active for device actions and user/device identifiers.</gate-5>
+  </verification-design>
+  <risks>
+    <risk-1 severity="high">Merging pages can hide device emergency actions unless the expanded user detail is fast and obvious.</risk-1>
+    <risk-2 severity="medium">A user with many devices can make the page long unless bounded scroll or pagination is built into the expanded area.</risk-2>
+    <risk-3 severity="high">Adding an API endpoint could accidentally broaden admin access; it must remain admin-only and reuse existing authorization/audit boundaries.</risk-3>
+  </risks>
+  <acceptance>Phase-75 is done when admin Users is the single inventory for users and their devices, old Devices navigation is gone or redirected, device actions remain confirmation-safe, and admin/backend/MyGRACE verification passes.</acceptance>
+</Phase-75>

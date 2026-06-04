@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Phase-72 NAME="User Auth and Cabinet Navigation Polish" STATUS="planned" STEPS="10" MODULES="M-009,M-036,M-063,M-071,M-074,M-075,M-077" CREATED="2026-06-05" UPDATED="2026-06-05">
+  <summary>Approved plan for user login error localization, desktop logout placement, mobile bottom cabinet navigation, smaller desktop subscription calendar, and removal of language settings.</summary>
+  <approved-by-operator date="2026-06-05">Operator confirmed Phase-72 through Phase-76 plan.</approved-by-operator>
+  <scope>
+    <in>User /login error text, user cabinet desktop/sidebar navigation order, mobile bottom navigation availability, subscription calendar desktop density, Settings language-section deletion, focused user-cabinet CSS, and smoke contracts.</in>
+    <out>Admin frontend, deploy/install scripts, nginx, docker-compose, backend auth semantics, session lifetime policy, payment provider behavior, VPN runtime, MTProto runtime, and tariff catalog values.</out>
+  </scope>
+  <requirements>
+    <requirement-1>User /login must show "Неверный логин или пароль" for invalid credentials and must not show "Invalid email or password".</requirement-1>
+    <requirement-2>Desktop user cabinet must place the "Выйти" action directly under "Настройки" so logout is always visible in the sidebar.</requirement-2>
+    <requirement-3>Mobile user cabinet navigation for Главная, Конфигурация, Подписка, Рефералы, and Настройки must remain quickly reachable without blocking page content.</requirement-3>
+    <requirement-4>Mobile navigation should be a compact bottom dock with safe-area padding and touch/scroll-aware visibility.</requirement-4>
+    <requirement-5>Desktop "Календарь подписки" day cells must be reduced substantially, about three times smaller than the current desktop presentation, without degrading the already acceptable mobile calendar.</requirement-5>
+    <requirement-6>Language settings must be completely removed from the user Settings page because the product is Russian-only for users.</requirement-6>
+  </requirements>
+  <steps>
+    <step-1>Audit Login, Layout, Settings, SubscriptionPanel, index.css, and current user smoke scripts against M-009, M-036, M-063, M-074, and M-075 contracts.</step-1>
+    <step-2>Normalize user login failure handling so invalid credentials render "Неверный логин или пароль" regardless of backend English error text.</step-2>
+    <step-3>Add a guard in smoke coverage that rejects visible "Invalid email or password" in user auth UI.</step-3>
+    <step-4>Move the desktop "Выйти" control under "Настройки" in the user sidebar while preserving auth logout behavior.</step-4>
+    <step-5>Implement mobile bottom navigation for Главная, Конфигурация, Подписка, Рефералы, and Настройки with safe-area spacing and no content overlap.</step-5>
+    <step-6>Add touch/scroll-aware compact visibility behavior for the mobile navigation without scroll hijacking or pointer interception.</step-6>
+    <step-7>Retune desktop subscription calendar density to smaller cells, compact headers, and preserved start/end boundary pulse from Phase-71.</step-7>
+    <step-8>Remove language settings UI, state controls, and visible language copy from Settings while leaving unrelated account/settings actions intact.</step-8>
+    <step-9>Update Phase-72 smoke markers for localized login error, logout placement, mobile nav availability, compact desktop calendar, and no language settings.</step-9>
+    <step-10>Run frontend build, Phase-57/61/68/71 regressions, XML parse, MyGRACE lint, git diff --check, and protected deploy/runtime guard.</step-10>
+  </steps>
+  <data-flow>
+    <flow-1>User submits wrong password on /login -> existing auth API returns failure -> frontend maps it to the approved Russian message only.</flow-1>
+    <flow-2>Authenticated user navigates desktop cabinet -> sidebar shows dashboard routes, Settings, then visible Logout.</flow-2>
+    <flow-3>Authenticated mobile user touches or scrolls cabinet -> bottom dock remains reachable while content gets enough bottom padding to avoid overlap.</flow-3>
+  </data-flow>
+  <verification-design>
+    <gate-1>Frontend build must pass.</gate-1>
+    <gate-2>Phase-72 smoke must reject English invalid-login text, missing mobile nav routes, hidden desktop logout, oversized desktop calendar markers, and language settings UI.</gate-2>
+    <gate-3>Responsive smoke must cover 360x740, 390x844, 430x932, tablet, and desktop with no horizontal scroll or dock overlap.</gate-3>
+    <gate-4>Reduced-motion behavior must avoid animation-heavy dock transitions.</gate-4>
+    <gate-5>Protected guard must prove no admin, backend, deploy, VPN, MTProto, or payment runtime drift.</gate-5>
+  </verification-design>
+  <risks>
+    <risk-1 severity="medium">A fixed mobile dock can cover primary QR/download/payment actions unless layout reserves bottom space.</risk-1>
+    <risk-2 severity="medium">Shrinking desktop calendar too aggressively can make subscription range boundaries unreadable.</risk-2>
+    <risk-3 severity="low">Removing language settings may leave stale i18n code, but visible user UI must be Russian-only.</risk-3>
+  </risks>
+  <acceptance>Phase-72 is done when user login errors are Russian, user logout is visible under Settings, mobile cabinet navigation is always reachable without overlap, the desktop calendar is compact, language settings are gone, and local frontend/MyGRACE verification passes.</acceptance>
+</Phase-72>

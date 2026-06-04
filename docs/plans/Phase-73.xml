@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Phase-73 NAME="User Config Page and Amnezia QR Correctness" STATUS="planned" STEPS="10" MODULES="M-003,M-022,M-036,M-063,M-066,M-068,M-071,M-075" CREATED="2026-06-05" UPDATED="2026-06-05">
+  <summary>Approved plan for restoring truthful AmneziaVPN config guidance, preserving working AmneziaWG QR behavior, and cleaning user-visible config page copy and device-limit messaging.</summary>
+  <approved-by-operator date="2026-06-05">Operator confirmed Phase-72 through Phase-76 plan.</approved-by-operator>
+  <scope>
+    <in>User /dashboard/config copy, AmneziaWG QR behavior, AmneziaVPN import guidance, selected-device config actions, device-limit exhausted messaging with active tariff display, frontend API typing if needed, and QR/config smoke coverage.</in>
+    <out>Deploy/create-client.sh changes, VPN key generation, AWG profile changes, QR payload mutation without proof, install/deploy scripts, nginx, docker-compose, MTProto runtime, billing prices, and YooKassa flow.</out>
+  </scope>
+  <requirements>
+    <requirement-1>AmneziaVPN must not be shown a QR code that the application cannot read.</requirement-1>
+    <requirement-2>AmneziaVPN users must receive concise guidance to download the .conf file and import it into AmneziaVPN.</requirement-2>
+    <requirement-3>AmneziaWG QR must remain available if it is the working QR path and payload parity remains proven.</requirement-3>
+    <requirement-4>Replace "VPN Конфигурация" with "KPN Конфигурация".</requirement-4>
+    <requirement-5>Remove "QR, .conf и копирование теперь привязаны к выбранному устройству."</requirement-5>
+    <requirement-6>Replace "Новый конфиг" with "Новый конфиг для вашего устройства".</requirement-6>
+    <requirement-7>Device-limit exhausted messaging must say "Лимит устройств исчерпан согласно вашему Тарифу - [тариф]" using the current active tariff name.</requirement-7>
+  </requirements>
+  <steps>
+    <step-1>Audit current Config page QR actions, backend per-device QR endpoints, Phase-70 parity assumptions, and Phase-71 master-detail behavior before edits.</step-1>
+    <step-2>Identify which QR payload is actually compatible with AmneziaWG and whether AmneziaVPN can import any QR format currently generated.</step-2>
+    <step-3>Remove or hide non-working AmneziaVPN QR presentation and restore clear .conf import guidance for AmneziaVPN.</step-3>
+    <step-4>Preserve working AmneziaWG QR and selected-device QR/.conf/Copy actions without payload mutation or key rotation.</step-4>
+    <step-5>Update Config heading and action copy to "KPN Конфигурация" and "Новый конфиг для вашего устройства".</step-5>
+    <step-6>Remove the selected-device explanatory sentence requested by the operator while keeping the UX understandable through layout and labels.</step-6>
+    <step-7>Wire active tariff display into the limit-exhausted message using existing subscription/plan data if present.</step-7>
+    <step-8>If existing data does not expose a safe display tariff, extend the frontend API type or backend response minimally without changing canonical billing logic.</step-8>
+    <step-9>Update Phase-73 smoke to reject non-working AmneziaVPN QR, verify AmneziaVPN .conf guidance, verify AmneziaWG QR path, and verify limit message with tariff name.</step-9>
+    <step-10>Run backend tests only if API shape changes; always run frontend build, Phase-48/57/70/71 smokes, XML parse, MyGRACE lint, diff check, and protected deploy/runtime guard.</step-10>
+  </steps>
+  <data-flow>
+    <flow-1>User selects a device on /dashboard/config -> detail panel exposes working AmneziaWG QR, .conf download, and copy actions for that selected device.</flow-1>
+    <flow-2>User needs AmneziaVPN -> UI directs them to download .conf and import the file instead of scanning a non-working QR.</flow-2>
+    <flow-3>User reaches device limit -> UI reads current plan/subscription display name -> shows the approved tariff-aware exhausted-limit copy.</flow-3>
+  </data-flow>
+  <verification-design>
+    <gate-1>Phase-70 QR parity smoke must remain green for working QR payloads.</gate-1>
+    <gate-2>Phase-73 smoke must fail if AmneziaVPN QR is visible as a primary scan action while known non-working.</gate-2>
+    <gate-3>Phase-48 MIME smoke must remain green for .conf download behavior.</gate-3>
+    <gate-4>Backend device/vpn tests must pass if the implementation changes any config or device endpoint response.</gate-4>
+    <gate-5>Protected guard must prove deploy/create-client.sh and runtime topology are untouched.</gate-5>
+  </verification-design>
+  <risks>
+    <risk-1 severity="critical">Changing QR payload or config text to simplify UX can break working VPN connectivity.</risk-1>
+    <risk-2 severity="high">Adding tariff copy can accidentally trust frontend price/limit data; only display data is allowed unless backend contract is explicitly extended.</risk-2>
+    <risk-3 severity="medium">Removing explanation text can make config actions less clear; labels must carry enough meaning compactly.</risk-3>
+  </risks>
+  <acceptance>Phase-73 is done when the Config page uses approved KPN copy, does not advertise a non-working AmneziaVPN QR, preserves working AmneziaWG QR/.conf/Copy, shows tariff-aware device-limit exhaustion, and passes QR/config/frontend verification.</acceptance>
+</Phase-73>

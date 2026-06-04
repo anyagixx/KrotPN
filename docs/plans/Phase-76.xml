@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Phase-76 NAME="Consolidated Frontend Polish Gate" STATUS="planned" STEPS="8" MODULES="M-009,M-010,M-036,M-037,M-063,M-066,M-068,M-071,M-074,M-075,M-076,M-077" CREATED="2026-06-05" UPDATED="2026-06-05">
+  <summary>Approved cross-phase verification gate for Phase-72 through Phase-75 so user and admin polish changes are checked together before release preparation.</summary>
+  <approved-by-operator date="2026-06-05">Operator confirmed Phase-72 through Phase-76 plan.</approved-by-operator>
+  <scope>
+    <in>User/frontend build, admin/frontend build, Phase-72 through Phase-75 smokes, user cabinet regressions, admin cockpit regressions, backend tests only for touched API surfaces, XML/MyGRACE/diff gates, and protected deploy/runtime guard.</in>
+    <out>New product features beyond Phase-72 through Phase-75, release tagging, GitHub push, clean VPS deployment, install/deploy script changes, runtime topology changes, and payment provider changes.</out>
+  </scope>
+  <requirements>
+    <requirement-1>All user polish from Phase-72 and Phase-73 must be verified together because both touch Layout, Config, SubscriptionPanel, and shared CSS.</requirement-1>
+    <requirement-2>All admin polish from Phase-74 and Phase-75 must be verified together because both touch Layout, navigation, route registration, and bounded scrolling.</requirement-2>
+    <requirement-3>Protected deploy/runtime surfaces must remain unchanged unless a later approved phase explicitly changes them.</requirement-3>
+    <requirement-4>Any backend API changes from Phase-73 or Phase-75 must have targeted backend tests and no migration drift unless explicitly required.</requirement-4>
+  </requirements>
+  <steps>
+    <step-1>Run cd frontend &amp;&amp; npm run build.</step-1>
+    <step-2>Run cd frontend-admin &amp;&amp; npm run build.</step-2>
+    <step-3>Run Phase-72 and Phase-73 user smokes for login, navigation, calendar, settings removal, Amnezia guidance, config copy, and tariff-aware device-limit messaging.</step-3>
+    <step-4>Run Phase-74 and Phase-75 admin smokes for login padding, removed Tariffs nav, logout placement, scroll/rail bounds, unified Users/Devices inventory, and confirmation-safe actions.</step-4>
+    <step-5>Run user regressions: Phase-57, Phase-61, Phase-68, Phase-70, and Phase-71.</step-5>
+    <step-6>Run admin regressions: Phase-54, Phase-58, Phase-59, and Phase-62.</step-6>
+    <step-7>Run targeted backend tests only if Phase-73 or Phase-75 changed API shape; otherwise record backend-not-touched evidence.</step-7>
+    <step-8>Run XML parse, MyGRACE lint, git diff --check, and protected guard over install.sh, deploy, nginx, docker-compose.yml, deploy/mtproto-de-compose.yml, .env.example, mtproto-runtime, official-mtproxy, telegram-bot.</step-8>
+  </steps>
+  <data-flow>
+    <flow-1>Phase-72/73 user changes -> consolidated user build and smoke bundle -> protected user-cabinet regression confidence.</flow-1>
+    <flow-2>Phase-74/75 admin changes -> consolidated admin build and smoke bundle -> protected admin navigation/inventory confidence.</flow-2>
+    <flow-3>All touched source/docs -> XML/MyGRACE/diff/protected-surface gates -> release candidate readiness signal.</flow-3>
+  </data-flow>
+  <verification-design>
+    <gate-1>Both frontends must build.</gate-1>
+    <gate-2>Every new Phase-72 through Phase-75 smoke must pass.</gate-2>
+    <gate-3>Selected regression smokes must pass to prove older Phase-57 through Phase-71 behavior is not lost.</gate-3>
+    <gate-4>MyGRACE indexes and per-phase files must remain synchronized after execution.</gate-4>
+    <gate-5>Protected-surface guard must be clean.</gate-5>
+  </verification-design>
+  <risks>
+    <risk-1 severity="medium">Passing individual phases can still leave cross-phase UI regressions, especially around shared Layout/CSS.</risk-1>
+    <risk-2 severity="medium">Admin route deletion and user mobile dock can interact with responsive gates in ways not visible in single-page checks.</risk-2>
+    <risk-3 severity="low">This phase may discover polish regressions but should not introduce new code beyond focused fixes needed to close verification.</risk-3>
+  </risks>
+  <acceptance>Phase-76 is done when Phase-72 through Phase-75 are collectively verified, old user/admin regression gates still pass, MyGRACE is synchronized, protected deploy/runtime surfaces are clean, and the project is ready for a prerelease or stable release decision.</acceptance>
+</Phase-76>
