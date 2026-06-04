@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<V-M-070 MODULE="M-070" PRIORITY="high" STATUS="pass-local-phase52-phase53-phase54-phase59-planned-phase67" PHASE-54="pass-local" PHASE-59="pass-local" PHASE-67="planned">
+<V-M-070 MODULE="M-070" PRIORITY="high" STATUS="pass-local-phase52-phase53-phase54-phase59-verification-designed-phase67" PHASE-54="pass-local" PHASE-59="pass-local" PHASE-67="verification-designed">
   <scope>
     <phase>Phase-52</phase>
     <purpose>Verify the shared React/Vite Matrix visual runtime before it is used by the full user/admin redesign phases.</purpose>
@@ -14,7 +14,7 @@
     <file>scripts/phase53-user-matrix-ui-smoke.mjs</file>
     <file phase="54-pass-local">scripts/phase54-admin-matrix-ui-smoke.mjs</file>
     <file phase="59-pass-local">scripts/phase59-motion-interactions-smoke.mjs</file>
-    <file phase="67-planned">scripts/phase67-auth-splash-smoke.mjs</file>
+    <file phase="67-verification-designed">scripts/phase67-auth-splash-smoke.mjs</file>
   </test-files>
   <module-checks>
     <check-1>cd frontend &amp;&amp; npm run build</check-1>
@@ -26,7 +26,7 @@
     <check-7>Phase-53 user route screenshot audit: auth, dashboard, config, subscription, referrals, settings, and reduced-motion dashboard.</check-7>
     <check-8>Phase-54 local static admin route smoke: /login, /, /users, /devices, /mtproto, /servers, /plans, /analytics, pointer-safe overlays, reduced-motion markers, and protected-surface guard; authenticated screenshots remain clean-deploy follow-up.</check-8>
     <check-9>Phase-59 motion smoke: route motion, reduced-motion, pointer-scroll, keyboard focus, inactive-tab lifecycle, and protected backend/deploy/runtime guard.</check-9>
-    <check-10 status="planned-phase67">Phase-67 auth/splash smoke: MatrixBackground must tolerate canvas context failure, missing or legacy matchMedia listener APIs, reduced-motion, resize cleanup, and static fallback without console errors.</check-10>
+    <check-10 status="verification-designed-phase67">Phase-67 auth/splash smoke: MatrixBackground must tolerate canvas context failure, missing or legacy matchMedia listener APIs, reduced-motion, resize cleanup, and static fallback without console errors.</check-10>
   </module-checks>
   <phase-53-runtime-gates status="pass-local">
     <gate-1>MatrixBackground remains mounted once through VisualShell while user route navigation changes content.</gate-1>
@@ -42,7 +42,7 @@
     <gate-4>Admin route smoke records no console errors from canvas init, resize, hidden-tab pause, cleanup, or unavailable canvas context branches.</gate-4>
     <gate-5>Phase-54 smoke must fail if Matrix runtime changes deploy/install/nginx/docker-compose or backend runtime topology.</gate-5>
   </phase-54-runtime-gates>
-  <phase-67-runtime-gates status="planned">
+  <phase-67-runtime-gates status="verification-designed">
     <gate-1>User splash/auth Matrix runtime must use browser feature detection instead of assuming modern matchMedia addEventListener support.</gate-1>
     <gate-2>Canvas 2D context unavailable, zero-size canvas, inactive tab, reduced-motion, and unmount paths must exit cleanly without uncaught errors or duplicate animation loops.</gate-2>
     <gate-3>Fallback rendering must remain readable and pointer-events-none on /, /login, /register, /forgot-password, and /reset-password.</gate-3>

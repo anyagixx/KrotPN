@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Phase-67 NAME="Public Splash, Auth Form Polish and Matrix Canvas Compatibility" STATUS="planned">
+<Phase-67 NAME="Public Splash, Auth Form Polish and Matrix Canvas Compatibility" STATUS="verification-designed">
   <objective>Replace the public / route with a short animated KrotPN logo splash that redirects to /login, polish all user auth routes into frameless premium Matrix forms, and harden the Matrix rain canvas so it works or degrades safely across browsers.</objective>
   <modules>M-073,M-071,M-070,M-074,M-080,M-009</modules>
   <non-goals>Backend auth semantics, registration/password APIs, email templates, tariffs, billing, VPN, MTProto runtime, admin panel, deploy/install scripts, nginx, docker-compose, TLS, DNS, or release tagging.</non-goals>
@@ -37,6 +37,29 @@
     <gate-5>V-M-080 owns large unframed logo sizing and logo-overlap safety.</gate-5>
     <gate-6>V-M-009 owns frontend build, routing, auth state/API regression, and protected deploy/backend/runtime isolation.</gate-6>
   </verification-design>
+  <verification-matrix>
+    <module-target MODULE="M-073" REF="V-M-073">Splash-only / route, requested auth copy/removal, frameless auth markup, and unchanged auth behavior.</module-target>
+    <module-target MODULE="M-071" REF="V-M-071">Red auth focus, icon-safe inputs, compact button states, reduced-motion CSS, and no returned matrix-auth-card frame.</module-target>
+    <module-target MODULE="M-070" REF="V-M-070">Canvas/matchMedia compatibility, 2D context fallback, cleanup, reduced-motion, and pointer-safe static fallback.</module-target>
+    <module-target MODULE="M-074" REF="V-M-074">Phone/tablet/desktop/reduced-motion no-overlap, no-horizontal-scroll, touch-safe auth actions, and splash redirect usability.</module-target>
+    <module-target MODULE="M-080" REF="V-M-080">Large unframed logo placement, asset budget, no mobile crowding, and preserved favicon/PWA/email/BIMI boundaries.</module-target>
+    <module-target MODULE="M-009" REF="V-M-009">Frontend build, route wiring, auth API/store regression, protected user route regression, and protected backend/deploy/runtime guard.</module-target>
+  </verification-matrix>
+  <verification-levels>
+    <module-local>scripts/phase67-auth-splash-smoke.mjs must inspect route files, CSS selectors, MatrixBackground guards, BrandMark usage, removed-copy contracts, and protected-surface diffs.</module-local>
+    <wave-level>Phase-56, Phase-60, Phase-61, Phase-63, Phase-52, and Phase-59 regression smokes must stay green after Phase-67 execution.</wave-level>
+    <phase-level>Frontend production build, XML parse, MyGRACE lint, git diff --check, protected backend/deploy/runtime guard, and screenshot/static evidence must pass before Phase-67 can move beyond local execution.</phase-level>
+  </verification-levels>
+  <telemetry-requirements>
+    <allowed>Route path, viewport, selector marker, removed-copy check name, focus-color check, canvas branch name, screenshot path, bundle size, and protected-surface diff summary.</allowed>
+    <forbidden>Passwords, email addresses, access/refresh tokens, reset/verify token query values, API keys, VPN configs, MTProto secrets, proxy links, payment IDs, server credentials, and screenshot binary data in logs.</forbidden>
+    <retention>Local screenshots and smoke artifacts may live under /tmp/krotpn-phase67-* and must not be committed.</retention>
+  </telemetry-requirements>
+  <autonomous-execution-safety>
+    <allowed>Frontend user public/auth route files, user frontend CSS, user BrandMark/MatrixBackground/VisualShell compatibility edits, Phase-67 smoke, and MyGRACE docs.</allowed>
+    <blocked>Backend auth semantics, billing/tariffs, VPN, MTProto runtime, admin panel behavior, deploy/install scripts, nginx, docker-compose, TLS/DNS, Resend provider payloads, and release tagging.</blocked>
+    <handoff-trigger>Stop and report if the required result appears to need backend/API/deploy changes, a new image asset, a changed auth contract, or a browser issue that cannot be verified locally.</handoff-trigger>
+  </autonomous-execution-safety>
   <acceptance>Public / becomes a clean animated logo splash redirect, auth screens become compact frameless premium Matrix forms with requested Russian copy and red focus treatment, Matrix rain remains reliable or safely static across browsers, and all existing auth behavior remains unchanged.</acceptance>
   <risk-assessment>
     <risk-1 severity="high">A too-fast or inaccessible splash can confuse users; redirect timing, reduced-motion behavior, and direct /login availability must be explicit.</risk-1>
