@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /*
  * FILE: scripts/phase50-tariff-catalog-smoke.mjs
- * VERSION: 1.0.0
+ * VERSION: 1.1.0
  * ROLE: TEST
  * MAP_MODE: LOCALS
  * START_MODULE_CONTRACT
@@ -20,6 +20,7 @@
  * END_MODULE_MAP
  *
  * START_CHANGE_SUMMARY
+ *   LAST_CHANGE: v1.1.0 - Updated user tariff assertions for Phase-68 shared SubscriptionPanel display aliases.
  *   LAST_CHANGE: v1.0.0 - Added Phase-50 paid tariff catalog static smoke gate
  * END_CHANGE_SUMMARY
  */
@@ -76,6 +77,7 @@ const catalogPath = 'backend/app/billing/catalog.py'
 const servicePath = 'backend/app/billing/service.py'
 const routerPath = 'backend/app/billing/router.py'
 const subscriptionPath = 'frontend/src/pages/Subscription.tsx'
+const subscriptionPanelPath = 'frontend/src/components/SubscriptionPanel.tsx'
 const adminPlansPath = 'frontend-admin/src/pages/Plans.tsx'
 const adminTypesPath = 'frontend-admin/src/types/index.ts'
 const readmePath = 'README.md'
@@ -84,6 +86,8 @@ const catalog = read(catalogPath)
 const service = read(servicePath)
 const router = read(routerPath)
 const subscription = read(subscriptionPath)
+const subscriptionPanel = read(subscriptionPanelPath)
+const userSubscriptionSurface = `${subscription}\n${subscriptionPanel}`
 const adminPlans = read(adminPlansPath)
 const adminTypes = read(adminTypesPath)
 const readme = read(readmePath)
@@ -116,11 +120,18 @@ assertContains(router, 'status.HTTP_409_CONFLICT', routerPath)
 assertContains(router, 'is_canonical', routerPath)
 assertContains(router, 'sort_order', routerPath)
 
-assertContains(subscription, 'deviceApi.list()', subscriptionPath)
-assertContains(subscription, 'plan.device_limit', subscriptionPath)
-assertContains(subscription, 'plan.is_popular', subscriptionPath)
-assertContains(subscription, 'Сначала отзовите лишние', subscriptionPath)
-assertContains(subscription, 'Оплата создается backend по выбранному plan_id', subscriptionPath)
+assertContains(userSubscriptionSurface, 'deviceApi.list()', 'frontend subscription surface')
+assertContains(userSubscriptionSurface, 'plan.device_limit', 'frontend subscription surface')
+assertContains(userSubscriptionSurface, 'plan.is_popular', 'frontend subscription surface')
+assertContains(userSubscriptionSurface, 'Сначала отзовите лишние', 'frontend subscription surface')
+assertContains(userSubscriptionSurface, 'billingApi.createPayment(planId)', 'frontend subscription surface')
+assertContains(userSubscriptionSurface, 'KrotPN Self', 'frontend subscription surface')
+assertContains(userSubscriptionSurface, 'KrotPN Family', 'frontend subscription surface')
+assertContains(userSubscriptionSurface, 'KrotPN Team', 'frontend subscription surface')
+assertContains(userSubscriptionSurface, 'Персональный тариф', 'frontend subscription surface')
+assertContains(userSubscriptionSurface, 'Тариф для семьи', 'frontend subscription surface')
+assertContains(userSubscriptionSurface, 'Тариф для команды', 'frontend subscription surface')
+assertNotContains(userSubscriptionSurface, 'Оплата создается backend по выбранному plan_id', 'frontend subscription surface')
 
 assertContains(adminTypes, 'slug?: string | null', adminTypesPath)
 assertContains(adminTypes, 'is_canonical?: boolean', adminTypesPath)

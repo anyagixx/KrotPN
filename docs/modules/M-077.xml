@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<M-077 NAME="matrix-motion-interactions" TYPE="UI_COMPONENT" STATUS="done-local-phase59-pass-local-rainfix">
-  <path>frontend/src/components/MatrixBackground.tsx frontend/src/components/VisualShell.tsx frontend/src/pages/Dashboard.tsx frontend/src/pages/Config.tsx frontend/src/pages/Referrals.tsx frontend/src/index.css frontend-admin/src/components/MatrixBackground.tsx frontend-admin/src/components/VisualShell.tsx frontend-admin/src/pages/Devices.tsx frontend-admin/src/pages/MTProto.tsx frontend-admin/src/pages/MTProtoAnalytics.tsx frontend-admin/src/index.css docs/plans/Phase-59.xml scripts/phase59-motion-interactions-smoke.mjs</path>
+<M-077 NAME="matrix-motion-interactions" TYPE="UI_COMPONENT" STATUS="done-local-phase59-pass-local-rainfix-pass-local-phase68">
+  <path>frontend/src/components/MatrixBackground.tsx frontend/src/components/VisualShell.tsx frontend/src/pages/Dashboard.tsx frontend/src/pages/Config.tsx frontend/src/pages/Referrals.tsx frontend/src/components/SubscriptionPanel.tsx frontend/src/index.css frontend-admin/src/components/MatrixBackground.tsx frontend-admin/src/components/VisualShell.tsx frontend-admin/src/pages/Devices.tsx frontend-admin/src/pages/MTProto.tsx frontend-admin/src/pages/MTProtoAnalytics.tsx frontend-admin/src/index.css docs/plans/Phase-59.xml docs/plans/Phase-68.xml scripts/phase59-motion-interactions-smoke.mjs scripts/phase68-dashboard-subscription-smoke.mjs</path>
   <owns>Premium Matrix motion language and microinteractions across user and admin frontends.</owns>
   <purpose>Add high-quality interaction feedback without scroll hijacking, motion overload, or workflow blocking.</purpose>
   <exports>
@@ -31,6 +31,7 @@
     <item>2026-06-04: node scripts/phase52-matrix-visual-smoke.mjs, phase55-premium-art-direction-smoke.mjs, phase56-premium-public-auth-smoke.mjs, and phase57-premium-user-cabinet-smoke.mjs passed.</item>
     <item>2026-06-04: protected backend/deploy/runtime diff guard passed; post-commit Phase-58 regression smoke passed after HEAD included Phase-59 frontend changes.</item>
     <item>2026-06-04: rainfix updated Phase-59 smoke to assert CSS rain fallback, mobile overscan, visualViewport listeners, and root transform safety; node scripts/phase59-motion-interactions-smoke.mjs passed.</item>
+    <item>2026-06-04: Phase-68 reused motion-interactive/status primitives for compact dashboard/subscription controls; Phase-59 and Phase-68 smokes passed.</item>
   </evidence>
   <hotspot>H-064: Motion and microinteractions must respect reduced-motion, avoid scroll hijacking, and never block operational workflows.</hotspot>
 </M-077>

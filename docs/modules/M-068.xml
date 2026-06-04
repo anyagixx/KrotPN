@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<M-068 NAME="paid-tariff-catalog" TYPE="CORE_LOGIC" STATUS="done-local-phase50-phase53-phase54">
+<M-068 NAME="paid-tariff-catalog" TYPE="CORE_LOGIC" STATUS="done-local-phase50-phase53-phase54-pass-local-phase68">
   <path>backend/app/billing backend/app/core/migrations.py backend/alembic/versions/phase50_paid_tariff_catalog.py frontend/src/pages/Subscription.tsx frontend-admin/src/pages/Plans.tsx scripts/phase50-tariff-catalog-smoke.mjs scripts/phase53-user-matrix-ui-smoke.mjs scripts/phase54-admin-matrix-ui-smoke.mjs README.md docs/plans/Phase-50.xml docs/plans/Phase-53.xml docs/plans/Phase-54.xml</path>
   <owns>Canonical three-plan paid tariff catalog, server-authoritative payment amounts, device-limit checkout guards, and compact tariff presentation in user/admin frontends.</owns>
   <purpose>Guarantee that clean deployments and existing deployments converge to the approved KrotPN paid tariff matrix without trusting frontend-provided prices.</purpose>
@@ -28,12 +28,14 @@
     <file>backend/tests/test_device_access_policy.py</file>
     <file>backend/tests/test_db_migrations.py</file>
     <file>frontend/src/lib/api.ts</file>
+    <file>frontend/src/components/SubscriptionPanel.tsx</file>
     <file>frontend/src/pages/Subscription.tsx</file>
     <file>frontend-admin/src/pages/Plans.tsx</file>
     <file>frontend-admin/src/types/index.ts</file>
     <file>scripts/phase50-tariff-catalog-smoke.mjs</file>
     <file>scripts/phase53-user-matrix-ui-smoke.mjs</file>
     <file>scripts/phase54-admin-matrix-ui-smoke.mjs</file>
+    <file>scripts/phase68-dashboard-subscription-smoke.mjs</file>
     <file>README.md</file>
   </files>
   <tariffs>
@@ -58,7 +60,7 @@
     <metric-6>Phase-50 verification design is complete before execution: deterministic assertions, trace markers, UI/API contract, and protected-surface guard are explicitly mapped in V-M-068.</metric-6>
     <metric-7>Phase-53 smoke confirms Matrix subscription UI preserves canonical tariff slugs, server-authoritative checkout shape, and mobile readability.</metric-7>
   </acceptance-metrics>
-  <evidence>2026-06-03: Phase-53 and Phase-54 frontend/admin builds and smokes passed for Matrix tariff UI while preserving backend canonical 369/693/936 RUB prices, 1/6/9 device limits, plan_id-only checkout shape, and readonly admin canonical plan controls.</evidence>
+  <evidence>2026-06-03: Phase-53 and Phase-54 frontend/admin builds and smokes passed for Matrix tariff UI while preserving backend canonical 369/693/936 RUB prices, 1/6/9 device limits, plan_id-only checkout shape, and readonly admin canonical plan controls. 2026-06-04: Phase-68 smoke and Phase-50 tariff smoke passed after display aliases changed to KrotPN Self/Family/Team without changing canonical slugs, prices, limits, or checkout shape.</evidence>
   <phase-54-verification-design>
     <surface-1>Admin Plans Matrix verification must preserve exactly KrotPN 1/6/9 with 369/693/936 RUB prices and 1/6/9 device limits.</surface-1>
     <surface-2>Admin tariff UI must stay inspection-focused without accidental canonical edit/delete controls or frontend-controlled money fields.</surface-2>

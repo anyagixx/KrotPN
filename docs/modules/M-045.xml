@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<M-045 NAME="mtproto-user-cabinet" TYPE="UI_COMPONENT" STATUS="pass-local-phase46-phase53">
+<M-045 NAME="mtproto-user-cabinet" TYPE="UI_COMPONENT" STATUS="pass-local-phase46-phase53-pass-local-phase68">
   <path>frontend backend/app/mtproto backend/app/main.py scripts docs/plans/Phase-31.xml docs/plans/Phase-41.xml docs/plans/Phase-46.xml docs/plans/Phase-53.xml scripts/phase41-kpproton-faketls-smoke.mjs scripts/phase46-user-cabinet-ux-smoke.mjs scripts/phase53-user-matrix-ui-smoke.mjs</path>
   <owns>User-facing API and compact dashboard UI for personal free Telegram MTProto proxy access.</owns>
   <purpose>Show every verified user their free indefinite MTProto proxy alongside KrotPN trial and VPN actions in the mobile cabinet.</purpose>
@@ -23,6 +23,7 @@
     <file phase="41-pass-local">scripts/phase41-kpproton-faketls-smoke.mjs</file>
     <file phase="46-pass-local">scripts/phase46-user-cabinet-ux-smoke.mjs</file>
     <file phase="53-pass-local">scripts/phase53-user-matrix-ui-smoke.mjs</file>
+    <file phase="68-pass-local">scripts/phase68-dashboard-subscription-smoke.mjs</file>
   </files>
   <ui-contract>
     <primary>MTProto proxy status and copy/open actions fit the first mobile dashboard screen without hiding VPN trial state.</primary>
@@ -48,6 +49,7 @@
     <evidence-6>2026-05-23: Dashboard pending/degraded state now renders backend safe_message once; header text is neutral while the detailed state owns the user-actionable message.</evidence-6>
     <evidence-7>2026-06-01: Phase-46 frontend build and UX smoke passed for tg:// Telegram app action, https://t.me browser link, Russian labels, bounded status refresh, and no secret-bearing console output.</evidence-7>
     <evidence-8>2026-06-03: Phase-53 smoke passed for compact Matrix MTProto card, tg:// and https://t.me action preservation, Russian labels, 30s bounded refresh, and no secret-bearing console traces.</evidence-8>
+    <evidence-9>2026-06-04: Phase-68 smoke passed for MTProto-first dashboard placement, approved title/copy, removed stale helper text, tg:///https://t.me preservation, and redaction.</evidence-9>
   </evidence>
   <hotspot>H-031: User dashboard must show MTProto access compactly without hiding VPN trial status or config actions</hotspot>
 </M-045>

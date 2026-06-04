@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<V-M-071 MODULE="M-071" PRIORITY="high" STATUS="pass-local-phase52-phase53-phase54-phase55-phase56-phase59-pass-local-phase67-pass-local-rainfix" PHASE-54="pass-local" PHASE-55="pass-local" PHASE-56="pass-local" PHASE-59="pass-local" PHASE-67="pass-local" RAINFIX="pass-local" PHASE-68="verification-designed" PHASE-70="verification-designed">
+<V-M-071 MODULE="M-071" PRIORITY="high" STATUS="pass-local-phase52-phase53-phase54-phase55-phase56-phase59-pass-local-phase67-pass-local-rainfix-pass-local-phase68" PHASE-54="pass-local" PHASE-55="pass-local" PHASE-56="pass-local" PHASE-59="pass-local" PHASE-67="pass-local" RAINFIX="pass-local" PHASE-68="pass-local" PHASE-70="verification-designed">
   <scope>
     <phase>Phase-52</phase>
     <purpose>Verify the Matrix style system foundation for compact, readable, mobile-safe user and admin shells.</purpose>
@@ -214,7 +214,8 @@
       <summary>CSS fallback and overscan passed static and browser checks; user/admin mobile screenshots show Matrix rain behind content through the bottom edge without visible black cutoff.</summary>
     </rainfix-local-2026-06-04>
   </evidence>
-  <phase-68-verification-design status="planned">
+  <phase-68-execution-evidence>2026-06-04: Phase-68 CSS and route smokes passed for frameless user-shell logo, compact dashboard subscription panel, responsive tariff grid, compact cross-month calendar, and protected backend/deploy/runtime guard.</phase-68-execution-evidence>
+  <phase-68-verification-design status="pass-local">
     <scope>Matrix style verification for compact dashboard/subscription refactor.</scope>
     <gate-1>Dashboard, MTProto, subscription, tariff, calendar, referral, and settings controls must keep compact Matrix styling without nested-card bloat.</gate-1>
     <gate-2>Buttons must have visible hover/focus/active feedback, red-accent focus where auth style conventions apply, and reduced-motion fallback.</gate-2>

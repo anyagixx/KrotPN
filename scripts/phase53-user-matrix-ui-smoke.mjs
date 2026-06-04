@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /*
  * FILE: scripts/phase53-user-matrix-ui-smoke.mjs
- * VERSION: 1.1.0
+ * VERSION: 1.2.0
  * ROLE: TEST
  * MAP_MODE: LOCALS
  * START_MODULE_CONTRACT
@@ -20,6 +20,7 @@
  * END_MODULE_MAP
  *
  * START_CHANGE_SUMMARY
+ *   LAST_CHANGE: v1.2.0 - Accepted Phase-68 shared SubscriptionPanel as the user subscription/tariff owner.
  *   LAST_CHANGE: v1.1.0 - Updated auth token expectation to 60-day session helper and deploy lifetime exception.
  *   LAST_CHANGE: v1.0.0 - Added Phase-53 user cabinet Matrix redesign static smoke gate
  * END_CHANGE_SUMMARY
@@ -96,10 +97,12 @@ const verify = read('frontend/src/pages/VerifyEmail.tsx')
 const dashboard = read('frontend/src/pages/Dashboard.tsx')
 const config = read('frontend/src/pages/Config.tsx')
 const subscription = read('frontend/src/pages/Subscription.tsx')
+const subscriptionPanel = read('frontend/src/components/SubscriptionPanel.tsx')
 const referrals = read('frontend/src/pages/Referrals.tsx')
 const settings = read('frontend/src/pages/Settings.tsx')
 const api = read('frontend/src/lib/api.ts')
 const tariffCatalog = read('backend/app/billing/catalog.py')
+const subscriptionSurface = `${subscription}\n${subscriptionPanel}`
 
 for (const [label, source] of [
   ['frontend/src/index.css', css],
@@ -113,6 +116,7 @@ for (const [label, source] of [
   ['frontend/src/pages/Dashboard.tsx', dashboard],
   ['frontend/src/pages/Config.tsx', config],
   ['frontend/src/pages/Subscription.tsx', subscription],
+  ['frontend/src/components/SubscriptionPanel.tsx', subscriptionPanel],
   ['frontend/src/pages/Referrals.tsx', referrals],
   ['frontend/src/pages/Settings.tsx', settings],
 ]) {
@@ -240,17 +244,17 @@ for (const needle of [
   'remaining_days',
   'remaining_hours',
   'remaining_minutes',
-  'Trial на 4 дня',
+  'Конфиг уже доступен. Таймер на 4 дня стартует после первого подключения.',
   'data-phase45-subscription-calendar="true"',
 ]) {
-  assertContains(subscription + dashboard, needle, 'frontend subscription/dashboard trial UI')
+  assertContains(subscriptionSurface + dashboard, needle, 'frontend subscription/dashboard trial UI')
 }
-assertNotContains(subscription + dashboard + register + login, 'Trial на 3', 'frontend user routes')
-assertNotContains(subscription + dashboard + register + login, 'trial на 3', 'frontend user routes')
+assertNotContains(subscriptionSurface + dashboard + register + login, 'Trial на 3', 'frontend user routes')
+assertNotContains(subscriptionSurface + dashboard + register + login, 'trial на 3', 'frontend user routes')
 
 for (const slug of ['krotpn-1', 'krotpn-6', 'krotpn-9']) {
   assertContains(tariffCatalog, `slug="${slug}"`, 'backend/app/billing/catalog.py')
-  assertContains(subscription, slug, 'frontend/src/pages/Subscription.tsx')
+  assertContains(subscriptionSurface, slug, 'frontend subscription surface')
 }
 for (const price of ['price=369.0', 'price=693.0', 'price=936.0']) {
   assertContains(tariffCatalog, price, 'backend/app/billing/catalog.py')
@@ -258,16 +262,16 @@ for (const price of ['price=369.0', 'price=693.0', 'price=936.0']) {
 for (const limit of ['device_limit=1', 'device_limit=6', 'device_limit=9']) {
   assertContains(tariffCatalog, limit, 'backend/app/billing/catalog.py')
 }
-assertContains(subscription, 'data-phase53-tariff-catalog="canonical-three-plans"', 'frontend/src/pages/Subscription.tsx')
-assertContains(subscription, 'billingApi.createPayment(planId)', 'frontend/src/pages/Subscription.tsx')
-assertNotContains(subscription, 'createPayment(plan.price', 'frontend/src/pages/Subscription.tsx')
-assertNotContains(subscription, 'createPayment({', 'frontend/src/pages/Subscription.tsx')
+assertContains(subscriptionSurface, 'data-phase53-tariff-catalog="canonical-three-plans"', 'frontend subscription surface')
+assertContains(subscriptionSurface, 'billingApi.createPayment(planId)', 'frontend subscription surface')
+assertNotContains(subscriptionSurface, 'createPayment(plan.price', 'frontend subscription surface')
+assertNotContains(subscriptionSurface, 'createPayment({', 'frontend subscription surface')
 
 assertContains(config, 'CONFIG_DOWNLOAD_MIME_TYPE', 'frontend/src/pages/Config.tsx')
 assertContains(config, 'buildConfigDownloadFilename', 'frontend/src/pages/Config.tsx')
 assertContains(api, "CONFIG_DOWNLOAD_MIME_TYPE = 'application/octet-stream'", 'frontend/src/lib/api.ts')
 
-for (const source of [dashboard, config, subscription, referrals, settings]) {
+for (const source of [dashboard, config, subscriptionSurface, referrals, settings]) {
   assertContains(source, 'btn-', 'protected user route actions')
 }
 assertContains(config, 'QrCode', 'frontend/src/pages/Config.tsx')

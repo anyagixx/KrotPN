@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<M-009 NAME="frontend-user" TYPE="UI_COMPONENT" STATUS="pass-local-phase46-phase51-phase52-phase53-phase56-phase59-pass-local-phase67-pass-local-session60">
-  <path>frontend frontend/public frontend/index.html frontend/vite.config.ts frontend/src/lib/session.ts scripts/session-security-smoke.mjs scripts/phase59-motion-interactions-smoke.mjs docs/plans/Phase-67.xml scripts/phase67-auth-splash-smoke.mjs</path>
+<M-009 NAME="frontend-user" TYPE="UI_COMPONENT" STATUS="pass-local-phase46-phase51-phase52-phase53-phase56-phase59-pass-local-phase67-pass-local-session60-pass-local-phase68">
+  <path>frontend frontend/public frontend/index.html frontend/vite.config.ts frontend/src/lib/session.ts scripts/session-security-smoke.mjs scripts/phase59-motion-interactions-smoke.mjs docs/plans/Phase-67.xml docs/plans/Phase-68.xml scripts/phase67-auth-splash-smoke.mjs scripts/phase68-dashboard-subscription-smoke.mjs</path>
   <owns>login, verified registration, password recovery, verify-email activation, dashboard, config delivery, subscription management, pending trial countdown/calendar UX, referrals and settings UI with per-device config awareness</owns>
   <depends>M-002, M-003, M-004, M-005, M-022, M-039, M-070, M-071, M-077</depends>
   <verification-ref>V-M-009</verification-ref>
@@ -25,6 +25,7 @@
     <file>frontend/src/pages/VerifyEmail.tsx</file>
     <file>frontend/src/components/Layout.tsx</file>
     <file>frontend/src/components/Loading.tsx</file>
+    <file>frontend/src/components/SubscriptionPanel.tsx</file>
     <file>frontend/src/pages/Dashboard.tsx</file>
     <file>frontend/src/pages/Config.tsx</file>
     <file>frontend/src/pages/Subscription.tsx</file>
@@ -38,6 +39,7 @@
     <file>scripts/phase56-premium-public-auth-smoke.mjs</file>
     <file>scripts/session-security-smoke.mjs</file>
     <file>scripts/phase59-motion-interactions-smoke.mjs</file>
+    <file>scripts/phase68-dashboard-subscription-smoke.mjs</file>
   </files>
   <phase-23-scope>
     <primary-files>Layout.tsx, Dashboard.tsx, Config.tsx, Subscription.tsx, index.css</primary-files>
@@ -104,4 +106,7 @@
   <session60-execution-evidence>
     <local-2026-06-04>Follow-up session fix adds frontend/src/lib/session.ts, makes /login resume valid stored sessions across browser tabs, persists login/verify-email tokens through the session helper, and lets API/auth store enforce a 60-day idle TTL.</local-2026-06-04>
   </session60-execution-evidence>
+  <phase-68-execution-evidence>
+    <local-2026-06-04>Phase-68 introduces shared SubscriptionPanel, makes /dashboard the compact MTProto-first user cabinet with subscription/tariffs/calendar directly below, keeps /dashboard/subscription route-compatible, removes visible config raw/diagnostics panels, and passes frontend build plus Phase-68/45/50/53/57/62/60 verification gates.</local-2026-06-04>
+  </phase-68-execution-evidence>
 </M-009>

@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<V-M-075 MODULE="M-075" PRIORITY="high" STATUS="pass-local-phase59-phase62" PHASE-57="pass-local" PHASE-59="pass-local" PHASE-62="pass-local" PHASE-68="verification-designed" PHASE-70="verification-designed">
+<V-M-075 MODULE="M-075" PRIORITY="high" STATUS="pass-local-phase59-phase62-pass-local-phase68" PHASE-57="pass-local" PHASE-59="pass-local" PHASE-62="pass-local" PHASE-68="pass-local" PHASE-70="verification-designed">
   <scope>Phase-57/Phase-59 premium user cabinet evidence remains valid. Phase-62 verification now defines the compactness and deletion-audit contract for user cabinet, public/auth adjacency, compact UI invariants, responsive regressions, preserved primary workflows, redaction, and protected backend/deploy/runtime isolation.</scope>
   <test-files>
     <file>scripts/phase57-premium-user-cabinet-smoke.mjs</file>
@@ -54,6 +54,7 @@
   </module-checks>
   <evidence date="2026-06-04">Phase-57 implementation added premium protected user command center, /dashboard/* primary actions, compact config/subscription/referrals/settings surfaces, M-075 CSS primitives, and scripts/phase57-premium-user-cabinet-smoke.mjs. Frontend build and Phase-45/46/48/50/52/53/55/56 regression smokes passed. Phase-59 then added bounded copy/download/proxy feedback and status transitions; frontend build, Phase-59 smoke, Phase-57 regression smoke, and post-commit Phase-58 regression smoke passed. No backend API, billing catalog, VPN/MTProto runtime, deploy/install, nginx, docker-compose, or secret-handling surfaces were changed.</evidence>
   <evidence date="2026-06-04" phase="62" commit="3d09fa8">Phase-62 compactness/deletion audit folded dashboard traffic/server/device diagnostics, config import guidance/config diagnostics, subscription included/tariff details, and public feature/tariff detail copy into compact secondary panels while preserving VPN, subscription, MTProto, auth, password recovery, tariff, redaction, and responsive workflows. Frontend build, Phase-62 smoke, Phase-57/56/61/60 regressions, XML parse, MyGRACE lint, git diff --check, and protected backend/deploy/runtime guard passed.</evidence>
+  <evidence date="2026-06-04" phase="68">Phase-68 removed the dashboard command center and secondary fold, moved subscription/tariffs/calendar into a shared SubscriptionPanel below the MTProto card, kept /dashboard/subscription compatible, removed visible config raw/diagnostics, updated smokes, and passed user/admin builds plus Phase-45/46/50/53/57/58/60/61/62/63/67 regression gates.</evidence>
   <phase62-deletion-audit-contract>
     <classification>
       <remove>Duplicated marketing copy inside authenticated surfaces, redundant explanatory blocks, decorative-only panels, stale helper text, and repeated status cards that do not expose a unique action or state.</remove>
@@ -124,7 +125,7 @@
     <gate-5 level="phase-62">Authenticated screenshots may use static-route proof locally; live clean-deploy authenticated screenshot review remains required before production-signoff claims.</gate-5>
   </phase-gates>
   <autonomous-execution-safety>Safe for local autonomous execution if changes stay inside frontend user/public/auth routes, shared frontend CSS, Phase-62 smoke verification, and MyGRACE docs. Stop execution if a backend API change, billing catalog mutation, VPN/MTProto runtime change, deploy/install/nginx/docker-compose change, or secret-handling change appears necessary.</autonomous-execution-safety>
-  <phase-68-verification-design status="planned">
+  <phase-68-verification-design status="pass-local">
     <scope>User dashboard compaction, MTProto card copy, subscription merge into /dashboard, tariff/calendar presentation, user-shell logo treatment, and compact animated cabinet controls.</scope>
     <gate-1>/dashboard must not render phase57-command-center or phase62-secondary-fold.</gate-1>
     <gate-2>MTProto card must show the approved Russian title, remove the old helper copy, preserve tg:// and https://t.me links, and keep owner-only secret redaction.</gate-2>

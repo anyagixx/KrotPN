@@ -3,14 +3,14 @@
 // ROLE: UI_COMPONENT
 // MAP_MODE: SUMMARY
 // START_MODULE_CONTRACT
-//   PURPOSE: Premium compact Matrix VPN configuration page for device registry, config download/copy/QR, raw-config fallback, Phase-59 action feedback, and Phase-62 folded install guidance
-//   SCOPE: Device CRUD (create/rotate/revoke), selected config actions, QR modal, collapsed raw config, secondary install guidance, copy/download microinteractions, and status transitions
+//   PURPOSE: Premium compact Matrix VPN configuration page for device registry, config download/copy/QR, Phase-59 action feedback, and Phase-62 folded install guidance
+//   SCOPE: Device CRUD (create/rotate/revoke), selected config actions, QR modal, secondary install guidance, copy/download microinteractions, and status transitions
 //   DEPENDS: M-009 (frontend-user), M-003 (vpn config API), M-002 (auth API), M-022 (device provisioning API), M-036 (mobile-user-cabinet), M-038 (compact-ui-system), M-071 (matrix-style-system), M-074 (responsive-device-adaptation), M-075 (premium-user-cabinet), M-077 (matrix-motion-interactions)
 //   LINKS: M-009 (frontend-user), M-036 (mobile-user-cabinet), M-038, M-071, M-074, M-075, M-077, Phase-59, Phase-62
 // END_MODULE_CONTRACT
 //
 // START_MODULE_MAP
-//   ConfigPage - Premium compact config page component with device management, QR modal, collapsed raw config, and Phase-62 folded guidance
+//   ConfigPage - Premium compact config page component with device management, QR modal, and Phase-62 folded guidance
 //   QRModal - Client-side QR modal with AmneziaWG and AmneziaVPN guidance
 //   buildConfigDownloadBlob - Creates octet-stream config download blobs
 //   buildConfigDownloadFilename - Creates safe .conf download filenames
@@ -18,6 +18,7 @@
 // END_MODULE_MAP
 //
 // START_CHANGE_SUMMARY
+//   LAST_CHANGE: v3.5.0 - Removed Phase-68 visible raw config fallback and config diagnostics while preserving QR/download/copy/device workflows.
 //   LAST_CHANGE: v3.4.0 - Added Phase-62 config deletion audit markers and folded install diagnostics behind compact details surfaces.
 //   LAST_CHANGE: v3.3.0 - Added Phase-59 copy/download microinteraction markers and status transition classes.
 //   LAST_CHANGE: v3.2.0 - Added Phase-57 compact config command surface, protected subscription link, scroll-safe device list, and workflow markers.
@@ -32,7 +33,7 @@
 import { useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from 'react-query'
 import { useTranslation } from 'react-i18next'
-import { AlertTriangle, Check, Copy, Download, FileCode2, Laptop2, Monitor, Plus, QrCode, RotateCw, Smartphone, Trash2 } from 'lucide-react'
+import { AlertTriangle, Check, Copy, Download, Laptop2, Monitor, Plus, QrCode, RotateCw, Smartphone, Trash2 } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import toast from 'react-hot-toast'
 import QRCodeCanvas from 'qrcode.react'
@@ -78,7 +79,6 @@ export default function Config() {
   const [managedBundle, setManagedBundle] = useState<DeviceConfigBundle | null>(null)
   const [newDeviceName, setNewDeviceName] = useState('')
   const [newDevicePlatform, setNewDevicePlatform] = useState('')
-  const [showRawConfig, setShowRawConfig] = useState(false)
 
   const { data: configData, isLoading, error } = useQuery('vpn-config', () => vpnApi.getConfig())
   const { data: devicesData } = useQuery('device-list', () => deviceApi.list(), {
@@ -468,50 +468,6 @@ export default function Config() {
         />
       ) : null}
 
-      <section className="phase57-card-compact" data-phase57-raw-config="collapsed">
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-          <div className="min-w-0">
-            <h2 className="text-lg font-bold">Raw config fallback</h2>
-            <p className="mt-1 text-sm muted">Текст скрыт по умолчанию, чтобы не ломать мобильную ширину.</p>
-          </div>
-          <button onClick={() => setShowRawConfig((value) => !value)} className="btn-secondary motion-interactive min-h-11 shrink-0 rounded-lg px-3 py-2.5">
-            <FileCode2 className="h-5 w-5" />
-            {showRawConfig ? 'Скрыть' : 'Показать'}
-          </button>
-        </div>
-
-        {showRawConfig ? (
-          <pre className="matrix-terminal mt-4 max-h-72 whitespace-pre-wrap break-all">
-            {config?.config || 'Конфигурация недоступна'}
-          </pre>
-        ) : null}
-      </section>
-
-      {config ? (
-        <details className="phase62-secondary-fold" data-phase62-collapse="config-diagnostics">
-          <summary className="phase62-fold-summary">
-            <span className="flex min-w-0 items-center gap-2">
-              <FileCode2 className="h-4 w-4 shrink-0 text-cyan-100" />
-              <span className="truncate font-semibold">Диагностика конфига</span>
-            </span>
-            <span className="text-xs muted">{config.address}</span>
-          </summary>
-          <section className="mt-3 grid gap-3 md:grid-cols-3">
-            <div className="metric-card">
-              <p className="metric-label">Статус</p>
-              <p className="mt-1 truncate font-bold">Connected to Server</p>
-            </div>
-            <div className="metric-card">
-              <p className="metric-label">VPN IP</p>
-              <p className="mt-1 break-all font-bold">{config.address}</p>
-            </div>
-            <div className="metric-card">
-              <p className="metric-label">Создан</p>
-              <p className="mt-1 font-bold">{new Date(config.created_at).toLocaleDateString('ru-RU')}</p>
-            </div>
-          </section>
-        </details>
-      ) : null}
     </div>
   )
 }

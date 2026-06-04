@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /*
  * FILE: scripts/phase58-premium-admin-cockpit-smoke.mjs
- * VERSION: 1.2.0
+ * VERSION: 1.3.0
  * ROLE: TEST
  * MAP_MODE: LOCALS
  * START_MODULE_CONTRACT
@@ -21,6 +21,7 @@
  * END_MODULE_MAP
  *
  * START_CHANGE_SUMMARY
+ *   LAST_CHANGE: v1.3.0 - Allowed explicitly scoped Phase-68 user cabinet compaction diffs while preserving admin/backend/deploy/runtime protection.
  *   LAST_CHANGE: v1.2.0 - Allowed shared user VisualShell Matrix reliability diff while preserving backend/deploy/runtime protection.
  *   LAST_CHANGE: v1.1.0 - Allowed explicitly scoped Phase-67 user auth/splash diffs while preserving admin/backend/deploy/runtime protection.
  *   LAST_CHANGE: v1.0.0 - Added Phase-58 premium admin cockpit static smoke gate.
@@ -85,17 +86,22 @@ function assertProtectedSurfaceDiffClean() {
     return
   }
 
-  const allowedPhase67UserDiffs = new Set([
+  const allowedUserDiffs = new Set([
     'frontend/src/components/MatrixBackground.tsx',
     'frontend/src/components/VisualShell.tsx',
+    'frontend/src/components/Layout.tsx',
+    'frontend/src/components/SubscriptionPanel.tsx',
     'frontend/src/index.css',
+    'frontend/src/pages/Config.tsx',
+    'frontend/src/pages/Dashboard.tsx',
     'frontend/src/pages/ForgotPassword.tsx',
     'frontend/src/pages/Landing.tsx',
     'frontend/src/pages/Login.tsx',
     'frontend/src/pages/Register.tsx',
     'frontend/src/pages/ResetPassword.tsx',
+    'frontend/src/pages/Subscription.tsx',
   ])
-  const unapproved = diff.split('\n').filter((path) => !allowedPhase67UserDiffs.has(path))
+  const unapproved = diff.split('\n').filter((path) => !allowedUserDiffs.has(path))
   if (unapproved.length > 0) {
     throw new Error(`Phase-58 must not change backend/deploy/runtime/admin-protected surfaces: ${unapproved.join('\n')}`)
   }

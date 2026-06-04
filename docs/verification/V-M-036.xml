@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<V-M-036 MODULE="M-036" PRIORITY="high" STATUS="pass-local-phase46-phase53" VERSION="1.4.0" PHASE-68="verification-designed" PHASE-69="verification-designed" PHASE-70="verification-designed">
+<V-M-036 MODULE="M-036" PRIORITY="high" STATUS="pass-local-phase46-phase53-pass-local-phase68" VERSION="1.5.0" PHASE-68="pass-local" PHASE-69="verification-designed" PHASE-70="verification-designed">
   <module>mobile-user-cabinet</module>
   <checks>User frontend must become compact, phone-friendly, and focused on VPN config, subscription, device workflows, and Phase-45 pending trial countdown/calendar UX.</checks>
   <test-files>frontend/src/components/Layout.tsx frontend/src/components/Loading.tsx frontend/src/pages/Dashboard.tsx frontend/src/pages/Config.tsx frontend/src/pages/Subscription.tsx frontend/src/pages/Referrals.tsx frontend/src/pages/Settings.tsx frontend/src/index.css scripts/phase45-trial-subscription-ux-smoke.mjs scripts/phase46-user-cabinet-ux-smoke.mjs scripts/phase53-user-matrix-ui-smoke.mjs</test-files>
@@ -88,11 +88,12 @@
     <evidence-6>2026-06-01: frontend npm run build passed and node scripts/phase45-trial-subscription-ux-smoke.mjs passed for pending trial copy, countdown fields, active-date calendar marker, and stale 3-day copy guard.</evidence-6>
     <evidence-7>2026-06-01: frontend npm run build passed and node scripts/phase46-user-cabinet-ux-smoke.mjs passed for password example, MTProto dual links, Russian labels, and bounded status refresh.</evidence-7>
     <evidence-8>2026-06-03: frontend npm run build and node scripts/phase53-user-matrix-ui-smoke.mjs passed for Matrix dashboard/config/subscription/referrals/settings route structure, primary action reachability, state surfaces, and protected deploy/install isolation.</evidence-8>
+    <evidence-9>2026-06-04: Phase-68 frontend build and dashboard/subscription smoke passed after /dashboard became the compact MTProto-first cabinet with subscription, tariff, and calendar controls directly below it.</evidence-9>
   </evidence>
   <autonomous-execution-safety status="allowed-after-build-and-mobile-smoke">
     Autonomous execution may proceed inside Phase-23 user frontend files if each step preserves module contracts, keeps deploy/install out of scope, and records build plus viewport evidence before commit.
   </autonomous-execution-safety>
-  <phase-68-verification-design status="planned">
+  <phase-68-verification-design status="pass-local">
     <scope>User cabinet layout verification for the merged dashboard/subscription flow.</scope>
     <gate-1>Sidebar/top logo must use the unframed visual treatment and must not crowd mobile navigation.</gate-1>
     <gate-2>Primary dashboard content order must be MTProto first, subscription second, without decorative command-center or secondary-fold bloat.</gate-2>

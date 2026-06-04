@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<M-074 NAME="responsive-device-adaptation" TYPE="UI_COMPONENT" STATUS="pass-local-phase61-pass-local-phase62-pass-local-phase67-pass-local-rainfix">
-  <path>frontend frontend-admin docs/plans/Phase-61.xml docs/plans/Phase-62.xml docs/plans/Phase-67.xml scripts/phase61-responsive-adaptation-smoke.mjs scripts/phase62-compactness-deletion-smoke.mjs scripts/phase67-auth-splash-smoke.mjs</path>
+<M-074 NAME="responsive-device-adaptation" TYPE="UI_COMPONENT" STATUS="pass-local-phase61-pass-local-phase62-pass-local-phase67-pass-local-rainfix-pass-local-phase68">
+  <path>frontend frontend-admin docs/plans/Phase-61.xml docs/plans/Phase-62.xml docs/plans/Phase-67.xml docs/plans/Phase-68.xml scripts/phase61-responsive-adaptation-smoke.mjs scripts/phase62-compactness-deletion-smoke.mjs scripts/phase67-auth-splash-smoke.mjs scripts/phase68-dashboard-subscription-smoke.mjs</path>
   <owns>Phone, tablet, and desktop responsive closure for public, user, and admin Matrix surfaces.</owns>
   <purpose>Make the premium frontend usable and compact across mobile phones, tablets, and desktop screens.</purpose>
   <exports>
@@ -36,6 +36,7 @@
     <metric-3 status="pass-local-phase61">Reduced-motion proof remains readable across phone and tablet viewport classes.</metric-3>
     <metric-4 status="pass-local-phase62">Phase-62 folded surfaces keep 44px summaries, no horizontal-scroll guards, bounded lists, and responsive compactness markers.</metric-4>
     <metric-5 status="pass-local-rainfix">390x844 user/admin browser screenshots show Matrix rain/fallback through the bottom viewport edge.</metric-5>
+    <metric-6 status="pass-local-phase68">Phase-68 compact dashboard subscription/tariff/calendar layout stays within Phase-61 responsive budgets and Phase-60 QA bundle limits.</metric-6>
   </acceptance-metrics>
   <phase-67-verification-design>
     <scope>Apply responsive closure to the new splash-only / route and frameless auth screens without changing protected user/admin layouts.</scope>
@@ -52,6 +53,7 @@
     <item>2026-06-04: Phase-62 compactness/deletion audit smoke and Phase-61 responsive regression passed after adding user/admin details folds and bounded secondary surfaces.</item>
     <item>2026-06-04: Phase-67 auth/splash responsive work passed frontend/admin builds, Phase-67 smoke, Phase-60 QA, Phase-61 responsive, Phase-62 compactness, and protected backend/deploy/admin/runtime guards for large unframed logo, red-focus inputs, secondary auth actions, and reduced-motion fallback.</item>
     <item>2026-06-04: Matrix rain reliability hotfix added Phase-61 assertions for .matrix-rain-fallback and 100dvh+128px overscan. User/admin builds, Phase-61 smoke, Phase-60 QA regression, Chrome mobile screenshots, bottom-pixel sanity, and protected backend/deploy/runtime guard passed.</item>
+    <item>2026-06-04: Phase-68 dashboard subscription merge passed Phase-61 responsive smoke, Phase-60 QA, frontend/admin builds, and compact calendar/tariff no-overlap guards.</item>
   </evidence>
   <hotspot>H-061: Tablet and mobile adaptation must be verified on real breakpoint classes, not inferred from desktop layouts.</hotspot>
 </M-074>

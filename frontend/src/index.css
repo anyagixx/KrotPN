@@ -3,8 +3,8 @@
  * ROLE: UI_COMPONENT
  * MAP_MODE: SUMMARY
  * START_MODULE_CONTRACT
- *   PURPOSE: Shared user-frontend styling tokens, compact Matrix route surfaces, Matrix visual foundation, Phase-55 premium art direction, Phase-57 user command surfaces, Phase-59 motion language, Phase-61 phone/tablet adaptation gates, Phase-62 deletion-audit compaction, Phase-63 visible brand logo placement, Phase-67 frameless auth/splash polish, and Matrix rain reliability fallback
- *   SCOPE: Base typography, premium palette/type/density/logo tokens, Matrix background/canvas/CRT layers, CSS rain fallback and mobile overscan, auth/page/layout surfaces, visible Phase-63/67 brand mark classes, panel/button/input/status/metric/empty-state classes, Phase-57 dense command cards, Phase-59 motion/microinteraction primitives, Phase-61 responsive phone/tablet/safe-area rules, Phase-62 folded secondary surfaces, Phase-67 splash/auth controls, focus and reduced-motion policy
+ *   PURPOSE: Shared user-frontend styling tokens, compact Matrix route surfaces, Matrix visual foundation, Phase-55 premium art direction, Phase-57 user command surfaces, Phase-59 motion language, Phase-61 phone/tablet adaptation gates, Phase-62 deletion-audit compaction, Phase-63 visible brand logo placement, Phase-67 frameless auth/splash polish, Phase-68 dashboard subscription compaction, and Matrix rain reliability fallback
+ *   SCOPE: Base typography, premium palette/type/density/logo tokens, Matrix background/canvas/CRT layers, CSS rain fallback and mobile overscan, auth/page/layout surfaces, visible Phase-63/67/68 brand mark classes, panel/button/input/status/metric/empty-state classes, Phase-57 dense command cards, Phase-59 motion/microinteraction primitives, Phase-61 responsive phone/tablet/safe-area rules, Phase-62 folded secondary surfaces, Phase-67 splash/auth controls, Phase-68 compact tariff/calendar rules, focus and reduced-motion policy
  *   DEPENDS: M-009 (frontend-user), M-036 (mobile-user-cabinet), M-038 (compact-ui-system), M-070 (matrix-visual-runtime), M-071 (matrix-style-system), M-072 (premium-art-direction-system), M-074 (responsive-device-adaptation), M-075 (premium-user-cabinet), M-077 (matrix-motion-interactions), M-080 (visible-brand-logo-integration)
  *   LINKS: M-009 (frontend-user), M-036 (mobile-user-cabinet), M-038 (compact-ui-system), M-070, M-071, M-072, M-074, M-075, M-077, M-080, Phase-61, Phase-63, Phase-67
  * END_MODULE_CONTRACT
@@ -23,6 +23,7 @@
  *
  * START_CHANGE_SUMMARY
  *   LAST_CHANGE: v4.0.0 - Added Matrix rain CSS fallback, normal canvas blending, and mobile overscan to prevent blank/cut-off rain in live browsers.
+ *   LAST_CHANGE: v3.11.0 - Added Phase-68 dashboard subscription merge styles, frameless shell logo, compact plan grid, and miniature cross-month calendar.
  *   LAST_CHANGE: v3.9.0 - Added Phase-67 splash-only public route, frameless auth panel, red-focus fields, large unframed logo, and responsive/reduced-motion auth polish.
  *   LAST_CHANGE: v3.8.0 - Added Phase-63 visible brand logo classes for public/auth and protected user shell placement.
  *   LAST_CHANGE: v3.7.0 - Added Phase-62 deletion audit fold primitives for public/auth, dashboard, config, and subscription secondary content.
@@ -395,6 +396,17 @@
 
   .matrix-public-brand .phase63-brand-text {
     @apply text-lg;
+  }
+
+  .phase68-shell-logo .phase63-brand-mark {
+    background: transparent;
+    border-color: transparent;
+    box-shadow: none;
+    border-radius: 0;
+  }
+
+  .phase68-shell-logo .phase63-brand-image {
+    filter: drop-shadow(0 0 10px rgba(96, 255, 155, 0.18));
   }
   /* [VisibleBrandLogo][phase63][PUBLIC_AUTH_LOGO_VISIBLE] */
   /* [VisibleBrandLogo][phase63][USER_SHELL_LOGO_SAFE] */
@@ -829,6 +841,54 @@
     grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
   }
   /* END_BLOCK_PHASE57_USER_CABINET_SURFACES */
+
+  /* START_BLOCK_PHASE68_DASHBOARD_SUBSCRIPTION_COMPACTION */
+  .phase68-subscription-panel {
+    min-width: 0;
+  }
+
+  .phase68-plan-grid {
+    @apply grid gap-3;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  }
+
+  .phase68-calendar-months {
+    @apply grid gap-3;
+    grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+  }
+
+  .phase68-calendar-month {
+    @apply min-w-0 rounded-lg border p-2;
+    border-color: rgba(104, 232, 255, 0.11);
+    background: rgba(0, 10, 7, 0.34);
+  }
+
+  .phase68-calendar-day {
+    @apply flex aspect-square min-h-7 items-center justify-center rounded-md border text-xs font-semibold;
+    min-width: 0;
+  }
+
+  .phase68-calendar-day-idle {
+    border-color: rgba(255, 255, 255, 0.08);
+    background: rgba(255, 255, 255, 0.03);
+    color: #dce7e4;
+  }
+
+  .phase68-calendar-day-active {
+    border-color: rgba(110, 255, 185, 0.45);
+    background: rgba(96, 255, 155, 0.18);
+    color: #effff5;
+  }
+
+  .phase68-calendar-day-start,
+  .phase68-calendar-day-end {
+    border-color: rgba(255, 92, 92, 0.72);
+    box-shadow: inset 0 0 0 1px rgba(255, 92, 92, 0.36);
+  }
+  /* [Phase68][DashboardSubscription][COMPACT_MERGE_READY] */
+  /* [Phase68][DashboardSubscription][CROSS_MONTH_CALENDAR_READY] */
+  /* [VisibleBrandLogo][phase68][FRAMELESS_USER_SHELL_LOGO] */
+  /* END_BLOCK_PHASE68_DASHBOARD_SUBSCRIPTION_COMPACTION */
 
   /* START_BLOCK_PHASE62_COMPACTNESS_DELETION_AUDIT */
   .phase62-secondary-fold,

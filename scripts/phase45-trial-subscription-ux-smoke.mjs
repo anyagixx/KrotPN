@@ -1,12 +1,12 @@
 #!/usr/bin/env node
 /*
  * FILE: scripts/phase45-trial-subscription-ux-smoke.mjs
- * VERSION: 1.0.0
+ * VERSION: 1.1.0
  * ROLE: TEST
  * MAP_MODE: LOCALS
  * START_MODULE_CONTRACT
  *   PURPOSE: Static smoke checks for Phase-45 subscription countdown and calendar UX wiring
- *   SCOPE: Frontend API type fields, dashboard pending-trial copy, subscription calendar marker, and stale 3-day copy guard
+ *   SCOPE: Frontend API type fields, dashboard-owned subscription panel, pending-trial copy, subscription calendar marker, and stale 3-day copy guard
  *   DEPENDS: M-009, M-063
  *   LINKS: V-M-063
  * END_MODULE_CONTRACT
@@ -18,6 +18,7 @@
  * END_MODULE_MAP
  *
  * START_CHANGE_SUMMARY
+ *   LAST_CHANGE: v1.1.0 - Updated assertions for Phase-68 dashboard-owned compact subscription panel.
  *   LAST_CHANGE: v1.0.0 - Added Phase-45 subscription UX static smoke
  * END_CHANGE_SUMMARY
  */
@@ -47,10 +48,13 @@ function assertNotContains(path, needle) {
 
 assertContains('frontend/src/lib/api.ts', 'pending_activation: boolean')
 assertContains('frontend/src/lib/api.ts', 'remaining_minutes: number')
-assertContains('frontend/src/pages/Dashboard.tsx', 'dashboard-subscription')
-assertContains('frontend/src/pages/Dashboard.tsx', 'Старт после VPN')
-assertContains('frontend/src/pages/Subscription.tsx', 'data-phase45-subscription-calendar="true"')
-assertContains('frontend/src/pages/Subscription.tsx', 'Бесплатный trial на 4 дня')
+assertContains('frontend/src/pages/Dashboard.tsx', '<SubscriptionPanel compact />')
+assertContains('frontend/src/components/SubscriptionPanel.tsx', 'id="dashboard-subscription"')
+assertContains('frontend/src/components/SubscriptionPanel.tsx', 'data-phase45-subscription-calendar="true"')
+assertContains('frontend/src/components/SubscriptionPanel.tsx', 'Конфиг уже доступен. Таймер на 4 дня стартует после первого подключения.')
+assertContains('frontend/src/components/SubscriptionPanel.tsx', 'remaining_minutes')
+assertContains('frontend/src/pages/Subscription.tsx', 'data-phase68-subscription-route="compatibility-wrapper"')
 assertNotContains('frontend/src/pages/Subscription.tsx', "trialDays', { days: 3")
+assertNotContains('frontend/src/components/SubscriptionPanel.tsx', 'Trial начнется после первого VPN подключения')
 
 console.log('[M-063][phase45-ux-smoke][PASS] subscription countdown and calendar wiring present')

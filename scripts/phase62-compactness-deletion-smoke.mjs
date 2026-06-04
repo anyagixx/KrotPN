@@ -1,12 +1,12 @@
 #!/usr/bin/env node
 /*
  * FILE: scripts/phase62-compactness-deletion-smoke.mjs
- * VERSION: 1.1.0
+ * VERSION: 1.2.0
  * ROLE: TEST
  * MAP_MODE: LOCALS
  * START_MODULE_CONTRACT
- *   PURPOSE: Static smoke verification for Phase-62 compactness and deletion audit with Phase-67 splash supersession awareness
- *   SCOPE: User/public/admin folded secondary surfaces, Phase-67 splash public replacement, preserved primary workflows, bounded admin inventories, redaction/confirmation invariants, responsive compaction markers, and protected backend/deploy/runtime guard
+ *   PURPOSE: Static smoke verification for Phase-62 compactness/deletion audit with Phase-67 splash and Phase-68 dashboard compaction awareness
+ *   SCOPE: User/public/admin compact secondary surfaces, Phase-67 splash public replacement, Phase-68 dashboard-owned subscription, preserved primary workflows, bounded admin inventories, redaction/confirmation invariants, responsive compaction markers, and protected backend/deploy/runtime guard
  *   DEPENDS: M-075, M-076, M-038, M-073, M-074
  *   LINKS: V-M-075, V-M-076, docs/plans/Phase-62.xml, docs/modules/M-075.xml, docs/modules/M-076.xml
  * END_MODULE_CONTRACT
@@ -21,6 +21,7 @@
  * END_MODULE_MAP
  *
  * START_CHANGE_SUMMARY
+ *   LAST_CHANGE: v1.2.0 - Accepted Phase-68 deletion of dashboard secondary folds/raw config while preserving primary workflows.
  *   LAST_CHANGE: v1.1.0 - Accepted Phase-67 splash-only public route while preserving public/auth clarity markers.
  *   LAST_CHANGE: v1.0.0 - Added Phase-62 compactness/deletion audit smoke gate.
  * END_CHANGE_SUMMARY
@@ -92,6 +93,7 @@ const adminCss = read('frontend-admin/src/index.css')
 const dashboard = read('frontend/src/pages/Dashboard.tsx')
 const config = read('frontend/src/pages/Config.tsx')
 const subscription = read('frontend/src/pages/Subscription.tsx')
+const subscriptionPanel = read('frontend/src/components/SubscriptionPanel.tsx')
 const referrals = read('frontend/src/pages/Referrals.tsx')
 const settings = read('frontend/src/pages/Settings.tsx')
 const landing = read('frontend/src/pages/Landing.tsx')
@@ -107,6 +109,7 @@ const adminMtprotoAnalytics = read('frontend-admin/src/pages/MTProtoAnalytics.ts
 const adminServers = read('frontend-admin/src/pages/Servers.tsx')
 const adminPlans = read('frontend-admin/src/pages/Plans.tsx')
 const adminAnalytics = read('frontend-admin/src/pages/Analytics.tsx')
+const userSubscriptionSurface = `${subscription}\n${subscriptionPanel}`
 
 for (const [label, source] of [
   ['frontend/src/index.css', userCss],
@@ -114,6 +117,7 @@ for (const [label, source] of [
   ['frontend/src/pages/Dashboard.tsx', dashboard],
   ['frontend/src/pages/Config.tsx', config],
   ['frontend/src/pages/Subscription.tsx', subscription],
+  ['frontend/src/components/SubscriptionPanel.tsx', subscriptionPanel],
   ['frontend/src/pages/Landing.tsx', landing],
   ['frontend-admin/src/pages/MTProtoAnalytics.tsx', adminMtprotoAnalytics],
   ['frontend-admin/src/pages/Servers.tsx', adminServers],
@@ -130,9 +134,13 @@ for (const [label, source] of [
   ['frontend/src/pages/Subscription.tsx', subscription],
 ]) {
   assertContains(source, 'data-phase62-user-surface=', label)
-  assertContains(source, 'data-phase62-collapse=', label)
-  assertContains(source, '[CompactDeletionAudit][phase62][PRIMARY_WORKFLOWS_PRESERVED]', label)
 }
+assertContains(dashboard, 'data-phase68-dashboard="mtproto-subscription-compact"', 'frontend/src/pages/Dashboard.tsx')
+assertContains(dashboard, '<SubscriptionPanel compact />', 'frontend/src/pages/Dashboard.tsx')
+assertContains(subscription, 'data-phase68-subscription-route="compatibility-wrapper"', 'frontend/src/pages/Subscription.tsx')
+assertContains(userSubscriptionSurface, '[CompactDeletionAudit][phase62][PRIMARY_WORKFLOWS_PRESERVED]', 'frontend subscription surface')
+assertContains(config, '[CompactDeletionAudit][phase62][PRIMARY_WORKFLOWS_PRESERVED]', 'frontend/src/pages/Config.tsx')
+assertContains(config, 'data-phase62-collapse=', 'frontend/src/pages/Config.tsx')
 
 assertContains(userCss, 'START_BLOCK_PHASE62_COMPACTNESS_DELETION_AUDIT', 'frontend/src/index.css')
 assertContains(userCss, '.phase62-secondary-fold', 'frontend/src/index.css')
@@ -140,22 +148,20 @@ assertContains(userCss, '.phase62-inline-details', 'frontend/src/index.css')
 assertContains(userCss, '.phase62-public-fold', 'frontend/src/index.css')
 assertContains(userCss, 'min-height: 44px', 'frontend/src/index.css')
 assertContains(userCss, '[CompactDeletionAudit][phase62][RESPONSIVE_COMPACTNESS_PRESERVED]', 'frontend/src/index.css')
-assertAtLeast(dashboard + config + subscription + landing, 'data-phase62-collapse=', 5, 'user/public folded surfaces')
+assertAtLeast(dashboard + config + subscription + subscriptionPanel + landing, '[CompactDeletionAudit][phase62][PRIMARY_WORKFLOWS_PRESERVED]', 2, 'user/public preserved primary workflows')
 
 for (const needle of [
-  'data-phase57-primary-actions-reachable="true"',
-  'data-phase57-primary-action="vpn-config"',
-  'data-phase57-primary-action="subscription"',
-  'data-phase57-primary-action="mtproto-copy"',
+  'data-phase68-dashboard="mtproto-subscription-compact"',
+  '<SubscriptionPanel compact />',
+  'data-phase68-dashboard-subscription="merged"',
   'data-phase57-config-actions="qr-download-copy"',
-  'data-phase57-raw-config="collapsed"',
   'data-phase57-subscription-countdown="server-derived"',
   'data-phase57-subscription-calendar="active-range"',
   'billingApi.createPayment(planId)',
   'tg://proxy?',
   'https://t.me/proxy?',
 ]) {
-  assertContains(dashboard + config + subscription, needle, 'preserved user workflows')
+  assertContains(dashboard + config + userSubscriptionSurface, needle, 'preserved user workflows')
 }
 
 assertContains(landing, 'data-phase62-public-auth="[CompactDeletionAudit][phase62][PUBLIC_AUTH_CLARITY_PRESERVED]"', 'frontend/src/pages/Landing.tsx')
@@ -216,11 +222,16 @@ for (const prohibited of [
   'createPayment(plan.price',
   'Trial на 3',
   'trial на 3',
+  'data-phase57-raw-config="collapsed"',
+  'data-phase57-command-center="true"',
+  'data-phase57-dashboard-signal-strip="true"',
+  'Индивидуальный Telegram proxy готов к использованию.',
+  'Личный proxy',
   'radial-gradient(',
   'font-size: clamp(',
   'font-size: calc(',
 ]) {
-  assertNotContains(userCss + adminCss + dashboard + config + subscription + landing + adminMtprotoAnalytics + adminServers, prohibited, 'Phase-62 compactness surfaces')
+  assertNotContains(userCss + adminCss + dashboard + config + userSubscriptionSurface + landing + adminMtprotoAnalytics + adminServers, prohibited, 'Phase-62 compactness surfaces')
 }
 
 assertProtectedSurfaceDiffClean()

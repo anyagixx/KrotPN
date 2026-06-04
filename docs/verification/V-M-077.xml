@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<V-M-077 MODULE="M-077" PRIORITY="high" STATUS="pass-local-rainfix" PHASE-59="pass-local" RAINFIX="pass-local" PHASE-68="verification-designed">
+<V-M-077 MODULE="M-077" PRIORITY="high" STATUS="pass-local-rainfix-pass-local-phase68" PHASE-59="pass-local" RAINFIX="pass-local" PHASE-68="pass-local">
   <scope>Phase-59 verification for premium Matrix motion and microinteractions across user and admin frontends: copy/download/proxy feedback, VPN/MTProto/subscription/alert/health state transitions, route entrance motion, reduced-motion fallback, inactive-tab lifecycle, keyboard/pointer/scroll safety, and protected-surface isolation.</scope>
   <test-files>
     <file>scripts/phase59-motion-interactions-smoke.mjs</file>
@@ -56,6 +56,7 @@
     <item>2026-06-04: Phase-52, Phase-55, Phase-56, Phase-57, and post-commit Phase-58 regression smokes passed.</item>
     <item>2026-06-04: XML parse, MyGRACE lint, git diff --check, and protected backend/deploy/runtime guard passed.</item>
     <item>2026-06-04: Rainfix Phase-59 smoke passed after moving motion-route-enter from the root shell to matrix-visual-content and adding CSS_RAIN_FALLBACK_READY/MOBILE_OVERSCAN_READY assertions.</item>
+    <item>2026-06-04: Phase-68 kept dashboard/config/subscription buttons on existing motion-interactive primitives; Phase-59 and Phase-68 smokes passed with reduced-motion and protected-surface guards.</item>
   </evidence>
   <verification-matrix>
     <target-1 evidence="static-and-interaction">Copy, download, QR/config, Telegram proxy, and promo/status feedback use short visible success/error states without blocking forms, buttons, links, or route navigation.</target-1>
@@ -106,7 +107,7 @@
     <gate-4 level="rainfix" status="passed-local">Route transition animation must remain on the content layer so fixed Matrix canvas/fallback layers are never clipped by a transformed root ancestor.</gate-4>
   </phase-gates>
   <autonomous-execution-safety>Safe for autonomous local execution if changes stay inside user/admin frontend Matrix components, CSS, route wrappers, microinteraction helpers, Phase-59 smoke verification, and MyGRACE docs. Stop if implementation appears to require backend API changes, auth/session changes, deploy/install/nginx/docker-compose changes, MTProto/VPN runtime changes, billing catalog changes, or secret-handling changes.</autonomous-execution-safety>
-  <phase-68-verification-design status="planned">
+  <phase-68-verification-design status="pass-local">
     <scope>Cabinet button and status microinteraction verification.</scope>
     <gate-1>All user-cabinet buttons must have compact hover, active, focus, loading, and disabled states.</gate-1>
     <gate-2>Motion must not hide subscription countdown, tariff price, MTProto secret, QR actions, or referral controls.</gate-2>

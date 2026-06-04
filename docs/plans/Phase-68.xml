@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Phase-68 NAME="User Dashboard Subscription Merge and Cabinet Compaction" STATUS="planned" VERSION="1.0.0" MODULES="M-075,M-036,M-045,M-063,M-068,M-071,M-074,M-077,M-080,M-009" CREATED="2026-06-04" UPDATED="2026-06-04">
+<Phase-68 NAME="User Dashboard Subscription Merge and Cabinet Compaction" STATUS="done-local" VERSION="1.1.0" MODULES="M-075,M-036,M-045,M-063,M-068,M-071,M-074,M-077,M-080,M-009" CREATED="2026-06-04" UPDATED="2026-06-04">
   <purpose>Make the authenticated user dashboard the compact primary working surface by removing low-value folds, moving subscription/tariff/calendar controls onto /dashboard, and preserving VPN, MTProto, config, and billing actions on mobile.</purpose>
   <scope>
     <in>User dashboard layout, MTProto card copy, user shell logo styling, subscription card/tariff/calendar presentation, user-cabinet button microinteractions, /dashboard/subscription route compatibility, frontend smoke contracts, and MyGRACE synchronization.</in>
@@ -20,18 +20,18 @@
     <requirement-12>The config page must remove config-diagnostics and data-phase57-raw-config surfaces while preserving QR, .conf download, copy, device create/rotate/revoke, and protected config access.</requirement-12>
   </requirements>
   <steps>
-    <step-1 MODULE="M-075,M-036,M-009" STATUS="planned">Audit Dashboard, Subscription, Config, Layout, CSS, and current Phase-57/62 smoke markers before editing to map removed, moved, and preserved surfaces.</step-1>
-    <step-2 MODULE="M-080,M-075,M-071" STATUS="planned">Apply frameless user-shell logo styling for desktop and mobile without changing brand assets or public/auth logo behavior.</step-2>
-    <step-3 MODULE="M-075,M-036" STATUS="planned">Remove dashboard phase57-command-center and phase62-secondary-fold blocks, then preserve any still-needed primary actions through compact direct controls.</step-3>
-    <step-4 MODULE="M-045,M-075,M-036" STATUS="planned">Rewrite MTProto card heading/copy, emphasize Telegram MTProto, keep tg:// app link, https://t.me browser link, manual server/port/secret copy, owner-only redaction, and 30s refresh.</step-4>
-    <step-5 MODULE="M-063,M-068,M-075,M-036" STATUS="planned">Extract subscription status, tariff catalog, checkout action, and calendar rendering into reusable dashboard-owned blocks and place them under the MTProto card.</step-5>
-    <step-6 MODULE="M-009,M-075" STATUS="planned">Keep /dashboard/subscription as a compatibility route that redirects to /dashboard subscription block or renders the same compact block without duplicating UI ownership.</step-6>
-    <step-7 MODULE="M-063,M-075" STATUS="planned">Update pending-first-connection copy, remove the extra warning badge, remove included-copy details, and keep server-derived countdown fields.</step-7>
-    <step-8 MODULE="M-068,M-075,M-036" STATUS="planned">Rename tariff display names/descriptions/icons and remove all tariff detail folds while preserving canonical slugs, prices, durations, limits, popularity, and plan_id-only checkout.</step-8>
-    <step-9 MODULE="M-063,M-071,M-074" STATUS="planned">Build the compact subscription calendar with cross-month range clarity, miniature sizing, no horizontal scroll, and accessible state text.</step-9>
-    <step-10 MODULE="M-077,M-071,M-075,M-036" STATUS="planned">Normalize animated button treatments across dashboard/config/referrals/settings user cabinet controls with reduced-motion fallbacks.</step-10>
-    <step-11 MODULE="M-066,M-075,M-036" STATUS="planned">Remove config diagnostics and raw config fallback panels while preserving QR/download/copy/device management and Phase-48 .conf download safeguards.</step-11>
-    <step-12 MODULE="M-075,M-036,M-045,M-063,M-068,M-074" STATUS="planned">Update Phase-45/50/57/62/61 smoke contracts and run frontend build, XML parse, MyGRACE lint, git diff --check, and protected backend/deploy/runtime guard during execution.</step-12>
+    <step-1 MODULE="M-075,M-036,M-009" STATUS="done-local">Audit Dashboard, Subscription, Config, Layout, CSS, and current Phase-57/62 smoke markers before editing to map removed, moved, and preserved surfaces.</step-1>
+    <step-2 MODULE="M-080,M-075,M-071" STATUS="done-local">Apply frameless user-shell logo styling for desktop and mobile without changing brand assets or public/auth logo behavior.</step-2>
+    <step-3 MODULE="M-075,M-036" STATUS="done-local">Remove dashboard phase57-command-center and phase62-secondary-fold blocks, then preserve any still-needed primary actions through compact direct controls.</step-3>
+    <step-4 MODULE="M-045,M-075,M-036" STATUS="done-local">Rewrite MTProto card heading/copy, emphasize Telegram MTProto, keep tg:// app link, https://t.me browser link, manual server/port/secret copy, owner-only redaction, and 30s refresh.</step-4>
+    <step-5 MODULE="M-063,M-068,M-075,M-036" STATUS="done-local">Extract subscription status, tariff catalog, checkout action, and calendar rendering into reusable dashboard-owned blocks and place them under the MTProto card.</step-5>
+    <step-6 MODULE="M-009,M-075" STATUS="done-local">Keep /dashboard/subscription as a compatibility route that redirects to /dashboard subscription block or renders the same compact block without duplicating UI ownership.</step-6>
+    <step-7 MODULE="M-063,M-075" STATUS="done-local">Update pending-first-connection copy, remove the extra warning badge, remove included-copy details, and keep server-derived countdown fields.</step-7>
+    <step-8 MODULE="M-068,M-075,M-036" STATUS="done-local">Rename tariff display names/descriptions/icons and remove all tariff detail folds while preserving canonical slugs, prices, durations, limits, popularity, and plan_id-only checkout.</step-8>
+    <step-9 MODULE="M-063,M-071,M-074" STATUS="done-local">Build the compact subscription calendar with cross-month range clarity, miniature sizing, no horizontal scroll, and accessible state text.</step-9>
+    <step-10 MODULE="M-077,M-071,M-075,M-036" STATUS="done-local">Normalize animated button treatments across dashboard/config/referrals/settings user cabinet controls with reduced-motion fallbacks.</step-10>
+    <step-11 MODULE="M-066,M-075,M-036" STATUS="done-local">Remove config diagnostics and raw config fallback panels while preserving QR/download/copy/device management and Phase-48 .conf download safeguards.</step-11>
+    <step-12 MODULE="M-075,M-036,M-045,M-063,M-068,M-074" STATUS="done-local">Update Phase-45/50/57/62/61 smoke contracts and run frontend build, XML parse, MyGRACE lint, git diff --check, and protected backend/deploy/runtime guard during execution.</step-12>
   </steps>
   <data-flow>
     <flow-1>/dashboard loads subscription, plans, devices, VPN stats, and MTProto owner state through existing APIs, then renders MTProto first and subscription/tariffs/calendar directly below it.</flow-1>
@@ -54,16 +54,25 @@
   </verification-design>
   <verification>
     <commands>
-      <command status="planned">cd frontend &amp;&amp; npm run build</command>
-      <command status="planned">node scripts/phase45-trial-subscription-ux-smoke.mjs</command>
-      <command status="planned">node scripts/phase50-tariff-catalog-smoke.mjs</command>
-      <command status="planned">node scripts/phase57-premium-user-cabinet-smoke.mjs</command>
-      <command status="planned">node scripts/phase62-compactness-deletion-smoke.mjs</command>
-      <command status="planned">node scripts/phase61-responsive-adaptation-smoke.mjs</command>
-      <command status="planned">python3 -m xml.etree.ElementTree docs/plans/Phase-68.xml docs/plan-index.xml docs/graph-index.xml docs/verification-index.xml</command>
-      <command status="planned">mygrace lint; git diff --check; protected backend/deploy/runtime diff guard</command>
+      <command status="pass-local">cd frontend &amp;&amp; npm run build</command>
+      <command status="pass-local">cd frontend-admin &amp;&amp; npm run build</command>
+      <command status="pass-local">node scripts/phase68-dashboard-subscription-smoke.mjs</command>
+      <command status="pass-local">node scripts/phase45-trial-subscription-ux-smoke.mjs</command>
+      <command status="pass-local">node scripts/phase50-tariff-catalog-smoke.mjs</command>
+      <command status="pass-local">node scripts/phase53-user-matrix-ui-smoke.mjs</command>
+      <command status="pass-local">node scripts/phase57-premium-user-cabinet-smoke.mjs</command>
+      <command status="pass-local">node scripts/phase58-premium-admin-cockpit-smoke.mjs</command>
+      <command status="pass-local">node scripts/phase60-premium-qa-smoke.mjs</command>
+      <command status="pass-local">node scripts/phase61-responsive-adaptation-smoke.mjs</command>
+      <command status="pass-local">node scripts/phase62-compactness-deletion-smoke.mjs</command>
+      <command status="pass-local">node scripts/phase63-visible-logo-integration-smoke.mjs</command>
+      <command status="pass-local">git diff --check; protected backend/deploy/runtime diff guard</command>
     </commands>
   </verification>
+  <execution-evidence>
+    <local-2026-06-04>Implemented shared frontend/src/components/SubscriptionPanel.tsx, embedded it below MTProto on /dashboard, kept /dashboard/subscription as a compatibility wrapper, removed visible dashboard command center/secondary fold and config raw/diagnostic surfaces, made the user shell logo frameless, and updated smoke contracts for the new ownership boundary.</local-2026-06-04>
+    <verification-2026-06-04>PASS: user/admin builds, Phase-68 smoke, Phase-45/46/50/53/57/58/60/61/62/63/67 regression smokes, git diff --check, MyGRACE lint via Phase-60, and protected backend/deploy/runtime guards passed locally.</verification-2026-06-04>
+  </execution-evidence>
   <risk-assessment>
     <risk-1 severity="high">Moving /dashboard/subscription onto /dashboard can break old navigation or tests unless the route remains compatible.</risk-1>
     <risk-2 severity="critical">Tariff display-name changes must not mutate stable slugs, prices, device limits, or backend-authoritative checkout metadata unexpectedly.</risk-2>

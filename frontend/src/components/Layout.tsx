@@ -1,5 +1,5 @@
 // FILE: frontend/src/components/Layout.tsx
-// VERSION: 1.6.0
+// VERSION: 1.7.0
 // ROLE: UI_COMPONENT
 // MAP_MODE: SUMMARY
 // START_MODULE_CONTRACT
@@ -17,6 +17,7 @@
 // END_MODULE_MAP
 //
 // START_CHANGE_SUMMARY
+//   LAST_CHANGE: v1.7.0 - Applied Phase-68 frameless user-shell logo styling without changing brand assets or navigation.
 //   LAST_CHANGE: v1.6.0 - Added Phase-63 visible KrotPN logo marks to desktop and mobile protected user shell without changing navigation.
 //   LAST_CHANGE: v1.5.0 - Added Phase-61 phone/tablet responsive shell, safe-area, and protected-route static proof markers.
 //   LAST_CHANGE: v1.4.0 - Added Phase-57 premium user cabinet layout markers and compact protected-route shell ownership
@@ -67,9 +68,10 @@ export default function Layout() {
           <div className="matrix-sidebar-header flex items-center gap-3 border-b px-4 py-4">
             <BrandMark
               size="md"
-              className="h-10 w-10"
+              className="phase68-shell-logo h-10 w-10"
               marker="[VisibleBrandLogo][phase63][USER_SHELL_LOGO_SAFE]"
               data-phase63-user-shell-logo="desktop"
+              data-phase68-user-shell-logo="frameless"
             />
             <div className="min-w-0">
               <h1 className="truncate text-lg font-extrabold">{t('appName')}</h1>
@@ -114,9 +116,10 @@ export default function Layout() {
             <div className="flex min-w-0 items-center gap-3">
               <BrandMark
                 size="md"
-                className="h-10 w-10"
+                className="phase68-shell-logo h-10 w-10"
                 marker="[VisibleBrandLogo][phase63][USER_SHELL_LOGO_SAFE]"
                 data-phase63-user-shell-logo="mobile"
+                data-phase68-user-shell-logo="frameless"
               />
               <div className="min-w-0">
                 <p className="truncate text-sm font-bold">{t('appName')}</p>

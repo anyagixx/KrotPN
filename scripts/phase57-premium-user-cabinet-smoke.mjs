@@ -1,12 +1,12 @@
 #!/usr/bin/env node
 /*
  * FILE: scripts/phase57-premium-user-cabinet-smoke.mjs
- * VERSION: 1.0.0
+ * VERSION: 1.1.0
  * ROLE: TEST
  * MAP_MODE: LOCALS
  * START_MODULE_CONTRACT
- *   PURPOSE: Static smoke verification for Phase-57 premium protected user cabinet
- *   SCOPE: Dashboard command center, config workflow, subscription countdown/calendar, MTProto owner actions, compact referrals/settings, redaction, and protected surface guards
+ *   PURPOSE: Static smoke verification for Phase-57 premium protected user cabinet with Phase-68 dashboard compaction awareness
+ *   SCOPE: Compact dashboard primary workflows, config workflow, subscription countdown/calendar, MTProto owner actions, compact referrals/settings, redaction, and protected surface guards
  *   DEPENDS: M-075, M-009, M-036, M-045, M-063, M-064, M-068, M-070, M-071, M-072
  *   LINKS: V-M-075, docs/plans/Phase-57.xml
  * END_MODULE_CONTRACT
@@ -21,6 +21,7 @@
  * END_MODULE_MAP
  *
  * START_CHANGE_SUMMARY
+ *   LAST_CHANGE: v1.1.0 - Accepted Phase-68 removal of dashboard command center/raw config while preserving protected workflows.
  *   LAST_CHANGE: v1.0.0 - Added Phase-57 premium user cabinet verification gate
  * END_CHANGE_SUMMARY
  */
@@ -88,10 +89,12 @@ const layout = read('frontend/src/components/Layout.tsx')
 const dashboard = read('frontend/src/pages/Dashboard.tsx')
 const config = read('frontend/src/pages/Config.tsx')
 const subscription = read('frontend/src/pages/Subscription.tsx')
+const subscriptionPanel = read('frontend/src/components/SubscriptionPanel.tsx')
 const referrals = read('frontend/src/pages/Referrals.tsx')
 const settings = read('frontend/src/pages/Settings.tsx')
 const api = read('frontend/src/lib/api.ts')
 const tariffCatalog = read('backend/app/billing/catalog.py')
+const subscriptionSurface = `${subscription}\n${subscriptionPanel}`
 
 for (const [label, source] of [
   ['frontend/src/index.css', css],
@@ -99,6 +102,7 @@ for (const [label, source] of [
   ['frontend/src/pages/Dashboard.tsx', dashboard],
   ['frontend/src/pages/Config.tsx', config],
   ['frontend/src/pages/Subscription.tsx', subscription],
+  ['frontend/src/components/SubscriptionPanel.tsx', subscriptionPanel],
   ['frontend/src/pages/Referrals.tsx', referrals],
   ['frontend/src/pages/Settings.tsx', settings],
 ]) {
@@ -155,19 +159,24 @@ for (const [route, source, label] of [
 }
 
 for (const needle of [
+  'data-phase68-dashboard="mtproto-subscription-compact"',
+  'data-phase68-mtproto-card="primary-first"',
+  '<SubscriptionPanel compact />',
+  'Ваш бесплатный постоянный',
+  'Telegram MTProto',
+]) {
+  assertContains(dashboard, needle, 'frontend/src/pages/Dashboard.tsx')
+}
+for (const prohibited of [
   'data-phase57-command-center="true"',
   'data-phase57-first-screen-tasks="vpn subscription mtproto devices"',
   'data-phase57-dashboard-signal-strip="true"',
   'data-phase57-primary-actions-reachable="true"',
-  'data-phase57-primary-action="vpn-config"',
-  'data-phase57-primary-action="devices"',
-  'data-phase57-primary-action="subscription"',
-  'data-phase57-primary-action="mtproto-copy"',
-  'to={hasSubscription ? \'/dashboard/config\' : \'/dashboard/subscription\'}',
-  'to="/dashboard/config"',
-  'to="/dashboard/subscription"',
+  'data-phase62-secondary-fold',
+  'Индивидуальный Telegram proxy готов к использованию.',
+  'Личный proxy',
 ]) {
-  assertContains(dashboard, needle, 'frontend/src/pages/Dashboard.tsx')
+  assertNotContains(dashboard, prohibited, 'frontend/src/pages/Dashboard.tsx')
 }
 
 for (const needle of [
@@ -198,7 +207,6 @@ for (const needle of [
   'data-phase57-config-workflow="qr-download-copy-device"',
   'data-phase57-config-actions="qr-download-copy"',
   'data-phase57-device-list="scroll-safe"',
-  'data-phase57-raw-config="collapsed"',
   'CONFIG_DOWNLOAD_MIME_TYPE',
   'buildConfigDownloadBlob',
   'buildConfigDownloadFilename',
@@ -210,6 +218,7 @@ for (const needle of [
 ]) {
   assertContains(config, needle, 'frontend/src/pages/Config.tsx')
 }
+assertNotContains(config, 'data-phase57-raw-config="collapsed"', 'frontend/src/pages/Config.tsx')
 assertContains(api, "CONFIG_DOWNLOAD_MIME_TYPE = 'application/octet-stream'", 'frontend/src/lib/api.ts')
 
 for (const needle of [
@@ -225,14 +234,14 @@ for (const needle of [
   'active_until',
   'billingApi.createPayment(planId)',
 ]) {
-  assertContains(subscription, needle, 'frontend/src/pages/Subscription.tsx')
+  assertContains(subscriptionSurface, needle, 'frontend subscription surface')
 }
-assertNotContains(subscription, 'createPayment(plan.price', 'frontend/src/pages/Subscription.tsx')
-assertNotContains(subscription, 'createPayment({', 'frontend/src/pages/Subscription.tsx')
+assertNotContains(subscriptionSurface, 'createPayment(plan.price', 'frontend subscription surface')
+assertNotContains(subscriptionSurface, 'createPayment({', 'frontend subscription surface')
 
 for (const slug of ['krotpn-1', 'krotpn-6', 'krotpn-9']) {
   assertContains(tariffCatalog, `slug="${slug}"`, 'backend/app/billing/catalog.py')
-  assertContains(subscription, slug, 'frontend/src/pages/Subscription.tsx')
+  assertContains(subscriptionSurface, slug, 'frontend subscription surface')
 }
 for (const price of ['price=369.0', 'price=693.0', 'price=936.0']) {
   assertContains(tariffCatalog, price, 'backend/app/billing/catalog.py')
@@ -260,8 +269,8 @@ for (const needle of [
   assertContains(settings, needle, 'frontend/src/pages/Settings.tsx')
 }
 
-assertNotContains(dashboard + config + subscription + referrals + settings, 'Trial на 3', 'Phase-57 user cabinet routes')
-assertNotContains(dashboard + config + subscription + referrals + settings, 'trial на 3', 'Phase-57 user cabinet routes')
+assertNotContains(dashboard + config + subscriptionSurface + referrals + settings, 'Trial на 3', 'Phase-57 user cabinet routes')
+assertNotContains(dashboard + config + subscriptionSurface + referrals + settings, 'trial на 3', 'Phase-57 user cabinet routes')
 assertNotContains(dashboard + config, 'to="/config"', 'Phase-57 protected route links')
 assertNotContains(dashboard + config, 'to="/subscription"', 'Phase-57 protected route links')
 

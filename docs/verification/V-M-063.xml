@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<V-M-063 MODULE="M-063" PRIORITY="critical" STATUS="pass-local-phase53" PHASE-68="verification-designed" PHASE-69="verification-designed">
+<V-M-063 MODULE="M-063" PRIORITY="critical" STATUS="pass-local-phase53-pass-local-phase68" PHASE-68="pass-local" PHASE-69="verification-designed">
   <purpose>Verify Phase-45 four-day trial and first-VPN-handshake activation semantics across billing, VPN, scheduler, and user cabinet UX.</purpose>
   <checks>Pending trial is created after email verification, first config remains available, first successful VPN handshake activates the four-day countdown exactly once, subscription API returns precise remaining time, and mobile UI shows countdown plus calendar without stale 3-day copy.</checks>
   <test-files>
@@ -75,9 +75,10 @@
     <evidence-4>2026-06-01: py_compile passed for changed backend runtime and test files; deploy/install diff guard showed no changes.</evidence-4>
     <evidence-5>2026-06-01: XML parse and MyGRACE lint passed with zero errors and zero warnings after documentation synchronization.</evidence-5>
     <evidence-6>2026-06-03: Phase-53 frontend build and static smoke passed for Matrix countdown/calendar readability, pending-first-VPN state, no stale 3-day copy, and protected deploy/install isolation.</evidence-6>
+    <evidence-7>2026-06-04: Phase-68 shared SubscriptionPanel smoke passed for the exact first-connection copy, server-derived countdown fields, compact calendar, and removal of the extra pending warning badge.</evidence-7>
   </evidence>
   <autonomous-execution-safety>Conditionally safe for local autonomous execute after Phase-44 or in a separate approved wave. Block execution if pending trial cannot retrieve first VPN config, if activation can extend paid/active subscriptions, or if migration coverage is missing.</autonomous-execution-safety>
-  <phase-68-verification-design status="planned">
+  <phase-68-verification-design status="pass-local">
     <scope>Subscription UX verification after moving the subscription section to /dashboard.</scope>
     <gate-1>Pending trial copy must say the 4-day timer starts after first connection, not after registration or "handshake".</gate-1>
     <gate-2>Warning badge "Trial начнется после первого VPN подключения" and phase57 compact detail block must be absent.</gate-2>

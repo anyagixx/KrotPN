@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<V-M-074 MODULE="M-074" PRIORITY="critical" STATUS="pass-local-phase61-phase62-pass-local-phase67-pass-local-rainfix" PHASE-61="pass-local" PHASE-62="pass-local" PHASE-67="pass-local" RAINFIX="pass-local" PHASE-68="verification-designed">
+<V-M-074 MODULE="M-074" PRIORITY="critical" STATUS="pass-local-phase61-phase62-pass-local-phase67-pass-local-rainfix-pass-local-phase68" PHASE-61="pass-local" PHASE-62="pass-local" PHASE-67="pass-local" RAINFIX="pass-local" PHASE-68="pass-local">
   <scope>Responsive adaptation verification for phone, tablet, and desktop layouts across public, auth, user-cabinet, and admin Matrix surfaces.</scope>
   <verification-intent>Phase-61 must prove that the premium Matrix UI is intentionally designed for mobile and tablet use, not merely tolerated by desktop CSS.</verification-intent>
   <test-files>
@@ -66,6 +66,7 @@
     <item>2026-06-04: Phase-62 compactness/deletion audit preserved Phase-61 responsive compactness markers after folding secondary dashboard/config/subscription/public/admin surfaces; user/admin builds and Phase-61/60 regressions remained green.</item>
     <item>2026-06-04: Phase-67 auth/splash responsive smoke and browser screenshots under /tmp/krotpn-phase67-shots passed for splash redirect, large unframed logo, red-focus auth inputs, side-by-side secondary actions with narrow-phone wrapping, reduced-motion fallback, and protected backend/deploy/runtime guard.</item>
     <item>2026-06-04: Rainfix responsive evidence passed: Phase-61 smoke now asserts .matrix-rain-fallback, min-height calc(100dvh + 128px), CSS_RAIN_FALLBACK_READY, and MOBILE_OVERSCAN_READY; 390x844 user/admin Chrome screenshots show no bottom black cutoff; bottom crop max values were user 0.246326 and admin 0.841062.</item>
+    <item>2026-06-04: Phase-68 dashboard-owned subscription panel passed frontend/admin builds, Phase-61 responsive smoke, Phase-60 QA, and compact calendar/tariff static guards.</item>
   </evidence>
   <viewport-matrix>
     <phone-1>320x568 proves smallest supported phone does not clip auth/public CTAs or cabinet actions.</phone-1>
@@ -168,7 +169,7 @@
     <safety-3>Prefer compact responsive CSS and existing components over adding new visual systems or business workflows.</safety-3>
     <safety-4>Do not commit generated screenshots, dist artifacts, local secrets, or temporary Playwright state.</safety-4>
   </autonomous-execution-safety>
-  <phase-68-verification-design status="planned">
+  <phase-68-verification-design status="pass-local">
     <scope>Responsive verification for dashboard/subscription consolidation.</scope>
     <gate-1>Phone, tablet, desktop, and reduced-motion viewports must show MTProto first and subscription below without horizontal scroll.</gate-1>
     <gate-2>Tariff cards, compact calendar, countdown, QR/config links, and cabinet buttons must remain touch-safe and readable on 360x740, 390x844, 430x932, 768x1024, and 1440x900.</gate-2>
