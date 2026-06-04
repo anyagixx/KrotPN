@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<V-M-003 MODULE="M-003" PRIORITY="critical" STATUS="pass-local-phase45-pass-local-phase70" PHASE-70="pass-local">
+<V-M-003 MODULE="M-003" PRIORITY="critical" STATUS="pass-local-phase45-pass-local-phase70-phase73-planned" PHASE-70="pass-local" PHASE-73="planned">
   <module>vpn</module>
   <checks>Provisioning and config generation remain compatible with route-aware topology. QR/config endpoints remain available to verified users with pending trial access before countdown activation. First VPN handshake can start the Phase-45 trial countdown without changing config rendering.</checks>
-  <test-files>backend/tests/test_vpn_service.py backend/tests/test_vpn_router_compat.py backend/tests/test_manual_client_cli.py backend/tests/test_trial_activation.py</test-files>
+  <test-files>backend/tests/test_vpn_service.py backend/tests/test_vpn_router_compat.py backend/tests/test_manual_client_cli.py backend/tests/test_trial_activation.py scripts/phase70-config-qr-parity-smoke.mjs scripts/phase73-config-amnezia-qr-smoke.mjs</test-files>
   <commands>pass-local 2026-06-01: Phase-45 backend suite covers VPN compatibility and pending-trial first-config/handshake activation path.</commands>
   <anchors>VPN_PROVISION_ROUTE_SELECTED VPN_CONFIG_RENDERED VPN_PEER_APPLIED PENDING_TRIAL_ACCESS</anchors>
   <scenarios>
@@ -25,4 +25,16 @@
     <command-2>node scripts/phase70-config-qr-parity-smoke.mjs</command-2>
     <summary>API config, download bytes, and backend QR payload source match exactly; QR rendering uses level M without changing config fields, keys, endpoint, DNS, AllowedIPs, or AWG profile content.</summary>
   </phase-70-evidence>
+  <phase-73-verification-design status="planned">
+    <scope>VPN configuration payload and QR truthfulness verification for AmneziaWG versus AmneziaVPN UX.</scope>
+    <gate-1>Working AmneziaWG QR must continue to encode the exact selected-device VPN config payload; Phase-73 may not mutate config text, keys, endpoint, DNS, AllowedIPs, profile flags, or preshared-key content.</gate-1>
+    <gate-2>AmneziaVPN must not be presented as QR-scan compatible unless deterministic evidence proves the generated payload imports there; otherwise UI must route AmneziaVPN users to .conf download/import.</gate-2>
+    <gate-3>QR rendering changes remain visual/UX-only and must keep Phase-70 config/download/QR parity green.</gate-3>
+    <gate-4>Backend VPN/router tests are required if Phase-73 changes any config, download, QR, or device endpoint response shape.</gate-4>
+    <commands>node scripts/phase70-config-qr-parity-smoke.mjs; node scripts/phase73-config-amnezia-qr-smoke.mjs; backend vpn/router tests if API shape changes.</commands>
+  </phase-73-verification-design>
+  <phase-73-required-markers status="planned">
+    <marker-1>[VPNConfig][phase73][PAYLOAD_UNCHANGED]</marker-1>
+    <marker-2>[ConfigPage][phase73][AMNEZIA_VPN_QR_NOT_ADVERTISED]</marker-2>
+  </phase-73-required-markers>
 </V-M-003>

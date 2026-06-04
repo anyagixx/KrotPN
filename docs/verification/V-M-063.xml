@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<V-M-063 MODULE="M-063" PRIORITY="critical" STATUS="pass-local-phase53-pass-local-phase68-pass-local-phase69-pass-local-phase71-pass-local-phase72" PHASE-68="pass-local" PHASE-69="pass-local" PHASE-71="pass-local" PHASE-72="pass-local">
+<V-M-063 MODULE="M-063" PRIORITY="critical" STATUS="pass-local-phase53-pass-local-phase68-pass-local-phase69-pass-local-phase71-pass-local-phase72-phase73-planned" PHASE-68="pass-local" PHASE-69="pass-local" PHASE-71="pass-local" PHASE-72="pass-local" PHASE-73="planned">
   <purpose>Verify Phase-45 four-day trial and first-VPN-handshake activation semantics across billing, VPN, scheduler, and user cabinet UX.</purpose>
   <checks>Pending trial is created after email verification, first config remains available, first successful VPN handshake activates the four-day countdown exactly once, subscription API returns precise remaining time, and mobile UI shows countdown plus calendar without stale 3-day copy.</checks>
   <test-files>
@@ -16,6 +16,7 @@
     <file>scripts/phase53-user-matrix-ui-smoke.mjs</file>
     <file phase="71-pass-local">scripts/phase71-device-config-master-detail-smoke.mjs</file>
     <file phase="72-pass-local">scripts/phase72-user-auth-navigation-smoke.mjs</file>
+    <file phase="73-planned">scripts/phase73-config-amnezia-qr-smoke.mjs</file>
   </test-files>
   <phase-45-gates>
     <gate-1>Verified registration creates a pending four-day trial that has no running countdown before first VPN handshake.</gate-1>
@@ -117,4 +118,15 @@
     <marker-2>[ResponsiveAdaptation][phase72][DESKTOP_CALENDAR_NO_OVERFLOW]</marker-2>
   </phase-72-required-markers>
   <phase-72-evidence status="pass-local" date="2026-06-05">Phase-72 smoke confirmed compact desktop subscription calendar markers while Phase-68/71 subscription smokes remained green; server-side trial activation, billing expiry, scheduler, and referral-bonus semantics were not changed.</phase-72-evidence>
+  <phase-73-verification-design status="planned">
+    <scope>Subscription/trial regression verification for config-page device-limit copy.</scope>
+    <gate-1>Tariff-aware device-limit exhaustion copy is display-only and must not change pending trial access, first-VPN-handshake activation, paid expiry, referral bonus, scheduler scans, or countdown math.</gate-1>
+    <gate-2>Config page may read current plan/subscription display data but must not derive payment amount, duration, device_limit enforcement, or access state on the frontend.</gate-2>
+    <gate-3>Phase-45/68/71 subscription smokes remain green when Phase-73 changes config-page copy.</gate-3>
+    <commands>node scripts/phase45-trial-subscription-ux-smoke.mjs; node scripts/phase68-dashboard-subscription-smoke.mjs; node scripts/phase73-config-amnezia-qr-smoke.mjs; backend trial/billing/scheduler tests if subscription API shape changes.</commands>
+  </phase-73-verification-design>
+  <phase-73-required-markers status="planned">
+    <marker-1>[TrialSubscription][phase73][TRIAL_SEMANTICS_UNCHANGED]</marker-1>
+    <marker-2>[TrialSubscription][phase73][DISPLAY_ONLY_TARIFF_COPY]</marker-2>
+  </phase-73-required-markers>
 </V-M-063>
