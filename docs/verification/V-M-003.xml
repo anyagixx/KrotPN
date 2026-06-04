@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<V-M-003 MODULE="M-003" PRIORITY="critical" STATUS="pass-local-phase45">
+<V-M-003 MODULE="M-003" PRIORITY="critical" STATUS="pass-local-phase45" PHASE-70="verification-designed">
   <module>vpn</module>
   <checks>Provisioning and config generation remain compatible with route-aware topology. QR/config endpoints remain available to verified users with pending trial access before countdown activation. First VPN handshake can start the Phase-45 trial countdown without changing config rendering.</checks>
   <test-files>backend/tests/test_vpn_service.py backend/tests/test_vpn_router_compat.py backend/tests/test_manual_client_cli.py backend/tests/test_trial_activation.py</test-files>
@@ -11,4 +11,13 @@
     <scenario kind="success" trace="PENDING_TRIAL_ACCESS">Pending trial user can retrieve first VPN config before countdown starts</scenario>
   </scenarios>
   <evidence>2026-06-01: Phase-45 backend suite passed with tests/test_vpn_router_compat.py and tests/test_trial_activation.py.</evidence>
+  <phase-70-verification-design status="planned">
+    <scope>VPN configuration payload and QR parity verification.</scope>
+    <gate-1>Frontend QR, backend QR endpoint, and deploy/create-client generated QR must encode the same WireGuard/AWG config text for the same client fixture.</gate-1>
+    <gate-2>QR readability changes must be limited to rendering parameters such as size, margin, or error-correction level after payload parity is proven.</gate-2>
+    <gate-3>WireGuard/AWG profile fields, keys, endpoints, DNS, AllowedIPs, and interface/peer sections must not change during Phase-70.</gate-3>
+    <gate-4>Decoded QR roundtrip must match the downloadable .conf payload exactly after normalizing line endings only.</gate-4>
+    <commands>cd backend &amp;&amp; pytest tests/test_vpn_service.py tests/test_vpn_router_compat.py tests/test_manual_client_cli.py; node scripts/phase70-config-qr-parity-smoke.mjs</commands>
+    <blocked>Phase-70 must not edit deploy/create-client.sh, VPN server runtime, or generated client semantics unless a separate confirmed phase is created.</blocked>
+  </phase-70-verification-design>
 </V-M-003>

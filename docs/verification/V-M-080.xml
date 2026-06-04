@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<V-M-080 MODULE="M-080" PRIORITY="high" STATUS="pass-local-phase63-pass-local-phase67" PHASE-63="pass-local" PHASE-67="pass-local">
+<V-M-080 MODULE="M-080" PRIORITY="high" STATUS="pass-local-phase63-pass-local-phase67" PHASE-63="pass-local" PHASE-67="pass-local" PHASE-68="verification-designed">
   <scope>Phase-63 visible KrotPN logo verification for public landing, auth, protected user shell, admin shell, favicon/PWA adjacency, and Phase-64 email-template boundary.</scope>
   <test-files>
     <file phase="63-pass-local">scripts/phase63-visible-logo-integration-smoke.mjs</file>
@@ -106,4 +106,11 @@
     <result>PASS: splash/auth routes use the existing bounded public logo asset in a larger unframed presentation, mobile logo/form overlap checks passed by static smoke and browser screenshots, and email/BIMI/provider-avatar boundaries were not changed.</result>
   </execution-evidence>
   <autonomous-execution-safety>Safe for local autonomous execution if changes stay inside frontend/frontend-admin visible logo components/assets/CSS, existing email body-logo references, Phase-63 smoke, and MyGRACE docs. Stop execution if backend API changes, Resend payload changes, deploy/install/nginx/docker-compose changes, BIMI DNS changes, VPN/MTProto runtime changes, or secret-handling changes appear necessary.</autonomous-execution-safety>
+  <phase-68-verification-design status="planned">
+    <scope>User cabinet logo verification after dashboard refactor.</scope>
+    <gate-1>Top-left user cabinet logo must be unframed and visually consistent with the auth/register logo treatment.</gate-1>
+    <gate-2>Logo must remain compact enough for mobile navigation and must not crowd dashboard actions or subscription content.</gate-2>
+    <gate-3>Existing logo assets and email/BIMI boundaries must remain unchanged.</gate-3>
+    <commands>node scripts/phase63-visible-logo-integration-smoke.mjs; node scripts/phase68-dashboard-subscription-smoke.mjs</commands>
+  </phase-68-verification-design>
 </V-M-080>

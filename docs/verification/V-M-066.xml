@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<V-M-066 MODULE="M-066" PRIORITY="high" STATUS="pass-local">
+<V-M-066 MODULE="M-066" PRIORITY="high" STATUS="pass-local" PHASE-70="verification-designed">
   <purpose>Verify Phase-48 .conf download MIME hardening across backend headers, frontend Blob creation, and protected operational surfaces.</purpose>
   <checks>application/octet-stream attachment response, filename and filename-star .conf metadata, nosniff, no-store/private cache control, byte-preserved config body, frontend Blob MIME alignment, auth preservation, and no deploy/install changes.</checks>
   <test-files>
@@ -59,4 +59,11 @@
   </redaction-rules>
   <evidence status="pass-local" date="2026-06-01">Phase-48 local verification passed: backend headers/body/auth/sanitizer tests, frontend production build, static smoke marker [M-066][phase48_config_download_mime][STATIC_GUARD], XML parse, MyGRACE lint, git diff --check, and protected deploy/install diff guard.</evidence>
   <autonomous-execution-safety>Allowed after plan and verification approval because Phase-48 is restricted to response metadata, frontend Blob type, tests, and static smoke while deployment and VPN profile generation remain out of scope.</autonomous-execution-safety>
+  <phase-70-verification-design status="planned">
+    <scope>Config download MIME verification after QR/config page compaction.</scope>
+    <gate-1>.conf downloads must keep Android/iOS-safe headers from Phase-48 and must not regress to text/plain behavior that creates .conf.txt.</gate-1>
+    <gate-2>Frontend route cleanup must keep direct download filename, Content-Disposition expectations, and copy/QR actions intact.</gate-2>
+    <gate-3>QR parity smoke must not expose raw private keys or full config content in logs.</gate-3>
+    <commands>cd backend &amp;&amp; pytest tests/test_vpn_router_compat.py; node scripts/phase48-config-download-mime-smoke.mjs; node scripts/phase70-config-qr-parity-smoke.mjs</commands>
+  </phase-70-verification-design>
 </V-M-066>

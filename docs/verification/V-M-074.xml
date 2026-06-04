@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<V-M-074 MODULE="M-074" PRIORITY="critical" STATUS="pass-local-phase61-phase62-pass-local-phase67-pass-local-rainfix" PHASE-61="pass-local" PHASE-62="pass-local" PHASE-67="pass-local" RAINFIX="pass-local">
+<V-M-074 MODULE="M-074" PRIORITY="critical" STATUS="pass-local-phase61-phase62-pass-local-phase67-pass-local-rainfix" PHASE-61="pass-local" PHASE-62="pass-local" PHASE-67="pass-local" RAINFIX="pass-local" PHASE-68="verification-designed">
   <scope>Responsive adaptation verification for phone, tablet, and desktop layouts across public, auth, user-cabinet, and admin Matrix surfaces.</scope>
   <verification-intent>Phase-61 must prove that the premium Matrix UI is intentionally designed for mobile and tablet use, not merely tolerated by desktop CSS.</verification-intent>
   <test-files>
@@ -168,4 +168,11 @@
     <safety-3>Prefer compact responsive CSS and existing components over adding new visual systems or business workflows.</safety-3>
     <safety-4>Do not commit generated screenshots, dist artifacts, local secrets, or temporary Playwright state.</safety-4>
   </autonomous-execution-safety>
+  <phase-68-verification-design status="planned">
+    <scope>Responsive verification for dashboard/subscription consolidation.</scope>
+    <gate-1>Phone, tablet, desktop, and reduced-motion viewports must show MTProto first and subscription below without horizontal scroll.</gate-1>
+    <gate-2>Tariff cards, compact calendar, countdown, QR/config links, and cabinet buttons must remain touch-safe and readable on 360x740, 390x844, 430x932, 768x1024, and 1440x900.</gate-2>
+    <gate-3>Removed sections must not create blank black gaps over the Matrix rain background.</gate-3>
+    <commands>node scripts/phase61-responsive-adaptation-smoke.mjs; node scripts/phase68-dashboard-subscription-smoke.mjs; browser screenshot review for /dashboard and /dashboard/config</commands>
+  </phase-68-verification-design>
 </V-M-074>

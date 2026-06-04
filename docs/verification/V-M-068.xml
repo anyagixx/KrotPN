@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<V-M-068 MODULE="M-068" PRIORITY="critical" STATUS="pass-local-phase53-phase54" PHASE-54="pass-local">
+<V-M-068 MODULE="M-068" PRIORITY="critical" STATUS="pass-local-phase53-phase54" PHASE-54="pass-local" PHASE-68="verification-designed">
   <purpose>Verify Phase-50 canonical paid tariffs across billing catalog convergence, YooKassa payment creation, subscription activation, device-limit policy, and compact user/admin UI.</purpose>
   <checks>Exactly three canonical active tariffs, server-authoritative prices, idempotent clean-deploy upsert, downgrade guard, correct payment metadata, paid subscription activation, device-limit enforcement, user/admin UI rendering, and unchanged deploy/install surfaces.</checks>
   <evidence-priority>
@@ -110,4 +110,12 @@
     <phase-54-local-2026-06-03>Phase-54 smoke passed for admin Plans Matrix readability, canonical 369/693/936 RUB prices, 1/6/9 device limits, no canonical CRUD controls, no frontend money-field control, and protected deploy/install guard.</phase-54-local-2026-06-03>
   </evidence>
   <autonomous-execution-safety>Allowed after Phase-50 verification approval because the scope is limited to billing catalog, payment validation, device-limit policy, UI presentation, tests, docs, and protected-surface guards.</autonomous-execution-safety>
+  <phase-68-verification-design status="planned">
+    <scope>User-visible tariff presentation verification for dashboard subscription merge.</scope>
+    <gate-1>Frontend tariff cards must display KrotPN Self, KrotPN Family, and KrotPN Team.</gate-1>
+    <gate-2>Displayed descriptions must be "Персональный тариф", "Тариф для семьи", and "Тариф для команды".</gate-2>
+    <gate-3>Canonical plan IDs, prices 369/693/936 RUB, 1/6/9 device limits, and backend checkout payload must remain unchanged.</gate-3>
+    <gate-4>Admin canonical tariff surfaces from Phase-54 must not regress.</gate-4>
+    <commands>backend billing tariff tests; cd frontend &amp;&amp; npm run build; node scripts/phase50-tariff-catalog-smoke.mjs; node scripts/phase68-dashboard-subscription-smoke.mjs</commands>
+  </phase-68-verification-design>
 </V-M-068>

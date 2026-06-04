@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<V-M-004 MODULE="M-004" PRIORITY="critical" STATUS="pass-local-phase45" VERSION="1.4.0">
+<V-M-004 MODULE="M-004" PRIORITY="critical" STATUS="pass-local-phase45" VERSION="1.4.0" PHASE-69="verification-designed">
   <module>billing</module>
   <checks>Payment and webhook flows remain isolated from registration cutover, complimentary internal access stays outside payment-provider logic, and Phase-28 trial creation is delayed until verified email activation.</checks>
   <test-files>
@@ -28,4 +28,12 @@
     <finding-2 severity="resolved" date="2026-05-19">The 404 failures were stale test route expectations using /api instead of the canonical /api/v1 billing prefixes. Router-level webhook and plan API tests were aligned and the full V-M-004 command now passes locally.</finding-2>
   </refresh-findings>
   <evidence>2026-05-13: Phase-28 backend suite passed locally and proved pending registration creates no trial while verified activation creates one eligible trial once. 2026-05-19: Full V-M-004 command passed locally after aligning billing route tests with /api/v1 prefixes. 2026-06-01: Phase-45 backend suite passed and proves verified activation creates a pending four-day trial, first VPN handshake starts it once, countdown fields are server-derived, and paid subscriptions are not overwritten.</evidence>
+  <phase-69-verification-design status="planned">
+    <scope>Billing webhook and subscription service verification for referral reward activation.</scope>
+    <gate-1>Confirmed payment must call the referral reward path only after payment state is trusted.</gate-1>
+    <gate-2>Payment retries, duplicate notifications, and manual reprocessing must remain idempotent.</gate-2>
+    <gate-3>Referral bonus extension must not alter canonical tariff prices, paid subscription duration, or device limits.</gate-3>
+    <gate-4>Pending referral entitlement must integrate with first-VPN-connection activation without starting from registration time.</gate-4>
+    <commands>cd backend &amp;&amp; pytest tests/test_billing_service.py tests/test_trial_activation.py tests/test_referrals.py tests/test_billing_plan_api.py</commands>
+  </phase-69-verification-design>
 </V-M-004>

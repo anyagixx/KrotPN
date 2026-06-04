@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Phase-70 NAME="VPN QR Parity and Config Page Compaction" STATUS="planned" VERSION="1.0.0" MODULES="M-003,M-022,M-066,M-075,M-036,M-009,M-071" CREATED="2026-06-04" UPDATED="2026-06-04">
+  <purpose>Make the user-cabinet VPN QR code visually lighter and provably equivalent to the working VPN config path, while keeping the config page compact after removing diagnostics/raw-config panels.</purpose>
+  <scope>
+    <in>QR payload audit, frontend QR rendering parameters, backend QR endpoint comparison, CLI create-client QR comparison, decode/roundtrip tests, config page compaction verification, and mobile scanning UX.</in>
+    <out>Changing VPN keys, AWG obfuscation profile, deploy/create-client.sh behavior, install/deploy scripts, server topology, .conf download MIME hardening, or removing required config lines without deterministic proof.</out>
+  </scope>
+  <requirements>
+    <requirement-1>Before changing QR rendering, prove whether the user-cabinet QR payload equals the authenticated config text and how it differs from CLI create-client output.</requirement-1>
+    <requirement-2>If payloads differ unexpectedly, fix the API/config selection path instead of only changing QR cosmetics.</requirement-2>
+    <requirement-3>If payloads are correct but QR is visually too dense, tune QR rendering parameters such as error correction level, margin, size, and scaling while preserving scan reliability.</requirement-3>
+    <requirement-4>Do not delete WireGuard/AmneziaWG config fields merely to reduce QR density unless tests prove the resulting config is equivalent and compatible.</requirement-4>
+    <requirement-5>The frontend QR and backend /vpn/config/qr route must decode back to the exact intended config payload.</requirement-5>
+    <requirement-6>The config page must stay compact and must not reintroduce config-diagnostics or data-phase57-raw-config after Phase-68 removes them.</requirement-6>
+    <requirement-7>QR, .conf download, copy, and device management actions must remain reachable and finger-safe on mobile.</requirement-7>
+  </requirements>
+  <steps>
+    <step-1 MODULE="M-003,M-022,M-066" STATUS="planned">Audit backend VPN config generation, /vpn/config, /vpn/config/qr, /vpn/config/download, device-bound config bundles, and deploy/create-client.sh QR generation.</step-1>
+    <step-2 MODULE="M-003,M-022" STATUS="planned">Add deterministic test helpers to compare API config text, device config text, backend QR payload, and CLI-compatible config payload without logging private keys.</step-2>
+    <step-3 MODULE="M-003,M-022,M-066" STATUS="planned">If config payload mismatch exists, align the user-cabinet config source with the canonical VPN config contract and preserve Phase-48 download headers.</step-3>
+    <step-4 MODULE="M-009,M-075,M-071" STATUS="planned">If payload is correct, tune frontend QRCodeCanvas settings toward a lighter visual QR while preserving decode reliability and reduced mobile crowding.</step-4>
+    <step-5 MODULE="M-003,M-022" STATUS="planned">Tune backend QR endpoint settings only if it remains part of the active contract; otherwise document frontend-owned QR rendering and keep backend route compatibility.</step-5>
+    <step-6 MODULE="M-009,M-075,M-036" STATUS="planned">Keep the compact config page free of diagnostics/raw-config panels while preserving QR modal, .conf download, copy, device create/rotate/revoke, and unavailable states.</step-6>
+    <step-7 MODULE="M-003,M-022,M-066,M-009" STATUS="planned">Add QR decode/roundtrip tests or smoke checks that confirm generated PNG/canvas payloads decode to the expected config and never expose payload material in logs.</step-7>
+    <step-8 MODULE="M-075,M-036,M-071" STATUS="planned">Run frontend build, VPN router compatibility tests, Phase-48/57/62 smokes, XML parse, MyGRACE lint, git diff --check, and protected deploy/runtime guard.</step-8>
+  </steps>
+  <data-flow>
+    <flow-1>User opens /dashboard/config -> frontend fetches config/device bundle -> QR modal renders exact config payload -> user scans with AmneziaWG.</flow-1>
+    <flow-2>User downloads .conf -> M-066 returns application/octet-stream attachment -> downloaded file remains the same payload contract as QR/copy where applicable.</flow-2>
+    <flow-3>Operator runs create-client.sh -> backend CLI writes config -> qrencode renders terminal/PNG QR -> Phase-70 compares behavior without modifying deploy script.</flow-3>
+  </data-flow>
+  <mental-walkthroughs>
+    <walkthrough-1>Payloads match and QR is dense only because error correction is high: Phase-70 lowers/tunes rendering within scan-safe limits and proves decode parity.</walkthrough-1>
+    <walkthrough-2>Payloads differ because the user cabinet includes extra or wrong config material: Phase-70 fixes source parity before any visual tuning.</walkthrough-2>
+    <walkthrough-3>Mobile user opens config page after compaction: QR, .conf, copy, and device actions remain visible without diagnostics/raw-config clutter.</walkthrough-3>
+  </mental-walkthroughs>
+  <verification-design>
+    <gate-1>Backend tests must verify QR/config/download payload parity and route compatibility without printing private keys or configs.</gate-1>
+    <gate-2>Frontend smoke must verify QR modal is present, lighter rendering settings are applied, and removed config panels stay absent.</gate-2>
+    <gate-3>Phase-48 smoke must continue to prove .conf download MIME/filename safeguards after any config-page edits.</gate-3>
+    <gate-4>Phase-57/62 smokes must confirm config workflow remains reachable after compaction.</gate-4>
+    <gate-5>Protected diff guard must fail if deploy/create-client.sh, install.sh, deploy scripts, nginx, docker-compose, VPN runtime topology, or AWG profile are changed without explicit approval.</gate-5>
+  </verification-design>
+  <verification>
+    <commands>
+      <command status="planned">cd backend &amp;&amp; SECRET_KEY=test-secret-key-with-enough-length DATA_ENCRYPTION_KEY=dpFmfSVqfdAK3yx5MQV6Tcv35RZuw5MzaH0yhxJ01q0= PYTHONPATH=. ../.venv/bin/python -m pytest -o addopts='' tests/test_vpn_router_compat.py tests/test_vpn_service.py tests/test_manual_client_cli.py -v</command>
+      <command status="planned">cd frontend &amp;&amp; npm run build</command>
+      <command status="planned">node scripts/phase48-config-download-mime-smoke.mjs</command>
+      <command status="planned">node scripts/phase57-premium-user-cabinet-smoke.mjs</command>
+      <command status="planned">node scripts/phase62-compactness-deletion-smoke.mjs</command>
+      <command status="planned">python3 -m xml.etree.ElementTree docs/plans/Phase-70.xml docs/plan-index.xml docs/graph-index.xml docs/verification-index.xml</command>
+      <command status="planned">mygrace lint; git diff --check; protected deploy/install/runtime diff guard</command>
+    </commands>
+  </verification>
+  <risk-assessment>
+    <risk-1 severity="critical">Reducing QR density by changing config content can silently break existing VPN connectivity; payload parity must be proven first.</risk-1>
+    <risk-2 severity="high">Lower error correction can make QR easier-looking but less scannable on low-quality screens; decode and device-oriented checks are required.</risk-2>
+    <risk-3 severity="high">QR smoke output must not leak private keys, config payloads, server credentials, or user identifiers.</risk-3>
+    <risk-4 severity="medium">Removing raw config fallback improves compactness but can reduce troubleshooting paths; QR/download/copy must remain reliable.</risk-4>
+  </risk-assessment>
+  <acceptance>User-cabinet QR is visually lighter only after payload parity is proven, config page remains compact without diagnostics/raw config, and QR/download/copy/device workflows pass backend/frontend/MyGRACE verification.</acceptance>
+</Phase-70>

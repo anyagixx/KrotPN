@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<V-M-071 MODULE="M-071" PRIORITY="high" STATUS="pass-local-phase52-phase53-phase54-phase55-phase56-phase59-pass-local-phase67-pass-local-rainfix" PHASE-54="pass-local" PHASE-55="pass-local" PHASE-56="pass-local" PHASE-59="pass-local" PHASE-67="pass-local" RAINFIX="pass-local">
+<V-M-071 MODULE="M-071" PRIORITY="high" STATUS="pass-local-phase52-phase53-phase54-phase55-phase56-phase59-pass-local-phase67-pass-local-rainfix" PHASE-54="pass-local" PHASE-55="pass-local" PHASE-56="pass-local" PHASE-59="pass-local" PHASE-67="pass-local" RAINFIX="pass-local" PHASE-68="verification-designed" PHASE-70="verification-designed">
   <scope>
     <phase>Phase-52</phase>
     <purpose>Verify the Matrix style system foundation for compact, readable, mobile-safe user and admin shells.</purpose>
@@ -214,4 +214,17 @@
       <summary>CSS fallback and overscan passed static and browser checks; user/admin mobile screenshots show Matrix rain behind content through the bottom edge without visible black cutoff.</summary>
     </rainfix-local-2026-06-04>
   </evidence>
+  <phase-68-verification-design status="planned">
+    <scope>Matrix style verification for compact dashboard/subscription refactor.</scope>
+    <gate-1>Dashboard, MTProto, subscription, tariff, calendar, referral, and settings controls must keep compact Matrix styling without nested-card bloat.</gate-1>
+    <gate-2>Buttons must have visible hover/focus/active feedback, red-accent focus where auth style conventions apply, and reduced-motion fallback.</gate-2>
+    <gate-3>Calendar and tariff controls must not use hero-scale typography, viewport-scaled fonts, negative letter spacing, or oversized radius.</gate-3>
+    <commands>node scripts/phase52-matrix-visual-smoke.mjs; node scripts/phase59-motion-interactions-smoke.mjs; node scripts/phase68-dashboard-subscription-smoke.mjs</commands>
+  </phase-68-verification-design>
+  <phase-70-verification-design status="planned">
+    <scope>QR/config visual compactness verification.</scope>
+    <gate-1>QR presentation may be visually simplified only by changing rendering options, never by changing config payload content.</gate-1>
+    <gate-2>Removed config diagnostic/raw blocks must not leave empty visual gaps, broken spacers, or hidden actionable content.</gate-2>
+    <commands>node scripts/phase70-config-qr-parity-smoke.mjs; node scripts/phase61-responsive-adaptation-smoke.mjs</commands>
+  </phase-70-verification-design>
 </V-M-071>

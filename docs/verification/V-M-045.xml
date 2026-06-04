@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<V-M-045 MODULE="M-045" PRIORITY="high" STATUS="pass-local-phase46-phase53" VERSION="1.7.0">
+<V-M-045 MODULE="M-045" PRIORITY="high" STATUS="pass-local-phase46-phase53" VERSION="1.7.0" PHASE-68="verification-designed">
   <module>mtproto-user-cabinet</module>
   <phase-scope>
     <phase-31 status="pass-local">User-facing backend API and compact mobile dashboard UX for personal MTProto proxy access passed local verification.</phase-31>
@@ -126,4 +126,12 @@
     <evidence-8>2026-06-01: Phase-46 frontend build and static smoke passed for dual MTProto link schemes, Russian labels, bounded status refresh, and redaction.</evidence-8>
     <evidence-9>2026-06-03: Phase-53 frontend build and static smoke passed for compact Matrix MTProto card, owner-only tg:// and https://t.me link preservation, Russian labels, bounded refresh, and secret redaction.</evidence-9>
   </evidence>
+  <phase-68-verification-design status="planned">
+    <scope>Dashboard MTProto card verification after cabinet copy and layout compaction.</scope>
+    <gate-1>Card title must be "Ваш бесплатный постоянный Telegram MTProto прокси" with Telegram MTProto visually emphasized.</gate-1>
+    <gate-2>The card must remove "Индивидуальный Telegram proxy готов к использованию." and "Личный proxy".</gate-2>
+    <gate-3>Russian field labels and link behavior from Phase-46/47 must remain intact.</gate-3>
+    <gate-4>Status badge must remain dynamically refreshed and must not claim ready state if the API reports pending/preparing.</gate-4>
+    <commands>cd frontend &amp;&amp; npm run build; node scripts/phase46-user-cabinet-ux-smoke.mjs; node scripts/phase68-dashboard-subscription-smoke.mjs</commands>
+  </phase-68-verification-design>
 </V-M-045>

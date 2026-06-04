@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<V-M-075 MODULE="M-075" PRIORITY="high" STATUS="pass-local-phase59-phase62" PHASE-57="pass-local" PHASE-59="pass-local" PHASE-62="pass-local">
+<V-M-075 MODULE="M-075" PRIORITY="high" STATUS="pass-local-phase59-phase62" PHASE-57="pass-local" PHASE-59="pass-local" PHASE-62="pass-local" PHASE-68="verification-designed" PHASE-70="verification-designed">
   <scope>Phase-57/Phase-59 premium user cabinet evidence remains valid. Phase-62 verification now defines the compactness and deletion-audit contract for user cabinet, public/auth adjacency, compact UI invariants, responsive regressions, preserved primary workflows, redaction, and protected backend/deploy/runtime isolation.</scope>
   <test-files>
     <file>scripts/phase57-premium-user-cabinet-smoke.mjs</file>
@@ -124,4 +124,21 @@
     <gate-5 level="phase-62">Authenticated screenshots may use static-route proof locally; live clean-deploy authenticated screenshot review remains required before production-signoff claims.</gate-5>
   </phase-gates>
   <autonomous-execution-safety>Safe for local autonomous execution if changes stay inside frontend user/public/auth routes, shared frontend CSS, Phase-62 smoke verification, and MyGRACE docs. Stop execution if a backend API change, billing catalog mutation, VPN/MTProto runtime change, deploy/install/nginx/docker-compose change, or secret-handling change appears necessary.</autonomous-execution-safety>
+  <phase-68-verification-design status="planned">
+    <scope>User dashboard compaction, MTProto card copy, subscription merge into /dashboard, tariff/calendar presentation, user-shell logo treatment, and compact animated cabinet controls.</scope>
+    <gate-1>/dashboard must not render phase57-command-center or phase62-secondary-fold.</gate-1>
+    <gate-2>MTProto card must show the approved Russian title, remove the old helper copy, preserve tg:// and https://t.me links, and keep owner-only secret redaction.</gate-2>
+    <gate-3>Subscription content must appear below MTProto on /dashboard while /dashboard/subscription remains route-compatible and non-broken.</gate-3>
+    <gate-4>Tariff cards must use KrotPN Self, KrotPN Family, and KrotPN Team names with approved short descriptions and no "Детали тарифа" block.</gate-4>
+    <gate-5>Subscription calendar must be compact, labelled "Календарь подписки", and make cross-month active ranges understandable without visual bulk.</gate-5>
+    <commands>cd frontend &amp;&amp; npm run build; node scripts/phase57-premium-user-cabinet-smoke.mjs; node scripts/phase62-compactness-deletion-smoke.mjs; node scripts/phase68-dashboard-subscription-smoke.mjs</commands>
+    <redaction>Smoke output must not print full MTProto secrets, full VPN configs, bearer tokens, or real user emails.</redaction>
+  </phase-68-verification-design>
+  <phase-70-verification-design status="planned">
+    <scope>Config page compaction and QR display parity from the user cabinet surface.</scope>
+    <gate-1>/dashboard/config must not render config-diagnostics or data-phase57-raw-config blocks.</gate-1>
+    <gate-2>QR modal must remain reachable, readable, and copy/download actions must continue to work after compacting the page.</gate-2>
+    <gate-3>Visual QR simplification is allowed only after payload parity with backend and CLI is proven by M-003/M-022 gates.</gate-3>
+    <commands>cd frontend &amp;&amp; npm run build; node scripts/phase70-config-qr-parity-smoke.mjs; node scripts/phase62-compactness-deletion-smoke.mjs</commands>
+  </phase-70-verification-design>
 </V-M-075>

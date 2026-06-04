@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<V-M-022 MODULE="M-022" PRIORITY="critical" STATUS="pass-local-phase45" VERSION="1.4.0">
+<V-M-022 MODULE="M-022" PRIORITY="critical" STATUS="pass-local-phase45" VERSION="1.4.0" PHASE-70="verification-designed">
   <module>device-provisioning-api</module>
   <checks>User-facing device APIs expose only the caller's devices, allow deterministic create or revoke or rotate flows, keep one peer per logical device, and Phase-28 cannot provision VPN resources before email verification.</checks>
   <test-files>
@@ -31,4 +31,11 @@
     <finding-2 severity="resolved" date="2026-05-19">The 404 failures were stale test route expectations using /api instead of the canonical /api/v1 VPN prefixes. Public servers/nodes compatibility tests were aligned and the full V-M-022 command now passes locally.</finding-2>
   </refresh-findings>
   <evidence>2026-05-13: Phase-28 backend suite passed locally and proved pending registration creates no user device while verified activation creates one primary device path and does not duplicate it on replay. 2026-05-19: Full V-M-022 command passed locally after aligning VPN compatibility route tests with /api/v1 prefixes. 2026-06-01: Phase-45 backend suite passed and confirms pending trial users remain eligible for first config retrieval.</evidence>
+  <phase-70-verification-design status="planned">
+    <scope>VPN device API and config compatibility verification for compact config page changes.</scope>
+    <gate-1>/api/v1/vpn and device configuration routes must keep current response shape for config text, download, QR, and compatibility clients.</gate-1>
+    <gate-2>Phase-70 frontend simplification must not remove device registration, active-device limits, or config availability checks.</gate-2>
+    <gate-3>QR/download parity tests must cover at least one active device and one pending-trial/first-access compatible path.</gate-3>
+    <commands>cd backend &amp;&amp; pytest tests/test_device_api.py tests/test_vpn_router_compat.py tests/test_trial_activation.py; node scripts/phase70-config-qr-parity-smoke.mjs</commands>
+  </phase-70-verification-design>
 </V-M-022>
