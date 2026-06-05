@@ -1,15 +1,16 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<M-025 NAME="device-audit-log" TYPE="DATA_LAYER" STATUS="stable">
-  <path>backend/app/devices/models.py backend/app/devices/service.py</path>
-  <owns>durable audit trail for device lifecycle, anti-abuse detection, soft auto-rotation and degraded-mode events</owns>
+<M-025 NAME="device-audit-log" TYPE="DATA_LAYER" STATUS="stable-pass-local-phase78">
+  <path>backend/app/devices/models.py backend/app/devices/service.py backend/tests/test_vpn_device_abuse_alerts.py docs/plans/Phase-78.xml</path>
+  <owns>durable audit trail for device lifecycle, anti-abuse detection, soft auto-rotation, degraded-mode events, and M-081 source-event links</owns>
   <exports>
     <fn-record-device-event>Writes a stable lifecycle or anomaly event for later investigation</fn-record-device-event>
     <enum-anti-abuse-events>ping_pong_abuse_detected, multi_network_abuse_detected, anti_abuse_auto_rotate_started, anti_abuse_auto_rotate_completed, anti_abuse_cooldown_skipped, anti_abuse_redis_degraded</enum-anti-abuse-events>
   </exports>
-  <depends>M-001, M-020, M-023</depends>
+  <depends>M-001, M-020, M-023, M-081</depends>
   <verification-ref>V-M-025</verification-ref>
   <files>
     <file>backend/app/devices/models.py</file>
     <file>backend/app/devices/service.py</file>
   </files>
+  <phase-78-evidence status="pass-local" date="2026-06-06">M-081 tests prove only ping_pong_abuse_detected and multi_network_abuse_detected source events create alert inbox rows.</phase-78-evidence>
 </M-025>

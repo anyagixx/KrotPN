@@ -4,13 +4,14 @@
 // MAP_MODE: EXPORTS
 // START_MODULE_CONTRACT
 //   PURPOSE: Shared TypeScript interfaces for admin frontend API contracts
-//   SCOPE: AdminUser, AdminDevice, AdminPlan, AdminServer, AdminNode, AdminRoute, MTProto admin/analytics contracts, BillingStats, ReferralStats, SystemHealth, AnalyticsData, PaginatedResponse, NodeForm, RouteForm
-//   DEPENDS: M-010 (frontend-admin), M-047 (mtproto-admin-ops), M-058 (mtproto-admin-analytics-ui)
-//   LINKS: M-010 (frontend-admin), M-006 (admin-api), M-047, M-058
+//   SCOPE: AdminUser, AdminDevice, AdminPlan, AdminServer, AdminNode, AdminRoute, VPN abuse alert contracts, MTProto admin/analytics contracts, BillingStats, ReferralStats, SystemHealth, AnalyticsData, PaginatedResponse, NodeForm, RouteForm
+//   DEPENDS: M-010 (frontend-admin), M-047 (mtproto-admin-ops), M-058 (mtproto-admin-analytics-ui), M-081 (VPN device abuse alert inbox)
+//   LINKS: M-010 (frontend-admin), M-006 (admin-api), M-047, M-058, M-081
 // END_MODULE_CONTRACT
 //
 // START_MODULE_MAP
 //   AdminUser, AdminDevice, AdminPlan, AdminServer, AdminNode, AdminRoute - Admin entity interfaces
+//   AdminVPNDeviceAbuseAlert, AdminVPNDeviceAbuseAlertListResponse - VPN device abuse alert inbox contracts
 //   AdminMTProtoAssignment, AdminMTProtoListResponse, AdminMTProtoHealth, AdminMTProtoActionResponse - Redacted MTProto admin interfaces
 //   AdminMTProtoAnalyticsSummary, AdminMTProtoAssignmentUsage, AdminMTProtoTopUsersResponse, AdminMTProtoPromotionTagState - MTProto analytics interfaces
 //   BillingStats, ReferralStats, SystemHealth, AnalyticsData - Analytics interfaces
@@ -19,6 +20,7 @@
 // END_MODULE_MAP
 //
 // START_CHANGE_SUMMARY
+//   LAST_CHANGE: v3.6.0 - Added Phase-78 VPN device abuse alert inbox contracts.
 //   LAST_CHANGE: v3.5.0 - Added Phase-50 canonical paid tariff fields to AdminPlan.
 //   LAST_CHANGE: v3.4.0 - Added Phase-43 MTProto alerts, IP investigation, timeseries, resource, and storage contracts
 //   LAST_CHANGE: v3.3.0 - Added Phase-42 MTProto analytics and promotion tag admin contracts
@@ -131,6 +133,43 @@ export interface AdminRoute {
   tunnel_interface?: string
 }
 // END_BLOCK: AdminRoute
+
+// START_BLOCK: AdminVPNDeviceAbuseAlert
+export interface AdminVPNDeviceAbuseAlert {
+  id: number
+  user_id: number
+  user_email?: string | null
+  user_display_name?: string | null
+  device_id: number
+  device_name?: string | null
+  device_status?: string | null
+  source_event_id?: number | null
+  signal_type: string
+  severity: string
+  status: string
+  title: string
+  reason_code: string
+  config_version: number
+  last_endpoint?: string | null
+  last_handshake_at?: string | null
+  first_seen_at?: string | null
+  last_seen_at?: string | null
+  occurrence_count: number
+  resolved_at?: string | null
+  resolved_by_admin_id?: number | null
+  action_taken?: string | null
+  action_result?: string | null
+}
+
+export interface AdminVPNDeviceAbuseAlertListResponse {
+  items: AdminVPNDeviceAbuseAlert[]
+  total: number
+  open_count: number
+  resolved_count: number
+  offset: number
+  limit: number
+}
+// END_BLOCK: AdminVPNDeviceAbuseAlert
 
 // START_BLOCK: AdminMTProto
 export interface AdminMTProtoAssignment {

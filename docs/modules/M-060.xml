@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<M-060 NAME="mtproto-admin-alerts" TYPE="CORE_LOGIC" STATUS="pass-local-phase43">
-  <path>backend/app/mtproto/admin_alerts.py backend/app/admin/router.py frontend-admin/src/pages/MTProtoAnalytics.tsx backend/tests/test_mtproto_admin_alerts.py docs/plans/Phase-43.xml</path>
+<M-060 NAME="mtproto-admin-alerts" TYPE="CORE_LOGIC" STATUS="pass-local-phase43-pass-local-phase79">
+  <path>backend/app/mtproto/admin_alerts.py backend/app/admin/router.py frontend-admin/src/pages/MTProtoAnalytics.tsx backend/tests/test_mtproto_admin_alerts.py scripts/phase79-cyber-title-and-mtproto-promo-safe-smoke.mjs docs/plans/Phase-43.xml docs/plans/Phase-79.xml</path>
   <owns>Durable admin notification inbox for MTProto abuse signals, review state, acknowledgements, resolutions, and confirmation-safe enforcement actions.</owns>
   <purpose>Notify the operator about clear MTProto abuse without automatically blocking users before admin review.</purpose>
   <exports>
@@ -18,19 +18,25 @@
     <file status="implemented">backend/alembic/versions/phase43_add_mtproto_ip_observability.py</file>
     <file status="implemented">backend/tests/test_mtproto_admin_alerts.py</file>
     <file status="implemented">scripts/phase43-mtproto-admin-analytics-smoke.mjs</file>
+    <file status="phase79-pass-local">scripts/phase79-cyber-title-and-mtproto-promo-safe-smoke.mjs</file>
   </files>
-  <evidence>pass-local 2026-05-21: alert lifecycle/dedupe/IP-block archive tests, admin analytics API tests, scheduler maintenance regression, frontend-admin build, and Phase-43 static smoke passed.</evidence>
+  <evidence>pass-local 2026-06-06: alert lifecycle/dedupe/IP-block archive tests, admin analytics API tests, scheduler maintenance regression, frontend-admin build, Phase-43 static smoke, and Phase-79 no-auto-enforcement regression passed.</evidence>
   <alert-policy>
     <policy-1>Alert creation is deduplicated by signal type, assignment, severity window, and review state.</policy-1>
     <policy-2>Alerts do not automatically disable proxies or block IP addresses.</policy-2>
     <policy-3>Admin enforcement actions require explicit confirmation and write M-026 audit events.</policy-3>
     <policy-4>Alert details may reference raw IP observation ids, but must not copy raw IP strings into audit logs or general alert payloads.</policy-4>
     <policy-5>Reviewed enforcement actions resolve alerts out of the open inbox while preserving history for archive review.</policy-5>
+    <policy-6 phase="79-pass-local">MTProto admin alerts are advisory until the operator explicitly confirms disable-proxy or TTL IP-block actions.</policy-6>
   </alert-policy>
   <constraints>
     <constraint-1>Proxy disable is safer than IP blocking and should remain the primary enforcement action.</constraint-1>
     <constraint-2>IP block actions require TTL, double confirmation, and verification that the address came from M-061 client IP evidence.</constraint-2>
     <constraint-3>Mobile-network NAT and carrier-grade NAT can make IP blocking overbroad; the UI must make this risk visible to the operator.</constraint-3>
   </constraints>
+  <phase-79-executed-scope>
+    <scope>Made the no-auto-enforcement contract executable in tests: alert creation never changes assignment status, runtime policy, or IP block state until an explicit admin-confirmed action route is called.</scope>
+    <verification>PASS local: backend MTProto admin-alert tests and Phase-79 smoke prove alert creation/review does not auto-disable proxies or auto-block IPs.</verification>
+  </phase-79-executed-scope>
   <hotspot>H-047: MTProto abuse alerts must notify admins without automatically punishing users before operator review</hotspot>
 </M-060>

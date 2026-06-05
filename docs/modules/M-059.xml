@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<M-059 NAME="mtproto-promotion-tag-control" TYPE="INTEGRATION" STATUS="pass-live-phase42">
-  <path>backend/app/mtproto/promotion_tag.py backend/app/admin/router.py backend/app/core/config.py mtproto-runtime/src/kpproton_app.erl deploy/mtproto-de-compose.yml .env.example scripts/phase42-mtproto-promotion-tag-smoke.mjs backend/tests/test_mtproto_promotion_tag.py docs/plans/Phase-42.xml</path>
+<M-059 NAME="mtproto-promotion-tag-control" TYPE="INTEGRATION" STATUS="pass-live-phase42-pass-local-phase79">
+  <path>backend/app/mtproto/promotion_tag.py backend/app/admin/router.py backend/app/core/config.py mtproto-runtime/src/kpproton_app.erl deploy/mtproto-de-compose.yml .env.example scripts/phase42-mtproto-promotion-tag-smoke.mjs scripts/phase79-cyber-title-and-mtproto-promo-safe-smoke.mjs backend/tests/test_mtproto_promotion_tag.py docs/plans/Phase-42.xml docs/plans/Phase-79.xml</path>
   <owns>Operator-managed MTProxyBot promotion tag storage, validation, redaction, audit trail, runtime apply state, and deploy env propagation.</owns>
   <purpose>Allow the KrotPN admin to configure the Telegram MTProxy promotion tag safely from the admin panel.</purpose>
   <exports>
@@ -20,9 +20,10 @@
     <file status="unchanged-existing">.env.example</file>
     <file status="implemented">mtproto-runtime/src/kpproton_app.erl</file>
     <file status="implemented">scripts/phase42-mtproto-promotion-tag-smoke.mjs</file>
+    <file status="phase79-pass-local">scripts/phase79-cyber-title-and-mtproto-promo-safe-smoke.mjs</file>
     <file status="implemented">backend/tests/test_mtproto_promotion_tag.py</file>
   </files>
-  <evidence>pass-live 2026-05-23: promotion tag validator/API tests, static smoke, runtime compile, and operator clean-deploy validation passed; operator registered a proxy in @MTProxybot using the 32-hex inner fake-TLS secret, applied the returned MTPROTO_AD_TAG through RU/DE runtime restart, and confirmed applied state.</evidence>
+  <evidence>pass-live 2026-05-23 and pass-local-phase79 2026-06-06: promotion tag validator/API tests, static smoke, runtime compile, and operator clean-deploy validation passed; Phase-79 smoke confirms anti-abuse alerts do not rotate issued links, expose full tags, or mutate promotion tag state.</evidence>
   <external-reference>
     <source-1>Telegram MTProxy setup documents promotion tags from @MTProxyBot and server-side proxy tag configuration at https://core.telegram.org/proxy.</source-1>
   </external-reference>
@@ -30,6 +31,11 @@
     <constraint-1>Blank tag must never reach runtime; use explicit zero 32-hex fallback when no promotion channel is configured.</constraint-1>
     <constraint-2>Full tag must not appear in admin list views, audit details, logs, telemetry, or frontend bundles.</constraint-2>
     <constraint-3>Changing promotion tag must not rotate user SNI, base secret, salt, or proxy links.</constraint-3>
+    <constraint-4 phase="79-pass-local">MTProto abuse-alert handling does not change promotion tag state, expose the full tag, or treat promotion-sharing as automatic abuse.</constraint-4>
   </constraints>
+  <phase-79-executed-scope>
+    <scope>Phase-79 kept promotion tag control independent from anti-abuse: links, SNI, tag validation, masking, and runtime application semantics remain unchanged.</scope>
+    <verification>PASS local: backend promotion-tag tests, Phase-42 smoke, and Phase-79 smoke prove tag state is masked and independent from MTProto alert handling.</verification>
+  </phase-79-executed-scope>
   <hotspot>H-046: Promotion tag control must validate MTProxyBot tags, avoid blank runtime tags, and never log full tags</hotspot>
 </M-059>

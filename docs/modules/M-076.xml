@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<M-076 NAME="premium-admin-cockpit" TYPE="UI_COMPONENT" STATUS="done-local-phase58-pass-local-phase59-pass-local-phase62-pass-local-rainfix-pass-local-phase74-pass-local-phase75-pass-local-phase76">
-  <path>frontend-admin/src/components/Layout.tsx frontend-admin/src/components/StatCard.tsx frontend-admin/src/pages/Dashboard.tsx frontend-admin/src/pages/Users.tsx frontend-admin/src/pages/Devices.tsx frontend-admin/src/pages/MTProto.tsx frontend-admin/src/pages/MTProtoAnalytics.tsx frontend-admin/src/pages/Analytics.tsx frontend-admin/src/pages/Servers.tsx frontend-admin/src/pages/Plans.tsx docs/plans/Phase-58.xml docs/plans/Phase-59.xml docs/plans/Phase-62.xml docs/plans/Phase-74.xml docs/plans/Phase-75.xml scripts/phase58-premium-admin-cockpit-smoke.mjs scripts/phase59-motion-interactions-smoke.mjs scripts/phase62-compactness-deletion-smoke.mjs scripts/phase74-admin-shell-navigation-smoke.mjs scripts/phase75-admin-users-devices-smoke.mjs</path>
-  <owns>Premium compact admin cockpit for service health, unified users/devices inventory, MTProto, analytics, and operations; admin Tariffs is retired from visible cockpit navigation after Phase-74 and separate Devices navigation is retired after Phase-75.</owns>
+<M-076 NAME="premium-admin-cockpit" TYPE="UI_COMPONENT" STATUS="done-local-phase58-pass-local-phase59-pass-local-phase62-pass-local-rainfix-pass-local-phase74-pass-local-phase75-pass-local-phase76-pass-local-phase78">
+  <path>frontend-admin/src/components/Layout.tsx frontend-admin/src/components/StatCard.tsx frontend-admin/src/pages/Dashboard.tsx frontend-admin/src/pages/Users.tsx frontend-admin/src/pages/Devices.tsx frontend-admin/src/pages/MTProto.tsx frontend-admin/src/pages/MTProtoAnalytics.tsx frontend-admin/src/pages/Analytics.tsx frontend-admin/src/pages/Servers.tsx frontend-admin/src/pages/Plans.tsx docs/plans/Phase-58.xml docs/plans/Phase-59.xml docs/plans/Phase-62.xml docs/plans/Phase-74.xml docs/plans/Phase-75.xml docs/plans/Phase-78.xml scripts/phase58-premium-admin-cockpit-smoke.mjs scripts/phase59-motion-interactions-smoke.mjs scripts/phase62-compactness-deletion-smoke.mjs scripts/phase74-admin-shell-navigation-smoke.mjs scripts/phase75-admin-users-devices-smoke.mjs scripts/phase78-vpn-device-abuse-alerts-smoke.mjs</path>
+  <owns>Premium compact admin cockpit for service health, unified users/devices inventory, VPN abuse alert inbox/archive, MTProto, analytics, and operations; admin Tariffs is retired from visible cockpit navigation after Phase-74 and separate Devices navigation is retired after Phase-75.</owns>
   <purpose>Make admin operations scan-friendly and premium without reducing emergency control clarity.</purpose>
   <exports>
     <view-admin-command-home>Dense health, revenue, user, VPN, MTProto, and action summary.</view-admin-command-home>
@@ -10,8 +10,9 @@
     <rule-admin-deletion-audit>Remove bulky, duplicated, or low-value admin panels while preserving operations.</rule-admin-deletion-audit>
     <rule-phase74-shell-order>Keep Logout directly under Nodes and remove the visible Tariffs route from admin cockpit navigation.</rule-phase74-shell-order>
     <rule-phase75-unified-users>Keep users and their devices in one bounded scan-friendly inventory while preserving emergency device actions.</rule-phase75-unified-users>
+    <rule-phase78-vpn-abuse-inbox>Show high-signal VPN abuse alerts inside Users with archive, detail drawer, and one-device confirmed actions.</rule-phase78-vpn-abuse-inbox>
   </exports>
-  <depends>M-010,M-037,M-047,M-058,M-068,M-070,M-071,M-072,M-074,M-077</depends>
+  <depends>M-010,M-037,M-047,M-058,M-068,M-070,M-071,M-072,M-074,M-077,M-081</depends>
   <verification-ref>V-M-076</verification-ref>
   <constraints>
     <constraint-1>Admin emergency actions, destructive confirmations, and audit-sensitive feedback must remain visible.</constraint-1>
@@ -28,6 +29,7 @@
     <metric-5 status="pass-local-rainfix">Phase-58 protected guard permits only the shared Matrix VisualShell reliability diff while keeping backend/deploy/runtime protection intact.</metric-5>
     <metric-6 status="pass-local-phase74">Phase-74 proves Logout under Nodes, removed visible Tariffs route/nav, repaired content scroll, and bounded rail geometry.</metric-6>
     <metric-7 status="pass-local-phase75">Phase-75 proves one Users inventory, removed visible Devices nav, safe /devices redirect, preserved emergency device actions, and bounded expanded devices.</metric-7>
+    <metric-8 status="pass-local-phase78">Phase-78 proves compact VPN abuse inbox/archive/detail/actions in Users without deploy/runtime/user-frontend drift.</metric-8>
   </acceptance-metrics>
   <evidence>
     <evidence-1>2026-06-04 pass-local: frontend-admin Layout, StatCard, Dashboard, Users, Devices, MTProto, MTProtoAnalytics, Analytics, Servers, Plans, shared admin CSS, and Phase-58 smoke were updated for premium command center, bounded inventories, MTProto redaction, confirmation guards, tariff readonly guard, analytics readonly guard, reduced-motion proof, and protected-surface isolation.</evidence-1>
@@ -37,6 +39,7 @@
     <evidence-5>2026-06-04 pass-local-rainfix: Phase-58 smoke guard was updated to allow the shared user VisualShell Matrix reliability diff during Phase-60 regression while still rejecting backend/deploy/runtime/admin-protected drift. Phase-60 QA passed.</evidence-5>
     <evidence-6>2026-06-05 pass-local: Phase-74 frontend-admin build and smoke passed for logout-under-Nodes, no visible Tariffs nav, safe /plans redirect, content scroll, rail bounds, and protected backend/deploy/runtime/user frontend guard.</evidence-6>
     <evidence-7>2026-06-05 pass-local: Phase-75 frontend-admin build and smoke passed for single Users inventory, no visible Devices nav, safe /devices redirect, preserved device action confirmations, bounded expanded device rows, and protected backend/deploy/runtime/user frontend guard.</evidence-7>
+    <evidence-8>2026-06-06 pass-local: Phase-78 frontend-admin build and smoke passed for VPN abuse open inbox, archive, detail drawer, confirmation copy, and one-device action scope.</evidence-8>
   </evidence>
   <phase-74-executed-scope>
     <primary-files>frontend-admin/src/components/Layout.tsx frontend-admin/src/main.tsx frontend-admin/src/index.css scripts/phase74-admin-shell-navigation-smoke.mjs</primary-files>
@@ -48,5 +51,10 @@
     <primary-behaviors>Merge admin Users and Devices into one scan-friendly cockpit inventory while preserving direct emergency actions and confirmation surfaces.</primary-behaviors>
     <verification>Phase-75 smoke passed PremiumAdminCockpit markers USERS_INVENTORY_UNIFIED, DEVICES_NAV_REMOVED, EMERGENCY_DEVICE_ACTIONS_PRESERVED, and BOUNDED_EXPANDED_DEVICES.</verification>
   </phase-75-executed-scope>
+  <phase-78-executed-scope>
+    <primary-files>frontend-admin/src/pages/Users.tsx frontend-admin/src/lib/api.ts frontend-admin/src/types/index.ts scripts/phase78-vpn-device-abuse-alerts-smoke.mjs</primary-files>
+    <primary-behaviors>Render open VPN abuse alerts above the unified Users inventory, expose resolved archive, show detail drawer, and require confirmation for resolve/rotate/block.</primary-behaviors>
+    <verification>Phase-78 smoke passed PremiumAdminCockpit and DeviceAdminControl markers for VPN abuse alert inbox, archive, and one-device actions.</verification>
+  </phase-78-executed-scope>
   <hotspot>H-063: Premium admin cockpit must improve scanability without hiding emergency controls, MTProto redaction, or confirmation flows.</hotspot>
 </M-076>

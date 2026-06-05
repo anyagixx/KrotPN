@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<V-M-023 MODULE="M-023" PRIORITY="high" STATUS="pass">
+<V-M-023 MODULE="M-023" PRIORITY="high" STATUS="pass-local-phase78" PHASE-78="pass-local">
   <module>handshake-anomaly-detector</module>
   <checks>Handshake observation updates device last-seen state, delegates endpoint history to M-031, treats single roaming transitions as non-abuse, persists confirmed ping-pong evidence, and does not leak secrets or raw private peer material into logs.</checks>
   <test-files>backend/tests/test_handshake_anomaly_detector.py</test-files>

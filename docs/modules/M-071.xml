@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<M-071 NAME="matrix-style-system" TYPE="UI_COMPONENT" STATUS="done-local-phase52-phase53-phase54-phase55-phase56-phase59-pass-local-phase67-pass-local-rainfix-pass-local-phase68-pass-local-phase70-pass-local-phase71-pass-local-phase72-pass-local-phase73-pass-local-phase74-pass-local-phase76-pass-local-phase77-pass-local-config-action-polish">
-  <path>frontend/src/index.css frontend-admin/src/index.css frontend/src/components/Layout.tsx frontend-admin/src/components/Layout.tsx scripts/phase52-matrix-visual-smoke.mjs scripts/phase53-user-matrix-ui-smoke.mjs scripts/phase54-admin-matrix-ui-smoke.mjs scripts/phase55-premium-art-direction-smoke.mjs scripts/phase56-premium-public-auth-smoke.mjs scripts/phase59-motion-interactions-smoke.mjs scripts/phase61-responsive-adaptation-smoke.mjs scripts/phase73-config-amnezia-qr-smoke.mjs scripts/phase74-admin-shell-navigation-smoke.mjs docs/plans/Phase-52.xml docs/plans/Phase-53.xml docs/plans/Phase-54.xml docs/plans/Phase-55.xml docs/plans/Phase-56.xml docs/plans/Phase-59.xml docs/plans/Phase-67.xml docs/plans/Phase-68.xml docs/plans/Phase-70.xml docs/plans/Phase-73.xml docs/plans/Phase-74.xml scripts/phase67-auth-splash-smoke.mjs scripts/phase68-dashboard-subscription-smoke.mjs scripts/phase70-config-qr-parity-smoke.mjs</path>
+<M-071 NAME="matrix-style-system" TYPE="UI_COMPONENT" STATUS="done-local-phase52-phase53-phase54-phase55-phase56-phase59-pass-local-phase67-pass-local-rainfix-pass-local-phase68-pass-local-phase70-pass-local-phase71-pass-local-phase72-pass-local-phase73-pass-local-phase74-pass-local-phase76-pass-local-phase77-pass-local-config-action-polish-pass-local-phase79">
+  <path>frontend/src/index.css frontend-admin/src/index.css frontend/src/components/Layout.tsx frontend-admin/src/components/Layout.tsx scripts/phase52-matrix-visual-smoke.mjs scripts/phase53-user-matrix-ui-smoke.mjs scripts/phase54-admin-matrix-ui-smoke.mjs scripts/phase55-premium-art-direction-smoke.mjs scripts/phase56-premium-public-auth-smoke.mjs scripts/phase59-motion-interactions-smoke.mjs scripts/phase61-responsive-adaptation-smoke.mjs scripts/phase73-config-amnezia-qr-smoke.mjs scripts/phase74-admin-shell-navigation-smoke.mjs docs/plans/Phase-52.xml docs/plans/Phase-53.xml docs/plans/Phase-54.xml docs/plans/Phase-55.xml docs/plans/Phase-56.xml docs/plans/Phase-59.xml docs/plans/Phase-67.xml docs/plans/Phase-68.xml docs/plans/Phase-70.xml docs/plans/Phase-73.xml docs/plans/Phase-74.xml docs/plans/Phase-79.xml scripts/phase67-auth-splash-smoke.mjs scripts/phase68-dashboard-subscription-smoke.mjs scripts/phase70-config-qr-parity-smoke.mjs scripts/phase79-cyber-title-and-mtproto-promo-safe-smoke.mjs</path>
   <owns>Shared KrotPN Matrix visual language: color tokens, compact panels, CRT scanlines, neon flicker, glitch accents, focus states, and mobile-safe responsive rules.</owns>
   <depends>M-009, M-010, M-036, M-037, M-038, M-070, M-077</depends>
   <verification-ref>V-M-071</verification-ref>
@@ -28,6 +28,7 @@
     <interface-12 phase="74-pass-local">Phase-74 implements admin login icon-safe padding, bounded desktop admin rail, and admin content scroll surface markers.</interface-12>
     <interface-13 phase="77-pass-local">Phase-77 implements config guidance link styling, green/cyan/red subscription calendar pulses, fixed safe-area mobile dock, and mobile touch-scroll safety markers.</interface-13>
     <interface-14 fix="config-action-polish">Route-local classes phase71-config-export-actions and phase71-copy-config-action remove the extra dark export frame and keep mobile copy text on one line.</interface-14>
+    <interface-15 phase="79-pass-local">Phase-79 adds an acid-pink cyber title typography treatment for public/auth entry surfaces with mobile-safe sizing and no external font/CDN dependency.</interface-15>
   </public-interfaces>
   <constraints>
     <constraint-1>Preserve compact operational UX: no marketing landing page, no nested cards, no decorative card-heavy dashboards.</constraint-1>
@@ -59,6 +60,7 @@
     <phase-73-local-2026-06-05>Phase-73 kept style changes route-local in Config.tsx, removed unsupported AmneziaVPN QR tab, added compact .conf guidance, and passed Phase-73/70/71 smokes without new global CSS bloat.</phase-73-local-2026-06-05>
     <phase-74-local-2026-06-05>Phase-74 added bounded admin shell CSS and login icon-safe spacing in frontend-admin/src/index.css; frontend-admin build and Phase-74 smoke passed with protected backend/deploy/runtime/user frontend guard clean.</phase-74-local-2026-06-05>
     <config-action-polish-local-2026-06-05>Route-local CSS removed the extra dark frame around /dashboard/config QR/.conf/Copy actions, removed secondary-action borders inside the export group, and applied mobile nowrap sizing to "Копировать конфиг".</config-action-polish-local-2026-06-05>
+    <phase-79-local-2026-06-06>Phase-79 added acid-pink cyber title tokens, heavier creative local/system typography, neon pulse, mobile width guards, and reduced-motion fallback in frontend/src/index.css; frontend build, Phase-79 smoke, Phase-56 smoke, and bundle checks passed.</phase-79-local-2026-06-06>
   </evidence>
   <phase-71-executed-scope>
     <primary-files>frontend/src/index.css frontend/src/pages/Config.tsx frontend/src/components/Layout.tsx frontend/src/components/SubscriptionPanel.tsx scripts/phase71-device-config-master-detail-smoke.mjs</primary-files>
@@ -113,4 +115,9 @@
   </phase-77-executed-scope>
   <phase-77-evidence status="pass-local" date="2026-06-05">Matrix style system passed local Phase-77 verification.</phase-77-evidence>
   <config-action-polish-evidence status="pass-local" date="2026-06-05">Phase-71 smoke covers frameless config export actions and mobile copy-action nowrap markers; no global button contract, admin CSS, backend, deploy, or runtime behavior changed.</config-action-polish-evidence>
+  <phase-79-executed-scope>
+    <primary-files>frontend/src/index.css frontend/src/pages/Login.tsx frontend/src/pages/Register.tsx frontend/src/pages/ForgotPassword.tsx frontend/src/pages/ResetPassword.tsx frontend/src/pages/VerifyEmail.tsx frontend/src/pages/Landing.tsx</primary-files>
+    <primary-behaviors>Added acid-pink, heavier, creative cyber title styling while preserving letter-spacing 0, reduced-motion fallbacks, mobile no-overlap, and no auth/dashboard/admin API changes.</primary-behaviors>
+    <verification>PASS local: Phase-79 smoke verifies title tokens, markers, CDN-free title block, responsive guards, reduced-motion fallback, and protected deploy/runtime independence.</verification>
+  </phase-79-executed-scope>
 </M-071>

@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<M-081 NAME="vpn-device-abuse-alerts" TYPE="CORE_LOGIC" STATUS="pass-local-phase78">
+  <path>backend/app/vpn/abuse_alerts.py backend/app/admin/router.py frontend-admin/src/pages/Users.tsx frontend-admin/src/lib/api.ts frontend-admin/src/types/index.ts backend/alembic/versions/phase78_vpn_device_abuse_alerts.py scripts/phase78-vpn-device-abuse-alerts-smoke.mjs</path>
+  <owns>Durable VPN device abuse alert inbox for confirmed anti-sharing signals, operator review, safe device-only enforcement actions, and archived resolutions.</owns>
+  <purpose>Turn VPN anti-abuse audit events into explicit admin-reviewable alerts without enabling automatic punishment by default.</purpose>
+  <exports>
+    <model-VPNDeviceAbuseAlert>Persistent alert row linked to user, device, source security event, signal type, severity, status, occurrence count, and reviewed action outcome.</model-VPNDeviceAbuseAlert>
+    <fn-create-device-abuse-alert>Create or update a deduplicated open alert from ping-pong or multi-network VPN abuse evidence.</fn-create-device-abuse-alert>
+    <fn-list-device-abuse-alerts>Return paginated open/resolved alerts for the admin cockpit.</fn-list-device-abuse-alerts>
+    <fn-get-device-abuse-alert>Return one alert with safe user/device/context detail for operator review.</fn-get-device-abuse-alert>
+    <fn-resolve-device-abuse-alert>Close an alert without changing runtime access after admin review.</fn-resolve-device-abuse-alert>
+    <fn-rotate-device-for-alert>Rotate only the affected device config after explicit admin confirmation.</fn-rotate-device-for-alert>
+    <fn-block-device-for-alert>Block only the affected device peer after explicit admin confirmation.</fn-block-device-for-alert>
+  </exports>
+  <depends>M-001,M-003,M-006,M-020,M-021,M-024,M-025,M-026,M-028,M-031,M-076</depends>
+  <verification-ref>V-M-081</verification-ref>
+  <files>
+    <file status="done-local">backend/app/vpn/abuse_alerts.py</file>
+    <file status="done-local">backend/app/admin/router.py</file>
+    <file status="done-local">backend/alembic/versions/phase78_vpn_device_abuse_alerts.py</file>
+    <file status="done-local">backend/tests/test_vpn_device_abuse_alerts.py</file>
+    <file status="done-local">frontend-admin/src/pages/Users.tsx</file>
+    <file status="done-local">frontend-admin/src/lib/api.ts</file>
+    <file status="done-local">frontend-admin/src/types/index.ts</file>
+    <file status="done-local">scripts/phase78-vpn-device-abuse-alerts-smoke.mjs</file>
+  </files>
+  <alert-policy>
+    <policy-1>Only confirmed ping_pong_abuse_detected and multi_network_abuse_detected events create operator alerts.</policy-1>
+    <policy-2>Normal roaming, port-only NAT churn, Redis degraded events, and generic warnings must not create alert-inbox noise.</policy-2>
+    <policy-3>Alerts never auto-rotate or block access by themselves; every action requires explicit admin confirmation.</policy-3>
+    <policy-4>Enforcement actions target exactly one device_id and must not disable the user account or unrelated devices.</policy-4>
+    <policy-5>Resolved alerts leave the open inbox and remain queryable through an archive list.</policy-5>
+  </alert-policy>
+  <data-contract>
+    <field-1>Alert payload may include user id, user email, device id, device name, config version, last endpoint, last handshake, signal type, severity, timestamps, and safe occurrence counters.</field-1>
+    <field-2>Alert payloads and audit details must never include VPN private keys, preshared keys, full config bodies, bearer tokens, or raw high-risk request payloads.</field-2>
+    <field-3>Raw endpoint IPs may be shown only as the existing admin device endpoint context; no broader IP history is introduced by this module.</field-3>
+  </data-contract>
+  <constraints>
+    <constraint-1>ANTI_ABUSE_MODE remains observe by default; Phase-78 is an admin visibility and reviewed-action phase, not an auto-punishment rollout.</constraint-1>
+    <constraint-2>Schema migration must be additive and backward-compatible with SQLModel.create_all transition behavior.</constraint-2>
+    <constraint-3>Admin UI must stay compact on mobile and preserve the Phase-75 unified Users inventory.</constraint-3>
+  </constraints>
+  <hotspot>H-068: VPN abuse alerts must be high-signal and device-scoped so normal mobile roaming is not treated as fraud and admins cannot accidentally punish a whole account.</hotspot>
+  <evidence date="2026-06-06">PASS local: M-081 model/service/API/UI/smoke implemented; confirmed events create deduped alerts; resolve/rotate/block are confirmation-safe and device-scoped; protected deploy/runtime/user-frontend guard passed.</evidence>
+</M-081>

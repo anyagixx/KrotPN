@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Phase-79 NAME="Cyber Title Polish and Promo-Safe MTProto Anti-Abuse" STATUS="done-local" MODULES="M-073,M-071,M-056,M-060,M-058,M-059" STEPS="10">
+  <objective>Polish the public/auth cyber title typography and harden MTProto anti-abuse around the intended promotion-sharing model: observe, alert, and wait for explicit admin action.</objective>
+
+  <scope>
+    <in-scope>Public/auth cyber title styling, acid-pink creative typography, responsive no-overlap checks, MTProto abuse severity policy, admin-only alert handling, promotion-sharing copy/contract, and regression tests for no automatic proxy/IP blocking.</in-scope>
+    <out-of-scope>Changing install/deploy scripts, nginx, docker-compose, MTProto runtime topology, VPN runtime, Telegram promotion tag format, user proxy link generation, automatic MTProto proxy disablement, or inspecting Telegram chats/channels/content.</out-of-scope>
+  </scope>
+
+  <requirements>
+    <requirement-1>The visible "Кибернетический Протокол Навигации" title on public/auth entry surfaces must use acid-pink color, stronger weight, and a more creative cyber typography treatment without external CDN dependencies.</requirement-1>
+    <requirement-2>The / public splash contract remains fast and compact; if the title is rendered on /, it must not delay or block the automatic redirect to /login.</requirement-2>
+    <requirement-3>MTProto individual proxies may be shared intentionally for KrotPN promotion so Telegram clients see the configured promo channel tag.</requirement-3>
+    <requirement-4>Sharing or many-IP observation alone must not be treated as hard abuse.</requirement-4>
+    <requirement-5>MTProto anti-abuse must continue to record signals and create admin alerts, but it must never automatically disable proxies or block IP addresses.</requirement-5>
+    <requirement-6>Only the administrator can disable an MTProto proxy, block an IP with TTL, or close an alert after explicit confirmation.</requirement-6>
+  </requirements>
+
+  <architecture>
+    <flow-1>M-073 identifies the auth/splash title surfaces and preserves the Phase-67 public redirect and auth state contracts.</flow-1>
+    <flow-2>M-071 owns the reusable acid-pink cyber title class, creative font stack, neon treatment, mobile-safe sizing, and reduced-motion fallback.</flow-2>
+    <flow-3>M-056 classifies MTProto telemetry in observe-only mode and treats promo-sharing traffic as allowed unless hard concurrent/traffic/error evidence is present.</flow-3>
+    <flow-4>M-060 creates durable high/critical admin alerts while preserving explicit admin confirmation for every enforcement action.</flow-4>
+    <flow-5>M-058 renders operator-facing alert context without exposing technical Signals, secrets, promo tag values, or Telegram links.</flow-5>
+    <flow-6>M-059 remains the promotion-tag owner; Phase-79 must not rotate SNI, change user links, or expose the stored tag.</flow-6>
+  </architecture>
+
+  <planned-interfaces>
+    <ui-1>CSS selector or route-local class for the cyber title, applied consistently to public/auth entry surfaces.</ui-1>
+    <policy-1>Promo-safe MTProto abuse policy: shared proxy usage is allowed; high/critical alert thresholds require strong multi-IP concurrency, extreme traffic, or repeated error evidence.</policy-1>
+    <policy-2>No new automatic enforcement switch is introduced for MTProto; existing disable/block routes remain admin-confirmed only.</policy-2>
+  </planned-interfaces>
+
+  <steps>
+    <step-1 status="done-local">Map all "Кибернетический Протокол Навигации" render points and decide whether / splash needs visible title text or only the existing auth surfaces need title restyling.</step-1>
+    <step-2 status="done-local">Add a compact acid-pink cyber title style in M-071 with stronger font weight, creative bundled/system font stack, neon treatment, and reduced-motion/readability safeguards.</step-2>
+    <step-3 status="done-local">Apply the title style through M-073 without changing auth API calls, token/session behavior, registration pending state, or the / to /login redirect.</step-3>
+    <step-4 status="done-local">Add frontend smoke coverage for the title color/style marker, responsive no-overlap, no external font/CDN dependency, and reduced-motion fallback.</step-4>
+    <step-5 status="done-local">Review M-056 severity thresholds so normal proxy sharing, many IPs, and mobile/network churn stay observe-only medium unless paired with hard abuse evidence.</step-5>
+    <step-6 status="done-local">Strengthen M-056 tests for promo-sharing allowed behavior, many-IP no-alert behavior, and high/critical alert handoff only under hard abuse conditions.</step-6>
+    <step-7 status="done-local">Strengthen M-060 tests to prove alerts never disable proxy assignments or block IPs without explicit admin confirmation.</step-7>
+    <step-8 status="done-local">Update M-058 admin UI copy or markers so the operator understands that sharing is expected and alerts represent hard abuse candidates only.</step-8>
+    <step-9 status="done-local">Verify M-059 promotion tag state remains masked, does not rotate issued links, and remains independent of anti-abuse alerts.</step-9>
+    <step-10 status="done-local">Run frontend build, frontend-admin build if UI marker changes touch admin code, backend MTProto analytics/admin-alert tests, Phase-79 smoke, XML parse, MyGRACE lint, git diff check, and protected deploy/install/runtime guard.</step-10>
+  </steps>
+
+  <mental-walkthroughs>
+    <walkthrough-1>Normal promo sharing: one user shares a proxy link; many people connect from different IPs over time; analytics records usage/IP metadata, many-IP signals remain observe-only medium, and no proxy/IP is blocked.</walkthrough-1>
+    <walkthrough-2>Hard abuse candidate: one assignment shows many simultaneous connections from many IPs plus extreme traffic or repeated protocol errors; M-056 creates high/critical signal, M-060 creates an open admin alert, and access stays enabled until admin acts.</walkthrough-2>
+    <walkthrough-3>Admin enforcement: the operator reviews the alert, confirms disable proxy or TTL IP block, M-060 archives the alert with audit-safe action result, and M-059 promotion tag state remains unchanged.</walkthrough-3>
+  </mental-walkthroughs>
+
+  <risks>
+    <risk-1>Over-aggressive MTProto thresholds could punish the intended promotion-sharing model; mitigate by making sharing/many-IP alone medium observe-only.</risk-1>
+    <risk-2>Too-soft thresholds could hide real abuse; mitigate by alerting on combined hard evidence such as high concurrent multi-IP activity, traffic spikes, and repeated errors.</risk-2>
+    <risk-3>Creative title styling could harm readability on mobile; mitigate with responsive smoke and no-overlap markers at small viewports.</risk-3>
+    <risk-4>Promotion tag or proxy secrets could leak into UI/tests; mitigate with existing redaction guards and Phase-79 smoke checks.</risk-4>
+  </risks>
+
+  <acceptance>
+    <item-1>Cyber title uses acid-pink, heavier creative styling and remains readable on mobile/tablet/desktop.</item-1>
+    <item-2>Frontend/auth behavior remains unchanged apart from approved visual title styling.</item-2>
+    <item-3>MTProto promo-sharing usage is explicitly allowed and does not trigger automatic enforcement.</item-3>
+    <item-4>High/critical MTProto abuse creates admin alerts only; disable/block actions require explicit admin confirmation.</item-4>
+    <item-5>Verification passes without deploy/install/runtime topology changes.</item-5>
+  </acceptance>
+  <evidence date="2026-06-06">PASS local: Phase-79 smoke passed; backend MTProto analytics/admin-alert/promotion-tag tests passed 8/8; frontend and frontend-admin builds passed; Phase-43/54/42 and Phase-56 regressions passed; XML parse, MyGRACE lint, git diff --check, and Phase-79 protected deploy/install/runtime guard passed. Phase-67/59/61 broad protected-diff smokes were not used as final gates because they intentionally fail on the already-open Phase-78/79 backend diff while their UI/build/bundle checks remain covered by targeted Phase-79, Phase-56, and build evidence.</evidence>
+</Phase-79>

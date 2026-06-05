@@ -1,7 +1,7 @@
 """MTProto admin analytics service.
 
 # FILE: backend/app/mtproto/analytics_service.py
-# VERSION: 1.2.0
+# VERSION: 1.3.0
 # ROLE: RUNTIME
 # MAP_MODE: EXPORTS
 # START_MODULE_CONTRACT
@@ -25,6 +25,7 @@
 # END_MODULE_MAP
 #
 # START_CHANGE_SUMMARY
+#   LAST_CHANGE: v1.3.0 - Made MTProto many-IP abuse promo-safe by counting only recent IP observations as concurrent.
 #   LAST_CHANGE: v1.2.0 - Hardened abuse thresholds and excluded IP-observation samples from traffic/session counters.
 #   LAST_CHANGE: v1.1.0 - Added Phase-43 timeseries, user investigation, storage budget, and alert handoff.
 #   LAST_CHANGE: v1.0.0 - Added Phase-42 MTProto analytics service
@@ -116,6 +117,27 @@ def _severity_for(metric_value: int, threshold_value: int) -> str:
     if metric_value >= threshold_value * 2:
         return "high"
     return "medium"
+
+
+def _recent_ip_observation_concurrency(
+    events: list[MTProtoUsageEvent],
+    *,
+    end: datetime,
+    max_age: timedelta = timedelta(minutes=15),
+) -> int:
+    """Return current-ish IP observation concurrency without treating historical sharing as simultaneous."""
+    recent_cutoff = end - max_age
+    latest_ip_counts: dict[str, tuple[datetime, int]] = {}
+    for event in events:
+        if _event_type_value(event.event_type) != MTProtoUsageEventType.IP_OBSERVATION.value or not event.ip_hash:
+            continue
+        observed = _coerce_aware(event.observed_at) or end
+        if observed < recent_cutoff:
+            continue
+        current = latest_ip_counts.get(event.ip_hash)
+        if current is None or observed >= current[0]:
+            latest_ip_counts[event.ip_hash] = (observed, max(event.connection_count, 0))
+    return sum(count for _observed, count in latest_ip_counts.values())
 
 
 def _abuse_severity(
@@ -440,15 +462,7 @@ class MTProtoAnalyticsService:
             traffic = sum(_traffic_total(event) for event in usage_events)
             errors = len([event for event in usage_events if _event_type_value(event.event_type) == MTProtoUsageEventType.ERROR.value])
             concurrency = max((event.connection_count for event in usage_events), default=0)
-            latest_ip_counts: dict[str, tuple[datetime, int]] = {}
-            for event in events:
-                if _event_type_value(event.event_type) != MTProtoUsageEventType.IP_OBSERVATION.value or not event.ip_hash:
-                    continue
-                observed = _coerce_aware(event.observed_at) or start
-                current = latest_ip_counts.get(event.ip_hash)
-                if current is None or observed >= current[0]:
-                    latest_ip_counts[event.ip_hash] = (observed, max(event.connection_count, 0))
-            ip_observation_concurrency = sum(count for _observed, count in latest_ip_counts.values())
+            ip_observation_concurrency = _recent_ip_observation_concurrency(events, end=end)
             concurrency = max(concurrency, ip_observation_concurrency)
             checks = [
                 (MTProtoAbuseSignalType.MANY_IP_HASHES, ip_count, ip_threshold),

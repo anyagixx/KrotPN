@@ -1,7 +1,7 @@
 """MTProto admin alert tests.
 
 # FILE: backend/tests/test_mtproto_admin_alerts.py
-# VERSION: 1.1.0
+# VERSION: 1.2.0
 # ROLE: TEST
 # MAP_MODE: LOCALS
 # START_MODULE_CONTRACT
@@ -18,6 +18,7 @@
 # END_MODULE_MAP
 #
 # START_CHANGE_SUMMARY
+#   LAST_CHANGE: v1.2.0 - Added Phase-79 assertions that alert creation/review does not auto-disable proxies or block IPs.
 #   LAST_CHANGE: v1.1.0 - Assert reviewed IP block actions archive the alert.
 #   LAST_CHANGE: v1.0.0 - Added Phase-43 MTProto admin alert verification
 # END_CHANGE_SUMMARY
@@ -39,7 +40,7 @@ from app.mtproto.admin_alerts import (
     resolve_alert,
 )
 from app.mtproto.ip_observability import record_ip_observation
-from app.mtproto.models import MTProtoAssignment
+from app.mtproto.models import MTProtoAssignment, MTProtoAssignmentStatus
 from app.mtproto.usage_models import (
     MTProtoAbuseSignal,
     MTProtoAbuseSignalType,
@@ -133,6 +134,10 @@ async def test_abuse_alert_dedupes_and_review_states_are_safe(db_session: AsyncS
     alert = result.scalar_one()
     assert alert.occurrence_count == 2
     assert alert.resolved_by_admin_id == admin.id
+    await db_session.refresh(assignment)
+    assert assignment.status == MTProtoAssignmentStatus.ACTIVE
+    blocked_result = await db_session.execute(select(MTProtoBlockedIP))
+    assert blocked_result.scalars().all() == []
 
 
 @pytest.mark.asyncio

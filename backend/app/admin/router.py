@@ -5,9 +5,9 @@
 # START_MODULE_CONTRACT
 #   PURPOSE: Expose privileged admin analytics, system endpoints, and operator recovery controls over current backend state
 #   SCOPE: Dashboard statistics, revenue analytics, user analytics, system health, device control, MTProto assignment operations,
-#          usage analytics, explicit IP investigation, alert actions, resource metrics, storage budget, and promotion tag control
-#   DEPENDS: M-001 (core database/auth), M-002 (user models), M-003 (vpn topology), M-004 (billing), M-005 (referrals), M-006 (admin-api graph surface), M-016 (route-policy observability), M-042/M-043/M-044 (MTProto assignment/provisioning/runtime bridge), M-056/M-057/M-059/M-060/M-061 (MTProto analytics/tag/alerts/IP control)
-#   LINKS: M-006 (admin-api), M-016 (route-decision-api), M-047 (mtproto-admin-ops), M-044, M-056, M-057, M-059, M-060, M-061, V-M-006, V-M-047, V-M-044, V-M-057, V-M-059, V-M-060, V-M-061
+#          usage analytics, explicit IP investigation, MTProto and VPN abuse alert actions, resource metrics, storage budget, and promotion tag control
+#   DEPENDS: M-001 (core database/auth), M-002 (user models), M-003 (vpn topology), M-004 (billing), M-005 (referrals), M-006 (admin-api graph surface), M-016 (route-policy observability), M-042/M-043/M-044 (MTProto assignment/provisioning/runtime bridge), M-056/M-057/M-059/M-060/M-061 (MTProto analytics/tag/alerts/IP control), M-081 (VPN device abuse alert inbox)
+#   LINKS: M-006 (admin-api), M-016 (route-decision-api), M-047 (mtproto-admin-ops), M-044, M-056, M-057, M-059, M-060, M-061, M-081, V-M-006, V-M-047, V-M-044, V-M-057, V-M-059, V-M-060, V-M-061, V-M-081
 # END_MODULE_CONTRACT
 #
 # START_MODULE_MAP
@@ -19,6 +19,11 @@
 #   unblock_admin_device - Clear the blocked state for one device
 #   rotate_admin_device - Reprovision one device config keeping logical device identity
 #   revoke_admin_device - Revoke one device and free the slot
+#   list_admin_vpn_device_abuse_alerts - Durable VPN device abuse alert inbox/archive
+#   get_admin_vpn_device_abuse_alert - Safe alert detail for one device alert
+#   resolve_admin_vpn_device_abuse_alert - Archive one VPN device alert without enforcement
+#   rotate_admin_vpn_device_abuse_alert - Rotate only the alert device after confirmation
+#   block_admin_vpn_device_abuse_alert - Block only the alert device after confirmation
 #   list_admin_mtproto_assignments - Redacted MTProto assignment list with search/status/time filters
 #   get_admin_mtproto_assignment - Redacted MTProto assignment detail
 #   get_admin_mtproto_health - Secret-free KPprotoN runtime bridge health summary
@@ -45,6 +50,7 @@
 # END_MODULE_MAP
 #
 # START_CHANGE_SUMMARY
+#   LAST_CHANGE: v3.7.0 - Added Phase-78 VPN device abuse alert inbox and confirmed one-device admin actions.
 #   LAST_CHANGE: v3.6.0 - Added Phase-43 MTProto alert, IP investigation, timeseries, resource, and storage APIs.
 #   LAST_CHANGE: v3.5.0 - Added Phase-42 MTProto analytics and promotion tag admin APIs.
 #   LAST_CHANGE: v3.4.0 - Restored MTProto admin runtime actions to the KPprotoN policy bridge.
@@ -98,6 +104,14 @@ from app.mtproto.usage_models import MTProtoAdminAlertStatus, MTProtoUsageEventT
 from app.referrals.models import Referral, ReferralCode
 # NOTE: routing models/observer removed in Phase-17 (Full Tunnel)
 from app.users.models import User, UserRole
+from app.vpn.abuse_alerts import (
+    VPNDeviceAbuseAlertStatus,
+    block_device_for_alert,
+    get_device_abuse_alert,
+    list_device_abuse_alerts,
+    resolve_device_abuse_alert,
+    rotate_device_for_alert,
+)
 from app.vpn.models import VPNClient, VPNNode, VPNRoute, VPNServer
 from app.vpn.service import VPNService
 
@@ -151,6 +165,13 @@ class MTProtoAlertIPBlockRequest(BaseModel):
     ttl_hours: int = 24
     confirm: bool = False
     confirm_risk: bool = False
+
+
+class VPNDeviceAbuseAlertActionRequest(BaseModel):
+    """Confirmation body for VPN device abuse alert review actions."""
+
+    confirm: bool = False
+    note: str | None = None
 
 
 # START_BLOCK: _serialize_admin_device
@@ -401,6 +422,48 @@ def _safe_mtproto_alert_audit_details(
         sort_keys=True,
     )
     _assert_mtproto_admin_payload_redacted({"details": details})
+    return details
+
+
+def _parse_vpn_device_abuse_alert_status(value: str | None) -> VPNDeviceAbuseAlertStatus | None:
+    if not value:
+        return None
+    try:
+        return VPNDeviceAbuseAlertStatus(value)
+    except ValueError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Invalid VPN device abuse alert status",
+        ) from exc
+
+
+def _safe_vpn_device_abuse_alert_audit_details(
+    *,
+    action: str,
+    alert_id: int,
+    device_id: int | None = None,
+    user_id: int | None = None,
+    result_status: str | None = None,
+) -> str:
+    """Build VPN abuse alert action audit details without peer configs or keys."""
+    details = json.dumps(
+        {
+            "action": action,
+            "alert_id": alert_id,
+            "device_id": device_id,
+            "user_id": user_id,
+            "result_status": result_status,
+        },
+        sort_keys=True,
+    )
+    forbidden = ("private_key", "preshared_key", "[Interface]", "Address =", "Bearer ")
+    if any(marker in details for marker in forbidden):
+        logger.error("[M-081][admin_vpn_abuse_alert][REDACTION_GUARD] leaked_marker=blocked")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="VPN abuse alert audit redaction failed",
+        )
+    logger.info("[M-081][admin_vpn_abuse_alert][REDACTION_GUARD] audit_payload=safe")
     return details
 
 
@@ -787,6 +850,164 @@ async def revoke_admin_device(
     user = await session.get(User, updated.user_id)
     return await _serialize_admin_device(session, device=updated, user=user)
 # END_BLOCK: revoke_admin_device
+
+
+# ==================== VPN Device Abuse Alerts ====================
+
+# START_BLOCK: list_admin_vpn_device_abuse_alerts
+@router.get("/vpn/abuse/alerts")
+async def list_admin_vpn_device_abuse_alerts(
+    admin: CurrentAdmin,
+    session: DBSession,
+    alert_status: str | None = Query(default="open", alias="status"),
+    offset: int = Query(default=0, ge=0),
+    limit: int = Query(default=50, ge=1, le=200),
+):
+    """Return durable VPN device abuse alerts for operator review."""
+    payload = await list_device_abuse_alerts(
+        session,
+        status_filter=_parse_vpn_device_abuse_alert_status(alert_status),
+        offset=offset,
+        limit=limit,
+    )
+    logger.info(
+        "[M-081][admin_vpn_abuse_alerts][ALERT_LIST] "
+        f"returned={len(payload.get('items', []))} open={payload.get('open_count')}"
+    )
+    return payload
+# END_BLOCK: list_admin_vpn_device_abuse_alerts
+
+
+# START_BLOCK: get_admin_vpn_device_abuse_alert
+@router.get("/vpn/abuse/alerts/{alert_id}")
+async def get_admin_vpn_device_abuse_alert(
+    alert_id: int,
+    admin: CurrentAdmin,
+    session: DBSession,
+):
+    """Return one safe VPN device abuse alert detail."""
+    payload = await get_device_abuse_alert(session, alert_id)
+    if payload is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="VPN device abuse alert not found")
+    return payload
+# END_BLOCK: get_admin_vpn_device_abuse_alert
+
+
+# START_BLOCK: resolve_admin_vpn_device_abuse_alert
+@router.post("/vpn/abuse/alerts/{alert_id}/resolve")
+async def resolve_admin_vpn_device_abuse_alert(
+    alert_id: int,
+    admin: CurrentAdmin,
+    session: DBSession,
+    request: VPNDeviceAbuseAlertActionRequest | None = None,
+):
+    """Resolve one VPN device abuse alert without changing the device."""
+    if request is None or not request.confirm:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Explicit VPN device abuse alert resolution confirmation required",
+        )
+    payload = await resolve_device_abuse_alert(
+        session,
+        alert_id=alert_id,
+        admin_id=int(admin.id),
+        action_taken="reviewed",
+        action_result=(request.note or "resolved_by_admin")[:120],
+    )
+    if payload is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="VPN device abuse alert not found")
+    await log_admin_action(
+        session,
+        int(admin.id),
+        "vpn.device_abuse_alert.resolve",
+        resource_type="vpn_device_abuse_alert",
+        resource_id=alert_id,
+        details=_safe_vpn_device_abuse_alert_audit_details(
+            action="resolve",
+            alert_id=alert_id,
+            device_id=payload.get("device_id"),
+            user_id=payload.get("user_id"),
+            result_status=payload.get("status"),
+        ),
+    )
+    return payload
+# END_BLOCK: resolve_admin_vpn_device_abuse_alert
+
+
+# START_BLOCK: rotate_admin_vpn_device_abuse_alert
+@router.post("/vpn/abuse/alerts/{alert_id}/rotate-device")
+async def rotate_admin_vpn_device_abuse_alert(
+    alert_id: int,
+    admin: CurrentAdmin,
+    session: DBSession,
+    request: VPNDeviceAbuseAlertActionRequest | None = None,
+):
+    """Rotate only the device referenced by the selected VPN abuse alert."""
+    try:
+        payload = await rotate_device_for_alert(
+            session,
+            alert_id=alert_id,
+            admin_id=int(admin.id),
+            confirm=bool(request and request.confirm),
+        )
+    except ValueError as exc:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc)) from exc
+    if payload is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="VPN device abuse alert not found")
+    await log_admin_action(
+        session,
+        int(admin.id),
+        "vpn.device_abuse_alert.rotate_device",
+        resource_type="vpn_device_abuse_alert",
+        resource_id=alert_id,
+        details=_safe_vpn_device_abuse_alert_audit_details(
+            action="rotate_device",
+            alert_id=alert_id,
+            device_id=payload.get("device_id"),
+            user_id=payload.get("user_id"),
+            result_status=payload.get("action_result"),
+        ),
+    )
+    return payload
+# END_BLOCK: rotate_admin_vpn_device_abuse_alert
+
+
+# START_BLOCK: block_admin_vpn_device_abuse_alert
+@router.post("/vpn/abuse/alerts/{alert_id}/block-device")
+async def block_admin_vpn_device_abuse_alert(
+    alert_id: int,
+    admin: CurrentAdmin,
+    session: DBSession,
+    request: VPNDeviceAbuseAlertActionRequest | None = None,
+):
+    """Block only the device referenced by the selected VPN abuse alert."""
+    try:
+        payload = await block_device_for_alert(
+            session,
+            alert_id=alert_id,
+            admin_id=int(admin.id),
+            confirm=bool(request and request.confirm),
+        )
+    except ValueError as exc:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc)) from exc
+    if payload is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="VPN device abuse alert not found")
+    await log_admin_action(
+        session,
+        int(admin.id),
+        "vpn.device_abuse_alert.block_device",
+        resource_type="vpn_device_abuse_alert",
+        resource_id=alert_id,
+        details=_safe_vpn_device_abuse_alert_audit_details(
+            action="block_device",
+            alert_id=alert_id,
+            device_id=payload.get("device_id"),
+            user_id=payload.get("user_id"),
+            result_status=payload.get("action_result"),
+        ),
+    )
+    return payload
+# END_BLOCK: block_admin_vpn_device_abuse_alert
 
 
 # ==================== MTProto Admin Ops ====================

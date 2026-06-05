@@ -10,8 +10,10 @@ MODULE_MAP
 - test_list_admin_devices_returns_device_table_payload: Verifies device table payload is exposed to admins.
 - test_serialize_admin_device_exposes_recent_anti_abuse_events: Verifies admin device rows include anti-abuse context.
 - test_block_unblock_rotate_and_revoke_admin_device: Verifies admin actions target one device and reuse the shared serializer.
+- test_vpn_device_abuse_alert_admin_endpoints_require_confirmation: Verifies Phase-78 alert endpoints and confirmation guards.
 
 CHANGE_SUMMARY
+- 2026-06-06: Added Phase-78 VPN device abuse alert admin endpoint coverage.
 - 2026-04-20: Added admin payload coverage for recent anti-abuse event context.
 - 2026-03-27: Added admin device-control API tests for list and mutation flows.
 """
@@ -224,3 +226,95 @@ def test_block_unblock_rotate_and_revoke_admin_device(monkeypatch):
     assert revoke_response.json()["status"] == "revoked"
     assert rotated_calls == [(7, 5, True)]
     assert serialized_statuses == ["blocked", "active", "active", "revoked"]
+
+
+def test_vpn_device_abuse_alert_admin_endpoints_require_confirmation(monkeypatch):
+    calls: list[tuple[str, int, bool | None]] = []
+
+    alert_payload = {
+        "id": 11,
+        "user_id": 7,
+        "user_email": "user@example.com",
+        "device_id": 5,
+        "device_name": "Phone",
+        "device_status": "active",
+        "source_event_id": 22,
+        "signal_type": "ping_pong_abuse_detected",
+        "severity": "warning",
+        "status": "open",
+        "title": "VPN config likely shared",
+        "reason_code": "confirmed_anti_sharing_signal",
+        "config_version": 1,
+        "last_endpoint": "203.0.113.7:51820",
+        "last_handshake_at": None,
+        "first_seen_at": None,
+        "last_seen_at": None,
+        "occurrence_count": 1,
+        "resolved_at": None,
+        "resolved_by_admin_id": None,
+        "action_taken": None,
+        "action_result": None,
+    }
+
+    async def fake_list_alerts(session, *, status_filter=None, offset=0, limit=50):
+        calls.append(("list", 0, None))
+        return {"items": [alert_payload], "total": 1, "open_count": 1, "resolved_count": 0, "offset": offset, "limit": limit}
+
+    async def fake_get_alert(session, alert_id):
+        calls.append(("detail", alert_id, None))
+        return alert_payload if alert_id == 11 else None
+
+    async def fake_resolve(session, *, alert_id, admin_id, action_taken="reviewed", action_result=""):
+        calls.append(("resolve", alert_id, None))
+        return {**alert_payload, "status": "resolved", "action_taken": action_taken, "action_result": action_result}
+
+    async def fake_rotate(session, *, alert_id, admin_id, confirm=False):
+        calls.append(("rotate", alert_id, confirm))
+        if not confirm:
+            raise ValueError("Explicit VPN device rotation confirmation required")
+        return {**alert_payload, "status": "resolved", "action_taken": "rotate_device", "action_result": "device:5:config_version:2"}
+
+    async def fake_block(session, *, alert_id, admin_id, confirm=False):
+        calls.append(("block", alert_id, confirm))
+        if not confirm:
+            raise ValueError("Explicit VPN device block confirmation required")
+        return {**alert_payload, "status": "resolved", "action_taken": "block_device", "action_result": "device:5:status:blocked"}
+
+    async def fake_log_admin_action(*args, **kwargs):
+        details = kwargs.get("details") or ""
+        assert "private_key" not in details
+        assert "[Interface]" not in details
+        return SimpleNamespace(id=1)
+
+    monkeypatch.setattr(admin_router_module, "list_device_abuse_alerts", fake_list_alerts)
+    monkeypatch.setattr(admin_router_module, "get_device_abuse_alert", fake_get_alert)
+    monkeypatch.setattr(admin_router_module, "resolve_device_abuse_alert", fake_resolve)
+    monkeypatch.setattr(admin_router_module, "rotate_device_for_alert", fake_rotate)
+    monkeypatch.setattr(admin_router_module, "block_device_for_alert", fake_block)
+    monkeypatch.setattr(admin_router_module, "log_admin_action", fake_log_admin_action)
+    client = _build_client()
+
+    list_response = client.get("/api/v1/admin/vpn/abuse/alerts?status=open")
+    detail_response = client.get("/api/v1/admin/vpn/abuse/alerts/11")
+    resolve_missing_confirm = client.post("/api/v1/admin/vpn/abuse/alerts/11/resolve", json={"confirm": False})
+    rotate_missing_confirm = client.post("/api/v1/admin/vpn/abuse/alerts/11/rotate-device", json={"confirm": False})
+    block_missing_confirm = client.post("/api/v1/admin/vpn/abuse/alerts/11/block-device", json={"confirm": False})
+    resolve_response = client.post("/api/v1/admin/vpn/abuse/alerts/11/resolve", json={"confirm": True})
+    rotate_response = client.post("/api/v1/admin/vpn/abuse/alerts/11/rotate-device", json={"confirm": True})
+    block_response = client.post("/api/v1/admin/vpn/abuse/alerts/11/block-device", json={"confirm": True})
+
+    assert list_response.status_code == 200
+    assert list_response.json()["open_count"] == 1
+    assert detail_response.status_code == 200
+    assert detail_response.json()["device_id"] == 5
+    assert resolve_missing_confirm.status_code == 400
+    assert rotate_missing_confirm.status_code == 400
+    assert block_missing_confirm.status_code == 400
+    assert resolve_response.status_code == 200
+    assert resolve_response.json()["action_taken"] == "reviewed"
+    assert rotate_response.status_code == 200
+    assert rotate_response.json()["action_taken"] == "rotate_device"
+    assert block_response.status_code == 200
+    assert block_response.json()["action_taken"] == "block_device"
+    assert ("rotate", 11, True) in calls
+    assert ("block", 11, True) in calls

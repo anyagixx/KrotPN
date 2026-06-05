@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<M-010 NAME="frontend-admin" TYPE="UI_COMPONENT" STATUS="stable-pass-local-phase51-phase52-phase54-phase59-pass-local-minimal-login-pass-local-phase74-pass-local-phase75-pass-local-phase76">
-  <path>frontend-admin frontend-admin/public frontend-admin/index.html scripts/phase54-admin-matrix-ui-smoke.mjs scripts/phase59-motion-interactions-smoke.mjs scripts/phase74-admin-shell-navigation-smoke.mjs scripts/phase75-admin-users-devices-smoke.mjs docs/plans/Phase-54.xml docs/plans/Phase-59.xml docs/plans/Phase-74.xml docs/plans/Phase-75.xml</path>
-  <owns>admin login, mobile-capable dashboard, unified users/devices inventory, MTProto operations, servers, analytics, settings, Full Tunnel status, and device anomaly review controls; admin Tariffs is retired from visible navigation after Phase-74 and separate Devices navigation is retired after Phase-75</owns>
-  <depends>M-006, M-024, M-070, M-071, M-077</depends>
+<M-010 NAME="frontend-admin" TYPE="UI_COMPONENT" STATUS="stable-pass-local-phase51-phase52-phase54-phase59-pass-local-minimal-login-pass-local-phase74-pass-local-phase75-pass-local-phase76-pass-local-phase78">
+  <path>frontend-admin frontend-admin/public frontend-admin/index.html scripts/phase54-admin-matrix-ui-smoke.mjs scripts/phase59-motion-interactions-smoke.mjs scripts/phase74-admin-shell-navigation-smoke.mjs scripts/phase75-admin-users-devices-smoke.mjs scripts/phase78-vpn-device-abuse-alerts-smoke.mjs docs/plans/Phase-54.xml docs/plans/Phase-59.xml docs/plans/Phase-74.xml docs/plans/Phase-75.xml docs/plans/Phase-78.xml</path>
+  <owns>admin login, mobile-capable dashboard, unified users/devices inventory, VPN abuse alert inbox/archive, MTProto operations, servers, analytics, settings, Full Tunnel status, and device anomaly review controls; admin Tariffs is retired from visible navigation after Phase-74 and separate Devices navigation is retired after Phase-75</owns>
+  <depends>M-006, M-024, M-070, M-071, M-077, M-081</depends>
   <verification-ref>V-M-010</verification-ref>
   <files>
     <file>frontend-admin/src/main.tsx</file>
@@ -30,6 +30,7 @@
     <file>scripts/phase59-motion-interactions-smoke.mjs</file>
     <file>scripts/phase74-admin-shell-navigation-smoke.mjs</file>
     <file>scripts/phase75-admin-users-devices-smoke.mjs</file>
+    <file>scripts/phase78-vpn-device-abuse-alerts-smoke.mjs</file>
   </files>
   <phase-25-scope>
     <surface-1>Admin login persists admin_refresh_token so the existing 401 refresh interceptor can operate.</surface-1>
@@ -81,6 +82,11 @@
     <primary-behaviors>Admin /users is the single visible account/device inventory; users expand to show bounded device rows; block/unblock/rotate/revoke remain confirmation-safe; direct /devices redirects to /users.</primary-behaviors>
     <verification>frontend-admin build and Phase-75 smoke passed; protected backend/deploy/runtime/user frontend guard remained clean.</verification>
   </phase-75-executed-scope>
+  <phase-78-executed-scope>
+    <primary-files>frontend-admin/src/pages/Users.tsx frontend-admin/src/lib/api.ts frontend-admin/src/types/index.ts scripts/phase78-vpn-device-abuse-alerts-smoke.mjs</primary-files>
+    <primary-behaviors>Users cockpit now renders compact VPN abuse open inbox, archive, detail drawer, open count, and resolve/rotate/block actions with one-device confirmation copy.</primary-behaviors>
+    <verification>frontend-admin build and Phase-78 smoke passed; protected deploy/runtime/user frontend guard remained clean.</verification>
+  </phase-78-executed-scope>
   <constraints>
     <constraint-1>Frontend-admin must continue to call existing M-006 and M-024 API contracts unless an API change is separately approved.</constraint-1>
     <constraint-2>Admin auth/session hardening belongs to Phase-25 and must not be bundled into Phase-24 UI simplification.</constraint-2>
@@ -96,5 +102,6 @@
     <evidence-3>2026-06-04: Minimal admin login fix passed Phase-54 smoke updates and frontend-admin build with only logo, fields, error state, and Войти action visible.</evidence-3>
     <evidence-4>2026-06-05: Phase-74 local execution passed frontend-admin build and Phase-74 smoke for icon-safe login, no visible Tariffs nav, safe /plans redirect, Logout under Nodes, bounded rail, and content scroll.</evidence-4>
     <evidence-5>2026-06-05: Phase-75 local execution passed frontend-admin build and Phase-75 smoke for unified Users/Devices inventory, no visible Devices nav, safe /devices redirect, expandable bounded device rows, and confirmation-safe device actions.</evidence-5>
+    <evidence-6>2026-06-06: Phase-78 local execution passed frontend-admin build and Phase-78 smoke for VPN abuse inbox/archive/detail/actions.</evidence-6>
   </evidence>
 </M-010>

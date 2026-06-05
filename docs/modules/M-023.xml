@@ -1,15 +1,16 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<M-023 NAME="handshake-anomaly-detector" TYPE="INTEGRATION" STATUS="stable">
-  <path>backend/app/vpn/handshake_monitor.py backend/app/tasks/scheduler.py</path>
-  <owns>handshake observation, endpoint metadata persistence, and delegation to M-031 for roaming-vs-abuse decisions</owns>
+<M-023 NAME="handshake-anomaly-detector" TYPE="INTEGRATION" STATUS="stable-pass-local-phase78">
+  <path>backend/app/vpn/handshake_monitor.py backend/app/tasks/scheduler.py backend/tests/test_handshake_anomaly_detector.py docs/plans/Phase-78.xml</path>
+  <owns>handshake observation, endpoint metadata persistence, delegation to M-031 for roaming-vs-abuse decisions, and M-081 alert creation for confirmed abuse events</owns>
   <exports>
     <fn-observe-peer-handshake>Records last-seen handshake and endpoint data for a device-linked peer</fn-observe-peer-handshake>
-    <fn-apply-anti-abuse-decision>Persists anti-abuse audit events and invokes soft enforcement only for confirmed M-031 decisions</fn-apply-anti-abuse-decision>
+    <fn-apply-anti-abuse-decision>Persists anti-abuse audit events, creates M-081 alerts for confirmed abuse, and invokes soft enforcement only when configured by M-031</fn-apply-anti-abuse-decision>
   </exports>
-  <depends>M-001, M-003, M-007, M-020, M-021, M-031</depends>
+  <depends>M-001, M-003, M-007, M-020, M-021, M-031, M-081</depends>
   <verification-ref>V-M-023</verification-ref>
   <files>
     <file>backend/app/vpn/handshake_monitor.py</file>
   </files>
   <hotspot>H-009: Handshake anomaly detection must avoid false positives on mobile roaming; raw endpoint changes are no longer sufficient evidence.</hotspot>
+  <phase-78-evidence status="pass-local" date="2026-06-06">backend/tests/test_handshake_anomaly_detector.py proves confirmed ping-pong creates exactly one M-081 alert while observe-mode enforcement remains unchanged.</phase-78-evidence>
 </M-023>

@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<V-M-025 MODULE="M-025" PRIORITY="high" STATUS="pass">
+<V-M-025 MODULE="M-025" PRIORITY="high" STATUS="pass-local-phase78" PHASE-78="pass-local">
   <module>device-audit-log</module>
   <checks>Every device lifecycle, anti-abuse detection, auto-rotation, cooldown and degraded-mode event writes an audit entry with stable event types and enough context for later investigation.</checks>
   <test-files>backend/tests/test_device_audit_log.py</test-files>

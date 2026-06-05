@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<M-031 NAME="anti-ping-pong-abuse" TYPE="INTEGRATION" STATUS="done">
-  <path>backend/app/vpn/anti_abuse.py backend/app/vpn/handshake_monitor.py backend/app/tasks/scheduler.py</path>
-  <owns>Redis-backed endpoint history, roaming-vs-ping-pong classification, and soft auto-rotation enforcement for shared AWG configs</owns>
+<M-031 NAME="anti-ping-pong-abuse" TYPE="INTEGRATION" STATUS="done-pass-local-phase78">
+  <path>backend/app/vpn/anti_abuse.py backend/app/vpn/handshake_monitor.py backend/app/tasks/scheduler.py backend/tests/test_handshake_anomaly_detector.py docs/plans/Phase-78.xml</path>
+  <owns>Redis-backed endpoint history, roaming-vs-ping-pong classification, soft auto-rotation enforcement for shared AWG configs, and confirmed-event feed into M-081 admin alerts</owns>
   <exports>
     <type-EndpointObservation>Normalized endpoint observation containing IP, observed_at, peer hash, user_id and device_id</type-EndpointObservation>
     <type-AntiAbuseDecision>Classifier result: ok, roaming, warning, ping_pong_abuse, multi_network_abuse, degraded</type-AntiAbuseDecision>
@@ -9,6 +9,7 @@
     <fn-record-endpoint-observation>Append bounded TTL history for one peer in Redis</fn-record-endpoint-observation>
     <fn-classify-endpoint-history>Detect A-B-A-B ping-pong and excessive unique IP churn while allowing sequential roaming</fn-classify-endpoint-history>
     <fn-enforce-auto-rotate>Rotate one logical device config using existing device policy and VPN reprovisioning primitives</fn-enforce-auto-rotate>
+    <fn-feed-admin-alerts>Expose confirmed ping-pong and multi-network events to M-081 without changing observe defaults</fn-feed-admin-alerts>
   </exports>
   <configuration>
     <env-ANTI_ABUSE_MODE>disabled, observe, or auto_rotate; initial production rollout should start with observe</env-ANTI_ABUSE_MODE>
@@ -23,7 +24,7 @@
     <decision-3>Auto-rotation is soft enforcement, not account ban; it invalidates the shared config and requires the user to download a new one.</decision-3>
     <decision-4>Redis outage degrades to observe-only logging and must not trigger auto-rotation.</decision-4>
   </decisions>
-  <depends>M-001, M-003, M-008, M-020, M-021, M-023, M-025</depends>
+  <depends>M-001, M-003, M-008, M-020, M-021, M-023, M-025, M-081</depends>
   <verification-ref>V-M-031</verification-ref>
   <files>
     <file>backend/app/vpn/anti_abuse.py</file>
@@ -38,5 +39,6 @@
     <done>Implemented anti_abuse classifier/store/enforcer, handshake monitor delegation, configurable scheduler interval, durable audit event types and admin anti-abuse context.</done>
     <verification>V-M-031 passed on 2026-04-20: 24 passed, 12 warnings. Pytest was run outside sandbox because async SQLite/aiosqlite hangs inside sandbox.</verification>
   </implementation-status>
+  <phase-78-evidence status="pass-local" date="2026-06-06">Targeted tests prove M-031 observe-mode decisions can create M-081 alerts for confirmed abuse while normal roaming/warnings/degraded events remain out of the alert inbox.</phase-78-evidence>
   <hotspot>H-018: Auto-rotation must not punish normal Wi-Fi to LTE roaming, mobile carrier NAT churn, or Redis degradation.</hotspot>
 </M-031>

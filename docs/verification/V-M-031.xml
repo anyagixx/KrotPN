@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<V-M-031 MODULE="M-031" PRIORITY="critical" STATUS="pass">
+<V-M-031 MODULE="M-031" PRIORITY="critical" STATUS="pass-local-phase78" PHASE-78="pass-local">
   <module>anti-ping-pong-abuse</module>
   <checks>
     Verify endpoint history distinguishes normal roaming from true ping-pong reuse, ignores NAT port-only changes,

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<M-073 NAME="premium-public-site" TYPE="UI_COMPONENT" STATUS="done-local-phase56-pass-local-phase62-pass-local-phase67-pass-local-verify-session-fix">
-  <path>frontend/src/App.tsx frontend/src/components/Layout.tsx frontend/src/index.css frontend/src/pages/Login.tsx frontend/src/pages/Register.tsx frontend/src/pages/ForgotPassword.tsx frontend/src/pages/ResetPassword.tsx frontend/src/pages/VerifyEmail.tsx frontend/src/pages/Landing.tsx docs/plans/Phase-56.xml docs/plans/Phase-62.xml docs/plans/Phase-67.xml scripts/phase56-premium-public-auth-smoke.mjs scripts/phase62-compactness-deletion-smoke.mjs scripts/phase67-auth-splash-smoke.mjs</path>
+<M-073 NAME="premium-public-site" TYPE="UI_COMPONENT" STATUS="done-local-phase56-pass-local-phase62-pass-local-phase67-pass-local-verify-session-fix-pass-local-phase79">
+  <path>frontend/src/App.tsx frontend/src/components/Layout.tsx frontend/src/index.css frontend/src/pages/Login.tsx frontend/src/pages/Register.tsx frontend/src/pages/ForgotPassword.tsx frontend/src/pages/ResetPassword.tsx frontend/src/pages/VerifyEmail.tsx frontend/src/pages/Landing.tsx docs/plans/Phase-56.xml docs/plans/Phase-62.xml docs/plans/Phase-67.xml docs/plans/Phase-79.xml scripts/phase56-premium-public-auth-smoke.mjs scripts/phase62-compactness-deletion-smoke.mjs scripts/phase67-auth-splash-smoke.mjs scripts/phase79-cyber-title-and-mtproto-promo-safe-smoke.mjs</path>
   <owns>Phase-67 public splash entry, auth, registration, verification, and password recovery surfaces.</owns>
   <purpose>Present KrotPN public/auth access as a compact premium Matrix entry while keeping registration and email verification clear.</purpose>
   <exports>
@@ -21,6 +21,7 @@
     <file>frontend/src/pages/ResetPassword.tsx</file>
     <file>frontend/src/pages/VerifyEmail.tsx</file>
     <file>scripts/phase56-premium-public-auth-smoke.mjs</file>
+    <file>scripts/phase79-cyber-title-and-mtproto-promo-safe-smoke.mjs</file>
   </files>
   <constraints>
     <constraint-1>Do not issue or imply VPN, trial, JWT, referral, or MTProto access before verified email proof.</constraint-1>
@@ -46,6 +47,12 @@
     <local-2026-06-04-phase62>Phase-62 folded secondary public feature/tariff details, preserved email-proof and auth clarity, and passed frontend build, Phase-56 smoke, Phase-62 smoke, Phase-60/61 regressions, XML parse, MyGRACE lint, git diff check, and protected backend/deploy/runtime guard.</local-2026-06-04-phase62>
     <local-2026-06-04-phase67>Phase-67 superseded the Phase-56 public landing with a splash-only / redirect to /login, removed visible auth card frames and requested helper/label copy from login/register/forgot/reset, preserved registration pending/check-email, password example, duplicate-email recovery, reset-token handling, and passed Phase-67 plus Phase-56/60/61/62/63 regressions.</local-2026-06-04-phase67>
     <local-2026-06-04-verify-session-fix>Follow-up fixes apply the Phase-67 frameless style to /verify-email, replace direct token writes with persistUserSessionTokens, add /login existing-session resume redirect, and pass updated Phase-67/Phase-56/session smokes.</local-2026-06-04-verify-session-fix>
+    <local-2026-06-06-phase79>Phase-79 keeps / as splash-only redirect, restyles the auth/verify "Кибернетический Протокол Навигации" title through M-071, and passes frontend build, Phase-79 smoke, and Phase-56 regression smoke without changing auth/session behavior.</local-2026-06-06-phase79>
   </execution-evidence>
+  <phase-79-executed-scope>
+    <scope>Restyle the visible "Кибернетический Протокол Навигации" auth/splash title through M-071 without changing auth behavior, registration state, session persistence, or the Phase-67 / to /login redirect contract.</scope>
+    <guard>No title text was added to /; the Phase-67 splash-only redirect contract remains unchanged and no public marketing/tariff content was reintroduced.</guard>
+    <verification>PASS local: Phase-79 smoke verifies auth title coverage and Landing.tsx title absence; frontend build and Phase-56 regression smoke passed.</verification>
+  </phase-79-executed-scope>
   <hotspot>H-060: Public/auth premium presentation must not delay registration, hide verification states, or imply access before email proof.</hotspot>
 </M-073>

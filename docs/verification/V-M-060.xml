@@ -1,16 +1,18 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<V-M-060 MODULE="M-060" PRIORITY="high" STATUS="pass-local-phase43" VERSION="1.3.0">
+<V-M-060 MODULE="M-060" PRIORITY="high" STATUS="pass-local-phase43-pass-local-phase79" PHASE-79="pass-local" VERSION="1.4.0">
   <purpose>Verify MTProto admin abuse alerts, operator review states, and confirmation-safe enforcement actions.</purpose>
   <module-ref>M-060</module-ref>
   <test-files>
     <file status="pass-local">backend/tests/test_mtproto_admin_alerts.py</file>
     <file status="pass-local">backend/tests/test_mtproto_admin_analytics_api.py</file>
     <file status="pass-local">scripts/phase43-mtproto-admin-analytics-smoke.mjs</file>
+    <file status="pass-local-phase79">scripts/phase79-cyber-title-and-mtproto-promo-safe-smoke.mjs</file>
   </test-files>
   <verification-levels>
     <module-local>Alert model/service tests prove dedupe, state transitions, severity mapping, and safe payloads.</module-local>
     <wave-level>Run with V-M-056 to prove high/critical abuse signals create alerts and with V-M-047/V-M-026 to prove actions are audited.</wave-level>
     <phase-level>Admin UI cannot close until open alert badges, alert list, review drawer, and confirmation actions are visible on mobile.</phase-level>
+    <phase-79-level>No alert creation path may enforce access changes; only explicit admin-confirmed action routes may disable a proxy or apply a TTL IP block.</phase-79-level>
   </verification-levels>
   <module-checks>
     <check-1>Only high and critical abuse signals create operator alerts by default; low/medium remain stored as observe-only signals and are hidden from the operator UI by M-058.</check-1>
@@ -20,6 +22,13 @@
     <check-5>TTL IP block refuses untrusted or stale IP evidence and requires double confirmation.</check-5>
     <check-6>Reviewed disable/resolve/IP-block actions move alerts out of the open inbox and preserve them for archive review.</check-6>
   </module-checks>
+  <phase-79-checks status="pass-local">
+    <check-1>Creating or deduping an alert does not change assignment status, revoke proxy credentials, update runtime block state, or resolve the alert automatically.</check-1>
+    <check-2>Proxy disable remains available only through an admin-confirmed route and affects only the selected assignment.</check-2>
+    <check-3>TTL IP block remains available only through an admin-confirmed route with trusted M-061 client-IP evidence and explicit TTL.</check-3>
+    <check-4>Acknowledge and resolve remain review/archival actions and do not perform hidden disable or hidden IP-block side effects.</check-4>
+    <check-5>Audit payloads remain safe: no proxy secrets, full tg links, promotion tag values, raw private keys, or copied raw IP payloads.</check-5>
+  </phase-79-checks>
   <scenarios>
     <scenario-1>High or critical abuse signals create exactly one open admin alert per dedupe key.</scenario-1>
     <scenario-2>Repeated scanner runs update the existing alert instead of flooding the inbox.</scenario-2>
@@ -28,6 +37,8 @@
     <scenario-5>TTL IP block action requires double confirmation and refuses to run without trusted M-061 client IP evidence.</scenario-5>
     <scenario-6>Alert payloads do not contain tg links, proxy secrets, runtime tokens, private keys, or copied raw IP strings.</scenario-6>
     <scenario-7>After a confirmed IP block, the alert status is resolved and action metadata is available to the archive.</scenario-7>
+    <scenario-8 phase="79-pass-local">Hard MTProto abuse creates an open admin alert while the user proxy remains usable until the administrator chooses a confirmed action.</scenario-8>
+    <scenario-9 phase="79-pass-local">Normal promo-sharing activity produces no open hard-abuse alert and no automatic disable or IP-block state.</scenario-9>
   </scenarios>
   <commands>
     <command status="pass-local">cd backend &amp;&amp; SECRET_KEY=test-secret-key-with-enough-length DATA_ENCRYPTION_KEY=dpFmfSVqfdAK3yx5MQV6Tcv35RZuw5MzaH0yhxJ01q0= PYTHONPATH=. ../.venv/bin/python -m pytest -o addopts='' tests/test_mtproto_admin_alerts.py tests/test_mtproto_admin_analytics_api.py -v</command>
@@ -52,5 +63,10 @@
     <item-2>Alert actions never auto-punish without explicit admin confirmation.</item-2>
     <item-3>Audit records contain safe identifiers and action reasons, not raw secrets or copied raw IP payloads.</item-3>
   </acceptance>
-  <evidence>pass-local 2026-05-21: alert lifecycle, dedupe, acknowledge/resolve, hard-abuse handoff, mobile-IP false-positive guard, stale-IP block rejection, recorded TTL block with resolved archive state, admin API action routes, frontend-admin build, and Phase-43 static smoke passed.</evidence>
+  <evidence>pass-local 2026-06-06: alert lifecycle, dedupe, acknowledge/resolve, hard-abuse handoff, mobile-IP false-positive guard, stale-IP block rejection, recorded TTL block with resolved archive state, admin API action routes, frontend-admin build, Phase-43 static smoke, and Phase-79 no-auto-enforcement checks passed.</evidence>
+  <phase-79-verification-design status="pass-local">
+    <commands>cd backend &amp;&amp; SECRET_KEY=test-secret-key-with-enough-length DATA_ENCRYPTION_KEY=dpFmfSVqfdAK3yx5MQV6Tcv35RZuw5MzaH0yhxJ01q0= PYTHONPATH=. ../.venv/bin/python -m pytest -o addopts='' tests/test_mtproto_admin_alerts.py tests/test_mtproto_analytics_service.py -v; node scripts/phase79-cyber-title-and-mtproto-promo-safe-smoke.mjs</commands>
+    <acceptance>Alert creation, acknowledgement, dedupe, and archive movement remain advisory until explicit admin-confirmed disable-proxy or TTL IP-block actions run.</acceptance>
+    <evidence>PASS local 2026-06-06: backend MTProto admin-alert and analytics tests prove alert creation/review does not auto-disable assignments or create blocked IP rows.</evidence>
+  </phase-79-verification-design>
 </V-M-060>

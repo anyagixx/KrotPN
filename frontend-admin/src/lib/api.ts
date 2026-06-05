@@ -4,18 +4,19 @@
 // MAP_MODE: SUMMARY
 // START_MODULE_CONTRACT
 //   PURPOSE: HTTP API client with JWT auth, refresh-token interceptor, and typed admin endpoint bindings
-//   SCOPE: Axios instance, request/response interceptors, adminApi facade for all backend endpoints including MTProto admin ops and analytics
-//   DEPENDS: M-010 (frontend-admin), M-006 (backend API), M-047 (MTProto admin ops), M-058 (MTProto analytics UI), axios, types
-//   LINKS: M-010, M-006, M-047, M-058
+//   SCOPE: Axios instance, request/response interceptors, adminApi facade for all backend endpoints including VPN abuse alerts and MTProto admin ops/analytics
+//   DEPENDS: M-010 (frontend-admin), M-006 (backend API), M-047 (MTProto admin ops), M-058 (MTProto analytics UI), M-081 (VPN device abuse alert inbox), axios, types
+//   LINKS: M-010, M-006, M-047, M-058, M-081
 // END_MODULE_CONTRACT
 //
 // START_MODULE_MAP
 //   api - Base axios instance with auth header injection via localStorage
 //   response interceptor - Handles 401 with refresh-token retry logic, redirect to /login on failure
-//   adminApi - Facade object grouping all admin API endpoints by domain (auth, users, servers, nodes, routes, plans, billing, referrals, devices, MTProto)
+//   adminApi - Facade object grouping all admin API endpoints by domain (auth, users, servers, nodes, routes, plans, billing, referrals, devices, VPN abuse alerts, MTProto)
 // END_MODULE_MAP
 //
 // START_CHANGE_SUMMARY
+//   LAST_CHANGE: v3.6.0 - Added Phase-78 VPN device abuse alert inbox endpoint bindings.
 //   LAST_CHANGE: v3.5.0 - Added pagination offsets for MTProto assignment inventory and user investigation search.
 //   LAST_CHANGE: v3.4.0 - Added Phase-43 MTProto alert, user investigation, timeseries, resource, and storage endpoint bindings
 //   LAST_CHANGE: v3.3.0 - Added Phase-42 MTProto analytics and promotion tag endpoint bindings
@@ -47,6 +48,8 @@ import type {
   AdminRoute,
   AdminPlan,
   AdminUser,
+  AdminVPNDeviceAbuseAlert,
+  AdminVPNDeviceAbuseAlertListResponse,
 } from '../types'
 
 const API_BASE = '/api/v1'
@@ -109,7 +112,7 @@ api.interceptors.response.use(
 
 // START_BLOCK: adminApi
 // Facade object exposing all admin backend endpoints grouped by domain
-// Domains: auth, users, stats/analytics, servers, nodes, routes, billing/plans, referrals, devices, MTProto
+// Domains: auth, users, stats/analytics, servers, nodes, routes, billing/plans, referrals, devices, VPN abuse alerts, MTProto
 // DEPENDS: /api/* backend routes (M-006), types (AdminNode, AdminRoute, AdminPlan, AdminUser)
 export const adminApi = {
   // Auth
@@ -217,6 +220,25 @@ export const adminApi = {
 
   revokeDevice: (id: number) =>
     api.delete(`/admin/devices/${id}`),
+
+  // VPN device abuse alert inbox
+  getVPNDeviceAbuseAlerts: (status = 'open', limit = 50, offset = 0) => {
+    const query = new URLSearchParams({ limit: String(limit), offset: String(offset) })
+    if (status) query.set('status', status)
+    return api.get<AdminVPNDeviceAbuseAlertListResponse>(`/admin/vpn/abuse/alerts?${query.toString()}`)
+  },
+
+  getVPNDeviceAbuseAlert: (id: number) =>
+    api.get<AdminVPNDeviceAbuseAlert>(`/admin/vpn/abuse/alerts/${id}`),
+
+  resolveVPNDeviceAbuseAlert: (id: number, note = 'resolved_by_admin') =>
+    api.post<AdminVPNDeviceAbuseAlert>(`/admin/vpn/abuse/alerts/${id}/resolve`, { confirm: true, note }),
+
+  rotateVPNDeviceAbuseAlert: (id: number) =>
+    api.post<AdminVPNDeviceAbuseAlert>(`/admin/vpn/abuse/alerts/${id}/rotate-device`, { confirm: true }),
+
+  blockVPNDeviceAbuseAlert: (id: number) =>
+    api.post<AdminVPNDeviceAbuseAlert>(`/admin/vpn/abuse/alerts/${id}/block-device`, { confirm: true }),
 
   // MTProto admin ops
   getMTProtoAssignments: (search = '', status = '', offset = 0, limit = 50) => {

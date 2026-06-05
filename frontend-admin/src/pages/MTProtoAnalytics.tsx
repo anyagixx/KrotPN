@@ -1,10 +1,10 @@
 // FILE: frontend-admin/src/pages/MTProtoAnalytics.tsx
-// VERSION: 2.8.0
+// VERSION: 2.9.0
 // ROLE: UI_COMPONENT
 // MAP_MODE: SUMMARY
 // START_MODULE_CONTRACT
-//   PURPOSE: Compact Matrix admin MTProto analytics console with usage graphs, alert review, user investigation, runtime metrics, promotion tag controls, Phase-58 readonly cockpit markers, Phase-59 feedback, and Phase-62 deletion-audit compaction
-//   SCOPE: Overview, Users, Abuse, Settings tabs, top users, user detail drawer with IP history, folded alert archive, auto-refresh, masked promotion tag update, Phase-54 visibility guards, Phase-58 analytics/read-only proof, and status/feedback transitions
+//   PURPOSE: Compact Matrix admin MTProto analytics console with usage graphs, promo-safe alert review, user investigation, runtime metrics, promotion tag controls, Phase-58 readonly cockpit markers, Phase-59 feedback, and Phase-62 deletion-audit compaction
+//   SCOPE: Overview, Users, Abuse, Settings tabs, top users, user detail drawer with IP history, folded alert archive, auto-refresh, masked promotion tag update, promo-sharing review copy, Phase-54 visibility guards, Phase-58 analytics/read-only proof, and status/feedback transitions
 //   DEPENDS: M-010 (frontend-admin), M-058 (mtproto-admin-analytics-ui), M-057 (admin analytics API), M-059 (promotion tag), M-060 (alerts), M-061 (IP observability), M-070 (matrix-visual-runtime), M-071 (matrix-style-system), M-074 (responsive-device-adaptation), M-076 (premium-admin-cockpit), M-077 (matrix-motion-interactions)
 //   LINKS: M-058, M-057, M-059, M-060, M-061, M-070, M-071, M-074, M-076, M-077, V-M-058, Phase-54, Phase-58, Phase-59, Phase-62
 // END_MODULE_CONTRACT
@@ -19,6 +19,7 @@
 // END_MODULE_MAP
 //
 // START_CHANGE_SUMMARY
+//   LAST_CHANGE: v2.9.0 - Added Phase-79 promo-safe MTProto alert copy that frames sharing as allowed and enforcement as manual review only.
 //   LAST_CHANGE: v2.8.0 - Added Phase-62 admin deletion audit markers and folded alert archive/storage details without hiding abuse actions.
 //   LAST_CHANGE: v2.7.0 - Added Phase-59 analytics feedback, status transition, and chart motion markers.
 //   LAST_CHANGE: v2.6.0 - Phase-58 added readonly analytics, chart, bounded user/IP, and alert review cockpit markers.
@@ -569,7 +570,7 @@ export default function MTProtoAnalyticsPanel() {
               <AlertTriangle className="h-4 w-4 text-cyan-200" />
               <h3 className="text-sm font-semibold text-white">Alerts</h3>
             </div>
-            <p className="mt-2 text-xs muted">В inbox попадает только жесткий abuse: высокая одновременная активность, много разных IP и сильные всплески. Обычная смена сети не создает тревогу.</p>
+            <p className="mt-2 text-xs muted">Обычное расшаривание MTProto proxy для промо разрешено. В inbox попадают только кандидаты на жесткий abuse: высокая одновременная активность, много разных IP прямо сейчас, сильные всплески или ошибки. Обычная смена сети не создает тревогу. Автоблокировок нет, решение принимает только администратор.</p>
             <div className="mt-3 flex items-center justify-between gap-2">
               <h4 className="text-xs font-semibold uppercase text-slate-400">Open</h4>
               <span className="neutral-pill">{alerts.length}</span>

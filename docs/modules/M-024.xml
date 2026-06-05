@@ -1,13 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<M-024 NAME="device-admin-control" TYPE="ENTRY_POINT" STATUS="stable-pass-local-phase75">
-  <path>backend/app/admin/router.py frontend-admin scripts/phase75-admin-users-devices-smoke.mjs docs/plans/Phase-75.xml</path>
-  <owns>admin review and enforcement for device state, peer blocks, anomaly investigations and recent anti-abuse context</owns>
+<M-024 NAME="device-admin-control" TYPE="ENTRY_POINT" STATUS="stable-pass-local-phase75-pass-local-phase78">
+  <path>backend/app/admin/router.py frontend-admin scripts/phase75-admin-users-devices-smoke.mjs scripts/phase78-vpn-device-abuse-alerts-smoke.mjs docs/plans/Phase-75.xml docs/plans/Phase-78.xml</path>
+  <owns>admin review and enforcement for device state, peer blocks, anomaly investigations, recent anti-abuse context, and M-081 alert-scoped rotate/block actions</owns>
   <exports>
     <fn-list-user-devices>Returns device and anomaly state for operator review</fn-list-user-devices>
     <fn-list-recent-anti-abuse-events>Returns compact recent anti-abuse event types for operator triage</fn-list-recent-anti-abuse-events>
     <fn-admin-block-device>Blocks or unblocks one device peer without disabling unrelated account access</fn-admin-block-device>
+    <fn-alert-scoped-actions>Rotates or blocks only the device referenced by a confirmed VPN abuse alert after explicit confirmation</fn-alert-scoped-actions>
   </exports>
-  <depends>M-001, M-003, M-006, M-020, M-021, M-023</depends>
+  <depends>M-001, M-003, M-006, M-020, M-021, M-023, M-081</depends>
   <verification-ref>V-M-024</verification-ref>
   <files>
     <file>backend/app/admin/router.py</file>
@@ -20,5 +21,6 @@
     <backend-boundary>backend/app/admin/router.py was not changed; existing M-024 endpoints and audit-compatible one-peer semantics are preserved.</backend-boundary>
   </phase-75-executed-scope>
   <phase-75-evidence status="pass-local" date="2026-06-05">Phase-75 smoke passed DeviceAdminControl markers DEVICE_ACTIONS_IN_USER_EXPANSION, CONFIRMATION_GUARDS_PRESERVED, and AUDIT_CONTRACT_UNCHANGED.</phase-75-evidence>
+  <phase-78-evidence status="pass-local" date="2026-06-06">Phase-78 backend/admin tests and smoke passed DeviceAdminControl markers VPN_ALERT_CONFIRMATION_GUARDS and ONE_DEVICE_ONLY.</phase-78-evidence>
   <hotspot>H-010: Device block or revoke must target only one peer or operators will accidentally disable whole accounts</hotspot>
 </M-024>

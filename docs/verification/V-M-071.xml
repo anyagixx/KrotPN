@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<V-M-071 MODULE="M-071" PRIORITY="high" STATUS="pass-local-phase52-phase53-phase54-phase55-phase56-phase59-pass-local-phase67-pass-local-rainfix-pass-local-phase68-pass-local-phase70-pass-local-phase71-pass-local-phase72-pass-local-phase73-pass-local-phase74-pass-local-phase76-pass-local-phase77-pass-local-config-action-polish" PHASE-54="pass-local" PHASE-55="pass-local" PHASE-56="pass-local" PHASE-59="pass-local" PHASE-67="pass-local" RAINFIX="pass-local" PHASE-68="pass-local" PHASE-70="pass-local" PHASE-71="pass-local" PHASE-72="pass-local" PHASE-73="pass-local" PHASE-74="pass-local" PHASE-76="pass-local" PHASE-77="pass-local" CONFIG-ACTION-POLISH="pass-local">
+<V-M-071 MODULE="M-071" PRIORITY="high" STATUS="pass-local-phase52-phase53-phase54-phase55-phase56-phase59-pass-local-phase67-pass-local-rainfix-pass-local-phase68-pass-local-phase70-pass-local-phase71-pass-local-phase72-pass-local-phase73-pass-local-phase74-pass-local-phase76-pass-local-phase77-pass-local-config-action-polish-pass-local-phase79" PHASE-54="pass-local" PHASE-55="pass-local" PHASE-56="pass-local" PHASE-59="pass-local" PHASE-67="pass-local" RAINFIX="pass-local" PHASE-68="pass-local" PHASE-70="pass-local" PHASE-71="pass-local" PHASE-72="pass-local" PHASE-73="pass-local" PHASE-74="pass-local" PHASE-76="pass-local" PHASE-77="pass-local" PHASE-79="pass-local" CONFIG-ACTION-POLISH="pass-local">
   <scope>
     <phase>Phase-52</phase>
     <purpose>Verify the Matrix style system foundation for compact, readable, mobile-safe user and admin shells.</purpose>
@@ -23,6 +23,7 @@
     <file phase="72-pass-local">scripts/phase72-user-auth-navigation-smoke.mjs</file>
     <file phase="73-pass-local">scripts/phase73-config-amnezia-qr-smoke.mjs</file>
     <file phase="74-pass-local">scripts/phase74-admin-shell-navigation-smoke.mjs</file>
+    <file phase="79-pass-local">scripts/phase79-cyber-title-and-mtproto-promo-safe-smoke.mjs</file>
   </test-files>
   <module-checks>
     <check-1>cd frontend &amp;&amp; npm run build</check-1>
@@ -40,6 +41,7 @@
     <check-13 status="pass-local-rainfix">Matrix rain CSS reliability smoke: fallback layer exists in user/admin VisualShell/CSS, canvas and fallback use mobile overscan, reduced-motion keeps a static visible fallback, and protected backend/deploy/runtime guard remains clean.</check-13>
     <check-14 status="pass-local-phase74">Phase-74 style smoke asserted admin login icon padding, bounded admin rail, content-scroll CSS markers, and no scroll/pointer interception from Matrix layers.</check-14>
     <check-15 status="pass-local-config-action-polish">Phase-71 smoke asserts phase71-config-export-actions, phase71-copy-config-action, export-action secondary border removal, and mobile copy nowrap markers.</check-15>
+    <check-16 status="pass-local-phase79">Phase-79 style smoke asserts acid-pink cyber title token/class, heavier creative typography, letter-spacing 0, no external font/CDN dependency, reduced-motion fallback, and no mobile/tablet/desktop overlap.</check-16>
   </module-checks>
   <phase-53-style-gates status="pass-local">
     <gate-1>User cabinet routes use Matrix palette/tokens while preserving compact operational layout and avoiding nested cards.</gate-1>
@@ -139,6 +141,7 @@
     <marker-26>[MatrixStyle][phase74][ADMIN_LOGIN_ICON_NO_OVERLAP]</marker-26>
     <marker-27>[MatrixStyle][phase74][ADMIN_RAIL_BOUNDED]</marker-27>
     <marker-28>[MatrixStyle][phase74][ADMIN_SCROLL_SURFACE_SAFE]</marker-28>
+    <marker-29>[MatrixStyle][phase79][CYBER_TITLE_ACID_PINK]</marker-29>
   </required-log-markers>
   <evidence-levels>
     <module-local>Static smoke validates CSS tokens, class primitives, reduced-motion selectors, focus selectors, and protected-surface guard.</module-local>
@@ -310,6 +313,15 @@
     <commands>node scripts/phase77-subscription-mobile-polish-smoke.mjs; node scripts/phase59-motion-interactions-smoke.mjs; node scripts/phase61-responsive-adaptation-smoke.mjs.</commands>
   </phase-77-verification-design>
   <phase-77-evidence status="pass-local" date="2026-06-05">Phase-77 style smoke and regressions passed for green/cyan/red calendar emphasis, active-until copy style, config link styling, fixed dock, mobile scroll markers, reduced-motion fallback, and protected-surface guard.</phase-77-evidence>
+  <phase-79-verification-design status="pass-local">
+    <scope>Matrix style verification for the public/auth cyber title polish.</scope>
+    <gate-1>The visible "Кибернетический Протокол Навигации" title must use acid-pink styling with a stronger creative cyber font treatment and mobile-safe sizing.</gate-1>
+    <gate-2>Letter spacing remains 0, fonts are local/system or bundled only, and no external CDN/font dependency is introduced.</gate-2>
+    <gate-3>Reduced-motion fallback must preserve readability and must not add flicker-heavy effects to auth forms.</gate-3>
+    <gate-4>Auth/public title treatment must not create horizontal scroll, text/icon overlap, hidden forms, or changed auth/session behavior.</gate-4>
+    <commands>cd frontend &amp;&amp; npm run build; node scripts/phase79-cyber-title-and-mtproto-promo-safe-smoke.mjs; node scripts/phase67-auth-splash-smoke.mjs; node scripts/phase56-premium-public-auth-smoke.mjs; node scripts/phase59-motion-interactions-smoke.mjs; node scripts/phase61-responsive-adaptation-smoke.mjs</commands>
+    <evidence>PASS local 2026-06-06: frontend build, frontend-admin build, Phase-79 smoke, Phase-56 smoke, and bundle checks passed; Phase-67/59/61 broad protected-diff smokes were not used as final gates because the active Phase-78/79 backend diff intentionally violates their older protected-diff assumptions.</evidence>
+  </phase-79-verification-design>
   <config-action-polish-verification status="pass-local">
     <scope>Route-local Matrix style rules for /dashboard/config export actions.</scope>
     <gate-1>.phase71-config-export-actions must neutralize the sticky-action background, padding, backdrop, shadow, and secondary button border only inside the config export action group.</gate-1>

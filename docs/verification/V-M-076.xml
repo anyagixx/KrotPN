@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<V-M-076 MODULE="M-076" PRIORITY="high" STATUS="pass-local-phase59-phase62-pass-local-rainfix-pass-local-phase74-pass-local-phase75-pass-local-phase76" PHASE-58="pass-local" PHASE-59="pass-local" PHASE-62="pass-local" RAINFIX="pass-local" PHASE-74="pass-local" PHASE-75="pass-local" PHASE-76="pass-local">
+<V-M-076 MODULE="M-076" PRIORITY="high" STATUS="pass-local-phase59-phase62-pass-local-rainfix-pass-local-phase74-pass-local-phase75-pass-local-phase76-pass-local-phase78" PHASE-58="pass-local" PHASE-59="pass-local" PHASE-62="pass-local" RAINFIX="pass-local" PHASE-74="pass-local" PHASE-75="pass-local" PHASE-76="pass-local" PHASE-78="pass-local">
   <scope>Phase-58/Phase-59 premium admin cockpit evidence remains valid. Phase-62 verification now defines the compactness and deletion-audit contract for admin cockpit, MTProto analytics, operational inventories, emergency controls, redaction, responsive regressions, and protected backend/deploy/runtime isolation.</scope>
   <test-files>
     <file>scripts/phase58-premium-admin-cockpit-smoke.mjs</file>

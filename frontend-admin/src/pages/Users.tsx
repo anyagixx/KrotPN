@@ -3,14 +3,14 @@
 // ROLE: UI_COMPONENT
 // MAP_MODE: SUMMARY
 // START_MODULE_CONTRACT
-//   PURPOSE: Compact Matrix admin users inventory with expandable device management, search, pagination, role/status display, mobile account summary, and Phase-75 unified Users/Devices proof
-//   SCOPE: Paginated user list with search, compact rows, role badges, active/blocked status, grouped device rows, confirmation-safe device actions, bounded scrolling, phone-safe metadata, and dense operator filters
-//   DEPENDS: M-010 (frontend-admin), M-006 (admin API), M-024 (device-admin-control), M-037 (mobile-admin-console), M-038 (compact-ui-system), M-071 (matrix-style-system), M-074 (responsive-device-adaptation), M-076 (premium-admin-cockpit), M-077 (matrix-motion-interactions)
-//   LINKS: M-010, M-006, M-024, M-037, M-038, M-071, M-074, M-076, M-077, Phase-54, Phase-58, Phase-59, Phase-75
+//   PURPOSE: Compact Matrix admin users inventory with expandable device management, VPN abuse alert inbox, search, pagination, role/status display, mobile account summary, and Phase-75 unified Users/Devices proof
+//   SCOPE: Paginated user list with search, compact rows, role badges, active/blocked status, grouped device rows, confirmation-safe device actions, VPN abuse inbox/archive, bounded scrolling, phone-safe metadata, and dense operator filters
+//   DEPENDS: M-010 (frontend-admin), M-006 (admin API), M-024 (device-admin-control), M-037 (mobile-admin-console), M-038 (compact-ui-system), M-071 (matrix-style-system), M-074 (responsive-device-adaptation), M-076 (premium-admin-cockpit), M-077 (matrix-motion-interactions), M-081 (VPN device abuse alert inbox)
+//   LINKS: M-010, M-006, M-024, M-037, M-038, M-071, M-074, M-076, M-077, M-081, Phase-54, Phase-58, Phase-59, Phase-75, Phase-78
 // END_MODULE_CONTRACT
 //
 // START_MODULE_MAP
-//   UsersPage - Main compact admin users page component with expandable per-user device management
+//   UsersPage - Main compact admin users page component with VPN abuse alert inbox and expandable per-user device management
 //   actionCopy - Labels and descriptions for confirmation-safe device actions
 //   formatDate - Helper: format date to ru-RU locale string
 //   roleClass - Helper: choose role badge class
@@ -19,6 +19,7 @@
 // END_MODULE_MAP
 //
 // START_CHANGE_SUMMARY
+//   LAST_CHANGE: v3.3.0 - Phase-78 added VPN device abuse alert inbox/archive with explicit one-device actions.
 //   LAST_CHANGE: v3.2.0 - Phase-75 unified Users and Devices into expandable user inventory with preserved device actions and confirmation guards.
 //   LAST_CHANGE: v3.1.0 - Phase-58 added premium bounded inventory markers and denser user search frame.
 //   LAST_CHANGE: v3.0.0 - Phase-54 added Matrix route markers and bounded compact inventory behavior for large user sets.
@@ -29,9 +30,12 @@
 import { useMemo, useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from 'react-query'
 import {
+  AlertTriangle,
+  Archive,
   Ban,
   ChevronDown,
   ChevronRight,
+  Eye,
   RotateCw,
   Search,
   Shield,
@@ -44,13 +48,19 @@ import {
   X,
 } from 'lucide-react'
 import { adminApi } from '../lib/api'
-import type { AdminDevice, AdminUser, PaginatedResponse } from '../types'
+import type { AdminDevice, AdminUser, AdminVPNDeviceAbuseAlert, PaginatedResponse } from '../types'
 
 type DeviceAction = 'block' | 'unblock' | 'rotate' | 'revoke'
+type VPNAbuseAlertAction = 'resolve' | 'rotate' | 'block'
 
 interface PendingAction {
   type: DeviceAction
   device: AdminDevice
+}
+
+interface PendingVPNAbuseAlertAction {
+  type: VPNAbuseAlertAction
+  alert: AdminVPNDeviceAbuseAlert
 }
 
 interface AdminDeviceResponse {
@@ -88,6 +98,31 @@ const actionCopy: Record<DeviceAction, { label: string; title: string; descripti
   },
 }
 // END_BLOCK: actionCopy
+
+// START_BLOCK: vpnAbuseAlertActionCopy
+// Action labels and confirmation copy for Phase-78 VPN abuse alert decisions
+// DEPENDS: VPNAbuseAlertAction union
+const vpnAbuseAlertActionCopy: Record<VPNAbuseAlertAction, { label: string; title: string; description: string; tone: 'danger' | 'normal' }> = {
+  resolve: {
+    label: 'Закрыть alert',
+    title: 'Закрыть VPN abuse alert',
+    description: 'Alert уйдет в архив. Устройство, конфиг и аккаунт пользователя не изменятся.',
+    tone: 'normal',
+  },
+  rotate: {
+    label: 'Ротировать конфиг',
+    title: 'Ротировать конфиг устройства',
+    description: 'Будет перевыпущен только конфиг выбранного устройства. Другие устройства пользователя не меняются.',
+    tone: 'normal',
+  },
+  block: {
+    label: 'Заблокировать устройство',
+    title: 'Заблокировать устройство',
+    description: 'Будет заблокировано только устройство из этого alert. Аккаунт пользователя и остальные устройства не блокируются.',
+    tone: 'danger',
+  },
+}
+// END_BLOCK: vpnAbuseAlertActionCopy
 
 // START_BLOCK: formatDate
 // Formats ISO date string to ru-RU locale or returns fallback
@@ -136,6 +171,8 @@ export default function Users() {
   const [expandedUserId, setExpandedUserId] = useState<number | null>(null)
   const [feedback, setFeedback] = useState<{ tone: 'success' | 'error'; text: string } | null>(null)
   const [pendingAction, setPendingAction] = useState<PendingAction | null>(null)
+  const [selectedVPNAlert, setSelectedVPNAlert] = useState<AdminVPNDeviceAbuseAlert | null>(null)
+  const [pendingVPNAlertAction, setPendingVPNAlertAction] = useState<PendingVPNAbuseAlertAction | null>(null)
   const queryClient = useQueryClient()
 
   const { data, isLoading } = useQuery<{ data: PaginatedResponse<AdminUser> }>(
@@ -154,10 +191,31 @@ export default function Users() {
     { keepPreviousData: true }
   )
 
+  const {
+    data: vpnAbuseOpenData,
+    isLoading: vpnAbuseOpenLoading,
+  } = useQuery(
+    ['admin-vpn-device-abuse-alerts', 'open'],
+    () => adminApi.getVPNDeviceAbuseAlerts('open', 20),
+    { keepPreviousData: true, refetchInterval: 15000 }
+  )
+
+  const {
+    data: vpnAbuseArchiveData,
+  } = useQuery(
+    ['admin-vpn-device-abuse-alerts', 'resolved'],
+    () => adminApi.getVPNDeviceAbuseAlerts('resolved', 20),
+    { keepPreviousData: true }
+  )
+
   const users = data?.data?.items || []
   const total = data?.data?.total || 0
   const pages = data?.data?.pages || 1
   const devices = devicesData?.data?.items || []
+  const vpnAbuseOpenAlerts = vpnAbuseOpenData?.data?.items || []
+  const vpnAbuseArchivedAlerts = vpnAbuseArchiveData?.data?.items || []
+  const vpnAbuseOpenCount = vpnAbuseOpenData?.data?.open_count || 0
+  const vpnAbuseResolvedCount = vpnAbuseOpenData?.data?.resolved_count ?? vpnAbuseArchiveData?.data?.resolved_count ?? 0
 
   const devicesByUser = useMemo(() => {
     return devices.reduce<Record<number, AdminDevice[]>>((acc, device) => {
@@ -213,9 +271,35 @@ export default function Users() {
   const revokeMutation = useMutation((id: number) => adminApi.revokeDevice(id), mutateAndRefresh('Устройство отозвано'))
   const isMutating = blockMutation.isLoading || unblockMutation.isLoading || rotateMutation.isLoading || revokeMutation.isLoading
 
+  const refreshVPNAbuseInbox = (message: string) => ({
+    onSuccess: () => {
+      void queryClient.invalidateQueries('admin-vpn-device-abuse-alerts')
+      void queryClient.invalidateQueries('admin-devices')
+      setFeedback({ tone: 'success', text: message })
+      setPendingVPNAlertAction(null)
+      setSelectedVPNAlert(null)
+    },
+    onError: (error: unknown) => {
+      setFeedback({
+        tone: 'error',
+        text: (error as { response?: { data?: { detail?: string } } })?.response?.data?.detail || 'Alert-действие не выполнено',
+      })
+    },
+  })
+
+  const resolveVPNAlertMutation = useMutation((id: number) => adminApi.resolveVPNDeviceAbuseAlert(id), refreshVPNAbuseInbox('Alert закрыт и перенесен в архив'))
+  const rotateVPNAlertMutation = useMutation((id: number) => adminApi.rotateVPNDeviceAbuseAlert(id), refreshVPNAbuseInbox('Конфиг устройства перевыпущен, alert закрыт'))
+  const blockVPNAlertMutation = useMutation((id: number) => adminApi.blockVPNDeviceAbuseAlert(id), refreshVPNAbuseInbox('Устройство заблокировано, alert закрыт'))
+  const isVPNAlertMutating = resolveVPNAlertMutation.isLoading || rotateVPNAlertMutation.isLoading || blockVPNAlertMutation.isLoading
+
   const openAction = (type: DeviceAction, device: AdminDevice) => {
     setFeedback(null)
     setPendingAction({ type, device })
+  }
+
+  const openVPNAlertAction = (type: VPNAbuseAlertAction, alert: AdminVPNDeviceAbuseAlert) => {
+    setFeedback(null)
+    setPendingVPNAlertAction({ type, alert })
   }
 
   const runConfirmedAction = () => {
@@ -226,6 +310,15 @@ export default function Users() {
     if (pendingAction.type === 'unblock') unblockMutation.mutate(id)
     if (pendingAction.type === 'rotate') rotateMutation.mutate(id)
     if (pendingAction.type === 'revoke') revokeMutation.mutate(id)
+  }
+
+  const runConfirmedVPNAlertAction = () => {
+    if (!pendingVPNAlertAction) return
+    const id = pendingVPNAlertAction.alert.id
+
+    if (pendingVPNAlertAction.type === 'resolve') resolveVPNAlertMutation.mutate(id)
+    if (pendingVPNAlertAction.type === 'rotate') rotateVPNAlertMutation.mutate(id)
+    if (pendingVPNAlertAction.type === 'block') blockVPNAlertMutation.mutate(id)
   }
 
   return (
@@ -285,6 +378,159 @@ export default function Users() {
           {feedback.text}
         </div>
       ) : null}
+
+      <section
+        className="surface grid gap-4 p-4"
+        data-phase78-vpn-abuse="[FrontendAdmin][phase78][VPN_DEVICE_ABUSE_ALERT_INBOX]"
+        data-phase78-vpn-abuse-archive="[FrontendAdmin][phase78][VPN_DEVICE_ABUSE_ALERT_ARCHIVE]"
+        data-phase78-vpn-abuse-actions="[DeviceAdminControl][phase78][ONE_DEVICE_ALERT_ACTIONS]"
+      >
+        <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
+          <div className="min-w-0">
+            <div className="flex flex-wrap items-center gap-2">
+              <AlertTriangle className="h-5 w-5 text-amber-200" />
+              <h2 className="text-base font-bold text-white">VPN Abuse alerts</h2>
+              <span className={vpnAbuseOpenCount > 0 ? 'danger-pill' : 'metric-pill'}>{vpnAbuseOpenCount} открыто</span>
+              <span className="neutral-pill">
+                <Archive className="h-3.5 w-3.5" />
+                {vpnAbuseResolvedCount} архив
+              </span>
+            </div>
+            <p className="mt-1 text-xs muted">
+              Только подтвержденные ping-pong и multi-network сигналы. Автоблокировок нет.
+            </p>
+          </div>
+          <div className="text-xs muted">
+            Автообновление: 15 сек
+          </div>
+        </div>
+
+        <div className="grid gap-3 xl:grid-cols-[minmax(0,1.4fr)_minmax(280px,0.8fr)]">
+          <div className="grid gap-2">
+            {vpnAbuseOpenLoading ? (
+              <div className="phase75-device-empty">
+                <ShieldAlert className="h-5 w-5 text-cyan-200" />
+                Загружаем VPN alerts
+              </div>
+            ) : vpnAbuseOpenAlerts.length === 0 ? (
+              <div className="phase75-device-empty">
+                <ShieldCheck className="h-5 w-5 text-emerald-200" />
+                Открытых VPN abuse alerts нет
+              </div>
+            ) : (
+              <div className="phase75-device-list phase58-scroll-rail max-h-[280px]">
+                {vpnAbuseOpenAlerts.map((alert) => (
+                  <article key={alert.id} className="phase75-device-row" data-phase78-alert-row="[M-081][ALERT_ROW]">
+                    <div className="phase75-device-status-row">
+                      <div className="min-w-0">
+                        <p className="row-title">{alert.user_email || `User #${alert.user_id}`}</p>
+                        <p className="row-subtitle">
+                          {alert.device_name || `Device #${alert.device_id}`} · {alert.signal_type} · x{alert.occurrence_count}
+                        </p>
+                      </div>
+                      <span className="danger-pill shrink-0">{alert.severity}</span>
+                    </div>
+
+                    <div className="row-meta">
+                      <div className="meta-cell">
+                        <span className="meta-label">Device</span>
+                        <span className="meta-value">#{alert.device_id} · v{alert.config_version}</span>
+                      </div>
+                      <div className="meta-cell">
+                        <span className="meta-label">Endpoint</span>
+                        <span className="meta-value">{alert.last_endpoint || 'Нет endpoint'}</span>
+                      </div>
+                      <div className="meta-cell">
+                        <span className="meta-label">Last seen</span>
+                        <span className="meta-value">{formatDate(alert.last_seen_at, 'Нет данных')}</span>
+                      </div>
+                    </div>
+
+                    <div className="phase75-device-action-row">
+                      <button onClick={() => setSelectedVPNAlert(alert)} className="btn-secondary">
+                        <Eye className="h-4 w-4" />
+                        Посмотреть
+                      </button>
+                      <button onClick={() => openVPNAlertAction('resolve', alert)} className="btn-secondary">
+                        <ShieldCheck className="h-4 w-4" />
+                        Закрыть
+                      </button>
+                      <button onClick={() => openVPNAlertAction('rotate', alert)} className="btn-secondary">
+                        <RotateCw className="h-4 w-4" />
+                        Ротировать
+                      </button>
+                      <button onClick={() => openVPNAlertAction('block', alert)} className="btn-danger">
+                        <Ban className="h-4 w-4" />
+                        Блок
+                      </button>
+                    </div>
+                  </article>
+                ))}
+              </div>
+            )}
+          </div>
+
+          <aside className="phase75-device-row min-h-[180px]" data-phase78-alert-detail="[M-081][ALERT_DETAIL_DRAWER]">
+            {selectedVPNAlert ? (
+              <div className="grid gap-3">
+                <div className="flex items-start justify-between gap-3">
+                  <div className="min-w-0">
+                    <p className="text-sm font-bold text-white">{selectedVPNAlert.title}</p>
+                    <p className="text-xs muted">Alert #{selectedVPNAlert.id} · source event #{selectedVPNAlert.source_event_id || '-'}</p>
+                  </div>
+                  <button className="btn-secondary px-2" onClick={() => setSelectedVPNAlert(null)} aria-label="Закрыть VPN alert detail">
+                    <X className="h-4 w-4" />
+                  </button>
+                </div>
+                <div className="row-meta">
+                  <div className="meta-cell">
+                    <span className="meta-label">User</span>
+                    <span className="meta-value">{selectedVPNAlert.user_email || `ID #${selectedVPNAlert.user_id}`}</span>
+                  </div>
+                  <div className="meta-cell">
+                    <span className="meta-label">Device</span>
+                    <span className="meta-value">{selectedVPNAlert.device_name || `ID #${selectedVPNAlert.device_id}`}</span>
+                  </div>
+                  <div className="meta-cell">
+                    <span className="meta-label">Handshake</span>
+                    <span className="meta-value">{formatDate(selectedVPNAlert.last_handshake_at, 'Нет данных')}</span>
+                  </div>
+                  <div className="meta-cell">
+                    <span className="meta-label">Статус</span>
+                    <span className="meta-value">{selectedVPNAlert.device_status || selectedVPNAlert.status}</span>
+                  </div>
+                </div>
+                <p className="text-xs muted">
+                  Действия ниже затрагивают только устройство #{selectedVPNAlert.device_id}.
+                </p>
+                <div className="phase75-device-action-row">
+                  <button onClick={() => openVPNAlertAction('resolve', selectedVPNAlert)} className="btn-secondary">Закрыть alert</button>
+                  <button onClick={() => openVPNAlertAction('rotate', selectedVPNAlert)} className="btn-secondary">Ротировать</button>
+                  <button onClick={() => openVPNAlertAction('block', selectedVPNAlert)} className="btn-danger">Заблокировать</button>
+                </div>
+              </div>
+            ) : (
+              <div className="grid h-full place-items-center text-center text-sm muted">
+                Выбери alert, чтобы увидеть устройство и безопасные действия.
+              </div>
+            )}
+          </aside>
+        </div>
+
+        {vpnAbuseArchivedAlerts.length > 0 ? (
+          <details className="rounded-lg border border-white/10 bg-white/5 p-3">
+            <summary className="cursor-pointer text-sm font-semibold text-white">Архив VPN alerts</summary>
+            <div className="mt-3 grid gap-2">
+              {vpnAbuseArchivedAlerts.slice(0, 8).map((alert) => (
+                <div key={alert.id} className="flex flex-col gap-1 rounded-lg bg-black/20 p-2 text-xs sm:flex-row sm:items-center sm:justify-between">
+                  <span className="text-white">{alert.user_email || `User #${alert.user_id}`} · {alert.device_name || `Device #${alert.device_id}`}</span>
+                  <span className="muted">{alert.action_taken || 'reviewed'} · {formatDate(alert.resolved_at, 'Архив')}</span>
+                </div>
+              ))}
+            </div>
+          </details>
+        ) : null}
+      </section>
 
       {isLoading ? (
         <div className="empty-state">
@@ -541,6 +787,59 @@ export default function Users() {
                 className={actionCopy[pendingAction.type].tone === 'danger' ? 'btn-danger' : 'btn-primary'}
               >
                 {isMutating ? 'Выполняю...' : `Подтвердить ${actionCopy[pendingAction.type].label}`}
+              </button>
+            </div>
+          </div>
+        </div>
+      ) : null}
+
+      {pendingVPNAlertAction ? (
+        <div
+          className="confirm-backdrop"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="vpn-alert-action-title"
+          data-phase78-confirmation="[DeviceAdminControl][phase78][VPN_ALERT_CONFIRMATION_GUARDS]"
+          data-phase78-alert-action-scope="[DeviceAdminControl][phase78][ONE_DEVICE_ONLY]"
+        >
+          <div className="confirm-sheet phase58-confirmation-surface phase75-confirmation-surface">
+            <div className="flex items-start justify-between gap-3">
+              <div className="min-w-0">
+                <p id="vpn-alert-action-title" className="text-lg font-bold text-white">
+                  {vpnAbuseAlertActionCopy[pendingVPNAlertAction.type].title}
+                </p>
+                <p className="mt-2 text-sm muted">{vpnAbuseAlertActionCopy[pendingVPNAlertAction.type].description}</p>
+              </div>
+              <button onClick={() => setPendingVPNAlertAction(null)} className="btn-secondary px-2" aria-label="Закрыть подтверждение VPN alert">
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+
+            <div className="mt-4 grid gap-2 rounded-lg border border-white/10 bg-white/5 p-3 text-sm">
+              <div>
+                <span className="meta-label">Alert</span>
+                <span className="meta-value">#{pendingVPNAlertAction.alert.id} · {pendingVPNAlertAction.alert.signal_type}</span>
+              </div>
+              <div>
+                <span className="meta-label">User</span>
+                <span className="meta-value">{pendingVPNAlertAction.alert.user_email || `ID #${pendingVPNAlertAction.alert.user_id}`}</span>
+              </div>
+              <div>
+                <span className="meta-label">Device scope</span>
+                <span className="meta-value">Только device #{pendingVPNAlertAction.alert.device_id}</span>
+              </div>
+            </div>
+
+            <div className="mt-4 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
+              <button onClick={() => setPendingVPNAlertAction(null)} disabled={isVPNAlertMutating} className="btn-secondary">
+                Отмена
+              </button>
+              <button
+                onClick={runConfirmedVPNAlertAction}
+                disabled={isVPNAlertMutating}
+                className={vpnAbuseAlertActionCopy[pendingVPNAlertAction.type].tone === 'danger' ? 'btn-danger' : 'btn-primary'}
+              >
+                {isVPNAlertMutating ? 'Выполняю...' : vpnAbuseAlertActionCopy[pendingVPNAlertAction.type].label}
               </button>
             </div>
           </div>

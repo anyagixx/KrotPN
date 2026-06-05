@@ -1,7 +1,7 @@
 """MTProto analytics service tests.
 
 # FILE: backend/tests/test_mtproto_analytics_service.py
-# VERSION: 1.1.0
+# VERSION: 1.3.0
 # ROLE: TEST
 # MAP_MODE: LOCALS
 # START_MODULE_CONTRACT
@@ -15,16 +15,19 @@
 #   _create_assignment - Build one user and MTProto assignment
 #   test_analytics_summary_usage_top_users_and_abuse_signals - Covers Phase-42 analytics service outputs
 #   test_mobile_ip_churn_does_not_create_hard_abuse_alert - Covers Phase-43 false-positive guard
+#   test_promo_proxy_sharing_many_ips_over_time_stays_observe_only - Covers Phase-79 promo-sharing allowance
+#   test_hard_concurrent_multi_ip_activity_creates_alert_only - Covers Phase-79 hard-abuse alert-only handoff
 # END_MODULE_MAP
 #
 # START_CHANGE_SUMMARY
+#   LAST_CHANGE: v1.3.0 - Added Phase-79 promo-sharing and hard concurrent abuse alert-only tests.
 #   LAST_CHANGE: v1.2.0 - Added hard-abuse IP-observation fixtures and asserted they do not inflate usage counters.
 #   LAST_CHANGE: v1.1.0 - Added Phase-43 timeseries, storage budget, and alert handoff checks
 #   LAST_CHANGE: v1.0.0 - Added Phase-42 MTProto analytics service tests
 # END_CHANGE_SUMMARY
 """
 
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 
 import pytest
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -200,4 +203,71 @@ async def test_mobile_ip_churn_does_not_create_hard_abuse_alert(db_session: Asyn
     assert any(signal["signal_type"] == "many_ip_hashes" for signal in signals)
     assert all(signal["severity"] == "medium" for signal in signals)
     assert alerts["open_count"] == 0
+
+
+@pytest.mark.asyncio
+async def test_promo_proxy_sharing_many_ips_over_time_stays_observe_only(db_session: AsyncSession):
+    _user, assignment = await _create_assignment(
+        db_session,
+        "analytics-promo-share@example.com",
+        "u-promo-share.krotpn.xyz",
+    )
+    now = datetime.now(timezone.utc)
+    await ingest_telemetry_batch(
+        db_session,
+        [
+            MTProtoTelemetryEvent(
+                runtime_event_id=f"promo-share-ip-{index}",
+                event_type=MTProtoUsageEventType.IP_OBSERVATION,
+                observed_at=now - timedelta(minutes=index * 20),
+                assignment_id=int(assignment.id),
+                client_ip=f"10.55.{index // 240}.{index % 240 + 1}",
+                connection_count=1,
+            )
+            for index in range(1, 65)
+        ],
+    )
+
+    service = MTProtoAnalyticsService(db_session)
+    signals = await service.detect_abuse_signals(window_days=2)
+    alerts = await list_admin_alerts(db_session)
+
+    assert any(signal["signal_type"] == "many_ip_hashes" for signal in signals)
+    assert all(signal["observe_only"] is True for signal in signals)
+    assert all(signal["severity"] == "medium" for signal in signals)
+    assert alerts["open_count"] == 0
+
+
+@pytest.mark.asyncio
+async def test_hard_concurrent_multi_ip_activity_creates_alert_only(db_session: AsyncSession):
+    _user, assignment = await _create_assignment(
+        db_session,
+        "analytics-hard-abuse@example.com",
+        "u-hard-abuse.krotpn.xyz",
+    )
+    now = datetime.now(timezone.utc)
+    await ingest_telemetry_batch(
+        db_session,
+        [
+            MTProtoTelemetryEvent(
+                runtime_event_id=f"hard-abuse-ip-{index}",
+                event_type=MTProtoUsageEventType.IP_OBSERVATION,
+                observed_at=now,
+                assignment_id=int(assignment.id),
+                client_ip=f"10.56.0.{index}",
+                connection_count=1,
+            )
+            for index in range(1, 31)
+        ],
+    )
+
+    service = MTProtoAnalyticsService(db_session)
+    signals = await service.detect_abuse_signals(window_days=1)
+    alerts = await list_admin_alerts(db_session)
+    await db_session.refresh(assignment)
+
+    assert any(signal["severity"] in {"high", "critical"} for signal in signals)
+    assert all(signal["observe_only"] is True for signal in signals)
+    assert alerts["open_count"] >= 1
+    assert assignment.status.value == "active"
 # END_BLOCK_ANALYTICS_SERVICE_TESTS

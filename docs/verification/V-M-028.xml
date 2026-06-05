@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<V-M-028 MODULE="M-028" PRIORITY="critical" STATUS="pass-local-phase45-pass-local-phase69-no-schema-change" PHASE-43="pass-local" PHASE-44="pass-local" PHASE-45="pass-local" PHASE-69="pass-local-no-schema-change">
+<V-M-028 MODULE="M-028" PRIORITY="critical" STATUS="pass-local-phase45-pass-local-phase69-no-schema-change-pass-local-phase78" PHASE-43="pass-local" PHASE-44="pass-local" PHASE-45="pass-local" PHASE-69="pass-local-no-schema-change" PHASE-78="pass-local">
   <module>alembic-migrations</module>
   <checks>Alembic migrations apply all migrations on clean database and produce schema consistent with models. Backward compatible with existing SQLModel.create_all behavior during transition period. Phase-29 MTProto assignment migration is registered after baseline with user/SNI uniqueness indexes. Phase-43 adds encrypted MTProto IP observations, admin alerts, and TTL IP block records. Phase-44 adds password reset token persistence after Phase-43. Phase-45 adds pending trial activation fields after Phase-44.</checks>
   <test-files>backend/tests/test_db_migrations.py</test-files>

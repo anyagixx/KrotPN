@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<V-M-081 MODULE="M-081" PRIORITY="high" STATUS="pass-local" PHASE-78="pass-local">
+  <purpose>Verify VPN device abuse alert creation, dedupe, admin review lifecycle, device-scoped actions, archive behavior, and redaction.</purpose>
+  <module-ref>M-081</module-ref>
+  <test-files>
+    <file status="pass-local">backend/tests/test_vpn_device_abuse_alerts.py</file>
+    <file status="pass-local">backend/tests/test_admin_device_control.py</file>
+    <file status="pass-local">backend/tests/test_handshake_anomaly_detector.py</file>
+    <file status="pass-local">scripts/phase78-vpn-device-abuse-alerts-smoke.mjs</file>
+  </test-files>
+  <module-checks>
+    <check-1>backend/tests/test_vpn_device_abuse_alerts.py covers M-081 service, schema, dedupe, archive, redaction, no-roaming-alert, and explicit action semantics.</check-1>
+    <check-2>backend/tests/test_admin_device_control.py covers M-006/M-024 action boundaries so rotate/block affect exactly one alert device.</check-2>
+    <check-3>backend/tests/test_handshake_anomaly_detector.py and anti-abuse fixtures prove only confirmed ping-pong/multi-network events can feed M-081.</check-3>
+    <check-4>scripts/phase78-vpn-device-abuse-alerts-smoke.mjs statically verifies frontend-admin inbox/archive markers, confirmations, compact layout, and protected-surface guard.</check-4>
+  </module-checks>
+  <verification-levels>
+    <module-local>Service tests prove alert creation, dedupe, no-roaming-alert behavior, safe serialization, and action state transitions.</module-local>
+    <wave-level>Admin API tests prove auth, confirmation, device-only rotate/block integration, audit-safe details, and archive pagination.</wave-level>
+    <phase-level>Frontend-admin smoke proves open inbox, archive, detail drawer, action confirmations, compact mobile-safe layout, and protected deploy/runtime guard.</phase-level>
+  </verification-levels>
+  <scenarios>
+    <scenario-1 kind="success">ping_pong_abuse_detected creates exactly one open alert for the user/device/config context.</scenario-1>
+    <scenario-2 kind="success">multi_network_abuse_detected creates or updates one deduplicated alert and increments occurrence_count on repeated evidence.</scenario-2>
+    <scenario-3 kind="success">resolve action closes the alert without changing device status or VPN peer state.</scenario-3>
+    <scenario-4 kind="success">rotate-device action requires confirmation, rotates only the alert device config, and moves the alert to archive.</scenario-4>
+    <scenario-5 kind="success">block-device action requires confirmation, blocks only the alert device, and moves the alert to archive.</scenario-5>
+    <scenario-6 kind="failure">normal roaming, same endpoint, port-only NAT change, warning, or Redis degraded event must not create an open alert.</scenario-6>
+    <scenario-7 kind="failure">action without confirmation, wrong admin auth, missing alert, or unrelated device target is rejected.</scenario-7>
+    <scenario-8 kind="failure">payloads, logs, and audit details must not contain private keys, preshared keys, full VPN configs, bearer tokens, or raw config bodies.</scenario-8>
+    <scenario-9 kind="failure">ANTI_ABUSE_MODE=observe remains the default and alert creation alone never rotates configs, blocks devices, disables users, or changes deploy/runtime state.</scenario-9>
+  </scenarios>
+  <api-contracts>
+    <api-1>GET /api/v1/admin/vpn/abuse/alerts?status=open|resolved returns paginated safe alert summaries for admins only.</api-1>
+    <api-2>GET /api/v1/admin/vpn/abuse/alerts/{alert_id} returns safe user/device/context detail without secrets.</api-2>
+    <api-3>POST /api/v1/admin/vpn/abuse/alerts/{alert_id}/resolve requires confirmation and closes without enforcement.</api-3>
+    <api-4>POST /api/v1/admin/vpn/abuse/alerts/{alert_id}/rotate-device requires confirmation and rotates only alert.device_id.</api-4>
+    <api-5>POST /api/v1/admin/vpn/abuse/alerts/{alert_id}/block-device requires confirmation and blocks only alert.device_id.</api-5>
+  </api-contracts>
+  <data-invariants>
+    <invariant-1>dedupe_key is stable for user_id, device_id, signal_type, config_version, and unresolved review state.</invariant-1>
+    <invariant-2>source_event_id links back to an M-025 DeviceSecurityEvent when available.</invariant-2>
+    <invariant-3>resolved alerts leave the open inbox and remain visible through the resolved/archive query.</invariant-3>
+    <invariant-4>migration is additive and must not rewrite existing users, devices, VPN peers, or device security events.</invariant-4>
+  </data-invariants>
+  <commands>
+    <command status="pass-local">SECRET_KEY=test-secret-key-with-enough-length-for-phase78 DATA_ENCRYPTION_KEY=test-data-encryption-key-with-enough-length-for-phase78 PYTHONPATH=backend .venv/bin/python -m pytest -o addopts='' -q backend/tests/test_vpn_device_abuse_alerts.py backend/tests/test_admin_device_control.py backend/tests/test_handshake_anomaly_detector.py</command>
+    <command status="pass-local">cd frontend-admin &amp;&amp; npm run build</command>
+    <command status="pass-local">node scripts/phase78-vpn-device-abuse-alerts-smoke.mjs</command>
+    <command status="pass-local">python3 -m xml.etree.ElementTree docs/graph-index.xml docs/plan-index.xml docs/verification-index.xml docs/modules/M-001.xml docs/modules/M-006.xml docs/modules/M-010.xml docs/modules/M-023.xml docs/modules/M-024.xml docs/modules/M-025.xml docs/modules/M-028.xml docs/modules/M-031.xml docs/modules/M-076.xml docs/modules/M-081.xml docs/plans/Phase-78.xml docs/verification/V-M-081.xml</command>
+    <command status="pass-local">mygrace lint</command>
+    <command status="pass-local">git diff --check</command>
+  </commands>
+  <required-log-markers>
+    <marker>[M-081][create_device_abuse_alert][ALERT_CREATED]</marker>
+    <marker>[M-081][create_device_abuse_alert][ALERT_DEDUPED]</marker>
+    <marker>[M-081][list_device_abuse_alerts][ALERT_LIST]</marker>
+    <marker>[M-081][get_device_abuse_alert][ALERT_DETAIL]</marker>
+    <marker>[M-081][resolve_device_abuse_alert][ALERT_RESOLVED]</marker>
+    <marker>[M-081][rotate_device_for_alert][CONFIRM_ROTATE_DEVICE]</marker>
+    <marker>[M-081][block_device_for_alert][CONFIRM_BLOCK_DEVICE]</marker>
+    <marker>[M-081][vpn_device_abuse_alert][REDACTION_GUARD]</marker>
+  </required-log-markers>
+  <redaction-rules>
+    <rule-1>Alert list/detail may include user email, device id/name, config_version, last_endpoint, last_handshake_at, signal_type, severity, occurrence_count, and safe timestamps.</rule-1>
+    <rule-2>Alert payloads must not include private keys, preshared keys, full config text, bearer tokens, raw secrets, or full device config downloads.</rule-2>
+    <rule-3>Admin audit details must reference alert id, device id, action, and safe result status only.</rule-3>
+    <rule-4>Frontend-admin smoke must fail if rendered bundle/source includes private_key, preshared_key, interface private material, bearer token, or raw config markers inside VPN abuse alert UI.</rule-4>
+  </redaction-rules>
+  <protected-surfaces>
+    <surface-1>install.sh, deploy scripts, nginx, docker-compose, MTProto runtime, and public user frontend remain unchanged unless a later approved phase says otherwise.</surface-1>
+    <surface-2>VPN config format and create-client.sh behavior remain unchanged; Phase-78 only exposes reviewed admin workflows around existing device config lifecycle.</surface-2>
+    <surface-3>MTProto alert and promotion-tag modules remain out of scope.</surface-3>
+  </protected-surfaces>
+  <autonomous-execution-safety>
+    <assessment>safe-with-targeted-tests</assessment>
+    <reason>Phase-78 is additive and admin-only, but it touches schema, admin API, device enforcement, and frontend-admin UI; execution must run backend tests, admin build/smoke, XML/MyGRACE gates, and protected-surface guards before closure.</reason>
+  </autonomous-execution-safety>
+  <acceptance>
+    <item-1>Open VPN abuse alerts are visible in admin UI and resolved alerts remain visible in archive.</item-1>
+    <item-2>Every disruptive action is explicit, confirmed, audited, and device-scoped.</item-2>
+    <item-3>No automatic punishment is introduced; ANTI_ABUSE_MODE remains observe by default.</item-3>
+    <item-4>Protected deploy/install/nginx/docker-compose/MTProto runtime surfaces remain unchanged unless a later approved phase says otherwise.</item-4>
+  </acceptance>
+  <evidence date="2026-06-06">PASS local: backend targeted tests 12/12, frontend-admin build, Phase-78 smoke, XML parse, MyGRACE lint, and git diff --check passed.</evidence>
+</V-M-081>

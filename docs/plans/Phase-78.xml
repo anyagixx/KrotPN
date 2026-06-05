@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Phase-78 NAME="VPN Device Abuse Alert Inbox" STATUS="done-local" MODULES="M-081,M-006,M-010,M-024,M-025,M-026,M-028,M-031,M-076" STEPS="10">
+  <objective>Create an explicit admin alert inbox for likely abused VPN device configs, with device-scoped review, rotate, block, resolve, and archive workflows.</objective>
+
+  <scope>
+    <in-scope>Durable VPN abuse alert table, backend alert service, admin APIs, compact admin UI inbox/archive, explicit confirmation actions, audit-safe action details, and verification smokes.</in-scope>
+    <out-of-scope>Changing install/deploy scripts, enabling ANTI_ABUSE_MODE=auto_rotate by default, blocking whole accounts, changing VPN config format, changing MTProto abuse alerts, or collecting new VPN IP history beyond existing endpoint context.</out-of-scope>
+  </scope>
+
+  <requirements>
+    <requirement-1>Admin must see open VPN abuse alerts that clearly name the user, device, config version, signal, and last observed context.</requirement-1>
+    <requirement-2>Admin must be able to view details, rotate the affected config, block the affected device, resolve without action, and browse an archive of resolved alerts.</requirement-2>
+    <requirement-3>Only confirmed ping-pong or multi-network abuse signals create alerts; normal mobile roaming must not create alert noise.</requirement-3>
+    <requirement-4>All enforcement remains confirmation-safe and device-scoped.</requirement-4>
+  </requirements>
+
+  <architecture>
+    <flow-1>HandshakeAnomalyMonitor records DeviceSecurityEvent through M-023/M-025.</flow-1>
+    <flow-2>M-081 creates or deduplicates VPNDeviceAbuseAlert when the event type is ping_pong_abuse_detected or multi_network_abuse_detected.</flow-2>
+    <flow-3>M-006 exposes admin-only alert list/detail/action endpoints.</flow-3>
+    <flow-4>M-076 renders compact open inbox and archive surfaces inside the unified Users admin inventory.</flow-4>
+  </architecture>
+
+  <planned-interfaces>
+    <api-1>GET /api/v1/admin/vpn/abuse/alerts?status=open|resolved</api-1>
+    <api-2>GET /api/v1/admin/vpn/abuse/alerts/{alert_id}</api-2>
+    <api-3>POST /api/v1/admin/vpn/abuse/alerts/{alert_id}/resolve</api-3>
+    <api-4>POST /api/v1/admin/vpn/abuse/alerts/{alert_id}/rotate-device</api-4>
+    <api-5>POST /api/v1/admin/vpn/abuse/alerts/{alert_id}/block-device</api-5>
+  </planned-interfaces>
+
+  <steps>
+    <step-1 status="done-local">Update M-081/V-M-081 contracts and index links for the VPN device abuse alert inbox.</step-1>
+    <step-2 status="done-local">Add an additive Alembic migration for vpn_device_abuse_alerts with status, dedupe key, source event, user, device, severity, occurrence, and resolution fields.</step-2>
+    <step-3 status="done-local">Implement backend/app/vpn/abuse_alerts.py service for create, dedupe, list, detail, resolve, rotate, and block workflows.</step-3>
+    <step-4 status="done-local">Connect alert creation to confirmed M-031/M-025 anti-abuse events without changing observe-mode defaults.</step-4>
+    <step-5 status="done-local">Add admin API endpoints under /api/v1/admin/vpn/abuse/alerts with redaction and explicit confirmation bodies.</step-5>
+    <step-6 status="done-local">Write admin audit entries for resolve, rotate, and block actions without storing secrets or full config text.</step-6>
+    <step-7 status="done-local">Extend frontend-admin API/types and Users page with compact VPN Abuse inbox/archive, open count, detail drawer, and action buttons.</step-7>
+    <step-8 status="done-local">Ensure action confirmations state that only the selected device is affected and then refresh the unified users/device inventory.</step-8>
+    <step-9 status="done-local">Add backend tests and Phase-78 static/admin smoke for inbox, archive, dedupe, no-roaming-alert, confirmation, and redaction gates.</step-9>
+    <step-10 status="done-local">Run V-M-081 verification, XML parse, MyGRACE lint, git diff check, and protected deploy/install/runtime guard.</step-10>
+  </steps>
+
+  <mental-walkthroughs>
+    <walkthrough-1>Normal roaming: endpoint changes once from Wi-Fi to LTE, M-031 classifies roaming, no M-081 alert row is created, admin inbox stays quiet.</walkthrough-1>
+    <walkthrough-2>Shared config: endpoint alternates A/B/A/B, M-031 records ping_pong_abuse_detected, M-081 creates one open alert, repeated scans dedupe into occurrence_count.</walkthrough-2>
+    <walkthrough-3>Admin response: admin opens the alert, rotates device config with confirmation, M-021 reprovisions only that device, M-081 resolves alert into archive with audit-safe action_result.</walkthrough-3>
+  </mental-walkthroughs>
+
+  <risks>
+    <risk-1>false-positive mobile-network behavior could create operator noise; mitigate by using only confirmed anti-abuse event types and no automatic enforcement.</risk-1>
+    <risk-2>Admin action could accidentally affect a whole account; mitigate by routing all actions through existing one-device M-024/M-021 boundaries.</risk-2>
+    <risk-3>Alert payload could leak VPN secrets; mitigate with explicit redaction tests and payload assertions.</risk-3>
+  </risks>
+
+  <acceptance>
+    <item-1>Admin can see open VPN abuse alerts and resolved archive entries in a compact interface.</item-1>
+    <item-2>Rotate and block actions require confirmation and affect only the alert device.</item-2>
+    <item-3>Normal roaming and Redis degraded cases do not create punitive or noisy alerts.</item-3>
+    <item-4>Verification passes without deploy/install script changes.</item-4>
+  </acceptance>
+  <evidence date="2026-06-06">PASS local: backend VPN abuse alert/admin/handshake tests 12/12 passed; frontend-admin build passed; scripts/phase78-vpn-device-abuse-alerts-smoke.mjs passed with protected deploy/runtime/user-frontend guard.</evidence>
+</Phase-78>

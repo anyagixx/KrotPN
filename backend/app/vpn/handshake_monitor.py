@@ -4,16 +4,17 @@
 # MAP_MODE: EXPORTS
 # START_MODULE_CONTRACT
 #   PURPOSE: Observe live peer handshakes, update device presence metadata, and delegate roaming-vs-abuse classification to anti-ping-pong analysis
-#   SCOPE: Active device-bound VPN peers only; writes durable audit events and optional soft auto-rotation for confirmed abuse
-#   DEPENDS: M-001 (database), M-003 (vpn client state, amneziawg), M-020 (device-registry), M-023 (handshake-anomaly-detector), M-025 (device-audit-log)
-#   LINKS: M-023 (handshake-anomaly-detector), M-025 (device-audit-log), V-M-023, V-M-025
+#   SCOPE: Active device-bound VPN peers only; writes durable audit events, opens admin alerts for confirmed abuse, and optionally soft auto-rotates
+#   DEPENDS: M-001 (database), M-003 (vpn client state, amneziawg), M-020 (device-registry), M-023 (handshake-anomaly-detector), M-025 (device-audit-log), M-081 (VPN abuse alert inbox)
+#   LINKS: M-023 (handshake-anomaly-detector), M-025 (device-audit-log), M-081, V-M-023, V-M-025, V-M-081
 # END_MODULE_CONTRACT
 #
 # START_MODULE_MAP
-#   HandshakeAnomalyMonitor - Observer for peer handshake metadata and anti-abuse decisions (scan_active_peers, observe_peer_stats, _apply_observation, _record_event, _coerce_datetime, _to_naive_utc)
+#   HandshakeAnomalyMonitor - Observer for peer handshake metadata, anti-abuse decisions, audit events, and M-081 alert creation
 # END_MODULE_MAP
 #
 # START_CHANGE_SUMMARY
+#   LAST_CHANGE: v3.2.0 - Creates Phase-78 VPN device abuse alerts from confirmed anti-abuse events without changing observe defaults
 #   LAST_CHANGE: v3.1.0 - Delegated endpoint churn classification to anti-ping-pong abuse analyzer with soft enforcement
 #   LAST_CHANGE: v2.8.0 - Converted to full GRACE MODULE_CONTRACT/MAP format with START/END blocks
 # END_CHANGE_SUMMARY
@@ -54,6 +55,7 @@ from app.devices.models import (
 )
 from app.vpn.amneziawg import wg_manager
 from app.vpn.anti_abuse import AntiAbuseAnalyzer, AntiAbuseEnforcer, EndpointObservation
+from app.vpn.abuse_alerts import create_device_abuse_alert
 from app.vpn.models import VPNClient
 
 
@@ -188,6 +190,7 @@ class HandshakeAnomalyMonitor:
         )
         self.session.add(event)
         await self.session.flush()
+        await create_device_abuse_alert(self.session, event)
         logger.info(
             "[VPN][device][VPN_DEVICE_AUDIT_RECORDED] "
             f"user_id={user_id} device_id={device_id} event_type={event_type.value} severity={severity.value}"

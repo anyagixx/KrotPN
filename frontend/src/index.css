@@ -1,10 +1,10 @@
 /* FILE: frontend/src/index.css
- * VERSION: 2.1.1
+ * VERSION: 2.1.2
  * ROLE: UI_COMPONENT
  * MAP_MODE: SUMMARY
  * START_MODULE_CONTRACT
- *   PURPOSE: Shared user-frontend styling tokens, compact Matrix route surfaces, Matrix visual foundation, Phase-55 premium art direction, Phase-57 user command surfaces, Phase-59 motion language, Phase-61 phone/tablet adaptation gates, Phase-62 deletion-audit compaction, Phase-63 visible brand logo placement, Phase-67 frameless auth/splash polish, Phase-68 dashboard subscription compaction, Phase-72 nav/calendar polish, Phase-77 subscription calendar/mobile dock polish, config action button polish, and Matrix rain reliability fallback
- *   SCOPE: Base typography, premium palette/type/density/logo tokens, Matrix background/canvas/CRT layers, CSS rain fallback and mobile overscan, auth/page/layout surfaces, visible Phase-63/67/68 brand mark classes, panel/button/input/status/metric/empty-state classes, Phase-57 dense command cards, Phase-59 motion/microinteraction primitives, Phase-61 responsive phone/tablet/safe-area rules, Phase-62 folded secondary surfaces, Phase-67 splash/auth controls, Phase-68 compact tariff/calendar rules, Phase-72 touch dock and desktop calendar density rules, Phase-77 start/today/end calendar pulses and scroll-safe fixed mobile dock, frame-free config export actions, focus and reduced-motion policy
+ *   PURPOSE: Shared user-frontend styling tokens, compact Matrix route surfaces, Matrix visual foundation, Phase-55 premium art direction, Phase-57 user command surfaces, Phase-59 motion language, Phase-61 phone/tablet adaptation gates, Phase-62 deletion-audit compaction, Phase-63 visible brand logo placement, Phase-67 frameless auth/splash polish, Phase-68 dashboard subscription compaction, Phase-72 nav/calendar polish, Phase-77 subscription calendar/mobile dock polish, Phase-79 cyber title polish, config action button polish, and Matrix rain reliability fallback
+ *   SCOPE: Base typography, premium palette/type/density/logo tokens, Matrix background/canvas/CRT layers, CSS rain fallback and mobile overscan, auth/page/layout surfaces, visible Phase-63/67/68 brand mark classes, panel/button/input/status/metric/empty-state classes, Phase-57 dense command cards, Phase-59 motion/microinteraction primitives, Phase-61 responsive phone/tablet/safe-area rules, Phase-62 folded secondary surfaces, Phase-67 splash/auth controls, Phase-68 compact tariff/calendar rules, Phase-72 touch dock and desktop calendar density rules, Phase-77 start/today/end calendar pulses and scroll-safe fixed mobile dock, Phase-79 acid-pink auth title treatment, frame-free config export actions, focus and reduced-motion policy
  *   DEPENDS: M-009 (frontend-user), M-036 (mobile-user-cabinet), M-038 (compact-ui-system), M-070 (matrix-visual-runtime), M-071 (matrix-style-system), M-072 (premium-art-direction-system), M-074 (responsive-device-adaptation), M-075 (premium-user-cabinet), M-077 (matrix-motion-interactions), M-080 (visible-brand-logo-integration)
  *   LINKS: M-009 (frontend-user), M-036 (mobile-user-cabinet), M-038 (compact-ui-system), M-070, M-071, M-072, M-074, M-075, M-077, M-080, Phase-61, Phase-63, Phase-67
  * END_MODULE_CONTRACT
@@ -22,6 +22,7 @@
  * END_MODULE_MAP
  *
  * START_CHANGE_SUMMARY
+ *   LAST_CHANGE: v4.4.0 - Added Phase-79 acid-pink cyber title styling for auth/public entry surfaces without external title font dependency.
  *   LAST_CHANGE: v4.3.1 - Removed the extra dark frame around config export actions and kept mobile copy text on one line.
  *   LAST_CHANGE: v4.3.0 - Added Phase-77 subscription day pulse colors, config link styling, fixed mobile dock, and touch-scroll safety.
  *   LAST_CHANGE: v4.2.0 - Added Phase-72 touch-aware bottom dock and smaller desktop subscription calendar density.
@@ -60,6 +61,9 @@
     --matrix-red: #ff6b78;
     --matrix-amber: #ffd166;
     --matrix-neutral: #d8f6e6;
+    --phase79-cyber-title-pink: #ff36d7;
+    --phase79-cyber-title-glow: rgba(255, 54, 215, 0.42);
+    --phase79-cyber-title-font: 'Russo One', 'Unbounded', 'JetBrains Mono', 'IBM Plex Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
 
     /* START_BLOCK_PHASE55_PREMIUM_TOKENS */
     --premium-black: #010301;
@@ -667,6 +671,37 @@
     color: #79ffd0;
     letter-spacing: 0;
   }
+
+  /* START_BLOCK_PHASE79_CYBER_TITLE */
+  .phase67-auth-screen .matrix-auth-heading .matrix-kicker {
+    @apply inline-block font-black uppercase;
+    max-width: min(100%, 25rem);
+    color: var(--phase79-cyber-title-pink);
+    font-family: var(--phase79-cyber-title-font);
+    font-size: 0.875rem;
+    line-height: 1.28;
+    letter-spacing: 0;
+    text-shadow:
+      0 0 10px var(--phase79-cyber-title-glow),
+      0 0 24px rgba(255, 54, 215, 0.28),
+      0 0 16px rgba(104, 232, 255, 0.16);
+    filter: drop-shadow(0 0 10px rgba(255, 54, 215, 0.16));
+    animation: phase79CyberTitlePulse 2800ms var(--motion-ease-standard) infinite;
+  }
+
+  .phase67-auth-screen .matrix-auth-heading .matrix-kicker::after {
+    content: '';
+    display: block;
+    width: min(100%, 13.5rem);
+    height: 1px;
+    margin: 0.45rem auto 0;
+    background: linear-gradient(90deg, transparent, rgba(255, 54, 215, 0.9), rgba(104, 232, 255, 0.52), transparent);
+    box-shadow: 0 0 14px rgba(255, 54, 215, 0.34);
+  }
+
+  /* [MatrixStyle][phase79][CYBER_TITLE_ACID_PINK] */
+  /* [PremiumPublicSite][phase79][CYBER_TITLE_POLISHED] */
+  /* END_BLOCK_PHASE79_CYBER_TITLE */
 
   .matrix-public-page {
     @apply mx-auto flex min-h-screen w-full max-w-6xl flex-col px-3 py-3 sm:px-4 sm:py-4 lg:px-5 lg:py-5;
@@ -1846,6 +1881,24 @@
     }
   }
 
+  @keyframes phase79CyberTitlePulse {
+    0%,
+    100% {
+      text-shadow:
+        0 0 10px var(--phase79-cyber-title-glow),
+        0 0 24px rgba(255, 54, 215, 0.28),
+        0 0 16px rgba(104, 232, 255, 0.16);
+      opacity: 0.96;
+    }
+    50% {
+      text-shadow:
+        0 0 14px rgba(255, 54, 215, 0.58),
+        0 0 32px rgba(255, 54, 215, 0.36),
+        0 0 18px rgba(104, 232, 255, 0.22);
+      opacity: 1;
+    }
+  }
+
   @media (prefers-reduced-motion: reduce) {
     *,
     *::before,
@@ -1887,10 +1940,16 @@
     .phase77-calendar-day-start,
     .phase77-calendar-day-today::after,
     .phase77-calendar-day-end,
+    .phase67-auth-screen .matrix-auth-heading .matrix-kicker,
     .phase67-splash-logo.phase63-brand-lockup,
     .matrix-splash-pulse {
       animation: none !important;
       transform: none !important;
+    }
+
+    .phase67-auth-screen .matrix-auth-heading .matrix-kicker {
+      text-shadow: 0 0 10px rgba(255, 54, 215, 0.2);
+      filter: none;
     }
 
     .matrix-splash-pulse {
@@ -1919,6 +1978,12 @@
     .status-badge {
       max-width: 100%;
       white-space: normal;
+      overflow-wrap: anywhere;
+    }
+
+    .phase67-auth-screen .matrix-auth-heading .matrix-kicker {
+      max-width: 19rem;
+      font-size: 0.75rem;
       overflow-wrap: anywhere;
     }
   }

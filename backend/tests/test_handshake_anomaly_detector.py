@@ -8,9 +8,10 @@ MODULE_CONTRACT
 MODULE_MAP
 - test_observe_peer_stats_updates_device_presence_metadata: Verifies live handshake observation refreshes endpoint and seen timestamps.
 - test_observe_peer_stats_treats_single_endpoint_change_as_roaming: Verifies one IP transition does not emit abuse events.
-- test_observe_peer_stats_records_ping_pong_signal: Verifies A-B-A-B endpoint alternation emits anti-abuse evidence.
+- test_observe_peer_stats_records_ping_pong_signal: Verifies A-B-A-B endpoint alternation emits anti-abuse evidence and Phase-78 admin alert.
 
 CHANGE_SUMMARY
+- 2026-06-06: Added Phase-78 VPN device abuse alert creation assertion for confirmed ping-pong signals.
 - 2026-04-20: Replaced naive endpoint-churn assertions with anti-ping-pong observe-mode coverage.
 - 2026-03-27: Added tests for endpoint churn and concurrent-handshake suspicion in observe-only mode.
 """
@@ -32,6 +33,7 @@ from app.vpn.anti_abuse import (
     InMemoryEndpointHistoryStore,
 )
 from app.users.models import User, UserRole
+from app.vpn.abuse_alerts import VPNDeviceAbuseAlert
 from app.vpn.handshake_monitor import HandshakeAnomalyMonitor
 from app.vpn.models import VPNClient
 
@@ -202,5 +204,11 @@ async def test_observe_peer_stats_records_ping_pong_signal(device_monitor_sessio
         select(DeviceSecurityEvent.event_type).where(DeviceSecurityEvent.device_id == device.id)
     )
     event_types = list(result.scalars().all())
+    alert_result = await device_monitor_session.execute(
+        select(VPNDeviceAbuseAlert).where(VPNDeviceAbuseAlert.device_id == device.id)
+    )
+    alerts = list(alert_result.scalars().all())
 
     assert DeviceSecurityEventType.PING_PONG_ABUSE_DETECTED in event_types
+    assert len(alerts) == 1
+    assert alerts[0].signal_type == DeviceSecurityEventType.PING_PONG_ABUSE_DETECTED.value

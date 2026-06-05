@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<M-056 NAME="mtproto-analytics-service" TYPE="CORE_LOGIC" STATUS="pass-local-phase43">
-  <path>backend/app/mtproto/analytics_service.py backend/app/tasks/scheduler.py backend/tests/test_mtproto_analytics_service.py docs/plans/Phase-42.xml docs/plans/Phase-43.xml</path>
+<M-056 NAME="mtproto-analytics-service" TYPE="CORE_LOGIC" STATUS="pass-local-phase43-pass-local-phase79">
+  <path>backend/app/mtproto/analytics_service.py backend/app/tasks/scheduler.py backend/tests/test_mtproto_analytics_service.py scripts/phase79-cyber-title-and-mtproto-promo-safe-smoke.mjs docs/plans/Phase-42.xml docs/plans/Phase-43.xml docs/plans/Phase-79.xml</path>
   <owns>MTProto usage aggregation, top-user analytics, per-proxy summaries, runtime availability summaries, and observe-only abuse classification.</owns>
   <purpose>Convert raw MTProto telemetry into operator-safe analytics and abuse signals for the admin panel.</purpose>
   <exports>
@@ -17,18 +17,24 @@
     <file status="implemented">backend/app/mtproto/analytics_service.py</file>
     <file status="implemented">backend/app/tasks/scheduler.py</file>
     <file status="implemented">backend/tests/test_mtproto_analytics_service.py</file>
+    <file status="phase79-pass-local">scripts/phase79-cyber-title-and-mtproto-promo-safe-smoke.mjs</file>
   </files>
-  <evidence>pass-local 2026-05-20: analytics service tests cover summary/top users/timeseries/storage budget/hard-abuse alert handoff and mobile-IP false-positive guard; scheduler maintenance regression passed.</evidence>
+  <evidence>pass-local 2026-06-06: analytics service tests cover summary/top users/timeseries/storage budget/hard-abuse alert handoff, mobile-IP false-positive guard, Phase-79 promo-sharing many-IP observe-only behavior, and hard concurrent multi-IP alert-only handoff; scheduler maintenance regression passed in earlier Phase-43 gate.</evidence>
   <analytics-policy>
     <policy-1>Abuse output starts as observe-only and never automatically disables an assignment in Phase-42.</policy-1>
     <policy-2>Traffic spikes are compared against prior local baselines, not fixed global limits only.</policy-2>
     <policy-3>Reports distinguish known assignment traffic from unknown or rejected SNI traffic.</policy-3>
     <policy-4>Phase-43 high/critical abuse signals create M-060 admin alerts but still do not auto-disable access.</policy-4>
     <policy-5>Phase-43 live-feedback hardens alert severity: many-IP roaming stays medium unless paired with strong concurrent multi-IP activity or extreme traffic/error evidence.</policy-5>
+    <policy-6 phase="79-pass-local">Promo-sharing of individual MTProto proxies is an intended product behavior; many-IP sharing over time remains observe-only medium and must not create hard-abuse enforcement.</policy-6>
   </analytics-policy>
   <constraints>
     <constraint-1>Aggregation must avoid N+1 database scans on admin pages.</constraint-1>
     <constraint-2>Admin analytics must make missing telemetry explicit instead of silently showing zero usage.</constraint-2>
   </constraints>
+  <phase-79-executed-scope>
+    <scope>Strengthened abuse severity and tests so many IPs over time stay observe-only, while recent concurrent multi-IP activity can create high/critical admin alerts without automatic disable/block behavior.</scope>
+    <verification>PASS local: backend MTProto analytics/admin-alert tests and Phase-79 smoke prove promo-sharing allowed, many-IP no hard alert, high/critical alert handoff, and observe_only true for generated signals.</verification>
+  </phase-79-executed-scope>
   <hotspot>H-043: Abuse signals start observe-only until thresholds are tuned against real mobile-network behavior</hotspot>
 </M-056>

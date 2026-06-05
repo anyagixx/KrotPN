@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<V-M-006 MODULE="M-006" PRIORITY="high" STATUS="pass-local-phase75" PHASE-75="pass-local">
+<V-M-006 MODULE="M-006" PRIORITY="high" STATUS="pass-local-phase75-pass-local-phase78" PHASE-75="pass-local" PHASE-78="pass-local">
   <module>admin-api</module>
   <checks>Admin endpoints enforce authentication and current device/operator controls without relying on removed route-policy surfaces.</checks>
   <test-files>backend/tests/test_auth_rejection.py backend/tests/test_admin_device_control.py</test-files>

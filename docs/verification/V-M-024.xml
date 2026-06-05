@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<V-M-024 MODULE="M-024" PRIORITY="high" STATUS="pass-local-phase75" PHASE-75="pass-local">
+<V-M-024 MODULE="M-024" PRIORITY="high" STATUS="pass-local-phase75-pass-local-phase78" PHASE-75="pass-local" PHASE-78="pass-local">
   <module>device-admin-control</module>
   <checks>Admin endpoints can list devices, view anomaly and recent anti-abuse context, and block or unblock or revoke a specific device peer while preserving user-level auth boundaries.</checks>
   <test-files>backend/tests/test_admin_device_control.py</test-files>

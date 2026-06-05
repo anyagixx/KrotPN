@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<V-M-073 MODULE="M-073" PRIORITY="high" STATUS="pass-local-phase56-phase62-pass-local-phase67-pass-local-verify-session-fix" PHASE-56="pass-local" PHASE-62="pass-local" PHASE-67="pass-local">
+<V-M-073 MODULE="M-073" PRIORITY="high" STATUS="pass-local-phase56-phase62-pass-local-phase67-pass-local-verify-session-fix-pass-local-phase79" PHASE-56="pass-local" PHASE-62="pass-local" PHASE-67="pass-local" PHASE-79="pass-local">
   <scope>Phase-56/62/67 public-auth verification for the current splash-only public entry, login, registration, verification, password recovery, logo visibility, Matrix runtime safety, and email-proof semantics; the old public tariff preview is retained only as historical Phase-56 regression context.</scope>
   <test-files>
     <file>scripts/phase56-premium-public-auth-smoke.mjs</file>
@@ -9,6 +9,7 @@
     <file>scripts/phase55-premium-art-direction-smoke.mjs</file>
     <file phase="62-pass-local">scripts/phase62-compactness-deletion-smoke.mjs</file>
     <file phase="67-pass-local">scripts/phase67-auth-splash-smoke.mjs</file>
+    <file phase="79-pass-local">scripts/phase79-cyber-title-and-mtproto-promo-safe-smoke.mjs</file>
     <file>frontend/src/App.tsx</file>
     <file>frontend/src/components/Layout.tsx</file>
     <file>frontend/src/pages/Landing.tsx</file>
@@ -25,6 +26,7 @@
     <file>docs/modules/M-073.xml</file>
     <file>docs/plans/Phase-56.xml</file>
     <file>docs/plans/Phase-67.xml</file>
+    <file>docs/plans/Phase-79.xml</file>
   </test-files>
   <module-checks>
     <check-1>cd frontend &amp;&amp; npm run build</check-1>
@@ -41,6 +43,7 @@
     <check-12 status="pass-local-phase62">node scripts/phase62-compactness-deletion-smoke.mjs preserves public/auth clarity after folded landing tariff/features copy.</check-12>
     <check-13 status="pass-local-phase67">node scripts/phase67-auth-splash-smoke.mjs verifies splash redirect, requested copy changes/removals, frameless auth forms, preserved auth semantics, and protected backend/deploy/runtime guard.</check-13>
     <check-14 status="pass-local-verify-session-fix">Phase-67 smoke now also verifies /verify-email frameless style, token-helper persistence, login existing-session redirect, minimal admin login assertions, and 60-day deploy lifetime guard.</check-14>
+    <check-15 status="pass-local-phase79">node scripts/phase79-cyber-title-and-mtproto-promo-safe-smoke.mjs verifies title restyle markers while Phase-67 route/auth/session semantics remain unchanged.</check-15>
   </module-checks>
   <verification-matrix>
     <target-1 evidence="static">Public entry route exists in App routing, uses premium Matrix tokens, exposes visible KrotPN identity/logo, renders only the Phase-67 splash flow, and redirects to /login without marketing/tariff/product sections.</target-1>
@@ -52,6 +55,7 @@
     <target-7 evidence="static">Brand assets from M-069 remain public static assets only; no tokenized URL, secret-bearing logo path, or mailbox-provider BIMI assumption is introduced.</target-7>
     <target-8 evidence="pass-local-phase67">Public / route becomes splash-only and redirects to /login; auth pages remove visible card frames and operator-listed copy/labels while keeping accessible names and existing auth APIs.</target-8>
     <target-9 evidence="pass-local-verify-session-fix">Opening /login in another browser tab with a valid stored session resumes the session and redirects to /dashboard instead of showing a stale login form.</target-9>
+    <target-10 evidence="pass-local-phase79">The visible "Кибернетический Протокол Навигации" title uses the M-071 acid-pink cyber title treatment without adding public marketing content, external fonts, or changed auth behavior.</target-10>
   </verification-matrix>
   <phase-67-route-gates status="pass-local">
     <gate-1>/ must not show tariff cards, product-value copy, dashboard links, or other landing-page content before redirect.</gate-1>
@@ -67,6 +71,7 @@
     <scenario-3 kind="success">Registration still creates pending email verification state only; access side effects remain delayed until verified email proof.</scenario-3>
     <scenario-4 kind="success">Duplicate-email recovery, spam-folder guidance, password strength/example, reset, and verify-email states remain visible and token-safe.</scenario-4>
     <scenario-5 kind="success">Tariff catalog ownership remains in M-068, and Phase-67 keeps / free of tariff cards or frontend-controlled checkout data.</scenario-5>
+    <scenario-6 kind="success" phase="79-pass-local">Auth/public title is more creative and acid-pink while forms, copy states, route redirects, and session resume behavior remain unchanged.</scenario-6>
   </success-scenarios>
   <failure-scenarios>
     <failure-1 kind="failure">Public/auth effects obscure forms, delay registration, intercept clicks, or hide verification/reset states.</failure-1>
@@ -75,6 +80,7 @@
     <failure-4 kind="failure">Public landing creates a bulky generic marketing page, oversized cards, nested cards, decorative orbs, or a one-note palette that violates M-072.</failure-4>
     <failure-5 kind="failure">Real emails, tokens, reset/verify secrets, API keys, MTProto secrets, or payment IDs are logged by smoke tests or console markers.</failure-5>
     <failure-6 kind="failure">Phase-56/62/67 diff touches deploy/install/nginx/docker-compose/backend/VPN/MTProto/billing runtime surfaces.</failure-6>
+    <failure-7 kind="failure" phase="79-pass-local">Title styling introduces external font/CDN dependencies, horizontal overflow, viewport-scaled font sizing, negative letter spacing, or hidden auth controls.</failure-7>
   </failure-scenarios>
   <required-log-markers>
     <marker-1>[PremiumPublicSite][phase56][ROUTES_READY]</marker-1>
@@ -89,6 +95,7 @@
     <marker-10>[PremiumPublicSite][phase67][SPLASH_REDIRECT_READY]</marker-10>
     <marker-11>[PremiumPublicSite][phase67][AUTH_COPY_POLISHED]</marker-11>
     <marker-12>[PremiumPublicSite][phase67][AUTH_SEMANTICS_UNCHANGED]</marker-12>
+    <marker-13>[PremiumPublicSite][phase79][CYBER_TITLE_POLISHED]</marker-13>
   </required-log-markers>
   <telemetry-requirements>
     <requirement-1>Smoke output may print route names, viewport names, selector markers, and screenshot paths only.</requirement-1>
@@ -101,6 +108,7 @@
     <gate-3 level="phase">Frontend build, screenshot matrix, Phase-44/46/50/55 regression smokes, XML parse, MyGRACE lint, git diff check, and protected deploy/install guard pass before Phase-56 can be marked done-local.</gate-3>
     <gate-4 level="phase-62" status="passed-local">Phase-62 public/auth compactness gate passed locally: folded public feature/tariff detail copy preserves registration/login/recovery/verify clarity, email-proof semantics, password example, and canonical tariff guard.</gate-4>
     <gate-5 level="phase-67" status="pass-local">Phase-67 cannot pass until frontend build, auth/splash smoke, Phase-56/60/61/63/52/59 regressions, XML/MyGRACE checks, git diff --check, and protected backend/deploy/runtime guard pass.</gate-5>
+    <gate-6 level="phase-79" status="planned">Phase-79 cannot pass unless title restyling is the only M-073 behavior change and / splash redirect, /login session resume, registration, recovery, and verify-email token handling still pass Phase-67/session smoke.</gate-6>
   </phase-gates>
   <execution-evidence status="pass-local" date="2026-06-03">
     <command-1>cd frontend &amp;&amp; npm run build</command-1>
@@ -137,5 +145,11 @@
     <command-4>node scripts/session-security-smoke.mjs</command-4>
     <result>PASS: /verify-email uses the Phase-67 frameless Matrix surface, login resumes valid stored user sessions across tabs, and token persistence goes through the 60-day session helper.</result>
   </execution-evidence>
+  <phase-79-verification-design status="pass-local">
+    <scope>Verify public/auth title restyling only; no auth, registration, session, billing, VPN, MTProto, deploy, or runtime behavior changes are allowed from M-073.</scope>
+    <commands>cd frontend &amp;&amp; npm run build; node scripts/phase79-cyber-title-and-mtproto-promo-safe-smoke.mjs; node scripts/phase67-auth-splash-smoke.mjs; node scripts/session-security-smoke.mjs</commands>
+    <acceptance>Title is acid-pink, heavier, creative, and responsive; / still redirects to /login; existing-session /login redirects to /dashboard; auth/register/recovery/verify-email flows remain unchanged.</acceptance>
+    <evidence>PASS local 2026-06-06: frontend build, Phase-79 smoke, and Phase-56 smoke passed; / remains splash-only without the title, while login/register/forgot/reset/verify retain the title with Phase-79 styling.</evidence>
+  </phase-79-verification-design>
   <autonomous-execution-safety>Safe for local autonomous execution if changes stay inside frontend public/auth routes, frontend CSS/components needed for M-073, and smoke verification. Stop execution if backend registration semantics, billing catalog ownership, deploy/install scripts, nginx, docker-compose, VPN, MTProto, or secret handling must change.</autonomous-execution-safety>
 </V-M-073>
