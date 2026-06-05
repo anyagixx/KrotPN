@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<V-M-009 MODULE="M-009" PRIORITY="high" STATUS="pass-local-phase46-phase51-phase52-phase53-phase56-phase59-pass-local-phase67-pass-local-session60-pass-local-phase68-pass-local-phase69-pass-local-phase70-pass-local-phase71-pass-local-phase72-pass-local-phase76" VERSION="1.19.0" PHASE-59="pass-local" PHASE-67="pass-local" PHASE-68="pass-local" PHASE-69="pass-local" PHASE-70="pass-local" PHASE-71="pass-local" PHASE-72="pass-local" PHASE-76="pass-local">
+<V-M-009 MODULE="M-009" PRIORITY="high" STATUS="pass-local-phase46-phase51-phase52-phase53-phase56-phase59-pass-local-phase67-pass-local-session60-pass-local-phase68-pass-local-phase69-pass-local-phase70-pass-local-phase71-pass-local-phase72-pass-local-phase76-pass-local-phase77" VERSION="1.20.0" PHASE-59="pass-local" PHASE-67="pass-local" PHASE-68="pass-local" PHASE-69="pass-local" PHASE-70="pass-local" PHASE-71="pass-local" PHASE-72="pass-local" PHASE-76="pass-local" PHASE-77="pass-local">
   <module>frontend-user</module>
   <checks>User frontend still builds, matches the Phase-28 auth API response shape, makes registration mobile-safe without implying active KrotPN trial before email verification, and resumes valid stored sessions across tabs within the 60-day idle TTL.</checks>
   <test-files>
@@ -213,4 +213,12 @@
     <commands>cd frontend &amp;&amp; npm run build; node scripts/phase72-user-auth-navigation-smoke.mjs; node scripts/phase73-config-amnezia-qr-smoke.mjs; node scripts/session-security-smoke.mjs; user regression smoke bundle; protected-surface guard.</commands>
   </phase-76-verification-design>
   <phase-76-evidence status="pass-local" date="2026-06-05">Consolidated Phase-76 gate passed: frontend build, Phase-72/73 user smokes, Phase-57/61/68/70/71 regressions, session smoke coverage, XML/MyGRACE/diff checks, backend-not-touched API guard, and protected deploy/runtime guard.</phase-76-evidence>
+  <phase-77-verification-design status="pass-local">
+    <scope>Frontend-user verification for subscription active-until copy, clickable config guidance, calendar role markers, fixed mobile bottom dock, and mobile touch-scroll safety.</scope>
+    <gate-1>SubscriptionPanel must remove the old active timer-auto copy and render "Доступ активен до: [дата]" from existing subscription expiry fields.</gate-1>
+    <gate-2>Pending config guidance must route through React Router to /dashboard/config without changing auth/session/API contracts.</gate-2>
+    <gate-3>Layout and CSS must expose Phase-77 mobile dock and scroll-surface markers without admin/backend/deploy/runtime drift.</gate-3>
+    <commands>cd frontend &amp;&amp; npm run build; node scripts/phase77-subscription-mobile-polish-smoke.mjs; Phase-45/57/59/61/68/71/72 regressions.</commands>
+  </phase-77-verification-design>
+  <phase-77-evidence status="pass-local" date="2026-06-05">Frontend build and Phase-77 smoke passed for active-until copy, config guidance link, calendar start/today/end markers, fixed mobile dock, mobile scroll-safety markers, and protected admin/backend/deploy/runtime guard.</phase-77-evidence>
 </V-M-009>

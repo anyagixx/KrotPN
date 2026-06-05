@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<V-M-074 MODULE="M-074" PRIORITY="critical" STATUS="pass-local-phase61-phase62-pass-local-phase67-pass-local-rainfix-pass-local-phase68-pass-local-phase71-pass-local-phase72-pass-local-phase74-pass-local-phase75-pass-local-phase76" PHASE-61="pass-local" PHASE-62="pass-local" PHASE-67="pass-local" RAINFIX="pass-local" PHASE-68="pass-local" PHASE-71="pass-local" PHASE-72="pass-local" PHASE-74="pass-local" PHASE-75="pass-local" PHASE-76="pass-local">
+<V-M-074 MODULE="M-074" PRIORITY="critical" STATUS="pass-local-phase61-phase62-pass-local-phase67-pass-local-rainfix-pass-local-phase68-pass-local-phase71-pass-local-phase72-pass-local-phase74-pass-local-phase75-pass-local-phase76-pass-local-phase77" PHASE-61="pass-local" PHASE-62="pass-local" PHASE-67="pass-local" RAINFIX="pass-local" PHASE-68="pass-local" PHASE-71="pass-local" PHASE-72="pass-local" PHASE-74="pass-local" PHASE-75="pass-local" PHASE-76="pass-local" PHASE-77="pass-local">
   <scope>Responsive adaptation verification for phone, tablet, and desktop layouts across public, auth, user-cabinet, and admin Matrix surfaces.</scope>
   <verification-intent>Phase-61 must prove that the premium Matrix UI is intentionally designed for mobile and tablet use, not merely tolerated by desktop CSS.</verification-intent>
   <test-files>
@@ -242,4 +242,12 @@
     <commands>node scripts/phase61-responsive-adaptation-smoke.mjs; Phase-72/73 user smokes; Phase-74/75 admin smokes; git diff --check; protected-surface guard.</commands>
   </phase-76-verification-design>
   <phase-76-evidence status="pass-local" date="2026-06-05">Consolidated Phase-76 gate passed for responsive adaptation: Phase-61 smoke plus Phase-72/73/74/75 smokes proved phone/tablet/desktop no-overflow, safe bottom dock, admin rail/content scroll safety, and bounded expanded device lists.</phase-76-evidence>
+  <phase-77-verification-design status="pass-local">
+    <scope>Responsive verification for fixed mobile dock and mobile scroll-surface repair.</scope>
+    <gate-1>Bottom user navigation must remain visible at the bottom of phone viewports and must reserve safe-area padding.</gate-1>
+    <gate-2>User main panel must not clip content through mobile overflow-hidden; touch scroll must remain pan-y capable.</gate-2>
+    <gate-3>Content bottom padding must account for the fixed dock so subscription/config/referral/settings controls are not hidden.</gate-3>
+    <commands>node scripts/phase61-responsive-adaptation-smoke.mjs; node scripts/phase77-subscription-mobile-polish-smoke.mjs; node scripts/phase72-user-auth-navigation-smoke.mjs.</commands>
+  </phase-77-verification-design>
+  <phase-77-evidence status="pass-local" date="2026-06-05">Phase-77 and Phase-61 responsive smokes passed after user/admin builds: fixed bottom dock, safe-area padding, mobile scroll-surface markers, bundle budgets, and protected backend/deploy/runtime guard remained green.</phase-77-evidence>
 </V-M-074>

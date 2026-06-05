@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<V-M-075 MODULE="M-075" PRIORITY="high" STATUS="pass-local-phase59-phase62-pass-local-phase68-pass-local-phase69-pass-local-phase70-pass-local-phase71-pass-local-phase72-pass-local-phase73-pass-local-phase76" PHASE-57="pass-local" PHASE-59="pass-local" PHASE-62="pass-local" PHASE-68="pass-local" PHASE-69="pass-local" PHASE-70="pass-local" PHASE-71="pass-local" PHASE-72="pass-local" PHASE-73="pass-local" PHASE-76="pass-local">
+<V-M-075 MODULE="M-075" PRIORITY="high" STATUS="pass-local-phase59-phase62-pass-local-phase68-pass-local-phase69-pass-local-phase70-pass-local-phase71-pass-local-phase72-pass-local-phase73-pass-local-phase76-pass-local-phase77" PHASE-57="pass-local" PHASE-59="pass-local" PHASE-62="pass-local" PHASE-68="pass-local" PHASE-69="pass-local" PHASE-70="pass-local" PHASE-71="pass-local" PHASE-72="pass-local" PHASE-73="pass-local" PHASE-76="pass-local" PHASE-77="pass-local">
   <scope>Phase-57/Phase-59 premium user cabinet evidence remains valid. Phase-62 verification now defines the compactness and deletion-audit contract for user cabinet, public/auth adjacency, compact UI invariants, responsive regressions, preserved primary workflows, redaction, and protected backend/deploy/runtime isolation.</scope>
   <test-files>
     <file>scripts/phase57-premium-user-cabinet-smoke.mjs</file>
@@ -212,4 +212,12 @@
     <commands>node scripts/phase57-premium-user-cabinet-smoke.mjs; node scripts/phase62-compactness-deletion-smoke.mjs; node scripts/phase68-dashboard-subscription-smoke.mjs; node scripts/phase70-config-qr-parity-smoke.mjs; node scripts/phase71-device-config-master-detail-smoke.mjs; Phase-72/73 smokes.</commands>
   </phase-76-verification-design>
   <phase-76-evidence status="pass-local" date="2026-06-05">Consolidated Phase-76 gate passed for premium user cabinet: Phase-57/62/68/70/71 regressions plus Phase-72/73 smokes preserved dashboard, config, subscription, referrals, Settings cleanup, selected-device exports, Amnezia guidance, and tariff-limit messaging.</phase-76-evidence>
+  <phase-77-verification-design status="pass-local">
+    <scope>Premium user cabinet verification for subscription copy/link/calendar polish and fixed mobile navigation.</scope>
+    <gate-1>Dashboard/subscription surfaces must show active-until copy and clickable config guidance without reintroducing bulky helper panels.</gate-1>
+    <gate-2>Calendar role pulses must remain compact and not make the dashboard visually bulky.</gate-2>
+    <gate-3>Mobile dock must remain visible while preserving one/two-tap access to config, subscription, referrals, and settings.</gate-3>
+    <commands>node scripts/phase57-premium-user-cabinet-smoke.mjs; node scripts/phase68-dashboard-subscription-smoke.mjs; node scripts/phase77-subscription-mobile-polish-smoke.mjs.</commands>
+  </phase-77-verification-design>
+  <phase-77-evidence status="pass-local" date="2026-06-05">Phase-77 preserved premium user cabinet workflows while adding active-until copy, config link, calendar role markers, and fixed mobile dock; Phase-57 and Phase-68 regressions passed.</phase-77-evidence>
 </V-M-075>

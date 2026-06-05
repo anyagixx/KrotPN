@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<V-M-063 MODULE="M-063" PRIORITY="critical" STATUS="pass-local-phase53-pass-local-phase68-pass-local-phase69-pass-local-phase71-pass-local-phase72-pass-local-phase73-pass-local-phase76" PHASE-68="pass-local" PHASE-69="pass-local" PHASE-71="pass-local" PHASE-72="pass-local" PHASE-73="pass-local" PHASE-76="pass-local">
+<V-M-063 MODULE="M-063" PRIORITY="critical" STATUS="pass-local-phase53-pass-local-phase68-pass-local-phase69-pass-local-phase71-pass-local-phase72-pass-local-phase73-pass-local-phase76-pass-local-phase77" PHASE-68="pass-local" PHASE-69="pass-local" PHASE-71="pass-local" PHASE-72="pass-local" PHASE-73="pass-local" PHASE-76="pass-local" PHASE-77="pass-local">
   <purpose>Verify Phase-45 four-day trial and first-VPN-handshake activation semantics across billing, VPN, scheduler, and user cabinet UX.</purpose>
   <checks>Pending trial is created after email verification, first config remains available, first successful VPN handshake activates the four-day countdown exactly once, subscription API returns precise remaining time, and mobile UI shows countdown plus calendar without stale 3-day copy.</checks>
   <test-files>
@@ -141,4 +141,12 @@
     <commands>node scripts/phase45-trial-subscription-ux-smoke.mjs; node scripts/phase68-dashboard-subscription-smoke.mjs; backend targeted tests only if API/backend diff exists.</commands>
   </phase-76-verification-design>
   <phase-76-evidence status="pass-local" date="2026-06-05">Consolidated Phase-76 gate passed for trial/subscription UX; Phase-45/68/72/73 frontend smokes preserved pending trial, first-VPN activation copy, server-derived countdown, compact calendar, and display-only tariff-limit copy. Backend targeted tests were skipped because API/backend diff was empty.</phase-76-evidence>
+  <phase-77-verification-design status="pass-local">
+    <scope>Trial/subscription display verification for active-until copy and start/today/end calendar markers.</scope>
+    <gate-1>Phase-77 must not change pending trial creation, first-VPN activation, countdown math, scheduler scans, paid expiry, or subscription API fields.</gate-1>
+    <gate-2>Active subscription text must derive its date from active_until or expires_at and render as display-only copy.</gate-2>
+    <gate-3>Calendar start/today/end markers must be frontend-only visual roles and must not become subscription authority.</gate-3>
+    <commands>node scripts/phase45-trial-subscription-ux-smoke.mjs; node scripts/phase68-dashboard-subscription-smoke.mjs; node scripts/phase77-subscription-mobile-polish-smoke.mjs.</commands>
+  </phase-77-verification-design>
+  <phase-77-evidence status="pass-local" date="2026-06-05">Phase-77 changed only subscription display copy and calendar styling; Phase-45, Phase-68, Phase-71, and Phase-72 smokes remained green, and backend/API targeted tests were skipped because no backend/API diff exists.</phase-77-evidence>
 </V-M-063>

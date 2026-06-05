@@ -1,22 +1,23 @@
 // FILE: frontend/src/components/Layout.tsx
-// VERSION: 1.9.0
+// VERSION: 2.0.0
 // ROLE: UI_COMPONENT
 // MAP_MODE: SUMMARY
 // START_MODULE_CONTRACT
 //   PURPOSE: Compact premium Matrix application layout with phone/tablet-safe navigation, visible KrotPN logo, user identity, logout, and routed page outlet
-//   SCOPE: Desktop Matrix sidebar, mobile top bar, touch-aware mobile bottom navigation, visible Phase-63 brand mark, logout action under Settings, safe-area responsive markers, Outlet for routed protected user pages
+//   SCOPE: Desktop Matrix sidebar, mobile top bar, always-visible touch-aware mobile bottom navigation, mobile scroll-safe content surface, visible Phase-63 brand mark, logout action under Settings, safe-area responsive markers, Outlet for routed protected user pages
 //   DEPENDS: M-009 (frontend-user), M-002 (auth API), M-036 (mobile-user-cabinet), M-038 (compact-ui-system), M-071 (matrix-style-system), M-074 (responsive-device-adaptation), M-075 (premium-user-cabinet), M-080 (visible-brand-logo-integration)
 //   LINKS: M-009 (frontend-user), M-036 (mobile-user-cabinet), M-038 (compact-ui-system), M-071, M-074, M-075, M-080, Phase-63
 // END_MODULE_CONTRACT
 //
 // START_MODULE_MAP
-//   Layout - Compact premium Matrix responsive layout component with desktop sidebar, mobile bars, visible Phase-63 logo, Phase-72 logout placement, and Phase-61 responsive markers
+//   Layout - Compact premium Matrix responsive layout component with desktop sidebar, mobile bars, visible Phase-63 logo, Phase-77 fixed mobile dock, Phase-72 logout placement, and Phase-61 responsive markers
 //   navItems - Route metadata for the compact user cabinet
 //   BLOCK_LAYOUT - Layout default export with responsive shell and Phase-57 protected cabinet navigation
 //   default - React component (default export)
 // END_MODULE_MAP
 //
 // START_CHANGE_SUMMARY
+//   LAST_CHANGE: v2.0.0 - Added Phase-77 fixed mobile dock and scroll-safe content markers.
 //   LAST_CHANGE: v1.9.0 - Moved desktop logout directly under Settings and added Phase-72 mobile dock markers.
 //   LAST_CHANGE: v1.8.0 - Added Phase-71 localized user-shell subtitle and final frameless logo marker.
 //   LAST_CHANGE: v1.7.0 - Applied Phase-68 frameless user-shell logo styling without changing brand assets or navigation.
@@ -64,7 +65,7 @@ export default function Layout() {
   }
 
   return (
-    <div className="app-shell" data-phase53-layout="user-matrix" data-phase57-layout="premium-user-cabinet" data-phase61-layout="phone-tablet-safe">
+    <div className="app-shell" data-phase53-layout="user-matrix" data-phase57-layout="premium-user-cabinet" data-phase61-layout="phone-tablet-safe" data-phase77-mobile-shell="[MobileUserCabinet][phase77][TOUCH_SCROLL_SAFE]">
       <div className="matrix-layout-frame" data-phase61-viewport-frame="[ResponsiveAdaptation][phase61][VIEWPORT_MATRIX_READY]">
         <aside className="matrix-sidebar">
           <div className="matrix-sidebar-header flex items-center gap-3 border-b px-4 py-4">
@@ -136,8 +137,8 @@ export default function Layout() {
             </button>
           </header>
 
-          <main className="matrix-main-panel" data-phase57-protected-main="dashboard-routes" data-phase61-protected-user-static="[ResponsiveAdaptation][phase61][PROTECTED_USER_STATIC_PROOF]">
-            <div className="p-3 pb-24 sm:p-4 lg:p-5 lg:pb-5">
+          <main className="matrix-main-panel" data-phase57-protected-main="dashboard-routes" data-phase61-protected-user-static="[ResponsiveAdaptation][phase61][PROTECTED_USER_STATIC_PROOF]" data-phase77-scroll-surface="[ResponsiveAdaptation][phase77][MOBILE_SCROLL_SURFACE_SAFE]">
+            <div className="phase77-mobile-scroll-content p-3 pb-24 sm:p-4 lg:p-5 lg:pb-5">
               <Outlet />
             </div>
           </main>
@@ -148,6 +149,7 @@ export default function Layout() {
           data-phase61-mobile-nav="[ResponsiveAdaptation][phase61][SAFE_AREA_PASS]"
           data-phase72-mobile-nav="[MobileUserCabinet][phase72][BOTTOM_NAV_SAFE]"
           data-phase72-touch-nav="[MatrixMotion][phase72][TOUCH_NAV_REVEAL_SAFE]"
+          data-phase77-mobile-nav="[MobileUserCabinet][phase77][BOTTOM_NAV_ALWAYS_VISIBLE]"
         >
           {navItems.map((item) => (
             <NavLink

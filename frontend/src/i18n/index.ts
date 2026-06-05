@@ -1,5 +1,5 @@
 // FILE: frontend/src/i18n/index.ts
-// VERSION: 1.2.0
+// VERSION: 1.3.0
 // ROLE: UTILITY
 // MAP_MODE: EXPORTS
 // START_MODULE_CONTRACT
@@ -17,6 +17,7 @@
 // END_MODULE_MAP
 //
 // START_CHANGE_SUMMARY
+//   LAST_CHANGE: v1.3.0 - Added Phase-77 active-until subscription copy.
 //   LAST_CHANGE: v1.2.0 - Added Phase-73 KPN config copy, AmneziaVPN .conf guidance, and tariff-aware device-limit text.
 //   LAST_CHANGE: v1.1.0 - Locked user frontend initialization to Russian after removing visible language settings in Phase-72.
 //   LAST_CHANGE: v2.8.0 - Added full GRACE MODULE_CONTRACT and MODULE_MAP per GRACE governance protocol
@@ -150,7 +151,7 @@ const resources = {
       subscriptionDescriptionReferral: 'Бонусные {{days}} дней уже доступны. Таймер стартует после первого подключения.',
       subscriptionDescriptionTrialReferral: 'Конфиг уже доступен. {{days}} дней trial и бонуса стартуют после первого подключения.',
       subscriptionDescriptionPending: 'Конфиг уже доступен. Таймер на 4 дня стартует после первого подключения.',
-      subscriptionDescriptionActive: 'Доступ активен. Таймер обновляется автоматически.',
+      subscriptionDescriptionActive: 'Доступ активен до: {{date}}',
       subscriptionDescriptionExpired: 'Продлите подписку, чтобы снова открыть VPN доступ.',
       subscriptionCalendar: 'Календарь подписки',
       subscriptionCalendarPending: 'Даты подсветятся после первого подключения.',
@@ -323,7 +324,7 @@ const resources = {
       subscriptionDescriptionReferral: 'Bonus {{days}} days are ready. The timer starts after the first connection.',
       subscriptionDescriptionTrialReferral: 'Config is ready. {{days}} trial and bonus days start after the first connection.',
       subscriptionDescriptionPending: 'Config is ready. The 4-day timer starts after the first connection.',
-      subscriptionDescriptionActive: 'Access is active. The timer updates automatically.',
+      subscriptionDescriptionActive: 'Access is active until: {{date}}',
       subscriptionDescriptionExpired: 'Extend the subscription to reopen VPN access.',
       subscriptionCalendar: 'Subscription calendar',
       subscriptionCalendarPending: 'Dates will be highlighted after the first connection.',

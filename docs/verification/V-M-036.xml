@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<V-M-036 MODULE="M-036" PRIORITY="high" STATUS="pass-local-phase46-phase53-pass-local-phase68-pass-local-phase69-pass-local-phase70-pass-local-phase71-pass-local-phase72-pass-local-phase73-pass-local-phase76" VERSION="1.11.0" PHASE-68="pass-local" PHASE-69="pass-local" PHASE-70="pass-local" PHASE-71="pass-local" PHASE-72="pass-local" PHASE-73="pass-local" PHASE-76="pass-local">
+<V-M-036 MODULE="M-036" PRIORITY="high" STATUS="pass-local-phase46-phase53-pass-local-phase68-pass-local-phase69-pass-local-phase70-pass-local-phase71-pass-local-phase72-pass-local-phase73-pass-local-phase76-pass-local-phase77" VERSION="1.12.0" PHASE-68="pass-local" PHASE-69="pass-local" PHASE-70="pass-local" PHASE-71="pass-local" PHASE-72="pass-local" PHASE-73="pass-local" PHASE-76="pass-local" PHASE-77="pass-local">
   <module>mobile-user-cabinet</module>
   <checks>User frontend must become compact, phone-friendly, and focused on VPN config, subscription, device workflows, and Phase-45 pending trial countdown/calendar UX.</checks>
   <test-files>frontend/src/components/Layout.tsx frontend/src/components/Loading.tsx frontend/src/components/SubscriptionPanel.tsx frontend/src/pages/Dashboard.tsx frontend/src/pages/Config.tsx frontend/src/pages/Subscription.tsx frontend/src/pages/Referrals.tsx frontend/src/pages/Settings.tsx frontend/src/index.css scripts/phase45-trial-subscription-ux-smoke.mjs scripts/phase46-user-cabinet-ux-smoke.mjs scripts/phase53-user-matrix-ui-smoke.mjs scripts/phase68-dashboard-subscription-smoke.mjs scripts/phase69-referral-bonus-smoke.mjs scripts/phase70-config-qr-parity-smoke.mjs scripts/phase71-device-config-master-detail-smoke.mjs scripts/phase72-user-auth-navigation-smoke.mjs scripts/phase73-config-amnezia-qr-smoke.mjs</test-files>
@@ -160,4 +160,12 @@
     <commands>node scripts/phase61-responsive-adaptation-smoke.mjs; node scripts/phase68-dashboard-subscription-smoke.mjs; node scripts/phase70-config-qr-parity-smoke.mjs; node scripts/phase71-device-config-master-detail-smoke.mjs; Phase-72/73 smokes.</commands>
   </phase-76-verification-design>
   <phase-76-evidence status="pass-local" date="2026-06-05">Consolidated Phase-76 gate passed for mobile user cabinet: Phase-72/73 smokes plus Phase-57/61/68/70/71 regressions kept bottom dock, selected-device config, subscription calendar, and Amnezia guidance reachable without backend/deploy/runtime drift.</phase-76-evidence>
+  <phase-77-verification-design status="pass-local">
+    <scope>Mobile user-cabinet verification for always-visible bottom navigation and touch-scroll stability.</scope>
+    <gate-1>Mobile bottom navigation must remain fixed at the bottom of the viewport with safe-area padding.</gate-1>
+    <gate-2>Main user content must reserve enough bottom padding and avoid mobile overflow-hidden clipping.</gate-2>
+    <gate-3>Matrix visual layers and motion markers must not intercept mobile touch scroll.</gate-3>
+    <commands>cd frontend &amp;&amp; npm run build; node scripts/phase77-subscription-mobile-polish-smoke.mjs; node scripts/phase61-responsive-adaptation-smoke.mjs; node scripts/phase72-user-auth-navigation-smoke.mjs.</commands>
+  </phase-77-verification-design>
+  <phase-77-evidence status="pass-local" date="2026-06-05">Phase-77 smoke, Phase-61 responsive smoke, and Phase-72 user navigation smoke passed for fixed bottom dock, safe-area content padding, scroll-surface markers, and no protected backend/deploy/runtime/admin drift.</phase-77-evidence>
 </V-M-036>

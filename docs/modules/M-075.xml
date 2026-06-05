@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<M-075 NAME="premium-user-cabinet" TYPE="UI_COMPONENT" STATUS="done-local-phase57-pass-local-phase59-pass-local-phase62-pass-local-phase68-pass-local-phase69-pass-local-phase70-pass-local-phase71-pass-local-phase72-pass-local-phase73-pass-local-phase76">
+<M-075 NAME="premium-user-cabinet" TYPE="UI_COMPONENT" STATUS="done-local-phase57-pass-local-phase59-pass-local-phase62-pass-local-phase68-pass-local-phase69-pass-local-phase70-pass-local-phase71-pass-local-phase72-pass-local-phase73-pass-local-phase76-pass-local-phase77">
   <path>frontend/src/components/Layout.tsx frontend/src/components/SubscriptionPanel.tsx frontend/src/pages/Dashboard.tsx frontend/src/pages/Config.tsx frontend/src/pages/Subscription.tsx frontend/src/pages/Referrals.tsx frontend/src/pages/Settings.tsx frontend/src/i18n/index.ts docs/plans/Phase-57.xml docs/plans/Phase-59.xml docs/plans/Phase-62.xml docs/plans/Phase-68.xml docs/plans/Phase-69.xml docs/plans/Phase-70.xml docs/plans/Phase-71.xml docs/plans/Phase-72.xml docs/plans/Phase-73.xml scripts/phase57-premium-user-cabinet-smoke.mjs scripts/phase59-motion-interactions-smoke.mjs scripts/phase62-compactness-deletion-smoke.mjs scripts/phase68-dashboard-subscription-smoke.mjs scripts/phase69-referral-bonus-smoke.mjs scripts/phase70-config-qr-parity-smoke.mjs scripts/phase71-device-config-master-detail-smoke.mjs scripts/phase72-user-auth-navigation-smoke.mjs scripts/phase73-config-amnezia-qr-smoke.mjs</path>
   <owns>Premium compact personal cabinet for VPN, MTProto, subscription, devices, referrals, and settings.</owns>
   <purpose>Turn the user cabinet into a compact premium command center without hiding core actions.</purpose>
@@ -10,6 +10,7 @@
     <view-device-config-amnezia-truthfulness phase="73-pass-local">Config page shows AmneziaWG QR only as the proven QR path and guides AmneziaVPN users to selected-device .conf import.</view-device-config-amnezia-truthfulness>
     <view-premium-subscription>Tariff, countdown, calendar, and renewal flow with server-derived data.</view-premium-subscription>
     <view-phase72-auth-navigation phase="72-pass-local">Russian invalid-login UX, Settings without language selector, desktop logout under Settings, bottom dock navigation, and compact desktop subscription calendar.</view-phase72-auth-navigation>
+    <view-phase77-subscription-mobile-polish phase="77-pass-local">Active-until subscription copy, clickable config guidance, role-colored subscription calendar markers, and fixed mobile bottom navigation.</view-phase77-subscription-mobile-polish>
     <rule-user-deletion-audit>Remove duplicated, bulky, decorative, or non-actionable user-cabinet content.</rule-user-deletion-audit>
   </exports>
   <depends>M-009,M-036,M-045,M-063,M-064,M-068,M-070,M-071,M-072,M-074,M-077</depends>
@@ -51,4 +52,10 @@
   </phase-73-executed-scope>
   <phase-73-evidence status="pass-local" date="2026-06-05">Frontend source and static smoke passed locally for Phase-73; final build/regression suite recorded in V-M-075 after execution.</phase-73-evidence>
   <hotspot>H-062: Premium user cabinet must keep VPN config, subscription, MTProto, and device actions reachable in one or two taps.</hotspot>
+  <phase-77-executed-scope>
+    <primary-files>frontend/src/components/SubscriptionPanel.tsx frontend/src/components/Layout.tsx frontend/src/index.css scripts/phase77-subscription-mobile-polish-smoke.mjs</primary-files>
+    <primary-behaviors>Subscription card and calendar polish were added without reintroducing bulky helper panels; mobile dock remains visible while preserving one/two-tap route access.</primary-behaviors>
+    <acceptance>Phase-57, Phase-68, and Phase-77 smokes passed for premium user cabinet workflow preservation.</acceptance>
+  </phase-77-executed-scope>
+  <phase-77-evidence status="pass-local" date="2026-06-05">Premium user cabinet passed local Phase-77 verification.</phase-77-evidence>
 </M-075>

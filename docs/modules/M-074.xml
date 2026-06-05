@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<M-074 NAME="responsive-device-adaptation" TYPE="UI_COMPONENT" STATUS="pass-local-phase61-pass-local-phase62-pass-local-phase67-pass-local-rainfix-pass-local-phase68-pass-local-phase71-pass-local-phase72-pass-local-phase74-pass-local-phase75-pass-local-phase76">
+<M-074 NAME="responsive-device-adaptation" TYPE="UI_COMPONENT" STATUS="pass-local-phase61-pass-local-phase62-pass-local-phase67-pass-local-rainfix-pass-local-phase68-pass-local-phase71-pass-local-phase72-pass-local-phase74-pass-local-phase75-pass-local-phase76-pass-local-phase77">
   <path>frontend frontend-admin docs/plans/Phase-61.xml docs/plans/Phase-62.xml docs/plans/Phase-67.xml docs/plans/Phase-68.xml docs/plans/Phase-71.xml docs/plans/Phase-72.xml docs/plans/Phase-74.xml docs/plans/Phase-75.xml scripts/phase61-responsive-adaptation-smoke.mjs scripts/phase62-compactness-deletion-smoke.mjs scripts/phase67-auth-splash-smoke.mjs scripts/phase68-dashboard-subscription-smoke.mjs scripts/phase71-device-config-master-detail-smoke.mjs scripts/phase72-user-auth-navigation-smoke.mjs scripts/phase74-admin-shell-navigation-smoke.mjs scripts/phase75-admin-users-devices-smoke.mjs</path>
   <owns>Phone, tablet, and desktop responsive closure for public, user, and admin Matrix surfaces.</owns>
   <purpose>Make the premium frontend usable and compact across mobile phones, tablets, and desktop screens.</purpose>
@@ -13,6 +13,7 @@
     <rule-phase72-bottom-dock>Mobile user bottom navigation uses safe-area padding and content spacing so primary cabinet actions remain reachable without overlap.</rule-phase72-bottom-dock>
     <rule-phase74-admin-scroll>Desktop admin content owns overflow-y scrolling while the admin rail is clipped to 100dvh.</rule-phase74-admin-scroll>
     <rule-phase75-expanded-devices>Unified admin Users inventory keeps expanded per-user device lists bounded with local scroll on phone, tablet, and desktop.</rule-phase75-expanded-devices>
+    <rule-phase77-fixed-user-dock>Mobile user bottom navigation is fixed and safe-area-aware while the content surface keeps enough bottom padding and pan-y touch scrolling.</rule-phase77-fixed-user-dock>
   </exports>
   <depends>M-009,M-010,M-036,M-037,M-038,M-071,M-072</depends>
   <verification-ref>V-M-074</verification-ref>
@@ -97,4 +98,10 @@
     <acceptance>Phase-75 smoke passed ResponsiveAdaptation markers UNIFIED_INVENTORY_NO_OVERFLOW and EXPANDED_DEVICES_BOUNDED.</acceptance>
   </phase-75-executed-scope>
   <phase-75-evidence status="pass-local" date="2026-06-05">Responsive adaptation passed local Phase-75 verification for the unified admin Users inventory.</phase-75-evidence>
+  <phase-77-executed-scope>
+    <primary-files>frontend/src/components/Layout.tsx frontend/src/index.css scripts/phase77-subscription-mobile-polish-smoke.mjs scripts/phase61-responsive-adaptation-smoke.mjs</primary-files>
+    <primary-behaviors>Fixed user bottom dock, safe-area content padding, mobile main-panel overflow repair, pan-y touch policy, and no Matrix overlay pointer interception markers.</primary-behaviors>
+    <acceptance>Phase-61 and Phase-77 smokes passed after frontend/admin builds with bundle budgets under limits.</acceptance>
+  </phase-77-executed-scope>
+  <phase-77-evidence status="pass-local" date="2026-06-05">Responsive adaptation passed local Phase-77 verification for fixed dock and mobile scroll-surface safety.</phase-77-evidence>
 </M-074>

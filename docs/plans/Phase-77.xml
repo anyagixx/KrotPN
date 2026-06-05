@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Phase-77 NAME="User Subscription Calendar and Mobile Dock Polish" STATUS="done-local" STEPS="8" MODULES="M-009,M-036,M-063,M-071,M-074,M-075,M-077" CREATED="2026-06-05" UPDATED="2026-06-05">
+  <summary>Approved frontend-only polish for subscription status copy, calendar day emphasis, clickable config guidance, always-visible mobile cabinet navigation, and touch-scroll stability.</summary>
+  <approved-by-operator date="2026-06-05">Operator confirmed Phase-77 plan.</approved-by-operator>
+  <scope>
+    <in>User frontend SubscriptionPanel, user Layout, shared user CSS, Phase-77 static smoke, and MyGRACE docs for the touched frontend modules.</in>
+    <out>Backend APIs, billing/trial math, scheduler, VPN/MTProto runtime, admin frontend, deploy/install scripts, nginx, docker-compose, DNS/TLS, release tagging, GitHub push, and live server mutation.</out>
+  </scope>
+  <requirements>
+    <requirement-1>Active subscription helper copy must say "Доступ активен до: [дата]" instead of generic timer-auto copy.</requirement-1>
+    <requirement-2>Subscription calendar must distinguish activation day, current day, and expiry day with green, cyan, and red pulse treatments while preserving reduced-motion readability.</requirement-2>
+    <requirement-3>The pending first-connection sentence must make "Конфиг" a bold accent link to /dashboard/config without changing trial activation semantics.</requirement-3>
+    <requirement-4>Mobile cabinet navigation must remain fixed and visible at the bottom of the viewport with safe-area spacing and no content overlap.</requirement-4>
+    <requirement-5>Mobile scroll/touch behavior must not be blocked by fixed Matrix layers, bottom navigation, nested overflow containers, or viewport-height drift.</requirement-5>
+  </requirements>
+  <steps>
+    <step-1 status="done-local">Updated SubscriptionPanel contract, copy helpers, and expiry-date rendering for the active-access text.</step-1>
+    <step-2 status="done-local">Rendered "Конфиг" as a bold accent route link to /dashboard/config in the pending first-connection sentence.</step-2>
+    <step-3 status="done-local">Added calendar day roles and class markers for range start, today, and range end without trusting client time for subscription authority.</step-3>
+    <step-4 status="done-local">Added Matrix CSS pulse styles for acid green start, cyan today, red expiry, and reduced-motion static fallback.</step-4>
+    <step-5 status="done-local">Made the mobile cabinet bottom navigation explicitly fixed, safe-area-aware, always visible, and non-intercepting outside its own controls.</step-5>
+    <step-6 status="done-local">Repaired mobile touch-scroll by making the shell/main scroll surface explicit and preserving pointer-events none on Matrix visual layers.</step-6>
+    <step-7 status="done-local">Added Phase-77 static smoke for requested strings, route link, calendar classes, dock markers, scroll-safety markers, and protected-surface guard.</step-7>
+    <step-8 status="done-local">Ran frontend build, Phase-77 smoke, selected user responsive/regression smokes, XML parse, MyGRACE lint, git diff --check, and protected deploy/runtime guard.</step-8>
+  </steps>
+  <data-flow>
+    <flow-1>Subscription API active_until -> SubscriptionPanel formatted date -> user-visible active-access helper copy.</flow-1>
+    <flow-2>Subscription API active range plus local today display date -> calendar cell role classes -> CSS pulse treatments only.</flow-2>
+    <flow-3>User tap/click on "Конфиг" -> React Router /dashboard/config navigation -> existing config workflow.</flow-3>
+    <flow-4>Viewport safe-area and content padding -> fixed bottom nav remains visible while main content remains scrollable.</flow-4>
+  </data-flow>
+  <verification-design>
+    <gate-1>SubscriptionPanel source contains no old "Доступ активен. Таймер обновляется автоматически." copy.</gate-1>
+    <gate-2>Pending-copy config link uses /dashboard/config and does not become an external reload link.</gate-2>
+    <gate-3>Calendar classes for start, today, and end are present with green/cyan/red role markers and reduced-motion fallback.</gate-3>
+    <gate-4>Mobile dock CSS has fixed bottom placement, safe-area padding, stable touch targets, and matching content bottom padding.</gate-4>
+    <gate-5>Matrix visual layers remain pointer-events none and scroll containers expose touch-action/overscroll policy without scroll hijacking.</gate-5>
+    <gate-6>Protected backend/admin/deploy/runtime surfaces remain unchanged.</gate-6>
+  </verification-design>
+  <commands>
+    <command status="pass-local">cd frontend &amp;&amp; npm run build passed: primary JS 437.85 kB gzip 136.74 kB, primary CSS 52.79 kB gzip 10.64 kB.</command>
+    <command status="pass-local">node scripts/phase77-subscription-mobile-polish-smoke.mjs passed.</command>
+    <command status="pass-local">node scripts/phase45-trial-subscription-ux-smoke.mjs passed.</command>
+    <command status="pass-local">node scripts/phase57-premium-user-cabinet-smoke.mjs passed.</command>
+    <command status="pass-local">node scripts/phase61-responsive-adaptation-smoke.mjs passed after frontend and frontend-admin builds refreshed dist artifacts.</command>
+    <command status="pass-local">node scripts/phase68-dashboard-subscription-smoke.mjs passed.</command>
+    <command status="pass-local">node scripts/phase71-device-config-master-detail-smoke.mjs passed.</command>
+    <command status="pass-local">node scripts/phase72-user-auth-navigation-smoke.mjs passed.</command>
+    <command status="pass-local">node scripts/phase59-motion-interactions-smoke.mjs passed.</command>
+    <command status="pass-local">python3 -m xml.etree.ElementTree docs/plans/Phase-77.xml docs/plan-index.xml docs/verification-index.xml docs/modules/M-009.xml docs/modules/M-036.xml docs/modules/M-063.xml docs/modules/M-071.xml docs/modules/M-074.xml docs/modules/M-075.xml docs/modules/M-077.xml docs/verification/V-M-009.xml docs/verification/V-M-036.xml docs/verification/V-M-063.xml docs/verification/V-M-071.xml docs/verification/V-M-074.xml docs/verification/V-M-075.xml docs/verification/V-M-077.xml passed.</command>
+    <command status="pass-local">mygrace lint, git diff --check, and protected diff guard over install.sh, docker-compose.yml, nginx, deploy, deploy/mtproto-de-compose.yml, .env.example, backend/app, backend/tests, mtproto-runtime, official-mtproxy, telegram-bot, frontend-admin passed.</command>
+  </commands>
+  <execution-evidence status="pass-local" date="2026-06-05">
+    <result>PASS local: active-access copy now shows "Доступ активен до: [дата]", pending config guidance links to /dashboard/config, calendar start/today/end markers use green/cyan/red pulse classes, mobile dock is fixed and safe-area-aware, mobile scroll surface markers are present, and protected backend/admin/deploy/runtime surfaces stayed clean.</result>
+  </execution-evidence>
+  <risks>
+    <risk-1 severity="medium">Fixed mobile navigation can hide lower content if bottom padding and safe-area are not updated together.</risk-1>
+    <risk-2 severity="medium">Nested overflow or fixed visual layers can make touch scrolling feel broken on mobile browsers.</risk-2>
+    <risk-3 severity="low">Calendar pulses can become visually noisy if start, today, and end overlap; CSS must preserve readable priority and reduced-motion fallback.</risk-3>
+  </risks>
+  <acceptance>Phase-77 is done when requested subscription copy/link/calendar/mobile-dock fixes pass static and build verification, older user responsive/subscription/config/navigation/motion regressions remain green, MyGRACE is synchronized, and protected backend/admin/deploy/runtime surfaces are clean.</acceptance>
+</Phase-77>

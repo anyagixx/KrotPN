@@ -1,21 +1,23 @@
 // FILE: frontend/src/components/SubscriptionPanel.tsx
-// VERSION: 1.3.0
+// VERSION: 1.4.0
 // ROLE: UI_COMPONENT
 // MAP_MODE: EXPORTS
 // START_MODULE_CONTRACT
 //   PURPOSE: Shared compact subscription, tariff, checkout, and calendar surface for the user dashboard and compatibility subscription route
-//   SCOPE: Server-derived subscription status, canonical tariff presentation aliases, plan_id-only checkout, compact cross-month calendar, Phase-72 desktop calendar density, and Phase-68 dashboard-owned subscription block
+//   SCOPE: Server-derived subscription status, canonical tariff presentation aliases, plan_id-only checkout, compact cross-month calendar, Phase-77 active-until copy, calendar day role markers, mobile-safe config guidance link, Phase-72 desktop calendar density, and Phase-68 dashboard-owned subscription block
 //   DEPENDS: M-009 (frontend-user), M-036 (mobile-user-cabinet), M-063 (trial countdown), M-068 (paid tariff catalog), M-071 (matrix-style-system), M-074 (responsive-device-adaptation), M-075 (premium-user-cabinet)
 //   LINKS: M-009, M-036, M-063, M-068, M-071, M-074, M-075, Phase-62, Phase-68
 // END_MODULE_CONTRACT
 //
 // START_MODULE_MAP
 //   SubscriptionPanel - Shared compact subscription block used by /dashboard and /dashboard/subscription
+//   renderSubscriptionDescription - Renders active-until copy and pending config guidance without changing subscription authority
 //   buildCalendarMonths - Builds one or two compact month grids for active subscription range clarity
 //   getPlanPresentation - Maps canonical plan slugs to Phase-68 display names, descriptions, and icons without changing backend slugs
 // END_MODULE_MAP
 //
 // START_CHANGE_SUMMARY
+//   LAST_CHANGE: v1.4.0 - Added Phase-77 active-until copy, clickable config guidance, and start/today/end calendar markers.
 //   LAST_CHANGE: v1.3.0 - Added Phase-72 desktop compact calendar density marker.
 //   LAST_CHANGE: v1.2.0 - Added Phase-71 localized subscription copy and calendar boundary markers.
 //   LAST_CHANGE: v1.1.0 - Added Phase-69 referral-bonus pending access copy via access_label.
@@ -25,6 +27,7 @@
 // START_BLOCK_SUBSCRIPTION_PANEL
 import { useQuery } from 'react-query'
 import { useTranslation } from 'react-i18next'
+import { Link } from 'react-router-dom'
 import {
   AlertTriangle,
   Briefcase,
@@ -62,6 +65,8 @@ const planPresentation = {
     icon: Briefcase,
   },
 }
+
+const pendingConfigGuidanceText = 'Конфиг уже доступен. Таймер на 4 дня стартует после первого подключения.'
 
 type SubscriptionPanelProps = {
   compact?: boolean
@@ -101,7 +106,11 @@ function formatRemaining(subscription: SubscriptionStatus | undefined, t: (key: 
   return `${subscription.remaining_days}д ${subscription.remaining_hours}ч ${subscription.remaining_minutes}м`
 }
 
-function subscriptionDescription(subscription: SubscriptionStatus | undefined, t: (key: string, options?: Record<string, unknown>) => string) {
+function formatDateTime(value: string | undefined | null, locale: string) {
+  return value ? new Date(value).toLocaleString(locale) : ''
+}
+
+function subscriptionDescription(subscription: SubscriptionStatus | undefined, t: (key: string, options?: Record<string, unknown>) => string, locale: string) {
   if (!subscription?.has_subscription) return t('subscriptionDescriptionNone')
   if (subscription.pending_activation && subscription.access_label === 'referral-bonus') {
     const days = subscription.pending_duration_days || 7
@@ -112,8 +121,41 @@ function subscriptionDescription(subscription: SubscriptionStatus | undefined, t
     return t('subscriptionDescriptionTrialReferral', { days })
   }
   if (subscription.pending_activation) return t('subscriptionDescriptionPending')
-  if (subscription.is_active) return t('subscriptionDescriptionActive')
+  if (subscription.is_active) {
+    const activeUntil = formatDateTime(subscription.active_until || subscription.expires_at, locale)
+    return activeUntil ? t('subscriptionDescriptionActive', { date: activeUntil }) : t('subscriptionDescriptionActive')
+  }
   return t('subscriptionDescriptionExpired')
+}
+
+function renderConfigGuidance(children: string) {
+  return (
+    <>
+      <Link
+        to="/dashboard/config"
+        className="phase77-config-link font-extrabold"
+        data-phase77-config-link="[FrontendUser][phase77][CONFIG_GUIDANCE_LINK]"
+        data-phase45-pending-config-copy={pendingConfigGuidanceText}
+      >
+        Конфиг
+      </Link>
+      {children}
+    </>
+  )
+}
+
+function renderSubscriptionDescription(subscription: SubscriptionStatus | undefined, t: (key: string, options?: Record<string, unknown>) => string, locale: string) {
+  if (subscription?.pending_activation && subscription.access_label === 'trial-referral-bonus') {
+    const days = subscription.pending_duration_days || 11
+    return renderConfigGuidance(` уже доступен. ${days} дней trial и бонуса стартуют после первого подключения.`)
+  }
+  if (subscription?.pending_activation && !subscription.access_label) {
+    return renderConfigGuidance(' уже доступен. Таймер на 4 дня стартует после первого подключения.')
+  }
+  if (subscription?.pending_activation && subscription.access_label === 'trial') {
+    return renderConfigGuidance(' уже доступен. Таймер на 4 дня стартует после первого подключения.')
+  }
+  return subscriptionDescription(subscription, t, locale)
 }
 
 function startOfDay(value: Date) {
@@ -231,14 +273,9 @@ export default function SubscriptionPanel({ compact = false }: SubscriptionPanel
             <h2 className="mt-1 truncate text-xl font-extrabold">
               {subscription?.has_subscription ? subscription.plan_name || 'Доступ KrotPN' : 'Нет активного доступа'}
             </h2>
-            <p className="mt-2 text-sm muted">
-              {subscriptionDescription(subscription, t)}
+            <p className={subscription?.is_active ? 'mt-2 text-xs muted' : 'mt-2 text-sm muted'}>
+              {renderSubscriptionDescription(subscription, t, locale)}
             </p>
-            {subscription?.active_until ? (
-              <p className="mt-2 text-xs muted">
-                {new Date(subscription.active_until).toLocaleString(locale)}
-              </p>
-            ) : null}
           </div>
           <span
             className={
@@ -373,11 +410,12 @@ export default function SubscriptionPanel({ compact = false }: SubscriptionPanel
                       'phase68-calendar-day',
                       day.active ? 'phase68-calendar-day-active' : 'phase68-calendar-day-idle',
                       day.inMonth ? '' : 'opacity-30',
-                      day.today ? 'ring-1 ring-cyan-100/50' : '',
-                      day.rangeStart ? 'phase68-calendar-day-start' : '',
-                      day.rangeEnd ? 'phase68-calendar-day-end' : '',
+                      day.today ? 'phase77-calendar-day-today' : '',
+                      day.rangeStart ? 'phase68-calendar-day-start phase77-calendar-day-start' : '',
+                      day.rangeEnd ? 'phase68-calendar-day-end phase77-calendar-day-end' : '',
                     ].join(' ')}
                     data-phase71-calendar-boundary={day.rangeStart ? 'range-start' : day.rangeEnd ? 'range-end' : undefined}
+                    data-phase77-calendar-marker={day.rangeEnd ? 'range-end-red' : day.rangeStart ? 'range-start-green' : day.today ? 'today-cyan' : undefined}
                   >
                     {day.label}
                   </span>

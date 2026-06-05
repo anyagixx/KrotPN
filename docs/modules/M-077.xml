@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<M-077 NAME="matrix-motion-interactions" TYPE="UI_COMPONENT" STATUS="done-local-phase59-pass-local-rainfix-pass-local-phase68-pass-local-phase71-pass-local-phase72-pass-local-phase74-pass-local-phase75-pass-local-phase76">
+<M-077 NAME="matrix-motion-interactions" TYPE="UI_COMPONENT" STATUS="done-local-phase59-pass-local-rainfix-pass-local-phase68-pass-local-phase71-pass-local-phase72-pass-local-phase74-pass-local-phase75-pass-local-phase76-pass-local-phase77">
   <path>frontend/src/components/MatrixBackground.tsx frontend/src/components/VisualShell.tsx frontend/src/pages/Dashboard.tsx frontend/src/pages/Config.tsx frontend/src/pages/Referrals.tsx frontend/src/components/SubscriptionPanel.tsx frontend/src/index.css frontend-admin/src/components/MatrixBackground.tsx frontend-admin/src/components/VisualShell.tsx frontend-admin/src/pages/Users.tsx frontend-admin/src/pages/Devices.tsx frontend-admin/src/pages/MTProto.tsx frontend-admin/src/pages/MTProtoAnalytics.tsx frontend-admin/src/index.css docs/plans/Phase-59.xml docs/plans/Phase-68.xml docs/plans/Phase-71.xml docs/plans/Phase-72.xml docs/plans/Phase-74.xml docs/plans/Phase-75.xml scripts/phase59-motion-interactions-smoke.mjs scripts/phase68-dashboard-subscription-smoke.mjs scripts/phase71-device-config-master-detail-smoke.mjs scripts/phase72-user-auth-navigation-smoke.mjs scripts/phase74-admin-shell-navigation-smoke.mjs scripts/phase75-admin-users-devices-smoke.mjs</path>
   <owns>Premium Matrix motion language and microinteractions across user and admin frontends.</owns>
   <purpose>Add high-quality interaction feedback without scroll hijacking, motion overload, or workflow blocking.</purpose>
@@ -13,6 +13,7 @@
     <interaction-phase72-touch-dock phase="72-pass-local">Touch dock focus/active underline and compact transform feedback without scroll hijacking or pointer interception.</interaction-phase72-touch-dock>
     <interaction-phase74-admin-shell phase="74-pass-local">Admin nav/logout motion markers and content scroll pointer-safety without scroll hijacking.</interaction-phase74-admin-shell>
     <interaction-phase75-expanded-devices phase="75-pass-local">Unified Users inventory expand/collapse feedback and confirmation pointer safety with reduced-motion fallback.</interaction-phase75-expanded-devices>
+    <interaction-phase77-calendar-dock phase="77-pass-local">Subscription calendar start/today/end pulses and fixed bottom dock interactions preserve reduced-motion and no-scroll-hijack guarantees.</interaction-phase77-calendar-dock>
   </exports>
   <depends>M-009,M-010,M-070,M-071,M-072,M-075,M-076</depends>
   <verification-ref>V-M-077</verification-ref>
@@ -67,4 +68,10 @@
     <verification>Phase-75 smoke passed MatrixMotion markers EXPAND_COLLAPSE_MOTION_SAFE, CONFIRMATION_POINTER_SAFE, and REDUCED_MOTION_EXPANSION_PASS.</verification>
   </phase-75-executed-scope>
   <phase-75-evidence status="pass-local" date="2026-06-05">Matrix motion interactions passed local Phase-75 verification for unified admin Users/Devices inventory.</phase-75-evidence>
+  <phase-77-executed-scope>
+    <primary-files>frontend/src/index.css frontend/src/components/Layout.tsx frontend/src/components/SubscriptionPanel.tsx scripts/phase77-subscription-mobile-polish-smoke.mjs scripts/phase59-motion-interactions-smoke.mjs</primary-files>
+    <primary-behaviors>Added bounded calendar start/today/end pulses, preserved reduced-motion fallback, and kept mobile dock/pointer/scroll interactions non-hijacking.</primary-behaviors>
+    <verification>Phase-59 and Phase-77 smokes passed for motion and scroll safety.</verification>
+  </phase-77-executed-scope>
+  <phase-77-evidence status="pass-local" date="2026-06-05">Matrix motion interactions passed local Phase-77 verification.</phase-77-evidence>
 </M-077>

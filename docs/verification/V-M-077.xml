@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<V-M-077 MODULE="M-077" PRIORITY="high" STATUS="pass-local-rainfix-pass-local-phase68-pass-local-phase71-pass-local-phase72-pass-local-phase74-pass-local-phase75-pass-local-phase76" PHASE-59="pass-local" RAINFIX="pass-local" PHASE-68="pass-local" PHASE-71="pass-local" PHASE-72="pass-local" PHASE-74="pass-local" PHASE-75="pass-local" PHASE-76="pass-local">
+<V-M-077 MODULE="M-077" PRIORITY="high" STATUS="pass-local-rainfix-pass-local-phase68-pass-local-phase71-pass-local-phase72-pass-local-phase74-pass-local-phase75-pass-local-phase76-pass-local-phase77" PHASE-59="pass-local" RAINFIX="pass-local" PHASE-68="pass-local" PHASE-71="pass-local" PHASE-72="pass-local" PHASE-74="pass-local" PHASE-75="pass-local" PHASE-76="pass-local" PHASE-77="pass-local">
   <scope>Phase-59 verification for premium Matrix motion and microinteractions across user and admin frontends: copy/download/proxy feedback, VPN/MTProto/subscription/alert/health state transitions, route entrance motion, reduced-motion fallback, inactive-tab lifecycle, keyboard/pointer/scroll safety, and protected-surface isolation.</scope>
   <test-files>
     <file>scripts/phase59-motion-interactions-smoke.mjs</file>
@@ -172,4 +172,12 @@
     <commands>node scripts/phase59-motion-interactions-smoke.mjs; node scripts/phase72-user-auth-navigation-smoke.mjs; node scripts/phase74-admin-shell-navigation-smoke.mjs; node scripts/phase75-admin-users-devices-smoke.mjs; protected-surface guard.</commands>
   </phase-76-verification-design>
   <phase-76-evidence status="pass-local" date="2026-06-05">Consolidated Phase-76 gate passed for Matrix motion: Phase-59 smoke plus Phase-72/74/75 smokes preserved bounded motion, reduced-motion fallback, pointer/scroll safety, keyboard focus safety, bottom dock feedback, admin scroll, and confirmation pointer safety.</phase-76-evidence>
+  <phase-77-verification-design status="pass-local">
+    <scope>Motion verification for calendar pulses, dock interactions, reduced-motion fallback, and mobile scroll non-interception.</scope>
+    <gate-1>Green/cyan/red calendar pulses must stay bounded and must not create layout shifts.</gate-1>
+    <gate-2>Reduced-motion must disable or collapse pulse/dock animation while preserving visible state.</gate-2>
+    <gate-3>Dock, Matrix visual layers, and content wrappers must not hijack pointer, keyboard, copy/download, QR, or mobile scroll interactions.</gate-3>
+    <commands>node scripts/phase59-motion-interactions-smoke.mjs; node scripts/phase77-subscription-mobile-polish-smoke.mjs.</commands>
+  </phase-77-verification-design>
+  <phase-77-evidence status="pass-local" date="2026-06-05">Phase-59 and Phase-77 smokes passed for bounded calendar pulse classes, fixed dock interaction markers, reduced-motion fallback, pointer-safe Matrix layers, and no mobile scroll hijack.</phase-77-evidence>
 </V-M-077>

@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<M-009 NAME="frontend-user" TYPE="UI_COMPONENT" STATUS="pass-local-phase46-phase51-phase52-phase53-phase56-phase59-pass-local-phase67-pass-local-session60-pass-local-phase68-pass-local-phase69-pass-local-phase70-pass-local-phase71-pass-local-phase72-pass-local-phase76">
+<M-009 NAME="frontend-user" TYPE="UI_COMPONENT" STATUS="pass-local-phase46-phase51-phase52-phase53-phase56-phase59-pass-local-phase67-pass-local-session60-pass-local-phase68-pass-local-phase69-pass-local-phase70-pass-local-phase71-pass-local-phase72-pass-local-phase76-pass-local-phase77">
   <path>frontend frontend/public frontend/index.html frontend/vite.config.ts frontend/src/lib/session.ts scripts/session-security-smoke.mjs scripts/phase59-motion-interactions-smoke.mjs docs/plans/Phase-67.xml docs/plans/Phase-68.xml docs/plans/Phase-69.xml docs/plans/Phase-70.xml docs/plans/Phase-71.xml docs/plans/Phase-72.xml scripts/phase67-auth-splash-smoke.mjs scripts/phase68-dashboard-subscription-smoke.mjs scripts/phase69-referral-bonus-smoke.mjs scripts/phase70-config-qr-parity-smoke.mjs scripts/phase71-device-config-master-detail-smoke.mjs scripts/phase72-user-auth-navigation-smoke.mjs</path>
   <owns>login, verified registration, password recovery, verify-email activation, dashboard, config delivery, subscription management, pending trial countdown/calendar UX, referrals and settings UI with per-device config awareness</owns>
   <depends>M-002, M-003, M-004, M-005, M-022, M-039, M-070, M-071, M-077</depends>
@@ -131,4 +131,10 @@
     <verification>Frontend build, Phase-72 smoke, session-security smoke, Phase-57/59/61/68/71 regressions, XML/MyGRACE/diff gates, and protected admin/backend/deploy/runtime guard passed locally.</verification>
   </phase-72-executed-scope>
   <phase-72-evidence status="pass-local" date="2026-06-05">Phase-72 passed locally for Russian invalid-login text, Settings language removal, desktop logout placement, mobile dock markers, compact calendar density, and no admin/backend/deploy/runtime drift.</phase-72-evidence>
+  <phase-77-executed-scope>
+    <primary-files>frontend/src/components/SubscriptionPanel.tsx frontend/src/components/Layout.tsx frontend/src/index.css frontend/src/i18n/index.ts scripts/phase77-subscription-mobile-polish-smoke.mjs</primary-files>
+    <primary-behaviors>Active subscription copy now renders "Доступ активен до: [дата]", pending "Конфиг" guidance links to /dashboard/config, calendar start/today/end markers are visible, and the mobile dock/scroll markers are protected.</primary-behaviors>
+    <verification>Frontend build, Phase-77 smoke, Phase-45/57/59/61/68/71/72 regressions, XML parse, MyGRACE lint, git diff --check, and protected admin/backend/deploy/runtime guard passed locally.</verification>
+  </phase-77-executed-scope>
+  <phase-77-evidence status="pass-local" date="2026-06-05">Frontend user module passed local Phase-77 verification without auth/API/backend/deploy/admin/runtime drift.</phase-77-evidence>
 </M-009>
