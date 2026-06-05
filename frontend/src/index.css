@@ -1,10 +1,10 @@
 /* FILE: frontend/src/index.css
- * VERSION: 2.1.0
+ * VERSION: 2.1.1
  * ROLE: UI_COMPONENT
  * MAP_MODE: SUMMARY
  * START_MODULE_CONTRACT
- *   PURPOSE: Shared user-frontend styling tokens, compact Matrix route surfaces, Matrix visual foundation, Phase-55 premium art direction, Phase-57 user command surfaces, Phase-59 motion language, Phase-61 phone/tablet adaptation gates, Phase-62 deletion-audit compaction, Phase-63 visible brand logo placement, Phase-67 frameless auth/splash polish, Phase-68 dashboard subscription compaction, Phase-72 nav/calendar polish, Phase-77 subscription calendar/mobile dock polish, and Matrix rain reliability fallback
- *   SCOPE: Base typography, premium palette/type/density/logo tokens, Matrix background/canvas/CRT layers, CSS rain fallback and mobile overscan, auth/page/layout surfaces, visible Phase-63/67/68 brand mark classes, panel/button/input/status/metric/empty-state classes, Phase-57 dense command cards, Phase-59 motion/microinteraction primitives, Phase-61 responsive phone/tablet/safe-area rules, Phase-62 folded secondary surfaces, Phase-67 splash/auth controls, Phase-68 compact tariff/calendar rules, Phase-72 touch dock and desktop calendar density rules, Phase-77 start/today/end calendar pulses and scroll-safe fixed mobile dock, focus and reduced-motion policy
+ *   PURPOSE: Shared user-frontend styling tokens, compact Matrix route surfaces, Matrix visual foundation, Phase-55 premium art direction, Phase-57 user command surfaces, Phase-59 motion language, Phase-61 phone/tablet adaptation gates, Phase-62 deletion-audit compaction, Phase-63 visible brand logo placement, Phase-67 frameless auth/splash polish, Phase-68 dashboard subscription compaction, Phase-72 nav/calendar polish, Phase-77 subscription calendar/mobile dock polish, config action button polish, and Matrix rain reliability fallback
+ *   SCOPE: Base typography, premium palette/type/density/logo tokens, Matrix background/canvas/CRT layers, CSS rain fallback and mobile overscan, auth/page/layout surfaces, visible Phase-63/67/68 brand mark classes, panel/button/input/status/metric/empty-state classes, Phase-57 dense command cards, Phase-59 motion/microinteraction primitives, Phase-61 responsive phone/tablet/safe-area rules, Phase-62 folded secondary surfaces, Phase-67 splash/auth controls, Phase-68 compact tariff/calendar rules, Phase-72 touch dock and desktop calendar density rules, Phase-77 start/today/end calendar pulses and scroll-safe fixed mobile dock, frame-free config export actions, focus and reduced-motion policy
  *   DEPENDS: M-009 (frontend-user), M-036 (mobile-user-cabinet), M-038 (compact-ui-system), M-070 (matrix-visual-runtime), M-071 (matrix-style-system), M-072 (premium-art-direction-system), M-074 (responsive-device-adaptation), M-075 (premium-user-cabinet), M-077 (matrix-motion-interactions), M-080 (visible-brand-logo-integration)
  *   LINKS: M-009 (frontend-user), M-036 (mobile-user-cabinet), M-038 (compact-ui-system), M-070, M-071, M-072, M-074, M-075, M-077, M-080, Phase-61, Phase-63, Phase-67
  * END_MODULE_CONTRACT
@@ -22,6 +22,7 @@
  * END_MODULE_MAP
  *
  * START_CHANGE_SUMMARY
+ *   LAST_CHANGE: v4.3.1 - Removed the extra dark frame around config export actions and kept mobile copy text on one line.
  *   LAST_CHANGE: v4.3.0 - Added Phase-77 subscription day pulse colors, config link styling, fixed mobile dock, and touch-scroll safety.
  *   LAST_CHANGE: v4.2.0 - Added Phase-72 touch-aware bottom dock and smaller desktop subscription calendar density.
  *   LAST_CHANGE: v4.1.0 - Added Phase-71 master-detail device config, icon-close, final frameless logo, and calendar boundary pulse styles.
@@ -1118,6 +1119,31 @@
     backdrop-filter: blur(10px);
   }
 
+  .phase71-config-export-actions {
+    background: transparent;
+    padding: 0;
+    backdrop-filter: none;
+  }
+
+  .phase71-copy-config-action {
+    white-space: nowrap;
+    overflow-wrap: normal;
+  }
+
+  .phase71-copy-config-action svg {
+    width: 1.125rem;
+    height: 1.125rem;
+  }
+
+  .phase71-config-export-actions .btn-primary,
+  .phase71-config-export-actions .btn-secondary {
+    box-shadow: none;
+  }
+
+  .phase71-config-export-actions .btn-secondary {
+    border-color: transparent;
+  }
+
   .phase71-device-menu {
     @apply rounded-lg border p-2;
     border-color: rgba(104, 232, 255, 0.12);
@@ -1145,6 +1171,8 @@
   }
   /* [PremiumUserCabinet][phase71][DEVICE_MASTER_DETAIL_READY] */
   /* [PremiumUserCabinet][phase71][SELECTED_DEVICE_EXPORTS_SAFE] */
+  /* [ConfigPage][fix][EXPORT_ACTIONS_FRAMELESS] */
+  /* [MobileUserCabinet][fix][COPY_CONFIG_NO_WRAP] */
   /* [PremiumUserCabinet][phase71][DESTRUCTIVE_ACTIONS_SECONDARY] */
   /* [ResponsiveAdaptation][phase71][MOBILE_STICKY_ACTIONS_SAFE] */
   /* [MatrixMotion][phase71][QR_CLOSE_ICON_SAFE] */
@@ -1564,6 +1592,10 @@
     .phase71-sticky-actions {
       bottom: calc(5.9rem + env(safe-area-inset-bottom));
     }
+
+    .phase71-config-export-actions {
+      box-shadow: none;
+    }
   }
 
   @media (max-width: 480px) {
@@ -1577,6 +1609,15 @@
 
     .matrix-main-panel > .phase77-mobile-scroll-content {
       padding: 0.75rem 0.75rem calc(7.25rem + env(safe-area-inset-bottom));
+    }
+
+    .phase71-copy-config-action {
+      grid-column: 1 / -1;
+      gap: 0.4rem;
+      padding-left: 0.65rem;
+      padding-right: 0.65rem;
+      font-size: 0.8125rem;
+      letter-spacing: 0;
     }
 
     .matrix-auth-screen {

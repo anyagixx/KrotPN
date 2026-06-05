@@ -1,12 +1,12 @@
 #!/usr/bin/env node
 /*
  * FILE: scripts/phase71-device-config-master-detail-smoke.mjs
- * VERSION: 1.0.0
+ * VERSION: 1.0.4
  * ROLE: TEST
  * MAP_MODE: LOCALS
  * START_MODULE_CONTRACT
  *   PURPOSE: Static smoke verification for Phase-71 per-device config retrieval API and compact master-detail user config UX
- *   SCOPE: Backend read-only selected-device endpoints, frontend API methods, /dashboard/config master-detail markers, QR close/icon polish, calendar boundary pulse, Phase-72 language-settings removal compatibility, Phase-73 AmneziaVPN .conf guidance compatibility, i18n cleanup, and protected deploy/runtime surfaces
+ *   SCOPE: Backend read-only selected-device endpoints, frontend API methods, /dashboard/config master-detail markers, frameless config export actions, mobile copy-action nowrap, QR close/icon polish, calendar boundary pulse, Phase-72 language-settings removal compatibility, Phase-73 AmneziaVPN .conf guidance compatibility, i18n cleanup, and protected deploy/runtime surfaces
  *   DEPENDS: M-022, M-066, M-075, M-036, M-063, M-071, M-077, M-080, M-009, M-074
  *   LINKS: docs/plans/Phase-71.xml, docs/verification/V-M-022.xml, docs/verification/V-M-075.xml
  * END_MODULE_CONTRACT
@@ -20,6 +20,7 @@
  * END_MODULE_MAP
  *
  * START_CHANGE_SUMMARY
+ *   LAST_CHANGE: v1.0.4 - Added static gates for frameless config export actions and mobile copy action nowrap.
  *   LAST_CHANGE: v1.0.3 - Accepted Phase-73 removal of non-working AmneziaVPN QR advertising from Config UI while preserving API compatibility.
  *   LAST_CHANGE: v1.0.2 - Accepted Phase-72 removal of visible language settings from Settings.
  *   LAST_CHANGE: v1.0.1 - Decoupled Phase-71 smoke from planning-only status text.
@@ -149,6 +150,8 @@ for (const needle of [
   'data-phase71-device-master-detail="[PremiumUserCabinet][phase71][DEVICE_MASTER_DETAIL_READY]"',
   'data-phase71-selected-device-exports="[PremiumUserCabinet][phase71][SELECTED_DEVICE_EXPORTS_SAFE]"',
   'data-phase71-sticky-actions="[ResponsiveAdaptation][phase71][MOBILE_STICKY_ACTIONS_SAFE]"',
+  'data-config-export-actions="[ConfigPage][fix][EXPORT_ACTIONS_FRAMELESS]"',
+  'data-config-copy-action="[MobileUserCabinet][fix][COPY_CONFIG_NO_WRAP]"',
   'data-phase71-secondary-actions="[PremiumUserCabinet][phase71][DESTRUCTIVE_ACTIONS_SECONDARY]"',
   'data-phase71-qr-close="[MatrixMotion][phase71][QR_CLOSE_ICON_SAFE]"',
   'deviceApi.getConfig(selectedDevice!.id)',
@@ -234,6 +237,11 @@ for (const needle of [
   '.phase71-config-master-detail',
   '.phase71-device-row-selected',
   '.phase71-sticky-actions',
+  '.phase71-config-export-actions',
+  '.phase71-copy-config-action',
+  '.phase71-config-export-actions .btn-secondary',
+  '[ConfigPage][fix][EXPORT_ACTIONS_FRAMELESS]',
+  '[MobileUserCabinet][fix][COPY_CONFIG_NO_WRAP]',
   '.phase71-device-menu',
   '.phase71-icon-close',
   '@keyframes matrixCalendarBoundaryPulse',

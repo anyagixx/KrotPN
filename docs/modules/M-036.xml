@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<M-036 NAME="mobile-user-cabinet" TYPE="UI_COMPONENT" STATUS="pass-local-phase46-phase53-pass-local-phase68-pass-local-phase69-pass-local-phase70-pass-local-phase71-pass-local-phase72-pass-local-phase73-pass-local-phase76-pass-local-phase77">
+<M-036 NAME="mobile-user-cabinet" TYPE="UI_COMPONENT" STATUS="pass-local-phase46-phase53-pass-local-phase68-pass-local-phase69-pass-local-phase70-pass-local-phase71-pass-local-phase72-pass-local-phase73-pass-local-phase76-pass-local-phase77-pass-local-config-action-polish">
   <path>frontend scripts/phase45-trial-subscription-ux-smoke.mjs scripts/phase46-user-cabinet-ux-smoke.mjs scripts/phase53-user-matrix-ui-smoke.mjs scripts/phase68-dashboard-subscription-smoke.mjs scripts/phase69-referral-bonus-smoke.mjs scripts/phase70-config-qr-parity-smoke.mjs scripts/phase71-device-config-master-detail-smoke.mjs scripts/phase72-user-auth-navigation-smoke.mjs scripts/phase73-config-amnezia-qr-smoke.mjs docs/plans/Phase-23.xml docs/plans/Phase-45.xml docs/plans/Phase-46.xml docs/plans/Phase-53.xml docs/plans/Phase-68.xml docs/plans/Phase-69.xml docs/plans/Phase-70.xml docs/plans/Phase-71.xml docs/plans/Phase-72.xml docs/plans/Phase-73.xml</path>
   <owns>Compact mobile-first personal cabinet for VPN status, subscription state, trial countdown/calendar, device management, and config access</owns>
   <exports>
@@ -105,4 +105,9 @@
     <acceptance>Phase-77, Phase-61, and Phase-72 smokes passed for dock visibility, safe-area padding, and no protected backend/deploy/runtime/admin drift.</acceptance>
   </phase-77-executed-scope>
   <phase-77-evidence status="pass-local" date="2026-06-05">Mobile user cabinet passed local Phase-77 dock and scroll-safety verification.</phase-77-evidence>
+  <config-action-polish-fix status="pass-local" date="2026-06-05">
+    <primary-files>frontend/src/pages/Config.tsx frontend/src/index.css scripts/phase71-device-config-master-detail-smoke.mjs</primary-files>
+    <primary-behaviors>Mobile /dashboard/config export actions keep QR, .conf, and "Копировать конфиг" compact; the copy button uses nowrap text and a narrow-phone layout that avoids splitting the Russian word.</primary-behaviors>
+    <acceptance>Static smoke checks [MobileUserCabinet][fix][COPY_CONFIG_NO_WRAP] and protected backend/deploy/runtime guard remains clean.</acceptance>
+  </config-action-polish-fix>
 </M-036>

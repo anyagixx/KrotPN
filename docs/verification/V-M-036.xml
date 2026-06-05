@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<V-M-036 MODULE="M-036" PRIORITY="high" STATUS="pass-local-phase46-phase53-pass-local-phase68-pass-local-phase69-pass-local-phase70-pass-local-phase71-pass-local-phase72-pass-local-phase73-pass-local-phase76-pass-local-phase77" VERSION="1.12.0" PHASE-68="pass-local" PHASE-69="pass-local" PHASE-70="pass-local" PHASE-71="pass-local" PHASE-72="pass-local" PHASE-73="pass-local" PHASE-76="pass-local" PHASE-77="pass-local">
+<V-M-036 MODULE="M-036" PRIORITY="high" STATUS="pass-local-phase46-phase53-pass-local-phase68-pass-local-phase69-pass-local-phase70-pass-local-phase71-pass-local-phase72-pass-local-phase73-pass-local-phase76-pass-local-phase77-pass-local-config-action-polish" VERSION="1.12.1" PHASE-68="pass-local" PHASE-69="pass-local" PHASE-70="pass-local" PHASE-71="pass-local" PHASE-72="pass-local" PHASE-73="pass-local" PHASE-76="pass-local" PHASE-77="pass-local" CONFIG-ACTION-POLISH="pass-local">
   <module>mobile-user-cabinet</module>
   <checks>User frontend must become compact, phone-friendly, and focused on VPN config, subscription, device workflows, and Phase-45 pending trial countdown/calendar UX.</checks>
   <test-files>frontend/src/components/Layout.tsx frontend/src/components/Loading.tsx frontend/src/components/SubscriptionPanel.tsx frontend/src/pages/Dashboard.tsx frontend/src/pages/Config.tsx frontend/src/pages/Subscription.tsx frontend/src/pages/Referrals.tsx frontend/src/pages/Settings.tsx frontend/src/index.css scripts/phase45-trial-subscription-ux-smoke.mjs scripts/phase46-user-cabinet-ux-smoke.mjs scripts/phase53-user-matrix-ui-smoke.mjs scripts/phase68-dashboard-subscription-smoke.mjs scripts/phase69-referral-bonus-smoke.mjs scripts/phase70-config-qr-parity-smoke.mjs scripts/phase71-device-config-master-detail-smoke.mjs scripts/phase72-user-auth-navigation-smoke.mjs scripts/phase73-config-amnezia-qr-smoke.mjs</test-files>
@@ -168,4 +168,12 @@
     <commands>cd frontend &amp;&amp; npm run build; node scripts/phase77-subscription-mobile-polish-smoke.mjs; node scripts/phase61-responsive-adaptation-smoke.mjs; node scripts/phase72-user-auth-navigation-smoke.mjs.</commands>
   </phase-77-verification-design>
   <phase-77-evidence status="pass-local" date="2026-06-05">Phase-77 smoke, Phase-61 responsive smoke, and Phase-72 user navigation smoke passed for fixed bottom dock, safe-area content padding, scroll-surface markers, and no protected backend/deploy/runtime/admin drift.</phase-77-evidence>
+  <config-action-polish-verification status="pass-local">
+    <scope>Mobile /dashboard/config export actions.</scope>
+    <gate-1>QR, .conf, and "Копировать конфиг" must remain reachable from the selected-device detail without horizontal scroll.</gate-1>
+    <gate-2>The copy button must use nowrap text and narrow-phone sizing so "Копировать" does not split across lines.</gate-2>
+    <gate-3>Bottom dock, sticky actions, and safe-area padding must remain compatible with the Phase-72/77 mobile navigation contract.</gate-3>
+    <commands>cd frontend &amp;&amp; npm run build; node scripts/phase71-device-config-master-detail-smoke.mjs; node scripts/phase61-responsive-adaptation-smoke.mjs; node scripts/phase72-user-auth-navigation-smoke.mjs.</commands>
+  </config-action-polish-verification>
+  <config-action-polish-evidence status="pass-local" date="2026-06-05">Phase-71 smoke asserts [MobileUserCabinet][fix][COPY_CONFIG_NO_WRAP] and the protected backend/deploy/runtime guard remains clean.</config-action-polish-evidence>
 </V-M-036>

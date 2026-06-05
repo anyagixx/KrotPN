@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<V-M-071 MODULE="M-071" PRIORITY="high" STATUS="pass-local-phase52-phase53-phase54-phase55-phase56-phase59-pass-local-phase67-pass-local-rainfix-pass-local-phase68-pass-local-phase70-pass-local-phase71-pass-local-phase72-pass-local-phase73-pass-local-phase74-pass-local-phase76-pass-local-phase77" PHASE-54="pass-local" PHASE-55="pass-local" PHASE-56="pass-local" PHASE-59="pass-local" PHASE-67="pass-local" RAINFIX="pass-local" PHASE-68="pass-local" PHASE-70="pass-local" PHASE-71="pass-local" PHASE-72="pass-local" PHASE-73="pass-local" PHASE-74="pass-local" PHASE-76="pass-local" PHASE-77="pass-local">
+<V-M-071 MODULE="M-071" PRIORITY="high" STATUS="pass-local-phase52-phase53-phase54-phase55-phase56-phase59-pass-local-phase67-pass-local-rainfix-pass-local-phase68-pass-local-phase70-pass-local-phase71-pass-local-phase72-pass-local-phase73-pass-local-phase74-pass-local-phase76-pass-local-phase77-pass-local-config-action-polish" PHASE-54="pass-local" PHASE-55="pass-local" PHASE-56="pass-local" PHASE-59="pass-local" PHASE-67="pass-local" RAINFIX="pass-local" PHASE-68="pass-local" PHASE-70="pass-local" PHASE-71="pass-local" PHASE-72="pass-local" PHASE-73="pass-local" PHASE-74="pass-local" PHASE-76="pass-local" PHASE-77="pass-local" CONFIG-ACTION-POLISH="pass-local">
   <scope>
     <phase>Phase-52</phase>
     <purpose>Verify the Matrix style system foundation for compact, readable, mobile-safe user and admin shells.</purpose>
@@ -39,6 +39,7 @@
     <check-12 status="pass-local-phase67">Phase-67 auth/splash smoke: no visible auth card frame, large unframed logo, red focus border, icon-safe inputs, elegant buttons, side-by-side secondary actions, responsive safety, and reduced-motion fallback.</check-12>
     <check-13 status="pass-local-rainfix">Matrix rain CSS reliability smoke: fallback layer exists in user/admin VisualShell/CSS, canvas and fallback use mobile overscan, reduced-motion keeps a static visible fallback, and protected backend/deploy/runtime guard remains clean.</check-13>
     <check-14 status="pass-local-phase74">Phase-74 style smoke asserted admin login icon padding, bounded admin rail, content-scroll CSS markers, and no scroll/pointer interception from Matrix layers.</check-14>
+    <check-15 status="pass-local-config-action-polish">Phase-71 smoke asserts phase71-config-export-actions, phase71-copy-config-action, export-action secondary border removal, and mobile copy nowrap markers.</check-15>
   </module-checks>
   <phase-53-style-gates status="pass-local">
     <gate-1>User cabinet routes use Matrix palette/tokens while preserving compact operational layout and avoiding nested cards.</gate-1>
@@ -309,4 +310,12 @@
     <commands>node scripts/phase77-subscription-mobile-polish-smoke.mjs; node scripts/phase59-motion-interactions-smoke.mjs; node scripts/phase61-responsive-adaptation-smoke.mjs.</commands>
   </phase-77-verification-design>
   <phase-77-evidence status="pass-local" date="2026-06-05">Phase-77 style smoke and regressions passed for green/cyan/red calendar emphasis, active-until copy style, config link styling, fixed dock, mobile scroll markers, reduced-motion fallback, and protected-surface guard.</phase-77-evidence>
+  <config-action-polish-verification status="pass-local">
+    <scope>Route-local Matrix style rules for /dashboard/config export actions.</scope>
+    <gate-1>.phase71-config-export-actions must neutralize the sticky-action background, padding, backdrop, shadow, and secondary button border only inside the config export action group.</gate-1>
+    <gate-2>.phase71-copy-config-action must keep the Russian copy label on one line and use fixed icon sizing at narrow widths.</gate-2>
+    <gate-3>No global button, admin CSS, backend, deploy, install, nginx, Docker, VPN runtime, or MTProto runtime behavior changes are allowed.</gate-3>
+    <commands>node scripts/phase71-device-config-master-detail-smoke.mjs; node scripts/phase61-responsive-adaptation-smoke.mjs; protected surface guard.</commands>
+  </config-action-polish-verification>
+  <config-action-polish-evidence status="pass-local" date="2026-06-05">Route-local CSS markers [ConfigPage][fix][EXPORT_ACTIONS_FRAMELESS] and [MobileUserCabinet][fix][COPY_CONFIG_NO_WRAP] are present and guarded by Phase-71 smoke.</config-action-polish-evidence>
 </V-M-071>

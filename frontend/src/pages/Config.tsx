@@ -1,10 +1,10 @@
 // FILE: frontend/src/pages/Config.tsx
-// VERSION: 1.7.0
+// VERSION: 1.7.1
 // ROLE: UI_COMPONENT
 // MAP_MODE: SUMMARY
 // START_MODULE_CONTRACT
 //   PURPOSE: Premium compact Matrix KPN configuration page for selected-device config download/copy/QR and device lifecycle controls
-//   SCOPE: Device CRUD (create/rotate/revoke), selected-device read-only config actions, truthful AmneziaWG QR modal, AmneziaVPN .conf guidance, compact master-detail UX, copy/download microinteractions, and mobile-safe sticky actions
+//   SCOPE: Device CRUD (create/rotate/revoke), selected-device read-only config actions, truthful AmneziaWG QR modal, AmneziaVPN .conf guidance, compact master-detail UX, frame-free export actions, copy/download microinteractions, and mobile-safe sticky actions
 //   DEPENDS: M-009 (frontend-user), M-003 (vpn config API), M-002 (auth API), M-022 (device provisioning API), M-036 (mobile-user-cabinet), M-038 (compact-ui-system), M-071 (matrix-style-system), M-074 (responsive-device-adaptation), M-075 (premium-user-cabinet), M-077 (matrix-motion-interactions)
 //   LINKS: M-009 (frontend-user), M-036 (mobile-user-cabinet), M-038, M-071, M-074, M-075, M-077, Phase-59, Phase-62, Phase-70, Phase-71, Phase-73
 // END_MODULE_CONTRACT
@@ -20,6 +20,7 @@
 // END_MODULE_MAP
 //
 // START_CHANGE_SUMMARY
+//   LAST_CHANGE: v3.8.1 - Removed the extra dark export-action frame and added mobile-safe copy button text sizing.
 //   LAST_CHANGE: v3.8.0 - Executed Phase-73 KPN copy, tariff-aware device-limit messaging, and removed non-working AmneziaVPN QR advertising in favor of .conf import guidance.
 //   LAST_CHANGE: v3.7.1 - Restored Phase-62 collapse compatibility marker on the Phase-71 master-detail surface.
 //   LAST_CHANGE: v3.7.0 - Executed Phase-71 selected-device master-detail UX, per-device download/QR API usage, icon-only QR close, and secondary destructive actions.
@@ -456,11 +457,12 @@ export default function Config() {
               )}
 
               <div
-                className="matrix-action-grid phase71-sticky-actions mt-4 sm:grid-cols-3"
+                className="matrix-action-grid phase71-sticky-actions phase71-config-export-actions mt-4 sm:grid-cols-3"
                 data-phase57-config-actions="qr-download-copy"
                 data-phase59-microinteractions="[MatrixMotion][phase59][MICROINTERACTIONS_READY]"
                 data-phase59-status-transitions="[MatrixMotion][phase59][STATUS_TRANSITIONS_READY]"
                 data-phase71-sticky-actions="[ResponsiveAdaptation][phase71][MOBILE_STICKY_ACTIONS_SAFE]"
+                data-config-export-actions="[ConfigPage][fix][EXPORT_ACTIONS_FRAMELESS]"
               >
                 <button
                   onClick={() => setShowQR(true)}
@@ -481,7 +483,8 @@ export default function Config() {
                 <button
                   onClick={handleCopy}
                   disabled={!selectedConfig?.config || !selectedDeviceIsActive}
-                  className={copied ? 'btn-secondary motion-interactive motion-copy-success min-h-11 rounded-lg px-3 py-2.5' : 'btn-secondary motion-interactive min-h-11 rounded-lg px-3 py-2.5'}
+                  className={copied ? 'btn-secondary motion-interactive motion-copy-success phase71-copy-config-action min-h-11 rounded-lg px-3 py-2.5' : 'btn-secondary motion-interactive phase71-copy-config-action min-h-11 rounded-lg px-3 py-2.5'}
+                  data-config-copy-action="[MobileUserCabinet][fix][COPY_CONFIG_NO_WRAP]"
                 >
                   {copied ? <Check className="h-5 w-5 text-emerald-200" /> : <Copy className="h-5 w-5" />}
                   {copied ? t('copied') : t('copyConfig')}
