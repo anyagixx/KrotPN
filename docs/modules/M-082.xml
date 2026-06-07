@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<M-082 NAME="manual-external-mtproto-proxy-pool" TYPE="CORE_LOGIC" STATUS="planned-phase80">
+<M-082 NAME="manual-external-mtproto-proxy-pool" TYPE="CORE_LOGIC" STATUS="planned-phase80-verification-ready">
   <path>backend/app/mtproto backend/app/admin frontend/src frontend-admin/src backend/alembic scripts/phase80-manual-mtproto-proxy-smoke.mjs</path>
   <owns>Admin-managed external MTProto proxy pool, delivery-mode selection, owner-facing manual proxy payloads, secret redaction, and operator audit boundaries.</owns>
   <purpose>Allow the administrator to manually publish a verified external MTProto proxy to user cabinets when the automatic KrotPN MTProto edge is blocked by provider/DPI conditions.</purpose>
@@ -48,5 +48,9 @@
     <constraint-3>Frontend UI must be compact and clear that external manual proxy analytics are unavailable.</constraint-3>
     <constraint-4>Promotion tag controls in M-059 remain scoped to the KrotPN-managed runtime and must not pretend to configure third-party external proxies.</constraint-4>
   </constraints>
+  <verification-readiness>
+    <ready-1>V-M-082 defines backend service/API tests, user/admin UI smoke, redaction checks, telemetry honesty checks, and protected deploy/runtime guards before execution.</ready-1>
+    <ready-2>Execution is autonomous-safe only with targeted backend tests plus frontend/admin builds because Phase-80 changes schema, admin API, owner response shape, and both frontends.</ready-2>
+  </verification-readiness>
   <hotspot>H-069: Manual external MTProto proxies are outside the KrotPN runtime, so delivery must be explicit, redacted, operator-controlled, and honest about missing telemetry.</hotspot>
 </M-082>

@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<V-M-082 MODULE="M-082" PRIORITY="high" STATUS="planned" PHASE-80="planned">
+<V-M-082 MODULE="M-082" PRIORITY="high" STATUS="pending" PHASE-80="verification-designed">
   <purpose>Verify manual external MTProto proxy pool storage, delivery-mode switching, owner payload selection, redaction, audit logging, UI honesty, and automatic-mode preservation.</purpose>
   <module-ref>M-082</module-ref>
   <test-files>
-    <file status="planned">backend/tests/test_mtproto_manual_proxy_pool.py</file>
-    <file status="planned">backend/tests/test_mtproto_api.py</file>
-    <file status="planned">backend/tests/test_mtproto_admin_ops.py</file>
-    <file status="planned">scripts/phase80-manual-mtproto-proxy-smoke.mjs</file>
+    <file status="pending">backend/tests/test_mtproto_manual_proxy_pool.py</file>
+    <file status="pending">backend/tests/test_mtproto_api.py</file>
+    <file status="pending">backend/tests/test_mtproto_admin_ops.py</file>
+    <file status="pending">scripts/phase80-manual-mtproto-proxy-smoke.mjs</file>
   </test-files>
   <module-checks>
     <check-1>Backend tests cover manual proxy validation, encryption, redaction, activation, disable, delivery-mode switching, and owner response shape.</check-1>
@@ -19,6 +19,11 @@
     <wave-level>Admin and owner API tests prove auth, confirmation, mode switching, and automatic/manual branch behavior.</wave-level>
     <phase-level>Frontend/admin builds, Phase-80 smoke, XML/MyGRACE checks, and protected deploy/runtime guard prove the plan is release-safe.</phase-level>
   </verification-levels>
+  <evidence-strategy>
+    <evidence-1>Deterministic assertions first: database rows, encrypted field shape, selected delivery mode, owner payload source, generated links, and validation errors.</evidence-1>
+    <evidence-2>Trace assertions second: required M-082 log markers must exist on create, activate, mode-switch, automatic selection, manual selection, and redaction branches.</evidence-2>
+    <evidence-3>Integration checks third: frontend/admin builds and Phase-80 smoke verify compact UI, masked admin data, source labels, unavailable-telemetry copy, and protected runtime/deploy isolation.</evidence-3>
+  </evidence-strategy>
   <scenarios>
     <scenario-1 kind="success">Admin creates a valid external proxy and the stored secret is encrypted while admin list responses show only a masked secret fingerprint.</scenario-1>
     <scenario-2 kind="success">Admin activates one proxy and manual_external owner response returns server, port, secret, tg_link, browser link, source=manual_external, and telemetry_available=false.</scenario-2>
@@ -27,6 +32,7 @@
     <scenario-5 kind="failure">Invalid host, invalid port, non-hex secret, missing confirmation, non-admin auth, or missing proxy id is rejected.</scenario-5>
     <scenario-6 kind="failure">Admin list/detail, audit records, logs, and smoke output must not include full manual secrets or complete Telegram links.</scenario-6>
     <scenario-7 kind="failure">Manual external mode must not touch KPprotoN runtime policies, SNI router config, promotion tag apply state, deploy scripts, nginx, docker-compose, VPN runtime, or AWG config.</scenario-7>
+    <scenario-8 kind="failure">Manual external UI must not show active connections, IP history, traffic graphs, abuse state, runtime health, or promotion-tag applied state as if those metrics came from KrotPN.</scenario-8>
   </scenarios>
   <api-contracts>
     <api-1>GET /api/v1/admin/mtproto/manual-proxies returns redacted manual proxy summaries for admins only.</api-1>
@@ -45,13 +51,13 @@
     <invariant-4>Manual external proxies do not create M-054/M-056/M-060 telemetry or abuse claims because KrotPN does not own their runtime.</invariant-4>
   </data-invariants>
   <commands>
-    <command status="planned">SECRET_KEY=test-secret-key-with-enough-length DATA_ENCRYPTION_KEY=test-data-encryption-key-with-enough-length PYTHONPATH=backend .venv/bin/python -m pytest -o addopts='' -q backend/tests/test_mtproto_manual_proxy_pool.py backend/tests/test_mtproto_api.py backend/tests/test_mtproto_admin_ops.py</command>
-    <command status="planned">cd frontend &amp;&amp; npm run build</command>
-    <command status="planned">cd frontend-admin &amp;&amp; npm run build</command>
-    <command status="planned">node scripts/phase80-manual-mtproto-proxy-smoke.mjs</command>
-    <command status="planned">python3 -m xml.etree.ElementTree docs/graph-index.xml docs/plan-index.xml docs/verification-index.xml docs/modules/M-082.xml docs/plans/Phase-80.xml docs/verification/V-M-082.xml</command>
-    <command status="planned">mygrace lint</command>
-    <command status="planned">git diff --check</command>
+    <command status="pending">SECRET_KEY=test-secret-key-with-enough-length DATA_ENCRYPTION_KEY=test-data-encryption-key-with-enough-length PYTHONPATH=backend .venv/bin/python -m pytest -o addopts='' -q backend/tests/test_mtproto_manual_proxy_pool.py backend/tests/test_mtproto_api.py backend/tests/test_mtproto_admin_ops.py</command>
+    <command status="pending">cd frontend &amp;&amp; npm run build</command>
+    <command status="pending">cd frontend-admin &amp;&amp; npm run build</command>
+    <command status="pending">node scripts/phase80-manual-mtproto-proxy-smoke.mjs</command>
+    <command status="pending">python3 -m xml.etree.ElementTree docs/graph-index.xml docs/plan-index.xml docs/verification-index.xml docs/modules/M-082.xml docs/plans/Phase-80.xml docs/verification/V-M-082.xml</command>
+    <command status="pending">mygrace lint</command>
+    <command status="pending">git diff --check</command>
   </commands>
   <required-log-markers>
     <marker>[M-082][create_manual_mtproto_proxy][VALIDATE_INPUT]</marker>
@@ -62,6 +68,11 @@
     <marker>[M-082][select_owner_mtproto_payload][MANUAL_EXTERNAL_SELECTED]</marker>
     <marker>[M-082][redact_manual_proxy_secret][REDACTION_GUARD]</marker>
   </required-log-markers>
+  <telemetry-requirements>
+    <requirement-1>Manual external mode may log safe operator events and owner-selection branch names only; it must not claim runtime health, handshakes, IP history, traffic, or Telegram availability for third-party proxies.</requirement-1>
+    <requirement-2>Admin UI may show "telemetry unavailable" state for external proxies, while existing M-054/M-056/M-058 analytics remain scoped to KrotPN-managed automatic proxies.</requirement-2>
+    <requirement-3>Promotion tag UI must explain that M-059 applies only to KrotPN-managed runtime proxies unless the external proxy is separately configured outside KrotPN.</requirement-3>
+  </telemetry-requirements>
   <redaction-rules>
     <rule-1>Admin summaries may include proxy id, name, server, port, status, priority, verified_at, updated_at, and secret fingerprint only.</rule-1>
     <rule-2>Admin responses, audit records, logs, and smoke output must not include raw external proxy secret or full t.me/tg proxy links.</rule-2>
