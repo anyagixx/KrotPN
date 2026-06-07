@@ -1,12 +1,13 @@
 // FILE: frontend/src/pages/Dashboard.tsx
-// VERSION: 1.8.0
+// VERSION: 1.9.0
 // ROLE: UI_COMPONENT
 // MAP_MODE: SUMMARY
 // START_MODULE_CONTRACT
 //   PURPOSE: Compact Phase-68 dashboard showing the owner MTProto proxy first and the shared subscription/tariff/calendar block directly below it
-//   SCOPE: MTProto owner actions, redacted copy/open workflow, bounded status refresh, embedded SubscriptionPanel, and removal of low-value dashboard folds
-//   DEPENDS: M-009 (frontend-user), M-036 (mobile-user-cabinet), M-045 (mtproto-user-cabinet), M-063 (trial countdown), M-068 (paid tariff catalog), M-071 (matrix-style-system), M-074 (responsive-device-adaptation), M-075 (premium-user-cabinet), M-077 (matrix-motion-interactions)
-//   LINKS: M-009, M-036, M-045, M-063, M-068, M-071, M-074, M-075, M-077, Phase-59, Phase-68
+//   SCOPE: MTProto owner actions, redacted copy/open workflow, automatic/manual delivery source display,
+//          bounded status refresh, embedded SubscriptionPanel, and removal of low-value dashboard folds
+//   DEPENDS: M-009 (frontend-user), M-036 (mobile-user-cabinet), M-045 (mtproto-user-cabinet), M-063 (trial countdown), M-068 (paid tariff catalog), M-071 (matrix-style-system), M-074 (responsive-device-adaptation), M-075 (premium-user-cabinet), M-077 (matrix-motion-interactions), M-082 (manual external MTProto delivery)
+//   LINKS: M-009, M-036, M-045, M-063, M-068, M-071, M-074, M-075, M-077, M-082, Phase-59, Phase-68, Phase-80
 // END_MODULE_CONTRACT
 //
 // START_MODULE_MAP
@@ -19,6 +20,7 @@
 // END_MODULE_MAP
 //
 // START_CHANGE_SUMMARY
+//   LAST_CHANGE: v3.9.0 - Added Phase-80 manual external MTProto source and telemetry-unavailable owner copy.
 //   LAST_CHANGE: v3.8.0 - Executed Phase-68 dashboard compaction: removed command center and secondary fold, placed MTProto first, and embedded shared subscription panel.
 //   LAST_CHANGE: v3.7.0 - Added Phase-62 dashboard deletion audit markers and folded duplicate traffic/device diagnostics behind a secondary surface.
 //   LAST_CHANGE: v3.6.0 - Added Phase-59 MTProto copy feedback, status transition markers, and motion-safe action classes.
@@ -84,6 +86,7 @@ function mtprotoStatusClass(payload?: MTProtoProxyResponse, isLoading?: boolean,
 
 function buildMtprotoTelegramAppLink(payload?: MTProtoProxyResponse) {
   if (!hasOwnerProxy(payload)) return null
+  if (payload.tg_link) return payload.tg_link
 
   const params = new URLSearchParams({
     server: payload.server,
@@ -95,6 +98,7 @@ function buildMtprotoTelegramAppLink(payload?: MTProtoProxyResponse) {
 
 function buildMtprotoBrowserLink(payload?: MTProtoProxyResponse) {
   if (!hasOwnerProxy(payload)) return null
+  if (payload.browser_link) return payload.browser_link
 
   const params = new URLSearchParams({
     server: payload.server,
@@ -107,6 +111,7 @@ function buildMtprotoBrowserLink(payload?: MTProtoProxyResponse) {
 function mtprotoIntroText(payload?: MTProtoProxyResponse, isLoading?: boolean, isError?: boolean) {
   if (isLoading) return 'Проверяем выданный Telegram proxy.'
   if (isError) return 'Telegram proxy временно недоступен, остальные действия кабинета остаются доступны.'
+  if (payload?.status === 'activated' && payload.source === 'manual_external') return 'Администратор выдал проверенный внешний Telegram proxy.'
   if (payload?.status === 'activated') return 'Постоянный бесплатный proxy доступен для Telegram.'
   if (payload?.status) return 'Состояние прокси отображается ниже.'
   return 'Proxy будет доступен после подготовки.'
@@ -181,6 +186,7 @@ export default function Dashboard() {
         data-phase68-mtproto-card="primary-first"
         data-phase46-mtproto-status-refresh-ms={MTPROTO_STATUS_REFRESH_MS}
         data-mtproto-status={mtproto?.status || (mtprotoError ? 'degraded' : 'pending')}
+        data-mtproto-source={mtproto?.source || 'krotpn_auto'}
         data-phase59-microinteractions="[MatrixMotion][phase59][MICROINTERACTIONS_READY]"
       >
         <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
@@ -230,6 +236,18 @@ export default function Dashboard() {
               {renderMtprotoCopyButton('port', 'Порт', mtproto.port)}
               {renderMtprotoCopyButton('secret', 'Секрет', mtproto.secret)}
             </div>
+
+            {mtproto.source === 'manual_external' || mtproto.telemetry_available === false ? (
+              <div
+                className="matrix-state-line mt-3 text-xs"
+                data-phase80-manual-external-copy="[M-082][dashboard_mtproto_card][MANUAL_EXTERNAL_TELEMETRY_UNAVAILABLE]"
+              >
+                <KeyRound className="mt-0.5 h-4 w-4 shrink-0 text-amber-100" />
+                <span className="min-w-0 break-words">
+                  Это внешний proxy, проверенный администратором. Статистика, health и promo tag state по нему на стороне KrotPN недоступны.
+                </span>
+              </div>
+            ) : null}
           </>
         ) : (
           <div className="matrix-state-line mt-3">

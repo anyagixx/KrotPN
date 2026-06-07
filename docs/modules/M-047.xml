@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<M-047 NAME="mtproto-admin-ops" TYPE="ENTRY_POINT" STATUS="pass-local-phase43-phase54">
+<M-047 NAME="mtproto-admin-ops" TYPE="ENTRY_POINT" STATUS="pass-local-phase43-phase54-pass-local-phase80">
   <path>backend/app/admin frontend-admin scripts/phase33-mtproto-admin-smoke.mjs scripts/phase41-kpproton-faketls-smoke.mjs scripts/phase43-mtproto-admin-analytics-smoke.mjs scripts/phase54-admin-matrix-ui-smoke.mjs docs/plans/Phase-33.xml docs/plans/Phase-41.xml docs/plans/Phase-43.xml docs/plans/Phase-54.xml</path>
   <owns>Admin inspection and controlled operations for MTProto assignments, runtime bridge health, reissue, revoke, and audit-safe diagnostics.</owns>
   <purpose>Give the operator visibility and controlled recovery actions for user MTProto proxy assignments without exposing secrets broadly.</purpose>

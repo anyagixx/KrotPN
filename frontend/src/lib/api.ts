@@ -1,12 +1,12 @@
 // FILE: frontend/src/lib/api.ts
-// VERSION: 1.1.0
+// VERSION: 1.2.0
 // ROLE: RUNTIME
 // MAP_MODE: EXPORTS
 // START_MODULE_CONTRACT
 //   PURPOSE: Axios API client with auth interceptors, token refresh logic, and typed API service modules
 //   SCOPE: HTTP client setup, request/response interceptors, 60-day inactivity TTL enforcement, auto token refresh, API namespaces (auth, user, vpn, device, billing, referral, mtproto)
-//   DEPENDS: M-002 (users auth), M-003 (vpn), M-004 (billing), M-005 (referrals), M-039 (session-security-hardening), M-045 (mtproto-user-cabinet)
-//   LINKS: M-009 (frontend-user), M-039, M-045
+//   DEPENDS: M-002 (users auth), M-003 (vpn), M-004 (billing), M-005 (referrals), M-039 (session-security-hardening), M-045 (mtproto-user-cabinet), M-082 (manual external MTProto delivery)
+//   LINKS: M-009 (frontend-user), M-039, M-045, M-082
 // END_MODULE_CONTRACT
 //
 // START_MODULE_MAP
@@ -22,10 +22,11 @@
 //   deviceApi - List, create, read selected config, download selected config, QR, rotate, revoke
 //   billingApi - Get plans, subscription, create payment
 //   referralApi - Get code, stats, list
-//   mtprotoApi - Get current user's owner-only Telegram proxy state
+//   mtprotoApi - Get current user's owner-only Telegram proxy state with delivery source metadata
 // END_MODULE_MAP
 //
 // START_CHANGE_SUMMARY
+//   LAST_CHANGE: 2026-06-07 - Added Phase-80 MTProto source, browser link, and telemetry availability fields.
 //   LAST_CHANGE: 2026-06-04 - Added Phase-71 per-device config, download, and QR API methods.
 //   LAST_CHANGE: 2026-06-04 - Added Phase-69 referral masked identity and subscription access_label API fields.
 //   LAST_CHANGE: 2026-06-04 - Added 60-day user session inactivity TTL enforcement and last-seen refresh through API requests.
@@ -303,10 +304,14 @@ export interface MTProtoProxyResponse {
   port: number | null
   secret: string | null
   tg_link: string | null
+  browser_link: string | null
   sni: string | null
   credential_mode: string | null
   rotation_marker: string | null
   reissue_required: boolean
+  source: 'krotpn_auto' | 'manual_external'
+  telemetry_available: boolean
+  manual_proxy_name: string | null
 }
 
 // START_BLOCK_AUTH_API

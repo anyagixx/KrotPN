@@ -1,13 +1,14 @@
 # FILE: backend/app/admin/router.py
-# VERSION: 3.6.0
+# VERSION: 3.8.0
 # ROLE: ENTRY_POINT
 # MAP_MODE: SUMMARY
 # START_MODULE_CONTRACT
 #   PURPOSE: Expose privileged admin analytics, system endpoints, and operator recovery controls over current backend state
 #   SCOPE: Dashboard statistics, revenue analytics, user analytics, system health, device control, MTProto assignment operations,
-#          usage analytics, explicit IP investigation, MTProto and VPN abuse alert actions, resource metrics, storage budget, and promotion tag control
-#   DEPENDS: M-001 (core database/auth), M-002 (user models), M-003 (vpn topology), M-004 (billing), M-005 (referrals), M-006 (admin-api graph surface), M-016 (route-policy observability), M-042/M-043/M-044 (MTProto assignment/provisioning/runtime bridge), M-056/M-057/M-059/M-060/M-061 (MTProto analytics/tag/alerts/IP control), M-081 (VPN device abuse alert inbox)
-#   LINKS: M-006 (admin-api), M-016 (route-decision-api), M-047 (mtproto-admin-ops), M-044, M-056, M-057, M-059, M-060, M-061, M-081, V-M-006, V-M-047, V-M-044, V-M-057, V-M-059, V-M-060, V-M-061, V-M-081
+#          manual external MTProto delivery pool, usage analytics, explicit IP investigation, MTProto and VPN abuse alert actions,
+#          resource metrics, storage budget, and promotion tag control
+#   DEPENDS: M-001 (core database/auth), M-002 (user models), M-003 (vpn topology), M-004 (billing), M-005 (referrals), M-006 (admin-api graph surface), M-016 (route-policy observability), M-042/M-043/M-044 (MTProto assignment/provisioning/runtime bridge), M-056/M-057/M-059/M-060/M-061 (MTProto analytics/tag/IP control), M-081 (VPN device abuse alert inbox), M-082 (manual external MTProto pool)
+#   LINKS: M-006 (admin-api), M-016 (route-decision-api), M-047 (mtproto-admin-ops), M-044, M-056, M-057, M-059, M-060, M-061, M-081, M-082, V-M-006, V-M-047, V-M-044, V-M-057, V-M-059, V-M-060, V-M-061, V-M-081, V-M-082
 # END_MODULE_CONTRACT
 #
 # START_MODULE_MAP
@@ -27,6 +28,13 @@
 #   list_admin_mtproto_assignments - Redacted MTProto assignment list with search/status/time filters
 #   get_admin_mtproto_assignment - Redacted MTProto assignment detail
 #   get_admin_mtproto_health - Secret-free KPprotoN runtime bridge health summary
+#   list_admin_mtproto_manual_proxies - Redacted manual external proxy pool
+#   create_admin_mtproto_manual_proxy - Add encrypted external proxy credentials
+#   update_admin_mtproto_manual_proxy - Update manual proxy metadata/secret without disclosure
+#   activate_admin_mtproto_manual_proxy - Select exactly one active manual proxy
+#   disable_admin_mtproto_manual_proxy - Disable manual proxy without touching automatic runtime
+#   get_admin_mtproto_delivery_mode - Redacted delivery-mode state
+#   update_admin_mtproto_delivery_mode - Explicit audited delivery-mode switch
 #   get_admin_mtproto_analytics_summary - Secret-free global MTProto usage analytics
 #   get_admin_mtproto_assignment_usage - Per-assignment MTProto usage drill-down
 #   list_admin_mtproto_events - Paginated MTProto usage event list
@@ -50,6 +58,7 @@
 # END_MODULE_MAP
 #
 # START_CHANGE_SUMMARY
+#   LAST_CHANGE: v3.8.0 - Added Phase-80 manual external MTProto proxy pool and delivery mode controls.
 #   LAST_CHANGE: v3.7.0 - Added Phase-78 VPN device abuse alert inbox and confirmed one-device admin actions.
 #   LAST_CHANGE: v3.6.0 - Added Phase-43 MTProto alert, IP investigation, timeseries, resource, and storage APIs.
 #   LAST_CHANGE: v3.5.0 - Added Phase-42 MTProto analytics and promotion tag admin APIs.
@@ -69,7 +78,7 @@ from datetime import datetime, timedelta, timezone
 
 from fastapi import APIRouter, HTTPException, Query, status
 from loguru import logger
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from sqlalchemy import func, or_, select
 from sqlmodel import col
 
@@ -87,7 +96,13 @@ from app.mtproto.admin_alerts import (
     resolve_alert,
 )
 from app.mtproto.analytics_service import MTProtoAnalyticsService
-from app.mtproto.models import MTProtoAssignment, MTProtoAssignmentStatus
+from app.mtproto.manual_pool import MTProtoManualProxyPoolError, MTProtoManualProxyPoolService
+from app.mtproto.models import (
+    MTProtoAssignment,
+    MTProtoAssignmentStatus,
+    MTProtoDeliveryMode,
+    MTProtoManualProxyStatus,
+)
 from app.mtproto.promotion_tag import (
     MTProtoPromotionTagError,
     get_promotion_tag_state,
@@ -165,6 +180,41 @@ class MTProtoAlertIPBlockRequest(BaseModel):
     ttl_hours: int = 24
     confirm: bool = False
     confirm_risk: bool = False
+
+
+class MTProtoManualProxyCreateRequest(BaseModel):
+    """Admin request for adding an external MTProto proxy credential."""
+
+    name: str = Field(min_length=1, max_length=120)
+    server: str = Field(min_length=1, max_length=255)
+    port: int = Field(default=443, ge=1, le=65535)
+    secret: str = Field(min_length=32, max_length=512)
+    priority: int = Field(default=100)
+    notes: str | None = Field(default=None, max_length=1000)
+
+
+class MTProtoManualProxyUpdateRequest(BaseModel):
+    """Admin request for updating an external MTProto proxy credential."""
+
+    name: str | None = Field(default=None, min_length=1, max_length=120)
+    server: str | None = Field(default=None, min_length=1, max_length=255)
+    port: int | None = Field(default=None, ge=1, le=65535)
+    secret: str | None = Field(default=None, min_length=32, max_length=512)
+    priority: int | None = None
+    notes: str | None = Field(default=None, max_length=1000)
+
+
+class MTProtoManualProxyActionRequest(BaseModel):
+    """Confirmation body for manual external proxy actions."""
+
+    confirm: bool = False
+
+
+class MTProtoDeliveryModeUpdateRequest(BaseModel):
+    """Confirmation body for changing MTProto owner delivery mode."""
+
+    mode: str
+    confirm: bool = False
 
 
 class VPNDeviceAbuseAlertActionRequest(BaseModel):
@@ -344,6 +394,28 @@ def _parse_mtproto_status_filter(value: str | None) -> MTProtoAssignmentStatus |
         ) from exc
 
 
+def _parse_mtproto_manual_proxy_status(value: str | None) -> MTProtoManualProxyStatus | None:
+    if not value:
+        return None
+    try:
+        return MTProtoManualProxyStatus(value)
+    except ValueError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Invalid manual MTProto proxy status",
+        ) from exc
+
+
+def _parse_mtproto_delivery_mode(value: str) -> MTProtoDeliveryMode:
+    try:
+        return MTProtoDeliveryMode(value)
+    except ValueError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Invalid MTProto delivery mode",
+        ) from exc
+
+
 def _parse_mtproto_event_type_filter(value: str | None) -> MTProtoUsageEventType | None:
     if not value:
         return None
@@ -393,6 +465,29 @@ def _safe_mtproto_audit_details(
             "result_status": result_status,
             "failure_code": failure_code,
             "rotation_marker": assignment.rotation_marker,
+        },
+        sort_keys=True,
+    )
+    _assert_mtproto_admin_payload_redacted({"details": details})
+    return details
+
+
+def _safe_mtproto_manual_proxy_audit_details(
+    *,
+    action: str,
+    proxy_id: int | None = None,
+    delivery_mode: str | None = None,
+    result_status: str | None = None,
+    secret_fingerprint: str | None = None,
+) -> str:
+    """Build audit details for manual external proxy actions without server, secret, or link."""
+    details = json.dumps(
+        {
+            "action": action,
+            "proxy_id": proxy_id,
+            "delivery_mode": delivery_mode,
+            "result_status": result_status,
+            "secret_fingerprint": secret_fingerprint,
         },
         sort_keys=True,
     )
@@ -1071,6 +1166,229 @@ async def get_admin_mtproto_health(
     )
     return payload
 # END_BLOCK: get_admin_mtproto_health
+
+
+# START_BLOCK: admin_mtproto_manual_proxy_pool
+@router.get("/mtproto/manual-proxies")
+async def list_admin_mtproto_manual_proxies(
+    admin: CurrentAdmin,
+    session: DBSession,
+    search: str = Query(default=""),
+    manual_status: str | None = Query(default=None, alias="status"),
+    offset: int = Query(default=0, ge=0),
+    limit: int = Query(default=100, ge=1, le=500),
+):
+    """Return redacted external MTProto proxy pool rows."""
+    payload = await MTProtoManualProxyPoolService(session).list_manual_proxies(
+        search=search,
+        status_filter=_parse_mtproto_manual_proxy_status(manual_status),
+        offset=offset,
+        limit=limit,
+    )
+    _assert_mtproto_admin_payload_redacted(payload, allow_raw_ip=True)
+    return payload
+
+
+@router.post("/mtproto/manual-proxies")
+async def create_admin_mtproto_manual_proxy(
+    admin: CurrentAdmin,
+    session: DBSession,
+    request: MTProtoManualProxyCreateRequest,
+):
+    """Create an encrypted manual external MTProto proxy row."""
+    service = MTProtoManualProxyPoolService(session)
+    try:
+        row = await service.create_manual_proxy(
+            name=request.name,
+            server=request.server,
+            port=request.port,
+            secret=request.secret,
+            admin_id=int(admin.id),
+            priority=request.priority,
+            notes=request.notes,
+        )
+    except MTProtoManualProxyPoolError as exc:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=exc.safe_message) from exc
+
+    payload = service.serialize_manual_proxy(row)
+    _assert_mtproto_admin_payload_redacted(payload, allow_raw_ip=True)
+    await log_admin_action(
+        session,
+        int(admin.id),
+        "mtproto.manual_proxy.create",
+        resource_type="mtproto_manual_proxy",
+        resource_id=int(row.id),
+        details=_safe_mtproto_manual_proxy_audit_details(
+            action="manual_proxy.create",
+            proxy_id=int(row.id),
+            result_status=row.status.value,
+            secret_fingerprint=row.secret_fingerprint,
+        ),
+    )
+    return payload
+
+
+@router.patch("/mtproto/manual-proxies/{proxy_id}")
+async def update_admin_mtproto_manual_proxy(
+    proxy_id: int,
+    admin: CurrentAdmin,
+    session: DBSession,
+    request: MTProtoManualProxyUpdateRequest,
+):
+    """Update manual external proxy metadata or replace its encrypted secret."""
+    service = MTProtoManualProxyPoolService(session)
+    try:
+        row = await service.update_manual_proxy(
+            proxy_id,
+            admin_id=int(admin.id),
+            name=request.name,
+            server=request.server,
+            port=request.port,
+            secret=request.secret,
+            priority=request.priority,
+            notes=request.notes,
+        )
+    except MTProtoManualProxyPoolError as exc:
+        status_code = status.HTTP_404_NOT_FOUND if exc.not_found else status.HTTP_400_BAD_REQUEST
+        raise HTTPException(status_code=status_code, detail=exc.safe_message) from exc
+
+    payload = service.serialize_manual_proxy(row)
+    _assert_mtproto_admin_payload_redacted(payload, allow_raw_ip=True)
+    await log_admin_action(
+        session,
+        int(admin.id),
+        "mtproto.manual_proxy.update",
+        resource_type="mtproto_manual_proxy",
+        resource_id=int(row.id),
+        details=_safe_mtproto_manual_proxy_audit_details(
+            action="manual_proxy.update",
+            proxy_id=int(row.id),
+            result_status=row.status.value,
+            secret_fingerprint=row.secret_fingerprint,
+        ),
+    )
+    return payload
+
+
+@router.post("/mtproto/manual-proxies/{proxy_id}/activate")
+async def activate_admin_mtproto_manual_proxy(
+    proxy_id: int,
+    admin: CurrentAdmin,
+    session: DBSession,
+    request: MTProtoManualProxyActionRequest | None = None,
+):
+    """Select exactly one manual external MTProto proxy after confirmation."""
+    service = MTProtoManualProxyPoolService(session)
+    try:
+        row = await service.activate_manual_proxy(
+            proxy_id,
+            admin_id=int(admin.id),
+            confirm=bool(request and request.confirm),
+        )
+    except MTProtoManualProxyPoolError as exc:
+        status_code = status.HTTP_404_NOT_FOUND if exc.not_found else status.HTTP_400_BAD_REQUEST
+        raise HTTPException(status_code=status_code, detail=exc.safe_message) from exc
+
+    payload = service.serialize_manual_proxy(row)
+    _assert_mtproto_admin_payload_redacted(payload, allow_raw_ip=True)
+    await log_admin_action(
+        session,
+        int(admin.id),
+        "mtproto.manual_proxy.activate",
+        resource_type="mtproto_manual_proxy",
+        resource_id=int(row.id),
+        details=_safe_mtproto_manual_proxy_audit_details(
+            action="manual_proxy.activate",
+            proxy_id=int(row.id),
+            result_status=row.status.value,
+            secret_fingerprint=row.secret_fingerprint,
+        ),
+    )
+    return payload
+
+
+@router.post("/mtproto/manual-proxies/{proxy_id}/disable")
+async def disable_admin_mtproto_manual_proxy(
+    proxy_id: int,
+    admin: CurrentAdmin,
+    session: DBSession,
+    request: MTProtoManualProxyActionRequest | None = None,
+):
+    """Disable a manual external proxy after confirmation."""
+    service = MTProtoManualProxyPoolService(session)
+    try:
+        row = await service.disable_manual_proxy(
+            proxy_id,
+            admin_id=int(admin.id),
+            confirm=bool(request and request.confirm),
+        )
+    except MTProtoManualProxyPoolError as exc:
+        status_code = status.HTTP_404_NOT_FOUND if exc.not_found else status.HTTP_400_BAD_REQUEST
+        raise HTTPException(status_code=status_code, detail=exc.safe_message) from exc
+
+    payload = service.serialize_manual_proxy(row)
+    _assert_mtproto_admin_payload_redacted(payload, allow_raw_ip=True)
+    await log_admin_action(
+        session,
+        int(admin.id),
+        "mtproto.manual_proxy.disable",
+        resource_type="mtproto_manual_proxy",
+        resource_id=int(row.id),
+        details=_safe_mtproto_manual_proxy_audit_details(
+            action="manual_proxy.disable",
+            proxy_id=int(row.id),
+            result_status=row.status.value,
+            secret_fingerprint=row.secret_fingerprint,
+        ),
+    )
+    return payload
+
+
+@router.get("/mtproto/delivery-mode")
+async def get_admin_mtproto_delivery_mode(
+    admin: CurrentAdmin,
+    session: DBSession,
+):
+    """Return redacted owner MTProto delivery mode state."""
+    payload = await MTProtoManualProxyPoolService(session).delivery_mode_state()
+    _assert_mtproto_admin_payload_redacted(payload, allow_raw_ip=True)
+    return payload
+
+
+@router.put("/mtproto/delivery-mode")
+async def update_admin_mtproto_delivery_mode(
+    admin: CurrentAdmin,
+    session: DBSession,
+    request: MTProtoDeliveryModeUpdateRequest,
+):
+    """Switch owner MTProto delivery mode after explicit confirmation."""
+    service = MTProtoManualProxyPoolService(session)
+    delivery_mode = _parse_mtproto_delivery_mode(request.mode)
+    try:
+        payload = await service.set_delivery_mode(
+            mode=delivery_mode,
+            admin_id=int(admin.id),
+            confirm=request.confirm,
+        )
+    except MTProtoManualProxyPoolError as exc:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=exc.safe_message) from exc
+
+    _assert_mtproto_admin_payload_redacted(payload, allow_raw_ip=True)
+    await log_admin_action(
+        session,
+        int(admin.id),
+        "mtproto.delivery_mode.update",
+        resource_type="mtproto_delivery_settings",
+        resource_id=1,
+        details=_safe_mtproto_manual_proxy_audit_details(
+            action="delivery_mode.update",
+            delivery_mode=delivery_mode.value,
+            proxy_id=payload.get("active_manual_proxy_id") if isinstance(payload, dict) else None,
+            result_status="updated",
+        ),
+    )
+    return payload
+# END_BLOCK: admin_mtproto_manual_proxy_pool
 
 
 # START_BLOCK: get_admin_mtproto_analytics_summary

@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<M-006 NAME="admin-api" TYPE="ENTRY_POINT" STATUS="stable-pass-local-phase75-pass-local-phase78">
+<M-006 NAME="admin-api" TYPE="ENTRY_POINT" STATUS="stable-pass-local-phase75-pass-local-phase78-pass-local-phase80">
   <path>backend/app/admin scripts/phase75-admin-users-devices-smoke.mjs scripts/phase78-vpn-device-abuse-alerts-smoke.mjs docs/plans/Phase-75.xml docs/plans/Phase-78.xml</path>
   <owns>dashboard stats, analytics, migration-safe routing summary, privileged system endpoints, admin audit logging, device peer enforcement, M-047 MTProto operator endpoints, and M-081 VPN device abuse alert endpoints</owns>
   <exports>

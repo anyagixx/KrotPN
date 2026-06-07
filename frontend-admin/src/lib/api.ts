@@ -1,12 +1,12 @@
 // FILE: frontend-admin/src/lib/api.ts
-// VERSION: 1.0.0
+// VERSION: 1.1.0
 // ROLE: RUNTIME
 // MAP_MODE: SUMMARY
 // START_MODULE_CONTRACT
 //   PURPOSE: HTTP API client with JWT auth, refresh-token interceptor, and typed admin endpoint bindings
-//   SCOPE: Axios instance, request/response interceptors, adminApi facade for all backend endpoints including VPN abuse alerts and MTProto admin ops/analytics
-//   DEPENDS: M-010 (frontend-admin), M-006 (backend API), M-047 (MTProto admin ops), M-058 (MTProto analytics UI), M-081 (VPN device abuse alert inbox), axios, types
-//   LINKS: M-010, M-006, M-047, M-058, M-081
+//   SCOPE: Axios instance, request/response interceptors, adminApi facade for all backend endpoints including VPN abuse alerts and MTProto admin ops/analytics/manual delivery
+//   DEPENDS: M-010 (frontend-admin), M-006 (backend API), M-047 (MTProto admin ops), M-058 (MTProto analytics UI), M-081 (VPN device abuse alert inbox), M-082 (manual external MTProto delivery), axios, types
+//   LINKS: M-010, M-006, M-047, M-058, M-081, M-082
 // END_MODULE_CONTRACT
 //
 // START_MODULE_MAP
@@ -16,6 +16,7 @@
 // END_MODULE_MAP
 //
 // START_CHANGE_SUMMARY
+//   LAST_CHANGE: v3.7.0 - Added Phase-80 manual external MTProto pool and delivery mode endpoint bindings.
 //   LAST_CHANGE: v3.6.0 - Added Phase-78 VPN device abuse alert inbox endpoint bindings.
 //   LAST_CHANGE: v3.5.0 - Added pagination offsets for MTProto assignment inventory and user investigation search.
 //   LAST_CHANGE: v3.4.0 - Added Phase-43 MTProto alert, user investigation, timeseries, resource, and storage endpoint bindings
@@ -34,9 +35,13 @@ import type {
   AdminMTProtoAbuseSignalListResponse,
   AdminMTProtoAnalyticsSummary,
   AdminMTProtoAssignmentUsage,
+  AdminMTProtoDeliveryMode,
+  AdminMTProtoDeliveryModeState,
   AdminMTProtoEventListResponse,
   AdminMTProtoHealth,
   AdminMTProtoListResponse,
+  AdminMTProtoManualProxy,
+  AdminMTProtoManualProxyListResponse,
   AdminMTProtoPromotionTagState,
   AdminMTProtoRuntimeResourceSnapshot,
   AdminMTProtoStorageBudget,
@@ -256,6 +261,48 @@ export const adminApi = {
 
   getMTProtoHealth: () =>
     api.get<AdminMTProtoHealth>('/admin/mtproto/health'),
+
+  getMTProtoManualProxies: (search = '', status = '', offset = 0, limit = 100) => {
+    const params = new URLSearchParams()
+    if (search.trim()) params.set('search', search.trim())
+    if (status) params.set('status', status)
+    params.set('offset', String(offset))
+    params.set('limit', String(limit))
+    const query = params.toString()
+    return api.get<AdminMTProtoManualProxyListResponse>(`/admin/mtproto/manual-proxies${query ? `?${query}` : ''}`)
+  },
+
+  createMTProtoManualProxy: (data: {
+    name: string
+    server: string
+    port: number
+    secret: string
+    priority?: number
+    notes?: string | null
+  }) =>
+    api.post<AdminMTProtoManualProxy>('/admin/mtproto/manual-proxies', data),
+
+  updateMTProtoManualProxy: (id: number, data: {
+    name?: string
+    server?: string
+    port?: number
+    secret?: string
+    priority?: number
+    notes?: string | null
+  }) =>
+    api.patch<AdminMTProtoManualProxy>(`/admin/mtproto/manual-proxies/${id}`, data),
+
+  activateMTProtoManualProxy: (id: number) =>
+    api.post<AdminMTProtoManualProxy>(`/admin/mtproto/manual-proxies/${id}/activate`, { confirm: true }),
+
+  disableMTProtoManualProxy: (id: number) =>
+    api.post<AdminMTProtoManualProxy>(`/admin/mtproto/manual-proxies/${id}/disable`, { confirm: true }),
+
+  getMTProtoDeliveryMode: () =>
+    api.get<AdminMTProtoDeliveryModeState>('/admin/mtproto/delivery-mode'),
+
+  updateMTProtoDeliveryMode: (mode: AdminMTProtoDeliveryMode) =>
+    api.put<AdminMTProtoDeliveryModeState>('/admin/mtproto/delivery-mode', { mode, confirm: true }),
 
   getMTProtoAnalyticsSummary: (days = 30) =>
     api.get<AdminMTProtoAnalyticsSummary>(`/admin/mtproto/analytics/summary?days=${days}`),

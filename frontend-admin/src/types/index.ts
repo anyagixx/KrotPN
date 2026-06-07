@@ -1,18 +1,19 @@
 // FILE: frontend-admin/src/types/index.ts
-// VERSION: 1.0.0
+// VERSION: 1.1.0
 // ROLE: TYPES
 // MAP_MODE: EXPORTS
 // START_MODULE_CONTRACT
 //   PURPOSE: Shared TypeScript interfaces for admin frontend API contracts
-//   SCOPE: AdminUser, AdminDevice, AdminPlan, AdminServer, AdminNode, AdminRoute, VPN abuse alert contracts, MTProto admin/analytics contracts, BillingStats, ReferralStats, SystemHealth, AnalyticsData, PaginatedResponse, NodeForm, RouteForm
-//   DEPENDS: M-010 (frontend-admin), M-047 (mtproto-admin-ops), M-058 (mtproto-admin-analytics-ui), M-081 (VPN device abuse alert inbox)
-//   LINKS: M-010 (frontend-admin), M-006 (admin-api), M-047, M-058, M-081
+//   SCOPE: AdminUser, AdminDevice, AdminPlan, AdminServer, AdminNode, AdminRoute, VPN abuse alert contracts, MTProto admin/analytics/manual delivery contracts, BillingStats, ReferralStats, SystemHealth, AnalyticsData, PaginatedResponse, NodeForm, RouteForm
+//   DEPENDS: M-010 (frontend-admin), M-047 (mtproto-admin-ops), M-058 (mtproto-admin-analytics-ui), M-081 (VPN device abuse alert inbox), M-082 (manual external MTProto delivery)
+//   LINKS: M-010 (frontend-admin), M-006 (admin-api), M-047, M-058, M-081, M-082
 // END_MODULE_CONTRACT
 //
 // START_MODULE_MAP
 //   AdminUser, AdminDevice, AdminPlan, AdminServer, AdminNode, AdminRoute - Admin entity interfaces
 //   AdminVPNDeviceAbuseAlert, AdminVPNDeviceAbuseAlertListResponse - VPN device abuse alert inbox contracts
 //   AdminMTProtoAssignment, AdminMTProtoListResponse, AdminMTProtoHealth, AdminMTProtoActionResponse - Redacted MTProto admin interfaces
+//   AdminMTProtoManualProxy, AdminMTProtoManualProxyListResponse, AdminMTProtoDeliveryModeState - Manual external MTProto delivery interfaces
 //   AdminMTProtoAnalyticsSummary, AdminMTProtoAssignmentUsage, AdminMTProtoTopUsersResponse, AdminMTProtoPromotionTagState - MTProto analytics interfaces
 //   BillingStats, ReferralStats, SystemHealth, AnalyticsData - Analytics interfaces
 //   PaginatedResponse - Generic pagination wrapper
@@ -20,6 +21,7 @@
 // END_MODULE_MAP
 //
 // START_CHANGE_SUMMARY
+//   LAST_CHANGE: v3.7.0 - Added Phase-80 manual external MTProto proxy pool and delivery mode contracts.
 //   LAST_CHANGE: v3.6.0 - Added Phase-78 VPN device abuse alert inbox contracts.
 //   LAST_CHANGE: v3.5.0 - Added Phase-50 canonical paid tariff fields to AdminPlan.
 //   LAST_CHANGE: v3.4.0 - Added Phase-43 MTProto alerts, IP investigation, timeseries, resource, and storage contracts
@@ -223,6 +225,46 @@ export interface AdminMTProtoActionResponse {
     applied_at?: string | null
   }
   revoked?: boolean
+}
+
+export type AdminMTProtoDeliveryMode = 'automatic' | 'manual_external'
+
+export interface AdminMTProtoManualProxy {
+  id: number
+  name: string
+  server: string
+  port: number
+  status: string
+  priority: number
+  notes?: string | null
+  secret_fingerprint: string
+  secret_label: string
+  verified_at?: string | null
+  created_by_admin_id?: number | null
+  updated_by_admin_id?: number | null
+  created_at?: string | null
+  updated_at?: string | null
+  telemetry_available: boolean
+  promotion_tag_scope: string
+}
+
+export interface AdminMTProtoManualProxyListResponse {
+  items: AdminMTProtoManualProxy[]
+  total: number
+  offset: number
+  limit: number
+}
+
+export interface AdminMTProtoDeliveryModeState {
+  mode: AdminMTProtoDeliveryMode
+  active_manual_proxy_id?: number | null
+  active_manual_proxy?: AdminMTProtoManualProxy | null
+  automatic_telemetry_available: boolean
+  manual_telemetry_available: boolean
+  telemetry_available: boolean
+  promotion_tag_scope: string
+  updated_by_admin_id?: number | null
+  updated_at?: string | null
 }
 
 export interface AdminMTProtoTrafficWindow {

@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<M-028 NAME="alembic-migrations" TYPE="UTILITY" STATUS="pass-local-phase45-pass-local-phase69-no-schema-change-pass-local-phase78">
+<M-028 NAME="alembic-migrations" TYPE="UTILITY" STATUS="pass-local-phase45-pass-local-phase69-no-schema-change-pass-local-phase78-pass-local-phase80">
   <path>backend/alembic/ backend/app/core/migrations.py backend/alembic/versions/phase78_vpn_device_abuse_alerts.py docs/plans/Phase-43.xml docs/plans/Phase-44.xml docs/plans/Phase-45.xml docs/plans/Phase-69.xml docs/plans/Phase-78.xml</path>
   <owns>database schema migration infrastructure, nullable VPN client preshared-key migration, MTProto assignment migration, password reset token migration, pending trial activation migration, Phase-78 VPN device abuse alert migration, and migration helper functions extracted from database.py</owns>
   <exports>

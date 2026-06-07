@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Phase-80 NAME="Manual External MTProto Proxy Pool and Delivery Mode" STATUS="verification-ready" MODULES="M-082,M-001,M-002,M-006,M-009,M-010,M-026,M-028,M-042,M-043,M-045,M-047,M-058,M-059,M-075,M-076" STEPS="12">
+<Phase-80 NAME="Manual External MTProto Proxy Pool and Delivery Mode" STATUS="done-local" MODULES="M-082,M-001,M-002,M-006,M-009,M-010,M-026,M-028,M-042,M-043,M-045,M-047,M-058,M-059,M-075,M-076" STEPS="12">
   <objective>Add an administrator-controlled fallback mode that delivers manually verified external MTProto proxies to user cabinets while preserving the existing automatic KrotPN MTProto implementation.</objective>
 
   <scope>
@@ -38,18 +38,18 @@
   </planned-interfaces>
 
   <steps>
-    <step-1 status="planned">Map current M-043/M-045 owner issuance and M-047/M-058 admin MTProto surfaces so the delivery selector changes only the approved response path.</step-1>
-    <step-2 status="planned">Add additive database schema for manual external proxies and singleton delivery settings with encrypted secret storage and safe default automatic mode.</step-2>
-    <step-3 status="planned">Implement backend validation for host, port, hex secret, status, priority, notes, and generated tg:// plus https://t.me links.</step-3>
-    <step-4 status="planned">Implement admin API for proxy pool CRUD, activate/disable, delivery-mode get/set, redaction, and confirmation guards.</step-4>
-    <step-5 status="planned">Implement audit logging for create/update/activate/disable/mode-switch without secret or full link leakage.</step-5>
-    <step-6 status="planned">Implement owner payload selection so automatic mode remains current behavior and manual_external mode returns the active external proxy with telemetry_available=false.</step-6>
-    <step-7 status="planned">Update user frontend API types and Telegram MTProto card to show manual external proxy links compactly and honestly.</step-7>
-    <step-8 status="planned">Update admin frontend MTProto page with a compact delivery-mode control, proxy pool list, add/edit form, active badge, and warnings about unavailable telemetry.</step-8>
-    <step-9 status="planned">Add backend tests for validation, encryption/redaction, automatic-mode preservation, manual-mode owner response, missing-active-proxy fallback, and confirmation guards.</step-9>
-    <step-10 status="planned">Add frontend/admin smoke tests for UI markers, masked secrets, source labels, compact layout, and no false telemetry promises.</step-10>
-    <step-11 status="planned">Run frontend and frontend-admin builds plus targeted backend MTProto/admin tests.</step-11>
-    <step-12 status="planned">Run XML parse, MyGRACE lint, git diff --check, and protected deploy/install/nginx/docker-compose/VPN-runtime/MTProto-runtime guard.</step-12>
+    <step-1 status="done-local">Map current M-043/M-045 owner issuance and M-047/M-058 admin MTProto surfaces so the delivery selector changes only the approved response path.</step-1>
+    <step-2 status="done-local">Add additive database schema for manual external proxies and singleton delivery settings with encrypted secret storage and safe default automatic mode.</step-2>
+    <step-3 status="done-local">Implement backend validation for host, port, hex secret, status, priority, notes, and generated tg:// plus https://t.me links.</step-3>
+    <step-4 status="done-local">Implement admin API for proxy pool CRUD, activate/disable, delivery-mode get/set, redaction, and confirmation guards.</step-4>
+    <step-5 status="done-local">Implement audit logging for create/update/activate/disable/mode-switch without secret or full link leakage.</step-5>
+    <step-6 status="done-local">Implement owner payload selection so automatic mode remains current behavior and manual_external mode returns the active external proxy with telemetry_available=false.</step-6>
+    <step-7 status="done-local">Update user frontend API types and Telegram MTProto card to show manual external proxy links compactly and honestly.</step-7>
+    <step-8 status="done-local">Update admin frontend MTProto page with a compact delivery-mode control, proxy pool list, add/edit form, active badge, and warnings about unavailable telemetry.</step-8>
+    <step-9 status="done-local">Add backend tests for validation, encryption/redaction, automatic-mode preservation, manual-mode owner response, missing-active-proxy fallback, and confirmation guards.</step-9>
+    <step-10 status="done-local">Add frontend/admin smoke tests for UI markers, masked secrets, source labels, compact layout, and no false telemetry promises.</step-10>
+    <step-11 status="done-local">Run frontend and frontend-admin builds plus targeted backend MTProto/admin tests.</step-11>
+    <step-12 status="done-local">Run XML parse, MyGRACE lint, git diff --check, and protected deploy/install/nginx/docker-compose/VPN-runtime/MTProto-runtime guard.</step-12>
   </steps>
 
   <mental-walkthroughs>
@@ -74,7 +74,10 @@
     <item-5>UI clearly states that external proxy telemetry/statistics/abuse analytics/promo-tag application are unavailable from KrotPN.</item-5>
   </acceptance>
   <verification-readiness>
-    <item-1>V-M-082 is pending and defines module-local, wave-level, and phase-level checks for Phase-80.</item-1>
-    <item-2>Execution must not close Phase-80 unless backend manual proxy tests, frontend/admin builds, Phase-80 smoke, XML/MyGRACE checks, git diff check, and protected deploy/runtime guard pass.</item-2>
+    <item-1>V-M-082 is pass-local and defines module-local, wave-level, and phase-level checks for Phase-80.</item-1>
+    <item-2>Execution closed Phase-80 locally after backend manual proxy tests, frontend/admin builds, Phase-80 smoke, XML/MyGRACE checks, git diff check, and protected deploy/runtime guard passed.</item-2>
   </verification-readiness>
+  <evidence>
+    <local-2026-06-07>PASS local: backend MTProto manual pool/API/admin tests passed 14/14; frontend and frontend-admin production builds passed; Phase-80 smoke passed including redaction and protected deploy/runtime guard; XML parse, MyGRACE lint, and git diff --check passed during final verification.</local-2026-06-07>
+  </evidence>
 </Phase-80>

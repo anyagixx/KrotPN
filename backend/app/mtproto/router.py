@@ -1,15 +1,15 @@
 """MTProto owner API router.
 
 # FILE: backend/app/mtproto/router.py
-# VERSION: 1.1.0
+# VERSION: 1.2.0
 # ROLE: ENTRY_POINT
 # MAP_MODE: EXPORTS
 # START_MODULE_CONTRACT
 #   PURPOSE: Expose authenticated owner-only MTProto proxy state and private router telemetry ingestion
-#   SCOPE: /api/v1/mtproto/proxy endpoint, owner lookup, provisioning issue/reuse,
-#          safe failure mapping, and redacted telemetry
-#   DEPENDS: M-001 (core dependencies), M-002 (current user), M-043 (provisioning), M-045, M-055, M-061
-#   LINKS: M-045, M-055, M-061, V-M-045, V-M-055, V-M-061
+#   SCOPE: /api/v1/mtproto/proxy endpoint, owner lookup, delivery-mode selection,
+#          provisioning issue/reuse, safe failure mapping, and redacted telemetry
+#   DEPENDS: M-001 (core dependencies), M-002 (current user), M-043 (provisioning), M-045, M-055, M-061, M-082
+#   LINKS: M-045, M-055, M-061, M-082, V-M-045, V-M-055, V-M-061, V-M-082
 # END_MODULE_CONTRACT
 #
 # START_MODULE_MAP
@@ -17,10 +17,12 @@
 #   get_my_mtproto_proxy - Owner-only proxy payload endpoint
 #   ingest_router_observations - Token-protected RU SNI-router client-IP telemetry endpoint
 #   build_mtproto_service - Testable service factory
+#   build_mtproto_manual_proxy_pool - Testable manual external delivery service factory
 #   _safe_failure_response - Stable non-secret failure payload mapper
 # END_MODULE_MAP
 #
 # START_CHANGE_SUMMARY
+#   LAST_CHANGE: v1.2.0 - Added Phase-80 manual external delivery selector before automatic provisioning.
 #   LAST_CHANGE: v1.1.0 - Added token-protected RU SNI-router real client IP observation ingestion.
 #   LAST_CHANGE: v1.0.0 - Added Phase-31 owner-only MTProto proxy API
 # END_CHANGE_SUMMARY
@@ -38,6 +40,7 @@ from app.core import CurrentUser, DBSession
 from app.core.config import settings
 from app.mtproto.schemas import MTProtoOwnerProxyResponse, MTProtoOwnerProxyStatus
 from app.mtproto.service import (
+    MTProtoManualProxyPoolService,
     MTProtoProvisioningError,
     MTProtoProvisioningErrorCode,
     MTProtoProvisioningService,
@@ -80,6 +83,20 @@ def build_mtproto_service(session: AsyncSession) -> MTProtoProvisioningService:
     """Return the provisioning service; tests override this factory."""
     return MTProtoProvisioningService(session)
 # END_BLOCK_SERVICE_FACTORY
+
+
+# START_CONTRACT: build_mtproto_manual_proxy_pool
+#   PURPOSE: Build manual external proxy delivery service for request handling
+#   INPUTS: session: AsyncSession
+#   OUTPUTS: MTProtoManualProxyPoolService
+#   SIDE_EFFECTS: none
+#   LINKS: M-082, V-M-082
+# END_CONTRACT: build_mtproto_manual_proxy_pool
+# START_BLOCK_MANUAL_SERVICE_FACTORY
+def build_mtproto_manual_proxy_pool(session: AsyncSession) -> MTProtoManualProxyPoolService:
+    """Return the manual proxy pool service; tests override this factory if needed."""
+    return MTProtoManualProxyPoolService(session)
+# END_BLOCK_MANUAL_SERVICE_FACTORY
 
 
 # START_CONTRACT: ingest_router_observations
@@ -148,6 +165,15 @@ async def get_my_mtproto_proxy(
     """Return the authenticated owner's MTProto proxy state."""
     user_id = int(current_user.id)
     logger.info(f"[M-045][get_my_mtproto_proxy][OWNER_LOOKUP] user_id={user_id}")
+
+    manual_pool = build_mtproto_manual_proxy_pool(session)
+    manual_response = await manual_pool.owner_response_for_current_mode(current_user)
+    if manual_response is not None:
+        logger.info(
+            "[M-082][get_my_mtproto_proxy][DELIVERY_MODE] "
+            f"user_id={user_id} source={manual_response.source.value} status={manual_response.status.value}"
+        )
+        return manual_response
 
     service = build_mtproto_service(session)
     try:

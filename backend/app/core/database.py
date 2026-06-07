@@ -15,10 +15,11 @@
 #   init_db - SQLModel.create_all + compatibility migrations + admin/user bootstrap
 #   get_db - FastAPI async_generator dependency for DB session with auto-commit
 #   get_session - AsyncSession context manager for non-request scopes
-#   import_all_models - Registers all SQLModel table classes, including MTProto assignments, telemetry, and VPN abuse alerts
+#   import_all_models - Registers all SQLModel table classes, including MTProto assignments, manual pool, telemetry, and VPN abuse alerts
 # END_MODULE_MAP
 #
 # START_CHANGE_SUMMARY
+#   LAST_CHANGE: v3.2.0 - MTProto model import now includes Phase-80 manual external pool tables.
 #   LAST_CHANGE: v3.1.0 - Registered Phase-78 VPN device abuse alert inbox model
 #   LAST_CHANGE: v3.0.0 - Registered Phase-42 MTProto usage telemetry and promotion tag models
 #   LAST_CHANGE: v2.9.0 - Registered Phase-29 MTProto assignment models in SQLModel metadata

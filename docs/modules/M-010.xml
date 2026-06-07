@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<M-010 NAME="frontend-admin" TYPE="UI_COMPONENT" STATUS="stable-pass-local-phase51-phase52-phase54-phase59-pass-local-minimal-login-pass-local-phase74-pass-local-phase75-pass-local-phase76-pass-local-phase78">
+<M-010 NAME="frontend-admin" TYPE="UI_COMPONENT" STATUS="stable-pass-local-phase51-phase52-phase54-phase59-pass-local-minimal-login-pass-local-phase74-pass-local-phase75-pass-local-phase76-pass-local-phase78-pass-local-phase80">
   <path>frontend-admin frontend-admin/public frontend-admin/index.html scripts/phase54-admin-matrix-ui-smoke.mjs scripts/phase59-motion-interactions-smoke.mjs scripts/phase74-admin-shell-navigation-smoke.mjs scripts/phase75-admin-users-devices-smoke.mjs scripts/phase78-vpn-device-abuse-alerts-smoke.mjs docs/plans/Phase-54.xml docs/plans/Phase-59.xml docs/plans/Phase-74.xml docs/plans/Phase-75.xml docs/plans/Phase-78.xml</path>
   <owns>admin login, mobile-capable dashboard, unified users/devices inventory, VPN abuse alert inbox/archive, MTProto operations, servers, analytics, settings, Full Tunnel status, and device anomaly review controls; admin Tariffs is retired from visible navigation after Phase-74 and separate Devices navigation is retired after Phase-75</owns>
   <depends>M-006, M-024, M-070, M-071, M-077, M-081</depends>

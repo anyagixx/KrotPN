@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<M-082 NAME="manual-external-mtproto-proxy-pool" TYPE="CORE_LOGIC" STATUS="planned-phase80-verification-ready">
+<M-082 NAME="manual-external-mtproto-proxy-pool" TYPE="CORE_LOGIC" STATUS="pass-local-phase80">
   <path>backend/app/mtproto backend/app/admin frontend/src frontend-admin/src backend/alembic scripts/phase80-manual-mtproto-proxy-smoke.mjs</path>
   <owns>Admin-managed external MTProto proxy pool, delivery-mode selection, owner-facing manual proxy payloads, secret redaction, and operator audit boundaries.</owns>
   <purpose>Allow the administrator to manually publish a verified external MTProto proxy to user cabinets when the automatic KrotPN MTProto edge is blocked by provider/DPI conditions.</purpose>
   <exports>
-    <model-ManualExternalMTProtoProxy>Persistent external proxy row with name, server, port, encrypted secret, status, priority, verification notes, and audit metadata.</model-ManualExternalMTProtoProxy>
+    <model-MTProtoManualExternalProxy>Persistent external proxy row with name, server, port, encrypted secret, status, priority, verification notes, and audit metadata.</model-MTProtoManualExternalProxy>
     <model-MTProtoDeliverySettings>Singleton delivery-mode state selecting automatic KrotPN issuance or manual external proxy delivery.</model-MTProtoDeliverySettings>
     <fn-list-manual-mtproto-proxies>Return redacted admin summaries for the manual proxy pool.</fn-list-manual-mtproto-proxies>
     <fn-create-manual-mtproto-proxy>Validate and store an external MTProto proxy with encrypted secret material.</fn-create-manual-mtproto-proxy>
@@ -16,19 +16,20 @@
   <depends>M-001,M-002,M-006,M-009,M-010,M-026,M-028,M-042,M-043,M-045,M-047,M-058,M-059,M-075,M-076</depends>
   <verification-ref>V-M-082</verification-ref>
   <files>
-    <file status="planned">backend/app/mtproto/models.py</file>
-    <file status="planned">backend/app/mtproto/schemas.py</file>
-    <file status="planned">backend/app/mtproto/service.py</file>
-    <file status="planned">backend/app/mtproto/router.py</file>
-    <file status="planned">backend/app/admin/router.py</file>
-    <file status="planned">backend/alembic/versions/phase80_manual_external_mtproto_proxy_pool.py</file>
-    <file status="planned">backend/tests/test_mtproto_manual_proxy_pool.py</file>
-    <file status="planned">frontend/src/lib/api.ts</file>
-    <file status="planned">frontend/src/pages/Dashboard.tsx</file>
-    <file status="planned">frontend-admin/src/lib/api.ts</file>
-    <file status="planned">frontend-admin/src/types/index.ts</file>
-    <file status="planned">frontend-admin/src/pages/MTProto.tsx</file>
-    <file status="planned">scripts/phase80-manual-mtproto-proxy-smoke.mjs</file>
+    <file status="done-local">backend/app/mtproto/models.py</file>
+    <file status="done-local">backend/app/mtproto/manual_pool.py</file>
+    <file status="done-local">backend/app/mtproto/schemas.py</file>
+    <file status="done-local">backend/app/mtproto/service.py</file>
+    <file status="done-local">backend/app/mtproto/router.py</file>
+    <file status="done-local">backend/app/admin/router.py</file>
+    <file status="done-local">backend/alembic/versions/phase80_manual_external_mtproto_proxy_pool.py</file>
+    <file status="done-local">backend/tests/test_mtproto_manual_proxy_pool.py</file>
+    <file status="done-local">frontend/src/lib/api.ts</file>
+    <file status="done-local">frontend/src/pages/Dashboard.tsx</file>
+    <file status="done-local">frontend-admin/src/lib/api.ts</file>
+    <file status="done-local">frontend-admin/src/types/index.ts</file>
+    <file status="done-local">frontend-admin/src/pages/MTProto.tsx</file>
+    <file status="done-local">scripts/phase80-manual-mtproto-proxy-smoke.mjs</file>
   </files>
   <delivery-policy>
     <policy-1>automatic mode preserves the current M-043/M-045 issue_user_proxy behavior and must not reissue or rotate existing KrotPN MTProto assignments.</policy-1>
@@ -49,8 +50,13 @@
     <constraint-4>Promotion tag controls in M-059 remain scoped to the KrotPN-managed runtime and must not pretend to configure third-party external proxies.</constraint-4>
   </constraints>
   <verification-readiness>
-    <ready-1>V-M-082 defines backend service/API tests, user/admin UI smoke, redaction checks, telemetry honesty checks, and protected deploy/runtime guards before execution.</ready-1>
-    <ready-2>Execution is autonomous-safe only with targeted backend tests plus frontend/admin builds because Phase-80 changes schema, admin API, owner response shape, and both frontends.</ready-2>
+    <ready-1>V-M-082 passed locally with backend service/API tests, user/admin UI smoke, redaction checks, telemetry honesty checks, and protected deploy/runtime guards.</ready-1>
+    <ready-2>Targeted backend tests plus frontend/admin builds passed because Phase-80 changes schema, admin API, owner response shape, and both frontends.</ready-2>
   </verification-readiness>
+  <evidence>
+    <evidence-1>2026-06-07: backend MTProto manual pool/API/admin regression tests passed 14/14.</evidence-1>
+    <evidence-2>2026-06-07: frontend and frontend-admin production builds passed.</evidence-2>
+    <evidence-3>2026-06-07: Phase-80 smoke, XML parse, MyGRACE lint, git diff --check, and protected deploy/runtime guard passed.</evidence-3>
+  </evidence>
   <hotspot>H-069: Manual external MTProto proxies are outside the KrotPN runtime, so delivery must be explicit, redacted, operator-controlled, and honest about missing telemetry.</hotspot>
 </M-082>
