@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Phase-80 NAME="Manual External MTProto Proxy Pool and Delivery Mode" STATUS="planned" MODULES="M-082,M-001,M-002,M-006,M-009,M-010,M-026,M-028,M-042,M-043,M-045,M-047,M-058,M-059,M-075,M-076" STEPS="12">
+  <objective>Add an administrator-controlled fallback mode that delivers manually verified external MTProto proxies to user cabinets while preserving the existing automatic KrotPN MTProto implementation.</objective>
+
+  <scope>
+    <in-scope>Manual external proxy storage, encrypted secret handling, admin CRUD and activation UI, delivery-mode switch, owner endpoint payload selection, user cabinet display, audit logging, redaction, and tests.</in-scope>
+    <out-of-scope>Changing deploy/install scripts, nginx, docker-compose, VPN/AWG runtime, KPprotoN runtime, SNI router topology, automatic KrotPN MTProto assignment generation, provider-level DPI bypass engineering, or collecting telemetry from external proxies.</out-of-scope>
+  </scope>
+
+  <requirements>
+    <requirement-1>Administrator can add one or more external MTProto proxies with server, port, secret, name, priority, status, and notes.</requirement-1>
+    <requirement-2>Administrator can switch delivery mode from automatic to manual_external and back without reissuing existing automatic KrotPN assignments.</requirement-2>
+    <requirement-3>When manual_external mode is active, authenticated users see the active external proxy in the same Telegram proxy card flow.</requirement-3>
+    <requirement-4>Manual external proxy secrets are encrypted at rest, redacted from admin lists/logs/audit, and exposed only through authenticated owner delivery.</requirement-4>
+    <requirement-5>Admin UI must state that external proxy statistics, IP history, runtime health, abuse analytics, and promotion-tag application are unavailable from KrotPN.</requirement-5>
+    <requirement-6>Automatic KrotPN MTProto mode must remain available and unchanged for future return to the internal runtime.</requirement-6>
+  </requirements>
+
+  <architecture>
+    <flow-1>M-082 stores manual external proxy rows and a singleton delivery setting through additive Alembic schema changes.</flow-1>
+    <flow-2>M-006/M-047 expose admin-only routes for listing, creating, updating, activating, disabling, and switching delivery mode.</flow-2>
+    <flow-3>M-026 records audit-safe admin actions without full secrets or full Telegram links.</flow-3>
+    <flow-4>M-045 owner endpoint calls M-082 selection logic before returning the user MTProto payload: automatic mode delegates to M-043; manual_external returns the active manual proxy.</flow-4>
+    <flow-5>M-009/M-075 render manual external proxy data in the existing compact Telegram MTProto card with source and telemetry-unavailable copy.</flow-5>
+    <flow-6>M-010/M-076 render compact admin controls inside MTProto operations/settings without exposing full secrets in tables.</flow-6>
+    <flow-7>M-058/M-059 remain honest: analytics and promotion-tag controls apply only to KrotPN-managed runtime proxies, not external manual proxies.</flow-7>
+  </architecture>
+
+  <planned-interfaces>
+    <api-1>GET /api/v1/admin/mtproto/manual-proxies returns paginated redacted manual proxy summaries.</api-1>
+    <api-2>POST /api/v1/admin/mtproto/manual-proxies creates an encrypted external proxy row after validation.</api-2>
+    <api-3>PATCH /api/v1/admin/mtproto/manual-proxies/{proxy_id} updates name/server/port/status/notes or replaces the secret without returning the old secret.</api-3>
+    <api-4>POST /api/v1/admin/mtproto/manual-proxies/{proxy_id}/activate requires confirmation and selects one active manual proxy.</api-4>
+    <api-5>POST /api/v1/admin/mtproto/manual-proxies/{proxy_id}/disable requires confirmation and removes a proxy from manual delivery.</api-5>
+    <api-6>GET /api/v1/admin/mtproto/delivery-mode returns automatic/manual_external state and active manual proxy summary.</api-6>
+    <api-7>PUT /api/v1/admin/mtproto/delivery-mode requires confirmation and switches delivery mode.</api-7>
+    <api-8>GET /api/v1/mtproto/proxy returns source=krotpn_auto or source=manual_external plus telemetry_available=false for manual external delivery.</api-8>
+  </planned-interfaces>
+
+  <steps>
+    <step-1 status="planned">Map current M-043/M-045 owner issuance and M-047/M-058 admin MTProto surfaces so the delivery selector changes only the approved response path.</step-1>
+    <step-2 status="planned">Add additive database schema for manual external proxies and singleton delivery settings with encrypted secret storage and safe default automatic mode.</step-2>
+    <step-3 status="planned">Implement backend validation for host, port, hex secret, status, priority, notes, and generated tg:// plus https://t.me links.</step-3>
+    <step-4 status="planned">Implement admin API for proxy pool CRUD, activate/disable, delivery-mode get/set, redaction, and confirmation guards.</step-4>
+    <step-5 status="planned">Implement audit logging for create/update/activate/disable/mode-switch without secret or full link leakage.</step-5>
+    <step-6 status="planned">Implement owner payload selection so automatic mode remains current behavior and manual_external mode returns the active external proxy with telemetry_available=false.</step-6>
+    <step-7 status="planned">Update user frontend API types and Telegram MTProto card to show manual external proxy links compactly and honestly.</step-7>
+    <step-8 status="planned">Update admin frontend MTProto page with a compact delivery-mode control, proxy pool list, add/edit form, active badge, and warnings about unavailable telemetry.</step-8>
+    <step-9 status="planned">Add backend tests for validation, encryption/redaction, automatic-mode preservation, manual-mode owner response, missing-active-proxy fallback, and confirmation guards.</step-9>
+    <step-10 status="planned">Add frontend/admin smoke tests for UI markers, masked secrets, source labels, compact layout, and no false telemetry promises.</step-10>
+    <step-11 status="planned">Run frontend and frontend-admin builds plus targeted backend MTProto/admin tests.</step-11>
+    <step-12 status="planned">Run XML parse, MyGRACE lint, git diff --check, and protected deploy/install/nginx/docker-compose/VPN-runtime/MTProto-runtime guard.</step-12>
+  </steps>
+
+  <mental-walkthroughs>
+    <walkthrough-1>Manual fallback: admin adds a verified external proxy, activates it, switches delivery mode to manual_external, and a user opening /dashboard receives the external proxy link without touching KrotPN automatic assignments.</walkthrough-1>
+    <walkthrough-2>Return to automatic: admin switches delivery mode back to automatic, the owner endpoint resumes M-043 issuance/reuse, and previously issued automatic assignments remain preserved.</walkthrough-2>
+    <walkthrough-3>No active manual proxy: admin selects manual_external without an active proxy or disables the active proxy; users see a safe preparing/degraded message, not a broken empty link.</walkthrough-3>
+  </mental-walkthroughs>
+
+  <risks>
+    <risk-1>External proxy may stop working outside KrotPN control; mitigate with explicit operator verification and clear UI labeling.</risk-1>
+    <risk-2>Shared manual proxy can be overloaded or blocked for all users; mitigate with pool support and fast admin activation of another verified proxy.</risk-2>
+    <risk-3>Secret leakage risk rises when admin stores third-party credentials; mitigate with encryption, redaction, no logs, and owner-only full delivery.</risk-3>
+    <risk-4>Admin may expect analytics from external proxies; mitigate by marking telemetry unavailable everywhere this mode is shown.</risk-4>
+    <risk-5>Delivery selector could accidentally reissue automatic assignments; mitigate with tests proving automatic assignment identity is preserved across mode switches.</risk-5>
+  </risks>
+
+  <acceptance>
+    <item-1>Admin can configure and activate a manual external MTProto proxy without changing deploy/runtime topology.</item-1>
+    <item-2>User cabinet receives working-format Telegram links from the manual external proxy when manual_external mode is active.</item-2>
+    <item-3>Automatic KrotPN MTProto mode remains unchanged and can be restored by switching the delivery mode back.</item-3>
+    <item-4>Secrets are encrypted/redacted and no admin list, audit record, log marker, or smoke artifact leaks full manual proxy credentials.</item-4>
+    <item-5>UI clearly states that external proxy telemetry/statistics/abuse analytics/promo-tag application are unavailable from KrotPN.</item-5>
+  </acceptance>
+</Phase-80>

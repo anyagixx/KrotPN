@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<V-M-082 MODULE="M-082" PRIORITY="high" STATUS="planned" PHASE-80="planned">
+  <purpose>Verify manual external MTProto proxy pool storage, delivery-mode switching, owner payload selection, redaction, audit logging, UI honesty, and automatic-mode preservation.</purpose>
+  <module-ref>M-082</module-ref>
+  <test-files>
+    <file status="planned">backend/tests/test_mtproto_manual_proxy_pool.py</file>
+    <file status="planned">backend/tests/test_mtproto_api.py</file>
+    <file status="planned">backend/tests/test_mtproto_admin_ops.py</file>
+    <file status="planned">scripts/phase80-manual-mtproto-proxy-smoke.mjs</file>
+  </test-files>
+  <module-checks>
+    <check-1>Backend tests cover manual proxy validation, encryption, redaction, activation, disable, delivery-mode switching, and owner response shape.</check-1>
+    <check-2>Regression tests prove automatic mode continues to call the current KrotPN assignment path and preserves existing assignment identities.</check-2>
+    <check-3>Admin tests prove confirmation guards and audit-safe action records for create, update, activate, disable, and mode switch.</check-3>
+    <check-4>Frontend smoke proves user/admin UI labels manual external proxies clearly and never promises unavailable telemetry.</check-4>
+  </module-checks>
+  <verification-levels>
+    <module-local>Service and schema tests prove storage, selection, redaction, and generated Telegram link correctness.</module-local>
+    <wave-level>Admin and owner API tests prove auth, confirmation, mode switching, and automatic/manual branch behavior.</wave-level>
+    <phase-level>Frontend/admin builds, Phase-80 smoke, XML/MyGRACE checks, and protected deploy/runtime guard prove the plan is release-safe.</phase-level>
+  </verification-levels>
+  <scenarios>
+    <scenario-1 kind="success">Admin creates a valid external proxy and the stored secret is encrypted while admin list responses show only a masked secret fingerprint.</scenario-1>
+    <scenario-2 kind="success">Admin activates one proxy and manual_external owner response returns server, port, secret, tg_link, browser link, source=manual_external, and telemetry_available=false.</scenario-2>
+    <scenario-3 kind="success">Switching back to automatic returns source=krotpn_auto and preserves the existing M-043 assignment id/server/secret unless explicit reissue is requested elsewhere.</scenario-3>
+    <scenario-4 kind="success">Disabling the active manual proxy makes owner response safe/degraded instead of returning a broken or empty link.</scenario-4>
+    <scenario-5 kind="failure">Invalid host, invalid port, non-hex secret, missing confirmation, non-admin auth, or missing proxy id is rejected.</scenario-5>
+    <scenario-6 kind="failure">Admin list/detail, audit records, logs, and smoke output must not include full manual secrets or complete Telegram links.</scenario-6>
+    <scenario-7 kind="failure">Manual external mode must not touch KPprotoN runtime policies, SNI router config, promotion tag apply state, deploy scripts, nginx, docker-compose, VPN runtime, or AWG config.</scenario-7>
+  </scenarios>
+  <api-contracts>
+    <api-1>GET /api/v1/admin/mtproto/manual-proxies returns redacted manual proxy summaries for admins only.</api-1>
+    <api-2>POST /api/v1/admin/mtproto/manual-proxies validates and stores an encrypted external proxy secret.</api-2>
+    <api-3>PATCH /api/v1/admin/mtproto/manual-proxies/{proxy_id} updates safe fields or replaces the secret without returning the old secret.</api-3>
+    <api-4>POST /api/v1/admin/mtproto/manual-proxies/{proxy_id}/activate requires confirmation and selects exactly one active manual proxy.</api-4>
+    <api-5>POST /api/v1/admin/mtproto/manual-proxies/{proxy_id}/disable requires confirmation and removes it from manual delivery.</api-5>
+    <api-6>GET /api/v1/admin/mtproto/delivery-mode returns delivery mode and active manual proxy summary.</api-6>
+    <api-7>PUT /api/v1/admin/mtproto/delivery-mode requires confirmation and switches automatic/manual_external mode.</api-7>
+    <api-8>GET /api/v1/mtproto/proxy returns source and telemetry_available fields in addition to the existing owner-safe proxy payload.</api-8>
+  </api-contracts>
+  <data-invariants>
+    <invariant-1>Default delivery mode is automatic so clean deploy behavior remains current KrotPN MTProto issuance.</invariant-1>
+    <invariant-2>At most one manual proxy is active for delivery at a time unless a later approved phase introduces per-user assignment.</invariant-2>
+    <invariant-3>Manual proxy secrets are stored encrypted and never included in admin summaries or audit details.</invariant-3>
+    <invariant-4>Manual external proxies do not create M-054/M-056/M-060 telemetry or abuse claims because KrotPN does not own their runtime.</invariant-4>
+  </data-invariants>
+  <commands>
+    <command status="planned">SECRET_KEY=test-secret-key-with-enough-length DATA_ENCRYPTION_KEY=test-data-encryption-key-with-enough-length PYTHONPATH=backend .venv/bin/python -m pytest -o addopts='' -q backend/tests/test_mtproto_manual_proxy_pool.py backend/tests/test_mtproto_api.py backend/tests/test_mtproto_admin_ops.py</command>
+    <command status="planned">cd frontend &amp;&amp; npm run build</command>
+    <command status="planned">cd frontend-admin &amp;&amp; npm run build</command>
+    <command status="planned">node scripts/phase80-manual-mtproto-proxy-smoke.mjs</command>
+    <command status="planned">python3 -m xml.etree.ElementTree docs/graph-index.xml docs/plan-index.xml docs/verification-index.xml docs/modules/M-082.xml docs/plans/Phase-80.xml docs/verification/V-M-082.xml</command>
+    <command status="planned">mygrace lint</command>
+    <command status="planned">git diff --check</command>
+  </commands>
+  <required-log-markers>
+    <marker>[M-082][create_manual_mtproto_proxy][VALIDATE_INPUT]</marker>
+    <marker>[M-082][create_manual_mtproto_proxy][SECRET_ENCRYPTED]</marker>
+    <marker>[M-082][activate_manual_mtproto_proxy][CONFIRM_ACTIVATE]</marker>
+    <marker>[M-082][update_mtproto_delivery_mode][MODE_SWITCH]</marker>
+    <marker>[M-082][select_owner_mtproto_payload][AUTOMATIC_SELECTED]</marker>
+    <marker>[M-082][select_owner_mtproto_payload][MANUAL_EXTERNAL_SELECTED]</marker>
+    <marker>[M-082][redact_manual_proxy_secret][REDACTION_GUARD]</marker>
+  </required-log-markers>
+  <redaction-rules>
+    <rule-1>Admin summaries may include proxy id, name, server, port, status, priority, verified_at, updated_at, and secret fingerprint only.</rule-1>
+    <rule-2>Admin responses, audit records, logs, and smoke output must not include raw external proxy secret or full t.me/tg proxy links.</rule-2>
+    <rule-3>Owner responses may include raw secret and links only for authenticated user cabinet delivery.</rule-3>
+    <rule-4>Promotion tag values remain governed by M-059 and are not leaked by manual proxy APIs.</rule-4>
+  </redaction-rules>
+  <protected-surfaces>
+    <surface-1>install.sh, deploy scripts, nginx, docker-compose, KPprotoN runtime, SNI router, VPN runtime, and AWG config remain unchanged.</surface-1>
+    <surface-2>Existing automatic MTProto assignments, CTA SNI generation, and promotion-tag runtime application remain unchanged.</surface-2>
+    <surface-3>Analytics and abuse modules may show telemetry unavailable for manual external delivery but must not fabricate external proxy stats.</surface-3>
+  </protected-surfaces>
+  <autonomous-execution-safety>
+    <assessment>safe-with-targeted-tests</assessment>
+    <reason>Phase-80 is additive and operator-controlled, but it changes schema, admin API, owner MTProto response shape, and two frontends; execution must include backend tests, frontend builds, static smokes, redaction checks, and protected runtime/deploy guards.</reason>
+  </autonomous-execution-safety>
+  <acceptance>
+    <item-1>Manual external MTProto proxy pool can be configured and activated by admins only.</item-1>
+    <item-2>Users receive manual external proxy links only when manual_external mode is active.</item-2>
+    <item-3>Automatic KrotPN MTProto mode remains the default and stays restorable.</item-3>
+    <item-4>No telemetry, abuse, or promotion-tag promises are made for external proxies.</item-4>
+    <item-5>Protected deploy/runtime surfaces stay untouched.</item-5>
+  </acceptance>
+</V-M-082>
