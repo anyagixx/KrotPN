@@ -74,4 +74,9 @@
     <verification>Phase-59 and Phase-77 smokes passed for motion and scroll safety.</verification>
   </phase-77-executed-scope>
   <phase-77-evidence status="pass-local" date="2026-06-05">Matrix motion interactions passed local Phase-77 verification.</phase-77-evidence>
+  <mobile-route-transform-fix status="pass-local" date="2026-06-07">
+    <primary-files>frontend/src/index.css frontend/src/components/Layout.tsx scripts/phase77-subscription-mobile-polish-smoke.mjs</primary-files>
+    <primary-behaviors>Mobile route entrance transform is disabled on the user content wrapper so fixed bottom navigation is not scoped to a transformed ancestor in mobile browsers.</primary-behaviors>
+    <verification>Phase-77 smoke asserts [MatrixMotion][fix][MOBILE_ROUTE_TRANSFORM_OFF] together with the viewport-fixed dock marker.</verification>
+  </mobile-route-transform-fix>
 </M-077>

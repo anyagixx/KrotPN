@@ -17,6 +17,7 @@
 // END_MODULE_MAP
 //
 // START_CHANGE_SUMMARY
+//   LAST_CHANGE: v2.0.1 - Hardened the mobile bottom dock as a viewport-fixed layer across route transitions.
 //   LAST_CHANGE: v2.0.0 - Added Phase-77 fixed mobile dock and scroll-safe content markers.
 //   LAST_CHANGE: v1.9.0 - Moved desktop logout directly under Settings and added Phase-72 mobile dock markers.
 //   LAST_CHANGE: v1.8.0 - Added Phase-71 localized user-shell subtitle and final frameless logo marker.
@@ -150,6 +151,7 @@ export default function Layout() {
           data-phase72-mobile-nav="[MobileUserCabinet][phase72][BOTTOM_NAV_SAFE]"
           data-phase72-touch-nav="[MatrixMotion][phase72][TOUCH_NAV_REVEAL_SAFE]"
           data-phase77-mobile-nav="[MobileUserCabinet][phase77][BOTTOM_NAV_ALWAYS_VISIBLE]"
+          data-mobile-dock-fix="[MobileUserCabinet][fix][MOBILE_DOCK_VIEWPORT_FIXED]"
         >
           {navItems.map((item) => (
             <NavLink

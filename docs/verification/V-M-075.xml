@@ -221,6 +221,12 @@
     <commands>node scripts/phase57-premium-user-cabinet-smoke.mjs; node scripts/phase68-dashboard-subscription-smoke.mjs; node scripts/phase77-subscription-mobile-polish-smoke.mjs.</commands>
   </phase-77-verification-design>
   <phase-77-evidence status="pass-local" date="2026-06-05">Phase-77 preserved premium user cabinet workflows while adding active-until copy, config link, calendar role markers, and fixed mobile dock; Phase-57 and Phase-68 regressions passed.</phase-77-evidence>
+  <mobile-scroll-dock-fix-verification status="pass-local" date="2026-06-07">
+    <scope>Premium user cabinet regression for mobile scroll from the MTProto card and persistent bottom navigation.</scope>
+    <gate-1>MTProto secret presentation remains readable and copyable without trapping vertical page scroll on touch devices.</gate-1>
+    <gate-2>Mobile bottom navigation remains visible after route changes and keeps one-tap access to dashboard, config, subscription, referrals, and settings.</gate-2>
+    <commands>cd frontend &amp;&amp; npm run build; node scripts/phase77-subscription-mobile-polish-smoke.mjs; node scripts/phase57-premium-user-cabinet-smoke.mjs; node scripts/phase68-dashboard-subscription-smoke.mjs.</commands>
+  </mobile-scroll-dock-fix-verification>
   <config-action-polish-verification status="pass-local">
     <scope>Premium user config export buttons: QR, .conf, and Copy.</scope>
     <gate-1>/dashboard/config export action group must not render the extra dark sticky-action frame around QR/.conf/Copy.</gate-1>

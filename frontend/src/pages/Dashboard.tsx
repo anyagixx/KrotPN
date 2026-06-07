@@ -20,6 +20,7 @@
 // END_MODULE_MAP
 //
 // START_CHANGE_SUMMARY
+//   LAST_CHANGE: v3.9.2 - Made the MTProto secret field passive for mobile page scrolling instead of trapping touch gestures.
 //   LAST_CHANGE: v3.9.1 - Removed "постоянный" from the user-visible MTProto card title copy.
 //   LAST_CHANGE: v3.9.0 - Added Phase-80 manual external MTProto source and telemetry-unavailable owner copy.
 //   LAST_CHANGE: v3.8.0 - Executed Phase-68 dashboard compaction: removed command center and secondary fold, placed MTProto first, and embedded shared subscription panel.
@@ -217,7 +218,12 @@ export default function Dashboard() {
               </div>
               <div className="min-w-0">
                 <dt className="metric-label">Секрет</dt>
-                <dd className="matrix-terminal mt-1 max-h-20 break-all font-semibold">{mtproto.secret}</dd>
+                <dd
+                  className="matrix-terminal matrix-mtproto-secret mt-1 break-all font-semibold"
+                  data-mobile-scroll-fix="[MobileUserCabinet][fix][MTPROTO_SECRET_SCROLL_PASSIVE]"
+                >
+                  {mtproto.secret}
+                </dd>
               </div>
             </dl>
 

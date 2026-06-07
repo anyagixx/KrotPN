@@ -250,4 +250,10 @@
     <commands>node scripts/phase61-responsive-adaptation-smoke.mjs; node scripts/phase77-subscription-mobile-polish-smoke.mjs; node scripts/phase72-user-auth-navigation-smoke.mjs.</commands>
   </phase-77-verification-design>
   <phase-77-evidence status="pass-local" date="2026-06-05">Phase-77 and Phase-61 responsive smokes passed after user/admin builds: fixed bottom dock, safe-area padding, mobile scroll-surface markers, bundle budgets, and protected backend/deploy/runtime guard remained green.</phase-77-evidence>
+  <mobile-scroll-dock-fix-verification status="pass-local" date="2026-06-07">
+    <scope>Phone viewport regression for touch-scroll ownership and persistent bottom navigation.</scope>
+    <gate-1>Long MTProto secret text must wrap in the dashboard without becoming a nested touch-scroll container.</gate-1>
+    <gate-2>Bottom dock offsets use viewport fixed positioning and safe-area values after the 480px breakpoint rules.</gate-2>
+    <commands>node scripts/phase61-responsive-adaptation-smoke.mjs; node scripts/phase77-subscription-mobile-polish-smoke.mjs; node scripts/phase72-user-auth-navigation-smoke.mjs.</commands>
+  </mobile-scroll-dock-fix-verification>
 </V-M-074>

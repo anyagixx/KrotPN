@@ -180,4 +180,10 @@
     <commands>node scripts/phase59-motion-interactions-smoke.mjs; node scripts/phase77-subscription-mobile-polish-smoke.mjs.</commands>
   </phase-77-verification-design>
   <phase-77-evidence status="pass-local" date="2026-06-05">Phase-59 and Phase-77 smokes passed for bounded calendar pulse classes, fixed dock interaction markers, reduced-motion fallback, pointer-safe Matrix layers, and no mobile scroll hijack.</phase-77-evidence>
+  <mobile-route-transform-fix-verification status="pass-local" date="2026-06-07">
+    <scope>Mobile-only route transform regression for fixed bottom navigation.</scope>
+    <gate-1>Route entrance transform stays available on larger screens but is disabled for mobile user content where it can scope fixed-position descendants.</gate-1>
+    <gate-2>Disabling mobile route transform must not remove reduced-motion policy, copy feedback, status motion, calendar pulses, or pointer-safety markers.</gate-2>
+    <commands>node scripts/phase59-motion-interactions-smoke.mjs; node scripts/phase77-subscription-mobile-polish-smoke.mjs.</commands>
+  </mobile-route-transform-fix-verification>
 </V-M-077>

@@ -104,4 +104,9 @@
     <acceptance>Phase-61 and Phase-77 smokes passed after frontend/admin builds with bundle budgets under limits.</acceptance>
   </phase-77-executed-scope>
   <phase-77-evidence status="pass-local" date="2026-06-05">Responsive adaptation passed local Phase-77 verification for fixed dock and mobile scroll-surface safety.</phase-77-evidence>
+  <mobile-scroll-dock-fix status="pass-local" date="2026-06-07">
+    <primary-files>frontend/src/pages/Dashboard.tsx frontend/src/components/Layout.tsx frontend/src/index.css scripts/phase77-subscription-mobile-polish-smoke.mjs</primary-files>
+    <primary-behaviors>Phone touch scroll remains page-owned over the MTProto secret block, and the bottom dock remains viewport-fixed with safe-area offsets across mobile navigation.</primary-behaviors>
+    <acceptance>Responsive evidence is tied to the Phase-77 smoke markers MTPROTO_SECRET_SCROLL_PASSIVE and MOBILE_DOCK_VIEWPORT_FIXED.</acceptance>
+  </mobile-scroll-dock-fix>
 </M-074>

@@ -22,6 +22,7 @@
  * END_MODULE_MAP
  *
  * START_CHANGE_SUMMARY
+ *   LAST_CHANGE: v4.4.1 - Hardened mobile MTProto secret scrolling and viewport-fixed bottom dock behavior.
  *   LAST_CHANGE: v4.4.0 - Added Phase-79 acid-pink cyber title styling for auth/public entry surfaces without external title font dependency.
  *   LAST_CHANGE: v4.3.1 - Removed the extra dark frame around config export actions and kept mobile copy text on one line.
  *   LAST_CHANGE: v4.3.0 - Added Phase-77 subscription day pulse colors, config link styling, fixed mobile dock, and touch-scroll safety.
@@ -1529,6 +1530,13 @@
     word-break: break-word;
   }
 
+  .matrix-terminal.matrix-mtproto-secret {
+    max-height: none;
+    overflow: visible;
+    touch-action: pan-y;
+    overscroll-behavior: auto;
+  }
+
   .phase57-responsive-grid,
   .phase57-mini-grid,
   .phase57-signal-strip,
@@ -1726,6 +1734,35 @@
     }
   }
 
+  @media (max-width: 767px) {
+    .matrix-visual-content.motion-route-enter {
+      animation: none;
+      transform: none;
+    }
+
+    .matrix-bottom-nav {
+      position: fixed;
+      left: max(0.5rem, env(safe-area-inset-left));
+      right: max(0.5rem, env(safe-area-inset-right));
+      bottom: max(0.5rem, env(safe-area-inset-bottom));
+      z-index: 80;
+      transform: translate3d(0, 0, 0);
+    }
+
+    .matrix-bottom-nav:hover,
+    .matrix-bottom-nav:focus-within {
+      transform: translate3d(0, 0, 0);
+    }
+
+    .matrix-terminal.matrix-mtproto-secret {
+      max-height: none;
+      overflow: visible;
+      touch-action: pan-y;
+      overscroll-behavior: auto;
+      -webkit-overflow-scrolling: auto;
+    }
+  }
+
   /* [ResponsiveAdaptation][phase61][PHONE_LAYOUT_PASS] */
   /* [ResponsiveAdaptation][phase61][TABLET_LAYOUT_PASS] */
   /* [ResponsiveAdaptation][phase61][NO_HORIZONTAL_SCROLL] */
@@ -1735,6 +1772,9 @@
   /* [ResponsiveAdaptation][phase72][MOBILE_DOCK_NO_OVERLAP] */
   /* [MobileUserCabinet][phase77][TOUCH_SCROLL_SAFE] */
   /* [ResponsiveAdaptation][phase77][MOBILE_DOCK_FIXED_SAFE] */
+  /* [MobileUserCabinet][fix][MTPROTO_SECRET_SCROLL_PASSIVE] */
+  /* [MobileUserCabinet][fix][MOBILE_DOCK_VIEWPORT_FIXED] */
+  /* [MatrixMotion][fix][MOBILE_ROUTE_TRANSFORM_OFF] */
   /* END_BLOCK_PHASE61_RESPONSIVE_ADAPTATION */
 }
 

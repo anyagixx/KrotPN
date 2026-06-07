@@ -59,6 +59,11 @@
     <acceptance>Phase-57, Phase-68, and Phase-77 smokes passed for premium user cabinet workflow preservation.</acceptance>
   </phase-77-executed-scope>
   <phase-77-evidence status="pass-local" date="2026-06-05">Premium user cabinet passed local Phase-77 verification.</phase-77-evidence>
+  <mobile-scroll-dock-fix status="pass-local" date="2026-06-07">
+    <primary-files>frontend/src/pages/Dashboard.tsx frontend/src/components/Layout.tsx frontend/src/index.css scripts/phase77-subscription-mobile-polish-smoke.mjs</primary-files>
+    <primary-behaviors>Premium cabinet keeps MTProto secret readable without trapping page scroll, and the mobile route menu stays fixed at the viewport bottom after navigation.</primary-behaviors>
+    <acceptance>Phase-77 smoke now guards the secret scroll class, viewport-fixed dock marker, and mobile route-transform shutdown.</acceptance>
+  </mobile-scroll-dock-fix>
   <config-action-polish-fix status="pass-local" date="2026-06-05">
     <primary-files>frontend/src/pages/Config.tsx frontend/src/index.css scripts/phase71-device-config-master-detail-smoke.mjs</primary-files>
     <primary-behaviors>/dashboard/config export actions keep QR, .conf, and Copy reachable while removing the extra dark frame around the action group and preventing the mobile "Копировать конфиг" label from wrapping.</primary-behaviors>

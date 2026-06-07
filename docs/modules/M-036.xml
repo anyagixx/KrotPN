@@ -105,6 +105,11 @@
     <acceptance>Phase-77, Phase-61, and Phase-72 smokes passed for dock visibility, safe-area padding, and no protected backend/deploy/runtime/admin drift.</acceptance>
   </phase-77-executed-scope>
   <phase-77-evidence status="pass-local" date="2026-06-05">Mobile user cabinet passed local Phase-77 dock and scroll-safety verification.</phase-77-evidence>
+  <mobile-scroll-dock-fix status="pass-local" date="2026-06-07">
+    <primary-files>frontend/src/pages/Dashboard.tsx frontend/src/components/Layout.tsx frontend/src/index.css scripts/phase77-subscription-mobile-polish-smoke.mjs</primary-files>
+    <primary-behaviors>MTProto secret text no longer creates an internal touch-scroll trap, and the mobile bottom navigation is hardened as a viewport-fixed dock even when route transition wrappers are present.</primary-behaviors>
+    <acceptance>Static smoke checks [MobileUserCabinet][fix][MTPROTO_SECRET_SCROLL_PASSIVE], [MobileUserCabinet][fix][MOBILE_DOCK_VIEWPORT_FIXED], and [MatrixMotion][fix][MOBILE_ROUTE_TRANSFORM_OFF].</acceptance>
+  </mobile-scroll-dock-fix>
   <config-action-polish-fix status="pass-local" date="2026-06-05">
     <primary-files>frontend/src/pages/Config.tsx frontend/src/index.css scripts/phase71-device-config-master-detail-smoke.mjs</primary-files>
     <primary-behaviors>Mobile /dashboard/config export actions keep QR, .conf, and "Копировать конфиг" compact; the copy button uses nowrap text and a narrow-phone layout that avoids splitting the Russian word.</primary-behaviors>

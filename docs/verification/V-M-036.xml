@@ -168,6 +168,13 @@
     <commands>cd frontend &amp;&amp; npm run build; node scripts/phase77-subscription-mobile-polish-smoke.mjs; node scripts/phase61-responsive-adaptation-smoke.mjs; node scripts/phase72-user-auth-navigation-smoke.mjs.</commands>
   </phase-77-verification-design>
   <phase-77-evidence status="pass-local" date="2026-06-05">Phase-77 smoke, Phase-61 responsive smoke, and Phase-72 user navigation smoke passed for fixed bottom dock, safe-area content padding, scroll-surface markers, and no protected backend/deploy/runtime/admin drift.</phase-77-evidence>
+  <mobile-scroll-dock-fix-verification status="pass-local" date="2026-06-07">
+    <scope>Regression gate for user-reported mobile cabinet scroll and bottom menu behavior.</scope>
+    <gate-1>Touch scrolling from the MTProto "Секрет" value must scroll the page, not an internal terminal block.</gate-1>
+    <gate-2>Mobile bottom navigation must remain fixed to the viewport after opening dashboard sections and must not depend on reaching the page bottom.</gate-2>
+    <gate-3>Mobile route transition CSS must not create a transformed ancestor that scopes fixed bottom navigation.</gate-3>
+    <commands>cd frontend &amp;&amp; npm run build; node scripts/phase77-subscription-mobile-polish-smoke.mjs; node scripts/phase61-responsive-adaptation-smoke.mjs; node scripts/phase72-user-auth-navigation-smoke.mjs; node scripts/phase59-motion-interactions-smoke.mjs.</commands>
+  </mobile-scroll-dock-fix-verification>
   <config-action-polish-verification status="pass-local">
     <scope>Mobile /dashboard/config export actions.</scope>
     <gate-1>QR, .conf, and "Копировать конфиг" must remain reachable from the selected-device detail without horizontal scroll.</gate-1>
