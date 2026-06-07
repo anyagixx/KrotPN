@@ -20,6 +20,7 @@
 // END_MODULE_MAP
 //
 // START_CHANGE_SUMMARY
+//   LAST_CHANGE: v3.9.1 - Removed "постоянный" from the user-visible MTProto card title copy.
 //   LAST_CHANGE: v3.9.0 - Added Phase-80 manual external MTProto source and telemetry-unavailable owner copy.
 //   LAST_CHANGE: v3.8.0 - Executed Phase-68 dashboard compaction: removed command center and secondary fold, placed MTProto first, and embedded shared subscription panel.
 //   LAST_CHANGE: v3.7.0 - Added Phase-62 dashboard deletion audit markers and folded duplicate traffic/device diagnostics behind a secondary surface.
@@ -192,7 +193,7 @@ export default function Dashboard() {
         <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
           <div className="min-w-0">
             <h1 className="text-xl font-extrabold text-white">
-              Ваш бесплатный постоянный <span className="text-emerald-100">Telegram MTProto</span> прокси
+              Ваш бесплатный <span className="text-emerald-100">Telegram MTProto</span> прокси
             </h1>
             <p className="mt-2 text-sm muted">
               {mtprotoIntroText(mtproto, mtprotoLoading, mtprotoError)}

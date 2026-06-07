@@ -8,7 +8,7 @@
   <requirements>
     <requirement-1>The user shell logo must be frameless like the public/auth screens while staying visible in desktop sidebar and mobile top bar.</requirement-1>
     <requirement-2>The dashboard must remove phase57-command-center and phase62-secondary-fold surfaces from the main page without hiding primary actions.</requirement-2>
-    <requirement-3>The MTProto card must remove "Индивидуальный Telegram proxy готов к использованию." and "Личный proxy"; it must show "Ваш бесплатный постоянный Telegram MTProto прокси" with Telegram MTProto visually emphasized.</requirement-3>
+    <requirement-3>The MTProto card must remove "Индивидуальный Telegram proxy готов к использованию." and "Личный proxy"; it must show "Ваш бесплатный Telegram MTProto прокси" with Telegram MTProto visually emphasized.</requirement-3>
     <requirement-4>The subscription page content must be moved under the MTProto card on /dashboard; /dashboard/subscription must remain non-breaking through redirect, anchor, or equivalent compatibility handling.</requirement-4>
     <requirement-5>Pending trial copy must say "Конфиг уже доступен. Таймер на 4 дня стартует после первого подключения." and must not show the extra warning badge "Trial начнется после первого VPN подключения".</requirement-5>
     <requirement-6>Remove phase57-card-compact phase62-inline-details subscription included/features blocks and remove "Детали тарифа" detail folds from every tariff card.</requirement-6>

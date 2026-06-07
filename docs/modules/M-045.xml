@@ -50,6 +50,7 @@
     <evidence-7>2026-06-01: Phase-46 frontend build and UX smoke passed for tg:// Telegram app action, https://t.me browser link, Russian labels, bounded status refresh, and no secret-bearing console output.</evidence-7>
     <evidence-8>2026-06-03: Phase-53 smoke passed for compact Matrix MTProto card, tg:// and https://t.me action preservation, Russian labels, 30s bounded refresh, and no secret-bearing console traces.</evidence-8>
     <evidence-9>2026-06-04: Phase-68 smoke passed for MTProto-first dashboard placement, approved title/copy, removed stale helper text, tg:///https://t.me preservation, and redaction.</evidence-9>
+    <evidence-10>2026-06-07: User-visible MTProto card title copy was shortened to remove "постоянный" while preserving Telegram MTProto emphasis and owner-only proxy actions.</evidence-10>
   </evidence>
   <hotspot>H-031: User dashboard must show MTProto access compactly without hiding VPN trial status or config actions</hotspot>
 </M-045>

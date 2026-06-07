@@ -129,7 +129,7 @@
   </evidence>
   <phase-68-verification-design status="pass-local">
     <scope>Dashboard MTProto card verification after cabinet copy and layout compaction.</scope>
-    <gate-1>Card title must be "Ваш бесплатный постоянный Telegram MTProto прокси" with Telegram MTProto visually emphasized.</gate-1>
+    <gate-1>Card title must be "Ваш бесплатный Telegram MTProto прокси" with Telegram MTProto visually emphasized.</gate-1>
     <gate-2>The card must remove "Индивидуальный Telegram proxy готов к использованию." and "Личный proxy".</gate-2>
     <gate-3>Russian field labels and link behavior from Phase-46/47 must remain intact.</gate-3>
     <gate-4>Status badge must remain dynamically refreshed and must not claim ready state if the API reports pending/preparing.</gate-4>

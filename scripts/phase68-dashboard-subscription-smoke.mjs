@@ -20,6 +20,7 @@
  * END_MODULE_MAP
  *
  * START_CHANGE_SUMMARY
+ *   LAST_CHANGE: v1.0.2 - Updated MTProto card title assertion after removal of "постоянный" from user-visible copy.
  *   LAST_CHANGE: v1.0.1 - Aligned pending-first-connection copy assertion with i18n-backed SubscriptionPanel rendering.
  *   LAST_CHANGE: v1.0.0 - Added Phase-68 dashboard subscription merge smoke gate.
  * END_CHANGE_SUMMARY
@@ -104,7 +105,7 @@ for (const needle of [
   'data-phase68-dashboard="mtproto-subscription-compact"',
   'data-phase68-mtproto-card="primary-first"',
   '<SubscriptionPanel compact />',
-  'Ваш бесплатный постоянный',
+  'Ваш бесплатный',
   'Telegram MTProto',
   'MTPROTO_STATUS_REFRESH_MS = 30000',
   'tg://proxy?',

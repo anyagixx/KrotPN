@@ -21,6 +21,7 @@
  * END_MODULE_MAP
  *
  * START_CHANGE_SUMMARY
+ *   LAST_CHANGE: v1.1.1 - Updated MTProto card title assertion after removal of "постоянный" from user-visible copy.
  *   LAST_CHANGE: v1.1.0 - Accepted Phase-68 removal of dashboard command center/raw config while preserving protected workflows.
  *   LAST_CHANGE: v1.0.0 - Added Phase-57 premium user cabinet verification gate
  * END_CHANGE_SUMMARY
@@ -162,7 +163,7 @@ for (const needle of [
   'data-phase68-dashboard="mtproto-subscription-compact"',
   'data-phase68-mtproto-card="primary-first"',
   '<SubscriptionPanel compact />',
-  'Ваш бесплатный постоянный',
+  'Ваш бесплатный',
   'Telegram MTProto',
 ]) {
   assertContains(dashboard, needle, 'frontend/src/pages/Dashboard.tsx')
